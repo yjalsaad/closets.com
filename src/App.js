@@ -301,11 +301,12 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
             <span style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.02em' }}>Closets Co.</span></>}
       </button>
       <div style={{ display: 'flex', gap: 0 }}>
-        {[['home','home'],['products','gallery'],['planner','design'],['about','story'],['contact','contact']].map(([p, key]) => (
-          <button type="button" key={p} onClick={() => setPage(p)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 14px', fontSize: 14, fontWeight: page === p ? 500 : 400, color: page === p ? '#1d1d1f' : '#86868b', borderRadius: 8, transition: 'color .2s' }}>{tr(key)}</button>
+        {[['home','home','Home'],['products','gallery','Gallery'],['projects','projects','Projects'],['planner','design','Design'],['ai','ai','AI Designer'],['showrooms','showrooms','Showrooms'],['blog','blog','Inspiration'],['contact','contact','Contact']].map(([p, key, label]) => (
+          <button type="button" key={p} onClick={() => setPage(p)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 12px', fontSize: 14, fontWeight: page === p ? 500 : 400, color: page === p ? '#1d1d1f' : '#86868b', borderRadius: 8, transition: 'color .2s' }}>{label || tr(key)}</button>
         ))}
       </div>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <button type="button" onClick={() => setPage('booking')} style={{ background: '#F97316', border: 'none', borderRadius: 980, padding: '7px 16px', fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', minHeight: 34 }}>Book a visit</button>
         <button type="button" onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')} title="Language" style={{ background: '#f5f5f7', border: 'none', borderRadius: 980, padding: '7px 14px', fontSize: 13, fontWeight: 600, color: '#1d1d1f', cursor: 'pointer', minHeight: 34 }}>
           {lang === 'ar' ? 'EN' : 'ع'}
         </button>
@@ -470,9 +471,19 @@ function ProductDetailPage({ productId, products, setPage, addToCart, setConfigP
   const product = products.find(p => p.id === productId);
   const [qty, setQty] = useState(1);
   const mobile = useMobile();
+  const [aiRecIds, setAiRecIds] = useState([]);
   useReveal();
+  useEffect(() => {
+    if (!product) return; let alive = true;
+    fetch(SUPA_URL + '/functions/v1/recommend_products', { method:'POST', headers:{ apikey:SUPA_KEY, Authorization:'Bearer '+SUPA_KEY, 'Content-Type':'application/json' }, body: JSON.stringify({ product_id: product.id, category: product.category }) })
+      .then(r => r.json()).then(d => { if (alive && d && d.ok && Array.isArray(d.items)) setAiRecIds(d.items.map(i => i.id)); }).catch(() => {});
+    return () => { alive = false; };
+  }, [productId]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!product) return <div style={{ padding: '100px 24px', textAlign: 'center' }}><button type="button" className="btn-secondary" onClick={() => setPage('products')}>← Back</button></div>;
-  const related = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, mobile ? 2 : 3);
+  const localRelated = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, mobile ? 2 : 3);
+  const aiRelated = aiRecIds.map(id => products.find(p => p.id === id)).filter(p => p && p.id !== product.id);
+  const related = aiRelated.length ? aiRelated.slice(0, mobile ? 2 : 3) : localRelated;
+  const recLabel = aiRelated.length ? 'Recommended for you ✦' : 'You may also like';
   return (
     <div style={{ minHeight: '100vh', paddingTop: mobile ? 0 : 72, paddingBottom: mobile ? 100 : 0, background: '#fff' }}>
       {mobile && (
@@ -499,9 +510,10 @@ function ProductDetailPage({ productId, products, setPage, addToCart, setConfigP
         ) : (
           <ProductInfo product={product} qty={qty} setQty={setQty} addToCart={addToCart} setConfigProduct={setConfigProduct} setPage={setPage} mobile={true} />
         )}
+        <ProductAR product={product} mobile={mobile} />
         {related.length > 0 && (
           <div>
-            <h2 style={{ fontSize: mobile ? 20 : 24, fontWeight: 700, letterSpacing: '-.02em', color: '#1d1d1f', marginBottom: 18 }}>You may also like</h2>
+            <h2 style={{ fontSize: mobile ? 20 : 24, fontWeight: 700, letterSpacing: '-.02em', color: '#1d1d1f', marginBottom: 18 }}>{recLabel}</h2>
             <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 12 : 18 }}>
               {related.map(p => <ProductCard key={p.id} product={p} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />)}
             </div>
@@ -512,6 +524,25 @@ function ProductDetailPage({ productId, products, setPage, addToCart, setConfigP
   );
 }
 
+function ProductAR({ product, mobile }) {
+  if (!product || !product.model_url) return null;
+  return (
+    <div style={{ marginBottom: mobile ? 56 : 80 }}>
+      <h2 style={{ fontSize: mobile ? 20 : 24, fontWeight: 700, letterSpacing: '-.02em', color: '#1d1d1f', marginBottom: 14 }}>See it in 3D &amp; your room</h2>
+      {React.createElement('model-viewer', {
+        src: product.model_url,
+        'ios-src': product.ar_ios_url || undefined,
+        ar: true, 'ar-modes': 'webxr scene-viewer quick-look',
+        'camera-controls': true, 'auto-rotate': true, 'shadow-intensity': '1',
+        poster: product.image_url || undefined, alt: product.name,
+        style: { width: '100%', height: mobile ? 320 : 460, background: '#f5f5f7', borderRadius: 18 },
+      },
+        React.createElement('button', { slot: 'ar-button', key: 'arbtn', style: { position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', background: '#F97316', color: '#fff', border: 'none', borderRadius: 980, padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' } }, '📱 View in your room')
+      )}
+      <div style={{ fontSize: 12, color: '#aaa', marginTop: 8 }}>Drag to rotate · on a phone tap “View in your room” for AR. Representative model — your exact unit is finalised at your free design visit.</div>
+    </div>
+  );
+}
 function ProductInfo({ product, qty, setQty, addToCart, setConfigProduct, setPage, mobile }) {
   return (
     <div>
@@ -657,6 +688,9 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
     const f = new THREE.DirectionalLight(0xffffff, 0.28); f.position.set(-5, 3, -4); scene.add(f);
 
     let group = null, raf = 0, drag = false, px = 0, py = 0, rotY = -0.5, rotX = 0.05;
+    // interactive-configurator targets (smooth orbit + zoom)
+    let zoom = 9, tRotY = -0.5, tRotX = 0.05, tZoom = 9, pinchD = 0;
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
     const mat = (c) => new THREE.MeshLambertMaterial({ color: new THREE.Color(c) });
     const box = (bw, bh, bd, m) => new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), m);
 
@@ -838,22 +872,36 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
 
     const md = (e) => { drag = true; px = e.clientX; py = e.clientY; };
     const mu = () => { drag = false; };
-    const mm = (e) => { if (!drag) return; rotY += (e.clientX - px) * 0.01; rotX += (e.clientY - py) * 0.01; rotX = Math.max(-0.5, Math.min(0.6, rotX)); px = e.clientX; py = e.clientY; };
-    const ts = (e) => { drag = true; px = e.touches[0].clientX; py = e.touches[0].clientY; };
-    const tm = (e) => { if (!drag) return; rotY += (e.touches[0].clientX - px) * 0.01; rotX += (e.touches[0].clientY - py) * 0.01; rotX = Math.max(-0.5, Math.min(0.6, rotX)); px = e.touches[0].clientX; py = e.touches[0].clientY; };
+    const mm = (e) => { if (!drag) return; tRotY += (e.clientX - px) * 0.01; tRotX = clamp(tRotX + (e.clientY - py) * 0.01, -0.5, 0.6); px = e.clientX; py = e.clientY; };
+    const wheel = (e) => { e.preventDefault(); tZoom = clamp(tZoom + (e.deltaY > 0 ? 0.6 : -0.6), 5, 16); };
+    const ts = (e) => { if (e.touches.length === 2) { const dx = e.touches[0].clientX - e.touches[1].clientX, dy = e.touches[0].clientY - e.touches[1].clientY; pinchD = Math.hypot(dx, dy); drag = false; } else { drag = true; px = e.touches[0].clientX; py = e.touches[0].clientY; } };
+    const tm = (e) => {
+      if (e.touches.length === 2) { const dx = e.touches[0].clientX - e.touches[1].clientX, dy = e.touches[0].clientY - e.touches[1].clientY; const d = Math.hypot(dx, dy); if (pinchD) tZoom = clamp(tZoom + (pinchD - d) * 0.02, 5, 16); pinchD = d; return; }
+      if (!drag) return; tRotY += (e.touches[0].clientX - px) * 0.01; tRotX = clamp(tRotX + (e.touches[0].clientY - py) * 0.01, -0.5, 0.6); px = e.touches[0].clientX; py = e.touches[0].clientY;
+    };
     mount.addEventListener('mousedown', md); window.addEventListener('mouseup', mu); window.addEventListener('mousemove', mm);
+    mount.addEventListener('wheel', wheel, { passive: false });
     mount.addEventListener('touchstart', ts, { passive: true }); window.addEventListener('touchend', mu); mount.addEventListener('touchmove', tm, { passive: true });
+    // expose zoom/reset for on-canvas controls
+    sceneRef.current = { rebuild, zoomBy: (d) => { tZoom = clamp(tZoom + d, 5, 16); }, reset: () => { tRotY = -0.5; tRotX = 0.05; tZoom = 9; } };
     const onResize = () => { const nw = mount.clientWidth || w, nh = mount.clientHeight || h; if (nw < 50 || nh < 50) return; renderer.setSize(nw, nh); camera.aspect = nw / nh; camera.updateProjectionMatrix(); };
     window.addEventListener('resize', onResize);
     // Re-measure once the container has settled (fixes skew from 0-size init)
     let ro = null;
     if (window.ResizeObserver) { ro = new ResizeObserver(() => onResize()); ro.observe(mount); }
     setTimeout(onResize, 100); setTimeout(onResize, 400);
-    function animate() { raf = requestAnimationFrame(animate); if (group) group.rotation.set(rotX, rotY, 0); renderer.render(scene, camera); }
+    function animate() {
+      raf = requestAnimationFrame(animate);
+      rotX += (tRotX - rotX) * 0.12; rotY += (tRotY - rotY) * 0.12; zoom += (tZoom - zoom) * 0.12;
+      camera.position.z = zoom;
+      if (group) group.rotation.set(rotX, rotY, 0);
+      renderer.render(scene, camera);
+    }
     animate();
     return () => {
       cancelAnimationFrame(raf);
       mount.removeEventListener('mousedown', md); window.removeEventListener('mouseup', mu); window.removeEventListener('mousemove', mm);
+      mount.removeEventListener('wheel', wheel);
       mount.removeEventListener('touchstart', ts); window.removeEventListener('touchend', mu); mount.removeEventListener('touchmove', tm);
       window.removeEventListener('resize', onResize);
       if (ro) ro.disconnect();
@@ -863,9 +911,20 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
   }, [ready]);
 
   if (failed && fallback) return <>{fallback}</>;
+  const ctrlBtn = { width: 34, height: 34, borderRadius: 8, border: '1px solid #e3e3e6', background: 'rgba(255,255,255,.92)', color: '#1d1d1f', fontSize: 18, lineHeight: '1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 3px rgba(0,0,0,.08)' };
   return (
     <div style={{ width: '100%', height: tall ? '100%' : (mobile ? 340 : 460), minHeight: tall ? (mobile?340:560) : undefined, position: 'relative' }} ref={mountRef}>
       {!ready && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 13 }}>Loading 3D…</div>}
+      {ready && tall && (
+        <>
+          <div style={{ position: 'absolute', right: 12, bottom: 12, display: 'flex', flexDirection: 'column', gap: 6, zIndex: 2 }}>
+            <button type="button" aria-label="Zoom in" style={ctrlBtn} onClick={() => sceneRef.current && sceneRef.current.zoomBy(-1.2)}>+</button>
+            <button type="button" aria-label="Zoom out" style={ctrlBtn} onClick={() => sceneRef.current && sceneRef.current.zoomBy(1.2)}>−</button>
+            <button type="button" aria-label="Reset view" style={{ ...ctrlBtn, fontSize: 14 }} onClick={() => sceneRef.current && sceneRef.current.reset()}>⟲</button>
+          </div>
+          <div style={{ position: 'absolute', left: 12, bottom: 12, fontSize: 11, color: '#8a8a8e', background: 'rgba(255,255,255,.7)', padding: '4px 9px', borderRadius: 20, pointerEvents: 'none' }}>Drag to rotate · scroll to zoom</div>
+        </>
+      )}
     </div>
   );
 }
@@ -890,6 +949,25 @@ function PlannerPage({ setPage, user }) {
   const [aiText, setAiText] = useState('');
   const [aiBusy, setAiBusy] = useState(false);
   const [aiSummary, setAiSummary] = useState('');
+  const [aiImage, setAiImage] = useState(null); // { dataUrl, media_type, base64 }
+  // Downscale an uploaded room photo client-side so the payload stays small.
+  const onAiPhoto = (file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 1024; let { width:w, height:h } = img;
+        if (w > h && w > max) { h = Math.round(h*max/w); w = max; } else if (h > max) { w = Math.round(w*max/h); h = max; }
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        const dataUrl = c.toDataURL('image/jpeg', 0.72);
+        setAiImage({ dataUrl, media_type: 'image/jpeg', base64: dataUrl.split(',')[1] });
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  };
   const [openSec, setOpenSec] = useState('door_finishes');
   const priceTimer = useRef(null);
 
@@ -1023,25 +1101,31 @@ function PlannerPage({ setPage, user }) {
   const cardBg = (it) => it.image_url ? `center/cover url(${it.image_url})` : (it.swatch || 'linear-gradient(135deg,#ece7df,#ddd5c8)');
 
   const runAI = async () => {
-    if (!aiText.trim()) return;
+    if (!aiText.trim() && !aiImage) return;
     setAiBusy(true);
     try {
       const r = await fetch(SUPA_URL + '/functions/v1/planner_ai_design', {
-        method: 'POST', headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ text: aiText }),
+        method: 'POST', headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: aiText, product: selProduct?.id || undefined, image_base64: aiImage?.base64, media_type: aiImage?.media_type }),
       });
       const d = await r.json();
       if (d.ok && d.design) {
         const g = d.design;
-        if (g.layout) setLayout(g.layout);
-        if (g.finish_id) setFinishId(g.finish_id);
-        setDims(c => ({ ...c, width: g.width_cm || c.width, height: g.height_cm || c.height, depth: g.depth_cm || c.depth }));
-        if (g.options && typeof g.options === 'object') {
-          const ns = {}; Object.keys(g.options).forEach(k => { ns[k] = g.options[k]; });
-          // map finish to door_finishes if a swatch finish matches one
-          setSel(ns);
-        }
-        setAiSummary(g.summary || '');
-        setStage('config');
+        // Switch to the AI-chosen product first (this resets layout), then apply the rest after the reset.
+        const pp = g.product && PLANNER_PRODUCTS.find(p => p.id === g.product);
+        if (pp) setSelProduct({ id: pp.id, name: pp.name, ready: true });
+        const apply = () => {
+          if (g.layout) setLayout(g.layout);
+          if (g.finish_id) setFinishId(g.finish_id);
+          setDims(c => ({ ...c, width: g.width_cm || c.width, height: g.height_cm || c.height, depth: g.depth_cm || c.depth }));
+          if (g.options && typeof g.options === 'object') {
+            const ns = {}; Object.keys(g.options).forEach(k => { ns[k] = g.options[k]; });
+            setSel(ns);
+          }
+          setAiSummary(g.summary || '');
+          setStage('config');
+        };
+        if (pp) setTimeout(apply, 0); else apply();
       } else {
         toast('Could not generate a design — try describing it differently', 'error');
       }
@@ -1165,13 +1249,22 @@ function PlannerPage({ setPage, user }) {
           <span style={{ fontSize:17, fontWeight:600 }}>Describe your space — we'll design a starting point</span>
         </div>
         <textarea value={aiText} onChange={e=>setAiText(e.target.value)} placeholder="e.g. a walk-in closet for a master bedroom, warm oak, lots of shoes and hanging space, with soft lighting" rows={3} style={{ width:'100%', padding:'12px 14px', border:'0.5px solid #d0d0d0', borderRadius:12, fontSize:15, fontFamily:'inherit', resize:'vertical', marginBottom:12 }} />
-        <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:18 }}>
-          {['Small bedroom, sliding doors, white','Walk-in, oak, lots of shoes','Modern graphite, glass doors, LED'].map(chip=>(
+        <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:14 }}>
+          {['Small bedroom, sliding doors, white','Walk-in, oak, lots of shoes','Modern L-shape kitchen, white, quartz'].map(chip=>(
             <button key={chip} type="button" onClick={()=>setAiText(chip)} style={{ fontSize:12, border:'0.5px solid #d0d0d0', borderRadius:16, padding:'6px 13px', background:'#fff', cursor:'pointer' }}>{chip}</button>
           ))}
         </div>
+        {/* Room photo (vision) */}
+        <label style={{ display:'flex', alignItems:'center', gap:12, background:'#fff', border:'0.5px dashed #c0c0c0', borderRadius:12, padding:'12px 14px', cursor:'pointer', marginBottom:16 }}>
+          {aiImage
+            ? <img src={aiImage.dataUrl} alt="room" style={{ width:54, height:42, objectFit:'cover', borderRadius:8 }} />
+            : <i className="ti ti-camera" style={{ fontSize:22, color:'#F97316' }} aria-hidden="true" />}
+          <span style={{ fontSize:14, color:'#1d1d1f', fontWeight:500 }}>{aiImage ? 'Photo added — tap to change' : 'Add a photo of your room (optional)'}</span>
+          <input type="file" accept="image/*" onChange={e=>onAiPhoto(e.target.files?.[0])} style={{ display:'none' }} />
+          {aiImage && <span onClick={e=>{ e.preventDefault(); setAiImage(null); }} style={{ marginLeft:'auto', color:'#aaa', fontSize:18 }}>×</span>}
+        </label>
         <div style={{ display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
-          <button type="button" className="btn" disabled={aiBusy || !aiText.trim()} onClick={runAI} style={{ borderRadius:12, opacity:(aiBusy||!aiText.trim())?0.6:1 }}>{aiBusy ? 'Designing…' : 'Generate my design ✦'}</button>
+          <button type="button" className="btn" disabled={aiBusy || (!aiText.trim() && !aiImage)} onClick={runAI} style={{ borderRadius:12, opacity:(aiBusy||(!aiText.trim()&&!aiImage))?0.6:1 }}>{aiBusy ? 'Designing…' : 'Generate my design ✦'}</button>
           <button type="button" onClick={()=>setStage('config')} style={{ background:'none', border:'none', color:'#86868b', fontSize:14, cursor:'pointer' }}>or start from scratch →</button>
         </div>
         <div style={{ marginTop:18 }}><span onClick={()=>setStage('product')} style={{ cursor:'pointer', fontSize:13, color:'#aaa' }}>‹ Back</span></div>
@@ -1326,9 +1419,24 @@ function PlannerPage({ setPage, user }) {
             {/* PRICE + CTA */}
             <div style={{ marginTop:6, background:'#fff', border:'0.5px solid #e6e6e6', borderRadius:14, padding:'14px 16px', position: mobile?'static':'sticky', bottom:0 }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:10 }}>
-                <span style={{ fontSize:12, color:'#86868b' }}>Estimated total</span>
+                <span style={{ fontSize:12, color:'#86868b' }}>Estimated total · Standard</span>
                 <span style={{ fontSize:22, fontWeight:700, color:'#F97316' }}>{pricing?'…':fmt(total)}</span>
               </div>
+              {total>0 && !pricing && (
+                <div style={{ marginBottom:12 }}>
+                  <div style={{ fontSize:11, color:'#86868b', marginBottom:6 }}>Choose your package</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6 }}>
+                    {[['Economy',0.72,'Quality essentials'],['Standard',1,'Most popular'],['Premium',1.45,'Premium finishes'],['Luxury',2.1,'Top-tier materials']].map(([name,mult,hl],i)=>(
+                      <div key={name} style={{ border:'0.5px solid '+(i===1?'#F97316':'#e6e6e6'), background:i===1?'#FFF7EF':'#fff', borderRadius:10, padding:'8px 6px', textAlign:'center' }}>
+                        <div style={{ fontSize:11, fontWeight:700, color:i===1?'#F97316':'#1d1d1f' }}>{name}</div>
+                        <div style={{ fontSize:12, fontWeight:700, color:'#1d1d1f', marginTop:3 }}>{fmt(Math.round(total*mult))}</div>
+                        <div style={{ fontSize:9, color:'#999', marginTop:2, lineHeight:1.2 }}>{hl}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ fontSize:10, color:'#aaa', marginTop:5 }}>Indicative ranges — your free design visit confirms an exact quote.</div>
+                </div>
+              )}
               <div style={{ display:'flex', gap:8 }}>
                 <button type="button" className="btn-secondary" disabled={busy} onClick={save} style={{ flex:1, borderRadius:12, color: saved?'#1a7a40':'#6e6e73' }}>{saved?'✓ Saved':'Save'}</button>
                 <button type="button" className="btn" disabled={busy} onClick={requestQuote} style={{ flex:2, borderRadius:12 }}>Get a quote →</button>
@@ -1594,23 +1702,20 @@ function AuthModal({ mode, setMode, setUser, onClose }) {
   const mobile = useMobile();
   const submit = async () => {
     if (!form.email||!form.password) { toast('Email and password required', 'error'); return; }
+    if (mode!=='login' && !form.name) { toast('Name required', 'error'); return; }
     setLoading(true);
-    if (mode==='login') {
-      const res = await api(`customers?email=eq.${encodeURIComponent(form.email)}&select=*&limit=1`);
-      if (!Array.isArray(res)||res.length===0) { toast('Account not found', 'error'); setLoading(false); return; }
-      const u = res[0];
-      if (u.password_hash && u.password_hash !== btoa(form.password)) { toast('Incorrect password', 'error'); setLoading(false); return; }
-      setUser(u); localStorage.setItem('closets_user', JSON.stringify(u)); toast('Welcome back ✓', 'success'); onClose();
-    } else {
-      if (!form.name) { toast('Name required', 'error'); setLoading(false); return; }
-      const check = await api(`customers?email=eq.${encodeURIComponent(form.email)}&select=id&limit=1`);
-      if (Array.isArray(check)&&check.length>0) { toast('Account already exists', 'error'); setLoading(false); return; }
-      const u = { id:uid(), name:form.name, email:form.email, phone:form.phone, password_hash:btoa(form.password), points:100, tier:'Bronze', active:true, created_at:new Date().toISOString() };
-      await api('customers', { method:'POST', body:[u] });
-      await api('website_rewards', { method:'POST', body:[{ id:uid(), customer_id:u.id, type:'earned', points:100, description:'Welcome bonus', created_at:new Date().toISOString() }] });
-      setUser(u); localStorage.setItem('closets_user', JSON.stringify(u)); toast('Account created — 100 points added ✓', 'success'); onClose();
-    }
-    setLoading(false);
+    // Secure server-side auth (bcrypt) — passwords never handled or read by the browser.
+    const hdr = { ...H, Prefer: 'return=representation' };
+    try {
+      const u = mode==='login'
+        ? await api('rpc/customer_login', { method:'POST', headers:hdr, body:{ p_email: form.email, p_password: form.password } })
+        : await api('rpc/customer_register', { method:'POST', headers:hdr, body:{ p_email: form.email, p_password: form.password, p_name: form.name, p_phone: form.phone||null } });
+      if (!u || !u.id) throw new Error('Unexpected response');
+      setUser(u); localStorage.setItem('closets_user', JSON.stringify(u));
+      toast(mode==='login'?'Welcome back ✓':'Account created — 100 points added ✓', 'success'); onClose();
+    } catch (e) {
+      toast(e.message || 'Could not sign in', 'error');
+    } finally { setLoading(false); }
   };
   return (
     <>
@@ -1672,7 +1777,13 @@ function ContactPage() {
   const { t } = useI18n();
   const submit = async () => {
     if (!form.name||!form.email) { toast('Name and email required', 'error'); return; }
-    await api('leads', { method:'POST', body:[{ id:uid(), customer_name:form.name, customer_email:form.email, customer_phone:form.phone, interest:form.product, budget:form.budget, notes:form.message, source:'Website', status:'New', stage:'New', platform:'Website', created_at:new Date().toISOString() }] });
+    // Route through the audited public_lead_submit RPC (validates, writes lead, queues team notification)
+    await api('rpc/public_lead_submit', { method:'POST', body:{
+      p_name: form.name, p_phone: form.phone || null, p_email: form.email || null,
+      p_source: 'Website - Contact', p_interest: form.product || null,
+      p_message: form.message || null, p_budget: form.budget ? Number(form.budget) : null,
+      p_meta: { page: 'contact' }
+    }});
     setSent(true); toast('Message sent ✓', 'success');
   };
   return (
@@ -1727,11 +1838,16 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
   const total = cart.reduce((s,i)=>s+parseFloat(i.price||0), 0);
   const mobile = useMobile();
   const place = async () => {
-    const id = 'ORD-'+Date.now().toString(36).toUpperCase();
-    await api('sales_orders', { method:'POST', body:[{ id, order_number:id, customer_name:form.name, customer_email:form.email, customer_phone:form.phone, delivery_address:form.address+', '+form.city, items:JSON.stringify(cart), total_amount:total, payment_method:form.payment, notes:form.notes, status:'New', source:'Website', created_at:new Date().toISOString() }] });
+    // Audited order intake (validates, writes sales_order with correct columns, notifies team)
+    const id = await api('rpc/public_order_submit', { method:'POST', body:{
+      p_name: form.name, p_phone: form.phone || null, p_email: form.email || null,
+      p_address: (form.address ? form.address+', ' : '')+form.city,
+      p_items: cart, p_total: total, p_payment: form.payment, p_notes: form.notes || null,
+      p_customer_id: user?.id || null
+    }});
     if (user) {
       const pts = Math.floor(total*10);
-      await api('website_rewards', { method:'POST', body:[{ id:uid(), customer_id:user.id, type:'earned', points:pts, description:`Order ${id}`, created_at:new Date().toISOString() }] });
+      await api('website_rewards', { method:'POST', body:[{ id:uid(), customer_id:user.id, type:'earned', points:pts, description:'Website order', created_at:new Date().toISOString() }] });
       await api(`website_customers?id=eq.${user.id}`, { method:'PATCH', body:{ points:(user.points||0)+pts, updated_at:new Date().toISOString() } });
     }
     setCart([]); setStep(3);
@@ -1797,6 +1913,33 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
 }
 
 /* ── HOME PAGE ── */
+function HomeAIOffers({ setPage, mobile, P }) {
+  const [offers, setOffers] = useState([]);
+  useEffect(() => { api('store_offers?active=eq.true&order=sort_order.asc&limit=3').then(d => { if (Array.isArray(d)) setOffers(d); }).catch(()=>{}); }, []);
+  return (<>
+    <section style={{ padding:`0 ${P}`, maxWidth:1200, margin:'28px auto 0' }}>
+      <div className="reveal" style={{ background:'linear-gradient(135deg,#1d1d1f,#3a3530)', borderRadius:20, padding: mobile?24:36, color:'#fff', display:'flex', flexWrap:'wrap', gap:16, alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ maxWidth:580 }}>
+          <div style={{ fontSize:12, letterSpacing:'.15em', textTransform:'uppercase', color:'#F9A35C' }}>New · AI Interior Designer</div>
+          <div style={{ fontSize: mobile?22:30, fontWeight:700, margin:'8px 0', lineHeight:1.15 }}>Describe your room or upload a photo — get a tailored design in seconds.</div>
+          <div style={{ fontSize:14, color:'#c9c7c3' }}>Layout, materials, colours, storage ideas and indicative pricing, composed by AI.</div>
+        </div>
+        <button type="button" onClick={()=>setPage('ai')} style={{ background:'#F97316', color:'#fff', border:'none', borderRadius:980, padding:'13px 26px', fontSize:15, fontWeight:600, cursor:'pointer' }}>Try the AI Designer ✦</button>
+      </div>
+    </section>
+    {offers.length>0 && (
+      <section style={{ padding:`28px ${P} 0`, maxWidth:1200, margin:'0 auto' }}>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:12 }}>
+          {offers.map(o=>(<button type="button" key={o.id} onClick={()=>setPage('offers')} className="reveal" style={{ textAlign:'left', background:'#FFF7EF', border:'1px solid #F9731622', borderRadius:16, padding:'16px 18px', cursor:'pointer' }}>
+            {o.badge && <span style={{ fontSize:11, fontWeight:700, color:'#F97316' }}>{o.badge}</span>}
+            <div style={{ fontSize:15, fontWeight:700, color:'#1d1d1f', marginTop:4 }}>{o.title}</div>
+            <div style={{ fontSize:13, color:'#86868b', marginTop:3 }}>{o.subtitle}</div>
+          </button>))}
+        </div>
+      </section>
+    )}
+  </>);
+}
 function HomePage({ products, testimonials, banners, siteLogo, setPage, addToCart, setConfigProduct }) {
   const { t } = useI18n();
   const mobile = useMobile();
@@ -1806,6 +1949,7 @@ function HomePage({ products, testimonials, banners, siteLogo, setPage, addToCar
   return (
     <div style={{ background:'#fff' }}>
       <Hero setPage={setPage} banners={banners} />
+      <HomeAIOffers setPage={setPage} mobile={mobile} P={P} />
       {/* Collections */}
       <section style={{ padding:`72px ${P}`, maxWidth:1200, margin:'0 auto' }}>
         <div className="reveal" style={{ marginBottom:28 }}>
@@ -1871,14 +2015,7 @@ function HomePage({ products, testimonials, banners, siteLogo, setPage, addToCar
           <button type="button" className="btn" onClick={()=>setPage('contact')} style={{ fontSize:16, padding:'15px 32px', borderRadius:16 }}>{t('bookConsult')}</button>
         </div>
       </section>
-      {/* Footer */}
-      <footer style={{ borderTop:'1px solid #f5f5f7', padding: mobile ? '28px 16px' : '32px 40px' }}>
-        <div style={{ maxWidth:1200, margin:'0 auto', display:'flex', flexDirection: mobile ? 'column' : 'row', justifyContent:'space-between', alignItems: mobile ? 'flex-start' : 'center', gap: mobile ? 6 : 0 }}>
-          <div style={{ fontSize:15, fontWeight:600, color:'#1d1d1f' }}>Closets Co.</div>
-          <div style={{ fontSize:13, color:'#86868b' }}>© 2025 · Manama, Bahrain</div>
-          <div style={{ fontSize:13, color:'#86868b' }}>+973 1700 0000</div>
-        </div>
-      </footer>
+      {/* Footer rendered globally in App */}
       {/* Bottom spacer on mobile */}
       {mobile && <div style={{ height:80 }} />}
     </div>
@@ -1886,6 +2023,379 @@ function HomePage({ products, testimonials, banners, siteLogo, setPage, addToCar
 }
 
 /* ── APP ── */
+// ── CMS-driven pages (read from Bonsai Hub tables) ──────────────────
+function PageWrap({ title, sub, children }) {
+  const mobile = useMobile();
+  return (<div style={{ minHeight:'100vh', paddingTop: mobile?80:96, paddingBottom:80, background:'#fff' }}>
+    <div style={{ maxWidth:1100, margin:'0 auto', padding: mobile?'0 16px':'0 24px' }}>
+      <h1 style={{ fontSize: mobile?30:40, fontWeight:700, color:'#1d1d1f', letterSpacing:'-.02em' }}>{title}</h1>
+      {sub && <p style={{ fontSize:17, color:'#86868b', marginTop:8, marginBottom:36 }}>{sub}</p>}
+      {children}
+    </div>
+  </div>);
+}
+function ShowroomsPage() {
+  const [rows,setRows]=useState([]);
+  useEffect(()=>{ api('website_showrooms?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
+  return (<PageWrap title="Visit a showroom" sub="Experience our craftsmanship in person across Bahrain.">
+    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
+      {rows.map(s=>(<div key={s.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+        <div style={{ fontSize:34 }}>{s.emoji||'🏛'}</div>
+        <div style={{ fontSize:18, fontWeight:600, color:'#1d1d1f', marginTop:10 }}>{s.name}</div>
+        <div style={{ fontSize:14, color:'#86868b', marginTop:6, lineHeight:1.6 }}>{s.address}</div>
+        {s.hours&&<div style={{ fontSize:13, color:'#86868b', marginTop:8 }}>🕑 {s.hours}</div>}
+        {s.phone&&<a href={'tel:'+s.phone} style={{ display:'inline-block', marginTop:12, color:'#F97316', fontWeight:600, fontSize:14, textDecoration:'none' }}>{s.phone}</a>}
+      </div>))}
+      {rows.length===0 && <div style={{ color:'#aaa' }}>Showroom details coming soon.</div>}
+    </div>
+  </PageWrap>);
+}
+function BlogPage() {
+  const [rows,setRows]=useState([]);
+  useEffect(()=>{ api('website_blog?active=eq.true&order=date.desc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
+  return (<PageWrap title="Inspiration & guides" sub="Ideas, tips and trends for kitchens, wardrobes and storage.">
+    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:20 }}>
+      {rows.map(b=>(<div key={b.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+        <div style={{ height:130, background: b.image_url?`url('${b.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:44 }}>{!b.image_url && (b.emoji||'📖')}</div>
+        <div style={{ padding:20 }}>
+          <div style={{ fontSize:12, color:'#F97316', fontWeight:600, textTransform:'uppercase', letterSpacing:'.05em' }}>{b.category}</div>
+          <div style={{ fontSize:17, fontWeight:600, color:'#1d1d1f', marginTop:6 }}>{b.title}</div>
+          <div style={{ fontSize:14, color:'#86868b', marginTop:8, lineHeight:1.6 }}>{b.excerpt}</div>
+          <div style={{ fontSize:12, color:'#aaa', marginTop:12 }}>{b.date}{b.read_time?' · '+b.read_time:''}</div>
+        </div>
+      </div>))}
+      {rows.length===0 && <div style={{ color:'#aaa' }}>Articles coming soon.</div>}
+    </div>
+  </PageWrap>);
+}
+function CareersPage() {
+  const [rows,setRows]=useState([]); const [openId,setOpenId]=useState(null);
+  const [f,setF]=useState({name:'',email:'',phone:'',note:''}); const [sentFor,setSentFor]=useState(null);
+  useEffect(()=>{ api('website_jobs?active=eq.true').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
+  const apply=async(job)=>{
+    if(!f.name||!f.phone){ toast('Name and phone are required','error'); return; }
+    await api('rpc/public_lead_submit',{method:'POST',body:{ p_name:f.name, p_phone:f.phone, p_email:f.email||null, p_source:'Website - Careers', p_interest:job.job_title, p_message:'Career application — '+job.job_title+(f.note?(' — '+f.note):''), p_meta:{ job_id:job.id, type:'career' } }});
+    setSentFor(job.id); toast('Application received ✓','success');
+  };
+  return (<PageWrap title="Careers" sub="Join a team that builds beautiful, lasting spaces.">
+    <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+      {rows.map(j=>(<div key={j.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
+          <div>
+            <div style={{ fontSize:18, fontWeight:600, color:'#1d1d1f' }}>{j.job_title}</div>
+            <div style={{ fontSize:13, color:'#86868b', marginTop:4 }}>{[j.department,j.employment_type,j.location].filter(Boolean).join(' · ')}</div>
+          </div>
+          <button type="button" onClick={()=>setOpenId(openId===j.id?null:j.id)} style={{ background:'#F97316', color:'#fff', border:'none', borderRadius:980, padding:'10px 20px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{openId===j.id?'Close':'Apply'}</button>
+        </div>
+        {j.description && <div style={{ fontSize:14, color:'#555', marginTop:12, lineHeight:1.6 }}>{j.description}</div>}
+        {j.requirements && <div style={{ fontSize:13, color:'#86868b', marginTop:8, lineHeight:1.6 }}><strong>Requirements:</strong> {j.requirements}</div>}
+        {openId===j.id && (sentFor===j.id
+          ? <div style={{ marginTop:16, color:'#1D7A4D', fontWeight:600 }}>Thank you — we&#39;ll be in touch.</div>
+          : <div style={{ marginTop:16, display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+              <input placeholder="Full name *" value={f.name} onChange={e=>setF({...f,name:e.target.value})} style={inp} />
+              <input placeholder="Phone *" value={f.phone} onChange={e=>setF({...f,phone:e.target.value})} style={inp} />
+              <input placeholder="Email" value={f.email} onChange={e=>setF({...f,email:e.target.value})} style={inp} />
+              <input placeholder="Note (optional)" value={f.note} onChange={e=>setF({...f,note:e.target.value})} style={inp} />
+              <button type="button" onClick={()=>apply(j)} style={{ gridColumn:'1 / -1', background:'#1d1d1f', color:'#fff', border:'none', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, cursor:'pointer' }}>Submit application</button>
+            </div>)}
+      </div>))}
+      {rows.length===0 && <div style={{ color:'#aaa' }}>No open roles right now — check back soon.</div>}
+    </div>
+  </PageWrap>);
+}
+const inp = { background:'#f5f5f7', border:'1px solid #e5e5e7', borderRadius:12, padding:'11px 14px', fontSize:14, color:'#1d1d1f', width:'100%' };
+
+function OffersPage({ setPage }) {
+  const [rows,setRows]=useState([]);
+  useEffect(()=>{ api('store_offers?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
+  return (<PageWrap title="Offers & promotions" sub="Current savings on bespoke kitchens, wardrobes and storage.">
+    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
+      {rows.map(o=>(<div key={o.id} style={{ background:'linear-gradient(135deg,#FFF7EF,#fff)', border:'1px solid #F9731633', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+        {o.badge && <span style={{ display:'inline-block', background:'#F97316', color:'#fff', fontSize:12, fontWeight:700, padding:'5px 12px', borderRadius:980 }}>{o.badge}</span>}
+        <div style={{ fontSize:19, fontWeight:700, color:'#1d1d1f', marginTop:12 }}>{o.title}</div>
+        <div style={{ fontSize:14, color:'#86868b', marginTop:6, lineHeight:1.6 }}>{o.subtitle}</div>
+        <button type="button" onClick={()=>setPage('booking')} style={{ marginTop:16, background:'#1d1d1f', color:'#fff', border:'none', borderRadius:980, padding:'10px 18px', fontSize:13, fontWeight:600, cursor:'pointer' }}>Claim this offer</button>
+      </div>))}
+      {rows.length===0 && <div style={{ color:'#aaa' }}>No active offers right now.</div>}
+    </div>
+  </PageWrap>);
+}
+function FaqPage() {
+  const [rows,setRows]=useState([]); const [open,setOpen]=useState(null);
+  useEffect(()=>{ api('website_faqs?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
+  return (<PageWrap title="Frequently asked questions" sub="Everything you need to know about designing with us.">
+    <div style={{ maxWidth:760, display:'flex', flexDirection:'column', gap:12 }}>
+      {rows.map(q=>(<div key={q.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:16, overflow:'hidden' }}>
+        <button type="button" onClick={()=>setOpen(open===q.id?null:q.id)} style={{ width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'18px 20px', fontSize:16, fontWeight:600, color:'#1d1d1f', display:'flex', justifyContent:'space-between', gap:12 }}>
+          <span>{q.question}</span><span style={{ color:'#F97316', flexShrink:0 }}>{open===q.id?'–':'+'}</span>
+        </button>
+        {open===q.id && <div style={{ padding:'0 20px 18px', fontSize:15, color:'#555', lineHeight:1.65 }}>{q.answer}</div>}
+      </div>))}
+      {rows.length===0 && <div style={{ color:'#aaa' }}>FAQs coming soon.</div>}
+    </div>
+  </PageWrap>);
+}
+const APPT_KINDS = ['Design Consultation','Free Site Visit','Showroom Visit','Online Consultation'];
+const APPT_SLOTS = ['Morning (9–12)','Afternoon (12–4)','Evening (4–7)'];
+function BookingPage({ setPage }) {
+  const mobile = useMobile();
+  const [f,setF]=useState({ type:'Design Consultation', name:'', phone:'', email:'', date:'', slot:APPT_SLOTS[0], address:'', interest:'Kitchen', notes:'' });
+  const [sent,setSent]=useState(false); const [busy,setBusy]=useState(false);
+  const set=(k,v)=>setF(s=>({...s,[k]:v}));
+  const submit=async()=>{
+    if(!f.name||!f.phone){ toast('Name and phone are required','error'); return; }
+    setBusy(true);
+    try{
+      await api('rpc/book_appointment',{method:'POST',body:{ p_name:f.name, p_phone:f.phone, p_email:f.email||null, p_type:f.type, p_date:f.date||null, p_slot:f.slot, p_address:f.address||null, p_interest:f.interest, p_notes:f.notes||null }});
+      setSent(true); toast('Booking requested — we&#39;ll confirm by phone','success');
+    }catch(e){ toast('Could not submit, please try again','error'); }
+    finally{ setBusy(false); }
+  };
+  if(sent) return (<PageWrap title="Thank you"><div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:32, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div style={{ fontSize:20, fontWeight:600, color:'#1d1d1f', marginTop:12 }}>Your {f.type.toLowerCase()} is requested.</div><div style={{ fontSize:15, color:'#86868b', marginTop:8 }}>Our design team will call you to confirm the time. No obligation, completely free.</div><button type="button" onClick={()=>setPage('home')} style={{ marginTop:20, background:'#F97316', color:'#fff', border:'none', borderRadius:980, padding:'11px 22px', fontSize:14, fontWeight:600, cursor:'pointer' }}>Back to home</button></div></PageWrap>);
+  return (<PageWrap title="Book your free visit" sub="A designer measures your space and creates a bespoke 2D & 3D concept — free, with no obligation.">
+    <div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding: mobile?20:28, maxWidth:720, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+      <div style={{ fontSize:12, color:'#86868b', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Appointment type</div>
+      <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:18 }}>
+        {APPT_KINDS.map(k=>(<button type="button" key={k} onClick={()=>set('type',k)} style={{ padding:'9px 15px', borderRadius:980, cursor:'pointer', fontSize:13, fontWeight:600, background:f.type===k?'#F97316':'#f5f5f7', color:f.type===k?'#fff':'#1d1d1f', border:'none' }}>{k}</button>))}
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:12 }}>
+        <input placeholder="Full name *" value={f.name} onChange={e=>set('name',e.target.value)} style={inp} />
+        <input placeholder="Phone *" value={f.phone} onChange={e=>set('phone',e.target.value)} style={inp} />
+        <input placeholder="Email" value={f.email} onChange={e=>set('email',e.target.value)} style={inp} />
+        <select value={f.interest} onChange={e=>set('interest',e.target.value)} style={inp}>{['Kitchen','Wardrobe','Walk-In Closet','TV Unit','Doors','Storage','Other'].map(x=><option key={x}>{x}</option>)}</select>
+        <input type="date" value={f.date} onChange={e=>set('date',e.target.value)} style={inp} />
+        <select value={f.slot} onChange={e=>set('slot',e.target.value)} style={inp}>{APPT_SLOTS.map(x=><option key={x}>{x}</option>)}</select>
+        <input placeholder="Address (for home/site visit)" value={f.address} onChange={e=>set('address',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1'}} />
+        <textarea placeholder="Notes (optional)" rows={3} value={f.notes} onChange={e=>set('notes',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1', resize:'vertical'}} />
+      </div>
+      <button type="button" disabled={busy} onClick={submit} style={{ marginTop:18, width:'100%', background:'#F97316', color:'#fff', border:'none', borderRadius:14, padding:'14px', fontSize:15, fontWeight:600, cursor:'pointer', opacity:busy?.6:1 }}>{busy?'Submitting…':'Request my free visit'}</button>
+    </div>
+  </PageWrap>);
+}
+
+function RequestPage({ kind, title, sub, refLabel }) {
+  const mobile=useMobile();
+  const [f,setF]=useState({name:'',phone:'',email:'',ref:'',message:''}); const [sent,setSent]=useState(false); const [busy,setBusy]=useState(false);
+  const set=(k,v)=>setF(s=>({...s,[k]:v}));
+  const submit=async()=>{
+    if(!f.name||!f.phone){ toast('Name and phone are required','error'); return; }
+    setBusy(true);
+    try{ await api('rpc/public_lead_submit',{method:'POST',body:{ p_name:f.name, p_phone:f.phone, p_email:f.email||null, p_source:'Website - '+kind, p_interest:kind, p_message:(f.ref?(refLabel+': '+f.ref+' — '):'')+(f.message||''), p_meta:{ type:kind.toLowerCase() } }});
+      setSent(true); toast('Request received ✓','success'); }
+    catch{ toast('Could not submit, please try again','error'); } finally{ setBusy(false); }
+  };
+  if(sent) return (<PageWrap title="Thank you"><div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:32, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div style={{ fontSize:19, fontWeight:600, color:'#1d1d1f', marginTop:12 }}>Your {kind.toLowerCase()} request is logged.</div><div style={{ fontSize:15, color:'#86868b', marginTop:8 }}>Our team will contact you to arrange the next step.</div></div></PageWrap>);
+  return (<PageWrap title={title} sub={sub}>
+    <div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding: mobile?20:28, maxWidth:640, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+      <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:12 }}>
+        <input placeholder="Full name *" value={f.name} onChange={e=>set('name',e.target.value)} style={inp} />
+        <input placeholder="Phone *" value={f.phone} onChange={e=>set('phone',e.target.value)} style={inp} />
+        <input placeholder="Email" value={f.email} onChange={e=>set('email',e.target.value)} style={inp} />
+        <input placeholder={refLabel+' (optional)'} value={f.ref} onChange={e=>set('ref',e.target.value)} style={inp} />
+        <textarea placeholder="Describe the issue / request" rows={4} value={f.message} onChange={e=>set('message',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1', resize:'vertical'}} />
+      </div>
+      <button type="button" disabled={busy} onClick={submit} style={{ marginTop:18, width:'100%', background:'#F97316', color:'#fff', border:'none', borderRadius:14, padding:'14px', fontSize:15, fontWeight:600, cursor:'pointer', opacity:busy?.6:1 }}>{busy?'Submitting…':'Submit request'}</button>
+    </div>
+  </PageWrap>);
+}
+function AIDesignerPage({ setPage, user }) {
+  const mobile=useMobile();
+  const [f,setF]=useState({ requirements:'', product:'', w:'', h:'', d:'', budget:'' });
+  const [image,setImage]=useState(null); const [busy,setBusy]=useState(false); const [concept,setConcept]=useState(null); const [saved,setSaved]=useState(false);
+  const set=(k,v)=>setF(s=>({...s,[k]:v}));
+  const saveConcept=async()=>{
+    if(!user){ toast('Sign in to save this concept to your account','info'); setPage('portal'); return; }
+    try{
+      const id='AIC-'+Date.now().toString(36).toUpperCase();
+      await api('product_configurations',{method:'POST',body:[{ id, customer_id:user.id, customer_name:user.name, customer_email:user.email, product_name:'AI concept — '+concept.title, configuration:concept, total_price:concept.estimate_bhd, status:'ai-concept', share_token:id, created_at:new Date().toISOString() }]});
+      setSaved(true); toast('Saved to your account ✓','success');
+    }catch{ toast('Could not save right now','error'); }
+  };
+  const onPhoto=(file)=>{ if(!file) return; const rd=new FileReader(); rd.onload=()=>{ const im=new Image(); im.onload=()=>{ const max=1024; let{width:w,height:h}=im; if(w>h&&w>max){h=Math.round(h*max/w);w=max;}else if(h>max){w=Math.round(w*max/h);h=max;} const c=document.createElement('canvas'); c.width=w;c.height=h; c.getContext('2d').drawImage(im,0,0,w,h); const u=c.toDataURL('image/jpeg',0.72); setImage({ dataUrl:u, media_type:'image/jpeg', base64:u.split(',')[1] }); }; im.src=rd.result; }; rd.readAsDataURL(file); };
+  const generate=async()=>{
+    if(!f.requirements.trim() && !image){ toast('Describe your space or add a photo','error'); return; }
+    setBusy(true); setConcept(null);
+    try{
+      const r=await fetch(SUPA_URL+'/functions/v1/ai_design_concept',{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify({ requirements:f.requirements, product:f.product||undefined, budget:f.budget?Number(f.budget):undefined, dimensions:{ width_cm:f.w?Number(f.w):undefined, height_cm:f.h?Number(f.h):undefined, depth_cm:f.d?Number(f.d):undefined }, image_base64:image?.base64, media_type:image?.media_type })});
+      const d=await r.json();
+      if(d.ok&&d.concept){ setConcept(d.concept); setSaved(false); } else { toast('Could not generate — try adding more detail','error'); }
+    }catch{ toast('AI is unavailable right now','error'); } finally{ setBusy(false); }
+  };
+  const chip=(t)=>(<span style={{ background:'#FFF3E9', color:'#9a4d12', borderRadius:980, padding:'6px 12px', fontSize:13, fontWeight:500 }}>{t}</span>);
+  return (<PageWrap title="AI Interior Designer" sub="Describe your space or upload a photo — get a tailored concept with materials, storage ideas and indicative pricing in seconds.">
+    <div className="resp-2col" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'420px 1fr', gap:28, alignItems:'start' }}>
+      {/* Intake */}
+      <div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:22, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+        <textarea value={f.requirements} onChange={e=>set('requirements',e.target.value)} rows={4} placeholder="e.g. A walk-in closet for a master bedroom, warm oak, lots of shoe and hanging space, soft lighting, island in the middle" style={{...inp, resize:'vertical', marginBottom:12}} />
+        <label style={{ display:'flex', alignItems:'center', gap:12, border:'0.5px dashed #c0c0c0', borderRadius:12, padding:'12px 14px', cursor:'pointer', marginBottom:12 }}>
+          {image ? <img src={image.dataUrl} alt="room" style={{ width:54, height:42, objectFit:'cover', borderRadius:8 }} /> : <i className="ti ti-camera" style={{ fontSize:22, color:'#F97316' }} aria-hidden="true" />}
+          <span style={{ fontSize:14, fontWeight:500 }}>{image?'Photo added — tap to change':'Add a room photo (optional)'}</span>
+          <input type="file" accept="image/*" onChange={e=>onPhoto(e.target.files?.[0])} style={{ display:'none' }} />
+        </label>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
+          <select value={f.product} onChange={e=>set('product',e.target.value)} style={inp}><option value="">Any product</option>{[['wardrobe','Wardrobe'],['kitchen','Kitchen'],['walkin','Walk-In Closet'],['tv','TV Unit'],['doors','Doors'],['storage','Storage / Office']].map(([v,l])=><option key={v} value={v}>{l}</option>)}</select>
+          <input value={f.budget} onChange={e=>set('budget',e.target.value)} placeholder="Budget (BHD)" inputMode="numeric" style={inp} />
+          <input value={f.w} onChange={e=>set('w',e.target.value)} placeholder="Width cm" inputMode="numeric" style={inp} />
+          <input value={f.h} onChange={e=>set('h',e.target.value)} placeholder="Height cm" inputMode="numeric" style={inp} />
+        </div>
+        <button type="button" disabled={busy} onClick={generate} style={{ width:'100%', background:'#F97316', color:'#fff', border:'none', borderRadius:14, padding:'14px', fontSize:15, fontWeight:600, cursor:'pointer', opacity:busy?.6:1 }}>{busy?'Designing your concept…':'Generate my concept ✦'}</button>
+      </div>
+      {/* Result */}
+      <div>
+        {!concept && !busy && <div style={{ color:'#aaa', fontSize:15, padding:'30px 0' }}>Your AI concept — layout, materials, colours, storage ideas and four package options — will appear here.</div>}
+        {busy && <div style={{ color:'#86868b', fontSize:15, padding:'30px 0' }}>✦ Reading your brief and composing a concept…</div>}
+        {concept && (<div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding: mobile?20:28, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+          <div style={{ fontSize:12, color:'#F97316', fontWeight:700, textTransform:'uppercase', letterSpacing:'.05em' }}>AI concept</div>
+          <h2 style={{ fontSize:24, fontWeight:700, color:'#1d1d1f', margin:'6px 0 4px' }}>{concept.title}</h2>
+          <div style={{ fontSize:13, color:'#86868b' }}>{concept.product} · {concept.layout} · {concept.finish_id} finish · {concept.width_cm}×{concept.height_cm}cm</div>
+          <p style={{ fontSize:15, color:'#444', lineHeight:1.65, marginTop:12 }}>{concept.summary}</p>
+          {concept.materials?.length>0 && <><div style={{ fontSize:12, fontWeight:700, color:'#1d1d1f', marginTop:16, marginBottom:8 }}>MATERIALS</div><div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>{concept.materials.map((m,i)=><span key={i}>{chip(m)}</span>)}</div></>}
+          {concept.colors?.length>0 && <><div style={{ fontSize:12, fontWeight:700, color:'#1d1d1f', marginTop:16, marginBottom:8 }}>COLOURS</div><div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>{concept.colors.map((m,i)=><span key={i}>{chip(m)}</span>)}</div></>}
+          {concept.storage_ideas?.length>0 && <><div style={{ fontSize:12, fontWeight:700, color:'#1d1d1f', marginTop:16, marginBottom:8 }}>STORAGE IDEAS</div><ul style={{ margin:0, paddingLeft:18, color:'#444', fontSize:14, lineHeight:1.7 }}>{concept.storage_ideas.map((m,i)=><li key={i}>{m}</li>)}</ul></>}
+          <div style={{ fontSize:12, fontWeight:700, color:'#1d1d1f', marginTop:18, marginBottom:8 }}>PACKAGES (indicative)</div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+            {(concept.packages||[]).map((p,i)=>(<div key={p.tier} style={{ border:'0.5px solid '+(i===1?'#F97316':'#e6e6e6'), background:i===1?'#FFF7EF':'#fff', borderRadius:12, padding:'12px 14px' }}>
+              <div style={{ fontSize:13, fontWeight:700, color:i===1?'#F97316':'#1d1d1f' }}>{p.tier}{i===1?' · recommended':''}</div>
+              <div style={{ fontSize:15, fontWeight:700, color:'#1d1d1f', marginTop:3 }}>BD {p.price_from.toLocaleString()}–{p.price_to.toLocaleString()}</div>
+              <div style={{ fontSize:11, color:'#86868b', marginTop:4, lineHeight:1.4 }}>{p.includes}</div>
+            </div>))}
+          </div>
+          <div style={{ fontSize:11, color:'#aaa', marginTop:8 }}>Indicative only — your free design visit confirms an exact, itemised quote.</div>
+          <div style={{ display:'flex', gap:10, marginTop:18, flexWrap:'wrap' }}>
+            <button type="button" onClick={()=>setPage('planner')} style={{ background:'#1d1d1f', color:'#fff', border:'none', borderRadius:980, padding:'11px 20px', fontSize:14, fontWeight:600, cursor:'pointer' }}>Refine in 3D planner</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'#F97316', color:'#fff', border:'none', borderRadius:980, padding:'11px 20px', fontSize:14, fontWeight:600, cursor:'pointer' }}>Book a free visit</button>
+            <button type="button" disabled={saved} onClick={saveConcept} style={{ background:'#fff', color: saved?'#1a7a40':'#1d1d1f', border:'1px solid '+(saved?'#1a7a40':'#d0d0d0'), borderRadius:980, padding:'11px 20px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{saved?'✓ Saved to account':(user?'Save to my account':'Sign in to save')}</button>
+          </div>
+        </div>)}
+      </div>
+    </div>
+  </PageWrap>);
+}
+function SiteFooter({ setPage }) {
+  const mobile=useMobile();
+  const col=(title,items)=>(<div><div style={{ fontSize:12, fontWeight:700, color:'#1d1d1f', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:12 }}>{title}</div>{items.map(([label,go])=>(<button type="button" key={label} onClick={()=>setPage(go)} style={{ display:'block', background:'none', border:'none', cursor:'pointer', color:'#86868b', fontSize:14, padding:'5px 0', textAlign:'left' }}>{label}</button>))}</div>);
+  return (<footer style={{ borderTop:'1px solid #ececec', background:'#fafafa', padding: mobile?'40px 18px 28px':'56px 40px 32px' }}>
+    <div style={{ maxWidth:1200, margin:'0 auto' }}>
+      <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'2fr 1fr 1fr 1fr', gap: mobile?28:40 }}>
+        <div>
+          <div style={{ fontSize:18, fontWeight:700, color:'#1d1d1f' }}>The Closets Co.</div>
+          <div style={{ fontSize:14, color:'#86868b', marginTop:10, lineHeight:1.6, maxWidth:280 }}>Premium bespoke kitchens, wardrobes and storage — designed, manufactured and installed in the Kingdom of Bahrain.</div>
+          <a href="https://wa.me/97317000000" style={{ display:'inline-block', marginTop:14, background:'#25D366', color:'#fff', borderRadius:980, padding:'9px 18px', fontSize:13, fontWeight:600, textDecoration:'none' }}>WhatsApp us</a>
+        </div>
+        {col('Explore',[['Gallery','products'],['Projects','projects'],['3D Planner','planner'],['AI Designer','ai'],['Inspiration','blog']])}
+        {col('Company',[['Our Story','about'],['Showrooms','showrooms'],['Careers','careers'],['Offers','offers']])}
+        {col('Support',[['Book a visit','booking'],['Contact','contact'],['Maintenance','maintenance'],['Warranty','warranty'],['FAQ','faq']])}
+      </div>
+      <div style={{ borderTop:'1px solid #ececec', marginTop:32, paddingTop:20, display:'flex', flexDirection: mobile?'column':'row', justifyContent:'space-between', gap:8, fontSize:13, color:'#86868b' }}>
+        <span>© 2026 The Closets Co. W.L.L. — Manama, Bahrain</span>
+        <span>+973 1700 1700 · hello@theclosets.co</span>
+      </div>
+    </div>
+  </footer>);
+}
+function ChatWidget({ setPage }) {
+  const mobile = useMobile();
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [input, setInput] = useState('');
+  const [msgs, setMsgs] = useState([{ role:'assistant', content:'Hi! 👋 I can help with kitchens, wardrobes, pricing, showrooms and booking a free design visit. What are you planning?' }]);
+  const listRef = useRef(null);
+  useEffect(() => { if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight; }, [msgs, open, busy]);
+  const send = async (text) => {
+    const q = (text ?? input).trim(); if (!q || busy) return;
+    const next = [...msgs, { role:'user', content:q }];
+    setMsgs(next); setInput(''); setBusy(true);
+    try {
+      const r = await fetch(SUPA_URL + '/functions/v1/support_chat', { method:'POST', headers:{ apikey:SUPA_KEY, Authorization:'Bearer '+SUPA_KEY, 'Content-Type':'application/json' }, body: JSON.stringify({ messages: next.map(m=>({ role:m.role, content:m.content })) }) });
+      const d = await r.json();
+      setMsgs(m => [...m, { role:'assistant', content: (d && d.ok && d.reply) ? d.reply : 'Sorry, I had trouble there. You can reach our team on WhatsApp or book a free visit.' }]);
+    } catch { setMsgs(m => [...m, { role:'assistant', content:'I’m offline for a moment — please try again or book a free visit.' }]); }
+    finally { setBusy(false); }
+  };
+  const chips = ['Design a kitchen','Wardrobe pricing','Book a free visit','Where are your showrooms?'];
+  return (<>
+    <button type="button" onClick={()=>setOpen(o=>!o)} aria-label="Chat with us" style={{ position:'fixed', right: mobile?16:24, bottom: mobile?88:24, zIndex:1400, width:56, height:56, borderRadius:'50%', background:'#F97316', border:'none', boxShadow:'0 6px 20px rgba(249,115,22,.4)', cursor:'pointer', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <i className={open?'ti ti-x':'ti ti-message-2'} style={{ fontSize:24 }} aria-hidden="true" />
+    </button>
+    {open && (
+      <div style={{ position:'fixed', right: mobile?10:24, bottom: mobile?150:92, zIndex:1400, width: mobile?'calc(100vw - 20px)':380, maxWidth:'calc(100vw - 20px)', height:520, maxHeight:'70vh', background:'#fff', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,.22)', border:'1px solid #ececec', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+        <div style={{ background:'#1d1d1f', color:'#fff', padding:'14px 18px' }}>
+          <div style={{ fontWeight:600, fontSize:15, display:'flex', alignItems:'center', gap:8 }}><i className="ti ti-sparkles" style={{ color:'#F9A35C' }} aria-hidden="true" /> Closets Assistant</div>
+          <div style={{ fontSize:12, color:'#bdbdbd', marginTop:2 }}>AI-powered · replies in seconds</div>
+        </div>
+        <div ref={listRef} style={{ flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:10, background:'#fafafa' }}>
+          {msgs.map((m,i)=>(<div key={i} style={{ alignSelf: m.role==='user'?'flex-end':'flex-start', maxWidth:'85%', background: m.role==='user'?'#F97316':'#fff', color: m.role==='user'?'#fff':'#1d1d1f', border: m.role==='user'?'none':'1px solid #ececec', borderRadius:14, padding:'10px 13px', fontSize:14, lineHeight:1.5, whiteSpace:'pre-wrap' }}>{m.content}</div>))}
+          {busy && <div style={{ alignSelf:'flex-start', color:'#aaa', fontSize:13, padding:'4px 6px' }}>typing…</div>}
+          {msgs.length<=1 && <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>{chips.map(c=>(<button key={c} type="button" onClick={()=>{ if(c==='Book a free visit'){ setOpen(false); setPage('booking'); } else send(c); }} style={{ fontSize:12, border:'1px solid #e0e0e0', borderRadius:16, padding:'6px 12px', background:'#fff', cursor:'pointer', color:'#1d1d1f' }}>{c}</button>))}</div>}
+        </div>
+        <div style={{ display:'flex', gap:8, padding:'12px', borderTop:'1px solid #ececec' }}>
+          <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter') send(); }} placeholder="Ask anything…" style={{ flex:1, border:'1px solid #e0e0e0', borderRadius:980, padding:'10px 16px', fontSize:14, outline:'none' }} />
+          <button type="button" onClick={()=>send()} disabled={busy||!input.trim()} style={{ background:'#F97316', color:'#fff', border:'none', borderRadius:'50%', width:40, height:40, cursor:'pointer', flexShrink:0, opacity:(busy||!input.trim())?0.5:1 }}><i className="ti ti-send" style={{ fontSize:18 }} aria-hidden="true" /></button>
+        </div>
+      </div>
+    )}
+  </>);
+}
+const MaintenancePage = () => <RequestPage kind="Maintenance" title="Maintenance request" sub="Need an adjustment or repair? Log a request and our team will arrange a visit." refLabel="Order / reference no." />;
+const WarrantyPage = () => <RequestPage kind="Warranty" title="Warranty service" sub="Register a warranty claim — we stand behind every installation." refLabel="Order / warranty no." />;
+
+function BeforeAfter({ before, after }) {
+  const [show,setShow]=useState('after');
+  return (<div style={{ position:'relative' }}>
+    <div style={{ height:200, borderRadius:14, background:`url('${show==='after'?after:before}') center/cover`, transition:'background .2s' }} />
+    <div style={{ position:'absolute', top:10, left:10, display:'flex', gap:6 }}>
+      {['before','after'].map(k=>(<button type="button" key={k} onClick={()=>setShow(k)} style={{ background: show===k?'#1d1d1f':'rgba(255,255,255,.9)', color: show===k?'#fff':'#1d1d1f', border:'none', borderRadius:980, padding:'5px 12px', fontSize:11, fontWeight:700, cursor:'pointer', textTransform:'capitalize' }}>{k}</button>))}
+    </div>
+  </div>);
+}
+function PortfolioPage({ setPage }) {
+  const [rows,setRows]=useState([]);
+  useEffect(()=>{ api('website_projects?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
+  const cats=['Kitchens','Wardrobes','Walk-In Closets','TV Units','Doors','Storage Solutions','Office Furniture'];
+  return (<PageWrap title="Our projects" sub="Real spaces we have designed, manufactured and installed across Bahrain.">
+    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:20, marginBottom:48 }}>
+      {rows.map(p=>(<div key={p.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+        {p.before_url && p.after_url ? <BeforeAfter before={p.before_url} after={p.after_url} />
+          : <div style={{ height:200, background:`url('${p.cover_url}') center/cover, #eee` }} />}
+        <div style={{ padding:20 }}>
+          <div style={{ fontSize:12, color:'#F97316', fontWeight:600, textTransform:'uppercase', letterSpacing:'.05em' }}>{[p.category,p.client_type].filter(Boolean).join(' · ')}</div>
+          <div style={{ fontSize:17, fontWeight:600, color:'#1d1d1f', marginTop:6 }}>{p.name}</div>
+          {p.location && <div style={{ fontSize:13, color:'#aaa', marginTop:4 }}>📍 {p.location}</div>}
+          <div style={{ fontSize:14, color:'#86868b', marginTop:8, lineHeight:1.6 }}>{p.description}</div>
+        </div>
+      </div>))}
+      {rows.length===0 && <div style={{ color:'#aaa' }}>Project gallery coming soon.</div>}
+    </div>
+    <div style={{ fontSize:13, color:'#86868b', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:14 }}>Explore by room</div>
+    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:12 }}>
+      {cats.map(c=>(<button type="button" key={c} onClick={()=>setPage('cat:'+c)} style={{ background:'#f5f5f7', border:'none', borderRadius:14, padding:'18px 16px', textAlign:'left', cursor:'pointer', fontSize:14, fontWeight:600, color:'#1d1d1f' }}>{c} →</button>))}
+    </div>
+  </PageWrap>);
+}
+function CategoryPage({ category, products, setPage, addToCart }) {
+  const list=(products||[]).filter(p=> (p.category||'').toLowerCase()===category.toLowerCase());
+  return (<PageWrap title={category} sub={`Bespoke ${category.toLowerCase()}, designed, made and installed in Bahrain.`}>
+    <div style={{ display:'flex', gap:10, marginBottom:24, flexWrap:'wrap' }}>
+      <button type="button" onClick={()=>setPage('booking')} style={{ background:'#F97316', color:'#fff', border:'none', borderRadius:980, padding:'11px 22px', fontSize:14, fontWeight:600, cursor:'pointer' }}>Book a free design visit</button>
+      <button type="button" onClick={()=>setPage('planner')} style={{ background:'#1d1d1f', color:'#fff', border:'none', borderRadius:980, padding:'11px 22px', fontSize:14, fontWeight:600, cursor:'pointer' }}>Design it in 3D</button>
+    </div>
+    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))', gap:20 }}>
+      {list.map(p=>(<div key={p.id} onClick={()=>setPage('product-'+p.id)} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, overflow:'hidden', cursor:'pointer', boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+        <div style={{ height:170, background: p.image_url?`url('${p.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }} />
+        <div style={{ padding:16 }}>
+          <div style={{ fontSize:16, fontWeight:600, color:'#1d1d1f' }}>{p.name}</div>
+          <div style={{ fontSize:13, color:'#86868b', marginTop:4 }}>{p.category}</div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:12 }}>
+            <span style={{ fontSize:16, fontWeight:700, color:'#1d1d1f' }}>BD {Number(p.price||0).toLocaleString()}</span>
+            <button type="button" onClick={e=>{ e.stopPropagation(); addToCart&&addToCart(p); }} style={{ background:'#f5f5f7', border:'none', borderRadius:10, padding:'8px 14px', fontSize:13, fontWeight:600, cursor:'pointer', color:'#1d1d1f' }}>Add</button>
+          </div>
+        </div>
+      </div>))}
+      {list.length===0 && <div style={{ color:'#aaa' }}>New {category.toLowerCase()} designs coming soon — book a visit to start yours.</div>}
+    </div>
+  </PageWrap>);
+}
+
 export default function App() {
   const [page, setPage] = useState('home');
   const [lang, setLang] = useState(() => { try { return localStorage.getItem('closets_lang') || 'en'; } catch { return 'en'; } });
@@ -1932,6 +2442,19 @@ export default function App() {
       {page==='checkout' && <CheckoutPage cart={cart} setCart={setCart} user={user} setPage={setPage} />}
       {page==='about' && <AboutPage />}
       {page==='contact' && <ContactPage />}
+      {page==='showrooms' && <ShowroomsPage />}
+      {page==='blog' && <BlogPage />}
+      {page==='careers' && <CareersPage />}
+      {page==='offers' && <OffersPage setPage={setPage} />}
+      {page==='faq' && <FaqPage />}
+      {page==='booking' && <BookingPage setPage={setPage} />}
+      {page==='projects' && <PortfolioPage setPage={setPage} />}
+      {page==='maintenance' && <MaintenancePage />}
+      {page==='warranty' && <WarrantyPage />}
+      {page==='ai' && <AIDesignerPage setPage={setPage} user={user} />}
+      {page.startsWith('cat:') && <CategoryPage category={page.slice(4)} products={products} setPage={setPage} addToCart={addToCart} />}
+      {!['portal','checkout'].includes(page) && <SiteFooter setPage={setPage} />}
+      <ChatWidget setPage={setPage} />
       <CartDrawer cart={cart} setCart={setCart} open={cartOpen} setOpen={setCartOpen} setPage={setPage} />
       {page==='planner' && <PlannerPage setPage={setPage} user={user} />}
       {authOpen && <AuthModal mode={authMode} setMode={setAuthMode} setUser={setUser} onClose={()=>setAuthOpen(false)} />}

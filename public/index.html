@@ -4,12 +4,54 @@
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
+    <meta name="theme-color" content="#F97316" />
+    <meta name="description" content="The Closets Co. — premium bespoke kitchens, wardrobes, walk-in closets, TV units, doors and storage, designed, manufactured and installed in the Kingdom of Bahrain." />
+    <meta name="keywords" content="bespoke kitchens Bahrain, fitted wardrobes Bahrain, walk-in closets, custom furniture, storage solutions, interior fit-out, The Closets Co" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://closets-website.vercel.app/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="The Closets Co." />
+    <meta property="og:title" content="The Closets Co. — Premium Bespoke Storage & Kitchens" />
+    <meta property="og:description" content="Bespoke kitchens, wardrobes, walk-in closets and storage — handcrafted for your home in Bahrain. Book a free design consultation." />
+    <meta property="og:url" content="https://closets-website.vercel.app/" />
+    <meta property="og:image" content="https://closets-website.vercel.app/og-image.jpg" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="ar_BH" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="The Closets Co. — Premium Bespoke Storage & Kitchens" />
+    <meta name="twitter:description" content="Bespoke kitchens, wardrobes and storage, handcrafted for your home in Bahrain." />
+    <meta name="twitter:image" content="https://closets-website.vercel.app/og-image.jpg" />
+
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+
+    <!-- Structured data: Organization + LocalBusiness -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HomeGoodsStore",
+      "name": "The Closets Co.",
+      "description": "Premium bespoke kitchens, wardrobes, walk-in closets, TV units, doors and storage solutions — designed, manufactured and installed in Bahrain.",
+      "url": "https://closets-website.vercel.app/",
+      "image": "https://closets-website.vercel.app/og-image.jpg",
+      "priceRange": "$$$",
+      "areaServed": "BH",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "BH",
+        "addressLocality": "Manama",
+        "addressRegion": "Capital Governorate"
+      },
+      "makesOffer": [
+        { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Bespoke Kitchens" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Fitted Wardrobes" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Walk-In Closets" } }
+      ]
+    }
+    </script>
     <!--
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
@@ -24,9 +66,11 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>The Closets Co. — Premium Storage Solutions</title>
+    <title>The Closets Co. — Premium Bespoke Kitchens, Wardrobes & Storage | Bahrain</title>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <!-- Lightweight 3D/AR viewer (Google model-viewer) -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

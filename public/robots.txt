@@ -1,3 +1,5 @@
-# https://www.robotstxt.org/robotstxt.html
+# The Closets Co.
 User-agent: *
-Disallow:
+Allow: /
+
+Sitemap: https://closets-website.vercel.app/sitemap.xml
