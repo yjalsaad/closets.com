@@ -301,7 +301,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
             <span style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.02em' }}>Closets Co.</span></>}
       </button>
       <div style={{ display: 'flex', gap: 0 }}>
-        {[['home','home','Home'],['products','gallery','Gallery'],['projects','projects','Projects'],['planner','design','Design'],['ai','ai','AI Designer'],['showrooms','showrooms','Showrooms'],['blog','blog','Inspiration'],['contact','contact','Contact']].map(([p, key, label]) => (
+        {[['home','home','Home'],['products','gallery','Gallery'],['projects','projects','Projects'],['planner','design','Design'],['ai','ai','AI Designer'],['showrooms','showrooms','Showrooms'],['directory','directory','Directory'],['blog','blog','Inspiration'],['contact','contact','Contact']].map(([p, key, label]) => (
           <button type="button" key={p} onClick={() => setPage(p)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 12px', fontSize: 14, fontWeight: page === p ? 500 : 400, color: page === p ? '#1d1d1f' : '#86868b', borderRadius: 8, transition: 'color .2s' }}>{label || tr(key)}</button>
         ))}
       </div>
@@ -1467,6 +1467,7 @@ function HomeHub({ user, setUser, setPage }) {
   const [designs, setDesigns] = useState([]);
   const [complaints, setComplaints] = useState([]);
   const [tickets, setTickets] = useState([]);
+  const [cardSlug, setCardSlug] = useState(null);
   const [editForm, setEditForm] = useState({ name: user?.name || '', phone: user?.phone || '' });
   const [cmpForm, setCmpForm] = useState({ category: 'Quality Issue', description: '' });
   const [tktForm, setTktForm] = useState({ subject: '', description: '', priority: 'Medium' });
@@ -1480,6 +1481,7 @@ function HomeHub({ user, setUser, setPage }) {
     api(`product_configurations?customer_id=eq.${user.id}&order=created_at.desc&limit=20`).then(r => setDesigns(Array.isArray(r)?r:[])).catch(()=>{});
     api(`complaints?customer_email=eq.${encodeURIComponent(user.email)}&order=created_at.desc&limit=20`).then(r => setComplaints(Array.isArray(r)?r:[])).catch(()=>{});
     api(`it_tickets?requester_email=eq.${encodeURIComponent(user.email)}&order=created_at.desc&limit=20`).then(r => setTickets(Array.isArray(r)?r:[])).catch(()=>{});
+    cardRpc('card_owner_slug', { p_owner_type:'customer', p_owner_id:user.id }).then(r => setCardSlug(r && r.slug)).catch(()=>{});
   }, [user]);
   const totalSpent = invoices.reduce((s, i) => s + parseFloat(i.total_amount || i.amount || 0), 0);
   const submitComplaint = async () => {
@@ -1500,7 +1502,13 @@ function HomeHub({ user, setUser, setPage }) {
     await api(`customers?id=eq.${user.id}`, { method: 'PATCH', body: { name: editForm.name, phone: editForm.phone, updated_at: new Date().toISOString() } });
     const u = { ...user, ...editForm }; setUser(u); localStorage.setItem('closets_user', JSON.stringify(u)); toast('Saved ✓', 'success');
   };
-  const tabs = [['dashboard','Dashboard'],['ledger','Ledger'],['orders','Orders'],['designs','Designs'],['rewards','Rewards'],['requests','Requests'],['support','Support'],['profile','Profile']];
+  const tabs = [['dashboard','Dashboard'],['card','My Card'],['ledger','Ledger'],['orders','Orders'],['designs','Designs'],['rewards','Rewards'],['requests','Requests'],['support','Support'],['profile','Profile']];
+  const cardUrl = cardSlug ? `${HUB_ORIGIN}/card.html?c=${encodeURIComponent(cardSlug)}` : null;
+  const shareCard = async () => {
+    if (!cardUrl) return;
+    if (navigator.share) { try { await navigator.share({ title: user.name + ' — The Closets', url: cardUrl }); } catch(_){} }
+    else { try { await navigator.clipboard.writeText(cardUrl); toast('Card link copied ✓','success'); } catch(_){} }
+  };
   const Pill = ({ label, color, bg }) => <span style={{ display: 'inline-flex', padding: '4px 10px', borderRadius: 980, background: bg, color, fontSize: 12, fontWeight: 500 }}>{label}</span>;
   return (
     <div style={{ minHeight: '100vh', paddingTop: mobile ? 0 : 56, paddingBottom: mobile ? 80 : 0, background: '#f5f5f7' }}>
@@ -1541,6 +1549,30 @@ function HomeHub({ user, setUser, setPage }) {
         )}
         {/* Content */}
         <div>
+          {tab === 'card' && <>
+            {!mobile && <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.02em', color: '#1d1d1f', marginBottom: 20 }}>My Digital Card</h2>}
+            <div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:28, maxWidth:560 }}>
+              {cardSlug ? <>
+                <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:18 }}>
+                  <div style={{ width:60, height:60, borderRadius:'50%', background:'linear-gradient(135deg,#A855F7,#A855F799)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, fontWeight:800, color:'#fff' }}>{user.name?.[0]||'?'}</div>
+                  <div>
+                    <div style={{ fontSize:18, fontWeight:700, color:'#1d1d1f' }}>{user.name}</div>
+                    <div style={{ fontSize:13, color:'#86868b' }}>{(user.tier||'Bronze')} member · {(user.points||0).toLocaleString()} pts</div>
+                  </div>
+                </div>
+                <p style={{ fontSize:14, color:'#6e6e73', lineHeight:1.6, marginBottom:18 }}>Your personal digital card is live. Share it to let people save your contact, view your membership and book with us.</p>
+                <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+                  <a href={cardUrl} target="_blank" rel="noreferrer" className="btn" style={{ borderRadius:14, textDecoration:'none' }}>Open my card ↗</a>
+                  <button type="button" className="btn-secondary" onClick={shareCard} style={{ borderRadius:14 }}>Share</button>
+                </div>
+              </> : <>
+                <div style={{ fontSize:40, marginBottom:10 }}>🪪</div>
+                <div style={{ fontSize:17, fontWeight:600, color:'#1d1d1f' }}>No digital card yet</div>
+                <p style={{ fontSize:14, color:'#86868b', marginTop:8 }}>Ask our team to activate your free digital membership card — it carries your tier, points and rewards.</p>
+                <button type="button" className="btn" onClick={()=>setPage('contact')} style={{ borderRadius:14, marginTop:14 }}>Contact us</button>
+              </>}
+            </div>
+          </>}
           {tab === 'dashboard' && <>
             {!mobile && <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.02em', color: '#1d1d1f', marginBottom: 20 }}>Home Hub</h2>}
             <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: 12, marginBottom: 16 }}>
@@ -1770,9 +1802,69 @@ function AboutPage() {
 }
 
 /* ── CONTACT ── */
+const HUB_ORIGIN = 'https://closets-hub.vercel.app';
+const cardRpc = (name, body) => api('rpc/' + name, { method:'POST', headers:{ ...H, Prefer:'return=representation' }, body });
+
+// Shared card-grid tile used by Directory + Contact team
+function CardTile({ c }) {
+  const theme = { corporate:'#F97316', executive:'#D4AF37', vendor:'#22C55E', vip:'#A855F7' }[c.theme] || '#F97316';
+  const initials = (c.display_name||'?').split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase();
+  const img = c.photo_url || c.logo_url;
+  const ptype = c.owner_type==='partner' ? 'vendor' : c.owner_type;
+  const pillBg = { vendor:'#E7F8EE', customer:'#F5EBFE', employee:'#FFF1E6' }[ptype] || '#FFF1E6';
+  const pillCol = { vendor:'#1a7a40', customer:'#7a3fb0', employee:'#b5560f' }[ptype] || '#b5560f';
+  return (
+    <a href={`${HUB_ORIGIN}/card.html?c=${encodeURIComponent(c.slug)}`} target="_blank" rel="noreferrer"
+       style={{ textDecoration:'none', color:'#1d1d1f', background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:20, display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', transition:'transform .15s, box-shadow .15s' }}
+       onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px)';e.currentTarget.style.boxShadow='0 12px 30px rgba(0,0,0,.08)';}}
+       onMouseLeave={e=>{e.currentTarget.style.transform='none';e.currentTarget.style.boxShadow='none';}}>
+      <div style={{ width:66, height:66, borderRadius:'50%', background:`linear-gradient(135deg,${theme},${theme}99)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:24, fontWeight:800, color:'#fff', overflow:'hidden', marginBottom:10 }}>
+        {img ? <img src={img} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}/> : initials}
+      </div>
+      <div style={{ fontWeight:700, fontSize:15 }}>{c.display_name}</div>
+      {c.title && <div style={{ color:theme, fontSize:12.5, marginTop:2 }}>{c.title}</div>}
+      {c.location && <div style={{ color:'#86868b', fontSize:12, marginTop:4 }}>{c.location}</div>}
+      <span style={{ marginTop:10, fontSize:10.5, fontWeight:700, borderRadius:980, padding:'3px 10px', textTransform:'capitalize', background:pillBg, color:pillCol }}>{ptype}</span>
+    </a>
+  );
+}
+
+function DirectoryPage({ setPage }) {
+  const [type, setType] = useState('');
+  const [q, setQ] = useState('');
+  const [list, setList] = useState(null);
+  const mobile = useMobile();
+  useEffect(() => {
+    let on = true;
+    cardRpc('card_directory', { p_type: type || null, p_search: q || null, p_limit: 120 })
+      .then(r => { if (on) setList(Array.isArray(r) ? r : []); }).catch(() => { if (on) setList([]); });
+    return () => { on = false; };
+  }, [type, q]);
+  const tabs = [['','All'],['vendor','Vendors & Partners'],['customer','Members'],['employee','Team']];
+  return (
+    <PageWrap title="Directory" sub="Verified vendors, partners and members of The Closets International">
+      <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search by name, trade or location…"
+        style={{ width:'100%', maxWidth:520, padding:'13px 18px', borderRadius:980, border:'1px solid #ececec', fontSize:15, marginBottom:16, fontFamily:'inherit' }}/>
+      <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:24 }}>
+        {tabs.map(([id,label]) => (
+          <button type="button" key={id||'all'} onClick={()=>setType(id)} style={{ padding:'8px 16px', borderRadius:980, border:'1px solid #ececec', cursor:'pointer', fontSize:13, fontWeight:600, fontFamily:'inherit', background: type===id ? '#F97316' : '#fff', color: type===id ? '#fff' : '#1d1d1f' }}>{label}</button>
+        ))}
+      </div>
+      {list === null ? <div style={{ color:'#86868b', padding:40 }}>Loading…</div>
+        : list.length === 0 ? <div style={{ color:'#86868b', padding:40 }}>No cards found.</div>
+        : <div style={{ display:'grid', gridTemplateColumns:`repeat(${mobile?2:4}, 1fr)`, gap:14 }}>{list.map(c => <CardTile key={c.slug} c={c} />)}</div>}
+    </PageWrap>
+  );
+}
+
 function ContactPage() {
   const [form, setForm] = useState({ name:'', email:'', phone:'', product:'', budget:'', message:'' });
   const [sent, setSent] = useState(false);
+  const [team, setTeam] = useState([]);
+  useEffect(() => {
+    cardRpc('card_directory', { p_type:'employee', p_search:null, p_limit:12 })
+      .then(r => setTeam(Array.isArray(r) ? r : [])).catch(() => {});
+  }, []);
   const mobile = useMobile();
   const { t } = useI18n();
   const submit = async () => {
@@ -1826,6 +1918,15 @@ function ContactPage() {
           </div>
         )}
       </div>
+      {team.length > 0 && (
+        <div style={{ maxWidth:1100, margin:'0 auto', padding:'0 40px 100px' }}>
+          <div style={{ fontSize:13, fontWeight:500, color:'#F97316', marginBottom:8 }}>Our team</div>
+          <div style={{ fontSize:24, fontWeight:600, color:'#1d1d1f', marginBottom:24 }}>Save a specialist's card</div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:14 }}>
+            {team.map(c => <CardTile key={c.slug} c={c} />)}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2442,6 +2543,7 @@ export default function App() {
       {page==='checkout' && <CheckoutPage cart={cart} setCart={setCart} user={user} setPage={setPage} />}
       {page==='about' && <AboutPage />}
       {page==='contact' && <ContactPage />}
+      {page==='directory' && <DirectoryPage setPage={setPage} />}
       {page==='showrooms' && <ShowroomsPage />}
       {page==='blog' && <BlogPage />}
       {page==='careers' && <CareersPage />}

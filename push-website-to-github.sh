@@ -40,13 +40,13 @@ echo
 read -r -p "Commit and push these to origin/main? [y/N] " ans
 [ "${ans:-N}" = "y" ] || [ "${ans:-N}" = "Y" ] || { echo "Aborted."; exit 0; }
 
-git commit -m "Website: AI Designer, AI chat, booking, AR, per-route SEO, secure customer auth
+git commit -m "Website: Digital Card platform integration + AI Designer/chat/booking/AR/SEO
 
-- AI Interior Designer page (real Claude concept generation + package tiers)
-- AI support chat widget, product recommendations, lead scoring
-- Multi-step booking flow wired to Hub (book_appointment RPC)
-- model-viewer AR on product pages
-- Per-route SEO, OG/Twitter tags, JSON-LD, sitemap, robots, og-image
+- Digital Cards: Directory page + nav (searchable vendors/members/team),
+  My Card tab in the account, team cards on Contact, vendor marketplace
+  (all via card_directory / card_owner_slug RPCs)
+- AI Interior Designer, AI chat widget, recommendations, lead scoring
+- Multi-step booking flow, model-viewer AR, per-route SEO/OG/JSON-LD
 - Customer auth via secure customer_login/customer_register RPCs"
 
 git push origin main
