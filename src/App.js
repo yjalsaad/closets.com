@@ -1468,6 +1468,8 @@ function HomeHub({ user, setUser, setPage }) {
   const [complaints, setComplaints] = useState([]);
   const [tickets, setTickets] = useState([]);
   const [cardSlug, setCardSlug] = useState(null);
+  const [cardPhoto, setCardPhoto] = useState(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
   const [editForm, setEditForm] = useState({ name: user?.name || '', phone: user?.phone || '' });
   const [cmpForm, setCmpForm] = useState({ category: 'Quality Issue', description: '' });
   const [tktForm, setTktForm] = useState({ subject: '', description: '', priority: 'Medium' });
@@ -1481,7 +1483,7 @@ function HomeHub({ user, setUser, setPage }) {
     api(`product_configurations?customer_id=eq.${user.id}&order=created_at.desc&limit=20`).then(r => setDesigns(Array.isArray(r)?r:[])).catch(()=>{});
     api(`complaints?customer_email=eq.${encodeURIComponent(user.email)}&order=created_at.desc&limit=20`).then(r => setComplaints(Array.isArray(r)?r:[])).catch(()=>{});
     api(`it_tickets?requester_email=eq.${encodeURIComponent(user.email)}&order=created_at.desc&limit=20`).then(r => setTickets(Array.isArray(r)?r:[])).catch(()=>{});
-    cardRpc('card_owner_slug', { p_owner_type:'customer', p_owner_id:user.id }).then(r => setCardSlug(r && r.slug)).catch(()=>{});
+    cardRpc('card_owner_slug', { p_owner_type:'customer', p_owner_id:user.id }).then(r => { setCardSlug(r && r.slug); setCardPhoto(r && r.photo_url); }).catch(()=>{});
   }, [user]);
   const totalSpent = invoices.reduce((s, i) => s + parseFloat(i.total_amount || i.amount || 0), 0);
   const submitComplaint = async () => {
@@ -1508,6 +1510,27 @@ function HomeHub({ user, setUser, setPage }) {
     if (!cardUrl) return;
     if (navigator.share) { try { await navigator.share({ title: user.name + ' — The Closets', url: cardUrl }); } catch(_){} }
     else { try { await navigator.clipboard.writeText(cardUrl); toast('Card link copied ✓','success'); } catch(_){} }
+  };
+  const uploadPhoto = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast('Image must be under 5MB', 'error'); return; }
+    setPhotoBusy(true);
+    try {
+      const path = 'customer/' + user.id + '/photo-' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+      const up = await fetch(SUPA_URL + '/storage/v1/object/card-media/' + path, {
+        method: 'POST',
+        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': file.type, 'x-upsert': 'true' },
+        body: file
+      });
+      if (!up.ok) throw new Error('upload failed');
+      const publicUrl = SUPA_URL + '/storage/v1/object/public/card-media/' + path;
+      const r = await cardRpc('customer_card_set_photo', { p_customer_id: user.id, p_photo_url: publicUrl });
+      if (r && r.ok) { setCardPhoto(publicUrl); toast('Profile photo updated ✓', 'success'); }
+      else { toast((r && r.error) || 'Could not save photo', 'error'); }
+    } catch (_) { toast('Upload failed, please try again', 'error'); }
+    setPhotoBusy(false);
+    e.target.value = '';
   };
   const Pill = ({ label, color, bg }) => <span style={{ display: 'inline-flex', padding: '4px 10px', borderRadius: 980, background: bg, color, fontSize: 12, fontWeight: 500 }}>{label}</span>;
   return (
@@ -1554,16 +1577,23 @@ function HomeHub({ user, setUser, setPage }) {
             <div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:28, maxWidth:560 }}>
               {cardSlug ? <>
                 <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:18 }}>
-                  <div style={{ width:60, height:60, borderRadius:'50%', background:'linear-gradient(135deg,#A855F7,#A855F799)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, fontWeight:800, color:'#fff' }}>{user.name?.[0]||'?'}</div>
+                  <div style={{ position:'relative', width:64, height:64 }}>
+                    <div style={{ width:64, height:64, borderRadius:'50%', overflow:'hidden', background:'linear-gradient(135deg,#A855F7,#A855F799)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:24, fontWeight:800, color:'#fff' }}>
+                      {cardPhoto ? <img src={cardPhoto} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : (user.name?.[0]||'?')}
+                    </div>
+                    <button type="button" onClick={()=>document.getElementById('cust-photo-input').click()} title="Change photo" style={{ position:'absolute', right:-2, bottom:-2, width:24, height:24, borderRadius:'50%', border:'2px solid #fff', background:'#F97316', color:'#fff', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>✎</button>
+                  </div>
                   <div>
                     <div style={{ fontSize:18, fontWeight:700, color:'#1d1d1f' }}>{user.name}</div>
                     <div style={{ fontSize:13, color:'#86868b' }}>{(user.tier||'Bronze')} member · {(user.points||0).toLocaleString()} pts</div>
                   </div>
                 </div>
+                <input id="cust-photo-input" type="file" accept="image/*" style={{ display:'none' }} onChange={uploadPhoto} />
                 <p style={{ fontSize:14, color:'#6e6e73', lineHeight:1.6, marginBottom:18 }}>Your personal digital card is live. Share it to let people save your contact, view your membership and book with us.</p>
                 <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
                   <a href={cardUrl} target="_blank" rel="noreferrer" className="btn" style={{ borderRadius:14, textDecoration:'none' }}>Open my card ↗</a>
                   <button type="button" className="btn-secondary" onClick={shareCard} style={{ borderRadius:14 }}>Share</button>
+                  <button type="button" className="btn-secondary" onClick={()=>document.getElementById('cust-photo-input').click()} disabled={photoBusy} style={{ borderRadius:14 }}>{photoBusy ? 'Uploading…' : (cardPhoto ? 'Change photo' : 'Upload photo')}</button>
                 </div>
               </> : <>
                 <div style={{ fontSize:40, marginBottom:10 }}>🪪</div>
@@ -1730,6 +1760,9 @@ function HomeHub({ user, setUser, setPage }) {
 function AuthModal({ mode, setMode, setUser, onClose }) {
   const [form, setForm] = useState({ name:'', email:'', password:'', phone:'' });
   const [loading, setLoading] = useState(false);
+  const [rstep, setRstep] = useState('request');
+  const [rotp, setRotp] = useState('');
+  const [rnew, setRnew] = useState('');
   const { t } = useI18n();
   const mobile = useMobile();
   const submit = async () => {
@@ -1740,14 +1773,32 @@ function AuthModal({ mode, setMode, setUser, onClose }) {
     const hdr = { ...H, Prefer: 'return=representation' };
     try {
       const u = mode==='login'
-        ? await api('rpc/customer_login', { method:'POST', headers:hdr, body:{ p_email: form.email, p_password: form.password } })
-        : await api('rpc/customer_register', { method:'POST', headers:hdr, body:{ p_email: form.email, p_password: form.password, p_name: form.name, p_phone: form.phone||null } });
+        ? await api('rpc/account_login', { method:'POST', headers:hdr, body:{ p_email: form.email, p_password: form.password } })
+        : await api('rpc/account_register', { method:'POST', headers:hdr, body:{ p_email: form.email, p_password: form.password, p_name: form.name, p_phone: form.phone||null } });
       if (!u || !u.id) throw new Error('Unexpected response');
       setUser(u); localStorage.setItem('closets_user', JSON.stringify(u));
       toast(mode==='login'?'Welcome back ✓':'Account created — 100 points added ✓', 'success'); onClose();
     } catch (e) {
       toast(e.message || 'Could not sign in', 'error');
     } finally { setLoading(false); }
+  };
+  const reqReset = async (channel) => {
+    if (!form.email) { toast('Enter your email', 'error'); return; }
+    setLoading(true);
+    try {
+      await api('rpc/customer_request_reset', { method:'POST', headers:{ ...H, Prefer:'return=representation' }, body:{ p_email: form.email, p_channel: channel } });
+      setRstep(channel==='otp'?'otp':'emailsent');
+      toast(channel==='otp'?'Code sent (if the account exists)':'Reset link sent (if the account exists)', 'success');
+    } catch (e) { toast(e.message || 'Could not start reset', 'error'); } finally { setLoading(false); }
+  };
+  const doResetOtp = async () => {
+    if ((rnew||'').length < 6) { toast('Password must be at least 6 characters', 'error'); return; }
+    setLoading(true);
+    try {
+      const r = await api('rpc/customer_reset_with_otp', { method:'POST', headers:{ ...H, Prefer:'return=representation' }, body:{ p_email: form.email, p_otp: rotp, p_new_password: rnew } });
+      if (r && r.ok) { toast('Password updated \u2713', 'success'); setMode('login'); setRstep('request'); setRotp(''); setRnew(''); }
+      else throw new Error('Incorrect or expired code');
+    } catch (e) { toast(e.message || 'Incorrect or expired code', 'error'); } finally { setLoading(false); }
   };
   return (
     <>
@@ -1757,18 +1808,33 @@ function AuthModal({ mode, setMode, setUser, onClose }) {
         {mobile && <div style={{ width:36, height:4, background:'#e6e6e6', borderRadius:2, margin:'-12px auto 20px' }} />}
         <div style={{ textAlign:'center', marginBottom:28 }}>
           <div style={{ width:48, height:48, borderRadius:14, background:'rgba(249,115,22,.12)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px', fontSize:22 }}>◼</div>
-          <div style={{ fontSize:22, fontWeight:700, color:'#1d1d1f', letterSpacing:'-.02em', marginBottom:5 }}>{mode==='login'?'Welcome back':'Create account'}</div>
-          <div style={{ fontSize:14, color:'#86868b' }}>{mode==='login'?'Sign in to your Hub':'Join and earn 100 welcome points'}</div>
+          <div style={{ fontSize:22, fontWeight:700, color:'#1d1d1f', letterSpacing:'-.02em', marginBottom:5 }}>{mode==='reset'?'Reset password':mode==='login'?'Welcome back':'Create account'}</div>
+          <div style={{ fontSize:14, color:'#86868b' }}>{mode==='reset'?"We'll help you back in":mode==='login'?'Sign in to your Hub':'Join and earn 100 welcome points'}</div>
         </div>
-        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+        {mode!=='reset' && (<div style={{ display:'flex', flexDirection:'column', gap:12 }}>
           {mode==='register'&&<input className="inp" placeholder="Full name" value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} />}
           <input className="inp" placeholder={t("email")} type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} autoCapitalize="none" />
           {mode==='register'&&<input className="inp" placeholder="Phone (optional)" value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} />}
           <input className="inp" placeholder="Password" type="password" value={form.password} onChange={e=>setForm(p=>({...p,password:e.target.value}))} onKeyDown={e=>e.key==='Enter'&&submit()} />
           <button type="button" className="btn" onClick={submit} disabled={loading} style={{ borderRadius:14, opacity:loading?.7:1 }}>{loading?'Please wait…':mode==='login'?'Sign In':'Create Account'}</button>
-        </div>
-        <div style={{ textAlign:'center', marginTop:16 }}>
-          <button type="button" onClick={()=>setMode(mode==='login'?'register':'login')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#F97316', fontWeight:500 }}>{mode==='login'?'New here? Register →':'Already have an account? Sign in →'}</button>
+        </div>)}
+        {mode==='reset' && (<div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+          <input className="inp" placeholder={t("email")} type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} autoCapitalize="none" />
+          {rstep==='request' && (<>
+            <button type="button" className="btn" onClick={()=>reqReset('email')} disabled={loading} style={{ borderRadius:14 }}>📧 Email me a reset link</button>
+            <button type="button" onClick={()=>reqReset('otp')} disabled={loading} style={{ borderRadius:14, padding:'12px', background:'#fff', color:'#F97316', border:'1px solid #F97316', fontWeight:600, cursor:'pointer' }}>📱 Text me a code</button>
+          </>)}
+          {rstep==='emailsent' && (<div style={{ fontSize:13, color:'#86868b', textAlign:'center' }}>Check your email for a reset link — it opens your account to set a new password.</div>)}
+          {rstep==='otp' && (<>
+            <input className="inp" placeholder="6-digit code" inputMode="numeric" value={rotp} onChange={e=>setRotp(e.target.value)} />
+            <input className="inp" placeholder="New password (6+ characters)" type="password" value={rnew} onChange={e=>setRnew(e.target.value)} />
+            <button type="button" className="btn" onClick={doResetOtp} disabled={loading} style={{ borderRadius:14 }}>Set new password</button>
+          </>)}
+        </div>)}
+        <div style={{ textAlign:'center', marginTop:16, display:'flex', flexDirection:'column', gap:8 }}>
+          {mode!=='reset' && <button type="button" onClick={()=>setMode(mode==='login'?'register':'login')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#F97316', fontWeight:500 }}>{mode==='login'?'New here? Register →':'Already have an account? Sign in →'}</button>}
+          {mode==='login' && <button type="button" onClick={()=>{ setRstep('request'); setMode('reset'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#86868b', fontWeight:500 }}>Forgot your password?</button>}
+          {mode==='reset' && <button type="button" onClick={()=>{ setMode('login'); setRstep('request'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#86868b', fontWeight:500 }}>← Back to sign in</button>}
         </div>
         {!mobile && <button type="button" onClick={onClose} style={{ position:'absolute', top:14, right:16, background:'#f5f5f7', border:'none', borderRadius:'50%', width:30, height:30, cursor:'pointer', color:'#86868b', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>}
       </div>
