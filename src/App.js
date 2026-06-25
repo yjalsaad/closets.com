@@ -301,7 +301,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
             <span style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.02em' }}>Closets Co.</span></>}
       </button>
       <div style={{ display: 'flex', gap: 0 }}>
-        {[['home','home','Home'],['products','gallery','Gallery'],['projects','projects','Projects'],['planner','design','Design'],['ai','ai','AI Designer'],['showrooms','showrooms','Showrooms'],['directory','directory','Directory'],['blog','blog','Inspiration'],['contact','contact','Contact']].map(([p, key, label]) => (
+        {[['home','home','Home'],['products','gallery','Gallery'],['projects','projects','Projects'],['planner','design','Design'],['ai','ai','AI Designer'],['services','services','Services'],['showrooms','showrooms','Showrooms'],['directory','directory','Directory'],['blog','blog','Inspiration'],['contact','contact','Contact']].map(([p, key, label]) => (
           <button type="button" key={p} onClick={() => setPage(p)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 12px', fontSize: 14, fontWeight: page === p ? 500 : 400, color: page === p ? '#1d1d1f' : '#86868b', borderRadius: 8, transition: 'color .2s' }}>{label || tr(key)}</button>
         ))}
       </div>
@@ -1467,6 +1467,7 @@ function HomeHub({ user, setUser, setPage }) {
   const [designs, setDesigns] = useState([]);
   const [complaints, setComplaints] = useState([]);
   const [tickets, setTickets] = useState([]);
+  const [svcBookings, setSvcBookings] = useState([]);
   const [cardSlug, setCardSlug] = useState(null);
   const [cardPhoto, setCardPhoto] = useState(null);
   const [photoBusy, setPhotoBusy] = useState(false);
@@ -1483,6 +1484,7 @@ function HomeHub({ user, setUser, setPage }) {
     api(`product_configurations?customer_id=eq.${user.id}&order=created_at.desc&limit=20`).then(r => setDesigns(Array.isArray(r)?r:[])).catch(()=>{});
     api(`complaints?customer_email=eq.${encodeURIComponent(user.email)}&order=created_at.desc&limit=20`).then(r => setComplaints(Array.isArray(r)?r:[])).catch(()=>{});
     api(`it_tickets?requester_email=eq.${encodeURIComponent(user.email)}&order=created_at.desc&limit=20`).then(r => setTickets(Array.isArray(r)?r:[])).catch(()=>{});
+    api('rpc/customer_bookings_list', { method:'POST', body:{ p_customer_id:String(user.id) } }).then(r => setSvcBookings(Array.isArray(r)?r:[])).catch(()=>{});
     cardRpc('card_owner_slug', { p_owner_type:'customer', p_owner_id:user.id }).then(r => { setCardSlug(r && r.slug); setCardPhoto(r && r.photo_url); }).catch(()=>{});
   }, [user]);
   const totalSpent = invoices.reduce((s, i) => s + parseFloat(i.total_amount || i.amount || 0), 0);
@@ -1504,7 +1506,7 @@ function HomeHub({ user, setUser, setPage }) {
     await api(`customers?id=eq.${user.id}`, { method: 'PATCH', body: { name: editForm.name, phone: editForm.phone, updated_at: new Date().toISOString() } });
     const u = { ...user, ...editForm }; setUser(u); localStorage.setItem('closets_user', JSON.stringify(u)); toast('Saved ✓', 'success');
   };
-  const tabs = [['dashboard','Dashboard'],['card','My Card'],['ledger','Ledger'],['orders','Orders'],['designs','Designs'],['rewards','Rewards'],['requests','Requests'],['support','Support'],['profile','Profile']];
+  const tabs = [['dashboard','Dashboard'],['card','My Card'],['svcbookings','Bookings'],['ledger','Ledger'],['orders','Orders'],['designs','Designs'],['rewards','Rewards'],['requests','Requests'],['support','Support'],['profile','Profile']];
   const cardUrl = cardSlug ? `${HUB_ORIGIN}/card.html?c=${encodeURIComponent(cardSlug)}` : null;
   const shareCard = async () => {
     if (!cardUrl) return;
@@ -1652,6 +1654,30 @@ function HomeHub({ user, setUser, setPage }) {
                 ))}
               </div>
             )}
+          </>}
+
+          {tab === 'svcbookings' && <>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:18 }}>
+              <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', margin:0 }}>Service bookings</h2>
+              <button type="button" className="btn" onClick={()=>setPage('services')} style={{ borderRadius:12, padding:'8px 16px', fontSize:14 }}>+ Book a service</button>
+            </div>
+            {svcBookings.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'#86868b', background:'#fff', borderRadius:16, fontSize:14 }}>No service bookings yet.</div> : svcBookings.map(b=>{
+              const s=(b.status||'').toLowerCase();
+              const col = /complet/.test(s)?'#16a34a' : /cancel|disput/.test(s)?'#dc2626' : /request/.test(s)?'#F97316' : '#3b82f6';
+              return (
+                <div key={b.id} style={{ background:'#fff', borderRadius:16, padding:'16px 18px', border:'1px solid #e6e6e6', marginBottom:10 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <div style={{ fontSize:15, fontWeight:600, color:'#1d1d1f' }}>{b.category_name||'Service'}</div>
+                    <Pill label={b.status||'Requested'} color={col} bg={col+'18'} />
+                  </div>
+                  <div style={{ fontSize:12.5, color:'#86868b', marginTop:5 }}>
+                    {b.provider_name?('👷 '+b.provider_name):(b.mode==='on_demand'?'ASAP':'Scheduled')}{b.area?(' · '+b.area):''}{b.slot?(' · '+b.slot):''}
+                    {b.price_approval_status==='pending'?'  ·  ⏳ price approval needed':''}
+                  </div>
+                  {!!b.notes && <div style={{ fontSize:12.5, color:'#6e6e73', marginTop:6 }}>{b.notes}</div>}
+                </div>
+              );
+            })}
           </>}
 
           {tab === 'orders' && <>
@@ -2304,6 +2330,94 @@ function FaqPage() {
 }
 const APPT_KINDS = ['Design Consultation','Free Site Visit','Showroom Visit','Online Consultation'];
 const APPT_SLOTS = ['Morning (9–12)','Afternoon (12–4)','Evening (4–7)'];
+function ServicesPage({ user, setPage, openAuth }) {
+  const [cats, setCats] = useState([]);
+  const [sel, setSel] = useState(null);
+  const [mode, setMode] = useState('scheduled');
+  const [date, setDate] = useState('');
+  const [slot, setSlot] = useState('');
+  const [area, setArea] = useState('');
+  const [address, setAddress] = useState('');
+  const [notes, setNotes] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+  useEffect(() => { api('rpc/services_list', { method: 'POST', body: {} }).then(d => setCats(Array.isArray(d) ? d : [])).catch(() => {}); }, []);
+  const open = (c) => { if (!user) { openAuth && openAuth('login'); return; } setSel(c); setMode('scheduled'); setDate(''); setSlot((c.slots && c.slots[0]) || 'Morning'); setArea(''); setAddress(''); setNotes(''); setDone(false); };
+  const submit = async () => {
+    if (!notes.trim()) return;
+    setBusy(true);
+    try {
+      await api('rpc/marketplace_book', { method: 'POST', body: {
+        p_customer_id: String(user.id), p_customer_name: user.name || 'Customer', p_customer_phone: user.phone || null,
+        p_category_id: sel.id, p_mode: mode, p_scheduled_at: mode === 'scheduled' && date ? new Date(date).toISOString() : null,
+        p_address: address || null, p_area: area || null, p_notes: notes, p_photos: [], p_lat: null, p_lng: null,
+        p_slot: mode === 'scheduled' ? slot : null,
+      } });
+      setDone(true);
+    } catch (e) { alert('Could not send: ' + e.message); }
+    setBusy(false);
+  };
+  const price = (c) => c.pricing_model === 'fixed' ? ('From BD ' + c.base_price) : c.pricing_model === 'hourly' ? ('BD ' + c.base_price + '/hr') : 'Free quote';
+  return (
+    <div style={{ paddingTop: 96, paddingBottom: 80, maxWidth: 1100, margin: '0 auto', padding: '96px 24px 80px' }}>
+      <h1 style={{ fontSize: 38, fontWeight: 700, letterSpacing: '-.03em', marginBottom: 6 }}>Book a Service</h1>
+      <p style={{ color: '#86868b', fontSize: 17, marginBottom: 34 }}>Carpentry, repairs, cleaning, AC & more — scheduled or ASAP. {user ? '' : 'Sign in to book.'}</p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 18 }}>
+        {cats.map(c => (
+          <div key={c.id} onClick={() => open(c)} style={{ background: '#fff', border: '1px solid #ececec', borderRadius: 18, overflow: 'hidden', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
+            <div style={{ height: 120, background: c.image_url ? `center/cover url(${c.image_url})` : '#FFF4EC', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40 }}>{c.image_url ? '' : '🛠️'}</div>
+            <div style={{ padding: 16 }}>
+              <div style={{ fontWeight: 600, fontSize: 16 }}>{c.name_en}</div>
+              <div style={{ color: '#86868b', fontSize: 13, marginTop: 4 }}>{price(c)} · ⏱ ~{c.est_minutes}m{Number(c.points) > 0 ? ' · ★ ' + c.points + ' pts' : ''}</div>
+              {Number(c.discount_pct) > 0 && <span style={{ display: 'inline-block', marginTop: 8, background: '#FEE2E2', color: '#dc2626', borderRadius: 99, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>-{c.discount_pct}%</span>}
+              {Number(c.warranty_months) > 0 && <span style={{ display: 'inline-block', marginTop: 8, marginLeft: 6, background: '#DCFCE7', color: '#16a34a', borderRadius: 99, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>{c.warranty_months}-mo warranty</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {sel && (
+        <div onClick={() => setSel(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 18 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, maxWidth: 460, width: '100%', padding: 24, maxHeight: '90vh', overflow: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>{sel.name_en}</h2>
+              <button onClick={() => setSel(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#86868b' }}>✕</button>
+            </div>
+            {done ? (
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <div style={{ fontSize: 44 }}>✅</div>
+                <p style={{ fontWeight: 600, fontSize: 18, marginTop: 8 }}>Request sent!</p>
+                <p style={{ color: '#86868b', fontSize: 14 }}>We've sent it to available providers. Track it in your account.</p>
+                <button className="btn" onClick={() => { setSel(null); setPage('portal'); }} style={{ marginTop: 14, borderRadius: 12 }}>Go to my account</button>
+              </div>
+            ) : (
+              <>
+                <div style={{ display: 'flex', background: '#f5f5f7', borderRadius: 12, padding: 4, marginBottom: 16 }}>
+                  {[['scheduled', 'Schedule'], ['on_demand', 'ASAP']].map(([m, l]) => (
+                    <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: 10, borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 700, background: mode === m ? '#fff' : 'transparent', color: mode === m ? '#F97316' : '#86868b' }}>{l}</button>
+                  ))}
+                </div>
+                {mode === 'scheduled' && (
+                  <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+                    <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ flex: 1, padding: 11, borderRadius: 10, border: '1px solid #ddd', fontSize: 15 }} />
+                    <select value={slot} onChange={e => setSlot(e.target.value)} style={{ flex: 1, padding: 11, borderRadius: 10, border: '1px solid #ddd', fontSize: 15 }}>
+                      {(sel.slots || ['Morning', 'Afternoon', 'Evening']).map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                )}
+                <input value={area} onChange={e => setArea(e.target.value)} placeholder="Area (e.g. Riffa)" style={{ width: '100%', padding: 11, borderRadius: 10, border: '1px solid #ddd', fontSize: 15, marginBottom: 10 }} />
+                <input value={address} onChange={e => setAddress(e.target.value)} placeholder="Address / building, road, block" style={{ width: '100%', padding: 11, borderRadius: 10, border: '1px solid #ddd', fontSize: 15, marginBottom: 10 }} />
+                <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="What do you need? Describe the job…" rows={3} style={{ width: '100%', padding: 11, borderRadius: 10, border: '1px solid #ddd', fontSize: 15, marginBottom: 14, resize: 'vertical' }} />
+                <button className="btn" disabled={busy} onClick={submit} style={{ width: '100%', borderRadius: 12 }}>{busy ? 'Sending…' : 'Send request'}</button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BookingPage({ setPage }) {
   const mobile = useMobile();
   const [f,setF]=useState({ type:'Design Consultation', name:'', phone:'', email:'', date:'', slot:APPT_SLOTS[0], address:'', interest:'Kitchen', notes:'' });
@@ -2616,6 +2730,7 @@ export default function App() {
       {page==='offers' && <OffersPage setPage={setPage} />}
       {page==='faq' && <FaqPage />}
       {page==='booking' && <BookingPage setPage={setPage} />}
+      {page==='services' && <ServicesPage user={user} setPage={setPage} openAuth={openAuth} />}
       {page==='projects' && <PortfolioPage setPage={setPage} />}
       {page==='maintenance' && <MaintenancePage />}
       {page==='warranty' && <WarrantyPage />}
