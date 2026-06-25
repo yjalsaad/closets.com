@@ -2029,16 +2029,31 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
   const [step, setStep] = useState(1);
   const { t } = useI18n();
   const [form, setForm] = useState({ name:user?.name||'', email:user?.email||'', phone:user?.phone||'', address:'', city:'Manama', payment:'Bank Transfer', notes:'' });
+  const [settings, setSettings] = useState({});
+  const [months, setMonths] = useState(0); // 0 = pay in full
+  useEffect(() => { api('rpc/marketplace_settings_get', { method:'POST', body:{} }).then(d => setSettings(d && typeof d==='object' ? d : {})).catch(()=>{}); }, []);
   const total = cart.reduce((s,i)=>s+parseFloat(i.price||0), 0);
   const mobile = useMobile();
+  const plans = Array.isArray(settings.installment_plans) ? settings.installment_plans : [];
+  const instEnabled = settings.product_installments_enabled && total >= (Number(settings.installment_min_amount)||0) && plans.length > 0;
+  const monthly = months > 0 ? (total / months) : 0;
   const place = async () => {
+    const payLabel = months > 0 ? `Installments — ${months} months @ BHD ${monthly.toFixed(2)}/mo` : form.payment;
+    const planNote = months > 0 ? `[Installment plan: ${months} months × BHD ${monthly.toFixed(2)}] ` : '';
     // Audited order intake (validates, writes sales_order with correct columns, notifies team)
     const id = await api('rpc/public_order_submit', { method:'POST', body:{
       p_name: form.name, p_phone: form.phone || null, p_email: form.email || null,
       p_address: (form.address ? form.address+', ' : '')+form.city,
-      p_items: cart, p_total: total, p_payment: form.payment, p_notes: form.notes || null,
+      p_items: cart, p_total: total, p_payment: payLabel, p_notes: planNote + (form.notes || ''),
       p_customer_id: user?.id || null
     }});
+    // also record a store order with the installment plan (no card capture)
+    try { await api('rpc/store_checkout', { method:'POST', body:{
+      p_customer_id: user?.id || null, p_customer_name: form.name, p_customer_email: form.email || null,
+      p_customer_phone: form.phone || null, p_items: cart, p_total: total,
+      p_installment_months: months > 0 ? months : null,
+      p_address: { line: form.address, city: form.city }, p_notes: form.notes || null,
+    }}); } catch(e) {}
     if (user) {
       const pts = Math.floor(total*10);
       await api('website_rewards', { method:'POST', body:[{ id:uid(), customer_id:user.id, type:'earned', points:pts, description:'Website order', created_at:new Date().toISOString() }] });
@@ -2089,9 +2104,23 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
                 <div style={{ fontSize:13, fontWeight:600, color:'#86868b', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:20 }}>02 / Payment</div>
                 <div style={{ display:'flex', gap:8, marginBottom:16 }}>
                   {['Bank Transfer','Cash','Cheque'].map(p=>(
-                    <button type="button" key={p} onClick={()=>setForm(f=>({...f,payment:p}))} style={{ flex:1, padding:'12px 8px', borderRadius:12, border:`1.5px solid ${form.payment===p?'#F97316':'#e6e6e6'}`, background:form.payment===p?'rgba(249,115,22,.08)':'#fff', color:form.payment===p?'#F97316':'#6e6e73', fontSize:13, cursor:'pointer', fontWeight:form.payment===p?500:400, transition:'all .15s' }}>{p}</button>
+                    <button type="button" key={p} onClick={()=>{ setForm(f=>({...f,payment:p})); setMonths(0); }} style={{ flex:1, padding:'12px 8px', borderRadius:12, border:`1.5px solid ${form.payment===p&&months===0?'#F97316':'#e6e6e6'}`, background:form.payment===p&&months===0?'rgba(249,115,22,.08)':'#fff', color:form.payment===p&&months===0?'#F97316':'#6e6e73', fontSize:13, cursor:'pointer', fontWeight:form.payment===p&&months===0?500:400, transition:'all .15s' }}>{p}</button>
                   ))}
                 </div>
+                {instEnabled && (
+                  <div style={{ marginBottom:16 }}>
+                    <div style={{ fontSize:13, fontWeight:600, color:'#1d1d1f', marginBottom:8 }}>Or split into monthly installments</div>
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+                      {plans.map(m=>(
+                        <button type="button" key={m} onClick={()=>setMonths(months===m?0:m)} style={{ padding:'10px 14px', borderRadius:12, border:`1.5px solid ${months===m?'#F97316':'#e6e6e6'}`, background:months===m?'rgba(249,115,22,.08)':'#fff', cursor:'pointer', textAlign:'left' }}>
+                          <div style={{ fontSize:14, fontWeight:700, color:months===m?'#F97316':'#1d1d1f' }}>{m} months</div>
+                          <div style={{ fontSize:12, color:'#86868b' }}>BHD {(total/m).toFixed(2)}/mo</div>
+                        </button>
+                      ))}
+                    </div>
+                    {months>0 && <div style={{ marginTop:10, fontSize:13, color:'#16a34a', fontWeight:600 }}>✓ {months} payments of BHD {monthly.toFixed(2)} — our team will confirm the plan with you.</div>}
+                  </div>
+                )}
                 <textarea className="inp" rows={3} placeholder="Notes…" value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))} style={{ resize:'vertical', marginBottom:16 }} />
                 <div style={{ display:'flex', gap:10 }}>
                   <button type="button" className="btn-secondary" onClick={()=>setStep(1)} style={{ borderRadius:12 }}>← Back</button>
