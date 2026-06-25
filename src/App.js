@@ -2229,32 +2229,34 @@ function PageWrap({ title, sub, children }) {
 }
 function ShowroomsPage() {
   const [rows,setRows]=useState([]);
-  useEffect(()=>{ api('website_showrooms?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
+  // Single source of truth: same content the Hub manages & the app shows.
+  useEffect(()=>{ api('rpc/content_list',{method:'POST',body:{p_section:'showroom'}}).then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
   return (<PageWrap title="Visit a showroom" sub="Experience our craftsmanship in person across Bahrain.">
     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
-      {rows.map(s=>(<div key={s.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
-        <div style={{ fontSize:34 }}>{s.emoji||'🏛'}</div>
-        <div style={{ fontSize:18, fontWeight:600, color:'#1d1d1f', marginTop:10 }}>{s.name}</div>
-        <div style={{ fontSize:14, color:'#86868b', marginTop:6, lineHeight:1.6 }}>{s.address}</div>
-        {s.hours&&<div style={{ fontSize:13, color:'#86868b', marginTop:8 }}>🕑 {s.hours}</div>}
-        {s.phone&&<a href={'tel:'+s.phone} style={{ display:'inline-block', marginTop:12, color:'#F97316', fontWeight:600, fontSize:14, textDecoration:'none' }}>{s.phone}</a>}
-      </div>))}
+      {rows.map(s=>{ const m=s.meta||{}; return (<div key={s.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+        {s.image_url ? <div style={{ height:140, background:`url('${s.image_url}') center/cover` }} /> : <div style={{ height:80, background:'#FFF1E8', display:'flex', alignItems:'center', justifyContent:'center', fontSize:34 }}>🏛</div>}
+        <div style={{ padding:22 }}>
+          <div style={{ fontSize:18, fontWeight:600, color:'#1d1d1f' }}>{s.title}</div>
+          <div style={{ fontSize:14, color:'#86868b', marginTop:6, lineHeight:1.6 }}>{m.address||s.subtitle}</div>
+          {(m.hours)&&<div style={{ fontSize:13, color:'#86868b', marginTop:8 }}>🕑 {m.hours}</div>}
+          {(m.phone)&&<a href={'tel:'+m.phone} style={{ display:'inline-block', marginTop:12, color:'#F97316', fontWeight:600, fontSize:14, textDecoration:'none' }}>{m.phone}</a>}
+        </div>
+      </div>); })}
       {rows.length===0 && <div style={{ color:'#aaa' }}>Showroom details coming soon.</div>}
     </div>
   </PageWrap>);
 }
 function BlogPage() {
   const [rows,setRows]=useState([]);
-  useEffect(()=>{ api('website_blog?active=eq.true&order=date.desc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
+  useEffect(()=>{ api('rpc/content_list',{method:'POST',body:{p_section:'inspiration'}}).then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
   return (<PageWrap title="Inspiration & guides" sub="Ideas, tips and trends for kitchens, wardrobes and storage.">
     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:20 }}>
       {rows.map(b=>(<div key={b.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
-        <div style={{ height:130, background: b.image_url?`url('${b.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:44 }}>{!b.image_url && (b.emoji||'📖')}</div>
+        <div style={{ height:130, background: b.image_url?`url('${b.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:44 }}>{!b.image_url && '📖'}</div>
         <div style={{ padding:20 }}>
-          <div style={{ fontSize:12, color:'#F97316', fontWeight:600, textTransform:'uppercase', letterSpacing:'.05em' }}>{b.category}</div>
+          {b.subtitle && <div style={{ fontSize:12, color:'#F97316', fontWeight:600, textTransform:'uppercase', letterSpacing:'.05em' }}>{b.subtitle}</div>}
           <div style={{ fontSize:17, fontWeight:600, color:'#1d1d1f', marginTop:6 }}>{b.title}</div>
-          <div style={{ fontSize:14, color:'#86868b', marginTop:8, lineHeight:1.6 }}>{b.excerpt}</div>
-          <div style={{ fontSize:12, color:'#aaa', marginTop:12 }}>{b.date}{b.read_time?' · '+b.read_time:''}</div>
+          <div style={{ fontSize:14, color:'#86868b', marginTop:8, lineHeight:1.6 }}>{b.body}</div>
         </div>
       </div>))}
       {rows.length===0 && <div style={{ color:'#aaa' }}>Articles coming soon.</div>}
