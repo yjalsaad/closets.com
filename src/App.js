@@ -2731,56 +2731,66 @@ function ServicesPage({ user, setPage, openAuth }) {
   };
   const price = (c) => c.pricing_model === 'fixed' ? ('From BD ' + c.base_price) : c.pricing_model === 'hourly' ? ('BD ' + c.base_price + '/hr') : 'Free quote';
   return (
-    <div style={{ paddingTop: 96, paddingBottom: 80, maxWidth: 1100, margin: '0 auto', padding: '96px 24px 80px' }}>
-      <h1 style={{ fontSize: 38, fontWeight: 700, letterSpacing: '-.03em', marginBottom: 6 }}>Book a Service</h1>
-      <p style={{ color: '#86868b', fontSize: 17, marginBottom: 34 }}>Carpentry, repairs, cleaning, AC & more — scheduled or ASAP. {user ? '' : 'Sign in to book.'}</p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 18 }}>
-        {cats.map(c => (
-          <div key={c.id} onClick={() => open(c)} style={{ background: '#fff', border: '1px solid #ececec', borderRadius: 18, overflow: 'hidden', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
-            <div style={{ height: 120, background: c.image_url ? `center/cover url(${c.image_url})` : '#FFF4EC', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40 }}>{c.image_url ? '' : '🛠️'}</div>
-            <div style={{ padding: 16 }}>
-              <div style={{ fontWeight: 600, fontSize: 16 }}>{c.name_en}</div>
-              <div style={{ color: '#86868b', fontSize: 13, marginTop: 4 }}>{price(c)} · ⏱ ~{c.est_minutes}m{Number(c.points) > 0 ? ' · ★ ' + c.points + ' pts' : ''}</div>
-              {Number(c.discount_pct) > 0 && <span style={{ display: 'inline-block', marginTop: 8, background: '#FEE2E2', color: '#dc2626', borderRadius: 99, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>-{c.discount_pct}%</span>}
-              {Number(c.warranty_months) > 0 && <span style={{ display: 'inline-block', marginTop: 8, marginLeft: 6, background: '#DCFCE7', color: '#16a34a', borderRadius: 99, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>{c.warranty_months}-mo warranty</span>}
+    <div style={{ minHeight: '100vh', background: 'var(--cream)', paddingTop: 104, paddingBottom: 90 }}>
+      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '0 24px' }}>
+        <div className="rv" style={{ maxWidth: 680, marginBottom: 36 }}>
+          <div className="eyebrow" style={{ marginBottom: 14 }}>Home services</div>
+          <h1 className="display" style={{ fontSize: 'clamp(36px,5vw,56px)', color: 'var(--ink)', marginBottom: 14 }}>Help around the home, on demand.</h1>
+          <p style={{ fontSize: 17, color: 'var(--ink-soft)', lineHeight: 1.7 }}>Carpentry, repairs, cleaning, AC and more — scheduled or ASAP, by vetted providers.{user ? '' : ' Sign in to book.'}</p>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(250px,1fr))', gap: 18 }}>
+          {cats.map(c => (
+            <div key={c.id} className="rv lift" onClick={() => open(c)} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 18, overflow: 'hidden', cursor: 'pointer' }}>
+              <div className="tile-zoom" style={{ position: 'relative', height: 140 }}>
+                <Photo src={c.image_url || HOME_IMG.detail} alt={c.name_en} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
+              </div>
+              <div style={{ padding: '16px 18px' }}>
+                <div className="display" style={{ fontWeight: 600, fontSize: 18, color: 'var(--ink)' }}>{c.name_en}</div>
+                <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 6 }}>{price(c)} · ~{c.est_minutes}m{Number(c.points) > 0 ? ' · ★ ' + c.points + ' pts' : ''}</div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
+                  {Number(c.discount_pct) > 0 && <span style={{ background: 'rgba(176,97,59,.1)', color: 'var(--clay)', borderRadius: 99, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>−{c.discount_pct}%</span>}
+                  {Number(c.warranty_months) > 0 && <span style={{ background: '#e7f0e9', color: '#3f7a52', borderRadius: 99, padding: '2px 10px', fontSize: 12, fontWeight: 600 }}>{c.warranty_months}-mo warranty</span>}
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+          {cats.length === 0 && <div style={{ color: 'var(--muted)' }}>Services coming soon.</div>}
+        </div>
       </div>
 
       {sel && (
-        <div onClick={() => setSel(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 18 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, maxWidth: 460, width: '100%', padding: 24, maxHeight: '90vh', overflow: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>{sel.name_en}</h2>
-              <button onClick={() => setSel(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#86868b' }}>✕</button>
+        <div onClick={() => setSel(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,16,12,.55)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 18 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cream)', borderRadius: 22, maxWidth: 480, width: '100%', padding: 26, maxHeight: '90vh', overflow: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+              <h2 className="display" style={{ fontSize: 24, color: 'var(--ink)', margin: 0 }}>{sel.name_en}</h2>
+              <button onClick={() => setSel(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: 'var(--muted)' }}>✕</button>
             </div>
             {done ? (
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
                 <div style={{ fontSize: 44 }}>✅</div>
-                <p style={{ fontWeight: 600, fontSize: 18, marginTop: 8 }}>Request sent!</p>
-                <p style={{ color: '#86868b', fontSize: 14 }}>We've sent it to available providers. Track it in your account.</p>
-                <button className="btn" onClick={() => { setSel(null); setPage('portal'); }} style={{ marginTop: 14, borderRadius: 12 }}>Go to my account</button>
+                <p className="display" style={{ fontSize: 20, color: 'var(--ink)', marginTop: 8 }}>Request sent</p>
+                <p style={{ color: 'var(--ink-soft)', fontSize: 14 }}>We've sent it to available providers. Track it in your account.</p>
+                <button className="btn-clay" onClick={() => { setSel(null); setPage('portal'); }} style={{ marginTop: 16 }}>Go to my account</button>
               </div>
             ) : (
               <>
-                <div style={{ display: 'flex', background: '#f5f5f7', borderRadius: 12, padding: 4, marginBottom: 16 }}>
+                <div style={{ display: 'flex', background: 'var(--sand)', borderRadius: 12, padding: 4, marginBottom: 16 }}>
                   {[['scheduled', 'Schedule'], ['on_demand', 'ASAP']].map(([m, l]) => (
-                    <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: 10, borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 700, background: mode === m ? '#fff' : 'transparent', color: mode === m ? '#F97316' : '#86868b' }}>{l}</button>
+                    <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: 10, borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 600, background: mode === m ? '#fff' : 'transparent', color: mode === m ? 'var(--clay)' : 'var(--muted)' }}>{l}</button>
                   ))}
                 </div>
                 {mode === 'scheduled' && (
                   <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-                    <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ flex: 1, padding: 11, borderRadius: 10, border: '1px solid #ddd', fontSize: 15 }} />
-                    <select value={slot} onChange={e => setSlot(e.target.value)} style={{ flex: 1, padding: 11, borderRadius: 10, border: '1px solid #ddd', fontSize: 15 }}>
+                    <input type="date" className="inp" value={date} onChange={e => setDate(e.target.value)} style={{ flex: 1, background: '#fff', border: '1px solid var(--line)' }} />
+                    <select className="inp" value={slot} onChange={e => setSlot(e.target.value)} style={{ flex: 1, background: '#fff', border: '1px solid var(--line)' }}>
                       {(sel.slots || ['Morning', 'Afternoon', 'Evening']).map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                 )}
-                <input value={area} onChange={e => setArea(e.target.value)} placeholder="Area (e.g. Riffa)" style={{ width: '100%', padding: 11, borderRadius: 10, border: '1px solid #ddd', fontSize: 15, marginBottom: 10 }} />
-                <input value={address} onChange={e => setAddress(e.target.value)} placeholder="Address / building, road, block" style={{ width: '100%', padding: 11, borderRadius: 10, border: '1px solid #ddd', fontSize: 15, marginBottom: 10 }} />
-                <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="What do you need? Describe the job…" rows={3} style={{ width: '100%', padding: 11, borderRadius: 10, border: '1px solid #ddd', fontSize: 15, marginBottom: 14, resize: 'vertical' }} />
-                <button className="btn" disabled={busy} onClick={submit} style={{ width: '100%', borderRadius: 12 }}>{busy ? 'Sending…' : 'Send request'}</button>
+                <input className="inp" value={area} onChange={e => setArea(e.target.value)} placeholder="Area (e.g. Riffa)" style={{ background: '#fff', border: '1px solid var(--line)', marginBottom: 10 }} />
+                <input className="inp" value={address} onChange={e => setAddress(e.target.value)} placeholder="Address / building, road, block" style={{ background: '#fff', border: '1px solid var(--line)', marginBottom: 10 }} />
+                <textarea className="inp" value={notes} onChange={e => setNotes(e.target.value)} placeholder="What do you need? Describe the job…" rows={3} style={{ background: '#fff', border: '1px solid var(--line)', marginBottom: 14, resize: 'vertical' }} />
+                <button className="btn-clay" disabled={busy} onClick={submit} style={{ width: '100%' }}>{busy ? 'Sending…' : 'Send request'}</button>
               </>
             )}
           </div>
