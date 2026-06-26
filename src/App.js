@@ -4341,11 +4341,11 @@ export default function App() {
       {page==='ai' && <PageBoundary key="ai"><AIDesignerPage setPage={setPage} user={user} /></PageBoundary>}
       {page==='kitchen-planner' && <PageBoundary key="kp"><KitchenStudioPage setPage={setPage} user={user} /></PageBoundary>}
       {page==='design-builder' && <PageBoundary key="db"><DesignBuilderPage setPage={setPage} user={user} /></PageBoundary>}
+      {page==='planner' && <PageBoundary key="planner"><PlannerPage setPage={setPage} user={user} openAuth={openAuth} siteLogo={siteLogo} /></PageBoundary>}
       {page.startsWith('cat:') && <CategoryPage category={page.slice(4)} products={products} setPage={setPage} addToCart={addToCart} />}
-      {!['portal','checkout'].includes(page) && <SiteFooter setPage={setPage} />}
+      {!['portal','checkout','planner'].includes(page) && <SiteFooter setPage={setPage} />}
       <ChatWidget setPage={setPage} />
       <CartDrawer cart={cart} setCart={setCart} open={cartOpen} setOpen={setCartOpen} setPage={setPage} />
-      {page==='planner' && <PageBoundary key="planner"><PlannerPage setPage={setPage} user={user} openAuth={openAuth} siteLogo={siteLogo} /></PageBoundary>}
       {authOpen && <AuthModal mode={authMode} setMode={setAuthMode} setUser={setUser} onClose={()=>setAuthOpen(false)} />}
       <Toasts />
     </AppCtx.Provider>
