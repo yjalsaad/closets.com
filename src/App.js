@@ -16,6 +16,13 @@ const api = async (path, opts = {}) => {
 };
 const fmt = n => 'BD ' + parseFloat(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+// Merge two design lists by id (incoming entries override/add; existing kept), newest first
+const mergeDesigns = (existing, incoming) => {
+  const byId = new Map();
+  (existing || []).forEach(d => { if (d && d.id != null) byId.set(String(d.id), d); });
+  (incoming || []).forEach(d => { if (d && d.id != null) byId.set(String(d.id), { ...byId.get(String(d.id)), ...d }); });
+  return Array.from(byId.values()).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+};
 const AppCtx = createContext(null);
 
 // ── i18n: interface translation (EN / AR) ──
@@ -1393,14 +1400,15 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   };
   const [showQuote, setShowQuote] = useState(false);
   const [qForm, setQForm] = useState({ name:'', phone:'', email:'' });
-  // Persist the design as a quote + create a sales lead. Contact = signed-in user or modal input.
+  // Submit the design as a quote through the shared edge function so the team
+  // receives the spec + a copy of the live 3D design. Contact = signed-in user or modal input.
   const submitQuote = async (contact) => {
     const name = contact?.name || user?.name, phone = contact?.phone || user?.phone, email = contact?.email || user?.email;
     setBusy(true);
+    // Capture the 3D snapshot BEFORE closing the modal / navigating, while the canvas is still mounted.
+    const imageB64 = (plannerApi.current && plannerApi.current.snapshot ? plannerApi.current.snapshot() : null);
     try {
-      const cfgId = await persist('quoted');
-      const leadId = 'LEAD-' + Date.now().toString(36).toUpperCase();
-      // Build a readable design summary so the sales team sees the spec in the lead itself
+      // Build a readable design summary so the sales team sees the spec in the quote itself
       const finName = (FINISHES.find(f=>f.id===finishId)||{}).name || finishId;
       const sizeStr = layout==='l-shape' ? `${dims.sideA}+${dims.sideB}×${dims.height}×${dims.depth}cm` : `${dims.width}×${dims.height}×${dims.depth}cm`;
       const chosenOpts = Object.keys(sel).map(ck => { const lbl = catChosen(ck); return lbl ? `${cats[ck]?.label||ck}: ${lbl}` : null; }).filter(Boolean);
@@ -1410,12 +1418,32 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
         `Layout: ${layout}  |  Finish: ${finName}  |  Size: ${sizeStr}`,
         chosenOpts.length ? `Options — ${chosenOpts.join(', ')}` : 'Options — base only',
         `Estimated total: BHD ${total}`,
-        `Config ref: ${cfgId}`,
       ];
-      await api('leads', { method:'POST', body:[{ id:leadId, name: name||'Website Visitor', email: email||null, phone: phone||null, source:'website_planner', status:'New', stage:'New', platform:'Website', interest: (selProduct?.name||'Wardrobe')+' (planner)', budget: total, value: total, notes: noteLines.join('\n'), created_at: new Date().toISOString() }] });
-      toast('Quote requested — our team will contact you soon','success');
-      setShowQuote(false);
-      setPage('home');
+      const r = await fetch(SUPA_URL + '/functions/v1/submit_design_quote', {
+        method: 'POST',
+        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          platform: 'website',
+          customer_id: user?.id || null,
+          customer_name: name || 'Website Visitor',
+          customer_phone: phone || null,
+          customer_email: email || null,
+          product_name: (selProduct?.name || 'Wardrobe') + ' — Custom (' + layout + ', ' + sizeStr + ')',
+          configuration: buildSelection(),
+          total_price: total,
+          image_base64: imageB64,
+          notes: noteLines.join('\n'),
+          interest: (selProduct?.name || 'Wardrobe') + ' (planner)',
+        }),
+      });
+      const data = await r.json().catch(() => null);
+      if (r.ok && data && data.ok) {
+        toast('Quote requested — our team will contact you soon','success');
+        setShowQuote(false);
+        setPage('home');
+      } else {
+        toast('Could not send quote: ' + ((data && data.error) || 'please try again'), 'error');
+      }
     } catch (e) { toast('Could not send quote: ' + (e?.message || 'please try again'), 'error'); }
     finally { setBusy(false); }
   };
@@ -1787,6 +1815,7 @@ function HomeHub({ user, setUser, setPage }) {
   const [svcBookings, setSvcBookings] = useState([]);
   const [cardSlug, setCardSlug] = useState(null);
   const [cardPhoto, setCardPhoto] = useState(null);
+  const [selectedDesign, setSelectedDesign] = useState(null);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [editForm, setEditForm] = useState({ name: user?.name || '', phone: user?.phone || '' });
   const [cmpForm, setCmpForm] = useState({ category: 'Quality Issue', description: '' });
@@ -1798,7 +1827,12 @@ function HomeHub({ user, setUser, setPage }) {
     api(`sales_orders?customer_email=eq.${encodeURIComponent(user.email)}&order=created_at.desc&limit=20`).then(r => setOrders(Array.isArray(r)?r:[])).catch(()=>{});
     api(`invoices?customer_email=eq.${encodeURIComponent(user.email)}&order=created_at.desc&limit=20`).then(r => setInvoices(Array.isArray(r)?r:[])).catch(()=>{});
     api(`website_rewards?customer_id=eq.${user.id}&order=created_at.desc&limit=50`).then(r => setRewards(Array.isArray(r)?r:[])).catch(()=>{});
-    api(`product_configurations?customer_id=eq.${user.id}&order=created_at.desc&limit=20`).then(r => setDesigns(Array.isArray(r)?r:[])).catch(()=>{});
+    api(`product_configurations?customer_id=eq.${user.id}&order=created_at.desc&limit=20`).then(r => setDesigns(p => mergeDesigns(p, Array.isArray(r)?r:[]))).catch(()=>{});
+    fetch(SUPA_URL + '/rest/v1/rpc/my_saved_designs', {
+      method: 'POST',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ p_customer_id: String(user.id) })
+    }).then(r => r.ok ? r.json() : []).then(r => setDesigns(p => mergeDesigns(p, Array.isArray(r)?r:[]))).catch(()=>{});
     api(`complaints?customer_email=eq.${encodeURIComponent(user.email)}&order=created_at.desc&limit=20`).then(r => setComplaints(Array.isArray(r)?r:[])).catch(()=>{});
     api(`it_tickets?requester_email=eq.${encodeURIComponent(user.email)}&order=created_at.desc&limit=20`).then(r => setTickets(Array.isArray(r)?r:[])).catch(()=>{});
     api('rpc/customer_bookings_list', { method:'POST', body:{ p_customer_id:String(user.id) } }).then(r => setSvcBookings(Array.isArray(r)?r:[])).catch(()=>{});
@@ -1823,7 +1857,7 @@ function HomeHub({ user, setUser, setPage }) {
     await api(`customers?id=eq.${user.id}`, { method: 'PATCH', body: { name: editForm.name, phone: editForm.phone, updated_at: new Date().toISOString() } });
     const u = { ...user, ...editForm }; setUser(u); localStorage.setItem('closets_user', JSON.stringify(u)); toast('Saved ✓', 'success');
   };
-  const tabs = [['dashboard','Dashboard'],['card','My Card'],['svcbookings','Bookings'],['ledger','Ledger'],['orders','Orders'],['designs','Designs'],['rewards','Rewards'],['requests','Requests'],['support','Support'],['profile','Profile']];
+  const tabs = [['dashboard','Dashboard'],['card','My Card'],['svcbookings','Bookings'],['ledger','Ledger'],['orders','Orders'],['designs','My Designs'],['rewards','Rewards'],['requests','Requests'],['support','Support'],['profile','Profile']];
   const cardUrl = cardSlug ? `${HUB_ORIGIN}/card.html?c=${encodeURIComponent(cardSlug)}` : null;
   const shareCard = async () => {
     if (!cardUrl) return;
@@ -2008,18 +2042,76 @@ function HomeHub({ user, setUser, setPage }) {
           </>}
 
           {tab === 'designs' && <>
-            <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>Saved Designs</h2>
-            {designs.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'#86868b', background:'#fff', borderRadius:16, fontSize:14 }}>No saved designs yet</div> : (
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-                {designs.map(d=>(
-                  <div key={d.id} style={{ background:'#fff', borderRadius:16, padding:18, border:'1px solid #e6e6e6' }}>
-                    <div style={{ fontSize:15, fontWeight:600, color:'#1d1d1f', marginBottom:8 }}>{d.product_name}</div>
-                    {d.configuration&&typeof d.configuration==='object'&&Object.entries(d.configuration).filter(([k])=>!['interiors','width','height','depth'].includes(k)).slice(0,2).map(([k,v])=>(
-                      <div key={k} style={{ fontSize:12, color:'#86868b', marginBottom:2 }}>{k}: <span style={{ color:'#1d1d1f' }}>{v}</span></div>
-                    ))}
-                    <div style={{ fontSize:16, fontWeight:700, color:'var(--clay)', marginTop:10 }}>{fmt(d.total_price)}</div>
+            <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>My Designs</h2>
+            {designs.length===0 ? (
+              <div style={{ textAlign:'center', padding:'48px 24px', color:'#86868b', background:'#fff', borderRadius:16, border:'1px solid #e6e6e6' }}>
+                <div style={{ fontSize:40, marginBottom:10 }}>🪟</div>
+                <div style={{ fontSize:15, color:'#1d1d1f', fontWeight:600, marginBottom:6 }}>No saved designs yet</div>
+                <p style={{ fontSize:13.5, marginBottom:16 }}>Start one in the Design Studio.</p>
+                <button type="button" className="btn" onClick={()=>setPage('planner')} style={{ borderRadius:14 }}>Open Design Studio</button>
+              </div>
+            ) : (
+              <div style={{ display:'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap:14 }}>
+                {designs.map(d=>{
+                  const s=(d.status||'saved').toLowerCase();
+                  const sCol = /quote/.test(s)?'#1a7a40' : 'var(--clay)';
+                  return (
+                    <div key={d.id} onClick={()=>setSelectedDesign(d)} style={{ background:'#fff', borderRadius:16, border:'1px solid #e6e6e6', overflow:'hidden', cursor:'pointer', transition:'box-shadow .15s' }}>
+                      <div style={{ width:'100%', height:160, background:'#f5f5f7', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
+                        {d.render_url
+                          ? <img src={d.render_url} alt={d.product_name||'Design'} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                          : <span style={{ fontSize:38, opacity:.45 }}>🪟</span>}
+                      </div>
+                      <div style={{ padding:16 }}>
+                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:8 }}>
+                          <div style={{ fontSize:15, fontWeight:600, color:'#1d1d1f' }}>{d.product_name||'Design'}</div>
+                          <Pill label={d.status||'Saved'} color={sCol} bg={sCol+'18'} />
+                        </div>
+                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                          <div style={{ fontSize:16, fontWeight:700, color:'var(--clay)' }}>{fmt(d.total_price)}</div>
+                          <div style={{ fontSize:12, color:'#86868b' }}>{d.created_at?new Date(d.created_at).toLocaleDateString('en-GB'):'—'}</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {selectedDesign && (
+              <div onClick={()=>setSelectedDesign(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.45)', display:'flex', alignItems:'center', justifyContent:'center', padding:16, zIndex:1000 }}>
+                <div onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:20, maxWidth:520, width:'100%', maxHeight:'90vh', overflow:'auto', border:'1px solid #e6e6e6' }}>
+                  <div style={{ position:'relative', width:'100%', height:220, background:'#f5f5f7', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
+                    {selectedDesign.render_url
+                      ? <img src={selectedDesign.render_url} alt={selectedDesign.product_name||'Design'} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      : <span style={{ fontSize:54, opacity:.45 }}>🪟</span>}
+                    <button type="button" onClick={()=>setSelectedDesign(null)} style={{ position:'absolute', top:12, right:12, width:30, height:30, borderRadius:'50%', border:'none', background:'rgba(0,0,0,.5)', color:'#fff', fontSize:16, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>×</button>
                   </div>
-                ))}
+                  <div style={{ padding:22 }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:10, marginBottom:12 }}>
+                      <div>
+                        <div style={{ fontSize:19, fontWeight:700, color:'#1d1d1f' }}>{selectedDesign.product_name||'Design'}</div>
+                        <div style={{ fontSize:12, color:'#86868b', marginTop:2 }}>{selectedDesign.created_at?new Date(selectedDesign.created_at).toLocaleDateString('en-GB'):''}</div>
+                      </div>
+                      <Pill label={selectedDesign.status||'Saved'} color={/quote/.test((selectedDesign.status||'').toLowerCase())?'#1a7a40':'var(--clay)'} bg={(/quote/.test((selectedDesign.status||'').toLowerCase())?'#1a7a40':'var(--clay)')+'18'} />
+                    </div>
+                    {selectedDesign.configuration && typeof selectedDesign.configuration==='object' && (
+                      <div style={{ background:'#f8f8f8', borderRadius:14, padding:'14px 16px', marginBottom:16 }}>
+                        <div style={{ fontSize:12, fontWeight:600, color:'#86868b', marginBottom:8, textTransform:'uppercase', letterSpacing:'.04em' }}>Specification</div>
+                        {Object.entries(selectedDesign.configuration).filter(([,v])=>v!=null && typeof v!=='object').map(([k,v])=>(
+                          <div key={k} style={{ display:'flex', justifyContent:'space-between', fontSize:13, padding:'4px 0', borderBottom:'1px solid #efefef' }}>
+                            <span style={{ color:'#86868b', textTransform:'capitalize' }}>{k.replace(/_/g,' ')}</span>
+                            <span style={{ color:'#1d1d1f', fontWeight:500, textAlign:'right' }}>{String(v)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:18 }}>
+                      <span style={{ fontSize:13, color:'#86868b' }}>Total</span>
+                      <span style={{ fontSize:22, fontWeight:700, color:'var(--clay)' }}>{fmt(selectedDesign.total_price)}</span>
+                    </div>
+                    <button type="button" className="btn" onClick={()=>{ setSelectedDesign(null); setPage('planner'); }} style={{ borderRadius:14, width:'100%' }}>Design again</button>
+                  </div>
+                </div>
               </div>
             )}
           </>}
