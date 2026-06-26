@@ -2587,12 +2587,16 @@ function HomePage({ products, testimonials, banners, siteLogo, setPage, addToCar
 
 /* ── APP ── */
 // ── CMS-driven pages (read from Bonsai Hub tables) ──────────────────
-function PageWrap({ title, sub, children }) {
+function PageWrap({ title, sub, eyebrow, children }) {
   const mobile = useMobile();
-  return (<div style={{ minHeight:'100vh', paddingTop: mobile?80:96, paddingBottom:80, background:'#fff' }}>
-    <div style={{ maxWidth:1100, margin:'0 auto', padding: mobile?'0 16px':'0 24px' }}>
-      <h1 style={{ fontSize: mobile?30:40, fontWeight:700, color:'#1d1d1f', letterSpacing:'-.02em' }}>{title}</h1>
-      {sub && <p style={{ fontSize:17, color:'#86868b', marginTop:8, marginBottom:36 }}>{sub}</p>}
+  useReveal();
+  return (<div style={{ minHeight:'100vh', paddingTop: mobile?88:112, paddingBottom:90, background:'var(--cream)' }}>
+    <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'0 24px':'0 32px' }}>
+      <div className="rv" style={{ maxWidth:700, marginBottom:40 }}>
+        {eyebrow && <div className="eyebrow" style={{ marginBottom:14 }}>{eyebrow}</div>}
+        <h1 className="display" style={{ fontSize: mobile?36:54, color:'var(--ink)', lineHeight:1.05 }}>{title}</h1>
+        {sub && <p style={{ fontSize: mobile?16:18, color:'var(--ink-soft)', marginTop:16, lineHeight:1.7 }}>{sub}</p>}
+      </div>
       {children}
     </div>
   </div>);
@@ -2601,35 +2605,41 @@ function ShowroomsPage() {
   const [rows,setRows]=useState([]);
   // Single source of truth: same content the Hub manages & the app shows.
   useEffect(()=>{ api('rpc/content_list',{method:'POST',body:{p_section:'showroom'}}).then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
-  return (<PageWrap title="Visit a showroom" sub="Experience our craftsmanship in person across Bahrain.">
-    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
-      {rows.map(s=>{ const m=s.meta||{}; return (<div key={s.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
-        {s.image_url ? <div style={{ height:140, background:`url('${s.image_url}') center/cover` }} /> : <div style={{ height:80, background:'#FFF1E8', display:'flex', alignItems:'center', justifyContent:'center', fontSize:34 }}>🏛</div>}
-        <div style={{ padding:22 }}>
-          <div style={{ fontSize:18, fontWeight:600, color:'#1d1d1f' }}>{s.title}</div>
-          <div style={{ fontSize:14, color:'#86868b', marginTop:6, lineHeight:1.6 }}>{m.address||s.subtitle}</div>
-          {(m.hours)&&<div style={{ fontSize:13, color:'#86868b', marginTop:8 }}>🕑 {m.hours}</div>}
-          {(m.phone)&&<a href={'tel:'+m.phone} style={{ display:'inline-block', marginTop:12, color:'#F97316', fontWeight:600, fontSize:14, textDecoration:'none' }}>{m.phone}</a>}
-        </div>
-      </div>); })}
-      {rows.length===0 && <div style={{ color:'#aaa' }}>Showroom details coming soon.</div>}
+  return (<PageWrap eyebrow="Visit us" title="Showrooms across Bahrain." sub="Experience our craftsmanship in person — see the finishes, open the drawers, feel the build.">
+    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:22 }}>
+      {rows.map(s=>{ const m=s.meta||{}; return (
+        <div key={s.id} className="rv lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden' }}>
+          <div className="tile-zoom" style={{ position:'relative', height:170 }}>
+            <Photo src={s.image_url || HOME_IMG.living} alt={s.title} imgClass="tz" style={{ position:'absolute', inset:0 }} />
+          </div>
+          <div style={{ padding:'20px 22px' }}>
+            <div className="display" style={{ fontSize:20, color:'var(--ink)' }}>{s.title}</div>
+            <div style={{ fontSize:14, color:'var(--ink-soft)', marginTop:8, lineHeight:1.6 }}>{m.address||s.subtitle}</div>
+            {(m.hours)&&<div style={{ fontSize:13, color:'var(--muted)', marginTop:10 }}>🕑 {m.hours}</div>}
+            {(m.phone)&&<a href={'tel:'+m.phone} style={{ display:'inline-block', marginTop:14, color:'var(--clay)', fontWeight:600, fontSize:14, textDecoration:'none' }}>{m.phone} →</a>}
+          </div>
+        </div>); })}
+      {rows.length===0 && <div style={{ color:'var(--muted)' }}>Showroom details coming soon.</div>}
     </div>
   </PageWrap>);
 }
 function BlogPage() {
   const [rows,setRows]=useState([]);
   useEffect(()=>{ api('rpc/content_list',{method:'POST',body:{p_section:'inspiration'}}).then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
-  return (<PageWrap title="Inspiration & guides" sub="Ideas, tips and trends for kitchens, wardrobes and storage.">
-    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:20 }}>
-      {rows.map(b=>(<div key={b.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
-        <div style={{ height:130, background: b.image_url?`url('${b.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:44 }}>{!b.image_url && '📖'}</div>
-        <div style={{ padding:20 }}>
-          {b.subtitle && <div style={{ fontSize:12, color:'#F97316', fontWeight:600, textTransform:'uppercase', letterSpacing:'.05em' }}>{b.subtitle}</div>}
-          <div style={{ fontSize:17, fontWeight:600, color:'#1d1d1f', marginTop:6 }}>{b.title}</div>
-          <div style={{ fontSize:14, color:'#86868b', marginTop:8, lineHeight:1.6 }}>{b.body}</div>
-        </div>
-      </div>))}
-      {rows.length===0 && <div style={{ color:'#aaa' }}>Articles coming soon.</div>}
+  return (<PageWrap eyebrow="Inspiration" title="Ideas & guides." sub="Trends, tips and real projects for kitchens, wardrobes and storage.">
+    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))', gap:22 }}>
+      {rows.map(b=>(
+        <div key={b.id} className="rv lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', cursor:'pointer' }}>
+          <div className="tile-zoom" style={{ position:'relative', height:180 }}>
+            <Photo src={b.image_url || HOME_IMG.kitchen} alt={b.title} imgClass="tz" style={{ position:'absolute', inset:0 }} />
+          </div>
+          <div style={{ padding:'20px 22px' }}>
+            {b.subtitle && <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>{b.subtitle}</div>}
+            <div className="display" style={{ fontSize:19, color:'var(--ink)' }}>{b.title}</div>
+            <div style={{ fontSize:14, color:'var(--ink-soft)', marginTop:8, lineHeight:1.65 }}>{b.body}</div>
+          </div>
+        </div>))}
+      {rows.length===0 && <div style={{ color:'var(--muted)' }}>Articles coming soon.</div>}
     </div>
   </PageWrap>);
 }
