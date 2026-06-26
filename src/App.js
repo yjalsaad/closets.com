@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, createContext, useContext, Component } from 'react';
+import { useState, useEffect, useCallback, useRef, createContext, useContext, Component, Fragment, createElement } from 'react';
 
 // build: services-nav-redeploy 2026-06-25 r2
 const SUPA_URL = 'https://jflmbfxbhpioyniibjsj.supabase.co';
@@ -622,7 +622,7 @@ function ProductAR({ product, mobile }) {
   return (
     <div style={{ marginBottom: mobile ? 56 : 80 }}>
       <h2 className="display" style={{ fontSize: mobile ? 24 : 32, color: 'var(--ink)', marginBottom: 16 }}>See it in 3D &amp; your room</h2>
-      {React.createElement('model-viewer', {
+      {createElement('model-viewer', {
         src: product.model_url,
         'ios-src': product.ar_ios_url || undefined,
         ar: true, 'ar-modes': 'webxr scene-viewer quick-look',
@@ -630,7 +630,7 @@ function ProductAR({ product, mobile }) {
         poster: product.image_url || undefined, alt: product.name,
         style: { width: '100%', height: mobile ? 320 : 480, background: 'var(--sand)', borderRadius: 20 },
       },
-        React.createElement('button', { slot: 'ar-button', key: 'arbtn', style: { position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', background: 'var(--clay)', color: '#fff', border: 'none', borderRadius: 980, padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' } }, '📱 View in your room')
+        createElement('button', { slot: 'ar-button', key: 'arbtn', style: { position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', background: 'var(--clay)', color: '#fff', border: 'none', borderRadius: 980, padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' } }, '📱 View in your room')
       )}
       <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 10 }}>Drag to rotate · on a phone tap “View in your room” for AR. Representative model — your exact unit is finalised at your free design visit.</div>
     </div>
@@ -1421,14 +1421,14 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           const done = i<ci, now = i===ci;
           const go = (k==='product' && i<ci) ? ()=>setStage('product') : (k==='ai' && i<ci) ? ()=>setStage('ai') : undefined;
           return (
-            <React.Fragment key={k}>
+            <Fragment key={k}>
               <span onClick={go} style={{ display:'flex', alignItems:'center', gap:6, cursor:go?'pointer':'default' }}>
                 <span style={{ width:20, height:20, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, flexShrink:0,
                   background: now?'var(--clay)':done?'var(--clay-deep)':'var(--sand)', color: (!now&&!done)?'var(--muted)':'#fff' }}>{done?'✓':i+1}</span>
                 <span style={{ fontWeight: now?700:500, color: now?'var(--ink)':done?'var(--ink-soft)':'var(--muted)' }}>{labels[k]}</span>
               </span>
               {i<order.length-1 && <span style={{ width:18, height:2, background:'var(--line)', borderRadius:2 }} />}
-            </React.Fragment>
+            </Fragment>
           );
         })}
       </div>
@@ -3332,13 +3332,13 @@ function WrenPlannerPage({ setPage, user }) {
         {/* Stepper */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, flexWrap:'wrap', margin:'0 auto 26px', maxWidth:660 }}>
           {STEPS.map((label,i)=>{ const n=i+1, done=n<step, now=n===step; return (
-            <React.Fragment key={label}>
+            <Fragment key={label}>
               <span onClick={()=>n<step&&setStep(n)} style={{ display:'flex', alignItems:'center', gap:6, cursor:n<step?'pointer':'default' }}>
                 <span style={{ width:22, height:22, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, background: now?'var(--clay)':done?'var(--clay-deep)':'var(--sand)', color:(!now&&!done)?'var(--muted)':'#fff' }}>{done?'✓':n}</span>
                 <span style={{ fontSize:12.5, fontWeight: now?700:500, color: now?'var(--ink)':done?'var(--ink-soft)':'var(--muted)' }}>{label}</span>
               </span>
               {i<STEPS.length-1 && <span style={{ width:16, height:2, background:'var(--line)', borderRadius:2 }} />}
-            </React.Fragment>
+            </Fragment>
           ); })}
         </div>
 
