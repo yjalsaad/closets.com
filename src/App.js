@@ -142,7 +142,7 @@ const CSS = `
     position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.18;
   }
   .blob-1 {
-    width: 700px; height: 700px; background: #F97316;
+    width: 700px; height: 700px; background: var(--clay);
     top: -200px; left: -150px;
     animation: blob1 18s ease-in-out infinite;
   }
@@ -157,7 +157,7 @@ const CSS = `
     animation: blob3 16s ease-in-out infinite;
   }
   .blob-4 {
-    width: 400px; height: 400px; background: #F97316;
+    width: 400px; height: 400px; background: var(--clay);
     bottom: 0; right: 10%;
     animation: blob1 20s ease-in-out infinite reverse;
     opacity: 0.1;
@@ -222,11 +222,11 @@ const CSS = `
   .reveal { opacity: 0; transform: translateY(16px); transition: opacity .5s cubic-bezier(.25,.46,.45,.94), transform .5s cubic-bezier(.25,.46,.45,.94); }
   .reveal.vis { opacity: 1; transform: translateY(0); }
   .inp { background: #f5f5f7; border: 1.5px solid transparent; border-radius: 12px; padding: 13px 16px; font-size: 16px; color: #1d1d1f; width: 100%; transition: all .2s; -webkit-appearance: none; }
-  .inp:focus { outline: none; background: #fff; border-color: #F97316; box-shadow: 0 0 0 4px rgba(249,115,22,.1); }
+  .inp:focus { outline: none; background: #fff; border-color: var(--clay); box-shadow: 0 0 0 4px rgba(249,115,22,.1); }
   .inp::placeholder { color: #86868b; }
-  .btn { background: #F97316; color: #fff; border: none; border-radius: 14px; padding: 15px 24px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 50px; -webkit-tap-highlight-color: transparent; }
+  .btn { background: var(--clay); color: #fff; border: none; border-radius: 14px; padding: 15px 24px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 50px; -webkit-tap-highlight-color: transparent; }
   .btn:active { transform: scale(.97); background: #ea6c0a; }
-  .btn-sm { background: #F97316; color: #fff; border: none; border-radius: 12px; padding: 11px 18px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; }
+  .btn-sm { background: var(--clay); color: #fff; border: none; border-radius: 12px; padding: 11px 18px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; }
   .btn-sm:active { transform: scale(.97); background: #ea6c0a; }
   .btn-secondary { background: #f5f5f7; color: #1d1d1f; border: none; border-radius: 14px; padding: 15px 24px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all .15s; min-height: 50px; }
   .btn-secondary:active { background: #e8e8ed; transform: scale(.97); }
@@ -324,10 +324,10 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
           const isCart = tab.id === 'cart-btn';
           return (
             <button type="button" key={tab.id} onClick={() => { if (isCart) setCartOpen(true); else if (tab.id === 'auth') openAuth('login'); else setPage(tab.id); }}
-              style={{ flex: 1, background: 'none', border: 'none', padding: '10px 4px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer', color: active ? '#F97316' : '#86868b', position: 'relative', transition: 'color .15s' }}>
+              style={{ flex: 1, background: 'none', border: 'none', padding: '10px 4px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer', color: active ? 'var(--clay)' : '#86868b', position: 'relative', transition: 'color .15s' }}>
               <div style={{ position: 'relative' }}>
                 {tab.icon}
-                {isCart && cart.length > 0 && <span style={{ position: 'absolute', top: -4, right: -6, background: '#F97316', color: '#fff', borderRadius: 20, width: 16, height: 16, fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{cart.length}</span>}
+                {isCart && cart.length > 0 && <span style={{ position: 'absolute', top: -4, right: -6, background: 'var(--clay)', color: '#fff', borderRadius: 20, width: 16, height: 16, fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{cart.length}</span>}
               </div>
               <span style={{ fontSize: 10, fontWeight: active ? 600 : 400 }}>{tab.label}</span>
             </button>
@@ -342,7 +342,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
       <button type="button" onClick={() => setPage('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
         {siteLogo
           ? <img src={siteLogo} alt="logo" style={{ height:34, width:'auto', maxWidth:120, objectFit:'contain', borderRadius:6 }} />
-          : <><div style={{ width: 28, height: 28, borderRadius: 7, background: '#F97316', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          : <><div style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--clay)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="12" rx="1.5" fill="white"/><rect x="9" y="2" width="5" height="7" rx="1.5" fill="white"/></svg>
             </div>
             <span style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.02em' }}>Closets Co.</span></>}
@@ -353,13 +353,13 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
         ))}
       </div>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <button type="button" onClick={() => setPage('booking')} style={{ background: '#F97316', border: 'none', borderRadius: 980, padding: '7px 16px', fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', minHeight: 34 }}>Book a visit</button>
+        <button type="button" onClick={() => setPage('booking')} style={{ background: 'var(--clay)', border: 'none', borderRadius: 980, padding: '7px 16px', fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', minHeight: 34 }}>Book a visit</button>
         <button type="button" onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')} title="Language" style={{ background: '#f5f5f7', border: 'none', borderRadius: 980, padding: '7px 14px', fontSize: 13, fontWeight: 600, color: '#1d1d1f', cursor: 'pointer', minHeight: 34 }}>
           {lang === 'ar' ? 'EN' : 'ع'}
         </button>
-        {user ? <button type="button" onClick={() => setPage('portal')} style={{ background: 'rgba(249,115,22,.1)', border: 'none', borderRadius: 980, padding: '7px 16px', fontSize: 13, fontWeight: 500, color: '#F97316', cursor: 'pointer' }}>{user.name?.split(' ')[0]}</button>
+        {user ? <button type="button" onClick={() => setPage('portal')} style={{ background: 'rgba(249,115,22,.1)', border: 'none', borderRadius: 980, padding: '7px 16px', fontSize: 13, fontWeight: 500, color: 'var(--clay)', cursor: 'pointer' }}>{user.name?.split(' ')[0]}</button>
           : <button type="button" className="btn-secondary" onClick={() => openAuth('login')} style={{ padding: '7px 16px', fontSize: 13, borderRadius: 980, minHeight: 34 }}>{tr('signIn')}</button>}
-        <button type="button" onClick={() => setCartOpen(true)} style={{ background: cart.length > 0 ? '#F97316' : '#f5f5f7', border: 'none', borderRadius: 980, padding: '7px 16px', fontSize: 13, fontWeight: 500, color: cart.length > 0 ? '#fff' : '#1d1d1f', cursor: 'pointer', transition: 'all .2s', display: 'flex', alignItems: 'center', gap: 6, minHeight: 34 }}>
+        <button type="button" onClick={() => setCartOpen(true)} style={{ background: cart.length > 0 ? 'var(--clay)' : '#f5f5f7', border: 'none', borderRadius: 980, padding: '7px 16px', fontSize: 13, fontWeight: 500, color: cart.length > 0 ? '#fff' : '#1d1d1f', cursor: 'pointer', transition: 'all .2s', display: 'flex', alignItems: 'center', gap: 6, minHeight: 34 }}>
           Cart {cart.length > 0 && <span style={{ background: 'rgba(255,255,255,.3)', borderRadius: 20, padding: '1px 6px', fontSize: 11, fontWeight: 700 }}>{cart.length}</span>}
         </button>
       </div>
@@ -461,7 +461,7 @@ function Hero({ setPage, banners }) {
         <div className="banner-strip" style={{ paddingTop: mobile ? 0 : 0, marginTop: mobile ? 0 : 56 }}>
           <div className="banner-strip-inner" key={bannerIdx}>
             {banner?.badge && (
-              <span style={{ background: '#F97316', color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, letterSpacing: '.06em', textTransform: 'uppercase' }}>{banner.badge}</span>
+              <span style={{ background: 'var(--clay)', color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, letterSpacing: '.06em', textTransform: 'uppercase' }}>{banner.badge}</span>
             )}
             <span>{banner?.title}{banner?.subtitle ? ' — ' + banner.subtitle : ''}</span>
             {banner?.cta_text && (
@@ -475,7 +475,7 @@ function Hero({ setPage, banners }) {
             <div style={{ display: 'flex', gap: 5, marginLeft: 12 }}>
               {banners.map((_, i) => (
                 <button key={i} type="button" onClick={() => setBannerIdx(i)}
-                  style={{ width: i === bannerIdx ? 16 : 5, height: 5, borderRadius: 10, background: i === bannerIdx ? '#F97316' : 'rgba(255,255,255,.3)', border: 'none', cursor: 'pointer', transition: 'all .3s', padding: 0 }} />
+                  style={{ width: i === bannerIdx ? 16 : 5, height: 5, borderRadius: 10, background: i === bannerIdx ? 'var(--clay)' : 'rgba(255,255,255,.3)', border: 'none', cursor: 'pointer', transition: 'all .3s', padding: 0 }} />
               ))}
             </div>
           )}
@@ -1133,14 +1133,14 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           x.fillText('THE CLOSETS', tx, Math.round(head * 0.46));
           x.fillStyle = '#86868b'; x.font = `500 ${Math.round(head * 0.135)}px Inter, Arial, sans-serif`;
           x.fillText('Bespoke furniture · Kingdom of Bahrain', tx, Math.round(head * 0.69));
-          x.fillStyle = '#F97316'; x.fillRect(pad, head - 4, w, 4);
+          x.fillStyle = 'var(--clay)'; x.fillRect(pad, head - 4, w, 4);
           x.drawImage(base, pad, head, w, h);
           const fy = head + h;
           x.fillStyle = '#1d1d1f'; x.font = `700 ${Math.round(foot * 0.26)}px Inter, Arial, sans-serif`;
           x.fillText('Your design — photorealistic concept', pad, fy + Math.round(foot * 0.36));
           x.fillStyle = '#9aa0a6'; x.font = `400 ${Math.round(foot * 0.19)}px Inter, Arial, sans-serif`;
           x.fillText('AI impression. Exact finishes confirmed at your free design consultation.', pad, fy + Math.round(foot * 0.66));
-          x.textAlign = 'right'; x.fillStyle = '#F97316'; x.font = `700 ${Math.round(foot * 0.22)}px Inter, Arial, sans-serif`;
+          x.textAlign = 'right'; x.fillStyle = 'var(--clay)'; x.font = `700 ${Math.round(foot * 0.22)}px Inter, Arial, sans-serif`;
           x.fillText('theclosets.co · +973 1700 1700', cw - pad, fy + Math.round(foot * 0.50));
           x.textAlign = 'left';
           try { resolve(cv.toDataURL('image/jpeg', 0.92)); } catch (e) { resolve(srcUri); }
@@ -1270,10 +1270,10 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   ];
   // Small top-down/elevation diagram per layout id (works across products)
   const layoutIcon = (id, active) => {
-    const c = active ? '#F97316' : '#c7c7cc';
+    const c = active ? 'var(--clay)' : '#c7c7cc';
     const sw = 2.4;
     const P = (d) => <path d={d} stroke={c} strokeWidth={sw} fill="none" strokeLinecap="round" strokeLinejoin="round" />;
-    const R = (x,y,w,h,fill) => <rect x={x} y={y} width={w} height={h} rx="1.5" stroke={c} strokeWidth={sw} fill={fill?(active?'#FCE9DD':'#f0f0f2'):'none'} />;
+    const R = (x,y,w,h,fill) => <rect x={x} y={y} width={w} height={h} rx="1.5" stroke={c} strokeWidth={sw} fill={fill?(active?'var(--sand)':'#f0f0f2'):'none'} />;
     let inner = null;
     switch (id) {
       case 'single': case 'wall': case 'hinged': case 'open': case 'standard': case 'floating':
@@ -1512,11 +1512,11 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
     const isOpen = openSec === id;
     const st = isOpen ? 'open' : status;
     return (
-      <div key={id} style={{ border: isOpen?'2px solid #F97316':'0.5px solid #e6e6e6', borderRadius:12, overflow:'hidden', flexShrink:0 }}>
+      <div key={id} style={{ border: isOpen?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:12, overflow:'hidden', flexShrink:0 }}>
         <div onClick={()=>setOpenSec(isOpen?'':id)} style={{ cursor:'pointer', padding:'0 15px', minHeight:50, display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:14, fontWeight:600, background:'#fff', lineHeight:1.2 }}>
           <span style={{ display:'flex', alignItems:'center', gap:9 }}>
             {st==='done' && <span style={{ width:22, height:22, borderRadius:'50%', background:'#1D9E75', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><i className="ti ti-check" style={{ color:'#fff', fontSize:14 }} aria-hidden="true" /></span>}
-            {st==='open' && <span style={{ width:22, height:22, borderRadius:'50%', border:'2px solid #F97316', flexShrink:0 }} />}
+            {st==='open' && <span style={{ width:22, height:22, borderRadius:'50%', border:'2px solid var(--clay)', flexShrink:0 }} />}
             {st==='empty' && <span style={{ width:22, height:22, borderRadius:'50%', border:'1.5px solid #d0d0d0', flexShrink:0 }} />}
             <span style={{ color: st==='empty'?'#86868b':'#1d1d1f' }}>{title}</span>
           </span>
@@ -1533,17 +1533,31 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   return (
     <div style={{ minHeight:'100vh', paddingTop:80, paddingBottom:40 }}>
       <div style={{ maxWidth:1240, margin:'0 auto', padding:'0 16px' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', margin:'12px 0 14px' }}>
-          <span onClick={()=>setStage('product')} style={{ cursor:'pointer', fontSize:13, color:'#6e6e73' }}>‹ All products</span>
-          <span style={{ fontSize:13, color:'#86868b' }}>{selProduct?.name || 'Wardrobe'}</span>
-          <span onClick={()=>setPage('home')} style={{ cursor:'pointer', fontSize:13, color:'#aaa' }}>Close ✕</span>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', margin:'12px 0 10px' }}>
+          <span onClick={()=>setStage('product')} style={{ cursor:'pointer', fontSize:13, color:'var(--ink-soft)' }}>‹ All products</span>
+          <span style={{ fontSize:13, color:'var(--muted)' }}>{selProduct?.name || 'Wardrobe'}</span>
+          <span onClick={()=>setPage('home')} style={{ cursor:'pointer', fontSize:13, color:'var(--muted)' }}>Close ✕</span>
+        </div>
+        {/* Progress stepper (clone of Raumplus/Wren step counter) */}
+        <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap', margin:'0 0 16px', fontSize:12.5 }}>
+          {[['Product',true,()=>setStage('product')],['Kickstart',true,()=>setStage('ai')],['Configure','now',null],['Visualise',false,null],['Quote',false,null]].map(([label,state],i,arr)=>(
+            <React.Fragment key={label}>
+              <span onClick={state===true?arr[i][2]:undefined} style={{ display:'flex', alignItems:'center', gap:6, cursor:state===true?'pointer':'default' }}>
+                <span style={{ width:20, height:20, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, flexShrink:0,
+                  background: state==='now'?'var(--clay)':state===true?'var(--clay-deep)':'var(--sand)',
+                  color: state===false?'var(--muted)':'#fff' }}>{state===true?'✓':i+1}</span>
+                <span style={{ fontWeight: state==='now'?700:500, color: state==='now'?'var(--ink)':state===true?'var(--ink-soft)':'var(--muted)' }}>{label}</span>
+              </span>
+              {i<arr.length-1 && <span style={{ flex:'0 0 auto', width:18, height:2, background:'var(--line)', borderRadius:2 }} />}
+            </React.Fragment>
+          ))}
         </div>
 
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1.7fr 1fr', gap:14, alignItems:'stretch' }}>
           {/* BIG 3D STAGE */}
           <div style={{ background:'#f5f5f7', borderRadius:20, position:'relative', minHeight: mobile?340:560, overflow:'hidden' }}>
             <Wardrobe3D apiRef={plannerApi} finishHex={finishHex} layout={layout} glass={hasGlass} handles={hasHandles} led={hasLed} mobile={mobile} tall product={prodKey} widthCm={layout==='l-shape' ? (Number(dims.sideA)+Number(dims.sideB)) : dims.width} heightCm={dims.height} depthCm={dims.depth} />
-            {aiSummary && <div style={{ position:'absolute', top:12, left:12, right:12, fontSize:12, background:'#FAECE7', color:'#993C1D', padding:'8px 12px', borderRadius:12 }}><i className="ti ti-sparkles" aria-hidden="true" /> {aiSummary}</div>}
+            {aiSummary && <div style={{ position:'absolute', top:12, left:12, right:12, fontSize:12, background:'var(--sand)', color:'var(--clay-deep)', padding:'8px 12px', borderRadius:12 }}><i className="ti ti-sparkles" aria-hidden="true" /> {aiSummary}</div>}
             <div style={{ position:'absolute', top:12, right:12, display:'flex', gap:6, alignItems:'center', fontSize:11, color:'#86868b', background:'rgba(255,255,255,.85)', padding:'5px 10px', borderRadius:10 }}>
               <i className="ti ti-rotate-360" aria-hidden="true" /> {t('dragRotate')}
             </div>
@@ -1551,7 +1565,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
               <i className="ti ti-ruler-2" aria-hidden="true" />
               {layout==='l-shape' ? `${dims.sideA}+${dims.sideB} × ${dims.height} × ${dims.depth} cm` : `${dims.width} × ${dims.height} × ${dims.depth} cm`}
             </div>
-            <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', bottom:12, right:12, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,#F97316,#c2410c)', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(249,115,22,.4)' }}>
+            <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', bottom:12, right:12, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(249,115,22,.4)' }}>
               <i className={rendering ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" />
               {rendering ? 'Rendering…' : 'Make it photorealistic'}
             </button>
@@ -1590,7 +1604,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
               return (
                 <div style={{ marginBottom:2 }}>
                   <div style={{ height:6, background:'#eee', borderRadius:3, overflow:'hidden' }}>
-                    <div style={{ width:pct+'%', height:'100%', background:'#F97316', borderRadius:3, transition:'width .3s' }} />
+                    <div style={{ width:pct+'%', height:'100%', background:'var(--clay)', borderRadius:3, transition:'width .3s' }} />
                   </div>
                   <div style={{ fontSize:12, color:'#aaa', marginTop:6 }}>{done} / {totalSecs} {t('sectionsDone')}</div>
                 </div>
@@ -1601,9 +1615,9 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                 {(prodLayouts || LAYOUTS).map(l=>{
                   const on = layout===l.id;
                   return (
-                    <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', border: on?'2px solid #F97316':'0.5px solid #e6e6e6', borderRadius:12, background: on?'#FFF7F2':'#fff', cursor:'pointer', textAlign:'left' }}>
+                    <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', border: on?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:12, background: on?'var(--sand)':'#fff', cursor:'pointer', textAlign:'left' }}>
                       {layoutIcon(l.id, on)}
-                      <span style={{ fontSize:13, fontWeight:on?600:500, color:'#1d1d1f' }}>{l.label}{(l.price>0)&&<span style={{ display:'block', fontSize:11, color:'#993C1D', fontWeight:400 }}>+{fmt(l.price)}</span>}</span>
+                      <span style={{ fontSize:13, fontWeight:on?600:500, color:'#1d1d1f' }}>{l.label}{(l.price>0)&&<span style={{ display:'block', fontSize:11, color:'var(--clay-deep)', fontWeight:400 }}>+{fmt(l.price)}</span>}</span>
                     </button>
                   );
                 })}
@@ -1613,7 +1627,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             {renderSection("door_finishes", t("finish"), (
               <div style={{ display:'flex', gap:8, flexWrap:'wrap', paddingTop:8 }}>
                 {FINISHES.map(f=>(
-                  <button key={f.id} type="button" onClick={()=>setFinishId(f.id)} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, padding:5, border: finishId===f.id?'2px solid #F97316':'0.5px solid #e6e6e6', borderRadius:8, background:'#fff', cursor:'pointer' }}>
+                  <button key={f.id} type="button" onClick={()=>setFinishId(f.id)} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, padding:5, border: finishId===f.id?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:8, background:'#fff', cursor:'pointer' }}>
                     <span style={{ width:34, height:34, borderRadius:5, background:f.hex, border:'0.5px solid rgba(0,0,0,.12)' }} />
                     <span style={{ fontSize:10, color:'#6e6e73' }}>{f.name}</span>
                   </button>
@@ -1635,8 +1649,8 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                 <div style={{ paddingTop:8 }}>
                   {[['Width','width',120,400],['Height','height',180,300],['Depth','depth',40,80]].map(([lbl,key,min,max])=>(
                     <div key={key} style={{ marginBottom:12 }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5 }}><span style={{ fontSize:12, color:'#6e6e73' }}>{lbl}</span><span style={{ fontSize:13, fontWeight:600, color:'#F97316' }}>{dims[key]}cm</span></div>
-                      <input type="range" min={min} max={max} value={dims[key]} onChange={e=>setDims(c=>({...c,[key]:parseInt(e.target.value)}))} style={{ width:'100%', accentColor:'#F97316' }} />
+                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5 }}><span style={{ fontSize:12, color:'#6e6e73' }}>{lbl}</span><span style={{ fontSize:13, fontWeight:600, color:'var(--clay)' }}>{dims[key]}cm</span></div>
+                      <input type="range" min={min} max={max} value={dims[key]} onChange={e=>setDims(c=>({...c,[key]:parseInt(e.target.value)}))} style={{ width:'100%', accentColor:'var(--clay)' }} />
                     </div>
                   ))}
                 </div>
@@ -1653,15 +1667,15 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                       const on = isOn(ck, it.id, multi);
                       const incl = it.price_type==='included' || +it.price===0;
                       return (
-                        <div key={it.id} onClick={()=>pick(ck,it.id,multi)} style={{ cursor:'pointer', border: on?'2px solid #F97316':'0.5px solid #e6e6e6', borderRadius:10, overflow:'hidden', background:'#fff' }}>
+                        <div key={it.id} onClick={()=>pick(ck,it.id,multi)} style={{ cursor:'pointer', border: on?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:10, overflow:'hidden', background:'#fff' }}>
                           <div style={{ height:72, background:cardBg(it), position:'relative', display:'flex', alignItems:'center', justifyContent:'center' }}>
                             {!it.image_url && !it.swatch && <i className="ti ti-photo" style={{ fontSize:20, color:'rgba(0,0,0,.22)' }} aria-hidden="true" />}
-                            {on && <span style={{ position:'absolute', top:6, right:6, width:22, height:22, borderRadius:'50%', background:'#F97316', display:'flex', alignItems:'center', justifyContent:'center' }}><i className="ti ti-check" style={{ color:'#fff', fontSize:14 }} aria-hidden="true" /></span>}
+                            {on && <span style={{ position:'absolute', top:6, right:6, width:22, height:22, borderRadius:'50%', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center' }}><i className="ti ti-check" style={{ color:'#fff', fontSize:14 }} aria-hidden="true" /></span>}
                           </div>
                           <div style={{ padding:'8px 10px' }}>
                             <div style={{ fontSize:13, fontWeight:500, lineHeight:1.2 }}>{it.name}</div>
                             {it.type_label && <div style={{ fontSize:11, color:'#86868b', marginTop:2, lineHeight:1.3 }}>{it.type_label}</div>}
-                            <div style={{ fontSize:12, color: incl?'#aaa':'#993C1D', marginTop:3 }}>{incl?'Included':'+ '+fmt(it.price)}</div>
+                            <div style={{ fontSize:12, color: incl?'#aaa':'var(--clay-deep)', marginTop:3 }}>{incl?'Included':'+ '+fmt(it.price)}</div>
                           </div>
                         </div>
                       );
@@ -1680,15 +1694,15 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             <div style={{ marginTop:6, background:'#fff', border:'0.5px solid #e6e6e6', borderRadius:14, padding:'14px 16px', position: mobile?'static':'sticky', bottom:0 }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:10 }}>
                 <span style={{ fontSize:12, color:'#86868b' }}>Estimated total · Standard</span>
-                <span style={{ fontSize:22, fontWeight:700, color:'#F97316' }}>{pricing?'…':fmt(total)}</span>
+                <span style={{ fontSize:22, fontWeight:700, color:'var(--clay)' }}>{pricing?'…':fmt(total)}</span>
               </div>
               {total>0 && !pricing && (
                 <div style={{ marginBottom:12 }}>
                   <div style={{ fontSize:11, color:'#86868b', marginBottom:6 }}>Choose your package</div>
                   <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6 }}>
                     {[['Economy',0.72,'Quality essentials'],['Standard',1,'Most popular'],['Premium',1.45,'Premium finishes'],['Luxury',2.1,'Top-tier materials']].map(([name,mult,hl],i)=>(
-                      <div key={name} style={{ border:'0.5px solid '+(i===1?'#F97316':'#e6e6e6'), background:i===1?'#FFF7EF':'#fff', borderRadius:10, padding:'8px 6px', textAlign:'center' }}>
-                        <div style={{ fontSize:11, fontWeight:700, color:i===1?'#F97316':'#1d1d1f' }}>{name}</div>
+                      <div key={name} style={{ border:'0.5px solid '+(i===1?'var(--clay)':'#e6e6e6'), background:i===1?'var(--sand)':'#fff', borderRadius:10, padding:'8px 6px', textAlign:'center' }}>
+                        <div style={{ fontSize:11, fontWeight:700, color:i===1?'var(--clay)':'#1d1d1f' }}>{name}</div>
                         <div style={{ fontSize:12, fontWeight:700, color:'#1d1d1f', marginTop:3 }}>{fmt(Math.round(total*mult))}</div>
                         <div style={{ fontSize:9, color:'#999', marginTop:2, lineHeight:1.2 }}>{hl}</div>
                       </div>
@@ -1801,7 +1815,7 @@ function HomeHub({ user, setUser, setPage }) {
       {mobile && (
         <div style={{ background: '#fff', padding: '16px 16px 0', borderBottom: '1px solid #f5f5f7' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(249,115,22,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: '#F97316' }}>{user.name?.[0]||'?'}</div>
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(249,115,22,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: 'var(--clay)' }}>{user.name?.[0]||'?'}</div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 700, color: '#1d1d1f' }}>{user.name}</div>
               <div style={{ fontSize: 12, color: '#86868b' }}>{user.tier||'Bronze'} · {(user.points||0).toLocaleString()} pts</div>
@@ -1819,14 +1833,14 @@ function HomeHub({ user, setUser, setPage }) {
         {!mobile && (
           <div>
             <div style={{ background: '#fff', borderRadius: 20, padding: 20, marginBottom: 12, border: '1px solid #e6e6e6' }}>
-              <div style={{ width: 46, height: 46, borderRadius: 14, background: 'rgba(249,115,22,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: '#F97316', marginBottom: 12 }}>{user.name?.[0]||'?'}</div>
+              <div style={{ width: 46, height: 46, borderRadius: 14, background: 'rgba(249,115,22,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: 'var(--clay)', marginBottom: 12 }}>{user.name?.[0]||'?'}</div>
               <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f', marginBottom: 2 }}>{user.name}</div>
               <div style={{ fontSize: 12, color: '#86868b', marginBottom: 10 }}>{user.email}</div>
               <Pill label={`${user.tier||'Bronze'} · ${(user.points||0).toLocaleString()} pts`} color={tierC[user.tier||'Bronze']} bg={`${tierC[user.tier||'Bronze']}18`} />
             </div>
             <div style={{ background: '#fff', borderRadius: 20, overflow: 'hidden', border: '1px solid #e6e6e6' }}>
               {tabs.map(([key, label]) => (
-                <button type="button" key={key} onClick={() => setTab(key)} style={{ width: '100%', padding: '12px 18px', background: tab === key ? 'rgba(249,115,22,.08)' : 'transparent', border: 'none', borderBottom: '1px solid #f5f5f7', cursor: 'pointer', fontSize: 14, fontWeight: tab === key ? 500 : 400, color: tab === key ? '#F97316' : '#6e6e73', textAlign: 'left', transition: 'all .15s' }}>{label}</button>
+                <button type="button" key={key} onClick={() => setTab(key)} style={{ width: '100%', padding: '12px 18px', background: tab === key ? 'rgba(249,115,22,.08)' : 'transparent', border: 'none', borderBottom: '1px solid #f5f5f7', cursor: 'pointer', fontSize: 14, fontWeight: tab === key ? 500 : 400, color: tab === key ? 'var(--clay)' : '#6e6e73', textAlign: 'left', transition: 'all .15s' }}>{label}</button>
               ))}
               <button type="button" onClick={() => { setUser(null); localStorage.removeItem('closets_user'); setPage('home'); }} style={{ width: '100%', padding: '12px 18px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 14, color: '#d93025', textAlign: 'left' }}>Sign Out</button>
             </div>
@@ -1843,7 +1857,7 @@ function HomeHub({ user, setUser, setPage }) {
                     <div style={{ width:64, height:64, borderRadius:'50%', overflow:'hidden', background:'linear-gradient(135deg,#A855F7,#A855F799)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:24, fontWeight:800, color:'#fff' }}>
                       {cardPhoto ? <img src={cardPhoto} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : (user.name?.[0]||'?')}
                     </div>
-                    <button type="button" onClick={()=>document.getElementById('cust-photo-input').click()} title="Change photo" style={{ position:'absolute', right:-2, bottom:-2, width:24, height:24, borderRadius:'50%', border:'2px solid #fff', background:'#F97316', color:'#fff', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>✎</button>
+                    <button type="button" onClick={()=>document.getElementById('cust-photo-input').click()} title="Change photo" style={{ position:'absolute', right:-2, bottom:-2, width:24, height:24, borderRadius:'50%', border:'2px solid #fff', background:'var(--clay)', color:'#fff', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>✎</button>
                   </div>
                   <div>
                     <div style={{ fontSize:18, fontWeight:700, color:'#1d1d1f' }}>{user.name}</div>
@@ -1868,7 +1882,7 @@ function HomeHub({ user, setUser, setPage }) {
           {tab === 'dashboard' && <>
             {!mobile && <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.02em', color: '#1d1d1f', marginBottom: 20 }}>Home Hub</h2>}
             <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: 12, marginBottom: 16 }}>
-              {[['Total Invested', fmt(totalSpent), '#F97316'], ['Active Orders', orders.filter(o=>!['Delivered','Cancelled'].includes(o.status)).length, '#1d1d1f'], ['Points', (user.points||0).toLocaleString(), '#b8860b'], ['Designs', designs.length, '#1d1d1f']].map(([label,val,color])=>(
+              {[['Total Invested', fmt(totalSpent), 'var(--clay)'], ['Active Orders', orders.filter(o=>!['Delivered','Cancelled'].includes(o.status)).length, '#1d1d1f'], ['Points', (user.points||0).toLocaleString(), '#b8860b'], ['Designs', designs.length, '#1d1d1f']].map(([label,val,color])=>(
                 <div key={label} style={{ background: '#fff', borderRadius: 18, padding: '18px 16px', border: '1px solid #e6e6e6' }}>
                   <div style={{ fontSize: mobile ? 18 : 22, fontWeight: 700, color, letterSpacing: '-.02em', marginBottom: 4 }}>{val}</div>
                   <div style={{ fontSize: 12, color: '#86868b' }}>{label}</div>
@@ -1882,10 +1896,10 @@ function HomeHub({ user, setUser, setPage }) {
               return <div key={order.id} style={{ background:'#fff', borderRadius:16, padding:'18px 20px', border:'1px solid #e6e6e6', marginBottom:10 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', marginBottom:10, alignItems:'center' }}>
                   <span style={{ fontSize:14, fontWeight:600, color:'#1d1d1f' }}>{order.order_number||order.id}</span>
-                  <span style={{ fontSize:14, fontWeight:700, color:'#F97316' }}>{pct}%</span>
+                  <span style={{ fontSize:14, fontWeight:700, color:'var(--clay)' }}>{pct}%</span>
                 </div>
                 <div style={{ background:'#f5f5f7', borderRadius:980, height:6, overflow:'hidden' }}>
-                  <div style={{ width:`${pct}%`, height:'100%', background:'linear-gradient(90deg,#F97316,#ea6c0a)', borderRadius:980, transition:'width 1s ease' }} />
+                  <div style={{ width:`${pct}%`, height:'100%', background:'linear-gradient(90deg,var(--clay),#ea6c0a)', borderRadius:980, transition:'width 1s ease' }} />
                 </div>
                 <div style={{ fontSize:12, color:'#86868b', marginTop:6 }}>{order.status||'In Progress'}</div>
               </div>;
@@ -1896,14 +1910,14 @@ function HomeHub({ user, setUser, setPage }) {
           {tab === 'ledger' && <>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
               <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em' }}>Ledger</h2>
-              <span style={{ fontSize:18, fontWeight:700, color:'#F97316' }}>{fmt(totalSpent)}</span>
+              <span style={{ fontSize:18, fontWeight:700, color:'var(--clay)' }}>{fmt(totalSpent)}</span>
             </div>
             {invoices.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'#86868b', background:'#fff', borderRadius:16, fontSize:14 }}>No invoices yet</div> : (
               <div style={{ background:'#fff', borderRadius:16, overflow:'hidden', border:'1px solid #e6e6e6' }}>
                 {invoices.map((inv,i)=>(
                   <div key={inv.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 18px', borderBottom:i<invoices.length-1?'1px solid #f5f5f7':'none' }}>
                     <div>
-                      <div style={{ fontSize:14, fontWeight:500, color:'#F97316', marginBottom:2 }}>{inv.invoice_number||inv.id}</div>
+                      <div style={{ fontSize:14, fontWeight:500, color:'var(--clay)', marginBottom:2 }}>{inv.invoice_number||inv.id}</div>
                       <div style={{ fontSize:12, color:'#86868b' }}>{inv.description||'Order'} · {inv.created_at?new Date(inv.created_at).toLocaleDateString('en-GB'):'—'}</div>
                     </div>
                     <div style={{ textAlign:'right' }}>
@@ -1923,7 +1937,7 @@ function HomeHub({ user, setUser, setPage }) {
             </div>
             {svcBookings.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'#86868b', background:'#fff', borderRadius:16, fontSize:14 }}>No service bookings yet.</div> : svcBookings.map(b=>{
               const s=(b.status||'').toLowerCase();
-              const col = /complet/.test(s)?'#16a34a' : /cancel|disput/.test(s)?'#dc2626' : /request/.test(s)?'#F97316' : '#3b82f6';
+              const col = /complet/.test(s)?'#16a34a' : /cancel|disput/.test(s)?'#dc2626' : /request/.test(s)?'var(--clay)' : '#3b82f6';
               return (
                 <div key={b.id} style={{ background:'#fff', borderRadius:16, padding:'16px 18px', border:'1px solid #e6e6e6', marginBottom:10 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
@@ -1945,7 +1959,7 @@ function HomeHub({ user, setUser, setPage }) {
             {orders.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'#86868b', background:'#fff', borderRadius:16, fontSize:14 }}>No orders yet</div> : orders.map(o=>(
               <div key={o.id} style={{ background:'#fff', borderRadius:16, padding:'16px 18px', border:'1px solid #e6e6e6', marginBottom:10, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                 <div><div style={{ fontSize:14, fontWeight:600, color:'#1d1d1f', marginBottom:3 }}>{o.order_number||o.id}</div><div style={{ fontSize:12, color:'#86868b' }}>{o.created_at?new Date(o.created_at).toLocaleDateString('en-GB'):'—'}</div></div>
-                <div style={{ textAlign:'right' }}><div style={{ fontSize:15, fontWeight:700, color:'#1d1d1f', marginBottom:6 }}>{fmt(o.total_amount||o.amount)}</div><Pill label={o.status||'Processing'} color="#F97316" bg="rgba(249,115,22,.1)" /></div>
+                <div style={{ textAlign:'right' }}><div style={{ fontSize:15, fontWeight:700, color:'#1d1d1f', marginBottom:6 }}>{fmt(o.total_amount||o.amount)}</div><Pill label={o.status||'Processing'} color="var(--clay)" bg="rgba(249,115,22,.1)" /></div>
               </div>
             ))}
           </>}
@@ -1960,7 +1974,7 @@ function HomeHub({ user, setUser, setPage }) {
                     {d.configuration&&typeof d.configuration==='object'&&Object.entries(d.configuration).filter(([k])=>!['interiors','width','height','depth'].includes(k)).slice(0,2).map(([k,v])=>(
                       <div key={k} style={{ fontSize:12, color:'#86868b', marginBottom:2 }}>{k}: <span style={{ color:'#1d1d1f' }}>{v}</span></div>
                     ))}
-                    <div style={{ fontSize:16, fontWeight:700, color:'#F97316', marginTop:10 }}>{fmt(d.total_price)}</div>
+                    <div style={{ fontSize:16, fontWeight:700, color:'var(--clay)', marginTop:10 }}>{fmt(d.total_price)}</div>
                   </div>
                 ))}
               </div>
@@ -1971,7 +1985,7 @@ function HomeHub({ user, setUser, setPage }) {
             <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>Rewards</h2>
             <div style={{ background:'#fff', borderRadius:20, padding:24, marginBottom:14, border:'1px solid #e6e6e6' }}>
               <div style={{ fontSize:12, color:'#86868b', marginBottom:4 }}>Balance</div>
-              <div style={{ fontSize:44, fontWeight:700, color:'#F97316', letterSpacing:'-.03em', marginBottom:4 }}>{(user.points||0).toLocaleString()}</div>
+              <div style={{ fontSize:44, fontWeight:700, color:'var(--clay)', letterSpacing:'-.03em', marginBottom:4 }}>{(user.points||0).toLocaleString()}</div>
               <div style={{ fontSize:13, color:'#86868b', marginBottom:20 }}>points · {user.tier||'Bronze'} member</div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8 }}>
                 {[['Bronze','0–999'],['Silver','1k–5k'],['Gold','5k–15k'],['Platinum','15k+']].map(([tier,range])=>(
@@ -2020,7 +2034,7 @@ function HomeHub({ user, setUser, setPage }) {
             {tickets.map(t=>(
               <div key={t.id} style={{ background:'#fff', borderRadius:14, padding:'14px 18px', border:'1px solid #e6e6e6', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                 <div><div style={{ fontSize:14, fontWeight:500, color:'#1d1d1f', marginBottom:2 }}>{t.subject}</div><div style={{ fontSize:12, color:'#86868b' }}>{t.id} · {t.priority}</div></div>
-                <Pill label={t.status||'Open'} color="#F97316" bg="rgba(249,115,22,.1)" />
+                <Pill label={t.status||'Open'} color="var(--clay)" bg="rgba(249,115,22,.1)" />
               </div>
             ))}
           </>}
@@ -2108,7 +2122,7 @@ function AuthModal({ mode, setMode, setUser, onClose }) {
           <input className="inp" placeholder={t("email")} type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} autoCapitalize="none" />
           {rstep==='request' && (<>
             <button type="button" className="btn" onClick={()=>reqReset('email')} disabled={loading} style={{ borderRadius:14 }}>📧 Email me a reset link</button>
-            <button type="button" onClick={()=>reqReset('otp')} disabled={loading} style={{ borderRadius:14, padding:'12px', background:'#fff', color:'#F97316', border:'1px solid #F97316', fontWeight:600, cursor:'pointer' }}>📱 Text me a code</button>
+            <button type="button" onClick={()=>reqReset('otp')} disabled={loading} style={{ borderRadius:14, padding:'12px', background:'#fff', color:'var(--clay)', border:'1px solid var(--clay)', fontWeight:600, cursor:'pointer' }}>📱 Text me a code</button>
           </>)}
           {rstep==='emailsent' && (<div style={{ fontSize:13, color:'#86868b', textAlign:'center' }}>Check your email for a reset link — it opens your account to set a new password.</div>)}
           {rstep==='otp' && (<>
@@ -2118,7 +2132,7 @@ function AuthModal({ mode, setMode, setUser, onClose }) {
           </>)}
         </div>)}
         <div style={{ textAlign:'center', marginTop:16, display:'flex', flexDirection:'column', gap:8 }}>
-          {mode!=='reset' && <button type="button" onClick={()=>setMode(mode==='login'?'register':'login')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#F97316', fontWeight:500 }}>{mode==='login'?'New here? Register →':'Already have an account? Sign in →'}</button>}
+          {mode!=='reset' && <button type="button" onClick={()=>setMode(mode==='login'?'register':'login')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:14, color:'var(--clay)', fontWeight:500 }}>{mode==='login'?'New here? Register →':'Already have an account? Sign in →'}</button>}
           {mode==='login' && <button type="button" onClick={()=>{ setRstep('request'); setMode('reset'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#86868b', fontWeight:500 }}>Forgot your password?</button>}
           {mode==='reset' && <button type="button" onClick={()=>{ setMode('login'); setRstep('request'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#86868b', fontWeight:500 }}>← Back to sign in</button>}
         </div>
@@ -2136,7 +2150,7 @@ function AboutPage() {
   return (
     <div style={{ minHeight:'100vh', paddingTop: mobile ? 16 : 72, paddingBottom: mobile ? 80 : 0, background:'#fff' }}>
       <div style={{ maxWidth:860, margin:'0 auto', padding: mobile ? '24px 16px 60px' : '60px 40px 100px' }}>
-        <div style={{ fontSize:13, fontWeight:500, color:'#F97316', marginBottom:12 }}>{t('ourStory')}</div>
+        <div style={{ fontSize:13, fontWeight:500, color:'var(--clay)', marginBottom:12 }}>{t('ourStory')}</div>
         <h1 style={{ fontSize: mobile ? 36 : 64, fontWeight:700, letterSpacing:'-.04em', color:'#1d1d1f', lineHeight:1.05, marginBottom:32 }}>{t('precision')}<br />{t('permanence')}</h1>
         <div style={{ display:'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? 16 : 40, marginBottom:48 }}>
           <p style={{ fontSize:16, lineHeight:1.8, color:'#6e6e73' }}>{t('aboutP1')}</p>
@@ -2144,7 +2158,7 @@ function AboutPage() {
         </div>
         {[['2010','Founded in Manama, Bahrain'],['2013','First flagship showroom'],['2016','Bespoke configurator launched'],['2019','Expanded to four locations'],['2022','500+ projects completed'],['2024','Digital hub launched']].map(([year,event],i)=>(
           <div key={year} className="reveal" style={{ transitionDelay:`${i*.07}s`, display:'flex', gap:28, padding:'18px 0', borderBottom:'1px solid #f5f5f7', alignItems:'center' }}>
-            <span style={{ fontSize:15, fontWeight:700, color:'#F97316', minWidth:40 }}>{year}</span>
+            <span style={{ fontSize:15, fontWeight:700, color:'var(--clay)', minWidth:40 }}>{year}</span>
             <span style={{ fontSize:15, color:'#1d1d1f' }}>{event}</span>
           </div>
         ))}
@@ -2159,7 +2173,7 @@ const cardRpc = (name, body) => api('rpc/' + name, { method:'POST', headers:{ ..
 
 // Shared card-grid tile used by Directory + Contact team
 function CardTile({ c }) {
-  const theme = { corporate:'#F97316', executive:'#D4AF37', vendor:'#22C55E', vip:'#A855F7' }[c.theme] || '#F97316';
+  const theme = { corporate:'var(--clay)', executive:'#D4AF37', vendor:'#22C55E', vip:'#A855F7' }[c.theme] || 'var(--clay)';
   const initials = (c.display_name||'?').split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase();
   const img = c.photo_url || c.logo_url;
   const ptype = c.owner_type==='partner' ? 'vendor' : c.owner_type;
@@ -2199,7 +2213,7 @@ function DirectoryPage({ setPage }) {
         style={{ width:'100%', maxWidth:520, padding:'13px 18px', borderRadius:980, border:'1px solid #ececec', fontSize:15, marginBottom:16, fontFamily:'inherit' }}/>
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:24 }}>
         {tabs.map(([id,label]) => (
-          <button type="button" key={id||'all'} onClick={()=>setType(id)} style={{ padding:'8px 16px', borderRadius:980, border:'1px solid #ececec', cursor:'pointer', fontSize:13, fontWeight:600, fontFamily:'inherit', background: type===id ? '#F97316' : '#fff', color: type===id ? '#fff' : '#1d1d1f' }}>{label}</button>
+          <button type="button" key={id||'all'} onClick={()=>setType(id)} style={{ padding:'8px 16px', borderRadius:980, border:'1px solid #ececec', cursor:'pointer', fontSize:13, fontWeight:600, fontFamily:'inherit', background: type===id ? 'var(--clay)' : '#fff', color: type===id ? '#fff' : '#1d1d1f' }}>{label}</button>
         ))}
       </div>
       {list === null ? <div style={{ color:'#86868b', padding:40 }}>Loading…</div>
@@ -2346,7 +2360,7 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
               ))}
               <div style={{ display:'flex', justifyContent:'space-between', paddingTop:4 }}>
                 <span style={{ fontSize:16, fontWeight:700 }}>Total</span>
-                <span style={{ fontSize:20, fontWeight:700, color:'#F97316' }}>{fmt(total)}</span>
+                <span style={{ fontSize:20, fontWeight:700, color:'var(--clay)' }}>{fmt(total)}</span>
               </div>
               {user && <div style={{ fontSize:12, color:'#86868b', marginTop:8 }}>+{Math.floor(total*10)} loyalty points</div>}
             </div>
@@ -2365,7 +2379,7 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
                 <div style={{ fontSize:13, fontWeight:600, color:'#86868b', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:20 }}>02 / Payment</div>
                 <div style={{ display:'flex', gap:8, marginBottom:16 }}>
                   {['Bank Transfer','Cash','Cheque'].map(p=>(
-                    <button type="button" key={p} onClick={()=>{ setForm(f=>({...f,payment:p})); setMonths(0); }} style={{ flex:1, padding:'12px 8px', borderRadius:12, border:`1.5px solid ${form.payment===p&&months===0?'#F97316':'#e6e6e6'}`, background:form.payment===p&&months===0?'rgba(249,115,22,.08)':'#fff', color:form.payment===p&&months===0?'#F97316':'#6e6e73', fontSize:13, cursor:'pointer', fontWeight:form.payment===p&&months===0?500:400, transition:'all .15s' }}>{p}</button>
+                    <button type="button" key={p} onClick={()=>{ setForm(f=>({...f,payment:p})); setMonths(0); }} style={{ flex:1, padding:'12px 8px', borderRadius:12, border:`1.5px solid ${form.payment===p&&months===0?'var(--clay)':'#e6e6e6'}`, background:form.payment===p&&months===0?'rgba(249,115,22,.08)':'#fff', color:form.payment===p&&months===0?'var(--clay)':'#6e6e73', fontSize:13, cursor:'pointer', fontWeight:form.payment===p&&months===0?500:400, transition:'all .15s' }}>{p}</button>
                   ))}
                 </div>
                 {instEnabled && (
@@ -2373,8 +2387,8 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
                     <div style={{ fontSize:13, fontWeight:600, color:'#1d1d1f', marginBottom:8 }}>Or split into monthly installments</div>
                     <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                       {plans.map(m=>(
-                        <button type="button" key={m} onClick={()=>setMonths(months===m?0:m)} style={{ padding:'10px 14px', borderRadius:12, border:`1.5px solid ${months===m?'#F97316':'#e6e6e6'}`, background:months===m?'rgba(249,115,22,.08)':'#fff', cursor:'pointer', textAlign:'left' }}>
-                          <div style={{ fontSize:14, fontWeight:700, color:months===m?'#F97316':'#1d1d1f' }}>{m} months</div>
+                        <button type="button" key={m} onClick={()=>setMonths(months===m?0:m)} style={{ padding:'10px 14px', borderRadius:12, border:`1.5px solid ${months===m?'var(--clay)':'#e6e6e6'}`, background:months===m?'rgba(249,115,22,.08)':'#fff', cursor:'pointer', textAlign:'left' }}>
+                          <div style={{ fontSize:14, fontWeight:700, color:months===m?'var(--clay)':'#1d1d1f' }}>{m} months</div>
                           <div style={{ fontSize:12, color:'#86868b' }}>BHD {(total/m).toFixed(2)}/mo</div>
                         </button>
                       ))}
@@ -2408,14 +2422,14 @@ function HomeAIOffers({ setPage, mobile, P }) {
           <div style={{ fontSize: mobile?22:30, fontWeight:700, margin:'8px 0', lineHeight:1.15 }}>Describe your room or upload a photo — get a tailored design in seconds.</div>
           <div style={{ fontSize:14, color:'#c9c7c3' }}>Layout, materials, colours, storage ideas and indicative pricing, composed by AI.</div>
         </div>
-        <button type="button" onClick={()=>setPage('ai')} style={{ background:'#F97316', color:'#fff', border:'none', borderRadius:980, padding:'13px 26px', fontSize:15, fontWeight:600, cursor:'pointer' }}>Try the AI Designer ✦</button>
+        <button type="button" onClick={()=>setPage('ai')} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:980, padding:'13px 26px', fontSize:15, fontWeight:600, cursor:'pointer' }}>Try the AI Designer ✦</button>
       </div>
     </section>
     {offers.length>0 && (
       <section style={{ padding:`28px ${P} 0`, maxWidth:1200, margin:'0 auto' }}>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:12 }}>
-          {offers.map(o=>(<button type="button" key={o.id} onClick={()=>setPage('offers')} className="reveal" style={{ textAlign:'left', background:'#FFF7EF', border:'1px solid #F9731622', borderRadius:16, padding:'16px 18px', cursor:'pointer' }}>
-            {o.badge && <span style={{ fontSize:11, fontWeight:700, color:'#F97316' }}>{o.badge}</span>}
+          {offers.map(o=>(<button type="button" key={o.id} onClick={()=>setPage('offers')} className="reveal" style={{ textAlign:'left', background:'var(--sand)', border:'1px solid var(--clay)22', borderRadius:16, padding:'16px 18px', cursor:'pointer' }}>
+            {o.badge && <span style={{ fontSize:11, fontWeight:700, color:'var(--clay)' }}>{o.badge}</span>}
             <div style={{ fontSize:15, fontWeight:700, color:'#1d1d1f', marginTop:4 }}>{o.title}</div>
             <div style={{ fontSize:13, color:'#86868b', marginTop:3 }}>{o.subtitle}</div>
           </button>))}
@@ -2666,7 +2680,7 @@ function CareersPage() {
             <div style={{ fontSize:18, fontWeight:600, color:'#1d1d1f' }}>{j.job_title}</div>
             <div style={{ fontSize:13, color:'#86868b', marginTop:4 }}>{[j.department,j.employment_type,j.location].filter(Boolean).join(' · ')}</div>
           </div>
-          <button type="button" onClick={()=>setOpenId(openId===j.id?null:j.id)} style={{ background:'#F97316', color:'#fff', border:'none', borderRadius:980, padding:'10px 20px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{openId===j.id?'Close':'Apply'}</button>
+          <button type="button" onClick={()=>setOpenId(openId===j.id?null:j.id)} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:980, padding:'10px 20px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{openId===j.id?'Close':'Apply'}</button>
         </div>
         {j.description && <div style={{ fontSize:14, color:'#555', marginTop:12, lineHeight:1.6 }}>{j.description}</div>}
         {j.requirements && <div style={{ fontSize:13, color:'#86868b', marginTop:8, lineHeight:1.6 }}><strong>Requirements:</strong> {j.requirements}</div>}
@@ -2691,8 +2705,8 @@ function OffersPage({ setPage }) {
   useEffect(()=>{ api('store_offers?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
   return (<PageWrap title="Offers & promotions" sub="Current savings on bespoke kitchens, wardrobes and storage.">
     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
-      {rows.map(o=>(<div key={o.id} style={{ background:'linear-gradient(135deg,#FFF7EF,#fff)', border:'1px solid #F9731633', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
-        {o.badge && <span style={{ display:'inline-block', background:'#F97316', color:'#fff', fontSize:12, fontWeight:700, padding:'5px 12px', borderRadius:980 }}>{o.badge}</span>}
+      {rows.map(o=>(<div key={o.id} style={{ background:'linear-gradient(135deg,var(--sand),#fff)', border:'1px solid var(--clay)33', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+        {o.badge && <span style={{ display:'inline-block', background:'var(--clay)', color:'#fff', fontSize:12, fontWeight:700, padding:'5px 12px', borderRadius:980 }}>{o.badge}</span>}
         <div style={{ fontSize:19, fontWeight:700, color:'#1d1d1f', marginTop:12 }}>{o.title}</div>
         <div style={{ fontSize:14, color:'#86868b', marginTop:6, lineHeight:1.6 }}>{o.subtitle}</div>
         <button type="button" onClick={()=>setPage('booking')} style={{ marginTop:16, background:'#1d1d1f', color:'#fff', border:'none', borderRadius:980, padding:'10px 18px', fontSize:13, fontWeight:600, cursor:'pointer' }}>Claim this offer</button>
@@ -2708,7 +2722,7 @@ function FaqPage() {
     <div style={{ maxWidth:760, display:'flex', flexDirection:'column', gap:12 }}>
       {rows.map(q=>(<div key={q.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:16, overflow:'hidden' }}>
         <button type="button" onClick={()=>setOpen(open===q.id?null:q.id)} style={{ width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'18px 20px', fontSize:16, fontWeight:600, color:'#1d1d1f', display:'flex', justifyContent:'space-between', gap:12 }}>
-          <span>{q.question}</span><span style={{ color:'#F97316', flexShrink:0 }}>{open===q.id?'–':'+'}</span>
+          <span>{q.question}</span><span style={{ color:'var(--clay)', flexShrink:0 }}>{open===q.id?'–':'+'}</span>
         </button>
         {open===q.id && <div style={{ padding:'0 20px 18px', fontSize:15, color:'#555', lineHeight:1.65 }}>{q.answer}</div>}
       </div>))}
@@ -2874,77 +2888,177 @@ function RequestPage({ kind, title, sub, refLabel }) {
         <input placeholder={refLabel+' (optional)'} value={f.ref} onChange={e=>set('ref',e.target.value)} style={inp} />
         <textarea placeholder="Describe the issue / request" rows={4} value={f.message} onChange={e=>set('message',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1', resize:'vertical'}} />
       </div>
-      <button type="button" disabled={busy} onClick={submit} style={{ marginTop:18, width:'100%', background:'#F97316', color:'#fff', border:'none', borderRadius:14, padding:'14px', fontSize:15, fontWeight:600, cursor:'pointer', opacity:busy?.6:1 }}>{busy?'Submitting…':'Submit request'}</button>
+      <button type="button" disabled={busy} onClick={submit} style={{ marginTop:18, width:'100%', background:'var(--clay)', color:'#fff', border:'none', borderRadius:14, padding:'14px', fontSize:15, fontWeight:600, cursor:'pointer', opacity:busy?.6:1 }}>{busy?'Submitting…':'Submit request'}</button>
     </div>
   </PageWrap>);
 }
 function AIDesignerPage({ setPage, user }) {
   const mobile=useMobile();
-  const [f,setF]=useState({ requirements:'', product:'', w:'', h:'', d:'', budget:'' });
-  const [image,setImage]=useState(null); const [busy,setBusy]=useState(false); const [concept,setConcept]=useState(null); const [saved,setSaved]=useState(false);
+  const STYLES=[
+    { id:'warm_oak', name:'Warm Oak', g:'linear-gradient(135deg,#c89b5e,#9c6b34)' },
+    { id:'modern_luxe', name:'Modern Luxe', g:'linear-gradient(135deg,#3a3a3c,#171717)' },
+    { id:'scandinavian', name:'Scandinavian', g:'linear-gradient(135deg,#e8e2d8,#bfb3a0)' },
+    { id:'minimal', name:'Minimal', g:'linear-gradient(135deg,#f3f3f1,#d6cfc4)' },
+    { id:'bold_walnut', name:'Bold Walnut', g:'linear-gradient(135deg,#6b4423,#3f2a17)' },
+    { id:'coastal', name:'Coastal', g:'linear-gradient(135deg,#dfe7e8,#a9c2c4)' },
+  ];
+  const ROOMS=[['bedroom','Bedroom'],['living','Living room'],['kitchen','Kitchen'],['office','Home office'],['walkin','Walk-in']];
+  const PRODUCTS=[['','Any piece'],['wardrobe','Wardrobe'],['kitchen','Kitchen'],['walkin','Walk-in closet'],['tv','TV unit'],['doors','Doors'],['storage','Storage / office']];
+  const MODES=[['redesign','Redesign my room','Restyle the room you have'],['furnish','Furnish empty room','Fill a bare space'],['describe','From a description','No photo — just describe it']];
+  const [mode,setMode]=useState('redesign');
+  const [f,setF]=useState({ requirements:'', product:'', room:'bedroom', style:'warm_oak', w:'', h:'', budget:'' });
+  const [image,setImage]=useState(null);
+  const [busy,setBusy]=useState(false); const [concept,setConcept]=useState(null); const [saved,setSaved]=useState(false);
+  const [renderUrl,setRenderUrl]=useState(null); const [renderBusy,setRenderBusy]=useState(false); const [renderErr,setRenderErr]=useState('');
+  const [baPos,setBaPos]=useState(55);
   const set=(k,v)=>setF(s=>({...s,[k]:v}));
+  const needsPhoto = mode!=='describe';
+  const inpS={ width:'100%', padding:'11px 13px', border:'1px solid var(--line)', background:'var(--cream)', borderRadius:12, fontSize:14, fontFamily:'inherit', color:'var(--ink)' };
   const saveConcept=async()=>{
     if(!user){ toast('Sign in to save this concept to your account','info'); setPage('portal'); return; }
     try{
       const id='AIC-'+Date.now().toString(36).toUpperCase();
-      await api('product_configurations',{method:'POST',body:[{ id, customer_id:user.id, customer_name:user.name, customer_email:user.email, product_name:'AI concept — '+concept.title, configuration:concept, total_price:concept.estimate_bhd, status:'ai-concept', share_token:id, created_at:new Date().toISOString() }]});
+      await api('product_configurations',{method:'POST',body:[{ id, customer_id:user.id, customer_name:user.name, customer_email:user.email, product_name:'AI concept — '+concept.title, configuration:{...concept, render_url:renderUrl||undefined}, total_price:concept.estimate_bhd, status:'ai-concept', share_token:id, created_at:new Date().toISOString() }]});
       setSaved(true); toast('Saved to your account ✓','success');
     }catch{ toast('Could not save right now','error'); }
   };
-  const onPhoto=(file)=>{ if(!file) return; const rd=new FileReader(); rd.onload=()=>{ const im=new Image(); im.onload=()=>{ const max=1024; let{width:w,height:h}=im; if(w>h&&w>max){h=Math.round(h*max/w);w=max;}else if(h>max){w=Math.round(w*max/h);h=max;} const c=document.createElement('canvas'); c.width=w;c.height=h; c.getContext('2d').drawImage(im,0,0,w,h); const u=c.toDataURL('image/jpeg',0.72); setImage({ dataUrl:u, media_type:'image/jpeg', base64:u.split(',')[1] }); }; im.src=rd.result; }; rd.readAsDataURL(file); };
-  const generate=async()=>{
-    if(!f.requirements.trim() && !image){ toast('Describe your space or add a photo','error'); return; }
-    setBusy(true); setConcept(null);
+  const onPhoto=(file)=>{ if(!file) return; const rd=new FileReader(); rd.onload=()=>{ const im=new Image(); im.onload=()=>{ const max=1024; let{width:w,height:h}=im; if(w>h&&w>max){h=Math.round(h*max/w);w=max;}else if(h>max){w=Math.round(w*max/h);h=max;} const c=document.createElement('canvas'); c.width=w;c.height=h; c.getContext('2d').drawImage(im,0,0,w,h); const u=c.toDataURL('image/jpeg',0.72); setImage({ dataUrl:u, media_type:'image/jpeg', base64:u.split(',')[1] }); setRenderUrl(null); }; im.src=rd.result; }; rd.readAsDataURL(file); };
+  const renderVisual=async(styleOverride)=>{
+    if(!image) return;
+    setRenderBusy(true); setRenderErr(''); setRenderUrl(null);
     try{
-      const r=await fetch(SUPA_URL+'/functions/v1/ai_design_concept',{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify({ requirements:f.requirements, product:f.product||undefined, budget:f.budget?Number(f.budget):undefined, dimensions:{ width_cm:f.w?Number(f.w):undefined, height_cm:f.h?Number(f.h):undefined, depth_cm:f.d?Number(f.d):undefined }, image_base64:image?.base64, media_type:image?.media_type })});
+      const r=await fetch(SUPA_URL+'/functions/v1/ai_room_redesign',{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify({ image_base64:image.base64, style:styleOverride||f.style, room:f.room, product:f.product||undefined, strength: mode==='furnish'?0.82:0.7 })});
+      const d=await r.json().catch(()=>({}));
+      if(d&&d.ok&&d.url){ setRenderUrl(d.url); setBaPos(55); } else { setRenderErr(d&&d.error==='Render not configured'?'Photoreal rendering isn’t switched on yet.':'Could not render — try another photo.'); }
+    }catch{ setRenderErr('Network error — please try again.'); } finally{ setRenderBusy(false); }
+  };
+  const tryStyle=(sid)=>{ set('style',sid); if(image) renderVisual(sid); };
+  const generate=async()=>{
+    if(needsPhoto && !image){ toast('Add a photo of your room first','error'); return; }
+    if(!needsPhoto && !f.requirements.trim()){ toast('Describe your space','error'); return; }
+    setBusy(true); setConcept(null);
+    const styleName=(STYLES.find(s=>s.id===f.style)||{}).name||'';
+    const roomName=(ROOMS.find(r=>r[0]===f.room)||[])[1]||'';
+    const brief=[f.requirements, needsPhoto?`Style: ${styleName}. Room: ${roomName}.`:''].filter(Boolean).join(' ');
+    if(needsPhoto && image) renderVisual();
+    try{
+      const r=await fetch(SUPA_URL+'/functions/v1/ai_design_concept',{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify({ requirements:brief, product:f.product||undefined, budget:f.budget?Number(f.budget):undefined, dimensions:{ width_cm:f.w?Number(f.w):undefined, height_cm:f.h?Number(f.h):undefined }, image_base64:image?.base64, media_type:image?.media_type })});
       const d=await r.json();
       if(d.ok&&d.concept){ setConcept(d.concept); setSaved(false); } else { toast('Could not generate — try adding more detail','error'); }
     }catch{ toast('AI is unavailable right now','error'); } finally{ setBusy(false); }
   };
-  const chip=(t)=>(<span style={{ background:'#FFF3E9', color:'#9a4d12', borderRadius:980, padding:'6px 12px', fontSize:13, fontWeight:500 }}>{t}</span>);
-  return (<PageWrap title="AI Interior Designer" sub="Describe your space or upload a photo — get a tailored concept with materials, storage ideas and indicative pricing in seconds.">
-    <div className="resp-2col" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'420px 1fr', gap:28, alignItems:'start' }}>
-      {/* Intake */}
-      <div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:22, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
-        <textarea value={f.requirements} onChange={e=>set('requirements',e.target.value)} rows={4} placeholder="e.g. A walk-in closet for a master bedroom, warm oak, lots of shoe and hanging space, soft lighting, island in the middle" style={{...inp, resize:'vertical', marginBottom:12}} />
-        <label style={{ display:'flex', alignItems:'center', gap:12, border:'0.5px dashed #c0c0c0', borderRadius:12, padding:'12px 14px', cursor:'pointer', marginBottom:12 }}>
-          {image ? <img src={image.dataUrl} alt="room" style={{ width:54, height:42, objectFit:'cover', borderRadius:8 }} /> : <i className="ti ti-camera" style={{ fontSize:22, color:'#F97316' }} aria-hidden="true" />}
-          <span style={{ fontSize:14, fontWeight:500 }}>{image?'Photo added — tap to change':'Add a room photo (optional)'}</span>
-          <input type="file" accept="image/*" onChange={e=>onPhoto(e.target.files?.[0])} style={{ display:'none' }} />
-        </label>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
-          <select value={f.product} onChange={e=>set('product',e.target.value)} style={inp}><option value="">Any product</option>{[['wardrobe','Wardrobe'],['kitchen','Kitchen'],['walkin','Walk-In Closet'],['tv','TV Unit'],['doors','Doors'],['storage','Storage / Office']].map(([v,l])=><option key={v} value={v}>{l}</option>)}</select>
-          <input value={f.budget} onChange={e=>set('budget',e.target.value)} placeholder="Budget (BHD)" inputMode="numeric" style={inp} />
-          <input value={f.w} onChange={e=>set('w',e.target.value)} placeholder="Width cm" inputMode="numeric" style={inp} />
-          <input value={f.h} onChange={e=>set('h',e.target.value)} placeholder="Height cm" inputMode="numeric" style={inp} />
+  const chip=(t)=>(<span style={{ background:'var(--sand)', color:'var(--clay-deep)', borderRadius:980, padding:'6px 12px', fontSize:13, fontWeight:500 }}>{t}</span>);
+  const hasResult = renderUrl || renderBusy || renderErr || concept || busy;
+  return (<PageWrap eyebrow="AI design studio" title="Redesign your room in seconds." sub="Upload a photo of your space, pick a style, and our AI reimagines it — then turns it into a tailored concept with materials, storage ideas and indicative pricing.">
+    <div className="resp-2col" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'400px 1fr', gap:26, alignItems:'start' }}>
+      {/* ── INTAKE ── */}
+      <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding:20, boxShadow:'var(--shadow)' }}>
+        {/* Step 1 — mode */}
+        <div className="eyebrow" style={{ marginBottom:10 }}>1 · How do you want to start?</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:7, marginBottom:18 }}>
+          {MODES.map(([id,label,sub])=>{ const on=mode===id; return (
+            <button key={id} type="button" onClick={()=>{ setMode(id); setRenderUrl(null); }} style={{ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'#fff':'var(--cream)', borderRadius:12, padding:'9px 10px', cursor:'pointer' }}>
+              <div style={{ fontSize:12.5, fontWeight:600, color: on?'var(--clay-deep)':'var(--ink)', lineHeight:1.25 }}>{label}</div>
+              <div style={{ fontSize:10.5, color:'var(--muted)', marginTop:3, lineHeight:1.3 }}>{sub}</div>
+            </button>); })}
         </div>
-        <button type="button" disabled={busy} onClick={generate} style={{ width:'100%', background:'#F97316', color:'#fff', border:'none', borderRadius:14, padding:'14px', fontSize:15, fontWeight:600, cursor:'pointer', opacity:busy?.6:1 }}>{busy?'Designing your concept…':'Generate my concept ✦'}</button>
+        {/* Step 2 — photo */}
+        {needsPhoto && (<>
+          <div className="eyebrow" style={{ marginBottom:10 }}>2 · Add your room</div>
+          <label style={{ display:'flex', alignItems:'center', gap:12, border:'1.5px dashed var(--line)', background:'var(--cream)', borderRadius:14, padding:'14px 16px', cursor:'pointer', marginBottom:18 }}>
+            {image ? <img src={image.dataUrl} alt="room" style={{ width:60, height:46, objectFit:'cover', borderRadius:9 }} /> : <i className="ti ti-camera" style={{ fontSize:24, color:'var(--clay)' }} aria-hidden="true" />}
+            <span style={{ fontSize:14, fontWeight:500, color:'var(--ink)' }}>{image?'Photo added — tap to change':'Upload or take a photo'}</span>
+            <input type="file" accept="image/*" onChange={e=>onPhoto(e.target.files?.[0])} style={{ display:'none' }} />
+            {image && <span onClick={e=>{ e.preventDefault(); setImage(null); setRenderUrl(null); }} style={{ marginLeft:'auto', color:'var(--muted)', fontSize:20 }}>×</span>}
+          </label>
+        </>)}
+        {/* Step 3 — room + product */}
+        <div className="eyebrow" style={{ marginBottom:10 }}>{needsPhoto?'3':'2'} · Room &amp; piece</div>
+        {needsPhoto && <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:10 }}>
+          {ROOMS.map(([id,label])=>{ const on=f.room===id; return (
+            <button key={id} type="button" onClick={()=>set('room',id)} style={{ fontSize:12.5, fontWeight:500, border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'#fff':'var(--cream)', color: on?'var(--clay-deep)':'var(--ink-soft)', borderRadius:99, padding:'6px 13px', cursor:'pointer' }}>{label}</button>); })}
+        </div>}
+        <select value={f.product} onChange={e=>set('product',e.target.value)} style={{...inpS, marginBottom:18}}>{PRODUCTS.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select>
+        {/* Step 4 — style */}
+        {needsPhoto && (<>
+          <div className="eyebrow" style={{ marginBottom:10 }}>4 · Pick a style</div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:18 }}>
+            {STYLES.map(s=>{ const on=f.style===s.id; return (
+              <button key={s.id} type="button" onClick={()=>set('style',s.id)} style={{ border: on?'2px solid var(--clay)':'1px solid var(--line)', borderRadius:12, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0 }}>
+                <div style={{ height:42, background:s.g }} />
+                <div style={{ fontSize:11, fontWeight:600, color: on?'var(--clay-deep)':'var(--ink)', padding:'6px 4px' }}>{s.name}</div>
+              </button>); })}
+          </div>
+        </>)}
+        {/* Notes / describe */}
+        <div className="eyebrow" style={{ marginBottom:10 }}>{needsPhoto?'5 · Anything specific? (optional)':'3 · Describe your space'}</div>
+        <textarea value={f.requirements} onChange={e=>set('requirements',e.target.value)} rows={needsPhoto?2:4} placeholder={needsPhoto?'e.g. more shoe storage, soft lighting, hidden laundry':'e.g. a walk-in closet for a master bedroom, warm oak, lots of shoe and hanging space, soft lighting'} style={{...inpS, resize:'vertical', marginBottom:12}} />
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:16 }}>
+          <input value={f.budget} onChange={e=>set('budget',e.target.value)} placeholder="Budget BHD (optional)" inputMode="numeric" style={inpS} />
+          <input value={f.w} onChange={e=>set('w',e.target.value)} placeholder="Width cm (optional)" inputMode="numeric" style={inpS} />
+        </div>
+        <button type="button" className="btn-clay" disabled={busy||renderBusy} onClick={generate} style={{ width:'100%', borderRadius:14, padding:'14px', fontSize:15, opacity:(busy||renderBusy)?.6:1 }}>{(busy||renderBusy)?'Designing…':'Generate my design ✦'}</button>
       </div>
-      {/* Result */}
+
+      {/* ── RESULT ── */}
       <div>
-        {!concept && !busy && <div style={{ color:'#aaa', fontSize:15, padding:'30px 0' }}>Your AI concept — layout, materials, colours, storage ideas and four package options — will appear here.</div>}
-        {busy && <div style={{ color:'#86868b', fontSize:15, padding:'30px 0' }}>✦ Reading your brief and composing a concept…</div>}
-        {concept && (<div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding: mobile?20:28, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
-          <div style={{ fontSize:12, color:'#F97316', fontWeight:700, textTransform:'uppercase', letterSpacing:'.05em' }}>AI concept</div>
-          <h2 style={{ fontSize:24, fontWeight:700, color:'#1d1d1f', margin:'6px 0 4px' }}>{concept.title}</h2>
-          <div style={{ fontSize:13, color:'#86868b' }}>{concept.product} · {concept.layout} · {concept.finish_id} finish · {concept.width_cm}×{concept.height_cm}cm</div>
-          <p style={{ fontSize:15, color:'#444', lineHeight:1.65, marginTop:12 }}>{concept.summary}</p>
-          {concept.materials?.length>0 && <><div style={{ fontSize:12, fontWeight:700, color:'#1d1d1f', marginTop:16, marginBottom:8 }}>MATERIALS</div><div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>{concept.materials.map((m,i)=><span key={i}>{chip(m)}</span>)}</div></>}
-          {concept.colors?.length>0 && <><div style={{ fontSize:12, fontWeight:700, color:'#1d1d1f', marginTop:16, marginBottom:8 }}>COLOURS</div><div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>{concept.colors.map((m,i)=><span key={i}>{chip(m)}</span>)}</div></>}
-          {concept.storage_ideas?.length>0 && <><div style={{ fontSize:12, fontWeight:700, color:'#1d1d1f', marginTop:16, marginBottom:8 }}>STORAGE IDEAS</div><ul style={{ margin:0, paddingLeft:18, color:'#444', fontSize:14, lineHeight:1.7 }}>{concept.storage_ideas.map((m,i)=><li key={i}>{m}</li>)}</ul></>}
-          <div style={{ fontSize:12, fontWeight:700, color:'#1d1d1f', marginTop:18, marginBottom:8 }}>PACKAGES (indicative)</div>
+        {!hasResult && <div style={{ border:'1px dashed var(--line)', borderRadius:20, padding:'56px 24px', textAlign:'center', color:'var(--muted)', fontSize:15, background:'#fff' }}>
+          <i className="ti ti-sparkles" style={{ fontSize:30, color:'var(--clay)', display:'block', marginBottom:12 }} aria-hidden="true" />
+          {needsPhoto?'Your before / after redesign and a tailored concept will appear here.':'Your AI concept — layout, materials, colours and package options — will appear here.'}
+        </div>}
+
+        {/* Visual before/after */}
+        {needsPhoto && (renderBusy || renderUrl || renderErr) && (
+          <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding:16, boxShadow:'var(--shadow)', marginBottom:16 }}>
+            {renderBusy && <div style={{ padding:'60px 0', textAlign:'center', color:'var(--ink-soft)', fontSize:14 }}><i className="ti ti-loader-2" style={{ fontSize:26, color:'var(--clay)' }} aria-hidden="true" /><div style={{ marginTop:10 }}>Redesigning your room… ~15–25 seconds.</div></div>}
+            {!renderBusy && renderErr && <div style={{ padding:'40px 12px', textAlign:'center', color:'var(--clay-deep)', fontSize:14 }}>{renderErr}</div>}
+            {!renderBusy && renderUrl && (<>
+              <div style={{ position:'relative', borderRadius:14, overflow:'hidden', aspectRatio:'4 / 3', background:'#000' }}>
+                <img src={renderUrl} alt="After — AI redesign" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+                <img src={image.dataUrl} alt="Before — your room" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', clipPath:`inset(0 ${100-baPos}% 0 0)` }} />
+                <div style={{ position:'absolute', top:0, bottom:0, left:`${baPos}%`, width:2, background:'#fff', boxShadow:'0 0 8px rgba(0,0,0,.4)' }} />
+                <span style={{ position:'absolute', top:10, left:10, background:'rgba(20,16,12,.7)', color:'#fff', fontSize:11, fontWeight:700, padding:'3px 9px', borderRadius:99 }}>BEFORE</span>
+                <span style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'3px 9px', borderRadius:99 }}>AFTER ✦</span>
+                <input type="range" min={0} max={100} value={baPos} onChange={e=>setBaPos(Number(e.target.value))} style={{ position:'absolute', left:'6%', right:'6%', bottom:12, width:'88%', accentColor:'var(--clay)' }} />
+              </div>
+              <div style={{ display:'flex', gap:8, justifyContent:'space-between', alignItems:'center', marginTop:12, flexWrap:'wrap' }}>
+                <span style={{ fontSize:12, color:'var(--muted)' }}>Drag the slider to compare. AI impression — finishes confirmed at your visit.</span>
+                <div style={{ display:'flex', gap:8 }}>
+                  <a href={renderUrl} download="closets-redesign.jpg" target="_blank" rel="noreferrer" style={{ padding:'8px 14px', borderRadius:99, background:'var(--ink)', color:'#fff', textDecoration:'none', fontSize:13, fontWeight:600 }}>Download</a>
+                  <button type="button" onClick={()=>renderVisual()} style={{ padding:'8px 14px', borderRadius:99, border:'1px solid var(--line)', background:'#fff', color:'var(--ink)', cursor:'pointer', fontSize:13, fontWeight:600 }}>Regenerate</button>
+                </div>
+              </div>
+              <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:12 }}>
+                <span style={{ fontSize:11, color:'var(--muted)', alignSelf:'center', marginRight:2 }}>Try another style:</span>
+                {STYLES.map(s=>(<button key={s.id} type="button" onClick={()=>tryStyle(s.id)} title={s.name} style={{ width:26, height:26, borderRadius:8, background:s.g, border: f.style===s.id?'2px solid var(--clay)':'1px solid var(--line)', cursor:'pointer' }} />))}
+              </div>
+            </>)}
+          </div>
+        )}
+
+        {/* Concept */}
+        {busy && !concept && <div style={{ color:'var(--ink-soft)', fontSize:15, padding:'18px 2px' }}>✦ Reading your brief and composing a concept…</div>}
+        {concept && (<div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding: mobile?20:26, boxShadow:'var(--shadow)' }}>
+          <div className="eyebrow">AI concept</div>
+          <h2 className="display" style={{ fontSize:26, color:'var(--ink)', margin:'6px 0 4px' }}>{concept.title}</h2>
+          <div style={{ fontSize:13, color:'var(--muted)' }}>{concept.product} · {concept.layout} · {concept.finish_id} finish · {concept.width_cm}×{concept.height_cm}cm</div>
+          <p style={{ fontSize:15, color:'var(--ink-soft)', lineHeight:1.65, marginTop:12 }}>{concept.summary}</p>
+          {concept.materials?.length>0 && <><h4 style={{ fontSize:12, fontWeight:700, color:'var(--ink)', marginTop:16, marginBottom:8 }}>MATERIALS</h4><div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>{concept.materials.map((m,i)=><span key={i}>{chip(m)}</span>)}</div></>}
+          {concept.colors?.length>0 && <><h4 style={{ fontSize:12, fontWeight:700, color:'var(--ink)', marginTop:16, marginBottom:8 }}>COLOURS</h4><div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>{concept.colors.map((m,i)=><span key={i}>{chip(m)}</span>)}</div></>}
+          {concept.storage_ideas?.length>0 && <><h4 style={{ fontSize:12, fontWeight:700, color:'var(--ink)', marginTop:16, marginBottom:8 }}>STORAGE IDEAS</h4><ul style={{ margin:0, paddingLeft:18, color:'var(--ink-soft)', fontSize:14, lineHeight:1.7 }}>{concept.storage_ideas.map((m,i)=><li key={i}>{m}</li>)}</ul></>}
+          <h4 style={{ fontSize:12, fontWeight:700, color:'var(--ink)', marginTop:18, marginBottom:8 }}>PACKAGES (indicative)</h4>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-            {(concept.packages||[]).map((p,i)=>(<div key={p.tier} style={{ border:'0.5px solid '+(i===1?'#F97316':'#e6e6e6'), background:i===1?'#FFF7EF':'#fff', borderRadius:12, padding:'12px 14px' }}>
-              <div style={{ fontSize:13, fontWeight:700, color:i===1?'#F97316':'#1d1d1f' }}>{p.tier}{i===1?' · recommended':''}</div>
-              <div style={{ fontSize:15, fontWeight:700, color:'#1d1d1f', marginTop:3 }}>BD {p.price_from.toLocaleString()}–{p.price_to.toLocaleString()}</div>
-              <div style={{ fontSize:11, color:'#86868b', marginTop:4, lineHeight:1.4 }}>{p.includes}</div>
+            {(concept.packages||[]).map((p,i)=>(<div key={p.tier} style={{ border:'1px solid '+(i===1?'var(--clay)':'var(--line)'), background:i===1?'var(--sand)':'#fff', borderRadius:12, padding:'12px 14px' }}>
+              <div style={{ fontSize:13, fontWeight:700, color:i===1?'var(--clay-deep)':'var(--ink)' }}>{p.tier}{i===1?' · recommended':''}</div>
+              <div style={{ fontSize:15, fontWeight:700, color:'var(--ink)', marginTop:3 }}>BD {p.price_from.toLocaleString()}–{p.price_to.toLocaleString()}</div>
+              <div style={{ fontSize:11, color:'var(--muted)', marginTop:4, lineHeight:1.4 }}>{p.includes}</div>
             </div>))}
           </div>
-          <div style={{ fontSize:11, color:'#aaa', marginTop:8 }}>Indicative only — your free design visit confirms an exact, itemised quote.</div>
+          <div style={{ fontSize:11, color:'var(--muted)', marginTop:8 }}>Indicative only — your free design visit confirms an exact, itemised quote.</div>
           <div style={{ display:'flex', gap:10, marginTop:18, flexWrap:'wrap' }}>
-            <button type="button" onClick={()=>setPage('planner')} style={{ background:'#1d1d1f', color:'#fff', border:'none', borderRadius:980, padding:'11px 20px', fontSize:14, fontWeight:600, cursor:'pointer' }}>Refine in 3D planner</button>
-            <button type="button" onClick={()=>setPage('booking')} style={{ background:'#F97316', color:'#fff', border:'none', borderRadius:980, padding:'11px 20px', fontSize:14, fontWeight:600, cursor:'pointer' }}>Book a free visit</button>
-            <button type="button" disabled={saved} onClick={saveConcept} style={{ background:'#fff', color: saved?'#1a7a40':'#1d1d1f', border:'1px solid '+(saved?'#1a7a40':'#d0d0d0'), borderRadius:980, padding:'11px 20px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{saved?'✓ Saved to account':(user?'Save to my account':'Sign in to save')}</button>
+            <button type="button" className="btn-clay" onClick={()=>setPage('booking')} style={{ borderRadius:980, padding:'11px 20px', fontSize:14 }}>Book a free visit</button>
+            <button type="button" onClick={()=>setPage('planner')} style={{ background:'var(--ink)', color:'#fff', border:'none', borderRadius:980, padding:'11px 20px', fontSize:14, fontWeight:600, cursor:'pointer' }}>Refine in 3D planner</button>
+            <button type="button" disabled={saved} onClick={saveConcept} style={{ background:'#fff', color: saved?'var(--good)':'var(--ink)', border:'1px solid '+(saved?'var(--good)':'var(--line)'), borderRadius:980, padding:'11px 20px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{saved?'✓ Saved to account':(user?'Save to my account':'Sign in to save')}</button>
           </div>
         </div>)}
       </div>
@@ -2994,7 +3108,7 @@ function ChatWidget({ setPage }) {
   };
   const chips = ['Design a kitchen','Wardrobe pricing','Book a free visit','Where are your showrooms?'];
   return (<>
-    <button type="button" onClick={()=>setOpen(o=>!o)} aria-label="Chat with us" style={{ position:'fixed', right: mobile?16:24, bottom: mobile?88:24, zIndex:1400, width:56, height:56, borderRadius:'50%', background:'#F97316', border:'none', boxShadow:'0 6px 20px rgba(249,115,22,.4)', cursor:'pointer', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center' }}>
+    <button type="button" onClick={()=>setOpen(o=>!o)} aria-label="Chat with us" style={{ position:'fixed', right: mobile?16:24, bottom: mobile?88:24, zIndex:1400, width:56, height:56, borderRadius:'50%', background:'var(--clay)', border:'none', boxShadow:'0 6px 20px rgba(249,115,22,.4)', cursor:'pointer', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center' }}>
       <i className={open?'ti ti-x':'ti ti-message-2'} style={{ fontSize:24 }} aria-hidden="true" />
     </button>
     {open && (
@@ -3004,13 +3118,13 @@ function ChatWidget({ setPage }) {
           <div style={{ fontSize:12, color:'#bdbdbd', marginTop:2 }}>AI-powered · replies in seconds</div>
         </div>
         <div ref={listRef} style={{ flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:10, background:'#fafafa' }}>
-          {msgs.map((m,i)=>(<div key={i} style={{ alignSelf: m.role==='user'?'flex-end':'flex-start', maxWidth:'85%', background: m.role==='user'?'#F97316':'#fff', color: m.role==='user'?'#fff':'#1d1d1f', border: m.role==='user'?'none':'1px solid #ececec', borderRadius:14, padding:'10px 13px', fontSize:14, lineHeight:1.5, whiteSpace:'pre-wrap' }}>{m.content}</div>))}
+          {msgs.map((m,i)=>(<div key={i} style={{ alignSelf: m.role==='user'?'flex-end':'flex-start', maxWidth:'85%', background: m.role==='user'?'var(--clay)':'#fff', color: m.role==='user'?'#fff':'#1d1d1f', border: m.role==='user'?'none':'1px solid #ececec', borderRadius:14, padding:'10px 13px', fontSize:14, lineHeight:1.5, whiteSpace:'pre-wrap' }}>{m.content}</div>))}
           {busy && <div style={{ alignSelf:'flex-start', color:'#aaa', fontSize:13, padding:'4px 6px' }}>typing…</div>}
           {msgs.length<=1 && <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>{chips.map(c=>(<button key={c} type="button" onClick={()=>{ if(c==='Book a free visit'){ setOpen(false); setPage('booking'); } else send(c); }} style={{ fontSize:12, border:'1px solid #e0e0e0', borderRadius:16, padding:'6px 12px', background:'#fff', cursor:'pointer', color:'#1d1d1f' }}>{c}</button>))}</div>}
         </div>
         <div style={{ display:'flex', gap:8, padding:'12px', borderTop:'1px solid #ececec' }}>
           <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter') send(); }} placeholder="Ask anything…" style={{ flex:1, border:'1px solid #e0e0e0', borderRadius:980, padding:'10px 16px', fontSize:14, outline:'none' }} />
-          <button type="button" onClick={()=>send()} disabled={busy||!input.trim()} style={{ background:'#F97316', color:'#fff', border:'none', borderRadius:'50%', width:40, height:40, cursor:'pointer', flexShrink:0, opacity:(busy||!input.trim())?0.5:1 }}><i className="ti ti-send" style={{ fontSize:18 }} aria-hidden="true" /></button>
+          <button type="button" onClick={()=>send()} disabled={busy||!input.trim()} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:'50%', width:40, height:40, cursor:'pointer', flexShrink:0, opacity:(busy||!input.trim())?0.5:1 }}><i className="ti ti-send" style={{ fontSize:18 }} aria-hidden="true" /></button>
         </div>
       </div>
     )}
@@ -3038,7 +3152,7 @@ function PortfolioPage({ setPage }) {
         {p.before_url && p.after_url ? <BeforeAfter before={p.before_url} after={p.after_url} />
           : <div style={{ height:200, background:`url('${p.cover_url}') center/cover, #eee` }} />}
         <div style={{ padding:20 }}>
-          <div style={{ fontSize:12, color:'#F97316', fontWeight:600, textTransform:'uppercase', letterSpacing:'.05em' }}>{[p.category,p.client_type].filter(Boolean).join(' · ')}</div>
+          <div style={{ fontSize:12, color:'var(--clay)', fontWeight:600, textTransform:'uppercase', letterSpacing:'.05em' }}>{[p.category,p.client_type].filter(Boolean).join(' · ')}</div>
           <div style={{ fontSize:17, fontWeight:600, color:'#1d1d1f', marginTop:6 }}>{p.name}</div>
           {p.location && <div style={{ fontSize:13, color:'#aaa', marginTop:4 }}>📍 {p.location}</div>}
           <div style={{ fontSize:14, color:'#86868b', marginTop:8, lineHeight:1.6 }}>{p.description}</div>
@@ -3056,7 +3170,7 @@ function CategoryPage({ category, products, setPage, addToCart }) {
   const list=(products||[]).filter(p=> (p.category||'').toLowerCase()===category.toLowerCase());
   return (<PageWrap title={category} sub={`Bespoke ${category.toLowerCase()}, designed, made and installed in Bahrain.`}>
     <div style={{ display:'flex', gap:10, marginBottom:24, flexWrap:'wrap' }}>
-      <button type="button" onClick={()=>setPage('booking')} style={{ background:'#F97316', color:'#fff', border:'none', borderRadius:980, padding:'11px 22px', fontSize:14, fontWeight:600, cursor:'pointer' }}>Book a free design visit</button>
+      <button type="button" onClick={()=>setPage('booking')} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:980, padding:'11px 22px', fontSize:14, fontWeight:600, cursor:'pointer' }}>Book a free design visit</button>
       <button type="button" onClick={()=>setPage('planner')} style={{ background:'#1d1d1f', color:'#fff', border:'none', borderRadius:980, padding:'11px 22px', fontSize:14, fontWeight:600, cursor:'pointer' }}>Design it in 3D</button>
     </div>
     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))', gap:20 }}>
