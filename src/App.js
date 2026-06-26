@@ -233,7 +233,7 @@ const CSS = `
   .btn-ghost { background: transparent; border: 1.5px solid #e6e6e6; border-radius: 14px; padding: 14px 22px; font-size: 15px; font-weight: 500; cursor: pointer; color: #1d1d1f; transition: all .15s; }
   .card { background: #fff; border-radius: 20px; border: 1px solid #e6e6e6; overflow: hidden; }
   /* ── Editorial-luxury design tokens (Home redesign) ── */
-  :root { --ink:#211c18; --ink-soft:#4a423b; --muted:#8a7f72; --cream:#f7f2ec; --sand:#efe7dc; --line:#e6ddd1; --clay:#b0613b; --clay-deep:#8f4c2d; }
+  :root { --ink:#211c18; --ink-soft:#4a423b; --muted:#8a7f72; --cream:#f7f2ec; --sand:#efe7dc; --line:#e6ddd1; --clay:#F2731C; --clay-deep:#C2410C; }
   .display { font-family:'Fraunces',Georgia,'Times New Roman',serif; font-weight:600; letter-spacing:-.02em; line-height:1.04; }
   .eyebrow { font-size:12px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--clay); }
   .btn-clay { background:var(--clay); color:#fff; border:none; border-radius:14px; padding:15px 26px; font-size:16px; font-weight:600; cursor:pointer; transition:transform .15s, background .2s, box-shadow .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:50px; box-shadow:0 12px 26px -14px rgba(176,97,59,.7); }
@@ -1465,16 +1465,15 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             const pc = settings?.products?.[p.id];
             const ready = p.id === 'wardrobe' ? true : !!(pc && pc.enabled !== false && !pc.placeholder_prices);
             return (
-              <div key={p.id} className="lift" onClick={()=>setSelProduct({ id:p.id, name:p.name, ready })} style={{ cursor:'pointer', border: on?'2px solid var(--clay)':'1px solid var(--line)', borderRadius:18, overflow:'hidden', background:'#fff', textAlign:'left', position:'relative' }}>
-                <div style={{ height:120, background:'var(--sand)', display:'flex', alignItems:'center', justifyContent:'center', position:'relative' }}>
-                  <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke={on?'var(--clay)':'var(--muted)'} strokeWidth="1.5" aria-hidden="true"><path d={p.icon}/></svg>
-                  {on && <i className="ti ti-circle-check" style={{ position:'absolute', top:10, right:10, color:'var(--clay)', fontSize:20, background:'#fff', borderRadius:'50%' }} aria-hidden="true" />}
-                  {!ready && <span style={{ position:'absolute', top:10, left:10, fontSize:10, fontWeight:600, color:'var(--muted)', background:'#fff', padding:'2px 8px', borderRadius:6 }}>{t('quoteOnly')}</span>}
+              <div key={p.id} className="lift" onClick={()=>setSelProduct({ id:p.id, name:p.name, ready })} style={{ cursor:'pointer', border: on?'2px solid var(--clay)':'1px solid var(--line)', borderRadius:16, background:'#fff', textAlign:'left', position:'relative', padding:'16px 16px 14px' }}>
+                {on && <span style={{ position:'absolute', top:12, right:12, width:22, height:22, borderRadius:'50%', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center' }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 6"/></svg></span>}
+                {!ready && !on && <span style={{ position:'absolute', top:12, right:12, fontSize:10, fontWeight:600, color:'var(--muted)', background:'var(--sand)', padding:'2px 8px', borderRadius:6 }}>{t('quoteOnly')}</span>}
+                <div style={{ width:42, height:42, borderRadius:11, background: on?'var(--clay)':'rgba(242,115,28,.1)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={on?'#fff':'var(--clay)'} strokeWidth="1.6" aria-hidden="true"><path d={p.icon}/></svg>
                 </div>
-                <div style={{ padding:'14px 16px' }}>
-                  <div className="display" style={{ fontSize:17, color:'var(--ink)' }}>{p.name}</div>
-                  <div style={{ fontSize:12.5, color:'var(--muted)', marginTop:3 }}>{p.sub}</div>
-                </div>
+                <div className="display" style={{ fontSize:17, color:'var(--ink)' }}>{p.name}</div>
+                <div style={{ fontSize:12.5, color:'var(--muted)', marginTop:3, marginBottom:10 }}>{p.sub}</div>
+                <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600 }}>{ready ? 'Start' : 'Request a quote'} →</div>
               </div>
             );
           })}
@@ -3143,7 +3142,10 @@ function ChatWidget({ setPage }) {
   const chips = ['Design a kitchen','Wardrobe pricing','Book a free visit','Where are your showrooms?'];
   return (<>
     <button type="button" onClick={()=>setOpen(o=>!o)} aria-label="Chat with us" style={{ position:'fixed', right: mobile?16:24, bottom: mobile?88:24, zIndex:1400, width:56, height:56, borderRadius:'50%', background:'var(--clay)', border:'none', boxShadow:'0 6px 20px rgba(249,115,22,.4)', cursor:'pointer', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <i className={open?'ti ti-x':'ti ti-message-2'} style={{ fontSize:24 }} aria-hidden="true" />
+      {open
+        ? <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        : <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5z"/></svg>}
+      {!open && <span style={{ position:'absolute', top:-3, right:-3, background:'var(--ink)', color:'#fff', fontSize:10, fontWeight:700, borderRadius:999, padding:'1px 6px', lineHeight:1.4 }}>AI</span>}
     </button>
     {open && (
       <div style={{ position:'fixed', right: mobile?10:24, bottom: mobile?150:92, zIndex:1400, width: mobile?'calc(100vw - 20px)':380, maxWidth:'calc(100vw - 20px)', height:520, maxHeight:'70vh', background:'#fff', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,.22)', border:'1px solid #ececec', display:'flex', flexDirection:'column', overflow:'hidden' }}>
