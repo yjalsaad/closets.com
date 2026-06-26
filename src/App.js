@@ -2287,6 +2287,7 @@ function ContactPage() {
 /* ── CHECKOUT ── */
 function CheckoutPage({ cart, setCart, user, setPage }) {
   const [step, setStep] = useState(1);
+  useReveal();
   const { t } = useI18n();
   const [form, setForm] = useState({ name:user?.name||'', email:user?.email||'', phone:user?.phone||'', address:'', city:'Manama', payment:'Bank Transfer', notes:'' });
   const [settings, setSettings] = useState({});
@@ -2728,6 +2729,7 @@ function ServicesPage({ user, setPage, openAuth }) {
   const [notes, setNotes] = useState('');
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  useReveal();
   useEffect(() => { api('rpc/services_list', { method: 'POST', body: {} }).then(d => setCats(Array.isArray(d) ? d : [])).catch(() => {}); }, []);
   const open = (c) => { if (!user) { openAuth && openAuth('login'); return; } setSel(c); setMode('scheduled'); setDate(''); setSlot((c.slots && c.slots[0]) || 'Morning'); setArea(''); setAddress(''); setNotes(''); setDone(false); };
   const submit = async () => {
