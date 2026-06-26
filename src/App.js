@@ -507,23 +507,20 @@ function Hero({ setPage, banners }) {
 
 function ProductCard({ product: p, setPage, addToCart, setConfigProduct }) {
   return (
-    <div className="card reveal" onClick={() => setPage('product-' + p.id)} style={{ cursor: 'pointer' }}>
-      <div style={{ aspectRatio: '4/3', background: 'linear-gradient(145deg, #f5f5f7, #e8e8ed)', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          : <svg width="56" height="56" viewBox="0 0 64 64" fill="none"><rect x="8" y="8" width="18" height="48" rx="3" fill="#d2d2d7"/><rect x="30" y="8" width="26" height="28" rx="3" fill="#d2d2d7"/></svg>}
-        {p.badge && <span style={{ position: 'absolute', top: 12, left: 12, background: '#F97316', color: '#fff', padding: '4px 10px', borderRadius: 980, fontSize: 11, fontWeight: 600 }}>{p.badge}</span>}
+    <div className="rv lift" onClick={() => setPage('product-' + p.id)} style={{ cursor: 'pointer', background: '#fff', borderRadius: 18, overflow: 'hidden', border: '1px solid var(--line)' }}>
+      <div className="tile-zoom" style={{ position: 'relative', aspectRatio: '4/5' }}>
+        <Photo src={p.image_url || HOME_IMG.wardrobe} alt={p.name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
+        {p.badge && <span style={{ position: 'absolute', top: 12, left: 12, background: 'var(--clay)', color: '#fff', padding: '4px 11px', borderRadius: 980, fontSize: 11, fontWeight: 600, letterSpacing: '.02em' }}>{p.badge}</span>}
       </div>
-      <div style={{ padding: '14px 16px 16px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f', marginBottom: 2, letterSpacing: '-.01em' }}>{p.name}</div>
-            <div style={{ fontSize: 12, color: '#86868b' }}>{p.category}</div>
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#1d1d1f' }}>{fmt(p.price)}</div>
+      <div style={{ padding: '16px' }}>
+        <div style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 6 }}>{p.category || 'Bespoke'}</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 14 }}>
+          <div className="display" style={{ fontSize: 18, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.2 }}>{p.name}</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--clay)', whiteSpace: 'nowrap' }}>{fmt(p.price)}</div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button type="button" className="btn-sm" style={{ flex: 1, borderRadius: 12 }} onClick={e => { e.stopPropagation(); addToCart(p); toast('Added to cart ✓', 'success'); }}>Add</button>
-          <button type="button" style={{ background: '#f5f5f7', border: 'none', borderRadius: 12, padding: '11px 14px', fontSize: 15, cursor: 'pointer', minHeight: 44, color: '#1d1d1f' }} onClick={e => { e.stopPropagation(); setPage('planner'); }}>✦</button>
+          <button type="button" onClick={e => { e.stopPropagation(); addToCart(p); toast('Added to cart ✓', 'success'); }} style={{ flex: 1, background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 12, padding: '11px 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer', minHeight: 44 }}>Add to cart</button>
+          <button type="button" title="Customise this piece" onClick={e => { e.stopPropagation(); setPage('planner'); }} style={{ background: 'var(--sand)', border: '1px solid var(--line)', borderRadius: 12, padding: '11px 14px', fontSize: 15, cursor: 'pointer', minHeight: 44, color: 'var(--ink)' }}>✦</button>
         </div>
       </div>
     </div>
@@ -539,21 +536,27 @@ function ProductsPage({ products, setPage, addToCart, setConfigProduct }) {
   const cats = ['All', ...new Set(products.map(p => p.category).filter(Boolean))];
   const filtered = products.filter(p => (cat === 'All' || p.category === cat) && (!search || p.name?.toLowerCase().includes(search.toLowerCase())));
   return (
-    <div style={{ minHeight: '100vh', paddingTop: mobile ? 16 : 72, paddingBottom: mobile ? 80 : 0, background: '#fff' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: mobile ? '16px 16px 0' : '40px 40px 0' }}>
-        <h1 style={{ fontSize: mobile ? 32 : 48, fontWeight: 700, letterSpacing: '-.03em', color: '#1d1d1f', marginBottom: 4 }}>Collection</h1>
-        <p style={{ fontSize: 15, color: '#86868b', marginBottom: 20 }}>Handcrafted pieces for every space.</p>
-        <div style={{ marginBottom: 20 }}>
-          <input className="inp" placeholder="Search collection…" value={search} onChange={e => setSearch(e.target.value)} style={{ fontSize: 16 }} />
+    <div style={{ minHeight: '100vh', paddingTop: mobile ? 72 : 104, paddingBottom: mobile ? 90 : 60, background: 'var(--cream)' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: mobile ? '8px 24px 0' : '24px 48px 0' }}>
+        <div className="rv" style={{ marginBottom: 28, maxWidth: 660 }}>
+          <div className="eyebrow" style={{ marginBottom: 14 }}>The collection</div>
+          <h1 className="display" style={{ fontSize: mobile ? 38 : 60, color: 'var(--ink)', marginBottom: 14 }}>Every piece, made to measure.</h1>
+          <p style={{ fontSize: mobile ? 16 : 18, color: 'var(--ink-soft)', lineHeight: 1.7 }}>Browse a selection of our kitchens, wardrobes, walk-ins and storage — each one designed, built and fitted in Bahrain.</p>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', overflowX: 'auto', marginBottom: 24, paddingBottom: 4, scrollbarWidth: 'none' }}>
-          {cats.map(c => (
-            <button type="button" key={c} onClick={() => setCat(c)} style={{ padding: '8px 18px', borderRadius: 980, border: 'none', background: cat === c ? '#1d1d1f' : '#f5f5f7', color: cat === c ? '#fff' : '#6e6e73', fontSize: 14, fontWeight: cat === c ? 500 : 400, cursor: 'pointer', whiteSpace: 'nowrap', minHeight: 36, flexShrink: 0 }}>{c}</button>
-          ))}
+        <div className="rv" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 30 }}>
+          <div style={{ flex: mobile ? '1 1 100%' : '0 0 280px' }}>
+            <input className="inp" placeholder="Search collection…" value={search} onChange={e => setSearch(e.target.value)} style={{ fontSize: 15, background: '#fff', border: '1px solid var(--line)' }} />
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 2 }}>
+            {cats.map(c => (
+              <button type="button" key={c} onClick={() => setCat(c)} style={{ padding: '9px 18px', borderRadius: 980, border: '1px solid ' + (cat === c ? 'var(--clay)' : 'var(--line)'), background: cat === c ? 'var(--clay)' : 'transparent', color: cat === c ? '#fff' : 'var(--ink-soft)', fontSize: 13.5, fontWeight: cat === c ? 600 : 500, cursor: 'pointer', whiteSpace: 'nowrap', minHeight: 38, flexShrink: 0, transition: 'all .2s' }}>{c}</button>
+            ))}
+          </div>
+          <div className="hide-mobile" style={{ marginLeft: 'auto', fontSize: 13, color: 'var(--muted)' }}>{filtered.length} piece{filtered.length === 1 ? '' : 's'}</div>
         </div>
         {filtered.length === 0
-          ? <div style={{ textAlign: 'center', padding: '60px 0', color: '#86868b' }}>No pieces found</div>
-          : <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 12 : 18, paddingBottom: 40 }}>
+          ? <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--muted)' }}><div className="display" style={{ fontSize: 24, color: 'var(--ink)', marginBottom: 8 }}>Nothing here yet</div><div>Try a different category or search.</div></div>
+          : <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 12 : 22, paddingBottom: 40 }}>
               {filtered.map(p => <ProductCard key={p.id} product={p} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />)}
             </div>
         }
