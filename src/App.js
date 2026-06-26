@@ -1425,78 +1425,82 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
 
   // ── STAGE 1: PRODUCT PICKER ──
   if (stage === 'product') return (
-    <div style={{ minHeight:'100vh', paddingTop:96, paddingBottom:80, maxWidth:900, margin:'0 auto', padding:'96px 20px 80px' }}>
-      <div style={{ textAlign:'center', marginBottom:32 }}>
-        <h2 style={{ fontSize: mobile?24:30, fontWeight:700, marginBottom:8 }}>{t('whatDesign')}</h2>
-        <p style={{ color:'#86868b' }}>{t('pickProduct')}</p>
-      </div>
-      <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(3,1fr)', gap:16 }}>
-        {PLANNER_PRODUCTS.map(p=>{
-          const on = selProduct?.id === p.id;
-          // Ready = has product config, enabled, and prices reviewed (not placeholder)
-          const pc = settings?.products?.[p.id];
-          const ready = p.id === 'wardrobe' ? true : !!(pc && pc.enabled !== false && !pc.placeholder_prices);
-          return (
-            <div key={p.id} onClick={()=>setSelProduct({ id:p.id, name:p.name, ready })} style={{ cursor:'pointer', border: on?'2px solid #F97316':'0.5px solid #e6e6e6', borderRadius:16, overflow:'hidden', background:'#fff', textAlign:'left', position:'relative' }}>
-              <div style={{ height:100, background:'#f5f5f7', display:'flex', alignItems:'center', justifyContent:'center', position:'relative' }}>
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={on?'#F97316':'#86868b'} strokeWidth="1.5" aria-hidden="true"><path d={p.icon}/></svg>
-                {on && <i className="ti ti-circle-check" style={{ position:'absolute', top:8, right:8, color:'#F97316', fontSize:20, background:'#fff', borderRadius:'50%' }} aria-hidden="true" />}
-                {!ready && <span style={{ position:'absolute', top:8, left:8, fontSize:10, fontWeight:600, color:'#86868b', background:'#fff', padding:'2px 7px', borderRadius:6 }}>{t('quoteOnly')}</span>}
-              </div>
-              <div style={{ padding:'12px 14px' }}>
-                <div style={{ fontSize:15, fontWeight:600 }}>{p.name}</div>
-                <div style={{ fontSize:12, color:'#aaa', marginTop:2 }}>{p.sub}</div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      {selProduct && !selProduct.ready && (
-        <div style={{ maxWidth:520, margin:'24px auto 0', padding:'16px 20px', background:'#FAECE7', borderRadius:14, color:'#993C1D', textAlign:'center' }}>
-          <div style={{ fontWeight:600, marginBottom:4 }}>{selProduct.name} — request a quote</div>
-          <div style={{ fontSize:13, marginBottom:12 }}>Online design for {selProduct.name.toLowerCase()} is coming soon. Our team will design it with you.</div>
-          <button type="button" className="btn" onClick={()=>setPage('contact')} style={{ borderRadius:12 }}>{t('requestQuote')}</button>
+    <div style={{ minHeight:'100vh', background:'var(--cream)', paddingTop:104, paddingBottom:80 }}>
+      <div style={{ maxWidth:960, margin:'0 auto', padding:'0 24px' }}>
+        <div style={{ textAlign:'center', marginBottom:36 }}>
+          <div className="eyebrow" style={{ marginBottom:14 }}>Design studio</div>
+          <h2 className="display" style={{ fontSize: mobile?30:44, color:'var(--ink)' }}>{t('whatDesign')}</h2>
+          <p style={{ color:'var(--ink-soft)', fontSize:16, marginTop:12 }}>{t('pickProduct')}</p>
         </div>
-      )}
-      {selProduct && selProduct.ready && (
-        <div style={{ textAlign:'center', marginTop:28 }}>
-          <button type="button" className="btn" onClick={()=>setStage('ai')} style={{ borderRadius:14, minWidth:160 }}>Continue →</button>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(3,1fr)', gap:16 }}>
+          {PLANNER_PRODUCTS.map(p=>{
+            const on = selProduct?.id === p.id;
+            // Ready = has product config, enabled, and prices reviewed (not placeholder)
+            const pc = settings?.products?.[p.id];
+            const ready = p.id === 'wardrobe' ? true : !!(pc && pc.enabled !== false && !pc.placeholder_prices);
+            return (
+              <div key={p.id} className="lift" onClick={()=>setSelProduct({ id:p.id, name:p.name, ready })} style={{ cursor:'pointer', border: on?'2px solid var(--clay)':'1px solid var(--line)', borderRadius:18, overflow:'hidden', background:'#fff', textAlign:'left', position:'relative' }}>
+                <div style={{ height:120, background:'var(--sand)', display:'flex', alignItems:'center', justifyContent:'center', position:'relative' }}>
+                  <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke={on?'var(--clay)':'var(--muted)'} strokeWidth="1.5" aria-hidden="true"><path d={p.icon}/></svg>
+                  {on && <i className="ti ti-circle-check" style={{ position:'absolute', top:10, right:10, color:'var(--clay)', fontSize:20, background:'#fff', borderRadius:'50%' }} aria-hidden="true" />}
+                  {!ready && <span style={{ position:'absolute', top:10, left:10, fontSize:10, fontWeight:600, color:'var(--muted)', background:'#fff', padding:'2px 8px', borderRadius:6 }}>{t('quoteOnly')}</span>}
+                </div>
+                <div style={{ padding:'14px 16px' }}>
+                  <div className="display" style={{ fontSize:17, color:'var(--ink)' }}>{p.name}</div>
+                  <div style={{ fontSize:12.5, color:'var(--muted)', marginTop:3 }}>{p.sub}</div>
+                </div>
+              </div>
+            );
+          })}
         </div>
-      )}
-      <div style={{ textAlign:'center', marginTop:24 }}>
-        <span onClick={()=>setPage('home')} style={{ cursor:'pointer', fontSize:13, color:'#aaa' }}>Close ✕</span>
+        {selProduct && !selProduct.ready && (
+          <div style={{ maxWidth:520, margin:'24px auto 0', padding:'18px 22px', background:'#fff', border:'1px solid var(--line)', borderLeft:'3px solid var(--clay)', borderRadius:14, textAlign:'center' }}>
+            <div className="display" style={{ fontSize:18, color:'var(--ink)', marginBottom:6 }}>{selProduct.name} — request a quote</div>
+            <div style={{ fontSize:14, color:'var(--ink-soft)', marginBottom:14 }}>Online design for {selProduct.name.toLowerCase()} is coming soon. Our team will design it with you.</div>
+            <button type="button" className="btn-clay" onClick={()=>setPage('contact')}>{t('requestQuote')}</button>
+          </div>
+        )}
+        {selProduct && selProduct.ready && (
+          <div style={{ textAlign:'center', marginTop:30 }}>
+            <button type="button" className="btn-clay" onClick={()=>setStage('ai')} style={{ minWidth:180 }}>Continue →</button>
+          </div>
+        )}
+        <div style={{ textAlign:'center', marginTop:24 }}>
+          <span onClick={()=>setPage('home')} style={{ cursor:'pointer', fontSize:13, color:'var(--muted)' }}>Close ✕</span>
+        </div>
       </div>
     </div>
   );
 
   // ── STAGE 2: AI STARTER ──
   if (stage === 'ai') return (
-    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'96px 20px 80px' }}>
-      <div style={{ maxWidth:560, width:'100%', background:'#f5f5f7', borderRadius:20, padding: mobile?20:28 }}>
-        <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:14 }}>
-          <i className="ti ti-sparkles" style={{ fontSize:22, color:'#F97316' }} aria-hidden="true" />
-          <span style={{ fontSize:17, fontWeight:600 }}>Describe your space — we'll design a starting point</span>
+    <div style={{ minHeight:'100vh', background:'var(--cream)', display:'flex', alignItems:'center', justifyContent:'center', padding:'104px 24px 80px' }}>
+      <div style={{ maxWidth:580, width:'100%', background:'#fff', border:'1px solid var(--line)', borderRadius:22, padding: mobile?22:30 }}>
+        <div style={{ display:'flex', gap:10, alignItems:'center', marginBottom:8 }}>
+          <i className="ti ti-sparkles" style={{ fontSize:22, color:'var(--clay)' }} aria-hidden="true" />
+          <span className="display" style={{ fontSize:20, color:'var(--ink)' }}>Describe your space</span>
         </div>
-        <textarea value={aiText} onChange={e=>setAiText(e.target.value)} placeholder="e.g. a walk-in closet for a master bedroom, warm oak, lots of shoes and hanging space, with soft lighting" rows={3} style={{ width:'100%', padding:'12px 14px', border:'0.5px solid #d0d0d0', borderRadius:12, fontSize:15, fontFamily:'inherit', resize:'vertical', marginBottom:12 }} />
+        <p style={{ fontSize:14, color:'var(--ink-soft)', marginBottom:16, lineHeight:1.6 }}>We'll design a tailored starting point in seconds.</p>
+        <textarea value={aiText} onChange={e=>setAiText(e.target.value)} placeholder="e.g. a walk-in closet for a master bedroom, warm oak, lots of shoes and hanging space, with soft lighting" rows={3} style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'var(--cream)', borderRadius:12, fontSize:15, fontFamily:'inherit', resize:'vertical', marginBottom:12 }} />
         <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:14 }}>
           {['Small bedroom, sliding doors, white','Walk-in, oak, lots of shoes','Modern L-shape kitchen, white, quartz'].map(chip=>(
-            <button key={chip} type="button" onClick={()=>setAiText(chip)} style={{ fontSize:12, border:'0.5px solid #d0d0d0', borderRadius:16, padding:'6px 13px', background:'#fff', cursor:'pointer' }}>{chip}</button>
+            <button key={chip} type="button" onClick={()=>setAiText(chip)} style={{ fontSize:12, border:'1px solid var(--line)', borderRadius:16, padding:'6px 13px', background:'var(--cream)', color:'var(--ink-soft)', cursor:'pointer' }}>{chip}</button>
           ))}
         </div>
         {/* Room photo (vision) */}
-        <label style={{ display:'flex', alignItems:'center', gap:12, background:'#fff', border:'0.5px dashed #c0c0c0', borderRadius:12, padding:'12px 14px', cursor:'pointer', marginBottom:16 }}>
+        <label style={{ display:'flex', alignItems:'center', gap:12, background:'var(--cream)', border:'1px dashed var(--line)', borderRadius:12, padding:'12px 14px', cursor:'pointer', marginBottom:16 }}>
           {aiImage
             ? <img src={aiImage.dataUrl} alt="room" style={{ width:54, height:42, objectFit:'cover', borderRadius:8 }} />
-            : <i className="ti ti-camera" style={{ fontSize:22, color:'#F97316' }} aria-hidden="true" />}
-          <span style={{ fontSize:14, color:'#1d1d1f', fontWeight:500 }}>{aiImage ? 'Photo added — tap to change' : 'Add a photo of your room (optional)'}</span>
+            : <i className="ti ti-camera" style={{ fontSize:22, color:'var(--clay)' }} aria-hidden="true" />}
+          <span style={{ fontSize:14, color:'var(--ink)', fontWeight:500 }}>{aiImage ? 'Photo added — tap to change' : 'Add a photo of your room (optional)'}</span>
           <input type="file" accept="image/*" onChange={e=>onAiPhoto(e.target.files?.[0])} style={{ display:'none' }} />
-          {aiImage && <span onClick={e=>{ e.preventDefault(); setAiImage(null); }} style={{ marginLeft:'auto', color:'#aaa', fontSize:18 }}>×</span>}
+          {aiImage && <span onClick={e=>{ e.preventDefault(); setAiImage(null); }} style={{ marginLeft:'auto', color:'var(--muted)', fontSize:18 }}>×</span>}
         </label>
         <div style={{ display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
-          <button type="button" className="btn" disabled={aiBusy || (!aiText.trim() && !aiImage)} onClick={runAI} style={{ borderRadius:12, opacity:(aiBusy||(!aiText.trim()&&!aiImage))?0.6:1 }}>{aiBusy ? 'Designing…' : 'Generate my design ✦'}</button>
-          <button type="button" onClick={()=>setStage('config')} style={{ background:'none', border:'none', color:'#86868b', fontSize:14, cursor:'pointer' }}>or start from scratch →</button>
+          <button type="button" className="btn-clay" disabled={aiBusy || (!aiText.trim() && !aiImage)} onClick={runAI} style={{ opacity:(aiBusy||(!aiText.trim()&&!aiImage))?0.6:1 }}>{aiBusy ? 'Designing…' : 'Generate my design ✦'}</button>
+          <button type="button" onClick={()=>setStage('config')} style={{ background:'none', border:'none', color:'var(--ink-soft)', fontSize:14, cursor:'pointer' }}>or start from scratch →</button>
         </div>
-        <div style={{ marginTop:18 }}><span onClick={()=>setStage('product')} style={{ cursor:'pointer', fontSize:13, color:'#aaa' }}>‹ Back</span></div>
+        <div style={{ marginTop:18 }}><span onClick={()=>setStage('product')} style={{ cursor:'pointer', fontSize:13, color:'var(--muted)' }}>‹ Back</span></div>
       </div>
     </div>
   );
