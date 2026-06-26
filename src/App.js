@@ -584,13 +584,10 @@ function ProductDetailPage({ productId, products, setPage, addToCart, setConfigP
   const related = aiRelated.length ? aiRelated.slice(0, mobile ? 2 : 3) : localRelated;
   const recLabel = aiRelated.length ? 'Recommended for you ✦' : 'You may also like';
   return (
-    <div style={{ minHeight: '100vh', paddingTop: mobile ? 0 : 72, paddingBottom: mobile ? 100 : 0, background: '#fff' }}>
+    <div style={{ minHeight: '100vh', paddingTop: mobile ? 0 : 96, paddingBottom: mobile ? 100 : 60, background: 'var(--cream)' }}>
       {mobile && (
         <div style={{ position: 'relative' }}>
-          <div style={{ aspectRatio: '1/1', background: 'linear-gradient(145deg, #f5f5f7, #e8e8ed)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-            {product.image_url ? <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : <svg width="80" height="80" viewBox="0 0 64 64" fill="none"><rect x="8" y="8" width="18" height="48" rx="3" fill="#d2d2d7"/><rect x="30" y="8" width="26" height="28" rx="3" fill="#d2d2d7"/></svg>}
-          </div>
+          <Photo src={product.image_url || HOME_IMG.wardrobe} alt={product.name} style={{ aspectRatio: '1/1' }} />
           <button type="button" onClick={() => setPage('products')} style={{ position: 'absolute', top: 16, left: 16, background: 'rgba(255,255,255,.9)', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(8px)' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
@@ -599,11 +596,8 @@ function ProductDetailPage({ productId, products, setPage, addToCart, setConfigP
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: mobile ? '24px 16px' : '40px 40px 80px' }}>
         {!mobile && <button type="button" onClick={() => setPage('products')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: '#86868b', marginBottom: 32, display: 'flex', alignItems: 'center', gap: 6 }}>← Collection</button>}
         {!mobile ? (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, marginBottom: 80 }}>
-            <div style={{ borderRadius: 24, overflow: 'hidden', background: 'linear-gradient(145deg, #f5f5f7, #e8e8ed)', aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {product.image_url ? <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <svg width="80" height="80" viewBox="0 0 64 64" fill="none"><rect x="8" y="8" width="18" height="48" rx="3" fill="#d2d2d7"/><rect x="30" y="8" width="26" height="28" rx="3" fill="#d2d2d7"/></svg>}
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.05fr', gap: 64, marginBottom: 90, alignItems: 'center' }}>
+            <Photo src={product.image_url || HOME_IMG.wardrobe} alt={product.name} className="rv-l tile-zoom" imgClass="tz" style={{ borderRadius: 24, aspectRatio: '1/1' }} />
             <ProductInfo product={product} qty={qty} setQty={setQty} addToCart={addToCart} setConfigProduct={setConfigProduct} setPage={setPage} mobile={false} />
           </div>
         ) : (
@@ -612,7 +606,7 @@ function ProductDetailPage({ productId, products, setPage, addToCart, setConfigP
         <ProductAR product={product} mobile={mobile} />
         {related.length > 0 && (
           <div>
-            <h2 style={{ fontSize: mobile ? 20 : 24, fontWeight: 700, letterSpacing: '-.02em', color: '#1d1d1f', marginBottom: 18 }}>{recLabel}</h2>
+            <h2 className="display" style={{ fontSize: mobile ? 22 : 30, color: 'var(--ink)', marginBottom: 20 }}>{recLabel}</h2>
             <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 12 : 18 }}>
               {related.map(p => <ProductCard key={p.id} product={p} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />)}
             </div>
@@ -627,45 +621,46 @@ function ProductAR({ product, mobile }) {
   if (!product || !product.model_url) return null;
   return (
     <div style={{ marginBottom: mobile ? 56 : 80 }}>
-      <h2 style={{ fontSize: mobile ? 20 : 24, fontWeight: 700, letterSpacing: '-.02em', color: '#1d1d1f', marginBottom: 14 }}>See it in 3D &amp; your room</h2>
+      <h2 className="display" style={{ fontSize: mobile ? 24 : 32, color: 'var(--ink)', marginBottom: 16 }}>See it in 3D &amp; your room</h2>
       {React.createElement('model-viewer', {
         src: product.model_url,
         'ios-src': product.ar_ios_url || undefined,
         ar: true, 'ar-modes': 'webxr scene-viewer quick-look',
         'camera-controls': true, 'auto-rotate': true, 'shadow-intensity': '1',
         poster: product.image_url || undefined, alt: product.name,
-        style: { width: '100%', height: mobile ? 320 : 460, background: '#f5f5f7', borderRadius: 18 },
+        style: { width: '100%', height: mobile ? 320 : 480, background: 'var(--sand)', borderRadius: 20 },
       },
-        React.createElement('button', { slot: 'ar-button', key: 'arbtn', style: { position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', background: '#F97316', color: '#fff', border: 'none', borderRadius: 980, padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' } }, '📱 View in your room')
+        React.createElement('button', { slot: 'ar-button', key: 'arbtn', style: { position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', background: 'var(--clay)', color: '#fff', border: 'none', borderRadius: 980, padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' } }, '📱 View in your room')
       )}
-      <div style={{ fontSize: 12, color: '#aaa', marginTop: 8 }}>Drag to rotate · on a phone tap “View in your room” for AR. Representative model — your exact unit is finalised at your free design visit.</div>
+      <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 10 }}>Drag to rotate · on a phone tap “View in your room” for AR. Representative model — your exact unit is finalised at your free design visit.</div>
     </div>
   );
 }
 function ProductInfo({ product, qty, setQty, addToCart, setConfigProduct, setPage, mobile }) {
   return (
-    <div>
-      <div style={{ fontSize: 13, fontWeight: 500, color: '#F97316', marginBottom: 8 }}>{product.category}</div>
-      <h1 style={{ fontSize: mobile ? 28 : 40, fontWeight: 700, letterSpacing: '-.03em', color: '#1d1d1f', marginBottom: 10, lineHeight: 1.1 }}>{product.name}</h1>
-      <div style={{ fontSize: mobile ? 24 : 30, fontWeight: 700, color: '#1d1d1f', marginBottom: 18 }}>{fmt(product.price)}</div>
-      {product.description && <p style={{ fontSize: 15, color: '#6e6e73', lineHeight: 1.7, marginBottom: 24 }}>{product.description}</p>}
-      <div style={{ background: '#f5f5f7', borderRadius: 16, marginBottom: 24 }}>
-        {[['Materials', product.materials], ['Lead Time', product.lead_time], ['SKU', product.sku]].filter(([,v]) => v).map(([k, v], i, arr) => (
-          <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '13px 16px', borderBottom: i < arr.length - 1 ? '1px solid #e6e6e6' : 'none' }}>
-            <span style={{ fontSize: 14, color: '#86868b' }}>{k}</span>
-            <span style={{ fontSize: 14, fontWeight: 500, color: '#1d1d1f' }}>{v}</span>
+    <div className={mobile ? '' : 'rv-r'}>
+      <div className="eyebrow" style={{ marginBottom: 12 }}>{product.category || 'Bespoke'}</div>
+      <h1 className="display" style={{ fontSize: mobile ? 30 : 46, color: 'var(--ink)', marginBottom: 12, lineHeight: 1.08 }}>{product.name}</h1>
+      <div style={{ fontSize: mobile ? 24 : 30, fontWeight: 700, color: 'var(--clay)', marginBottom: 20 }}>{fmt(product.price)}</div>
+      {product.description && <p style={{ fontSize: mobile ? 15 : 16.5, color: 'var(--ink-soft)', lineHeight: 1.75, marginBottom: 26 }}>{product.description}</p>}
+      <div style={{ background: 'var(--sand)', borderRadius: 16, marginBottom: 26, border: '1px solid var(--line)' }}>
+        {[['Materials', product.materials], ['Lead time', product.lead_time], ['SKU', product.sku]].filter(([,v]) => v).map(([k, v], i, arr) => (
+          <div key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, padding: '14px 18px', borderBottom: i < arr.length - 1 ? '1px solid var(--line)' : 'none' }}>
+            <span style={{ fontSize: 13, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--muted)' }}>{k}</span>
+            <span style={{ fontSize: 14.5, fontWeight: 500, color: 'var(--ink)', textAlign: 'right' }}>{v}</span>
           </div>
         ))}
       </div>
-      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-        <div style={{ display: 'flex', background: '#f5f5f7', borderRadius: 14, overflow: 'hidden' }}>
-          <button type="button" onClick={() => setQty(q => Math.max(1, q - 1))} style={{ background: 'none', border: 'none', padding: '13px 18px', fontSize: 20, cursor: 'pointer', color: '#1d1d1f', minWidth: 50 }}>−</button>
-          <span style={{ padding: '13px 16px', fontSize: 16, fontWeight: 600, color: '#1d1d1f', borderLeft: '1px solid #e6e6e6', borderRight: '1px solid #e6e6e6', minWidth: 48, textAlign: 'center' }}>{qty}</span>
-          <button type="button" onClick={() => setQty(q => q + 1)} style={{ background: 'none', border: 'none', padding: '13px 18px', fontSize: 20, cursor: 'pointer', color: '#1d1d1f', minWidth: 50 }}>+</button>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', background: '#fff', border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden' }}>
+          <button type="button" onClick={() => setQty(q => Math.max(1, q - 1))} style={{ background: 'none', border: 'none', padding: '13px 18px', fontSize: 20, cursor: 'pointer', color: 'var(--ink)', minWidth: 50 }}>−</button>
+          <span style={{ padding: '13px 16px', fontSize: 16, fontWeight: 600, color: 'var(--ink)', borderLeft: '1px solid var(--line)', borderRight: '1px solid var(--line)', minWidth: 48, textAlign: 'center' }}>{qty}</span>
+          <button type="button" onClick={() => setQty(q => q + 1)} style={{ background: 'none', border: 'none', padding: '13px 18px', fontSize: 20, cursor: 'pointer', color: 'var(--ink)', minWidth: 50 }}>+</button>
         </div>
-        <button type="button" className="btn" style={{ flex: 1, borderRadius: 14 }} onClick={() => { for (let i = 0; i < qty; i++) addToCart(product); toast(`${qty} item${qty>1?'s':''} added ✓`, 'success'); }}>Add to Cart</button>
-        <button type="button" className="btn-ghost" style={{ padding: '13px 16px', minHeight: 50 }} onClick={() => setPage('planner')}>✦</button>
+        <button type="button" className="btn-clay" style={{ flex: 1, minWidth: 180 }} onClick={() => { for (let i = 0; i < qty; i++) addToCart(product); toast(`${qty} item${qty>1?'s':''} added ✓`, 'success'); }}>Add to cart</button>
+        <button type="button" className="btn-line" title="Customise this piece" style={{ padding: '13px 18px' }} onClick={() => setPage('planner')}>✦</button>
       </div>
+      <button type="button" onClick={() => setPage('contact')} style={{ marginTop: 16, background: 'none', border: 'none', color: 'var(--clay)', fontWeight: 600, fontSize: 14, cursor: 'pointer', padding: 0 }}>Book a free design consultation →</button>
     </div>
   );
 }
