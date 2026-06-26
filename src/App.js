@@ -1378,15 +1378,11 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
     catch (e) { toast('Could not save: ' + (e?.message || 'please try again'), 'error'); }
     finally { setBusy(false); }
   };
-  const requestQuote = async () => {
-    // Collect contact details if not signed in, so the team can follow up
-    let name = user?.name, phone = user?.phone, email = user?.email;
-    if (!user) {
-      name = window.prompt('Your name (so our team can reach you):', '') || '';
-      if (!name) { setBusy(false); return; }
-      phone = window.prompt('Your phone number (+973...):', '') || '';
-      if (!phone) { toast('A phone number helps us send your quote', 'error'); return; }
-    }
+  const [showQuote, setShowQuote] = useState(false);
+  const [qForm, setQForm] = useState({ name:'', phone:'', email:'' });
+  // Persist the design as a quote + create a sales lead. Contact = signed-in user or modal input.
+  const submitQuote = async (contact) => {
+    const name = contact?.name || user?.name, phone = contact?.phone || user?.phone, email = contact?.email || user?.email;
     setBusy(true);
     try {
       const cfgId = await persist('quoted');
@@ -1405,9 +1401,38 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
       ];
       await api('leads', { method:'POST', body:[{ id:leadId, name: name||'Website Visitor', email: email||null, phone: phone||null, source:'website_planner', status:'New', stage:'New', platform:'Website', interest: (selProduct?.name||'Wardrobe')+' (planner)', budget: total, value: total, notes: noteLines.join('\n'), created_at: new Date().toISOString() }] });
       toast('Quote requested — our team will contact you soon','success');
+      setShowQuote(false);
       setPage('home');
     } catch (e) { toast('Could not send quote: ' + (e?.message || 'please try again'), 'error'); }
     finally { setBusy(false); }
+  };
+  const requestQuote = () => {
+    if (!user) { setQForm({ name:'', phone:'', email:'' }); setShowQuote(true); return; }
+    submitQuote();
+  };
+  // Reusable 5-step progress spine (clone of Raumplus/Wren step counter), shared across stages.
+  const planSteps = (cur) => {
+    const order = ['product','ai','config','visualise','quote'];
+    const labels = { product:'Product', ai:'Kickstart', config:'Configure', visualise:'Visualise', quote:'Quote' };
+    const ci = order.indexOf(cur);
+    return (
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, flexWrap:'wrap', margin:'0 auto 18px', fontSize:12.5, maxWidth:640 }}>
+        {order.map((k,i)=>{
+          const done = i<ci, now = i===ci;
+          const go = (k==='product' && i<ci) ? ()=>setStage('product') : (k==='ai' && i<ci) ? ()=>setStage('ai') : undefined;
+          return (
+            <React.Fragment key={k}>
+              <span onClick={go} style={{ display:'flex', alignItems:'center', gap:6, cursor:go?'pointer':'default' }}>
+                <span style={{ width:20, height:20, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, flexShrink:0,
+                  background: now?'var(--clay)':done?'var(--clay-deep)':'var(--sand)', color: (!now&&!done)?'var(--muted)':'#fff' }}>{done?'✓':i+1}</span>
+                <span style={{ fontWeight: now?700:500, color: now?'var(--ink)':done?'var(--ink-soft)':'var(--muted)' }}>{labels[k]}</span>
+              </span>
+              {i<order.length-1 && <span style={{ width:18, height:2, background:'var(--line)', borderRadius:2 }} />}
+            </React.Fragment>
+          );
+        })}
+      </div>
+    );
   };
 
   if (!settings) return (
@@ -1427,6 +1452,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   if (stage === 'product') return (
     <div style={{ minHeight:'100vh', background:'var(--cream)', paddingTop:104, paddingBottom:80 }}>
       <div style={{ maxWidth:960, margin:'0 auto', padding:'0 24px' }}>
+        {planSteps('product')}
         <div style={{ textAlign:'center', marginBottom:36 }}>
           <div className="eyebrow" style={{ marginBottom:14 }}>Design studio</div>
           <h2 className="display" style={{ fontSize: mobile?30:44, color:'var(--ink)' }}>{t('whatDesign')}</h2>
@@ -1474,7 +1500,8 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
 
   // ── STAGE 2: AI STARTER ──
   if (stage === 'ai') return (
-    <div style={{ minHeight:'100vh', background:'var(--cream)', display:'flex', alignItems:'center', justifyContent:'center', padding:'104px 24px 80px' }}>
+    <div style={{ minHeight:'100vh', background:'var(--cream)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'104px 24px 80px' }}>
+      <div style={{ width:'100%', maxWidth:640 }}>{planSteps('ai')}</div>
       <div style={{ maxWidth:580, width:'100%', background:'#fff', border:'1px solid var(--line)', borderRadius:22, padding: mobile?22:30 }}>
         <div style={{ display:'flex', gap:10, alignItems:'center', marginBottom:8 }}>
           <i className="ti ti-sparkles" style={{ fontSize:22, color:'var(--clay)' }} aria-hidden="true" />
@@ -1538,20 +1565,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           <span style={{ fontSize:13, color:'var(--muted)' }}>{selProduct?.name || 'Wardrobe'}</span>
           <span onClick={()=>setPage('home')} style={{ cursor:'pointer', fontSize:13, color:'var(--muted)' }}>Close ✕</span>
         </div>
-        {/* Progress stepper (clone of Raumplus/Wren step counter) */}
-        <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap', margin:'0 0 16px', fontSize:12.5 }}>
-          {[['Product',true,()=>setStage('product')],['Kickstart',true,()=>setStage('ai')],['Configure','now',null],['Visualise',false,null],['Quote',false,null]].map(([label,state],i,arr)=>(
-            <React.Fragment key={label}>
-              <span onClick={state===true?arr[i][2]:undefined} style={{ display:'flex', alignItems:'center', gap:6, cursor:state===true?'pointer':'default' }}>
-                <span style={{ width:20, height:20, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, flexShrink:0,
-                  background: state==='now'?'var(--clay)':state===true?'var(--clay-deep)':'var(--sand)',
-                  color: state===false?'var(--muted)':'#fff' }}>{state===true?'✓':i+1}</span>
-                <span style={{ fontWeight: state==='now'?700:500, color: state==='now'?'var(--ink)':state===true?'var(--ink-soft)':'var(--muted)' }}>{label}</span>
-              </span>
-              {i<arr.length-1 && <span style={{ flex:'0 0 auto', width:18, height:2, background:'var(--line)', borderRadius:2 }} />}
-            </React.Fragment>
-          ))}
-        </div>
+        {planSteps('config')}
 
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1.7fr 1fr', gap:14, alignItems:'stretch' }}>
           {/* BIG 3D STAGE */}
@@ -1712,13 +1726,33 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                 </div>
               )}
               <div style={{ display:'flex', gap:8 }}>
-                <button type="button" className="btn-secondary" disabled={busy} onClick={save} style={{ flex:1, borderRadius:12, color: saved?'#1a7a40':'#6e6e73' }}>{saved?'✓ Saved':'Save'}</button>
+                <button type="button" className="btn-secondary" disabled={busy} onClick={save} style={{ flex:1, borderRadius:12, color: saved?'var(--good)':'var(--ink-soft)' }}>{saved?'✓ Saved':'Save'}</button>
                 <button type="button" className="btn" disabled={busy} onClick={requestQuote} style={{ flex:2, borderRadius:12 }}>Get a quote →</button>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Inline branded quote contact form (replaces window.prompt) */}
+      {showQuote && (
+        <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10000, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
+          <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:26 }}>
+            <div className="eyebrow" style={{ marginBottom:8 }}>Almost there</div>
+            <h3 className="display" style={{ fontSize:24, color:'var(--ink)', margin:'0 0 6px' }}>Where shall we send your quote?</h3>
+            <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 18px', lineHeight:1.6 }}>Our design team will review your {selProduct?.name?.toLowerCase()||'design'} and get back with an exact, itemised quote.</p>
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              <input value={qForm.name} onChange={e=>setQForm(s=>({...s,name:e.target.value}))} placeholder="Your name" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
+              <input value={qForm.phone} onChange={e=>setQForm(s=>({...s,phone:e.target.value}))} placeholder="Phone (+973…)" inputMode="tel" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
+              <input value={qForm.email} onChange={e=>setQForm(s=>({...s,email:e.target.value}))} placeholder="Email (optional)" inputMode="email" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
+            </div>
+            <div style={{ display:'flex', gap:10, marginTop:18 }}>
+              <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>Cancel</button>
+              <button type="button" className="btn-clay" disabled={busy || !qForm.name.trim() || !qForm.phone.trim()} onClick={()=>submitQuote(qForm)} style={{ flex:2, borderRadius:12, opacity:(busy||!qForm.name.trim()||!qForm.phone.trim())?.6:1 }}>{busy?'Sending…':'Send my quote request'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
