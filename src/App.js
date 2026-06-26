@@ -304,67 +304,78 @@ function useReveal() {
 /* ── NAV (desktop) + BOTTOM TAB BAR (mobile) ── */
 function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang, setLang }) {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const mobile = useMobile();
   const tr = (k) => (I18N[k] ? (I18N[k][lang] || I18N[k].en) : k);
   useEffect(() => { const h = () => setScrolled(window.scrollY > 20); window.addEventListener('scroll', h); return () => window.removeEventListener('scroll', h); }, []);
 
-  const tabs = [
-    { id: 'home', label: 'Home', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
-    { id: 'products', label: 'Gallery', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
-    { id: 'cart-btn', label: 'Cart', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> },
-    { id: 'contact', label: 'Contact', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> },
-    { id: user ? 'portal' : 'auth', label: user ? (user.name?.split(' ')[0] || 'Hub') : 'Sign In', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
+  const DOCK = [
+    { id:'home', label:'Home', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
+    { id:'products', label:'Gallery', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
+    { id:'planner', label:'Design', fab:true, icon:<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg> },
+    { id:'services', label:'Services', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2-.5-.5-2z"/></svg> },
+    { id:'menu', label:'Menu', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg> },
   ];
+  const go = (id) => { if (id==='menu') setMenuOpen(true); else { setPage(id); setMenuOpen(false); } };
+  const ALL_LINKS = [['home','Home'],['products','Gallery'],['projects','Projects'],['planner','Design'],['ai','AI Designer'],['services','Services'],['showrooms','Showrooms'],['directory','Directory'],['blog','Inspiration'],['contact','Contact']];
 
-  if (mobile) {
-    return (
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 900, background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(20px) saturate(180%)', borderTop: '1px solid rgba(0,0,0,.08)', paddingBottom: 'env(safe-area-inset-bottom)', display: 'flex' }}>
-        {tabs.map(tab => {
-          const active = tab.id === page || (tab.id === 'cart-btn' && false);
-          const isCart = tab.id === 'cart-btn';
-          return (
-            <button type="button" key={tab.id} onClick={() => { if (isCart) setCartOpen(true); else if (tab.id === 'auth') openAuth('login'); else setPage(tab.id); }}
-              style={{ flex: 1, background: 'none', border: 'none', padding: '10px 4px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer', color: active ? 'var(--clay)' : '#86868b', position: 'relative', transition: 'color .15s' }}>
-              <div style={{ position: 'relative' }}>
-                {tab.icon}
-                {isCart && cart.length > 0 && <span style={{ position: 'absolute', top: -4, right: -6, background: 'var(--clay)', color: '#fff', borderRadius: 20, width: 16, height: 16, fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{cart.length}</span>}
-              </div>
-              <span style={{ fontSize: 10, fontWeight: active ? 600 : 400 }}>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
-
-  return (
-    <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 900, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', background: scrolled ? 'rgba(255,255,255,.88)' : 'rgba(255,255,255,.72)', backdropFilter: 'blur(20px) saturate(180%)', borderBottom: scrolled ? '1px solid rgba(0,0,0,.08)' : '1px solid transparent', transition: 'all .3s' }}>
-      <button type="button" onClick={() => setPage('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+  return (<>
+    {/* Slim top bar — logo + actions */}
+    <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:900, height:56, display:'flex', alignItems:'center', justifyContent:'space-between', padding: mobile?'0 16px':'0 32px', background: scrolled?'rgba(247,242,236,.92)':'rgba(247,242,236,.72)', backdropFilter:'blur(18px) saturate(180%)', borderBottom: scrolled?'1px solid var(--line)':'1px solid transparent', transition:'all .3s' }}>
+      <button type="button" onClick={()=>{ setPage('home'); setMenuOpen(false); }} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>
         {siteLogo
-          ? <img src={siteLogo} alt="logo" style={{ height:34, width:'auto', maxWidth:120, objectFit:'contain', borderRadius:6 }} />
-          : <><div style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--clay)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="12" rx="1.5" fill="white"/><rect x="9" y="2" width="5" height="7" rx="1.5" fill="white"/></svg>
-            </div>
-            <span style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.02em' }}>Closets Co.</span></>}
+          ? <img src={siteLogo} alt="logo" style={{ height:32, width:'auto', maxWidth:120, objectFit:'contain', borderRadius:6 }} />
+          : <span style={{ fontFamily:'Fraunces, Georgia, serif', fontSize:16, fontWeight:600, color:'var(--ink)', letterSpacing:'.02em' }}>THE CLOSETS</span>}
       </button>
-      <div style={{ display: 'flex', gap: 0 }}>
-        {[['home','home','Home'],['products','gallery','Gallery'],['projects','projects','Projects'],['planner','design','Design'],['ai','ai','AI Designer'],['services','services','Services'],['showrooms','showrooms','Showrooms'],['directory','directory','Directory'],['blog','blog','Inspiration'],['contact','contact','Contact']].map(([p, key, label]) => (
-          <button type="button" key={p} onClick={() => setPage(p)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 12px', fontSize: 14, fontWeight: page === p ? 500 : 400, color: page === p ? '#1d1d1f' : '#86868b', borderRadius: 8, transition: 'color .2s' }}>{label || tr(key)}</button>
-        ))}
-      </div>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <button type="button" onClick={() => setPage('booking')} style={{ background: 'var(--clay)', border: 'none', borderRadius: 980, padding: '7px 16px', fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', minHeight: 34 }}>Book a visit</button>
-        <button type="button" onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')} title="Language" style={{ background: '#f5f5f7', border: 'none', borderRadius: 980, padding: '7px 14px', fontSize: 13, fontWeight: 600, color: '#1d1d1f', cursor: 'pointer', minHeight: 34 }}>
-          {lang === 'ar' ? 'EN' : 'ع'}
-        </button>
-        {user ? <button type="button" onClick={() => setPage('portal')} style={{ background: 'rgba(249,115,22,.1)', border: 'none', borderRadius: 980, padding: '7px 16px', fontSize: 13, fontWeight: 500, color: 'var(--clay)', cursor: 'pointer' }}>{user.name?.split(' ')[0]}</button>
-          : <button type="button" className="btn-secondary" onClick={() => openAuth('login')} style={{ padding: '7px 16px', fontSize: 13, borderRadius: 980, minHeight: 34 }}>{tr('signIn')}</button>}
-        <button type="button" onClick={() => setCartOpen(true)} style={{ background: cart.length > 0 ? 'var(--clay)' : '#f5f5f7', border: 'none', borderRadius: 980, padding: '7px 16px', fontSize: 13, fontWeight: 500, color: cart.length > 0 ? '#fff' : '#1d1d1f', cursor: 'pointer', transition: 'all .2s', display: 'flex', alignItems: 'center', gap: 6, minHeight: 34 }}>
-          Cart {cart.length > 0 && <span style={{ background: 'rgba(255,255,255,.3)', borderRadius: 20, padding: '1px 6px', fontSize: 11, fontWeight: 700 }}>{cart.length}</span>}
+      <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+        {!mobile && <button type="button" onClick={()=>setPage('booking')} style={{ background:'var(--clay)', border:'none', borderRadius:980, padding:'8px 16px', fontSize:13, fontWeight:600, color:'#fff', cursor:'pointer' }}>Book a visit</button>}
+        <button type="button" onClick={()=>setLang(lang==='ar'?'en':'ar')} title="Language" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'7px 13px', fontSize:13, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{lang==='ar'?'EN':'ع'}</button>
+        {user ? <button type="button" onClick={()=>setPage('portal')} style={{ background:'rgba(242,115,28,.12)', border:'none', borderRadius:980, padding:'7px 14px', fontSize:13, fontWeight:500, color:'var(--clay-deep)', cursor:'pointer' }}>{user.name?.split(' ')[0]}</button>
+          : <button type="button" onClick={()=>openAuth('login')} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'7px 14px', fontSize:13, fontWeight:500, color:'var(--ink)', cursor:'pointer' }}>{tr('signIn')}</button>}
+        <button type="button" onClick={()=>setCartOpen(true)} aria-label="Cart" style={{ position:'relative', background: cart.length>0?'var(--clay)':'#fff', border:'1px solid var(--line)', borderRadius:980, width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color: cart.length>0?'#fff':'var(--ink)' }}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          {cart.length>0 && <span style={{ position:'absolute', top:-4, right:-4, background:'var(--ink)', color:'#fff', borderRadius:999, fontSize:10, fontWeight:700, minWidth:16, height:16, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px' }}>{cart.length}</span>}
         </button>
       </div>
     </nav>
-  );
+
+    {/* Floating bottom dock */}
+    <div style={{ position:'fixed', bottom: mobile?'calc(14px + env(safe-area-inset-bottom))':18, left:'50%', transform:'translateX(-50%)', zIndex:900, display:'flex', alignItems:'flex-end', gap: mobile?16:24, background:'rgba(255,255,255,.92)', backdropFilter:'blur(18px) saturate(180%)', border:'1px solid rgba(0,0,0,.06)', borderRadius:999, padding: mobile?'7px 18px':'8px 24px', boxShadow:'0 10px 34px rgba(33,28,24,.16)' }}>
+      {DOCK.map(d => {
+        const active = page===d.id;
+        if (d.fab) return (
+          <button type="button" key={d.id} onClick={()=>go(d.id)} aria-label={d.label} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
+            <span style={{ width:46, height:46, borderRadius:'50%', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center', marginTop:-24, border:'3px solid #fff', boxShadow:'0 6px 16px rgba(242,115,28,.45)' }}>{d.icon}</span>
+            <span style={{ fontSize:10.5, fontWeight:600, color:'var(--clay-deep)' }}>{d.label}</span>
+          </button>
+        );
+        return (
+          <button type="button" key={d.id} onClick={()=>go(d.id)} aria-label={d.label} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3, color: active?'var(--clay)':'#86868b' }}>
+            {d.icon}
+            <span style={{ fontSize:10.5, fontWeight: active?600:400 }}>{d.label}</span>
+          </button>
+        );
+      })}
+    </div>
+
+    {/* Menu sheet */}
+    {menuOpen && (
+      <div onClick={()=>setMenuOpen(false)} style={{ position:'fixed', inset:0, zIndex:1000, background:'rgba(20,16,12,.55)', backdropFilter:'blur(3px)', display:'flex', alignItems:'flex-end', justifyContent:'center' }}>
+        <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', borderRadius:'22px 22px 0 0', width:'100%', maxWidth:560, padding:'18px 20px calc(26px + env(safe-area-inset-bottom))', maxHeight:'80vh', overflow:'auto' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+            <span className="display" style={{ fontSize:20, color:'var(--ink)' }}>Menu</span>
+            <span onClick={()=>setMenuOpen(false)} style={{ cursor:'pointer', color:'var(--muted)', fontSize:22 }}>✕</span>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:16 }}>
+            {ALL_LINKS.map(([p,label])=>(
+              <button type="button" key={p} onClick={()=>go(p)} style={{ textAlign:'left', background: page===p?'var(--sand)':'#fff', border:'1px solid var(--line)', borderRadius:12, padding:'12px 14px', fontSize:14, fontWeight:500, color: page===p?'var(--clay-deep)':'var(--ink)', cursor:'pointer' }}>{label}</button>
+            ))}
+          </div>
+          <button type="button" onClick={()=>{ setPage('booking'); setMenuOpen(false); }} className="btn-clay" style={{ width:'100%', borderRadius:12 }}>Book a free visit</button>
+        </div>
+      </div>
+    )}
+  </>);
 }
 
 /* ── HERO ── */
@@ -1199,6 +1210,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   };
   const [openSec, setOpenSec] = useState('layout');
   const [showExtras, setShowExtras] = useState(false);
+  const [configStep, setConfigStep] = useState(0);
   const priceTimer = useRef(null);
 
   useEffect(() => {
@@ -1611,110 +1623,95 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           {/* OPTIONS RAIL */}
           <div style={{ display:'flex', flexDirection:'column', gap:10, maxHeight: mobile?'none':560, overflowY: mobile?'visible':'auto', overflowX:'hidden', paddingRight:4 }}>
             {(() => {
-              const tot = 3 + catKeys.filter(k=>k!=='door_finishes').length;
-              const dn = 3 + catKeys.filter(k=>k!=='door_finishes' && catStatus(k)==='done').length;
-              const pct = Math.round(dn/tot*100);
-              return (
-                <div style={{ background:'var(--sand)', borderRadius:12, padding:'12px 14px', marginBottom:2 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                    <span style={{ width:22, height:22, borderRadius:'50%', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 6"/></svg></span>
-                    <div style={{ lineHeight:1.3 }}>
-                      <div style={{ fontSize:13, fontWeight:600, color:'var(--ink)' }}>Essentials set — ready for a quote</div>
-                      <div style={{ fontSize:11.5, color:'var(--muted)' }}>Layout · size · finish done. Extras are optional.</div>
-                    </div>
-                  </div>
-                  <div style={{ marginTop:11, height:6, background:'#fff', borderRadius:3, overflow:'hidden' }}>
-                    <div style={{ width:pct+'%', height:'100%', background:'var(--clay)', borderRadius:3, transition:'width .3s' }} />
-                  </div>
-                  <div style={{ fontSize:11, color:'var(--muted)', marginTop:5 }}>{dn} of {tot} sections · {pct}% complete</div>
-                </div>
-              );
-            })()}
-            {renderSection("layout", "1 · " + t("layout"), (
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, paddingTop:8 }}>
-                {(prodLayouts || LAYOUTS).map(l=>{
-                  const on = layout===l.id;
-                  return (
-                    <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', border: on?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:12, background: on?'var(--sand)':'#fff', cursor:'pointer', textAlign:'left' }}>
+              const lay = (prodLayouts || LAYOUTS);
+              const layoutBody = (
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                  {lay.map(l=>{ const on = layout===l.id; return (
+                    <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ display:'flex', alignItems:'center', gap:10, padding:'12px', border: on?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:12, background: on?'var(--sand)':'#fff', cursor:'pointer', textAlign:'left' }}>
                       {layoutIcon(l.id, on)}
                       <span style={{ fontSize:13, fontWeight:on?600:500, color:'#1d1d1f' }}>{l.label}{(l.price>0)&&<span style={{ display:'block', fontSize:11, color:'var(--clay-deep)', fontWeight:400 }}>+{fmt(l.price)}</span>}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            ), 'done', ((prodLayouts || LAYOUTS).find(l=>l.id===layout)||{}).label)}
-
-            {renderSection("size", "2 · " + t("size"), (
-              layout==='l-shape' ? (
-                <div style={{ display:'flex', flexDirection:'column', gap:10, paddingTop:8 }}>
+                    </button> ); })}
+                </div>
+              );
+              const sizeBody = layout==='l-shape' ? (
+                <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
                   {[['Side A','sideA'],['Side B','sideB'],['Height','height'],['Depth','depth']].map(([lbl,key])=>(
                     <div key={key} style={{ display:'flex', alignItems:'center', gap:10 }}>
-                      <span style={{ fontSize:12, color:'#6e6e73', width:54 }}>{lbl}</span>
-                      <input type="number" value={dims[key]} onChange={e=>setDims(c=>({...c,[key]:parseInt(e.target.value)||0}))} style={{ width:90, padding:'6px 8px', border:'0.5px solid #d0d0d0', borderRadius:6 }} /><span style={{ fontSize:12, color:'#aaa' }}>cm</span>
+                      <span style={{ fontSize:13, color:'#6e6e73', width:60 }}>{lbl}</span>
+                      <input type="number" value={dims[key]} onChange={e=>setDims(c=>({...c,[key]:parseInt(e.target.value)||0}))} style={{ width:100, padding:'8px 10px', border:'0.5px solid #d0d0d0', borderRadius:8 }} /><span style={{ fontSize:12, color:'#aaa' }}>cm</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div style={{ paddingTop:8 }}>
+                <div>
                   {[['Width','width',120,400],['Height','height',180,300],['Depth','depth',40,80]].map(([lbl,key,min,max])=>(
-                    <div key={key} style={{ marginBottom:12 }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5 }}><span style={{ fontSize:12, color:'#6e6e73' }}>{lbl}</span><span style={{ fontSize:13, fontWeight:600, color:'var(--clay)' }}>{dims[key]}cm</span></div>
+                    <div key={key} style={{ marginBottom:16 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}><span style={{ fontSize:13, color:'#6e6e73' }}>{lbl}</span><span style={{ fontSize:14, fontWeight:600, color:'var(--clay)' }}>{dims[key]}cm</span></div>
                       <input type="range" min={min} max={max} value={dims[key]} onChange={e=>setDims(c=>({...c,[key]:parseInt(e.target.value)}))} style={{ width:'100%', accentColor:'var(--clay)' }} />
                     </div>
                   ))}
                 </div>
-              )
-            ), 'done', (layout==='l-shape' ? `${dims.sideA}+${dims.sideB}×${dims.height}` : `${dims.width}×${dims.height}×${dims.depth}cm`))}
-
-            {renderSection("door_finishes", "3 · " + t("finish"), (
-              <div style={{ display:'flex', gap:8, flexWrap:'wrap', paddingTop:8 }}>
-                {FINISHES.map(f=>(
-                  <button key={f.id} type="button" onClick={()=>setFinishId(f.id)} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, padding:5, border: finishId===f.id?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:8, background:'#fff', cursor:'pointer' }}>
-                    <span style={{ width:34, height:34, borderRadius:5, background:f.hex, border:'0.5px solid rgba(0,0,0,.12)' }} />
-                    <span style={{ fontSize:10, color:'#6e6e73' }}>{f.name}</span>
-                  </button>
-                ))}
-              </div>
-            ), 'done', (FINISHES.find(f=>f.id===finishId)||{}).name)}
-
-            {catKeys.filter(k=>k!=='door_finishes').length>0 && (
-              <div onClick={()=>setShowExtras(v=>!v)} style={{ cursor:'pointer', padding:'13px 15px', display:'flex', justifyContent:'space-between', alignItems:'center', background:'var(--sand)', borderRadius:12, flexShrink:0 }}>
-                <span style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>Refine your design <span style={{ color:'var(--muted)', fontWeight:400 }}>· optional</span></span>
-                <span style={{ fontSize:20, color:'var(--clay)', lineHeight:1 }}>{showExtras?'–':'+'}</span>
-              </div>
-            )}
-            {showExtras && catKeys.filter(k=>k!=='door_finishes').map(ck=>{
-              const cat = cats[ck]; const multi = cat.select==='multi';
-              return (
-                renderSection(ck, (cat.label || ck), (
-                  <>
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, paddingTop:8 }}>
-                    {(cat.items||[]).filter(it=>it.active!==false).map(it=>{
-                      const on = isOn(ck, it.id, multi);
-                      const incl = it.price_type==='included' || +it.price===0;
-                      return (
-                        <div key={it.id} onClick={()=>pick(ck,it.id,multi)} style={{ cursor:'pointer', border: on?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:10, overflow:'hidden', background:'#fff' }}>
-                          <div style={{ height:72, background:cardBg(it), position:'relative', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                            {!it.image_url && !it.swatch && <i className="ti ti-photo" style={{ fontSize:20, color:'rgba(0,0,0,.22)' }} aria-hidden="true" />}
-                            {on && <span style={{ position:'absolute', top:6, right:6, width:22, height:22, borderRadius:'50%', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center' }}><i className="ti ti-check" style={{ color:'#fff', fontSize:14 }} aria-hidden="true" /></span>}
-                          </div>
-                          <div style={{ padding:'8px 10px' }}>
-                            <div style={{ fontSize:13, fontWeight:500, lineHeight:1.2 }}>{it.name}</div>
-                            {it.type_label && <div style={{ fontSize:11, color:'#86868b', marginTop:2, lineHeight:1.3 }}>{it.type_label}</div>}
-                            <div style={{ fontSize:12, color: incl?'#aaa':'var(--clay-deep)', marginTop:3 }}>{incl?'Included':'+ '+fmt(it.price)}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {(() => {
-                    const selId = sel[ck]; const chosen = (cat.items||[]).find(i => i.id === (Array.isArray(selId)?selId[0]:selId));
-                    return chosen && chosen.notes ? <div style={{ fontSize:12, color:'#6e6e73', marginTop:10, padding:'9px 12px', background:'#f5f5f7', borderRadius:8, lineHeight:1.45 }}>{chosen.notes}</div> : null;
-                  })()}
-                  </>
-                ), catStatus(ck), catChosen(ck))
               );
-            })}
+              const finishBody = (
+                <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+                  {FINISHES.map(f=>(
+                    <button key={f.id} type="button" onClick={()=>setFinishId(f.id)} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5, padding:7, border: finishId===f.id?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:10, background:'#fff', cursor:'pointer' }}>
+                      <span style={{ width:44, height:44, borderRadius:7, background:f.hex, border:'0.5px solid rgba(0,0,0,.12)' }} />
+                      <span style={{ fontSize:11, color:'#6e6e73' }}>{f.name}</span>
+                    </button>
+                  ))}
+                </div>
+              );
+              const catBody = (ck) => { const cat=cats[ck]; const multi=cat.select==='multi'; return (
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                  {(cat.items||[]).filter(it=>it.active!==false).map(it=>{ const on=isOn(ck,it.id,multi); const incl=it.price_type==='included'||+it.price===0; return (
+                    <div key={it.id} onClick={()=>pick(ck,it.id,multi)} style={{ cursor:'pointer', border: on?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:10, overflow:'hidden', background:'#fff' }}>
+                      <div style={{ height:80, background:cardBg(it), position:'relative', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        {!it.image_url && !it.swatch && <i className="ti ti-photo" style={{ fontSize:20, color:'rgba(0,0,0,.22)' }} aria-hidden="true" />}
+                        {on && <span style={{ position:'absolute', top:6, right:6, width:22, height:22, borderRadius:'50%', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center' }}><i className="ti ti-check" style={{ color:'#fff', fontSize:14 }} aria-hidden="true" /></span>}
+                      </div>
+                      <div style={{ padding:'8px 10px' }}>
+                        <div style={{ fontSize:13, fontWeight:500, lineHeight:1.2 }}>{it.name}</div>
+                        {it.type_label && <div style={{ fontSize:11, color:'#86868b', marginTop:2, lineHeight:1.3 }}>{it.type_label}</div>}
+                        <div style={{ fontSize:12, color: incl?'#aaa':'var(--clay-deep)', marginTop:3 }}>{incl?'Included':'+ '+fmt(it.price)}</div>
+                      </div>
+                    </div> ); })}
+                </div>
+              ); };
+              const stepList = [
+                { id:'layout', title:'Layout', body:layoutBody },
+                { id:'size', title:'Size', body:sizeBody },
+                { id:'door_finishes', title:'Finish', body:finishBody },
+                ...catKeys.filter(k=>k!=='door_finishes').map(ck=>({ id:ck, title:(cats[ck].label||ck), optional:true, body:catBody(ck) })),
+              ];
+              const N = stepList.length;
+              const idx = Math.max(0, Math.min(configStep, N-1));
+              const cur = stepList[idx];
+              const pct = Math.round(((idx+1)/N)*100);
+              return (<>
+                <div style={{ marginBottom:2 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:7 }}>
+                    <span style={{ fontSize:12, color:'var(--muted)' }}>Step {idx+1} of {N}</span>
+                    {idx>=2 && <span style={{ fontSize:11.5, color:'#3f7a52', fontWeight:600 }}>✓ Ready for a quote</span>}
+                  </div>
+                  <div style={{ height:6, background:'#eee', borderRadius:3, overflow:'hidden' }}><div style={{ width:pct+'%', height:'100%', background:'var(--clay)', borderRadius:3, transition:'width .3s' }} /></div>
+                </div>
+                <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:14, padding:'16px 16px 18px' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:14 }}>
+                    <span className="display" style={{ fontSize:19, color:'var(--ink)' }}>{cur.title}</span>
+                    {cur.optional && <span style={{ fontSize:11, color:'var(--muted)' }}>optional</span>}
+                  </div>
+                  {cur.body}
+                </div>
+                <div style={{ display:'flex', gap:10, alignItems:'center', marginTop:2 }}>
+                  <button type="button" disabled={idx===0} onClick={()=>setConfigStep(idx-1)} style={{ background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'11px 16px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor: idx===0?'default':'pointer', opacity: idx===0?.4:1 }}>‹ Back</button>
+                  {idx < N-1
+                    ? <button type="button" className="btn-clay" onClick={()=>setConfigStep(idx+1)} style={{ flex:1, borderRadius:12 }}>{idx>=2 ? 'Add an extra →' : 'Continue →'}</button>
+                    : <button type="button" className="btn-clay" onClick={()=>setConfigStep(0)} style={{ flex:1, borderRadius:12 }}>Review from start ↻</button>}
+                </div>
+                {idx>=2 && idx<N-1 && <div style={{ textAlign:'center', marginTop:8 }}><span onClick={()=>setConfigStep(N-1)} style={{ fontSize:12.5, color:'var(--muted)', cursor:'pointer' }}>Skip extras — go to quote ↓</span></div>}
+              </>);
+            })()}
 
             {/* PRICE + CTA */}
             <div style={{ marginTop:6, background:'#fff', border:'0.5px solid #e6e6e6', borderRadius:14, padding:'14px 16px', position: mobile?'static':'sticky', bottom:0 }}>
