@@ -665,7 +665,7 @@ function useThreeLoaded() {
 }
 
 // Live 3D wardrobe preview. Recolours/reshapes from props; drag to rotate.
-function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, tall, widthCm, heightCm, depthCm, product }) {
+function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, tall, widthCm, heightCm, depthCm, product, apiRef }) {
   const { ready, failed } = useThreeLoaded();
   const mountRef = useRef(null);
   const stateRef = useRef({ finishHex, layout, glass, handles, led, widthCm, heightCm, depthCm, product });
@@ -681,24 +681,74 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
     if (w < 50) w = 600; if (h < 50) h = 460;
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 100); camera.position.set(0, 0, 9);
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
     renderer.setSize(w, h); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
     mount.appendChild(renderer.domElement);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.78));
-    const k = new THREE.DirectionalLight(0xffffff, 0.7); k.position.set(5, 8, 6); scene.add(k);
-    const f = new THREE.DirectionalLight(0xffffff, 0.28); f.position.set(-5, 3, -4); scene.add(f);
+
+    // ── Image-based lighting: soft studio environment (procedural, no asset) ──
+    // Gives MeshStandardMaterial realistic reflections/sheen so wood & paint read as real.
+    let envTex = null;
+    try {
+      const ec = document.createElement('canvas'); ec.width = 32; ec.height = 128;
+      const eg = ec.getContext('2d');
+      const grd = eg.createLinearGradient(0, 0, 0, 128);
+      grd.addColorStop(0.00, '#ffffff'); grd.addColorStop(0.42, '#eef2f6');
+      grd.addColorStop(0.62, '#d2dae1'); grd.addColorStop(0.80, '#b4bdc6'); grd.addColorStop(1.00, '#8e98a2');
+      eg.fillStyle = grd; eg.fillRect(0, 0, 32, 128);
+      const rgl = eg.createRadialGradient(16, 24, 2, 16, 24, 26); // overhead softbox highlight
+      rgl.addColorStop(0, 'rgba(255,255,255,0.95)'); rgl.addColorStop(1, 'rgba(255,255,255,0)');
+      eg.fillStyle = rgl; eg.fillRect(0, 0, 32, 60);
+      const eTex = new THREE.CanvasTexture(ec);
+      eTex.mapping = THREE.EquirectangularReflectionMapping; eTex.encoding = THREE.sRGBEncoding;
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      envTex = pmrem.fromEquirectangular(eTex).texture;
+      scene.environment = envTex; eTex.dispose(); pmrem.dispose();
+    } catch (e) { /* IBL optional */ }
+
+    // ── Lights: soft fill + warm key + cool rim for form definition ──
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xb6c0ca, 0.5));
+    const k = new THREE.DirectionalLight(0xffffff, 1.05); k.position.set(5, 8, 6); scene.add(k);
+    const f = new THREE.DirectionalLight(0xfff2e6, 0.32); f.position.set(-6, 3, -4); scene.add(f);
+    const rim = new THREE.DirectionalLight(0xdfe8ff, 0.4); rim.position.set(0, 5, -8); scene.add(rim);
+
+    // ── Procedural wood-grain micro-roughness (canvas, no asset) ──
+    const grain = (() => {
+      const gc = document.createElement('canvas'); gc.width = 256; gc.height = 256;
+      const gx = gc.getContext('2d'); gx.fillStyle = '#9a9a9a'; gx.fillRect(0, 0, 256, 256);
+      for (let i = 0; i < 240; i++) {
+        const x = Math.random() * 256, a = 0.04 + Math.random() * 0.10, lite = Math.random() > 0.5 ? 235 : 70;
+        gx.strokeStyle = `rgba(${lite},${lite},${lite},${a})`;
+        gx.lineWidth = 0.5 + Math.random() * 1.5; gx.beginPath(); gx.moveTo(x, 0);
+        gx.bezierCurveTo(x + (Math.random() * 8 - 4), 85, x + (Math.random() * 8 - 4), 170, x + (Math.random() * 6 - 3), 256); gx.stroke();
+      }
+      const tx = new THREE.CanvasTexture(gc); tx.wrapS = tx.wrapT = THREE.RepeatWrapping; tx.repeat.set(2, 2); return tx;
+    })();
 
     let group = null, raf = 0, drag = false, px = 0, py = 0, rotY = -0.5, rotX = 0.05;
     // interactive-configurator targets (smooth orbit + zoom)
     let zoom = 9, tRotY = -0.5, tRotX = 0.05, tZoom = 9, pinchD = 0;
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-    const mat = (c) => new THREE.MeshLambertMaterial({ color: new THREE.Color(c) });
+    const mat = (c) => {
+      const col = new THREE.Color(c);
+      const lum = 0.2126 * col.r + 0.7152 * col.g + 0.0722 * col.b;
+      const metalHw = lum < 0.13; // near-black -> handle / hardware
+      return new THREE.MeshStandardMaterial({
+        color: col,
+        roughness: metalHw ? 0.34 : 0.6,
+        metalness: metalHw ? 0.85 : 0.0,
+        roughnessMap: metalHw ? null : grain,
+        envMapIntensity: metalHw ? 1.4 : 1.2,
+      });
+    };
     const box = (bw, bh, bd, m) => new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), m);
 
     function cabinet(W, H, D, doors, st) {
       const fin = st.finishHex || '#c89b5e';
       const carc = mat(new THREE.Color(fin).multiplyScalar(0.7));
-      const doorMat = st.glass ? new THREE.MeshLambertMaterial({ color: new THREE.Color(fin), transparent: true, opacity: 0.45 }) : mat(fin);
+      const doorMat = st.glass ? new THREE.MeshStandardMaterial({ color: new THREE.Color(fin), transparent: true, opacity: 0.4, roughness: 0.08, metalness: 0, envMapIntensity: 1.6 }) : mat(fin);
       const g = new THREE.Group();
       const back = box(W, H, 0.08, carc); back.position.z = -D / 2; g.add(back);
       [-1, 1].forEach(s => { const sd = box(0.08, H, D, carc); sd.position.x = s * W / 2; g.add(sd); });
@@ -716,7 +766,7 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
     function buildTV(st) {
       const fin = st.finishHex || '#c89b5e';
       const carc = mat(new THREE.Color(fin).multiplyScalar(0.72));
-      const doorMat = st.glass ? new THREE.MeshLambertMaterial({ color: new THREE.Color(fin), transparent: true, opacity: 0.5 }) : mat(fin);
+      const doorMat = st.glass ? new THREE.MeshStandardMaterial({ color: new THREE.Color(fin), transparent: true, opacity: 0.45, roughness: 0.08, metalness: 0, envMapIntensity: 1.6 }) : mat(fin);
       const g = new THREE.Group();
       // wide low media console
       const W = Math.max(3.5, Math.min(8, (st.widthCm || 200) / 38));
@@ -758,7 +808,7 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
       const fin = st.finishHex || '#c89b5e';
       const frameMat = mat(new THREE.Color(fin).multiplyScalar(0.6));
       const isGlass = st.glass;
-      const doorMat = isGlass ? new THREE.MeshLambertMaterial({ color: new THREE.Color(fin), transparent: true, opacity: 0.45 }) : mat(fin);
+      const doorMat = isGlass ? new THREE.MeshStandardMaterial({ color: new THREE.Color(fin), transparent: true, opacity: 0.4, roughness: 0.08, metalness: 0, envMapIntensity: 1.6 }) : mat(fin);
       const g = new THREE.Group();
       const W = Math.max(2.2, Math.min(5, (st.widthCm || 90) / 26));
       const H = Math.max(3.6, Math.min(5.6, (st.heightCm || 210) / 42));
@@ -774,7 +824,7 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
         const dx = -W / 2 + lw / 2 + i * lw;
         const z = st.layout === 'sliding' ? (i % 2 ? 0.12 : -0.02) : 0;
         const leaf = box(lw * 0.94, H * 0.96, D, doorMat); leaf.position.set(dx, 0, z); g.add(leaf);
-        if (isGlass) { const pane = box(lw * 0.7, H * 0.78, 0.02, new THREE.MeshLambertMaterial({ color: 0xcfe0e8, transparent: true, opacity: 0.4 })); pane.position.set(dx, 0, z + D / 2); g.add(pane); }
+        if (isGlass) { const pane = box(lw * 0.7, H * 0.78, 0.02, new THREE.MeshStandardMaterial({ color: 0xcfe0e8, transparent: true, opacity: 0.4, roughness: 0.06, metalness: 0, envMapIntensity: 1.7 })); pane.position.set(dx, 0, z + D / 2); g.add(pane); }
         if (st.handles) { const hd = box(0.07, 0.7, 0.07, mat(0x1a1a1a)); hd.position.set(dx + (i < leaves / 2 ? lw * 0.34 : -lw * 0.34), 0, z + D / 2 + 0.06); g.add(hd); }
       }
       return g;
@@ -884,7 +934,20 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
     mount.addEventListener('wheel', wheel, { passive: false });
     mount.addEventListener('touchstart', ts, { passive: true }); window.addEventListener('touchend', mu); mount.addEventListener('touchmove', tm, { passive: true });
     // expose zoom/reset for on-canvas controls
-    sceneRef.current = { rebuild, zoomBy: (d) => { tZoom = clamp(tZoom + d, 5, 16); }, reset: () => { tRotY = -0.5; tRotX = 0.05; tZoom = 9; } };
+    // Capture the current viewport as a JPEG data URI (composited onto a studio bg) for AI photoreal render.
+    const snapshot = () => {
+      try {
+        renderer.render(scene, camera);
+        const src = renderer.domElement;
+        const oc = document.createElement('canvas'); oc.width = src.width; oc.height = src.height;
+        const ox = oc.getContext('2d');
+        ox.fillStyle = '#eef1f4'; ox.fillRect(0, 0, oc.width, oc.height);
+        ox.drawImage(src, 0, 0);
+        return oc.toDataURL('image/jpeg', 0.9);
+      } catch (e) { return null; }
+    };
+    sceneRef.current = { rebuild, zoomBy: (d) => { tZoom = clamp(tZoom + d, 5, 16); }, reset: () => { tRotY = -0.5; tRotX = 0.05; tZoom = 9; }, snapshot };
+    if (apiRef) apiRef.current = sceneRef.current;
     const onResize = () => { const nw = mount.clientWidth || w, nh = mount.clientHeight || h; if (nw < 50 || nh < 50) return; renderer.setSize(nw, nh); camera.aspect = nw / nh; camera.updateProjectionMatrix(); };
     window.addEventListener('resize', onResize);
     // Re-measure once the container has settled (fixes skew from 0-size init)
@@ -907,7 +970,8 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
       window.removeEventListener('resize', onResize);
       if (ro) ro.disconnect();
       try { mount.removeChild(renderer.domElement); } catch (e) {}
-      renderer.dispose(); sceneRef.current = null;
+      try { grain.dispose(); if (envTex) envTex.dispose(); } catch (e) {}
+      renderer.dispose(); sceneRef.current = null; if (apiRef) apiRef.current = null;
     };
   }, [ready]);
 
@@ -931,7 +995,7 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
 }
 
 /* ── CONFIGURATOR ── */
-function PlannerPage({ setPage, user }) {
+function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   const mobile = useMobile();
   const { t } = useI18n();
   const [settings, setSettings] = useState(null);
@@ -947,6 +1011,77 @@ function PlannerPage({ setPage, user }) {
   const [pricing, setPricing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
+  // Photorealistic AI render (fal.ai FLUX image-to-image)
+  const plannerApi = useRef(null);
+  const [rendering, setRendering] = useState(false);
+  const [renderUrl, setRenderUrl] = useState(null);
+  const [renderErr, setRenderErr] = useState('');
+  // Wrap the AI render in a branded "The Closets" template (logo header + footer). Falls back to the raw image on any failure.
+  const brandRender = (srcUri) => new Promise((resolve) => {
+    const base = new Image();
+    base.onload = () => {
+      try {
+        const iw = base.naturalWidth || 1024, ih = base.naturalHeight || 768;
+        const sc = iw > 1280 ? 1280 / iw : 1, w = Math.round(iw * sc), h = Math.round(ih * sc);
+        const pad = Math.round(w * 0.045), head = Math.round(w * 0.135), foot = Math.round(w * 0.09);
+        const cw = w + pad * 2, ch = head + h + foot;
+        const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+        const x = cv.getContext('2d');
+        x.fillStyle = '#ffffff'; x.fillRect(0, 0, cw, ch);
+        const finish = (logoImg) => {
+          let tx = pad;
+          if (logoImg) {
+            const lh = Math.round(head * 0.46);
+            const lw = Math.min(Math.round(w * 0.34), Math.round(lh * (logoImg.naturalWidth / Math.max(1, logoImg.naturalHeight))));
+            try { x.drawImage(logoImg, pad, Math.round((head - lh) / 2) - Math.round(head * 0.05), lw, lh); tx = pad + lw + Math.round(w * 0.025); } catch (e) {}
+          }
+          x.textBaseline = 'alphabetic'; x.textAlign = 'left';
+          x.fillStyle = '#1d1d1f'; x.font = `800 ${Math.round(head * 0.30)}px Inter, Arial, sans-serif`;
+          x.fillText('THE CLOSETS', tx, Math.round(head * 0.46));
+          x.fillStyle = '#86868b'; x.font = `500 ${Math.round(head * 0.135)}px Inter, Arial, sans-serif`;
+          x.fillText('Bespoke furniture · Kingdom of Bahrain', tx, Math.round(head * 0.69));
+          x.fillStyle = '#F97316'; x.fillRect(pad, head - 4, w, 4);
+          x.drawImage(base, pad, head, w, h);
+          const fy = head + h;
+          x.fillStyle = '#1d1d1f'; x.font = `700 ${Math.round(foot * 0.26)}px Inter, Arial, sans-serif`;
+          x.fillText('Your design — photorealistic concept', pad, fy + Math.round(foot * 0.36));
+          x.fillStyle = '#9aa0a6'; x.font = `400 ${Math.round(foot * 0.19)}px Inter, Arial, sans-serif`;
+          x.fillText('AI impression. Exact finishes confirmed at your free design consultation.', pad, fy + Math.round(foot * 0.66));
+          x.textAlign = 'right'; x.fillStyle = '#F97316'; x.font = `700 ${Math.round(foot * 0.22)}px Inter, Arial, sans-serif`;
+          x.fillText('theclosets.co · +973 1700 1700', cw - pad, fy + Math.round(foot * 0.50));
+          x.textAlign = 'left';
+          try { resolve(cv.toDataURL('image/jpeg', 0.92)); } catch (e) { resolve(srcUri); }
+        };
+        if (siteLogo) {
+          fetch(siteLogo).then(r => r.ok ? r.blob() : Promise.reject(0)).then(bl => {
+            const fr = new FileReader();
+            fr.onload = () => { const li = new Image(); li.onload = () => finish(li); li.onerror = () => finish(null); li.src = fr.result; };
+            fr.onerror = () => finish(null); fr.readAsDataURL(bl);
+          }).catch(() => finish(null));
+        } else finish(null);
+      } catch (e) { resolve(srcUri); }
+    };
+    base.onerror = () => resolve(srcUri);
+    base.src = srcUri;
+  });
+  const doPhotoreal = async () => {
+    if (!user) { if (openAuth) openAuth('register'); else setPage('portal'); return; }
+    const api = plannerApi.current;
+    if (!api || !api.snapshot) { setRenderErr('The 3D view is still loading — try again in a moment.'); return; }
+    const img = api.snapshot();
+    if (!img) { setRenderErr('Could not capture the design. Rotate it once, then try again.'); return; }
+    setRendering(true); setRenderErr(''); setRenderUrl(null);
+    try {
+      const r = await fetch(SUPA_URL + '/functions/v1/render_photoreal', {
+        method: 'POST', headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_base64: img, product: prodKey, finish: finishId })
+      });
+      const d = await r.json().catch(() => ({}));
+      if (d && d.ok && d.url) { const branded = await brandRender(d.url); setRenderUrl(branded || d.url); }
+      else setRenderErr(d && d.error === 'Render not configured' ? 'Photorealistic rendering isn’t switched on yet.' : 'Render failed — please try again.');
+    } catch (e) { setRenderErr('Network error — please try again.'); }
+    setRendering(false);
+  };
   const [aiText, setAiText] = useState('');
   const [aiBusy, setAiBusy] = useState(false);
   const [aiSummary, setAiSummary] = useState('');
@@ -1310,7 +1445,7 @@ function PlannerPage({ setPage, user }) {
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1.7fr 1fr', gap:14, alignItems:'stretch' }}>
           {/* BIG 3D STAGE */}
           <div style={{ background:'#f5f5f7', borderRadius:20, position:'relative', minHeight: mobile?340:560, overflow:'hidden' }}>
-            <Wardrobe3D finishHex={finishHex} layout={layout} glass={hasGlass} handles={hasHandles} led={hasLed} mobile={mobile} tall product={prodKey} widthCm={layout==='l-shape' ? (Number(dims.sideA)+Number(dims.sideB)) : dims.width} heightCm={dims.height} depthCm={dims.depth} />
+            <Wardrobe3D apiRef={plannerApi} finishHex={finishHex} layout={layout} glass={hasGlass} handles={hasHandles} led={hasLed} mobile={mobile} tall product={prodKey} widthCm={layout==='l-shape' ? (Number(dims.sideA)+Number(dims.sideB)) : dims.width} heightCm={dims.height} depthCm={dims.depth} />
             {aiSummary && <div style={{ position:'absolute', top:12, left:12, right:12, fontSize:12, background:'#FAECE7', color:'#993C1D', padding:'8px 12px', borderRadius:12 }}><i className="ti ti-sparkles" aria-hidden="true" /> {aiSummary}</div>}
             <div style={{ position:'absolute', top:12, right:12, display:'flex', gap:6, alignItems:'center', fontSize:11, color:'#86868b', background:'rgba(255,255,255,.85)', padding:'5px 10px', borderRadius:10 }}>
               <i className="ti ti-rotate-360" aria-hidden="true" /> {t('dragRotate')}
@@ -1319,7 +1454,34 @@ function PlannerPage({ setPage, user }) {
               <i className="ti ti-ruler-2" aria-hidden="true" />
               {layout==='l-shape' ? `${dims.sideA}+${dims.sideB} × ${dims.height} × ${dims.depth} cm` : `${dims.width} × ${dims.height} × ${dims.depth} cm`}
             </div>
+            <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', bottom:12, right:12, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,#F97316,#c2410c)', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(249,115,22,.4)' }}>
+              <i className={rendering ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" />
+              {rendering ? 'Rendering…' : 'Make it photorealistic'}
+            </button>
           </div>
+
+          {(rendering || renderUrl || renderErr) && (
+            <div onClick={()=>{ if(!rendering){ setRenderUrl(null); setRenderErr(''); } }} style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(15,18,22,.72)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
+              <div onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:18, maxWidth:880, width:'100%', maxHeight:'90vh', overflow:'auto', boxShadow:'0 20px 60px rgba(0,0,0,.4)' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 18px', borderBottom:'1px solid #eee' }}>
+                  <span style={{ fontSize:15, fontWeight:700, color:'#1d1d1f' }}><i className="ti ti-sparkles" aria-hidden="true" /> Photorealistic render</span>
+                  <span onClick={()=>{ if(!rendering){ setRenderUrl(null); setRenderErr(''); } }} style={{ cursor:'pointer', color:'#999', fontSize:18 }}>✕</span>
+                </div>
+                <div style={{ padding:18, textAlign:'center' }}>
+                  {rendering && <div style={{ padding:'50px 0', color:'#6e6e73', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>Creating your photorealistic render… ~15–25 seconds.</div></div>}
+                  {!rendering && renderErr && <div style={{ padding:'40px 10px', color:'#c0392b', fontSize:14 }}>{renderErr}</div>}
+                  {!rendering && renderUrl && (<>
+                    <img src={renderUrl} alt="Photorealistic render of your design" style={{ width:'100%', borderRadius:12, display:'block' }} />
+                    <div style={{ display:'flex', gap:10, justifyContent:'center', marginTop:14, flexWrap:'wrap' }}>
+                      <a href={renderUrl} download="closets-render.jpg" target="_blank" rel="noreferrer" style={{ padding:'10px 18px', borderRadius:12, background:'#1d1d1f', color:'#fff', textDecoration:'none', fontSize:13, fontWeight:700 }}>Download</a>
+                      <button type="button" onClick={doPhotoreal} style={{ padding:'10px 18px', borderRadius:12, border:'1px solid #ddd', background:'#fff', color:'#1d1d1f', cursor:'pointer', fontSize:13, fontWeight:700 }}>Regenerate</button>
+                    </div>
+                    <div style={{ marginTop:10, fontSize:11, color:'#aaa' }}>AI-generated impression — exact finishes confirmed in your free design consultation.</div>
+                  </>)}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* OPTIONS RAIL */}
           <div style={{ display:'flex', flexDirection:'column', gap:10, maxHeight: mobile?'none':560, overflowY: mobile?'visible':'auto', overflowX:'hidden', paddingRight:4 }}>
@@ -2771,7 +2933,7 @@ export default function App() {
       {!['portal','checkout'].includes(page) && <SiteFooter setPage={setPage} />}
       <ChatWidget setPage={setPage} />
       <CartDrawer cart={cart} setCart={setCart} open={cartOpen} setOpen={setCartOpen} setPage={setPage} />
-      {page==='planner' && <PlannerPage setPage={setPage} user={user} />}
+      {page==='planner' && <PlannerPage setPage={setPage} user={user} openAuth={openAuth} siteLogo={siteLogo} />}
       {authOpen && <AuthModal mode={authMode} setMode={setAuthMode} setUser={setUser} onClose={()=>setAuthOpen(false)} />}
       <Toasts />
     </AppCtx.Provider>

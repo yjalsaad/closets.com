@@ -40,14 +40,16 @@ echo
 read -r -p "Commit and push these to origin/main? [y/N] " ans
 [ "${ans:-N}" = "y" ] || [ "${ans:-N}" = "Y" ] || { echo "Aborted."; exit 0; }
 
-git commit -m "Website: Digital Card platform integration + AI Designer/chat/booking/AR/SEO
+git commit -m "Planner: photorealistic 3D upgrade + AI render (fal.ai)
 
-- Digital Cards: Directory page + nav (searchable vendors/members/team),
-  My Card tab in the account, team cards on Contact, vendor marketplace
-  (all via card_directory / card_owner_slug RPCs)
-- AI Interior Designer, AI chat widget, recommendations, lead scoring
-- Multi-step booking flow, model-viewer AR, per-route SEO/OG/JSON-LD
-- Customer auth via secure customer_login/customer_register RPCs"
+- 3D planner realism: ACES tone mapping, procedural studio environment map
+  (image-based reflections), PBR materials (wood/paint/glass + metal handles),
+  procedural wood grain, richer lighting
+- 'Make it photorealistic' button -> render_photoreal edge fn (fal.ai FLUX
+  image-to-image), result returned as a data URI
+- Gated behind account creation (opens register modal when logged out)
+- Final render wrapped in a branded 'The Closets' template (logo header +
+  contact footer) before preview/download"
 
 git push origin main
 echo "✅ Pushed. GitHub now matches the live site."
