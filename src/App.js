@@ -2215,6 +2215,7 @@ function ContactPage() {
   }, []);
   const mobile = useMobile();
   const { t } = useI18n();
+  useReveal();
   const submit = async () => {
     if (!form.name||!form.email) { toast('Name and email required', 'error'); return; }
     // Route through the audited public_lead_submit RPC (validates, writes lead, queues team notification)
@@ -2227,49 +2228,49 @@ function ContactPage() {
     setSent(true); toast('Message sent ✓', 'success');
   };
   return (
-    <div style={{ minHeight:'100vh', paddingTop: mobile ? 16 : 72, paddingBottom: mobile ? 80 : 0, background:'#fff' }}>
-      <div style={{ maxWidth:1100, margin:'0 auto', padding: mobile ? '24px 16px' : '60px 40px 100px', display: mobile ? 'block' : 'grid', gridTemplateColumns:'1fr 1fr', gap:80 }}>
-        <div style={{ marginBottom: mobile ? 32 : 0 }}>
-          <div style={{ fontSize:13, fontWeight:500, color:'#F97316', marginBottom:12 }}>{t('contact')}</div>
-          <h1 style={{ fontSize: mobile ? 32 : 52, fontWeight:700, letterSpacing:'-.04em', color:'#1d1d1f', marginBottom:16, lineHeight:1.05 }}>{t('startProject')}</h1>
-          <p style={{ fontSize:16, color:'#6e6e73', lineHeight:1.7, marginBottom:28 }}>Book a free home visit — no obligation.</p>
-          {[['📍','Showrooms','Manama · Riffa · Saar · Isa Town'],['📞','Phone','+973 1700 0000'],['✉️','Email','hello@theclosets.co'],['⏰','Hours','Sat–Thu 9am–8pm']].map(([icon,label,val])=>(
-            <div key={label} style={{ display:'flex', gap:14, padding:'14px 0', borderBottom:'1px solid #f5f5f7' }}>
+    <div style={{ minHeight:'100vh', paddingTop: mobile ? 88 : 112, paddingBottom: mobile ? 80 : 60, background:'var(--cream)' }}>
+      <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile ? '0 24px' : '0 32px', display: mobile ? 'block' : 'grid', gridTemplateColumns:'1fr 1fr', gap:72, alignItems:'start' }}>
+        <div className="rv-l" style={{ marginBottom: mobile ? 36 : 0 }}>
+          <div className="eyebrow" style={{ marginBottom:14 }}>Get in touch</div>
+          <h1 className="display" style={{ fontSize: mobile ? 36 : 56, color:'var(--ink)', marginBottom:16, lineHeight:1.05 }}>Let’s start your project.</h1>
+          <p style={{ fontSize:17, color:'var(--ink-soft)', lineHeight:1.7, marginBottom:30 }}>Tell us about your space and we’ll arrange a free home or showroom visit — no obligation.</p>
+          {[['📍','Showrooms','Manama · Riffa · Saar · Isa Town', null],['📞','Phone','+973 1700 1700','tel:+97317001700'],['✉️','Email','hello@theclosets.co','mailto:hello@theclosets.co'],['⏰','Hours','Sat–Thu · 9am–8pm', null]].map(([icon,label,val,href])=>(
+            <div key={label} style={{ display:'flex', gap:14, padding:'15px 0', borderBottom:'1px solid var(--line)' }}>
               <span style={{ fontSize:18 }}>{icon}</span>
-              <div><div style={{ fontSize:11, fontWeight:500, color:'#86868b', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:2 }}>{label}</div><div style={{ fontSize:14, color:'#1d1d1f' }}>{val}</div></div>
+              <div><div style={{ fontSize:11, fontWeight:600, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:3 }}>{label}</div>
+                {href ? <a href={href} style={{ fontSize:15, color:'var(--clay)', fontWeight:600, textDecoration:'none' }}>{val}</a> : <div style={{ fontSize:15, color:'var(--ink)' }}>{val}</div>}
+              </div>
             </div>
           ))}
         </div>
         {sent ? (
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', textAlign:'center', padding: mobile ? '40px 0' : 0 }}>
-            <div>
-              <div style={{ width:64, height:64, borderRadius:'50%', background:'rgba(26,122,64,.1)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px', fontSize:28 }}>✓</div>
-              <h3 style={{ fontSize:22, fontWeight:700, color:'#1d1d1f', marginBottom:8 }}>{t('msgReceived')}</h3>
-              <p style={{ color:'#86868b', fontSize:15 }}>We'll be in touch within 24 hours.</p>
-            </div>
+          <div className="rv-r" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:22, padding:'56px 32px', textAlign:'center' }}>
+            <div style={{ width:64, height:64, borderRadius:'50%', background:'rgba(176,97,59,.12)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px', fontSize:28, color:'var(--clay)' }}>✓</div>
+            <h3 className="display" style={{ fontSize:26, color:'var(--ink)', marginBottom:10 }}>{t('msgReceived')}</h3>
+            <p style={{ color:'var(--ink-soft)', fontSize:15 }}>We’ll be in touch within 24 hours.</p>
           </div>
         ) : (
-          <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-            <input className="inp" placeholder={t("yourName")} value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} />
-            <input className="inp" placeholder="Email" type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} />
-            <input className="inp" placeholder={t("phone")} value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} />
-            <select className="inp" value={form.product} onChange={e=>setForm(p=>({...p,product:e.target.value}))}>
+          <div className="rv-r" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:22, padding: mobile?22:30, display:'flex', flexDirection:'column', gap:12 }}>
+            <input className="inp" placeholder={t("yourName")} value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
+            <input className="inp" placeholder="Email" type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
+            <input className="inp" placeholder={t("phone")} value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
+            <select className="inp" value={form.product} onChange={e=>setForm(p=>({...p,product:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }}>
               <option value="">Interested in…</option>
               {['Walk-In Wardrobe','Sliding Door','Hinged Door','Kitchen','Office','Kids Room'].map(o=><option key={o}>{o}</option>)}
             </select>
-            <select className="inp" value={form.budget} onChange={e=>setForm(p=>({...p,budget:e.target.value}))}>
+            <select className="inp" value={form.budget} onChange={e=>setForm(p=>({...p,budget:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }}>
               <option value="">{t('budgetRange')}</option>
               {['BD 200–500','BD 500–1,000','BD 1,000–2,500','BD 2,500–5,000','BD 5,000+'].map(o=><option key={o}>{o}</option>)}
             </select>
-            <textarea className="inp" rows={4} placeholder={t("tellProject")} value={form.message} onChange={e=>setForm(p=>({...p,message:e.target.value}))} style={{ resize:'vertical' }} />
-            <button type="button" className="btn" onClick={submit} style={{ borderRadius:14 }}>{t('sendMessage')}</button>
+            <textarea className="inp" rows={4} placeholder={t("tellProject")} value={form.message} onChange={e=>setForm(p=>({...p,message:e.target.value}))} style={{ resize:'vertical', background:'var(--cream)', border:'1px solid var(--line)' }} />
+            <button type="button" className="btn-clay" onClick={submit} style={{ marginTop:4 }}>{t('sendMessage')}</button>
           </div>
         )}
       </div>
       {team.length > 0 && (
-        <div style={{ maxWidth:1100, margin:'0 auto', padding:'0 40px 100px' }}>
-          <div style={{ fontSize:13, fontWeight:500, color:'#F97316', marginBottom:8 }}>Our team</div>
-          <div style={{ fontSize:24, fontWeight:600, color:'#1d1d1f', marginBottom:24 }}>Save a specialist's card</div>
+        <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'48px 24px 20px':'72px 32px 20px' }}>
+          <div className="eyebrow" style={{ marginBottom:12 }}>Our team</div>
+          <h2 className="display" style={{ fontSize: mobile?26:34, color:'var(--ink)', marginBottom:24 }}>Save a specialist’s card</h2>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:14 }}>
             {team.map(c => <CardTile key={c.slug} c={c} />)}
           </div>
@@ -2824,12 +2825,12 @@ function BookingPage({ setPage }) {
     }catch(e){ toast('Could not submit, please try again','error'); }
     finally{ setBusy(false); }
   };
-  if(sent) return (<PageWrap title="Thank you"><div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:32, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div style={{ fontSize:20, fontWeight:600, color:'#1d1d1f', marginTop:12 }}>Your {f.type.toLowerCase()} is requested.</div><div style={{ fontSize:15, color:'#86868b', marginTop:8 }}>Our design team will call you to confirm the time. No obligation, completely free.</div><button type="button" onClick={()=>setPage('home')} style={{ marginTop:20, background:'#F97316', color:'#fff', border:'none', borderRadius:980, padding:'11px 22px', fontSize:14, fontWeight:600, cursor:'pointer' }}>Back to home</button></div></PageWrap>);
-  return (<PageWrap title="Book your free visit" sub="A designer measures your space and creates a bespoke 2D & 3D concept — free, with no obligation.">
-    <div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding: mobile?20:28, maxWidth:720, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
-      <div style={{ fontSize:12, color:'#86868b', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Appointment type</div>
+  if(sent) return (<PageWrap eyebrow="Booked" title="Thank you."><div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding:36, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div className="display" style={{ fontSize:24, color:'var(--ink)', marginTop:14 }}>Your {f.type.toLowerCase()} is requested.</div><div style={{ fontSize:15, color:'var(--ink-soft)', marginTop:10, lineHeight:1.6 }}>Our design team will call you to confirm the time. No obligation, completely free.</div><button type="button" className="btn-clay" onClick={()=>setPage('home')} style={{ marginTop:22 }}>Back to home</button></div></PageWrap>);
+  return (<PageWrap eyebrow="Free design visit" title="Book your free visit." sub="A designer measures your space and creates a bespoke 2D & 3D concept — free, with no obligation.">
+    <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding: mobile?22:30, maxWidth:720 }}>
+      <div className="eyebrow" style={{ fontSize:11, marginBottom:10 }}>Appointment type</div>
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:18 }}>
-        {APPT_KINDS.map(k=>(<button type="button" key={k} onClick={()=>set('type',k)} style={{ padding:'9px 15px', borderRadius:980, cursor:'pointer', fontSize:13, fontWeight:600, background:f.type===k?'#F97316':'#f5f5f7', color:f.type===k?'#fff':'#1d1d1f', border:'none' }}>{k}</button>))}
+        {APPT_KINDS.map(k=>(<button type="button" key={k} onClick={()=>set('type',k)} style={{ padding:'9px 16px', borderRadius:980, cursor:'pointer', fontSize:13, fontWeight:600, background:f.type===k?'var(--clay)':'var(--sand)', color:f.type===k?'#fff':'var(--ink)', border:'1px solid '+(f.type===k?'var(--clay)':'var(--line)') }}>{k}</button>))}
       </div>
       <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:12 }}>
         <input placeholder="Full name *" value={f.name} onChange={e=>set('name',e.target.value)} style={inp} />
@@ -2841,7 +2842,7 @@ function BookingPage({ setPage }) {
         <input placeholder="Address (for home/site visit)" value={f.address} onChange={e=>set('address',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1'}} />
         <textarea placeholder="Notes (optional)" rows={3} value={f.notes} onChange={e=>set('notes',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1', resize:'vertical'}} />
       </div>
-      <button type="button" disabled={busy} onClick={submit} style={{ marginTop:18, width:'100%', background:'#F97316', color:'#fff', border:'none', borderRadius:14, padding:'14px', fontSize:15, fontWeight:600, cursor:'pointer', opacity:busy?.6:1 }}>{busy?'Submitting…':'Request my free visit'}</button>
+      <button type="button" className="btn-clay" disabled={busy} onClick={submit} style={{ marginTop:18, width:'100%', opacity:busy?.6:1 }}>{busy?'Submitting…':'Request my free visit'}</button>
     </div>
   </PageWrap>);
 }
