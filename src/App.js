@@ -1198,6 +1198,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
     reader.readAsDataURL(file);
   };
   const [openSec, setOpenSec] = useState('door_finishes');
+  const [showExtras, setShowExtras] = useState(false);
   const priceTimer = useRef(null);
 
   useEffect(() => {
@@ -1609,20 +1610,13 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
 
           {/* OPTIONS RAIL */}
           <div style={{ display:'flex', flexDirection:'column', gap:10, maxHeight: mobile?'none':560, overflowY: mobile?'visible':'auto', overflowX:'hidden', paddingRight:4 }}>
-            {(() => {
-              const allSecs = ['layout','door_finishes','size',...catKeys.filter(k=>k!=='door_finishes')];
-              const done = 2 /* layout+finish always set */ + 1 /* size always set */ + catKeys.filter(k=>k!=='door_finishes' && catStatus(k)==='done').length;
-              const totalSecs = allSecs.length;
-              const pct = Math.round((done/totalSecs)*100);
-              return (
-                <div style={{ marginBottom:2 }}>
-                  <div style={{ height:6, background:'#eee', borderRadius:3, overflow:'hidden' }}>
-                    <div style={{ width:pct+'%', height:'100%', background:'var(--clay)', borderRadius:3, transition:'width .3s' }} />
-                  </div>
-                  <div style={{ fontSize:12, color:'#aaa', marginTop:6 }}>{done} / {totalSecs} {t('sectionsDone')}</div>
-                </div>
-              );
-            })()}
+            <div style={{ display:'flex', alignItems:'center', gap:10, background:'var(--sand)', borderRadius:12, padding:'11px 14px', marginBottom:2 }}>
+              <span style={{ width:22, height:22, borderRadius:'50%', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 6"/></svg></span>
+              <div style={{ lineHeight:1.3 }}>
+                <div style={{ fontSize:13, fontWeight:600, color:'var(--ink)' }}>Essentials set — ready for a quote</div>
+                <div style={{ fontSize:11.5, color:'var(--muted)' }}>Layout · finish · size done.{(() => { const x = catKeys.filter(k=>k!=='door_finishes' && catStatus(k)==='done').length; return x>0 ? ` ${x} extra${x>1?'s':''} added.` : ' Add extras below (optional).'; })()}</div>
+              </div>
+            </div>
             {renderSection("layout", t("layout"), (
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, paddingTop:8 }}>
                 {(prodLayouts || LAYOUTS).map(l=>{
@@ -1670,7 +1664,13 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
               )
             ), 'done', (layout==='l-shape' ? `${dims.sideA}+${dims.sideB}×${dims.height}` : `${dims.width}×${dims.height}×${dims.depth}cm`))}
 
-            {catKeys.filter(k=>k!=='door_finishes').map(ck=>{
+            {catKeys.filter(k=>k!=='door_finishes').length>0 && (
+              <div onClick={()=>setShowExtras(v=>!v)} style={{ cursor:'pointer', padding:'13px 15px', display:'flex', justifyContent:'space-between', alignItems:'center', background:'var(--sand)', borderRadius:12, flexShrink:0 }}>
+                <span style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>Refine your design <span style={{ color:'var(--muted)', fontWeight:400 }}>· optional</span></span>
+                <span style={{ fontSize:20, color:'var(--clay)', lineHeight:1 }}>{showExtras?'–':'+'}</span>
+              </div>
+            )}
+            {showExtras && catKeys.filter(k=>k!=='door_finishes').map(ck=>{
               const cat = cats[ck]; const multi = cat.select==='multi';
               return (
                 renderSection(ck, (cat.label || ck), (
