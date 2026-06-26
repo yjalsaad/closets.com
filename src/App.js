@@ -1197,7 +1197,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
     };
     reader.readAsDataURL(file);
   };
-  const [openSec, setOpenSec] = useState('door_finishes');
+  const [openSec, setOpenSec] = useState('layout');
   const [showExtras, setShowExtras] = useState(false);
   const priceTimer = useRef(null);
 
@@ -1610,14 +1610,27 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
 
           {/* OPTIONS RAIL */}
           <div style={{ display:'flex', flexDirection:'column', gap:10, maxHeight: mobile?'none':560, overflowY: mobile?'visible':'auto', overflowX:'hidden', paddingRight:4 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:10, background:'var(--sand)', borderRadius:12, padding:'11px 14px', marginBottom:2 }}>
-              <span style={{ width:22, height:22, borderRadius:'50%', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 6"/></svg></span>
-              <div style={{ lineHeight:1.3 }}>
-                <div style={{ fontSize:13, fontWeight:600, color:'var(--ink)' }}>Essentials set — ready for a quote</div>
-                <div style={{ fontSize:11.5, color:'var(--muted)' }}>Layout · finish · size done.{(() => { const x = catKeys.filter(k=>k!=='door_finishes' && catStatus(k)==='done').length; return x>0 ? ` ${x} extra${x>1?'s':''} added.` : ' Add extras below (optional).'; })()}</div>
-              </div>
-            </div>
-            {renderSection("layout", t("layout"), (
+            {(() => {
+              const tot = 3 + catKeys.filter(k=>k!=='door_finishes').length;
+              const dn = 3 + catKeys.filter(k=>k!=='door_finishes' && catStatus(k)==='done').length;
+              const pct = Math.round(dn/tot*100);
+              return (
+                <div style={{ background:'var(--sand)', borderRadius:12, padding:'12px 14px', marginBottom:2 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                    <span style={{ width:22, height:22, borderRadius:'50%', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 6"/></svg></span>
+                    <div style={{ lineHeight:1.3 }}>
+                      <div style={{ fontSize:13, fontWeight:600, color:'var(--ink)' }}>Essentials set — ready for a quote</div>
+                      <div style={{ fontSize:11.5, color:'var(--muted)' }}>Layout · size · finish done. Extras are optional.</div>
+                    </div>
+                  </div>
+                  <div style={{ marginTop:11, height:6, background:'#fff', borderRadius:3, overflow:'hidden' }}>
+                    <div style={{ width:pct+'%', height:'100%', background:'var(--clay)', borderRadius:3, transition:'width .3s' }} />
+                  </div>
+                  <div style={{ fontSize:11, color:'var(--muted)', marginTop:5 }}>{dn} of {tot} sections · {pct}% complete</div>
+                </div>
+              );
+            })()}
+            {renderSection("layout", "1 · " + t("layout"), (
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, paddingTop:8 }}>
                 {(prodLayouts || LAYOUTS).map(l=>{
                   const on = layout===l.id;
@@ -1631,18 +1644,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
               </div>
             ), 'done', ((prodLayouts || LAYOUTS).find(l=>l.id===layout)||{}).label)}
 
-            {renderSection("door_finishes", t("finish"), (
-              <div style={{ display:'flex', gap:8, flexWrap:'wrap', paddingTop:8 }}>
-                {FINISHES.map(f=>(
-                  <button key={f.id} type="button" onClick={()=>setFinishId(f.id)} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, padding:5, border: finishId===f.id?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:8, background:'#fff', cursor:'pointer' }}>
-                    <span style={{ width:34, height:34, borderRadius:5, background:f.hex, border:'0.5px solid rgba(0,0,0,.12)' }} />
-                    <span style={{ fontSize:10, color:'#6e6e73' }}>{f.name}</span>
-                  </button>
-                ))}
-              </div>
-            ), 'done', (FINISHES.find(f=>f.id===finishId)||{}).name)}
-
-            {renderSection("size", t("size"), (
+            {renderSection("size", "2 · " + t("size"), (
               layout==='l-shape' ? (
                 <div style={{ display:'flex', flexDirection:'column', gap:10, paddingTop:8 }}>
                   {[['Side A','sideA'],['Side B','sideB'],['Height','height'],['Depth','depth']].map(([lbl,key])=>(
@@ -1663,6 +1665,17 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                 </div>
               )
             ), 'done', (layout==='l-shape' ? `${dims.sideA}+${dims.sideB}×${dims.height}` : `${dims.width}×${dims.height}×${dims.depth}cm`))}
+
+            {renderSection("door_finishes", "3 · " + t("finish"), (
+              <div style={{ display:'flex', gap:8, flexWrap:'wrap', paddingTop:8 }}>
+                {FINISHES.map(f=>(
+                  <button key={f.id} type="button" onClick={()=>setFinishId(f.id)} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, padding:5, border: finishId===f.id?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:8, background:'#fff', cursor:'pointer' }}>
+                    <span style={{ width:34, height:34, borderRadius:5, background:f.hex, border:'0.5px solid rgba(0,0,0,.12)' }} />
+                    <span style={{ fontSize:10, color:'#6e6e73' }}>{f.name}</span>
+                  </button>
+                ))}
+              </div>
+            ), 'done', (FINISHES.find(f=>f.id===finishId)||{}).name)}
 
             {catKeys.filter(k=>k!=='door_finishes').length>0 && (
               <div onClick={()=>setShowExtras(v=>!v)} style={{ cursor:'pointer', padding:'13px 15px', display:'flex', justifyContent:'space-between', alignItems:'center', background:'var(--sand)', borderRadius:12, flexShrink:0 }}>
