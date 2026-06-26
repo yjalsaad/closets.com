@@ -3440,6 +3440,207 @@ function WrenPlannerPage({ setPage, user }) {
   );
 }
 
+/* ── Interactive Wren-style kitchen ROOM PLANNER: build it unit by unit ── */
+const KU_UNITS = [
+  { key:'base', name:'Base unit', w:60, price:120, tier:'base', ic:'M4 8h16v12H4z' },
+  { key:'drawer', name:'Drawer pack', w:50, price:165, tier:'base', ic:'M4 8h16v12H4z M4 12h16 M4 16h16' },
+  { key:'sink', name:'Sink unit', w:80, price:185, tier:'base', ic:'M4 8h16v12H4z M9 13a3 3 0 0 1 6 0' },
+  { key:'corner', name:'Corner unit', w:90, price:230, tier:'base', ic:'M4 8h16v12H4z' },
+  { key:'oven', name:'Oven housing', w:60, price:225, tier:'base', ic:'M5 5h14v14H5z M8 9h8' },
+  { key:'wall', name:'Wall cabinet', w:60, price:95, tier:'wall', ic:'M4 6h16v9H4z' },
+  { key:'tall', name:'Tall / larder', w:60, price:340, tier:'tall', ic:'M7 3h10v18H7z' },
+  { key:'fridge', name:'Fridge housing', w:60, price:310, tier:'tall', ic:'M7 3h10v18H7z M9 8h0' },
+];
+const KU_WT = { laminate:60, solid_wood:180, quartz:320, granite:280 };
+
+function KitchenStudioPage({ setPage, user }) {
+  const mobile = useMobile();
+  const [room, setRoom] = useState({ w:360, l:300 });
+  const [wall, setWall] = useState('bottom');
+  const [units, setUnits] = useState({ top:[], bottom:[], left:[], right:[] });
+  const [styleId, setStyleId] = useState('shaker_oak');
+  const [worktop, setWorktop] = useState('quartz');
+  const [handle, setHandle] = useState('bar');
+  const [tab, setTab] = useState('units');
+  const [showBook, setShowBook] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [contact, setContact] = useState({ name:user?.name||'', phone:user?.phone||'', email:user?.email||'', date:'' });
+
+  const st = KITCHEN_STYLES.find(s=>s.id===styleId) || KITCHEN_STYLES[0];
+  const wt = KITCHEN_WORKTOPS.find(w=>w[0]===worktop) || KITCHEN_WORKTOPS[0];
+  const hd = KITCHEN_HANDLES.find(h=>h[0]===handle) || KITCHEN_HANDLES[0];
+  const all = [...units.top, ...units.bottom, ...units.left, ...units.right];
+  const unitsSum = all.reduce((s,u)=>s+u.price,0);
+  const baseRunM = all.filter(u=>u.tier==='base'||u.tier==='tall').reduce((s,u)=>s+u.w,0)/100;
+  const handlesAdd = all.length * (handle==='handleless'?12:handle==='brass'?8:0);
+  const est = Math.max(0, Math.round(unitsSum*st.mult + (KU_WT[worktop]||0)*baseRunM + handlesAdd + wt[3]*0));
+  const add = (u) => setUnits(s => ({ ...s, [wall]: [...s[wall], { id:uid(), ...u }] }));
+  const remove = (w,id) => setUnits(s => ({ ...s, [w]: s[w].filter(u=>u.id!==id) }));
+  const clearWall = () => setUnits(s => ({ ...s, [wall]: [] }));
+
+  // 2D top-down plan, scaled to room, units laid along each wall
+  const PAD=30, VW=420, VH=340, IW=VW-PAD*2, IH=VH-PAD*2, TH=15;
+  const sx=IW/room.w, sy=IH/room.l;
+  const colFor = (t)=> t==='wall' ? '#d9c4a8' : t==='tall' ? st.hex : st.hex;
+  const wallRects = (key) => {
+    const list = units[key]; let off=0; const out=[];
+    list.forEach((u,i)=>{
+      let x,y,w,h;
+      if(key==='bottom'){ w=u.w*sx; h=TH; x=PAD+off; y=PAD+IH-TH; off+=w; }
+      else if(key==='top'){ w=u.w*sx; h=TH; x=PAD+off; y=PAD; off+=w; }
+      else if(key==='left'){ h=u.w*sy; w=TH; x=PAD; y=PAD+off; off+=h; }
+      else { h=u.w*sy; w=TH; x=PAD+IW-TH; y=PAD+off; off+=h; }
+      out.push(<rect key={u.id} x={x} y={y} width={Math.max(2,w)} height={Math.max(2,h)} rx="2" fill={colFor(u.tier)} stroke="rgba(0,0,0,.18)" strokeWidth="1" opacity={u.tier==='wall'?0.7:1} />);
+    });
+    return out;
+  };
+  const wallHi = (key) => {
+    const on = wall===key; const c = on?'var(--clay)':'transparent';
+    if(key==='bottom') return <rect x={PAD} y={PAD+IH-TH} width={IW} height={TH} fill="none" stroke={c} strokeWidth="2" rx="2" />;
+    if(key==='top') return <rect x={PAD} y={PAD} width={IW} height={TH} fill="none" stroke={c} strokeWidth="2" rx="2" />;
+    if(key==='left') return <rect x={PAD} y={PAD} width={TH} height={IH} fill="none" stroke={c} strokeWidth="2" rx="2" />;
+    return <rect x={PAD+IW-TH} y={PAD} width={TH} height={IH} fill="none" stroke={c} strokeWidth="2" rx="2" />;
+  };
+
+  const book = async () => {
+    if(!contact.name.trim() || !contact.phone.trim()){ toast('Please add your name and phone','error'); return; }
+    setBusy(true);
+    try {
+      const cfgId = uid();
+      const spec = { product:'kitchen', room, style:styleId, worktop, handle, units:all.map(u=>({key:u.key,name:u.name,w:u.w})), unit_count:all.length, run_metres:Number(baseRunM.toFixed(2)), estimate_bhd:est };
+      await api('product_configurations', { method:'POST', body:[{ id:cfgId, customer_id:user?.id||null, customer_name:contact.name||user?.name||null, customer_email:contact.email||user?.email||null, customer_phone:contact.phone||user?.phone||null, product_name:`Kitchen — ${all.length} units, ${st.name} (${baseRunM.toFixed(1)}m)`, configuration:spec, total_price:est, status:'kitchen-plan', share_token:cfgId, created_at:new Date().toISOString() }] });
+      const leadId = 'LEAD-'+Date.now().toString(36).toUpperCase();
+      const note = [`🍽️ Website Kitchen Planner`, `Room: ${room.w}×${room.l}cm  |  Units: ${all.length}  |  Run: ${baseRunM.toFixed(1)}m`, `Style: ${st.name}  |  Worktop: ${wt[1]}  |  Handles: ${hd[1]}`, `Indicative estimate: BHD ${est}`, contact.date?`Preferred appointment: ${contact.date}`:'', `Plan ref: ${cfgId}`].filter(Boolean).join('\n');
+      await api('leads', { method:'POST', body:[{ id:leadId, name:contact.name||'Website Visitor', email:contact.email||null, phone:contact.phone||null, source:'website_kitchen_planner', status:'New', stage:'New', platform:'Website', interest:'Kitchen (planner)', budget:est, value:est, notes:note, created_at:new Date().toISOString() }] });
+      toast('Appointment requested — our kitchen team will be in touch','success');
+      setPage('home');
+    } catch(e){ toast('Could not send: '+(e?.message||'please try again'),'error'); }
+    finally { setBusy(false); }
+  };
+
+  const inS = { width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' };
+  const wallBtn = (id,label) => { const on=wall===id; return <button type="button" onClick={()=>setWall(id)} style={{ flex:1, padding:'8px 6px', fontSize:12.5, fontWeight:on?700:500, border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', color: on?'var(--clay-deep)':'var(--ink-soft)', borderRadius:10, cursor:'pointer' }}>{label}<div style={{ fontSize:10, color:'var(--muted)', fontWeight:500 }}>{units[id].length} units</div></button>; };
+  const TABS=[['units','Units'],['room','Room'],['style','Style'],['finish','Finishes']];
+
+  return (
+    <div style={{ minHeight:'100vh', background:'var(--cream)', paddingTop: mobile?86:104, paddingBottom:90 }}>
+      <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' }}>
+        <div style={{ textAlign:'center', marginBottom:20 }}>
+          <div className="eyebrow" style={{ marginBottom:12 }}>Kitchen design · online planner</div>
+          <h1 className="display" style={{ fontSize: mobile?30:46, color:'var(--ink)' }}>Design your kitchen, unit by unit.</h1>
+          <p style={{ color:'var(--ink-soft)', fontSize:16, marginTop:10 }}>Set your room, drop in cabinets along each wall, choose your look — watch the plan and price update live.</p>
+        </div>
+
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1.25fr 1fr', gap:20, alignItems:'start' }}>
+          {/* CANVAS + price */}
+          <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding:18, boxShadow:'var(--shadow)', position: mobile?'static':'sticky', top:96 }}>
+            <div style={{ background:'var(--sand)', borderRadius:14, padding:12 }}>
+              <svg viewBox={`0 0 ${VW} ${VH}`} style={{ width:'100%', height:'auto', display:'block' }} aria-label="Kitchen plan">
+                <rect x={PAD} y={PAD} width={IW} height={IH} rx="8" fill="#fff" stroke="#cbbfae" strokeWidth="2" strokeDasharray="5 5" />
+                {['top','bottom','left','right'].map(k=><Fragment key={k}>{wallRects(k)}</Fragment>)}
+                {['top','bottom','left','right'].map(k=><Fragment key={'h'+k}>{wallHi(k)}</Fragment>)}
+                <text x={VW/2} y={VH-8} textAnchor="middle" fontSize="11" fill="#8a7f72">{room.w} × {room.l} cm</text>
+              </svg>
+            </div>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginTop:14 }}>
+              <span style={{ fontSize:12, color:'var(--muted)' }}>Indicative estimate · {all.length} units · {baseRunM.toFixed(1)}m</span>
+              <span className="display" style={{ fontSize:26, color:'var(--clay)' }}>{fmt(est)}</span>
+            </div>
+            <div style={{ fontSize:11, color:'var(--muted)', marginTop:6 }}>{st.name} · {wt[1]} worktop · {hd[1]} handles. A guide price — your free design visit confirms an exact quote.</div>
+            <button type="button" className="btn-clay" disabled={all.length===0} onClick={()=>setShowBook(true)} style={{ width:'100%', marginTop:14, borderRadius:12, opacity:all.length===0?.5:1 }}>Book a free design appointment</button>
+          </div>
+
+          {/* TOOLS */}
+          <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding: mobile?16:22, boxShadow:'var(--shadow)' }}>
+            <div style={{ display:'flex', gap:6, marginBottom:18, overflowX:'auto' }}>
+              {TABS.map(([id,label])=>{ const on=tab===id; return <button key={id} type="button" onClick={()=>setTab(id)} style={{ flexShrink:0, padding:'8px 15px', borderRadius:99, border:'none', fontSize:13.5, fontWeight:600, cursor:'pointer', background: on?'var(--clay)':'var(--sand)', color: on?'#fff':'var(--ink-soft)' }}>{label}</button>; })}
+            </div>
+
+            {tab==='units' && (<>
+              <div style={{ fontSize:12.5, color:'var(--ink-soft)', marginBottom:8 }}>1 · Choose a wall, then add units to it.</div>
+              <div style={{ display:'flex', gap:6, marginBottom:14 }}>{wallBtn('top','Top')}{wallBtn('bottom','Bottom')}{wallBtn('left','Left')}{wallBtn('right','Right')}</div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:14 }}>
+                {KU_UNITS.map(u=>(
+                  <button key={u.key} type="button" onClick={()=>add(u)} style={{ display:'flex', alignItems:'center', gap:9, textAlign:'left', border:'1px solid var(--line)', background:'var(--cream)', borderRadius:12, padding:'9px 11px', cursor:'pointer' }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.6" aria-hidden="true"><path d={u.ic} /></svg>
+                    <span style={{ lineHeight:1.2 }}><span style={{ display:'block', fontSize:13, fontWeight:600, color:'var(--ink)' }}>{u.name}</span><span style={{ fontSize:11, color:'var(--muted)' }}>{u.w}cm · {fmt(u.price)}</span></span>
+                  </button>
+                ))}
+              </div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                <span style={{ fontSize:12.5, fontWeight:600, color:'var(--ink)' }}>On {wall} wall ({units[wall].length})</span>
+                {units[wall].length>0 && <button type="button" onClick={clearWall} style={{ fontSize:12, color:'var(--clay)', background:'none', border:'none', cursor:'pointer' }}>Clear wall</button>}
+              </div>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                {units[wall].length===0 && <span style={{ fontSize:13, color:'var(--muted)' }}>No units yet — tap one above to add it here.</span>}
+                {units[wall].map(u=>(
+                  <button key={u.id} type="button" onClick={()=>remove(wall,u.id)} title="Remove" style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, border:'1px solid var(--line)', background:'#fff', borderRadius:99, padding:'5px 10px', cursor:'pointer', color:'var(--ink)' }}>{u.name} <span style={{ color:'var(--muted)' }}>×</span></button>
+                ))}
+              </div>
+            </>)}
+
+            {tab==='room' && (<>
+              <div style={{ fontSize:12.5, color:'var(--ink-soft)', marginBottom:14 }}>Set the approximate size of your room.</div>
+              {[['Width','w'],['Length','l']].map(([lbl,k])=>(
+                <div key={k} style={{ marginBottom:18 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}><span style={{ fontSize:13, color:'var(--ink-soft)' }}>{lbl}</span><span style={{ fontSize:14, fontWeight:700, color:'var(--clay)' }}>{room[k]}cm</span></div>
+                  <input type="range" min={180} max={700} step={10} value={room[k]} onChange={e=>setRoom(r=>({...r,[k]:parseInt(e.target.value)}))} style={{ width:'100%', accentColor:'var(--clay)' }} />
+                </div>
+              ))}
+            </>)}
+
+            {tab==='style' && (
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10 }}>
+                {KITCHEN_STYLES.map(s=>{ const on=styleId===s.id; return (
+                  <button key={s.id} type="button" onClick={()=>setStyleId(s.id)} style={{ border: on?'2px solid var(--clay)':'1px solid var(--line)', borderRadius:14, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, textAlign:'left' }}>
+                    <div style={{ height:50, background:s.g }} />
+                    <div style={{ padding:'8px 10px' }}><div style={{ fontSize:12.5, fontWeight:600, color: on?'var(--clay-deep)':'var(--ink)' }}>{s.name}</div><div style={{ fontSize:10.5, color:'var(--muted)' }}>{s.sub}</div></div>
+                  </button>); })}
+              </div>
+            )}
+
+            {tab==='finish' && (<>
+              <div style={{ fontSize:12, fontWeight:700, color:'var(--ink)', margin:'0 0 8px' }}>WORKTOP</div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:16 }}>
+                {KITCHEN_WORKTOPS.map(([id,name,sub])=>{ const on=worktop===id; return (
+                  <button key={id} type="button" onClick={()=>setWorktop(id)} style={{ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'10px 12px', cursor:'pointer' }}><div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{name}</div><div style={{ fontSize:11, color:'var(--muted)' }}>{sub} · {fmt(KU_WT[id]||0)}/m</div></button>); })}
+              </div>
+              <div style={{ fontSize:12, fontWeight:700, color:'var(--ink)', margin:'0 0 8px' }}>HANDLES</div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                {KITCHEN_HANDLES.map(([id,name,sub])=>{ const on=handle===id; return (
+                  <button key={id} type="button" onClick={()=>setHandle(id)} style={{ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'10px 12px', cursor:'pointer' }}><div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{name}</div><div style={{ fontSize:11, color:'var(--muted)' }}>{sub}</div></button>); })}
+              </div>
+            </>)}
+
+            <div style={{ marginTop:18, textAlign:'center' }}><span onClick={()=>setPage('home')} style={{ cursor:'pointer', fontSize:13, color:'var(--muted)' }}>Close ✕</span></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Book modal */}
+      {showBook && (
+        <div onClick={()=>!busy&&setShowBook(false)} style={{ position:'fixed', inset:0, zIndex:10000, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
+          <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:26 }}>
+            <div className="eyebrow" style={{ marginBottom:8 }}>Almost there</div>
+            <h3 className="display" style={{ fontSize:24, color:'var(--ink)', margin:'0 0 6px' }}>Book your free design visit</h3>
+            <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)', lineHeight:1.6 }}>{all.length} units · {st.name} · {wt[1]} worktop · <b style={{ color:'var(--clay-deep)' }}>{fmt(est)}</b></div>
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} placeholder="Your name" style={inS} />
+              <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} placeholder="Phone (+973…)" inputMode="tel" style={inS} />
+              <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} placeholder="Email (optional)" inputMode="email" style={inS} />
+              <input type="date" value={contact.date} onChange={e=>setContact(c=>({...c,date:e.target.value}))} style={inS} />
+            </div>
+            <div style={{ display:'flex', gap:10, marginTop:16 }}>
+              <button type="button" onClick={()=>setShowBook(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>Cancel</button>
+              <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={book} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?'Sending…':'Request appointment'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const [page, setPage] = useState('home');
   const [lang, setLang] = useState(() => { try { return localStorage.getItem('closets_lang') || 'en'; } catch { return 'en'; } });
@@ -3498,7 +3699,7 @@ export default function App() {
       {page==='maintenance' && <MaintenancePage />}
       {page==='warranty' && <WarrantyPage />}
       {page==='ai' && <PageBoundary key="ai"><AIDesignerPage setPage={setPage} user={user} /></PageBoundary>}
-      {page==='kitchen-planner' && <PageBoundary key="kp"><WrenPlannerPage setPage={setPage} user={user} /></PageBoundary>}
+      {page==='kitchen-planner' && <PageBoundary key="kp"><KitchenStudioPage setPage={setPage} user={user} /></PageBoundary>}
       {page.startsWith('cat:') && <CategoryPage category={page.slice(4)} products={products} setPage={setPage} addToCart={addToCart} />}
       {!['portal','checkout'].includes(page) && <SiteFooter setPage={setPage} />}
       <ChatWidget setPage={setPage} />
