@@ -2239,7 +2239,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             {!mobile && (
               <div style={{ marginTop:6, background:'#fff', border:'0.5px solid #e6e6e6', borderRadius:14, padding:'16px', position:'sticky', bottom:0, boxShadow:'0 -2px 12px rgba(0,0,0,.04)' }}>
                 <div style={{ fontSize:13, color:'var(--ink-soft)', marginBottom:10, lineHeight:1.5 }}>
-                  <strong style={{ color:'var(--ink)' }}>{selProduct?.name || 'Wardrobe'}</strong> · {(lay.find(l=>l.id===layout)||{}).label || layout} · {(() => { const cv = (cm)=> unit==='in' ? (Math.round((cm/2.54)*10)/10)+'"' : cm+'cm'; return (supportsSideAB&&layout==='l-shape') ? `${cv(dims.sideA)}+${cv(dims.sideB)}` : `${cv(dims.width)}×${cv(dims.height)}`; })()} · {(FINISHES.find(f=>f.id===finishId)||{}).name || finishId}
+                  <strong style={{ color:'var(--ink)' }}>{selProduct?.name || 'Wardrobe'}</strong> · {((prodLayouts||LAYOUTS).find(l=>l.id===layout)||{}).label || layout} · {(() => { const cv = (cm)=> unit==='in' ? (Math.round((cm/2.54)*10)/10)+'"' : cm+'cm'; return (supportsSideAB&&layout==='l-shape') ? `${cv(dims.sideA)}+${cv(dims.sideB)}` : `${cv(dims.width)}×${cv(dims.height)}`; })()} · {(FINISHES.find(f=>f.id===finishId)||{}).name || finishId}
                 </div>
                 {total>0 && !pricing && (
                   <div style={{ marginBottom:12 }}>
