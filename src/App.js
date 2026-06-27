@@ -245,9 +245,9 @@ const CSS = `
   .inp:focus { outline: none; background: #fff; border-color: var(--clay); box-shadow: 0 0 0 4px rgba(249,115,22,.1); }
   .inp::placeholder { color: #86868b; }
   .btn { background: var(--clay); color: #fff; border: none; border-radius: 14px; padding: 15px 24px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 50px; -webkit-tap-highlight-color: transparent; }
-  .btn:active { transform: scale(.97); background: #ea6c0a; }
+  .btn:active { transform: scale(.97); background: var(--clay-deep); }
   .btn-sm { background: var(--clay); color: #fff; border: none; border-radius: 12px; padding: 11px 18px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; }
-  .btn-sm:active { transform: scale(.97); background: #ea6c0a; }
+  .btn-sm:active { transform: scale(.97); background: var(--clay-deep); }
   .btn-secondary { background: #f5f5f7; color: #1d1d1f; border: none; border-radius: 14px; padding: 15px 24px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all .15s; min-height: 50px; }
   .btn-secondary:active { background: #e8e8ed; transform: scale(.97); }
   .btn-ghost { background: transparent; border: 1.5px solid #e6e6e6; border-radius: 14px; padding: 14px 22px; font-size: 15px; font-weight: 500; cursor: pointer; color: #1d1d1f; transition: all .15s; }
@@ -307,9 +307,34 @@ const CSS = `
   }
   @media (min-width: 768px) {
     .hide-desktop { display: none !important; }
-    .btn:hover { background: #ea6c0a; opacity: .9; }
+    .btn:hover { background: var(--clay-deep); opacity: .9; }
     .card:hover { box-shadow: 0 8px 32px rgba(0,0,0,.08); transform: translateY(-2px); }
     .card { transition: box-shadow .3s, transform .3s; }
+  }
+
+  /* ── ui-ux-pro-max: site-wide UX baseline ── */
+  /* Accessibility: visible keyboard focus on every interactive element (CRITICAL) */
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
+  textarea:focus-visible, [role="button"]:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--clay); outline-offset: 2px; border-radius: 4px;
+  }
+  :focus:not(:focus-visible) { outline: none; }
+  /* Touch & interaction: remove 300ms tap delay, kill grey tap flash, comfortable targets */
+  a, button, [role="button"], input[type="submit"], label { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  button:not(:disabled), a[href], [role="button"] { cursor: pointer; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  /* Smooth in-page navigation + anchor offset for the fixed header */
+  html { scroll-behavior: smooth; }
+  :target { scroll-margin-top: 96px; }
+  /* Data legibility: tabular figures for prices, stats and counters */
+  .tnum, .price, .stat-num { font-variant-numeric: tabular-nums; }
+  /* Images never collapse layout while loading */
+  img { max-width: 100%; }
+  /* Respect reduced-motion: calm the whole site for users who ask for it (CRITICAL) */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+    .kenburns, .marquee, .blob-1, .blob-2, .blob-3, .blob-4 { animation: none !important; }
+    .rv, .rv-l, .rv-r, .rv-sc, .rv-words .w { opacity: 1 !important; transform: none !important; }
   }
 `;
 
@@ -344,7 +369,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
     <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:900, height:56, display:'flex', alignItems:'center', justifyContent:'space-between', padding: mobile?'0 16px':'0 32px', background: scrolled?'rgba(247,242,236,.92)':'rgba(247,242,236,.72)', backdropFilter:'blur(18px) saturate(180%)', borderBottom: scrolled?'1px solid var(--line)':'1px solid transparent', transition:'all .3s' }}>
       <button type="button" onClick={()=>{ setPage('home'); setMenuOpen(false); }} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>
         {siteLogo
-          ? <img src={siteLogo} alt="logo" style={{ height:32, width:'auto', maxWidth:120, objectFit:'contain', borderRadius:6 }} />
+          ? <img src={siteLogo} alt="The Closets" style={{ height:32, width:'auto', maxWidth:120, objectFit:'contain', borderRadius:6 }} />
           : <span style={{ fontFamily:'Fraunces, Georgia, serif', fontSize:16, fontWeight:600, color:'var(--ink)', letterSpacing:'.02em' }}>THE CLOSETS</span>}
       </button>
       <div style={{ display:'flex', gap:8, alignItems:'center' }}>
@@ -384,7 +409,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
         <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', borderRadius:'22px 22px 0 0', width:'100%', maxWidth:560, padding:'18px 20px calc(26px + env(safe-area-inset-bottom))', maxHeight:'80vh', overflow:'auto' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
             <span className="display" style={{ fontSize:20, color:'var(--ink)' }}>Menu</span>
-            <span onClick={()=>setMenuOpen(false)} style={{ cursor:'pointer', color:'var(--muted)', fontSize:22 }}>✕</span>
+            <button type="button" aria-label="Close" onClick={()=>setMenuOpen(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--muted)', fontSize:22 }}>✕</button>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:16 }}>
             {ALL_LINKS.map(([p,label])=>(
@@ -433,7 +458,7 @@ function Stat({ to, suffix = '', label }) {
     obs.observe(el); return () => obs.disconnect();
   }, [to]);
   return <div ref={ref} style={{ textAlign: 'center' }}>
-    <div className="display" style={{ fontSize: 'clamp(40px,5vw,64px)', color: 'var(--ink)', lineHeight: 1 }}>{v}{suffix}</div>
+    <div className="display stat-num" style={{ fontSize: 'clamp(40px,5vw,64px)', color: 'var(--ink)', lineHeight: 1 }}>{v}{suffix}</div>
     <div style={{ fontSize: 13, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--muted)', marginTop: 10 }}>{label}</div>
   </div>;
 }
@@ -469,7 +494,7 @@ function TestiCarousel({ items }) {
       <div style={{ marginTop: 26, fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}>{cur.name}</div>
       <div style={{ fontSize: 13, color: 'var(--muted)' }}>{cur.role}</div>
     </div>
-    {items.length > 1 && <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 30 }}>{items.map((_, j) => <button key={j} type="button" onClick={() => setI(j)} aria-label={'Testimonial ' + (j + 1)} style={{ width: j === i ? 22 : 8, height: 8, borderRadius: 8, border: 'none', background: j === i ? 'var(--clay)' : 'var(--line)', cursor: 'pointer', transition: 'all .3s', padding: 0 }} />)}</div>}
+    {items.length > 1 && <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 30 }}>{items.map((_, j) => <button key={j} type="button" onClick={() => setI(j)} aria-label={'Go to slide ' + (j + 1)} style={{ width: j === i ? 22 : 8, height: 8, borderRadius: 8, border: 'none', background: j === i ? 'var(--clay)' : 'var(--line)', cursor: 'pointer', transition: 'all .3s', padding: 0 }} />)}</div>}
   </div>;
 }
 
@@ -506,7 +531,7 @@ function Hero({ setPage, banners }) {
           {banners.length > 1 && (
             <div style={{ display: 'flex', gap: 5, marginLeft: 12 }}>
               {banners.map((_, i) => (
-                <button key={i} type="button" onClick={() => setBannerIdx(i)}
+                <button key={i} type="button" onClick={() => setBannerIdx(i)} aria-label={'Show announcement ' + (i + 1)}
                   style={{ width: i === bannerIdx ? 16 : 5, height: 5, borderRadius: 10, background: i === bannerIdx ? 'var(--clay)' : 'rgba(255,255,255,.3)', border: 'none', cursor: 'pointer', transition: 'all .3s', padding: 0 }} />
               ))}
             </div>
@@ -553,7 +578,7 @@ function ProductCard({ product: p, setPage, addToCart, setConfigProduct }) {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button type="button" onClick={e => { e.stopPropagation(); addToCart(p); toast('Added to cart ✓', 'success'); }} style={{ flex: 1, background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 12, padding: '11px 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer', minHeight: 44 }}>Add to cart</button>
-          <button type="button" title="Customise this piece" onClick={e => { e.stopPropagation(); setPage('planner'); }} style={{ background: 'var(--sand)', border: '1px solid var(--line)', borderRadius: 12, padding: '11px 14px', fontSize: 15, cursor: 'pointer', minHeight: 44, color: 'var(--ink)' }}>✦</button>
+          <button type="button" title="Customise this piece" aria-label="Customise this piece" onClick={e => { e.stopPropagation(); setPage('planner'); }} style={{ background: 'var(--sand)', border: '1px solid var(--line)', borderRadius: 12, padding: '11px 14px', fontSize: 15, cursor: 'pointer', minHeight: 44, color: 'var(--ink)' }}>✦</button>
         </div>
       </div>
     </div>
@@ -569,7 +594,7 @@ function ProductsPage({ products, setPage, addToCart, setConfigProduct }) {
   const cats = ['All', ...new Set(products.map(p => p.category).filter(Boolean))];
   const filtered = products.filter(p => (cat === 'All' || p.category === cat) && (!search || p.name?.toLowerCase().includes(search.toLowerCase())));
   return (
-    <div style={{ minHeight: '100vh', paddingTop: mobile ? 72 : 104, paddingBottom: mobile ? 90 : 60, background: 'var(--cream)' }}>
+    <div style={{ minHeight: '100dvh', paddingTop: mobile ? 72 : 104, paddingBottom: mobile ? 90 : 60, background: 'var(--cream)' }}>
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: mobile ? '8px 24px 0' : '24px 48px 0' }}>
         <div className="rv" style={{ marginBottom: 28, maxWidth: 660 }}>
           <div className="eyebrow" style={{ marginBottom: 14 }}>The collection</div>
@@ -578,7 +603,7 @@ function ProductsPage({ products, setPage, addToCart, setConfigProduct }) {
         </div>
         <div className="rv" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 30 }}>
           <div style={{ flex: mobile ? '1 1 100%' : '0 0 280px' }}>
-            <input className="inp" placeholder="Search collection…" value={search} onChange={e => setSearch(e.target.value)} style={{ fontSize: 15, background: '#fff', border: '1px solid var(--line)' }} />
+            <input className="inp" placeholder="Search collection…" aria-label="Search collection" value={search} onChange={e => setSearch(e.target.value)} style={{ fontSize: 15, background: '#fff', border: '1px solid var(--line)' }} />
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 2 }}>
             {cats.map(c => (
@@ -617,7 +642,7 @@ function ProductDetailPage({ productId, products, setPage, addToCart, setConfigP
   const related = aiRelated.length ? aiRelated.slice(0, mobile ? 2 : 3) : localRelated;
   const recLabel = aiRelated.length ? 'Recommended for you ✦' : 'You may also like';
   return (
-    <div style={{ minHeight: '100vh', paddingTop: mobile ? 0 : 96, paddingBottom: mobile ? 100 : 60, background: 'var(--cream)' }}>
+    <div style={{ minHeight: '100dvh', paddingTop: mobile ? 0 : 96, paddingBottom: mobile ? 100 : 60, background: 'var(--cream)' }}>
       {mobile && (
         <div style={{ position: 'relative' }}>
           <Photo src={product.image_url || HOME_IMG.wardrobe} alt={product.name} style={{ aspectRatio: '1/1' }} />
@@ -691,7 +716,7 @@ function ProductInfo({ product, qty, setQty, addToCart, setConfigProduct, setPag
           <button type="button" onClick={() => setQty(q => q + 1)} style={{ background: 'none', border: 'none', padding: '13px 18px', fontSize: 20, cursor: 'pointer', color: 'var(--ink)', minWidth: 50 }}>+</button>
         </div>
         <button type="button" className="btn-clay" style={{ flex: 1, minWidth: 180 }} onClick={() => { for (let i = 0; i < qty; i++) addToCart(product); toast(`${qty} item${qty>1?'s':''} added ✓`, 'success'); }}>Add to cart</button>
-        <button type="button" className="btn-line" title="Customise this piece" style={{ padding: '13px 18px' }} onClick={() => setPage('planner')}>✦</button>
+        <button type="button" className="btn-line" title="Customise this piece" aria-label="Customise this piece" style={{ padding: '13px 18px' }} onClick={() => setPage('planner')}>✦</button>
       </div>
       <button type="button" onClick={() => setPage('contact')} style={{ marginTop: 16, background: 'none', border: 'none', color: 'var(--clay)', fontWeight: 600, fontSize: 14, cursor: 'pointer', padding: 0 }}>Book a free design consultation →</button>
     </div>
@@ -711,7 +736,7 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
         {mobile && <div style={{ width: 36, height: 4, background: '#e6e6e6', borderRadius: 2, margin: '12px auto 0' }} />}
         <div style={{ padding: mobile ? '16px 20px' : '22px 26px', borderBottom: '1px solid #f5f5f7', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.02em' }}>Cart {cart.length > 0 && <span style={{ fontSize: 14, fontWeight: 400, color: '#86868b' }}>({cart.length})</span>}</div>
-          <button type="button" onClick={() => setOpen(false)} style={{ background: '#f5f5f7', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: '#86868b', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          <button type="button" aria-label="Close cart" onClick={() => setOpen(false)} style={{ background: '#f5f5f7', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: '#86868b', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: mobile ? '16px 20px' : '20px 26px', WebkitOverflowScrolling: 'touch' }}>
           {cart.length === 0
@@ -723,14 +748,14 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
             : cart.map((item, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: 14, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #f5f5f7' }}>
                   <div style={{ width: 64, height: 64, borderRadius: 12, background: '#f5f5f7', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {item.image_url ? <img src={item.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 22, opacity: .3 }}>◻</span>}
+                    {item.image_url ? <img src={item.image_url} alt={item.name || item.product_name || 'Cart item'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 22, opacity: .3 }}>◻</span>}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
                     <div style={{ fontSize: 12, color: '#86868b', marginBottom: 4 }}>{item.category}</div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: '#1d1d1f' }}>{fmt(item.price)}</div>
                   </div>
-                  <button type="button" onClick={() => setCart(c => c.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#86868b', padding: '4px', alignSelf: 'flex-start', fontSize: 16 }}>✕</button>
+                  <button type="button" aria-label="Remove item" onClick={() => setCart(c => c.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#86868b', padding: '4px', alignSelf: 'flex-start', fontSize: 16 }}>✕</button>
                 </div>
               ))
           }
@@ -1506,7 +1531,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
 
   // ── STAGE 1: PRODUCT PICKER ──
   if (stage === 'product') return (
-    <div style={{ minHeight:'100vh', background:'var(--cream)', paddingTop:104, paddingBottom:80 }}>
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop:104, paddingBottom:80 }}>
       <div style={{ maxWidth:960, margin:'0 auto', padding:'0 24px' }}>
         {planSteps('product')}
         <div style={{ textAlign:'center', marginBottom:36 }}>
@@ -1547,7 +1572,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           </div>
         )}
         <div style={{ textAlign:'center', marginTop:24 }}>
-          <span onClick={()=>setPage('home')} style={{ cursor:'pointer', fontSize:13, color:'var(--muted)' }}>Close ✕</span>
+          <button type="button" aria-label="Close" onClick={()=>setPage('home')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>Close ✕</button>
         </div>
       </div>
     </div>
@@ -1555,7 +1580,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
 
   // ── STAGE 2: AI STARTER ──
   if (stage === 'ai') return (
-    <div style={{ minHeight:'100vh', background:'var(--cream)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'104px 24px 80px' }}>
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'104px 24px 80px' }}>
       <div style={{ width:'100%', maxWidth:640 }}>{planSteps('ai')}</div>
       <div style={{ maxWidth:580, width:'100%', background:'#fff', border:'1px solid var(--line)', borderRadius:22, padding: mobile?22:30 }}>
         <div style={{ display:'flex', gap:10, alignItems:'center', marginBottom:8 }}>
@@ -1563,7 +1588,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           <span className="display" style={{ fontSize:20, color:'var(--ink)' }}>Describe your space</span>
         </div>
         <p style={{ fontSize:14, color:'var(--ink-soft)', marginBottom:16, lineHeight:1.6 }}>We'll design a tailored starting point in seconds.</p>
-        <textarea value={aiText} onChange={e=>setAiText(e.target.value)} placeholder="e.g. a walk-in closet for a master bedroom, warm oak, lots of shoes and hanging space, with soft lighting" rows={3} style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'var(--cream)', borderRadius:12, fontSize:15, fontFamily:'inherit', resize:'vertical', marginBottom:12 }} />
+        <textarea value={aiText} onChange={e=>setAiText(e.target.value)} aria-label="Describe your design" placeholder="e.g. a walk-in closet for a master bedroom, warm oak, lots of shoes and hanging space, with soft lighting" rows={3} style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'var(--cream)', borderRadius:12, fontSize:15, fontFamily:'inherit', resize:'vertical', marginBottom:12 }} />
         <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:14 }}>
           {['Small bedroom, sliding doors, white','Walk-in, oak, lots of shoes','Modern L-shape kitchen, white, quartz'].map(chip=>(
             <button key={chip} type="button" onClick={()=>setAiText(chip)} style={{ fontSize:12, border:'1px solid var(--line)', borderRadius:16, padding:'6px 13px', background:'var(--cream)', color:'var(--ink-soft)', cursor:'pointer' }}>{chip}</button>
@@ -1613,12 +1638,12 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   };
 
   return (
-    <div style={{ minHeight:'100vh', paddingTop:80, paddingBottom:40 }}>
+    <div style={{ minHeight:'100dvh', paddingTop:80, paddingBottom:40 }}>
       <div style={{ maxWidth:1240, margin:'0 auto', padding:'0 16px' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', margin:'12px 0 10px' }}>
           <span onClick={()=>setStage('product')} style={{ cursor:'pointer', fontSize:13, color:'var(--ink-soft)' }}>‹ All products</span>
           <span style={{ fontSize:13, color:'var(--muted)' }}>{selProduct?.name || 'Wardrobe'}</span>
-          <span onClick={()=>setPage('home')} style={{ cursor:'pointer', fontSize:13, color:'var(--muted)' }}>Close ✕</span>
+          <button type="button" aria-label="Close" onClick={()=>setPage('home')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>Close ✕</button>
         </div>
         {planSteps('config')}
 
@@ -1645,7 +1670,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
               <div onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:18, maxWidth:880, width:'100%', maxHeight:'90vh', overflow:'auto', boxShadow:'0 20px 60px rgba(0,0,0,.4)' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 18px', borderBottom:'1px solid #eee' }}>
                   <span style={{ fontSize:15, fontWeight:700, color:'#1d1d1f' }}><Spark size={15} style={{ verticalAlign:'-2px' }} /> Photorealistic render</span>
-                  <span onClick={()=>{ if(!rendering){ setRenderUrl(null); setRenderErr(''); } }} style={{ cursor:'pointer', color:'#999', fontSize:18 }}>✕</span>
+                  <button type="button" aria-label="Close" onClick={()=>{ if(!rendering){ setRenderUrl(null); setRenderErr(''); } }} style={{ background:'none', border:'none', cursor:'pointer', color:'#999', fontSize:18 }}>✕</button>
                 </div>
                 <div style={{ padding:18, textAlign:'center' }}>
                   {rendering && <div style={{ padding:'50px 0', color:'#6e6e73', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>Creating your photorealistic render… ~15–25 seconds.</div></div>}
@@ -1794,9 +1819,9 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             <h3 className="display" style={{ fontSize:24, color:'var(--ink)', margin:'0 0 6px' }}>Where shall we send your quote?</h3>
             <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 18px', lineHeight:1.6 }}>Our design team will review your {selProduct?.name?.toLowerCase()||'design'} and get back with an exact, itemised quote.</p>
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-              <input value={qForm.name} onChange={e=>setQForm(s=>({...s,name:e.target.value}))} placeholder="Your name" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
-              <input value={qForm.phone} onChange={e=>setQForm(s=>({...s,phone:e.target.value}))} placeholder="Phone (+973…)" inputMode="tel" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
-              <input value={qForm.email} onChange={e=>setQForm(s=>({...s,email:e.target.value}))} placeholder="Email (optional)" inputMode="email" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
+              <input value={qForm.name} onChange={e=>setQForm(s=>({...s,name:e.target.value}))} aria-label="Your name" placeholder="Your name" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
+              <input value={qForm.phone} onChange={e=>setQForm(s=>({...s,phone:e.target.value}))} aria-label="Phone (+973…)" placeholder="Phone (+973…)" inputMode="tel" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
+              <input value={qForm.email} onChange={e=>setQForm(s=>({...s,email:e.target.value}))} aria-label="Email (optional)" placeholder="Email (optional)" inputMode="email" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
             </div>
             <div style={{ display:'flex', gap:10, marginTop:18 }}>
               <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>Cancel</button>
@@ -1902,7 +1927,7 @@ function HomeHub({ user, setUser, setPage }) {
   };
   const Pill = ({ label, color, bg }) => <span style={{ display: 'inline-flex', padding: '4px 10px', borderRadius: 980, background: bg, color, fontSize: 12, fontWeight: 500 }}>{label}</span>;
   return (
-    <div style={{ minHeight: '100vh', paddingTop: mobile ? 0 : 56, paddingBottom: mobile ? 80 : 0, background: '#f5f5f7' }}>
+    <div style={{ minHeight: '100dvh', paddingTop: mobile ? 0 : 56, paddingBottom: mobile ? 80 : 0, background: '#f5f5f7' }}>
       {/* Mobile header */}
       {mobile && (
         <div style={{ background: '#fff', padding: '16px 16px 0', borderBottom: '1px solid #f5f5f7' }}>
@@ -2160,7 +2185,7 @@ function HomeHub({ user, setUser, setPage }) {
               <select className="inp" value={cmpForm.category} onChange={e=>setCmpForm(p=>({...p,category:e.target.value}))} style={{ marginBottom:10 }}>
                 {['Quality Issue','Delivery Problem','Incomplete Install','Design Discrepancy','Maintenance','Other'].map(c=><option key={c}>{c}</option>)}
               </select>
-              <textarea className="inp" rows={3} placeholder="Describe your issue…" value={cmpForm.description} onChange={e=>setCmpForm(p=>({...p,description:e.target.value}))} style={{ marginBottom:12, resize:'vertical' }} />
+              <textarea className="inp" rows={3} aria-label="Describe your issue" placeholder="Describe your issue…" value={cmpForm.description} onChange={e=>setCmpForm(p=>({...p,description:e.target.value}))} style={{ marginBottom:12, resize:'vertical' }} />
               <button type="button" className="btn" onClick={submitComplaint} style={{ borderRadius:12 }}>Submit Request</button>
             </div>
             {complaints.map(c=>(
@@ -2174,8 +2199,8 @@ function HomeHub({ user, setUser, setPage }) {
           {tab === 'support' && <>
             <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>Support</h2>
             <div style={{ background:'#fff', borderRadius:20, padding:20, border:'1px solid #e6e6e6', marginBottom:14 }}>
-              <input className="inp" placeholder="Subject" value={tktForm.subject} onChange={e=>setTktForm(p=>({...p,subject:e.target.value}))} style={{ marginBottom:10 }} />
-              <textarea className="inp" rows={3} placeholder="Description…" value={tktForm.description} onChange={e=>setTktForm(p=>({...p,description:e.target.value}))} style={{ marginBottom:10, resize:'vertical' }} />
+              <input className="inp" placeholder="Subject" aria-label="Subject" value={tktForm.subject} onChange={e=>setTktForm(p=>({...p,subject:e.target.value}))} style={{ marginBottom:10 }} />
+              <textarea className="inp" rows={3} placeholder="Description…" aria-label="Description" value={tktForm.description} onChange={e=>setTktForm(p=>({...p,description:e.target.value}))} style={{ marginBottom:10, resize:'vertical' }} />
               <select className="inp" value={tktForm.priority} onChange={e=>setTktForm(p=>({...p,priority:e.target.value}))} style={{ marginBottom:12 }}>
                 {['Low','Medium','High','Urgent'].map(p=><option key={p}>{p}</option>)}
               </select>
@@ -2262,22 +2287,22 @@ function AuthModal({ mode, setMode, setUser, onClose }) {
           <div style={{ fontSize:14, color:'#86868b' }}>{mode==='reset'?"We'll help you back in":mode==='login'?'Sign in to your Hub':'Join and earn 100 welcome points'}</div>
         </div>
         {mode!=='reset' && (<div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-          {mode==='register'&&<input className="inp" placeholder="Full name" value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} />}
-          <input className="inp" placeholder={t("email")} type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} autoCapitalize="none" />
-          {mode==='register'&&<input className="inp" placeholder="Phone (optional)" value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} />}
-          <input className="inp" placeholder="Password" type="password" value={form.password} onChange={e=>setForm(p=>({...p,password:e.target.value}))} onKeyDown={e=>e.key==='Enter'&&submit()} />
+          {mode==='register'&&<input className="inp" placeholder="Full name" aria-label="Full name" value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} />}
+          <input className="inp" placeholder={t("email")} aria-label={t("email")} type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} autoCapitalize="none" />
+          {mode==='register'&&<input className="inp" placeholder="Phone (optional)" aria-label="Phone (optional)" value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} />}
+          <input className="inp" placeholder="Password" aria-label="Password" type="password" value={form.password} onChange={e=>setForm(p=>({...p,password:e.target.value}))} onKeyDown={e=>e.key==='Enter'&&submit()} />
           <button type="button" className="btn" onClick={submit} disabled={loading} style={{ borderRadius:14, opacity:loading?.7:1 }}>{loading?'Please wait…':mode==='login'?'Sign In':'Create Account'}</button>
         </div>)}
         {mode==='reset' && (<div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-          <input className="inp" placeholder={t("email")} type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} autoCapitalize="none" />
-          {rstep==='request' && (<>
+          <input className="inp" placeholder={t("email")} aria-label={t("email")} type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} autoCapitalize="none" />
+  {rstep==='request' && (<>
             <button type="button" className="btn" onClick={()=>reqReset('email')} disabled={loading} style={{ borderRadius:14 }}>📧 Email me a reset link</button>
             <button type="button" onClick={()=>reqReset('otp')} disabled={loading} style={{ borderRadius:14, padding:'12px', background:'#fff', color:'var(--clay)', border:'1px solid var(--clay)', fontWeight:600, cursor:'pointer' }}>📱 Text me a code</button>
           </>)}
           {rstep==='emailsent' && (<div style={{ fontSize:13, color:'#86868b', textAlign:'center' }}>Check your email for a reset link — it opens your account to set a new password.</div>)}
           {rstep==='otp' && (<>
-            <input className="inp" placeholder="6-digit code" inputMode="numeric" value={rotp} onChange={e=>setRotp(e.target.value)} />
-            <input className="inp" placeholder="New password (6+ characters)" type="password" value={rnew} onChange={e=>setRnew(e.target.value)} />
+            <input className="inp" placeholder="6-digit code" aria-label="6-digit code" inputMode="numeric" value={rotp} onChange={e=>setRotp(e.target.value)} />
+            <input className="inp" placeholder="New password (6+ characters)" aria-label="New password (6+ characters)" type="password" value={rnew} onChange={e=>setRnew(e.target.value)} />
             <button type="button" className="btn" onClick={doResetOtp} disabled={loading} style={{ borderRadius:14 }}>Set new password</button>
           </>)}
         </div>)}
@@ -2286,7 +2311,7 @@ function AuthModal({ mode, setMode, setUser, onClose }) {
           {mode==='login' && <button type="button" onClick={()=>{ setRstep('request'); setMode('reset'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#86868b', fontWeight:500 }}>Forgot your password?</button>}
           {mode==='reset' && <button type="button" onClick={()=>{ setMode('login'); setRstep('request'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#86868b', fontWeight:500 }}>← Back to sign in</button>}
         </div>
-        {!mobile && <button type="button" onClick={onClose} style={{ position:'absolute', top:14, right:16, background:'#f5f5f7', border:'none', borderRadius:'50%', width:30, height:30, cursor:'pointer', color:'#86868b', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>}
+        {!mobile && <button type="button" aria-label="Close" onClick={onClose} style={{ position:'absolute', top:14, right:16, background:'#f5f5f7', border:'none', borderRadius:'50%', width:30, height:30, cursor:'pointer', color:'#86868b', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>}
       </div>
     </>
   );
@@ -2298,7 +2323,7 @@ function AboutPage() {
   const { t } = useI18n();
   useReveal();
   return (
-    <div style={{ minHeight:'100vh', paddingTop: mobile ? 16 : 72, paddingBottom: mobile ? 80 : 0, background:'#fff' }}>
+    <div style={{ minHeight:'100dvh', paddingTop: mobile ? 16 : 72, paddingBottom: mobile ? 80 : 0, background:'#fff' }}>
       <div style={{ maxWidth:860, margin:'0 auto', padding: mobile ? '24px 16px 60px' : '60px 40px 100px' }}>
         <div style={{ fontSize:13, fontWeight:500, color:'var(--clay)', marginBottom:12 }}>{t('ourStory')}</div>
         <h1 style={{ fontSize: mobile ? 36 : 64, fontWeight:700, letterSpacing:'-.04em', color:'#1d1d1f', lineHeight:1.05, marginBottom:32 }}>{t('precision')}<br />{t('permanence')}</h1>
@@ -2359,7 +2384,7 @@ function DirectoryPage({ setPage }) {
   const tabs = [['','All'],['vendor','Vendors & Partners'],['customer','Members'],['employee','Team']];
   return (
     <PageWrap title="Directory" sub="Verified vendors, partners and members of The Closets International">
-      <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search by name, trade or location…"
+      <input value={q} onChange={e=>setQ(e.target.value)} aria-label="Search by name, trade or location" placeholder="Search by name, trade or location…"
         style={{ width:'100%', maxWidth:520, padding:'13px 18px', borderRadius:980, border:'1px solid #ececec', fontSize:15, marginBottom:16, fontFamily:'inherit' }}/>
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:24 }}>
         {tabs.map(([id,label]) => (
@@ -2376,6 +2401,7 @@ function DirectoryPage({ setPage }) {
 function ContactPage() {
   const [form, setForm] = useState({ name:'', email:'', phone:'', product:'', budget:'', message:'' });
   const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [team, setTeam] = useState([]);
   useEffect(() => {
     cardRpc('card_directory', { p_type:'employee', p_search:null, p_limit:12 })
@@ -2386,17 +2412,25 @@ function ContactPage() {
   useReveal();
   const submit = async () => {
     if (!form.name||!form.email) { toast('Name and email required', 'error'); return; }
-    // Route through the audited public_lead_submit RPC (validates, writes lead, queues team notification)
-    await api('rpc/public_lead_submit', { method:'POST', body:{
-      p_name: form.name, p_phone: form.phone || null, p_email: form.email || null,
-      p_source: 'Website - Contact', p_interest: form.product || null,
-      p_message: form.message || null, p_budget: form.budget ? Number(form.budget) : null,
-      p_meta: { page: 'contact' }
-    }});
-    setSent(true); toast('Message sent ✓', 'success');
+    if (busy) return;
+    setBusy(true);
+    try {
+      // Route through the audited public_lead_submit RPC (validates, writes lead, queues team notification)
+      await api('rpc/public_lead_submit', { method:'POST', body:{
+        p_name: form.name, p_phone: form.phone || null, p_email: form.email || null,
+        p_source: 'Website - Contact', p_interest: form.product || null,
+        p_message: form.message || null, p_budget: form.budget ? Number(form.budget) : null,
+        p_meta: { page: 'contact' }
+      }});
+      setSent(true); toast('Message sent ✓', 'success');
+    } catch {
+      toast('Could not send, please try again', 'error');
+    } finally {
+      setBusy(false);
+    }
   };
   return (
-    <div style={{ minHeight:'100vh', paddingTop: mobile ? 88 : 112, paddingBottom: mobile ? 80 : 60, background:'var(--cream)' }}>
+    <div style={{ minHeight:'100dvh', paddingTop: mobile ? 88 : 112, paddingBottom: mobile ? 80 : 60, background:'var(--cream)' }}>
       <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile ? '0 24px' : '0 32px', display: mobile ? 'block' : 'grid', gridTemplateColumns:'1fr 1fr', gap:72, alignItems:'start' }}>
         <div className="rv-l" style={{ marginBottom: mobile ? 36 : 0 }}>
           <div className="eyebrow" style={{ marginBottom:14 }}>Get in touch</div>
@@ -2419,19 +2453,19 @@ function ContactPage() {
           </div>
         ) : (
           <div className="rv-r" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:22, padding: mobile?22:30, display:'flex', flexDirection:'column', gap:12 }}>
-            <input className="inp" placeholder={t("yourName")} value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
-            <input className="inp" placeholder="Email" type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
-            <input className="inp" placeholder={t("phone")} value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
-            <select className="inp" value={form.product} onChange={e=>setForm(p=>({...p,product:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }}>
+            <input className="inp" placeholder={t("yourName")} aria-label={t("yourName")} value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
+            <input className="inp" placeholder="Email" aria-label="Email" type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
+            <input className="inp" placeholder={t("phone")} aria-label={t("phone")} value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
+            <select className="inp" value={form.product} onChange={e=>setForm(p=>({...p,product:e.target.value}))} aria-label="Interested in" style={{ background:'var(--cream)', border:'1px solid var(--line)' }}>
               <option value="">Interested in…</option>
               {['Walk-In Wardrobe','Sliding Door','Hinged Door','Kitchen','Office','Kids Room'].map(o=><option key={o}>{o}</option>)}
             </select>
-            <select className="inp" value={form.budget} onChange={e=>setForm(p=>({...p,budget:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }}>
+            <select className="inp" value={form.budget} onChange={e=>setForm(p=>({...p,budget:e.target.value}))} aria-label={t('budgetRange')} style={{ background:'var(--cream)', border:'1px solid var(--line)' }}>
               <option value="">{t('budgetRange')}</option>
               {['BD 200–500','BD 500–1,000','BD 1,000–2,500','BD 2,500–5,000','BD 5,000+'].map(o=><option key={o}>{o}</option>)}
             </select>
-            <textarea className="inp" rows={4} placeholder={t("tellProject")} value={form.message} onChange={e=>setForm(p=>({...p,message:e.target.value}))} style={{ resize:'vertical', background:'var(--cream)', border:'1px solid var(--line)' }} />
-            <button type="button" className="btn-clay" onClick={submit} style={{ marginTop:4 }}>{t('sendMessage')}</button>
+            <textarea className="inp" rows={4} placeholder={t("tellProject")} aria-label={t("tellProject")} value={form.message} onChange={e=>setForm(p=>({...p,message:e.target.value}))} style={{ resize:'vertical', background:'var(--cream)', border:'1px solid var(--line)' }} />
+            <button type="button" className="btn-clay" disabled={busy} onClick={submit} style={{ marginTop:4, opacity:busy?.6:1 }}>{busy ? 'Sending…' : t('sendMessage')}</button>
           </div>
         )}
       </div>
@@ -2487,7 +2521,7 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
     setCart([]); setStep(3);
   };
   return (
-    <div style={{ minHeight:'100vh', paddingTop: mobile ? 0 : 56, paddingBottom: mobile ? 80 : 0, background:'#f5f5f7' }}>
+    <div style={{ minHeight:'100dvh', paddingTop: mobile ? 0 : 56, paddingBottom: mobile ? 80 : 0, background:'#f5f5f7' }}>
       <div style={{ maxWidth:960, margin:'0 auto', padding: mobile ? '24px 16px' : '40px 40px 80px' }}>
         <h1 style={{ fontSize: mobile ? 26 : 32, fontWeight:700, letterSpacing:'-.03em', color:'#1d1d1f', marginBottom:24 }}>{t('checkout')}</h1>
         {step===3 ? (
@@ -2546,7 +2580,7 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
                     {months>0 && <div style={{ marginTop:10, fontSize:13, color:'#16a34a', fontWeight:600 }}>✓ {months} payments of BHD {monthly.toFixed(2)} — our team will confirm the plan with you.</div>}
                   </div>
                 )}
-                <textarea className="inp" rows={3} placeholder="Notes…" value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))} style={{ resize:'vertical', marginBottom:16 }} />
+                <textarea className="inp" rows={3} placeholder="Notes…" aria-label="Notes" value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))} style={{ resize:'vertical', marginBottom:16 }} />
                 <div style={{ display:'flex', gap:10 }}>
                   <button type="button" className="btn-secondary" onClick={()=>setStep(1)} style={{ borderRadius:12 }}>← Back</button>
                   <button type="button" className="btn" onClick={place} style={{ flex:1, borderRadius:12 }}>Place Order</button>
@@ -2788,7 +2822,7 @@ function HomePage({ products, testimonials, banners, siteLogo, setPage, addToCar
 function PageWrap({ title, sub, eyebrow, children }) {
   const mobile = useMobile();
   useReveal();
-  return (<div style={{ minHeight:'100vh', paddingTop: mobile?88:112, paddingBottom:90, background:'var(--cream)' }}>
+  return (<div style={{ minHeight:'100dvh', paddingTop: mobile?88:112, paddingBottom:90, background:'var(--cream)' }}>
     <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'0 24px':'0 32px' }}>
       <div className="rv" style={{ maxWidth:700, marginBottom:40 }}>
         {eyebrow && <div className="eyebrow" style={{ marginBottom:14 }}>{eyebrow}</div>}
@@ -2865,10 +2899,10 @@ function CareersPage() {
         {openId===j.id && (sentFor===j.id
           ? <div style={{ marginTop:16, color:'#1D7A4D', fontWeight:600 }}>Thank you — we&#39;ll be in touch.</div>
           : <div style={{ marginTop:16, display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-              <input placeholder="Full name *" value={f.name} onChange={e=>setF({...f,name:e.target.value})} style={inp} />
-              <input placeholder="Phone *" value={f.phone} onChange={e=>setF({...f,phone:e.target.value})} style={inp} />
-              <input placeholder="Email" value={f.email} onChange={e=>setF({...f,email:e.target.value})} style={inp} />
-              <input placeholder="Note (optional)" value={f.note} onChange={e=>setF({...f,note:e.target.value})} style={inp} />
+              <input placeholder="Full name *" aria-label="Full name" value={f.name} onChange={e=>setF({...f,name:e.target.value})} style={inp} />
+              <input placeholder="Phone *" aria-label="Phone" value={f.phone} onChange={e=>setF({...f,phone:e.target.value})} style={inp} />
+              <input placeholder="Email" aria-label="Email" value={f.email} onChange={e=>setF({...f,email:e.target.value})} style={inp} />
+              <input placeholder="Note (optional)" aria-label="Note (optional)" value={f.note} onChange={e=>setF({...f,note:e.target.value})} style={inp} />
               <button type="button" onClick={()=>apply(j)} style={{ gridColumn:'1 / -1', background:'#1d1d1f', color:'#fff', border:'none', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, cursor:'pointer' }}>Submit application</button>
             </div>)}
       </div>))}
@@ -2876,7 +2910,7 @@ function CareersPage() {
     </div>
   </PageWrap>);
 }
-const inp = { background:'#f5f5f7', border:'1px solid #e5e5e7', borderRadius:12, padding:'11px 14px', fontSize:14, color:'#1d1d1f', width:'100%' };
+const inp = { background:'var(--sand)', border:'1px solid var(--line)', borderRadius:12, padding:'11px 14px', fontSize:14, color:'var(--ink)', width:'100%' };
 
 function OffersPage({ setPage }) {
   const [rows,setRows]=useState([]);
@@ -2940,7 +2974,7 @@ function ServicesPage({ user, setPage, openAuth }) {
   };
   const price = (c) => c.pricing_model === 'fixed' ? ('From BD ' + c.base_price) : c.pricing_model === 'hourly' ? ('BD ' + c.base_price + '/hr') : 'Free quote';
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--cream)', paddingTop: 104, paddingBottom: 90 }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--cream)', paddingTop: 104, paddingBottom: 90 }}>
       <div style={{ maxWidth: 1180, margin: '0 auto', padding: '0 24px' }}>
         <div className="rv" style={{ maxWidth: 680, marginBottom: 36 }}>
           <div className="eyebrow" style={{ marginBottom: 14 }}>Home services</div>
@@ -2972,7 +3006,7 @@ function ServicesPage({ user, setPage, openAuth }) {
           <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cream)', borderRadius: 22, maxWidth: 480, width: '100%', padding: 26, maxHeight: '90vh', overflow: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
               <h2 className="display" style={{ fontSize: 24, color: 'var(--ink)', margin: 0 }}>{sel.name_en}</h2>
-              <button onClick={() => setSel(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: 'var(--muted)' }}>✕</button>
+              <button type="button" aria-label="Close" onClick={() => setSel(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: 'var(--muted)' }}>✕</button>
             </div>
             {done ? (
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
@@ -2996,9 +3030,9 @@ function ServicesPage({ user, setPage, openAuth }) {
                     </select>
                   </div>
                 )}
-                <input className="inp" value={area} onChange={e => setArea(e.target.value)} placeholder="Area (e.g. Riffa)" style={{ background: '#fff', border: '1px solid var(--line)', marginBottom: 10 }} />
-                <input className="inp" value={address} onChange={e => setAddress(e.target.value)} placeholder="Address / building, road, block" style={{ background: '#fff', border: '1px solid var(--line)', marginBottom: 10 }} />
-                <textarea className="inp" value={notes} onChange={e => setNotes(e.target.value)} placeholder="What do you need? Describe the job…" rows={3} style={{ background: '#fff', border: '1px solid var(--line)', marginBottom: 14, resize: 'vertical' }} />
+                <input className="inp" value={area} onChange={e => setArea(e.target.value)} aria-label="Area (e.g. Riffa)" placeholder="Area (e.g. Riffa)" style={{ background: '#fff', border: '1px solid var(--line)', marginBottom: 10 }} />
+                <input className="inp" value={address} onChange={e => setAddress(e.target.value)} aria-label="Address / building, road, block" placeholder="Address / building, road, block" style={{ background: '#fff', border: '1px solid var(--line)', marginBottom: 10 }} />
+                <textarea className="inp" value={notes} onChange={e => setNotes(e.target.value)} aria-label="What do you need? Describe the job" placeholder="What do you need? Describe the job…" rows={3} style={{ background: '#fff', border: '1px solid var(--line)', marginBottom: 14, resize: 'vertical' }} />
                 <button className="btn-clay" disabled={busy} onClick={submit} style={{ width: '100%' }}>{busy ? 'Sending…' : 'Send request'}</button>
               </>
             )}
@@ -3031,14 +3065,14 @@ function BookingPage({ setPage }) {
         {APPT_KINDS.map(k=>(<button type="button" key={k} onClick={()=>set('type',k)} style={{ padding:'9px 16px', borderRadius:980, cursor:'pointer', fontSize:13, fontWeight:600, background:f.type===k?'var(--clay)':'var(--sand)', color:f.type===k?'#fff':'var(--ink)', border:'1px solid '+(f.type===k?'var(--clay)':'var(--line)') }}>{k}</button>))}
       </div>
       <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:12 }}>
-        <input placeholder="Full name *" value={f.name} onChange={e=>set('name',e.target.value)} style={inp} />
-        <input placeholder="Phone *" value={f.phone} onChange={e=>set('phone',e.target.value)} style={inp} />
-        <input placeholder="Email" value={f.email} onChange={e=>set('email',e.target.value)} style={inp} />
+        <input placeholder="Full name *" aria-label="Full name" value={f.name} onChange={e=>set('name',e.target.value)} style={inp} />
+        <input placeholder="Phone *" aria-label="Phone" value={f.phone} onChange={e=>set('phone',e.target.value)} style={inp} />
+        <input placeholder="Email" aria-label="Email" value={f.email} onChange={e=>set('email',e.target.value)} style={inp} />
         <select value={f.interest} onChange={e=>set('interest',e.target.value)} style={inp}>{['Kitchen','Wardrobe','Walk-In Closet','TV Unit','Doors','Storage','Other'].map(x=><option key={x}>{x}</option>)}</select>
         <input type="date" value={f.date} onChange={e=>set('date',e.target.value)} style={inp} />
         <select value={f.slot} onChange={e=>set('slot',e.target.value)} style={inp}>{APPT_SLOTS.map(x=><option key={x}>{x}</option>)}</select>
-        <input placeholder="Address (for home/site visit)" value={f.address} onChange={e=>set('address',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1'}} />
-        <textarea placeholder="Notes (optional)" rows={3} value={f.notes} onChange={e=>set('notes',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1', resize:'vertical'}} />
+        <input placeholder="Address (for home/site visit)" aria-label="Address (for home/site visit)" value={f.address} onChange={e=>set('address',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1'}} />
+        <textarea placeholder="Notes (optional)" aria-label="Notes (optional)" rows={3} value={f.notes} onChange={e=>set('notes',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1', resize:'vertical'}} />
       </div>
       <button type="button" className="btn-clay" disabled={busy} onClick={submit} style={{ marginTop:18, width:'100%', opacity:busy?.6:1 }}>{busy?'Submitting…':'Request my free visit'}</button>
     </div>
@@ -3060,11 +3094,11 @@ function RequestPage({ kind, title, sub, refLabel }) {
   return (<PageWrap title={title} sub={sub}>
     <div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding: mobile?20:28, maxWidth:640, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
       <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:12 }}>
-        <input placeholder="Full name *" value={f.name} onChange={e=>set('name',e.target.value)} style={inp} />
-        <input placeholder="Phone *" value={f.phone} onChange={e=>set('phone',e.target.value)} style={inp} />
-        <input placeholder="Email" value={f.email} onChange={e=>set('email',e.target.value)} style={inp} />
-        <input placeholder={refLabel+' (optional)'} value={f.ref} onChange={e=>set('ref',e.target.value)} style={inp} />
-        <textarea placeholder="Describe the issue / request" rows={4} value={f.message} onChange={e=>set('message',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1', resize:'vertical'}} />
+        <input placeholder="Full name *" aria-label="Full name" value={f.name} onChange={e=>set('name',e.target.value)} style={inp} />
+        <input placeholder="Phone *" aria-label="Phone" value={f.phone} onChange={e=>set('phone',e.target.value)} style={inp} />
+        <input placeholder="Email" aria-label="Email" value={f.email} onChange={e=>set('email',e.target.value)} style={inp} />
+        <input placeholder={refLabel+' (optional)'} aria-label={refLabel+' (optional)'} value={f.ref} onChange={e=>set('ref',e.target.value)} style={inp} />
+        <textarea placeholder="Describe the issue / request" aria-label="Describe the issue / request" rows={4} value={f.message} onChange={e=>set('message',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1', resize:'vertical'}} />
       </div>
       <button type="button" disabled={busy} onClick={submit} style={{ marginTop:18, width:'100%', background:'var(--clay)', color:'#fff', border:'none', borderRadius:14, padding:'14px', fontSize:15, fontWeight:600, cursor:'pointer', opacity:busy?.6:1 }}>{busy?'Submitting…':'Submit request'}</button>
     </div>
@@ -3170,10 +3204,10 @@ function AIDesignerPage({ setPage, user }) {
         </>)}
         {/* Notes / describe */}
         <div className="eyebrow" style={{ marginBottom:10 }}>{needsPhoto?'5 · Anything specific? (optional)':'3 · Describe your space'}</div>
-        <textarea value={f.requirements} onChange={e=>set('requirements',e.target.value)} rows={needsPhoto?2:4} placeholder={needsPhoto?'e.g. more shoe storage, soft lighting, hidden laundry':'e.g. a walk-in closet for a master bedroom, warm oak, lots of shoe and hanging space, soft lighting'} style={{...inpS, resize:'vertical', marginBottom:12}} />
+        <textarea value={f.requirements} onChange={e=>set('requirements',e.target.value)} rows={needsPhoto?2:4} aria-label="Describe your requirements" placeholder={needsPhoto?'e.g. more shoe storage, soft lighting, hidden laundry':'e.g. a walk-in closet for a master bedroom, warm oak, lots of shoe and hanging space, soft lighting'} style={{...inpS, resize:'vertical', marginBottom:12}} />
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:16 }}>
-          <input value={f.budget} onChange={e=>set('budget',e.target.value)} placeholder="Budget BHD (optional)" inputMode="numeric" style={inpS} />
-          <input value={f.w} onChange={e=>set('w',e.target.value)} placeholder="Width cm (optional)" inputMode="numeric" style={inpS} />
+          <input value={f.budget} onChange={e=>set('budget',e.target.value)} aria-label="Budget BHD (optional)" placeholder="Budget BHD (optional)" inputMode="numeric" style={inpS} />
+          <input value={f.w} onChange={e=>set('w',e.target.value)} aria-label="Width cm (optional)" placeholder="Width cm (optional)" inputMode="numeric" style={inpS} />
         </div>
         <button type="button" className="btn-clay" disabled={busy||renderBusy} onClick={generate} style={{ width:'100%', borderRadius:14, padding:'14px', fontSize:15, opacity:(busy||renderBusy)?.6:1 }}>{(busy||renderBusy)?'Designing…':'Generate my design ✦'}</button>
       </div>
@@ -3208,7 +3242,7 @@ function AIDesignerPage({ setPage, user }) {
               </div>
               <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:12 }}>
                 <span style={{ fontSize:11, color:'var(--muted)', alignSelf:'center', marginRight:2 }}>Try another style:</span>
-                {STYLES.map(s=>(<button key={s.id} type="button" onClick={()=>tryStyle(s.id)} title={s.name} style={{ width:26, height:26, borderRadius:8, background:s.g, border: f.style===s.id?'2px solid var(--clay)':'1px solid var(--line)', cursor:'pointer' }} />))}
+                {STYLES.map(s=>(<button key={s.id} type="button" onClick={()=>tryStyle(s.id)} title={s.name} aria-label={'Try ' + s.name} style={{ width:26, height:26, borderRadius:8, background:s.g, border: f.style===s.id?'2px solid var(--clay)':'1px solid var(--line)', cursor:'pointer' }} />))}
               </div>
             </>)}
           </div>
@@ -3221,10 +3255,10 @@ function AIDesignerPage({ setPage, user }) {
           <h2 className="display" style={{ fontSize:26, color:'var(--ink)', margin:'6px 0 4px' }}>{concept.title}</h2>
           <div style={{ fontSize:13, color:'var(--muted)' }}>{concept.product} · {concept.layout} · {concept.finish_id} finish · {concept.width_cm}×{concept.height_cm}cm</div>
           <p style={{ fontSize:15, color:'var(--ink-soft)', lineHeight:1.65, marginTop:12 }}>{concept.summary}</p>
-          {concept.materials?.length>0 && <><h4 style={{ fontSize:12, fontWeight:700, color:'var(--ink)', marginTop:16, marginBottom:8 }}>MATERIALS</h4><div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>{concept.materials.map((m,i)=><span key={i}>{chip(m)}</span>)}</div></>}
-          {concept.colors?.length>0 && <><h4 style={{ fontSize:12, fontWeight:700, color:'var(--ink)', marginTop:16, marginBottom:8 }}>COLOURS</h4><div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>{concept.colors.map((m,i)=><span key={i}>{chip(m)}</span>)}</div></>}
-          {concept.storage_ideas?.length>0 && <><h4 style={{ fontSize:12, fontWeight:700, color:'var(--ink)', marginTop:16, marginBottom:8 }}>STORAGE IDEAS</h4><ul style={{ margin:0, paddingLeft:18, color:'var(--ink-soft)', fontSize:14, lineHeight:1.7 }}>{concept.storage_ideas.map((m,i)=><li key={i}>{m}</li>)}</ul></>}
-          <h4 style={{ fontSize:12, fontWeight:700, color:'var(--ink)', marginTop:18, marginBottom:8 }}>PACKAGES (indicative)</h4>
+          {concept.materials?.length>0 && <><h3 style={{ fontSize:12, fontWeight:700, color:'var(--ink)', marginTop:16, marginBottom:8 }}>MATERIALS</h3><div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>{concept.materials.map((m,i)=><span key={i}>{chip(m)}</span>)}</div></>}
+          {concept.colors?.length>0 && <><h3 style={{ fontSize:12, fontWeight:700, color:'var(--ink)', marginTop:16, marginBottom:8 }}>COLOURS</h3><div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>{concept.colors.map((m,i)=><span key={i}>{chip(m)}</span>)}</div></>}
+          {concept.storage_ideas?.length>0 && <><h3 style={{ fontSize:12, fontWeight:700, color:'var(--ink)', marginTop:16, marginBottom:8 }}>STORAGE IDEAS</h3><ul style={{ margin:0, paddingLeft:18, color:'var(--ink-soft)', fontSize:14, lineHeight:1.7 }}>{concept.storage_ideas.map((m,i)=><li key={i}>{m}</li>)}</ul></>}
+          <h3 style={{ fontSize:12, fontWeight:700, color:'var(--ink)', marginTop:18, marginBottom:8 }}>PACKAGES (indicative)</h3>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
             {(concept.packages||[]).map((p,i)=>(<div key={p.tier} style={{ border:'1px solid '+(i===1?'var(--clay)':'var(--line)'), background:i===1?'var(--sand)':'#fff', borderRadius:12, padding:'12px 14px' }}>
               <div style={{ fontSize:13, fontWeight:700, color:i===1?'var(--clay-deep)':'var(--ink)' }}>{p.tier}{i===1?' · recommended':''}</div>
@@ -3304,7 +3338,7 @@ function ChatWidget({ setPage }) {
           {msgs.length<=1 && <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>{chips.map(c=>(<button key={c} type="button" onClick={()=>{ if(c==='Book a free visit'){ setOpen(false); setPage('booking'); } else send(c); }} style={{ fontSize:12, border:'1px solid #e0e0e0', borderRadius:16, padding:'6px 12px', background:'#fff', cursor:'pointer', color:'#1d1d1f' }}>{c}</button>))}</div>}
         </div>
         <div style={{ display:'flex', gap:8, padding:'12px', borderTop:'1px solid #ececec' }}>
-          <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter') send(); }} placeholder="Ask anything…" style={{ flex:1, border:'1px solid #e0e0e0', borderRadius:980, padding:'10px 16px', fontSize:14, outline:'none' }} />
+          <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter') send(); }} aria-label="Ask anything" placeholder="Ask anything…" style={{ flex:1, border:'1px solid #e0e0e0', borderRadius:980, padding:'10px 16px', fontSize:14, outline:'none' }} />
           <button type="button" onClick={()=>send()} disabled={busy||!input.trim()} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:'50%', width:40, height:40, cursor:'pointer', flexShrink:0, opacity:(busy||!input.trim())?0.5:1 }}><SendIcon size={18} color="#fff" /></button>
         </div>
       </div>
@@ -3468,7 +3502,7 @@ function WrenPlannerPage({ setPage, user }) {
   const back = () => setStep(s=>Math.max(1,s-1));
 
   return (
-    <div style={{ minHeight:'100vh', background:'var(--cream)', paddingTop: mobile?86:104, paddingBottom:90 }}>
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?86:104, paddingBottom:90 }}>
       <div style={{ maxWidth:1080, margin:'0 auto', padding: mobile?'0 18px':'0 28px' }}>
         <div style={{ textAlign:'center', marginBottom:22 }}>
           <div className="eyebrow" style={{ marginBottom:12 }}>Kitchen design · online planner</div>
@@ -3567,9 +3601,9 @@ function WrenPlannerPage({ setPage, user }) {
                 <div style={{ marginTop:4 }}><b style={{ color:'var(--clay-deep)' }}>Estimate · {fmt(est)}</b></div>
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} placeholder="Your name" style={inS} />
-                <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} placeholder="Phone (+973…)" inputMode="tel" style={inS} />
-                <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} placeholder="Email (optional)" inputMode="email" style={inS} />
+                <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} aria-label="Your name" placeholder="Your name" style={inS} />
+                <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} aria-label="Phone (+973…)" placeholder="Phone (+973…)" inputMode="tel" style={inS} />
+                <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} aria-label="Email (optional)" placeholder="Email (optional)" inputMode="email" style={inS} />
                 <input type="date" value={contact.date} onChange={e=>setContact(c=>({...c,date:e.target.value}))} style={inS} />
               </div>
               <button type="button" className="btn-clay" disabled={busy} onClick={book} style={{ width:'100%', marginTop:14, borderRadius:14, opacity:busy?.6:1 }}>{busy?'Sending…':'Book my free design appointment'}</button>
@@ -3577,7 +3611,7 @@ function WrenPlannerPage({ setPage, user }) {
 
             {/* Nav */}
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:20, gap:10 }}>
-              {step>1 ? <button type="button" onClick={back} style={{ background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'11px 18px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>‹ Back</button> : <span onClick={()=>setPage('home')} style={{ cursor:'pointer', fontSize:13, color:'var(--muted)' }}>Close ✕</span>}
+              {step>1 ? <button type="button" onClick={back} style={{ background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'11px 18px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>‹ Back</button> : <button type="button" aria-label="Close" onClick={()=>setPage('home')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>Close ✕</button>}
               {step<5 && <button type="button" className="btn-clay" onClick={next} style={{ borderRadius:12, minWidth:140 }}>Continue →</button>}
             </div>
           </div>
@@ -3670,7 +3704,7 @@ function KitchenStudioPage({ setPage, user }) {
   const TABS=[['units','Units'],['room','Room'],['style','Style'],['finish','Finishes']];
 
   return (
-    <div style={{ minHeight:'100vh', background:'var(--cream)', paddingTop: mobile?86:104, paddingBottom:90 }}>
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?86:104, paddingBottom:90 }}>
       <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' }}>
         <div style={{ textAlign:'center', marginBottom:20 }}>
           <div className="eyebrow" style={{ marginBottom:12 }}>Kitchen design · online planner</div>
@@ -3759,7 +3793,7 @@ function KitchenStudioPage({ setPage, user }) {
               </div>
             </>)}
 
-            <div style={{ marginTop:18, textAlign:'center' }}><span onClick={()=>setPage('home')} style={{ cursor:'pointer', fontSize:13, color:'var(--muted)' }}>Close ✕</span></div>
+            <div style={{ marginTop:18, textAlign:'center' }}><button type="button" aria-label="Close" onClick={()=>setPage('home')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>Close ✕</button></div>
           </div>
         </div>
       </div>
@@ -3772,9 +3806,9 @@ function KitchenStudioPage({ setPage, user }) {
             <h3 className="display" style={{ fontSize:24, color:'var(--ink)', margin:'0 0 6px' }}>Book your free design visit</h3>
             <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)', lineHeight:1.6 }}>{all.length} units · {st.name} · {wt[1]} worktop · <b style={{ color:'var(--clay-deep)' }}>{fmt(est)}</b></div>
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-              <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} placeholder="Your name" style={inS} />
-              <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} placeholder="Phone (+973…)" inputMode="tel" style={inS} />
-              <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} placeholder="Email (optional)" inputMode="email" style={inS} />
+              <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} aria-label="Your name" placeholder="Your name" style={inS} />
+              <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} aria-label="Phone (+973…)" placeholder="Phone (+973…)" inputMode="tel" style={inS} />
+              <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} aria-label="Email (optional)" placeholder="Email (optional)" inputMode="email" style={inS} />
               <input type="date" value={contact.date} onChange={e=>setContact(c=>({...c,date:e.target.value}))} style={inS} />
             </div>
             <div style={{ display:'flex', gap:10, marginTop:16 }}>
@@ -4052,7 +4086,7 @@ function DesignBuilderPage({ setPage, user }) {
   const variation = prevTotal != null ? total - prevTotal : 0;
 
   return (
-    <div style={{ minHeight:'100vh', background:'var(--cream)', paddingTop: mobile?86:104, paddingBottom:90 }}>
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?86:104, paddingBottom:90 }}>
       <div style={{ maxWidth:1200, margin:'0 auto', padding: mobile?'0 16px':'0 28px' }}>
         <div style={{ textAlign:'center', marginBottom:18 }}>
           <div className="eyebrow" style={{ marginBottom:10 }}>Design Builder · guided end-to-end</div>
@@ -4194,7 +4228,7 @@ function DesignBuilderPage({ setPage, user }) {
                 <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>{['2-3 weeks','4-6 weeks','2-3 months','Flexible'].map(s => <button key={s} type="button" onClick={() => setTimeline(s)} style={chip(timeline === s)}>{s}</button>)}</div>
               </div>
               <div style={{ marginBottom:4 }}><span style={lblS}>Special requirements & style/colour notes</span>
-                <textarea value={special} onChange={e => setSpecial(e.target.value)} rows={3} placeholder="e.g. warm oak tones, soft-close everywhere, allergy-safe finishes…" style={{ ...inS, resize:'vertical' }} /></div>
+                <textarea value={special} onChange={e => setSpecial(e.target.value)} rows={3} aria-label="Special requests" placeholder="e.g. warm oak tones, soft-close everywhere, allergy-safe finishes…" style={{ ...inS, resize:'vertical' }} /></div>
             </Fragment>)}
 
             {/* STEP 2 — SITE SURVEY */}
@@ -4333,7 +4367,7 @@ function DesignBuilderPage({ setPage, user }) {
               <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 14px' }}>Add inspiration links, colour swatches and notes for our designers.</p>
               <span style={lblS}>Inspiration image URL</span>
               <div style={{ display:'flex', gap:8, marginBottom:14 }}>
-                <input value={moodUrl} onChange={e => setMoodUrl(e.target.value)} placeholder="https://…" style={inS} />
+                <input value={moodUrl} onChange={e => setMoodUrl(e.target.value)} aria-label="Inspiration image URL" placeholder="https://…" style={inS} />
                 <button type="button" onClick={() => { if (!moodUrl.trim()) return; setMood(m => [...m, { id:uid(), kind:'image', url:moodUrl.trim() }]); setMoodUrl(''); }} className="btn-clay" style={{ borderRadius:12, padding:'0 16px', whiteSpace:'nowrap' }}>Add</button>
               </div>
               <span style={lblS}>Colour palette</span>
@@ -4343,7 +4377,7 @@ function DesignBuilderPage({ setPage, user }) {
               </div>
               <span style={lblS}>Sample note</span>
               <div style={{ display:'flex', gap:8, marginBottom:16 }}>
-                <input value={moodNote} onChange={e => setMoodNote(e.target.value)} placeholder="e.g. matte brass handles like the showroom" style={inS} />
+                <input value={moodNote} onChange={e => setMoodNote(e.target.value)} aria-label="Inspiration note" placeholder="e.g. matte brass handles like the showroom" style={inS} />
                 <button type="button" onClick={() => { if (!moodNote.trim()) return; setMood(m => [...m, { id:uid(), kind:'note', note:moodNote.trim() }]); setMoodNote(''); }} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:12, padding:'0 16px', fontSize:13, fontWeight:600, cursor:'pointer', color:'var(--ink)', whiteSpace:'nowrap' }}>Add</button>
               </div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:10 }}>
@@ -4402,9 +4436,9 @@ function DesignBuilderPage({ setPage, user }) {
               <div style={{ marginTop:18, paddingTop:16, borderTop:'1px solid var(--line)' }}>
                 <span style={lblS}>Your details (so we can reach you)</span>
                 <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:8 }}>
-                  <input value={contact.name} onChange={e => setContact(c => ({ ...c, name:e.target.value }))} placeholder="Your name" style={inS} />
-                  <input value={contact.phone} onChange={e => setContact(c => ({ ...c, phone:e.target.value }))} placeholder="Phone (+973…)" inputMode="tel" style={inS} />
-                  <input value={contact.email} onChange={e => setContact(c => ({ ...c, email:e.target.value }))} placeholder="Email (optional)" inputMode="email" style={{ ...inS, gridColumn: mobile?'auto':'1 / -1' }} />
+                  <input value={contact.name} onChange={e => setContact(c => ({ ...c, name:e.target.value }))} aria-label="Your name" placeholder="Your name" style={inS} />
+                  <input value={contact.phone} onChange={e => setContact(c => ({ ...c, phone:e.target.value }))} aria-label="Phone (+973…)" placeholder="Phone (+973…)" inputMode="tel" style={inS} />
+                  <input value={contact.email} onChange={e => setContact(c => ({ ...c, email:e.target.value }))} aria-label="Email (optional)" placeholder="Email (optional)" inputMode="email" style={{ ...inS, gridColumn: mobile?'auto':'1 / -1' }} />
                 </div>
               </div>
             )}
@@ -4420,7 +4454,7 @@ function DesignBuilderPage({ setPage, user }) {
               <button type="button" disabled={busy} onClick={saveDraft} style={{ flex:1, background:'#fff', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink)', cursor:'pointer', opacity:busy?.6:1 }}>{busy?'Saving…':(savedId?'Update draft':'Save draft')}</button>
               <button type="button" disabled={busy} onClick={submitApproval} className="btn-clay" style={{ flex:1.4, borderRadius:12, opacity:busy?.6:1 }}>{busy?'Submitting…':'Submit for approval'}</button>
             </div>
-            <div style={{ marginTop:14, textAlign:'center' }}><span onClick={() => setPage('home')} style={{ cursor:'pointer', fontSize:13, color:'var(--muted)' }}>Close ✕</span></div>
+            <div style={{ marginTop:14, textAlign:'center' }}><button type="button" aria-label="Close" onClick={() => setPage('home')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>Close ✕</button></div>
           </div>
         </div>
       </div>
