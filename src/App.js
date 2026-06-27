@@ -1037,12 +1037,12 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
       group = new THREE.Group();
       if (st.product === 'tv') {
         group.add(buildTV(st));
-        scene.add(group);
+        scene.add(group); autoFit(group);
         return;
       }
-      if (st.product === 'doors') { group.add(buildDoors(st)); scene.add(group); return; }
-      if (st.product === 'kitchen') { group.add(buildKitchen(st)); scene.add(group); return; }
-      if (st.product === 'storage') { group.add(buildStorage(st)); scene.add(group); return; }
+      if (st.product === 'doors') { group.add(buildDoors(st)); scene.add(group); autoFit(group); return; }
+      if (st.product === 'kitchen') { group.add(buildKitchen(st)); scene.add(group); autoFit(group); return; }
+      if (st.product === 'storage') { group.add(buildStorage(st)); scene.add(group); autoFit(group); return; }
       if (st.product === 'walkin') {
         const W = Math.max(3, Math.min(7, (st.widthCm || 300) / 50));
         const H = Math.max(3.5, Math.min(6, (st.heightCm || 240) / 50));
@@ -1055,19 +1055,39 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
         if (st.layout === 'u-shape') { group.add(left()); group.add(right()); }
         if (st.layout === 'l-shape') { group.add(left()); }
         if (st.layout === 'parallel') { group.add(left()); group.add(right()); }
-        scene.add(group);
+        scene.add(group); autoFit(group);
         return;
       }
-      // map cm -> 3D units (so 200cm wide ≈ 4 units, 240cm tall ≈ 4.4)
-      const W = Math.max(2, Math.min(8, (st.widthCm || 200) / 50));
-      const H = Math.max(3, Math.min(6, (st.heightCm || 240) / 54.5));
-      const D = Math.max(0.8, Math.min(2.2, (st.depthCm || 60) / 46));
-      const doors = Math.max(2, Math.min(5, Math.round(W / 1.35)));
+      // ── Consistent cm → scene scale so the model TRULY reflects entered dims ──
+      // One scale for all axes; the whole group is auto-fit afterwards so it always frames nicely.
+      const CM = 1 / 50; // 50cm ≈ 1 scene unit (pre auto-fit)
+      const W = (st.widthCm || 200) * CM;
+      const H = (st.heightCm || 240) * CM;
+      const D = Math.max(0.4, (st.depthCm || 60) * CM);
+      const doors = Math.max(2, Math.min(6, Math.round((st.widthCm || 200) / 90)));
       const main = cabinet(W, H, D, doors, st); group.add(main);
-      const sideW = Math.max(1.8, W * 0.6);
+      const sideW = Math.max(1.2, W * 0.6);
       if (st.layout === 'l-shape') { const w2 = cabinet(sideW, H, D, 2, st); w2.position.set(-(W/2+D/2), 0, sideW/2 - D/2); w2.rotation.y = Math.PI / 2; group.add(w2); }
       if (st.layout === 'walk-in') { const w2 = cabinet(sideW, H, D, 2, st); w2.position.set(-(W/2+D/2), 0, sideW/2 - D/2); w2.rotation.y = Math.PI / 2; group.add(w2); const w3 = cabinet(sideW, H, D, 2, st); w3.position.set(W/2+D/2, 0, sideW/2 - D/2); w3.rotation.y = -Math.PI / 2; group.add(w3); }
       scene.add(group);
+      autoFit(group);
+    }
+    // Uniformly scale + recenter any group so its largest dimension fits a target span.
+    // This keeps relative proportions (so editing Side A/B, Height or Depth visibly changes the model)
+    // while always framing nicely in the camera.
+    function autoFit(g, target) {
+      try {
+        const tgt = target || 6.4;
+        const bb = new THREE.Box3().setFromObject(g);
+        if (!isFinite(bb.min.x) || !isFinite(bb.max.x)) return;
+        const size = new THREE.Vector3(); bb.getSize(size);
+        const center = new THREE.Vector3(); bb.getCenter(center);
+        const largest = Math.max(size.x, size.y, size.z) || 1;
+        const s = tgt / largest;
+        // recenter children around origin, then scale the group
+        g.children.forEach(ch => { ch.position.sub(center); });
+        g.scale.setScalar(s);
+      } catch (e) { /* fit optional */ }
     }
     sceneRef.current = { rebuild };
     rebuild();
@@ -1191,14 +1211,14 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           x.fillText('THE CLOSETS', tx, Math.round(head * 0.46));
           x.fillStyle = '#86868b'; x.font = `500 ${Math.round(head * 0.135)}px Inter, Arial, sans-serif`;
           x.fillText('Bespoke furniture · Kingdom of Bahrain', tx, Math.round(head * 0.69));
-          x.fillStyle = 'var(--clay)'; x.fillRect(pad, head - 4, w, 4);
+          x.fillStyle = '#F2731C'; x.fillRect(pad, head - 4, w, 4);
           x.drawImage(base, pad, head, w, h);
           const fy = head + h;
           x.fillStyle = '#1d1d1f'; x.font = `700 ${Math.round(foot * 0.26)}px Inter, Arial, sans-serif`;
           x.fillText('Your design — photorealistic concept', pad, fy + Math.round(foot * 0.36));
           x.fillStyle = '#9aa0a6'; x.font = `400 ${Math.round(foot * 0.19)}px Inter, Arial, sans-serif`;
           x.fillText('AI impression. Exact finishes confirmed at your free design consultation.', pad, fy + Math.round(foot * 0.66));
-          x.textAlign = 'right'; x.fillStyle = 'var(--clay)'; x.font = `700 ${Math.round(foot * 0.22)}px Inter, Arial, sans-serif`;
+          x.textAlign = 'right'; x.fillStyle = '#F2731C'; x.font = `700 ${Math.round(foot * 0.22)}px Inter, Arial, sans-serif`;
           x.fillText('theclosets.co · +973 1700 1700', cw - pad, fy + Math.round(foot * 0.50));
           x.textAlign = 'left';
           try { resolve(cv.toDataURL('image/jpeg', 0.92)); } catch (e) { resolve(srcUri); }
@@ -1258,7 +1278,17 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   const [openSec, setOpenSec] = useState('layout');
   const [showExtras, setShowExtras] = useState(false);
   const [configStep, setConfigStep] = useState(0);
+  const [pkg, setPkg] = useState(1); // selected package index (Standard default)
+  const [showItemized, setShowItemized] = useState(true);
+  const [quoteSent, setQuoteSent] = useState(false); // post-submit success (guest → account invite)
   const priceTimer = useRef(null);
+  // Package tiers — multipliers + labels (shared between config & quote)
+  const PACKAGES = [
+    { name:'Economy', mult:0.72, hl:'Quality essentials' },
+    { name:'Standard', mult:1, hl:'Most popular' },
+    { name:'Premium', mult:1.45, hl:'Premium finishes' },
+    { name:'Luxury', mult:2.1, hl:'Top-tier materials' },
+  ];
 
   useEffect(() => {
     let alive = true; setLoadError(false);
@@ -1438,6 +1468,32 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
     catch (e) { toast('Could not save: ' + (e?.message || 'please try again'), 'error'); }
     finally { setBusy(false); }
   };
+  // Selected package + package-adjusted total (used by config price card AND the quote)
+  const selPkg = PACKAGES[Math.max(0, Math.min(pkg, PACKAGES.length-1))] || PACKAGES[1];
+  const pkgTotal = Math.round(total * selPkg.mult);
+  // Build an itemized quotation: base carcass, doors/finish, each chosen option, package line, subtotal + TOTAL.
+  const buildLineItems = useCallback(() => {
+    const finName = (FINISHES.find(f=>f.id===finishId)||{}).name || finishId;
+    const items = [];
+    // Heuristic split of the base price into carcass + doors/finish so the customer sees structure.
+    const base = Number(total) || 0;
+    const carcass = Math.round(base * 0.6);
+    const doorsFinish = base - carcass;
+    items.push({ label:'Base carcass & structure', detail:`${selProduct?.name || 'Wardrobe'} · ${layout}`, price:carcass });
+    items.push({ label:`Doors & finish — ${finName}`, detail:'Fronts, edging & hardware', price:doorsFinish });
+    // Each chosen option with its price
+    Object.keys(sel).forEach(ck => {
+      const cat = cats[ck]; if (!cat) return;
+      const v = sel[ck]; const arr = Array.isArray(v) ? v : (v ? [v] : []);
+      arr.forEach(id => {
+        const it = (cat.items||[]).find(i => i.id === id); if (!it) return;
+        const incl = it.price_type==='included' || +it.price===0;
+        items.push({ label:`${cat.label||ck}: ${it.name}`, detail: incl ? 'Included' : null, price: incl ? 0 : Math.round(+it.price||0) });
+      });
+    });
+    const subtotal = base;
+    return { items, subtotal, pkgName: selPkg.name, pkgMult: selPkg.mult, total: pkgTotal };
+  }, [total, finishId, sel, cats, layout, selProduct, selPkg, pkgTotal]);
   const [showQuote, setShowQuote] = useState(false);
   const [qForm, setQForm] = useState({ name:'', phone:'', email:'' });
   // Submit the design as a quote through the shared edge function so the team
@@ -1452,13 +1508,20 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
       const finName = (FINISHES.find(f=>f.id===finishId)||{}).name || finishId;
       const sizeStr = layout==='l-shape' ? `${dims.sideA}+${dims.sideB}×${dims.height}×${dims.depth}cm` : `${dims.width}×${dims.height}×${dims.depth}cm`;
       const chosenOpts = Object.keys(sel).map(ck => { const lbl = catChosen(ck); return lbl ? `${cats[ck]?.label||ck}: ${lbl}` : null; }).filter(Boolean);
+      // Full itemized breakdown for the sales team / Bonsai Hub
+      const lineData = buildLineItems();
       const noteLines = [
         `🪟 Website Planner quote`,
         `Product: ${selProduct?.name || 'Wardrobe'}`,
         `Layout: ${layout}  |  Finish: ${finName}  |  Size: ${sizeStr}`,
-        chosenOpts.length ? `Options — ${chosenOpts.join(', ')}` : 'Options — base only',
-        `Estimated total: BHD ${total}`,
+        `Package: ${lineData.pkgName} (×${lineData.pkgMult})`,
+        `— Itemized —`,
+        ...lineData.items.map(li => `• ${li.label}${li.detail?` (${li.detail})`:''}: BHD ${li.price}`),
+        `Subtotal: BHD ${lineData.subtotal}`,
+        `Estimated total (${lineData.pkgName}): BHD ${lineData.total}`,
       ];
+      // Attach the line items inside the configuration object too
+      const configWithItems = { ...buildSelection(), package: lineData.pkgName, package_multiplier: lineData.pkgMult, line_items: lineData.items, subtotal: lineData.subtotal, total: lineData.total };
       const r = await fetch(SUPA_URL + '/functions/v1/submit_design_quote', {
         method: 'POST',
         headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
@@ -1468,9 +1531,9 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           customer_name: name || 'Website Visitor',
           customer_phone: phone || null,
           customer_email: email || null,
-          product_name: (selProduct?.name || 'Wardrobe') + ' — Custom (' + layout + ', ' + sizeStr + ')',
-          configuration: buildSelection(),
-          total_price: total,
+          product_name: (selProduct?.name || 'Wardrobe') + ' — Custom (' + layout + ', ' + sizeStr + ', ' + lineData.pkgName + ')',
+          configuration: configWithItems,
+          total_price: lineData.total,
           image_base64: imageB64,
           notes: noteLines.join('\n'),
           interest: (selProduct?.name || 'Wardrobe') + ' (planner)',
@@ -1480,7 +1543,12 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
       if (r.ok && data && data.ok) {
         toast('Quote requested — our team will contact you soon','success');
         setShowQuote(false);
-        setPage('home');
+        if (!user) {
+          // Guest: invite them to create an account to track the quote
+          setQuoteSent({ name: name || qForm.name, phone: phone || qForm.phone, email: email || qForm.email });
+        } else {
+          setPage('home');
+        }
       } else {
         toast('Could not send quote: ' + ((data && data.error) || 'please try again'), 'error');
       }
@@ -1491,6 +1559,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
     if (!user) { setQForm({ name:'', phone:'', email:'' }); setShowQuote(true); return; }
     submitQuote();
   };
+  const goVisualise = () => setStage('visualise');
   // Reusable 5-step progress spine (clone of Raumplus/Wren step counter), shared across stages.
   const planSteps = (cur) => {
     const order = ['product','ai','config','visualise','quote'];
@@ -1500,7 +1569,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
       <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, flexWrap:'wrap', margin:'0 auto 18px', fontSize:12.5, maxWidth:640 }}>
         {order.map((k,i)=>{
           const done = i<ci, now = i===ci;
-          const go = (k==='product' && i<ci) ? ()=>setStage('product') : (k==='ai' && i<ci) ? ()=>setStage('ai') : undefined;
+          const go = (i<ci && (k==='product'||k==='ai'||k==='config'||k==='visualise')) ? ()=>setStage(k) : undefined;
           return (
             <Fragment key={k}>
               <span onClick={go} style={{ display:'flex', alignItems:'center', gap:6, cursor:go?'pointer':'default' }}>
@@ -1583,6 +1652,14 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
     <div style={{ minHeight:'100dvh', background:'var(--cream)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'104px 24px 80px' }}>
       <div style={{ width:'100%', maxWidth:640 }}>{planSteps('ai')}</div>
       <div style={{ maxWidth:580, width:'100%', background:'#fff', border:'1px solid var(--line)', borderRadius:22, padding: mobile?22:30 }}>
+        {(() => { const pp = PLANNER_PRODUCTS.find(p=>p.id===(selProduct?.id||'wardrobe')); return (
+          <div style={{ display:'inline-flex', alignItems:'center', gap:10, padding:'7px 14px 7px 7px', background:'var(--sand)', border:'1px solid var(--line)', borderRadius:999, marginBottom:16 }}>
+            <span style={{ width:30, height:30, borderRadius:9, background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.6" aria-hidden="true"><path d={pp?.icon || ''}/></svg>
+            </span>
+            <span style={{ fontSize:13, color:'var(--ink-soft)' }}>Designing: <strong style={{ color:'var(--ink)' }}>{selProduct?.name || pp?.name || 'Wardrobe'}</strong></span>
+          </div>
+        ); })()}
         <div style={{ display:'flex', gap:10, alignItems:'center', marginBottom:8 }}>
           <Spark size={22} color="var(--clay)" />
           <span className="display" style={{ fontSize:20, color:'var(--ink)' }}>Describe your space</span>
@@ -1637,9 +1714,108 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
     );
   };
 
+  // ── STAGE 4: VISUALISE (real stage, after config) ──
+  if (stage === 'visualise') {
+    const lineData = buildLineItems();
+    const finName = (FINISHES.find(f=>f.id===finishId)||{}).name || finishId;
+    const sizeStr = layout==='l-shape' ? `${dims.sideA}+${dims.sideB} × ${dims.height} × ${dims.depth} cm` : `${dims.width} × ${dims.height} × ${dims.depth} cm`;
+    return (
+      <div style={{ minHeight:'100dvh', paddingTop:80, paddingBottom:40 }}>
+        <div style={{ maxWidth:1440, margin:'0 auto', padding: mobile?'0 16px':'0 28px' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', margin:'12px 0 10px' }}>
+            <span onClick={()=>setStage('config')} style={{ cursor:'pointer', fontSize:13, color:'var(--ink-soft)' }}>‹ Back to configure</span>
+            <span style={{ fontSize:13, color:'var(--muted)' }}>{selProduct?.name || 'Wardrobe'}</span>
+            <button type="button" aria-label="Close" onClick={()=>setPage('home')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>Close ✕</button>
+          </div>
+          {planSteps('visualise')}
+          <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1.4fr 1fr', gap:20, alignItems:'start' }}>
+            {/* Visual: photoreal render if generated, else live 3D */}
+            <div style={{ background:'#f5f5f7', borderRadius:20, position:'relative', minHeight: mobile?320:560, overflow:'hidden' }}>
+              {renderUrl
+                ? <img src={renderUrl} alt="Photorealistic render of your design" style={{ width:'100%', display:'block' }} />
+                : <Wardrobe3D apiRef={plannerApi} finishHex={finishHex} layout={layout} glass={hasGlass} handles={hasHandles} led={hasLed} mobile={mobile} tall product={prodKey} widthCm={sizeW} heightCm={dims.height} depthCm={dims.depth} />}
+              <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', bottom:12, right:12, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,#F2731C,#C2410C)', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(242,115,28,.4)' }}>
+                <i className={rendering ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" />
+                {rendering ? 'Rendering…' : (renderUrl ? 'Regenerate' : 'Make it photorealistic')}
+              </button>
+            </div>
+            {/* Summary + itemized detail */}
+            <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+              <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'18px 18px 16px' }}>
+                <div className="display" style={{ fontSize:20, color:'var(--ink)', marginBottom:12 }}>Your design</div>
+                {[['Product', selProduct?.name || 'Wardrobe'],['Layout', layout],['Finish', finName],['Size', sizeStr],['Package', `${selPkg.name} (×${selPkg.mult})`]].map(([k,v])=>(
+                  <div key={k} style={{ display:'flex', justifyContent:'space-between', padding:'7px 0', borderBottom:'1px solid var(--line)', fontSize:13.5 }}>
+                    <span style={{ color:'var(--ink-soft)' }}>{k}</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{v}</span>
+                  </div>
+                ))}
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginTop:12 }}>
+                  <span style={{ fontSize:13, color:'var(--ink-soft)' }}>Estimated total</span>
+                  <span style={{ fontSize:24, fontWeight:700, color:'var(--clay)' }}>{fmt(lineData.total)}</span>
+                </div>
+              </div>
+              <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 18px' }}>
+                <div onClick={()=>setShowItemized(s=>!s)} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', cursor:'pointer' }}>
+                  <span style={{ fontSize:15, fontWeight:700, color:'var(--ink)' }}>Itemized quotation</span>
+                  <i className={`ti ti-chevron-${showItemized?'up':'down'}`} style={{ color:'var(--muted)' }} aria-hidden="true" />
+                </div>
+                {showItemized && (
+                  <div style={{ marginTop:12 }}>
+                    {lineData.items.map((li,i)=>(
+                      <div key={i} style={{ display:'flex', justifyContent:'space-between', gap:10, padding:'6px 0', borderBottom:'1px solid var(--line)', fontSize:13 }}>
+                        <span style={{ color:'var(--ink)' }}>{li.label}{li.detail?<span style={{ color:'var(--muted)', display:'block', fontSize:11 }}>{li.detail}</span>:null}</span>
+                        <span style={{ fontWeight:600, color: li.price===0?'var(--muted)':'var(--ink)', whiteSpace:'nowrap' }}>{li.price===0?'Included':fmt(li.price)}</span>
+                      </div>
+                    ))}
+                    <div style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', fontSize:13, color:'var(--ink-soft)' }}>
+                      <span>Subtotal</span><span style={{ fontWeight:600 }}>{fmt(lineData.subtotal)}</span>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'space-between', padding:'4px 0', fontSize:13, color:'var(--ink-soft)' }}>
+                      <span>{selPkg.name} package (×{selPkg.mult})</span><span style={{ fontWeight:600 }}>{fmt(lineData.total - lineData.subtotal)}</span>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 0 0', marginTop:6, borderTop:'2px solid var(--ink)', fontSize:15, fontWeight:800, color:'var(--ink)' }}>
+                      <span>TOTAL</span><span style={{ color:'var(--clay)' }}>{fmt(lineData.total)}</span>
+                    </div>
+                  </div>
+                )}
+                <div style={{ fontSize:10.5, color:'var(--muted)', marginTop:10 }}>Indicative — your free design visit confirms an exact, itemised quote.</div>
+              </div>
+              <div style={{ display:'flex', gap:8 }}>
+                <button type="button" className="btn-secondary" disabled={busy} onClick={()=>setStage('config')} style={{ flex:1, borderRadius:12, color:'var(--ink-soft)' }}>‹ Edit</button>
+                <button type="button" className="btn-clay" disabled={busy} onClick={requestQuote} style={{ flex:2, borderRadius:12 }}>{busy?'Sending…':'Continue — get my quote →'}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* photoreal modal (shared) */}
+        {(rendering || renderUrl || renderErr) && (
+          <div onClick={()=>{ if(!rendering){ setRenderErr(''); } }} style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(15,18,22,.72)', display: renderErr?'flex':'none', alignItems:'center', justifyContent:'center', padding:20 }}>
+            {renderErr && !rendering && <div onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:18, maxWidth:420, padding:'24px', textAlign:'center', color:'#c0392b', fontSize:14 }}>{renderErr}<div style={{ marginTop:14 }}><button type="button" onClick={()=>setRenderErr('')} className="btn-secondary" style={{ borderRadius:12 }}>OK</button></div></div>}
+          </div>
+        )}
+        {rendering && (
+          <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(15,18,22,.72)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
+            <div style={{ background:'#fff', borderRadius:18, padding:'40px 50px', textAlign:'center', color:'#6e6e73', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>Creating your photorealistic render… ~15–25 seconds.</div></div>
+          </div>
+        )}
+        {/* guest quote success → account invite */}
+        {quoteSent && (
+          <div style={{ position:'fixed', inset:0, zIndex:10000, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
+            <div style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:28, textAlign:'center' }}>
+              <div style={{ width:54, height:54, borderRadius:'50%', background:'#1D9E7522', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px' }}><i className="ti ti-check" style={{ color:'#1D9E75', fontSize:28 }} aria-hidden="true" /></div>
+              <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 8px' }}>Quote sent!</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 20px', lineHeight:1.6 }}>Create a free account to track your quote, save this design and follow your order.</p>
+              <button type="button" className="btn-clay" onClick={()=>{ const c = quoteSent; if (openAuth) openAuth('register', c && typeof c==='object' ? c : undefined); else setPage('portal'); }} style={{ width:'100%', borderRadius:12, marginBottom:10 }}>Create my account</button>
+              <button type="button" onClick={()=>{ setQuoteSent(false); setPage('home'); }} style={{ background:'none', border:'none', fontSize:13.5, color:'var(--muted)', cursor:'pointer' }}>Maybe later</button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div style={{ minHeight:'100dvh', paddingTop:80, paddingBottom:40 }}>
-      <div style={{ maxWidth:1240, margin:'0 auto', padding:'0 16px' }}>
+    <div style={{ minHeight:'100dvh', paddingTop:80, paddingBottom:40, fontSize: mobile?14:15 }}>
+      <div style={{ maxWidth:1440, margin:'0 auto', padding: mobile?'0 16px':'0 28px' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', margin:'12px 0 10px' }}>
           <span onClick={()=>setStage('product')} style={{ cursor:'pointer', fontSize:13, color:'var(--ink-soft)' }}>‹ All products</span>
           <span style={{ fontSize:13, color:'var(--muted)' }}>{selProduct?.name || 'Wardrobe'}</span>
@@ -1647,10 +1823,20 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
         </div>
         {planSteps('config')}
 
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1.7fr 1fr', gap:14, alignItems:'stretch' }}>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1.55fr 1fr', gap:20, alignItems:'stretch' }}>
           {/* BIG 3D STAGE */}
-          <div style={{ background:'#f5f5f7', borderRadius:20, position:'relative', minHeight: mobile?340:560, overflow:'hidden' }}>
+          <div style={{ background:'#f5f5f7', borderRadius:20, position:'relative', minHeight: mobile?360:640, overflow:'hidden' }}>
             <Wardrobe3D apiRef={plannerApi} finishHex={finishHex} layout={layout} glass={hasGlass} handles={hasHandles} led={hasLed} mobile={mobile} tall product={prodKey} widthCm={layout==='l-shape' ? (Number(dims.sideA)+Number(dims.sideB)) : dims.width} heightCm={dims.height} depthCm={dims.depth} />
+            {/* #4 — live dimension labels along the edges */}
+            <div style={{ position:'absolute', inset:0, pointerEvents:'none' }}>
+              {(() => { const lab = (txt) => ({ position:'absolute', fontSize:11, fontWeight:600, color:'var(--ink)', background:'rgba(250,245,238,.88)', border:'1px solid var(--line)', padding:'3px 8px', borderRadius:999, whiteSpace:'nowrap' }); return (<>
+                <span style={{ ...lab(), left:'50%', bottom:54, transform:'translateX(-50%)' }}>W {sizeW} cm</span>
+                <span style={{ ...lab(), left:10, top:'50%', transform:'translateY(-50%)' }}>H {dims.height} cm</span>
+                <span style={{ ...lab(), right:10, top:64 }}>D {dims.depth} cm</span>
+                {layout==='l-shape' && <span style={{ ...lab(), left:10, bottom:54 }}>A {dims.sideA} cm</span>}
+                {layout==='l-shape' && <span style={{ ...lab(), left:'50%', top:64, transform:'translateX(-50%)' }}>B {dims.sideB} cm</span>}
+              </>); })()}
+            </div>
             {aiSummary && <div style={{ position:'absolute', top:12, left:12, right:12, fontSize:12, background:'var(--sand)', color:'var(--clay-deep)', padding:'8px 12px', borderRadius:12 }}><Spark size={12} color="var(--clay-deep)" style={{ verticalAlign:'-1px' }} /> {aiSummary}</div>}
             <div style={{ position:'absolute', top:12, right:12, display:'flex', gap:6, alignItems:'center', fontSize:11, color:'#86868b', background:'rgba(255,255,255,.85)', padding:'5px 10px', borderRadius:10 }}>
               <i className="ti ti-rotate-360" aria-hidden="true" /> {t('dragRotate')}
@@ -1689,7 +1875,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           )}
 
           {/* OPTIONS RAIL */}
-          <div style={{ display:'flex', flexDirection:'column', gap:10, maxHeight: mobile?'none':560, overflowY: mobile?'visible':'auto', overflowX:'hidden', paddingRight:4 }}>
+          <div style={{ display:'flex', flexDirection:'column', gap:10, maxHeight: mobile?'none':640, overflowY: mobile?'visible':'auto', overflowX:'hidden', paddingRight:4 }}>
             {(() => {
               const lay = (prodLayouts || LAYOUTS);
               const layoutBody = (
@@ -1758,11 +1944,11 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
               const pct = Math.round(((idx+1)/N)*100);
               return (<>
                 <div style={{ marginBottom:2 }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:7 }}>
-                    <span style={{ fontSize:12, color:'var(--muted)' }}>Step {idx+1} of {N}</span>
-                    {idx>=2 && <span style={{ fontSize:11.5, color:'#3f7a52', fontWeight:600 }}>✓ Ready for a quote</span>}
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                    <span style={{ fontSize:14, fontWeight:700, color:'var(--ink)' }}>Step {idx+1} <span style={{ color:'var(--muted)', fontWeight:500 }}>of {N}</span></span>
+                    {idx>=2 && <span style={{ fontSize:12, fontWeight:700, color:'#1D9E75', background:'#1D9E7522', padding:'4px 12px', borderRadius:999 }}>✓ Ready for a quote</span>}
                   </div>
-                  <div style={{ height:6, background:'#eee', borderRadius:3, overflow:'hidden' }}><div style={{ width:pct+'%', height:'100%', background:'var(--clay)', borderRadius:3, transition:'width .3s' }} /></div>
+                  <div style={{ height:10, background:'#ececec', borderRadius:999, overflow:'hidden' }}><div style={{ width:pct+'%', height:'100%', background:'linear-gradient(90deg,#F2731C,#C2410C)', borderRadius:999, transition:'width .3s' }} /></div>
                 </div>
                 <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:14, padding:'16px 16px 18px' }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:14 }}>
@@ -1784,28 +1970,29 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             {/* PRICE + CTA */}
             <div style={{ marginTop:6, background:'#fff', border:'0.5px solid #e6e6e6', borderRadius:14, padding:'14px 16px', position: mobile?'static':'sticky', bottom:0 }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:10 }}>
-                <span style={{ fontSize:12, color:'#86868b' }}>Estimated total · Standard</span>
-                <span style={{ fontSize:22, fontWeight:700, color:'var(--clay)' }}>{pricing?'…':fmt(total)}</span>
+                <span style={{ fontSize:12, color:'#86868b' }}>Estimated total · {selPkg.name}</span>
+                <span style={{ fontSize:22, fontWeight:700, color:'var(--clay)' }}>{pricing?'…':fmt(pkgTotal)}</span>
               </div>
               {total>0 && !pricing && (
                 <div style={{ marginBottom:12 }}>
                   <div style={{ fontSize:11, color:'#86868b', marginBottom:6 }}>Choose your package</div>
                   <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6 }}>
-                    {[['Economy',0.72,'Quality essentials'],['Standard',1,'Most popular'],['Premium',1.45,'Premium finishes'],['Luxury',2.1,'Top-tier materials']].map(([name,mult,hl],i)=>(
-                      <div key={name} style={{ border:'0.5px solid '+(i===1?'var(--clay)':'#e6e6e6'), background:i===1?'var(--sand)':'#fff', borderRadius:10, padding:'8px 6px', textAlign:'center' }}>
-                        <div style={{ fontSize:11, fontWeight:700, color:i===1?'var(--clay)':'#1d1d1f' }}>{name}</div>
-                        <div style={{ fontSize:12, fontWeight:700, color:'#1d1d1f', marginTop:3 }}>{fmt(Math.round(total*mult))}</div>
-                        <div style={{ fontSize:9, color:'#999', marginTop:2, lineHeight:1.2 }}>{hl}</div>
-                      </div>
-                    ))}
+                    {PACKAGES.map((p,i)=>{ const on = i===pkg; return (
+                      <button key={p.name} type="button" onClick={()=>setPkg(i)} style={{ border:'1px solid '+(on?'var(--clay)':'#e6e6e6'), background:on?'var(--sand)':'#fff', borderRadius:10, padding:'8px 6px', textAlign:'center', cursor:'pointer' }}>
+                        <div style={{ fontSize:11, fontWeight:700, color:on?'var(--clay)':'#1d1d1f' }}>{p.name}</div>
+                        <div style={{ fontSize:12, fontWeight:700, color:'#1d1d1f', marginTop:3 }}>{fmt(Math.round(total*p.mult))}</div>
+                        <div style={{ fontSize:9, color:'#999', marginTop:2, lineHeight:1.2 }}>{p.hl}</div>
+                      </button>
+                    ); })}
                   </div>
                   <div style={{ fontSize:10, color:'#aaa', marginTop:5 }}>Indicative ranges — your free design visit confirms an exact quote.</div>
                 </div>
               )}
               <div style={{ display:'flex', gap:8 }}>
                 <button type="button" className="btn-secondary" disabled={busy} onClick={save} style={{ flex:1, borderRadius:12, color: saved?'var(--good)':'var(--ink-soft)' }}>{saved?'✓ Saved':'Save'}</button>
-                <button type="button" className="btn" disabled={busy} onClick={requestQuote} style={{ flex:2, borderRadius:12 }}>Get a quote →</button>
+                <button type="button" className="btn-clay" disabled={busy} onClick={goVisualise} style={{ flex:2, borderRadius:12 }}>Continue →</button>
               </div>
+              <button type="button" disabled={busy} onClick={requestQuote} style={{ width:'100%', marginTop:8, background:'none', border:'none', fontSize:12.5, color:'var(--muted)', cursor:'pointer' }}>or get a quote now →</button>
             </div>
           </div>
         </div>
@@ -1827,6 +2014,19 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
               <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>Cancel</button>
               <button type="button" className="btn-clay" disabled={busy || !qForm.name.trim() || !qForm.phone.trim()} onClick={()=>submitQuote(qForm)} style={{ flex:2, borderRadius:12, opacity:(busy||!qForm.name.trim()||!qForm.phone.trim())?.6:1 }}>{busy?'Sending…':'Send my quote request'}</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* guest quote success → account invite (also reachable from config-direct quote) */}
+      {quoteSent && (
+        <div style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
+          <div style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:28, textAlign:'center' }}>
+            <div style={{ width:54, height:54, borderRadius:'50%', background:'#1D9E7522', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px' }}><i className="ti ti-check" style={{ color:'#1D9E75', fontSize:28 }} aria-hidden="true" /></div>
+            <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 8px' }}>Quote sent!</h3>
+            <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 20px', lineHeight:1.6 }}>Create a free account to track your quote, save this design and follow your order.</p>
+            <button type="button" className="btn-clay" onClick={()=>{ const c = quoteSent; if (openAuth) openAuth('register', c && typeof c==='object' ? c : undefined); else setPage('portal'); }} style={{ width:'100%', borderRadius:12, marginBottom:10 }}>Create my account</button>
+            <button type="button" onClick={()=>{ setQuoteSent(false); setPage('home'); }} style={{ background:'none', border:'none', fontSize:13.5, color:'var(--muted)', cursor:'pointer' }}>Maybe later</button>
           </div>
         </div>
       )}
