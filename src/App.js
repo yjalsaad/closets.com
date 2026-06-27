@@ -1408,8 +1408,10 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   };
   // ── Wave 2: living configurator accordion (multiple sections open at once) ──
   // Essentials open by default; optional categories collapsed.
-  const [openSecs, setOpenSecs] = useState(() => new Set(['layout','size','door_finishes']));
-  const toggleSec = (id) => setOpenSecs(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  // ── Guided one-step-at-a-time configurator ──
+  const [stepIndex, setStepIndex] = useState(0);          // current step in the guided flow
+  const [visitedSteps, setVisitedSteps] = useState(() => new Set()); // step keys the user has opened/skipped
+  const [customSize, setCustomSize] = useState(false);     // Size step: standard presets vs custom numeric inputs
   // ── Wave 2: 3D toolbar state (lifted into PlannerPage, passed to Wardrobe3D) ──
   const [unit, setUnit] = useState('cm');         // 'cm' | 'in'
   const [camPreset, setCamPreset] = useState('iso'); // 'front' | 'iso' | 'top'
@@ -2029,7 +2031,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   }
 
   return (
-    <div style={{ minHeight:'100dvh', paddingTop:80, paddingBottom: mobile?120:40, fontSize: mobile?15:16 }}>
+    <div style={{ minHeight:'100dvh', paddingTop:80, paddingBottom: mobile?120:110, fontSize: mobile?15:16 }}>
       <div style={{ maxWidth:1560, margin:'0 auto', padding: mobile?'0 14px':'0 32px' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', margin:'12px 0 10px' }}>
           <span onClick={()=>setStage('product')} style={{ cursor:'pointer', fontSize:13, color:'var(--ink-soft)' }}>‹ All products</span>
@@ -2115,47 +2117,58 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                     </button> ); })}
                 </div>
               );
-              // A single dimension control: discrete chip-row if the product defines a value list, else a slider.
-              const dimControl = (lbl, key, spec) => {
-                const onChange = (raw) => setDims(c => ({ ...c, [key]: snapDim(spec, raw) }));
-                if (spec.discrete && spec.allowed) {
-                  return (
-                    <div key={key} style={{ marginBottom:16 }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}><span style={{ fontSize:13, color:'var(--ink-soft)' }}>{lbl}</span><span style={{ fontSize:14, fontWeight:600, color:'var(--clay)' }}>{dims[key]} cm</span></div>
-                      <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                        {spec.allowed.map(v=>{ const on = Number(dims[key])===v; return (
-                          <button key={v} type="button" onClick={()=>onChange(v)} style={{ minWidth:52, padding:'7px 10px', borderRadius:9, border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', fontSize:13, fontWeight: on?700:500, color: on?'var(--clay)':'var(--ink)', cursor:'pointer' }}>{v}</button>
-                        ); })}
-                      </div>
-                    </div>
-                  );
-                }
-                return (
-                  <div key={key} style={{ marginBottom:16 }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}><span style={{ fontSize:13, color:'var(--ink-soft)' }}>{lbl}</span><span style={{ fontSize:14, fontWeight:600, color:'var(--clay)' }}>{dims[key]} cm</span></div>
-                    <input type="range" min={spec.min} max={spec.max} value={dims[key]} onChange={e=>onChange(parseInt(e.target.value))} style={{ width:'100%', accentColor:'var(--clay)' }} />
-                    <div style={{ display:'flex', justifyContent:'space-between', fontSize:10.5, color:'var(--muted)', marginTop:2 }}><span>{spec.min} cm</span><span>{spec.max} cm</span></div>
-                  </div>
-                );
-              };
               // Width label adapts: kitchen/walkin runs are "run length"; doors width is the leaf width.
               const widthLabel = isKitchen ? (KITCHEN_RUN_LAYOUTS.includes(layout) ? 'Run length' : 'Run width')
                 : (prodKey==='walkin' ? 'Room width' : (isDoors ? 'Door width' : 'Width'));
               const depthLabel = isDoors ? 'Thickness' : 'Depth';
-              const sizeBody = (supportsSideAB && layout==='l-shape') ? (
-                <div>
-                  <div style={{ fontSize:11.5, color:'var(--muted)', marginBottom:10 }}>L-shape — set each run, then the height & depth.</div>
-                  {dimControl('Side A', 'sideA', widthSpec)}
-                  {dimControl('Side B', 'sideB', widthSpec)}
-                  {dimControl('Height', 'height', heightSpec)}
-                  {dimControl(depthLabel, 'depth', depthSpec)}
+              const useAB = supportsSideAB && layout==='l-shape';
+              // Standard chips: discrete presets straight from the product's dim spec.
+              const stdChips = (lbl, key, spec) => (
+                <div key={key} style={{ marginBottom:14 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}><span style={{ fontSize:13, color:'var(--ink-soft)' }}>{lbl}</span><span style={{ fontSize:14, fontWeight:600, color:'var(--clay)' }}>{dims[key]} cm</span></div>
+                  {spec.allowed && spec.allowed.length ? (
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                      {spec.allowed.map(v=>{ const on = Number(dims[key])===v; return (
+                        <button key={v} type="button" onClick={()=>setDims(c=>({ ...c, [key]: snapDim(spec, v) }))} style={{ minWidth:52, padding:'7px 10px', borderRadius:9, border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', fontSize:13, fontWeight: on?700:500, color: on?'var(--clay)':'var(--ink)', cursor:'pointer' }}>{v}</button>
+                      ); })}
+                    </div>
+                  ) : (
+                    <div style={{ fontSize:12, color:'var(--muted)' }}>Use Custom size for an exact measurement.</div>
+                  )}
                 </div>
-              ) : (
+              );
+              // Custom numeric input: free value snapped/clamped to the product min/max on blur.
+              const numInput = (lbl, key, spec) => (
+                <div key={key} style={{ marginBottom:14 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}><span style={{ fontSize:13, color:'var(--ink-soft)' }}>{lbl}</span><span style={{ fontSize:11.5, color:'var(--muted)' }}>{spec.min}–{spec.max} cm</span></div>
+                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                    <input type="number" min={spec.min} max={spec.max} defaultValue={dims[key]} key={dims[key]}
+                      onBlur={e=>setDims(c=>({ ...c, [key]: snapDim(spec, e.target.value) }))}
+                      onKeyDown={e=>{ if(e.key==='Enter') e.currentTarget.blur(); }}
+                      style={{ flex:1, padding:'10px 12px', border:'1px solid var(--line)', background:'#fff', borderRadius:10, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
+                    <span style={{ fontSize:13, color:'var(--muted)' }}>cm</span>
+                  </div>
+                </div>
+              );
+              const sizeBody = (
                 <div>
-                  {isKitchen && KITCHEN_RUN_LAYOUTS.includes(layout) && <div style={{ fontSize:11.5, color:'var(--muted)', marginBottom:10 }}>Total run length across all sides of your {layout} kitchen.</div>}
-                  {dimControl(widthLabel, 'width', widthSpec)}
-                  {dimControl('Height', 'height', heightSpec)}
-                  {dimControl(depthLabel, 'depth', depthSpec)}
+                  {/* Standard / Custom segmented toggle */}
+                  <div style={{ display:'flex', gap:2, background:'var(--sand)', border:'1px solid var(--line)', borderRadius:10, padding:3, marginBottom:14 }} role="group" aria-label="Size mode">
+                    <button type="button" onClick={()=>setCustomSize(false)} style={{ flex:1, padding:'8px 10px', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', borderRadius:8, background: !customSize?'var(--clay)':'transparent', color: !customSize?'#fff':'var(--ink-soft)' }}>Standard sizes</button>
+                    <button type="button" onClick={()=>setCustomSize(true)} style={{ flex:1, padding:'8px 10px', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', borderRadius:8, background: customSize?'var(--clay)':'transparent', color: customSize?'#fff':'var(--ink-soft)' }}>Custom size</button>
+                  </div>
+                  {useAB && <div style={{ fontSize:11.5, color:'var(--muted)', marginBottom:10 }}>L-shape — set each run, then the height & depth.</div>}
+                  {!useAB && isKitchen && KITCHEN_RUN_LAYOUTS.includes(layout) && <div style={{ fontSize:11.5, color:'var(--muted)', marginBottom:10 }}>Total run length across all sides of your {layout} kitchen.</div>}
+                  {customSize ? (<>
+                    {useAB ? (<>{numInput('Side A','sideA',widthSpec)}{numInput('Side B','sideB',widthSpec)}</>) : numInput(widthLabel,'width',widthSpec)}
+                    {numInput('Height','height',heightSpec)}
+                    {numInput(depthLabel,'depth',depthSpec)}
+                    <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>Exact sizes snap to the nearest buildable measurement.</div>
+                  </>) : (<>
+                    {useAB ? (<>{stdChips('Side A','sideA',widthSpec)}{stdChips('Side B','sideB',widthSpec)}</>) : stdChips(widthLabel,'width',widthSpec)}
+                    {stdChips('Height','height',heightSpec)}
+                    {stdChips(depthLabel,'depth',depthSpec)}
+                  </>)}
                 </div>
               );
               const finishBody = (
@@ -2168,70 +2181,149 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                   ))}
                 </div>
               );
-              const catBody = (ck) => { const cat=cats[ck]; const multi=cat.select==='multi'; return (
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-                  {(cat.items||[]).filter(it=>it.active!==false).map(it=>{ const on=isOn(ck,it.id,multi); const incl=it.price_type==='included'||+it.price===0; return (
-                    <div key={it.id} onClick={()=>pick(ck,it.id,multi)} style={{ cursor:'pointer', border: on?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:10, overflow:'hidden', background:'#fff' }}>
-                      <div style={{ height:80, background:cardBg(it), position:'relative', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                        {!it.image_url && !it.swatch && <i className="ti ti-photo" style={{ fontSize:20, color:'rgba(0,0,0,.22)' }} aria-hidden="true" />}
-                        {on && <span style={{ position:'absolute', top:6, right:6, width:22, height:22, borderRadius:'50%', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center' }}><i className="ti ti-check" style={{ color:'#fff', fontSize:14 }} aria-hidden="true" /></span>}
-                      </div>
-                      <div style={{ padding:'8px 10px' }}>
-                        <div style={{ fontSize:13, fontWeight:500, lineHeight:1.2 }}>{it.name}</div>
-                        {it.type_label && <div style={{ fontSize:11, color:'#86868b', marginTop:2, lineHeight:1.3 }}>{it.type_label}</div>}
-                        <div style={{ fontSize:12, color: incl?'#aaa':'var(--clay-deep)', marginTop:3 }}>{incl?'Included':'+ '+fmt(it.price)}</div>
-                      </div>
-                    </div> ); })}
-                </div>
-              ); };
+              // ── Option-card UI: pick a style per category (A swatch tile / B list row / C compact chip) ──
+              // Style A: swatch/image-forward grid for finish/material/door-ish categories.
+              const STYLE_A_KEYS = ['finish','material','door','worktop','glass','cabinet_finish','body_materials'];
+              // Style B: rich list rows for richer catalogs.
+              const STYLE_B_KEYS = ['handles','accessories','appliances','storage','hanging','shelves','drawers','lighting','hardware'];
+              const cardStyleFor = (ck, items) => {
+                const k = String(ck).toLowerCase();
+                if (STYLE_A_KEYS.some(s => k.includes(s))) return 'A';
+                if (STYLE_B_KEYS.some(s => k.includes(s))) return 'B';
+                if ((items||[]).length <= 4) return 'C';
+                return 'B';
+              };
+              const catBody = (ck) => {
+                const cat=cats[ck]; const multi=cat.select==='multi';
+                const items = (cat.items||[]).filter(it=>it.active!==false);
+                const style = cardStyleFor(ck, items);
+                const inclOf = (it) => it.price_type==='included'||+it.price===0;
+                // STYLE A — swatch tile (image/swatch-forward, 2–3 cols, check badge + clay ring + sand bg)
+                if (style === 'A') {
+                  const cols = items.length >= 6 ? 3 : 2;
+                  return (
+                    <div style={{ display:'grid', gridTemplateColumns:`repeat(${cols},1fr)`, gap:8 }}>
+                      {items.map(it=>{ const on=isOn(ck,it.id,multi); const incl=inclOf(it); return (
+                        <div key={it.id} onClick={()=>pick(ck,it.id,multi)} style={{ cursor:'pointer', border: on?'2px solid var(--clay)':'0.5px solid var(--line)', borderRadius:10, overflow:'hidden', background: on?'var(--sand)':'#fff' }}>
+                          <div style={{ height:72, background:cardBg(it), position:'relative', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                            {!it.image_url && !it.swatch && <i className="ti ti-photo" style={{ fontSize:20, color:'rgba(0,0,0,.22)' }} aria-hidden="true" />}
+                            {on && <span style={{ position:'absolute', top:6, right:6, width:22, height:22, borderRadius:'50%', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center' }}><i className="ti ti-check" style={{ color:'#fff', fontSize:14 }} aria-hidden="true" /></span>}
+                          </div>
+                          <div style={{ padding:'7px 9px' }}>
+                            <div style={{ fontSize:12.5, fontWeight: on?600:500, lineHeight:1.2, color:'var(--ink)' }}>{it.name}</div>
+                            <div style={{ fontSize:11.5, color: incl?'var(--muted)':'var(--clay-deep)', marginTop:3 }}>{incl?'Included':'+ '+fmt(it.price)}</div>
+                          </div>
+                        </div> ); })}
+                    </div>
+                  );
+                }
+                // STYLE C — compact chip (swatch dot + label + price, filled clay when selected)
+                if (style === 'C') {
+                  return (
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+                      {items.map(it=>{ const on=isOn(ck,it.id,multi); const incl=inclOf(it); return (
+                        <button key={it.id} type="button" onClick={()=>pick(ck,it.id,multi)} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', borderRadius:999, cursor:'pointer', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--clay)':'#fff' }}>
+                          <span style={{ width:14, height:14, borderRadius:'50%', flexShrink:0, background:cardBg(it), border:'0.5px solid rgba(0,0,0,.15)' }} />
+                          <span style={{ fontSize:13, fontWeight:600, color: on?'#fff':'var(--ink)' }}>{it.name}</span>
+                          <span style={{ fontSize:11.5, color: on?'rgba(255,255,255,.85)':(incl?'var(--muted)':'var(--clay-deep)') }}>{incl?'Included':'+ '+fmt(it.price)}</span>
+                          {on && <i className="ti ti-check" style={{ color:'#fff', fontSize:14 }} aria-hidden="true" />}
+                        </button> ); })}
+                    </div>
+                  );
+                }
+                // STYLE B — list row (thumbnail + name + small desc + price on right + check/radio)
+                return (
+                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                    {items.map(it=>{ const on=isOn(ck,it.id,multi); const incl=inclOf(it); return (
+                      <div key={it.id} onClick={()=>pick(ck,it.id,multi)} style={{ display:'flex', alignItems:'center', gap:12, padding:'9px 11px', cursor:'pointer', borderRadius:12, border: on?'2px solid var(--clay)':'0.5px solid var(--line)', background: on?'var(--sand)':'#fff' }}>
+                        <span style={{ width:42, height:42, borderRadius:9, flexShrink:0, background:cardBg(it), border:'0.5px solid rgba(0,0,0,.1)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                          {!it.image_url && !it.swatch && <i className="ti ti-photo" style={{ fontSize:18, color:'rgba(0,0,0,.22)' }} aria-hidden="true" />}
+                        </span>
+                        <span style={{ flex:1, minWidth:0 }}>
+                          <span style={{ display:'block', fontSize:13.5, fontWeight: on?600:500, color:'var(--ink)', lineHeight:1.25 }}>{it.name}</span>
+                          {it.type_label && <span style={{ display:'block', fontSize:11.5, color:'var(--muted)', marginTop:1, lineHeight:1.3 }}>{it.type_label}</span>}
+                        </span>
+                        <span style={{ fontSize:12.5, fontWeight:600, color: incl?'var(--muted)':'var(--clay-deep)', whiteSpace:'nowrap' }}>{incl?'Included':'+ '+fmt(it.price)}</span>
+                        <span style={{ width:22, height:22, borderRadius: multi?6:'50%', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', background: on?'var(--clay)':'transparent', border: on?'2px solid var(--clay)':'1.5px solid var(--line)' }}>
+                          {on && <i className="ti ti-check" style={{ color:'#fff', fontSize:13 }} aria-hidden="true" />}
+                        </span>
+                      </div> ); })}
+                  </div>
+                );
+              };
               // ── Living accordion: essentials (expanded) + optional categories (collapsed) ──
               const finName = (FINISHES.find(f=>f.id===finishId)||{}).name || finishId;
               const layLabel = (lay.find(l=>l.id===layout)||{}).label || layout;
               const sizeLabel = (() => { const cv = (cm)=> unit==='in' ? (Math.round((cm/2.54)*10)/10)+'"' : cm; return (supportsSideAB&&layout==='l-shape') ? `${cv(dims.sideA)}+${cv(dims.sideB)}×${cv(dims.height)}` : `${cv(dims.width)}×${cv(dims.height)}×${cv(dims.depth)} ${unit}`; })();
               const layoutSet = !!layout, sizeSet = dims.width>0 || (supportsSideAB&&layout==='l-shape'), finishSet = !!finishId;
               const readyForQuote = layoutSet && sizeSet && finishSet;
-              // One accordion section. essential = green-check header w/ value; optional = "optional" tag.
-              const Section = ({ id, title, body, essential, chosen }) => {
-                const isOpen = openSecs.has(id);
-                const done = essential && !!chosen;
-                return (
-                  <div style={{ border: isOpen?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:12, overflow:'hidden', flexShrink:0, background:'#fff' }}>
-                    <button type="button" onClick={()=>toggleSec(id)} aria-expanded={isOpen} style={{ width:'100%', cursor:'pointer', padding:'0 15px', minHeight:52, display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:14.5, fontWeight:600, background:'#fff', lineHeight:1.2, border:'none', textAlign:'left' }}>
-                      <span style={{ display:'flex', alignItems:'center', gap:9 }}>
-                        {done
-                          ? <span style={{ width:22, height:22, borderRadius:'50%', background:'#1D9E75', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><i className="ti ti-check" style={{ color:'#fff', fontSize:14 }} aria-hidden="true" /></span>
-                          : <span style={{ width:22, height:22, borderRadius:'50%', border: essential?'2px solid var(--clay)':'1.5px solid #d0d0d0', flexShrink:0 }} />}
-                        <span style={{ color:'var(--ink)' }}>{title}</span>
-                        {!essential && <span style={{ fontSize:10.5, fontWeight:600, color:'var(--muted)', background:'var(--sand)', padding:'2px 8px', borderRadius:6 }}>optional</span>}
-                      </span>
-                      <span style={{ display:'flex', alignItems:'center', gap:8 }}>
-                        {!isOpen && chosen && <span style={{ fontSize:12, color:'#86868b', maxWidth:140, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{chosen}</span>}
-                        <i className={`ti ti-chevron-${isOpen?'down':'right'}`} style={{ color:'#aaa' }} aria-hidden="true" />
-                      </span>
-                    </button>
-                    {isOpen && <div style={{ padding:'4px 15px 16px' }}>{body}</div>}
-                  </div>
-                );
-              };
               const optionalCats = catKeys.filter(k=>k!=='door_finishes');
+              // ── Guided one-step-at-a-time flow: Layout → Size → Finish → [each option category] ──
+              const steps = [
+                { id:'layout', title:'Layout', essential:true, body:layoutBody, chosen: layLabel, done: layoutSet },
+                { id:'size', title:'Size', essential:true, body:sizeBody, chosen: sizeLabel, done: sizeSet },
+                { id:'door_finishes', title:'Finish', essential:true, body:finishBody, chosen: finName, done: finishSet },
+                ...optionalCats.map(ck => ({ id:ck, title:(cats[ck].label||ck), essential:false, body:catBody(ck), chosen: catChosen(ck), done: catStatus(ck)==='done' })),
+              ];
+              const curIdx = Math.max(0, Math.min(stepIndex, steps.length-1));
+              const cur = steps[curIdx];
+              const isLast = curIdx === steps.length-1;
+              const goStep = (i) => { const n = Math.max(0, Math.min(i, steps.length-1)); setStepIndex(n); setVisitedSteps(v=>{ const s=new Set(v); s.add(steps[n].id); return s; }); };
+              const stepIsDone = (st) => st.done || (!st.essential && visitedSteps.has(st.id));
               return (<>
-                {/* Ready-for-a-quote pill */}
+                {/* Header + Ready-for-a-quote pill */}
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:2 }}>
-                  <span className="eyebrow" style={{ fontSize:12 }}>Your design</span>
+                  <span className="eyebrow" style={{ fontSize:12 }}>Your design · step {curIdx+1} of {steps.length}</span>
                   <span style={{ fontSize:12, fontWeight:700, padding:'4px 12px', borderRadius:999, transition:'all .25s',
                     color: readyForQuote?'#1D9E75':'var(--muted)', background: readyForQuote?'#1D9E7522':'var(--sand)' }}>
                     {readyForQuote ? '✓ Ready for a quote' : 'Set layout · size · finish'}
                   </span>
                 </div>
-                {/* ESSENTIALS */}
-                <Section id="layout" title="Layout" essential chosen={layLabel} body={layoutBody} />
-                <Section id="size" title="Size" essential chosen={sizeLabel} body={sizeBody} />
-                <Section id="door_finishes" title="Finish" essential chosen={finName} body={finishBody} />
-                {/* OPTIONAL CATEGORIES */}
-                {optionalCats.length>0 && <div style={{ fontSize:11.5, fontWeight:600, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'.04em', margin:'6px 2px 0' }}>Optional extras</div>}
-                {optionalCats.map(ck => (
-                  <Section key={ck} id={ck} title={cats[ck].label||ck} chosen={catChosen(ck)} body={catBody(ck)} />
-                ))}
+                {/* COMPLETED steps — compact "done" rows above (tap to edit) */}
+                {steps.slice(0, curIdx).map(st => {
+                  const done = stepIsDone(st);
+                  return (
+                    <button key={st.id} type="button" onClick={()=>goStep(steps.indexOf(st))} style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'11px 14px', borderRadius:12, border:'0.5px solid var(--line)', background:'#fff', cursor:'pointer', textAlign:'left', flexShrink:0 }}>
+                      <span style={{ width:22, height:22, borderRadius:'50%', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', background: done?'#1D9E75':'var(--sand)' }}>
+                        {done ? <i className="ti ti-check" style={{ color:'#fff', fontSize:14 }} aria-hidden="true" /> : <span style={{ fontSize:11, fontWeight:700, color:'var(--muted)' }}>–</span>}
+                      </span>
+                      <span style={{ fontSize:14, fontWeight:600, color:'var(--ink)' }}>{st.title}</span>
+                      <span style={{ marginLeft:'auto', fontSize:12.5, color:'var(--ink-soft)', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{st.chosen || (st.essential?'—':'Skipped')}</span>
+                      <i className="ti ti-pencil" style={{ color:'var(--muted)', fontSize:14, flexShrink:0 }} aria-hidden="true" />
+                    </button>
+                  );
+                })}
+                {/* CURRENT step — expanded */}
+                <div style={{ border:'2px solid var(--clay)', borderRadius:14, overflow:'hidden', flexShrink:0, background:'#fff' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:9, padding:'14px 16px 6px' }}>
+                    <span style={{ width:24, height:24, borderRadius:'50%', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', background:'var(--clay)', color:'#fff', fontSize:12, fontWeight:700 }}>{curIdx+1}</span>
+                    <span style={{ fontSize:16, fontWeight:700, color:'var(--ink)' }}>{cur.title}</span>
+                    {!cur.essential && <span style={{ fontSize:10.5, fontWeight:600, color:'var(--muted)', background:'var(--sand)', padding:'2px 8px', borderRadius:6 }}>optional</span>}
+                  </div>
+                  <div style={{ padding:'6px 16px 16px' }}>{cur.body}</div>
+                  {/* Step nav */}
+                  <div style={{ display:'flex', alignItems:'center', gap:10, padding:'0 16px 16px' }}>
+                    {curIdx>0 && <button type="button" onClick={()=>goStep(curIdx-1)} style={{ background:'none', border:'none', fontSize:13.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer', padding:'8px 4px' }}>‹ Back</button>}
+                    {!cur.essential && !isLast && <button type="button" onClick={()=>goStep(curIdx+1)} style={{ background:'none', border:'none', fontSize:13, fontWeight:600, color:'var(--muted)', cursor:'pointer', padding:'8px 4px' }}>Skip</button>}
+                    {isLast
+                      ? <button type="button" className="btn-clay" disabled={busy} onClick={goVisualise} style={{ marginLeft:'auto', borderRadius:12, padding:'10px 20px', fontSize:14.5 }}>Visualise my design →</button>
+                      : <button type="button" className="btn-clay" disabled={cur.essential && !cur.done} onClick={()=>goStep(curIdx+1)} style={{ marginLeft:'auto', borderRadius:12, padding:'10px 22px', fontSize:14.5, opacity:(cur.essential && !cur.done)?0.55:1 }}>Next →</button>}
+                  </div>
+                </div>
+                {/* UPCOMING steps — muted/locked rows below (clickable-forward only if essentials before are done) */}
+                {steps.slice(curIdx+1).map((st, i) => {
+                  const absIdx = curIdx+1+i;
+                  // Allow forward jump only when all essential steps before it are satisfied.
+                  const blockingEssential = steps.slice(0, absIdx).some(s => s.essential && !s.done);
+                  const locked = blockingEssential;
+                  return (
+                    <button key={st.id} type="button" disabled={locked} onClick={()=>{ if(!locked) goStep(absIdx); }} style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'11px 14px', borderRadius:12, border:'0.5px solid var(--line)', background: locked?'transparent':'#fff', cursor: locked?'default':'pointer', textAlign:'left', flexShrink:0, opacity: locked?0.55:1 }}>
+                      <span style={{ width:22, height:22, borderRadius:'50%', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', border:'1.5px solid var(--line)', color:'var(--muted)', fontSize:11, fontWeight:700 }}>{locked ? <i className="ti ti-lock" style={{ fontSize:12 }} aria-hidden="true" /> : absIdx+1}</span>
+                      <span style={{ fontSize:14, fontWeight:600, color:'var(--ink-soft)' }}>{st.title}</span>
+                      {!st.essential && <span style={{ fontSize:10.5, fontWeight:600, color:'var(--muted)', background:'var(--sand)', padding:'2px 8px', borderRadius:6 }}>optional</span>}
+                    </button>
+                  );
+                })}
               </>);
             })()}
 
@@ -2278,32 +2370,30 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                   </div>
                 )}
                 <div style={{ fontSize:11.5, color:'var(--muted)', marginBottom:12 }}>Indicative — your free design visit confirms an exact, itemised quote.</div>
-                {/* ONE primary CTA */}
-                <button type="button" className="btn-clay" disabled={busy} onClick={goVisualise} style={{ width:'100%', borderRadius:12, fontSize:15 }}>Visualise my design →</button>
-                <div style={{ display:'flex', gap:8, marginTop:8 }}>
-                  <button type="button" className="btn-secondary" disabled={busy} onClick={save} style={{ flex:1, borderRadius:12, color: saved?'var(--good)':'var(--ink-soft)' }}>{saved?'✓ Saved':'Save'}</button>
-                  <button type="button" disabled={busy} onClick={requestQuote} style={{ flex:1, borderRadius:12, background:'none', border:'1px solid var(--line)', fontSize:13, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{user?'Get a quote':'Sign in & quote'}</button>
-                </div>
+                {/* Secondary: save the design (quote/visualise handled by guided steps + sticky bar) */}
+                <button type="button" className="btn-secondary" disabled={busy} onClick={save} style={{ width:'100%', borderRadius:12, color: saved?'var(--good)':'var(--ink-soft)' }}>{saved?'✓ Saved':'Save my design'}</button>
               </div>
             )}
           </div>
         </div>
-        {/* Mobile: price + primary CTA pinned to the bottom (safe-area aware) */}
-        {mobile && (
-          <div style={{ position:'fixed', left:0, right:0, bottom:0, zIndex:30, background:'#fff', borderTop:'1px solid var(--line)', padding:'10px 14px calc(10px + env(safe-area-inset-bottom))', boxShadow:'0 -4px 16px rgba(0,0,0,.08)' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:8 }}>
-              <span style={{ fontSize:12, color:'#86868b' }}>Estimated · {selPkg.name}</span>
-              <span style={{ fontSize:20, fontWeight:700, color:'var(--clay)' }}>{pricing?'…':fmt(pkgTotal)}</span>
+        {/* FULL-WIDTH STICKY ACTION BAR — live total (left) + one big quote button (right).
+            Desktop: spans the config area. Mobile: fixed bottom with safe-area. Always visible. */}
+        <div style={{ position:'fixed', left:0, right:0, bottom:0, zIndex:40, background:'#fff', borderTop:'1px solid var(--line)', boxShadow:'0 -4px 18px rgba(0,0,0,.08)', padding:`12px 0 calc(12px + env(safe-area-inset-bottom))` }}>
+          <div style={{ maxWidth:1560, margin:'0 auto', padding: mobile?'0 14px':'0 32px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:14 }}>
+            <div style={{ minWidth:0 }}>
+              <div style={{ display:'flex', alignItems:'baseline', gap:8 }}>
+                <span style={{ fontSize:11.5, color:'var(--muted)' }}>Estimated · {selPkg.name}</span>
+              </div>
+              <div style={{ display:'flex', alignItems:'baseline', gap:8 }}>
+                <span style={{ fontSize: mobile?22:26, fontWeight:800, color:'var(--clay)' }}>{pricing?'…':fmt(pkgTotal)}</span>
+                <span style={{ fontSize:11, color:'var(--muted)' }}>incl. VAT</span>
+              </div>
             </div>
-            <button type="button" className="btn-clay" disabled={busy} onClick={goVisualise} style={{ width:'100%', borderRadius:12 }}>Visualise my design →</button>
+            <button type="button" className="btn-clay" disabled={busy} onClick={requestQuote} style={{ borderRadius:14, padding: mobile?'13px 20px':'14px 34px', fontSize: mobile?14.5:16, fontWeight:700, whiteSpace:'nowrap', flexShrink:0 }}>
+              {busy ? 'Sending…' : (user ? 'Get my quote →' : 'Sign in & quote →')}
+            </button>
           </div>
-        )}
-        {railCollapsed && !mobile && (
-          <div style={{ position:'fixed', right:24, bottom:24, zIndex:30, display:'flex', gap:10, alignItems:'center', background:'#fff', border:'1px solid var(--line)', borderRadius:14, padding:'10px 14px', boxShadow:'0 8px 24px rgba(0,0,0,.12)' }}>
-            <span style={{ fontSize:13, color:'var(--ink-soft)' }}>Est. <strong style={{ color:'var(--clay)' }}>{pricing?'…':fmt(pkgTotal)}</strong></span>
-            <button type="button" className="btn-clay" disabled={busy} onClick={goVisualise} style={{ borderRadius:10, padding:'8px 14px', fontSize:13.5 }}>Visualise →</button>
-          </div>
-        )}
+        </div>
         </>
         );
         })()}
