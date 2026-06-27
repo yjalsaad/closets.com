@@ -390,8 +390,8 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
       </div>
     </nav>
 
-    {/* Floating bottom dock — hidden on the planner on mobile so it can't collide with the planner's fixed quote bar */}
-    {!(mobile && page==='planner') && (
+    {/* Floating bottom dock — hidden on the planner (all screen sizes) so it can't cover the planner's own Back/Close/CTA navigation */}
+    {page!=='planner' && (
     <div style={{ position:'fixed', bottom: mobile?'calc(14px + env(safe-area-inset-bottom))':18, left:'50%', transform:'translateX(-50%)', zIndex:900, display:'flex', alignItems:'flex-end', gap: mobile?16:24, maxWidth:'calc(100vw - 24px)', background:'rgba(255,255,255,.92)', backdropFilter:'blur(18px) saturate(180%)', border:'1px solid rgba(0,0,0,.06)', borderRadius:999, padding: mobile?'7px 18px':'8px 24px', boxShadow:'0 10px 34px rgba(33,28,24,.16)' }}>
       {DOCK.map(d => {
         const active = page===d.id;
@@ -436,7 +436,6 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
 const HOME_IMG = {
   // Brand story imagery — generated for The Closets (warm walnut, brass, soft daylight).
   hero:    'https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20260627_154323_ed082b3f-44ad-4a97-9ca4-278b83a6e9f6.png',
-  heroVideo: 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260503_144509_89e2d612-8af2-45c3-90f4-4831bc60715d.mp4',
   walkin:  'https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20260627_160149_897b07fc-8a2a-4e1d-8a77-e77cacffa5b0.png',
   kitchen: 'https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20260627_154428_5823e707-b25e-41bc-b372-6acd7166bddf.png',
   wardrobe:'https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=1400&q=80',
@@ -550,9 +549,7 @@ function Hero({ setPage, banners }) {
 
       {/* ── Cinematic hero ── */}
       <section ref={heroRef} onMouseMove={onHeroMove} style={{ position: 'relative', minHeight: '100svh', display: 'flex', alignItems: 'flex-end', overflow: 'hidden', background: '#15110e' }}>
-        <video className="hero-img" autoPlay muted loop playsInline preload="auto" poster={HOME_IMG.hero} aria-label="Bespoke interiors by The Closets" style={{ position: 'absolute', inset: 0, zIndex: 0, width: '100%', height: '100%', objectFit: 'cover' }}>
-          <source src={HOME_IMG.heroVideo} type="video/mp4" />
-        </video>
+        <Photo src={HOME_IMG.hero} alt="Bespoke walk-in closet interior by The Closets" imgClass="hero-img kenburns" style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
         <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(180deg, rgba(20,16,12,.34) 0%, rgba(20,16,12,.12) 38%, rgba(20,16,12,.82) 100%)' }} />
         <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', mixBlendMode: 'overlay', opacity: .07, backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
         <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: 1280, margin: '0 auto', padding: mobile ? '120px 24px 72px' : '0 48px 88px' }}>
@@ -1329,8 +1326,14 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   const [rendering, setRendering] = useState(false);
   const [renderUrl, setRenderUrl] = useState(null);
   const [renderErr, setRenderErr] = useState('');
-  // Wrap the AI render in a branded "The Closets" template (logo header + footer). Falls back to the raw image on any failure.
-  const brandRender = (srcUri) => new Promise((resolve) => {
+  // Wrap a design image (3D snapshot or AI render) in a branded "The Closets" template
+  // (logo header + spec/date strip + footer). Falls back to the raw image on any failure.
+  // opts: { footTitle, footNote, specLine, dateStr } — all optional.
+  const brandRender = (srcUri, opts = {}) => new Promise((resolve) => {
+    const footTitle = opts.footTitle || 'Your design — photorealistic concept';
+    const footNote  = opts.footNote  || 'AI impression. Exact finishes confirmed at your free design consultation.';
+    const specLine  = opts.specLine || '';
+    const dateStr   = opts.dateStr || '';
     const base = new Image();
     base.onload = () => {
       try {
@@ -1353,13 +1356,24 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           x.fillText('THE CLOSETS', tx, Math.round(head * 0.46));
           x.fillStyle = '#86868b'; x.font = `500 ${Math.round(head * 0.135)}px Inter, Arial, sans-serif`;
           x.fillText('Bespoke furniture · Kingdom of Bahrain', tx, Math.round(head * 0.69));
+          // Date (top-right of the header)
+          if (dateStr) {
+            x.textAlign = 'right'; x.fillStyle = '#86868b'; x.font = `600 ${Math.round(head * 0.135)}px Inter, Arial, sans-serif`;
+            x.fillText(dateStr, cw - pad, Math.round(head * 0.46));
+            x.textAlign = 'left';
+          }
+          // Project name / spec line (just under the header, above the image)
+          if (specLine) {
+            x.fillStyle = '#3a3a3c'; x.font = `600 ${Math.round(head * 0.155)}px Inter, Arial, sans-serif`;
+            x.fillText(specLine, tx, Math.round(head * 0.90));
+          }
           x.fillStyle = '#F2731C'; x.fillRect(pad, head - 4, w, 4);
           x.drawImage(base, pad, head, w, h);
           const fy = head + h;
           x.fillStyle = '#1d1d1f'; x.font = `700 ${Math.round(foot * 0.26)}px Inter, Arial, sans-serif`;
-          x.fillText('Your design — photorealistic concept', pad, fy + Math.round(foot * 0.36));
+          x.fillText(footTitle, pad, fy + Math.round(foot * 0.36));
           x.fillStyle = '#9aa0a6'; x.font = `400 ${Math.round(foot * 0.19)}px Inter, Arial, sans-serif`;
-          x.fillText('AI impression. Exact finishes confirmed at your free design consultation.', pad, fy + Math.round(foot * 0.66));
+          x.fillText(footNote, pad, fy + Math.round(foot * 0.66));
           x.textAlign = 'right'; x.fillStyle = '#F2731C'; x.font = `700 ${Math.round(foot * 0.22)}px Inter, Arial, sans-serif`;
           x.fillText('theclosets.co · +973 1700 1700', cw - pad, fy + Math.round(foot * 0.50));
           x.textAlign = 'left';
@@ -1390,7 +1404,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
         body: JSON.stringify({ image_base64: img, product: prodKey, finish: finishId })
       });
       const d = await r.json().catch(() => ({}));
-      if (d && d.ok && d.url) { const branded = await brandRender(d.url); setRenderUrl(branded || d.url); }
+      if (d && d.ok && d.url) { const branded = await brandRender(d.url, { specLine: brandSpecLine(), dateStr: brandDateStr() }); setRenderUrl(branded || d.url); }
       else setRenderErr(d && d.error === 'Render not configured' ? 'Photorealistic rendering isn’t switched on yet.' : 'Render failed — please try again.');
     } catch (e) { setRenderErr('Network error — please try again.'); }
     setRendering(false);
@@ -1436,7 +1450,26 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   const [pkg, setPkg] = useState(1); // selected package index (Standard default)
   const [showItemized, setShowItemized] = useState(true);
   const [quoteImg, setQuoteImg] = useState(null); // captured 3D snapshot shown in the quote area
+  const [brandedImg, setBrandedImg] = useState(null); // The Closets-branded version of the snapshot (logo + date + project name) for Visualise display + download
   const [quoteSent, setQuoteSent] = useState(false); // post-submit success (guest → account invite)
+  // Stable-per-design quotation reference: TC-YYMMDD-XXXX. Generated once (lazy ref) so it
+  // doesn't change on every render. 4-char token derived from the live config id if present,
+  // else a random base36 token. Format: TC-260627-A1B2.
+  const quoteRefRef = useRef(null);
+  if (!quoteRefRef.current) {
+    const d = new Date();
+    const yy = String(d.getFullYear()).slice(-2);
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    let token = '';
+    try {
+      const seed = (plannerApi.current && plannerApi.current.configId) || (selProduct && selProduct.id) || '';
+      token = String(seed).replace(/[^a-zA-Z0-9]/g, '').slice(-4).toUpperCase();
+    } catch (e) {}
+    if (token.length < 4) token = (token + Math.random().toString(36).slice(2, 6).toUpperCase()).slice(0, 4);
+    quoteRefRef.current = 'TC-' + yy + mm + dd + '-' + token;
+  }
+  const quoteRef = quoteRefRef.current;
   const priceTimer = useRef(null);
   // Package tiers — multipliers + labels (shared between config & quote)
   const PACKAGES = [
@@ -1720,6 +1753,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
       const lineData = buildLineItems();
       const noteLines = [
         `🪟 Website Planner quote`,
+        `Quotation #${quoteRef} · ${brandDateStr()}`,
         `Product: ${selProduct?.name || 'Wardrobe'}`,
         `Layout: ${layout}  |  Finish: ${finName}  |  Size: ${sizeStr}`,
         `Package: ${lineData.pkgName} (×${lineData.pkgMult})`,
@@ -1731,12 +1765,13 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
         `Estimated total (${lineData.pkgName}): BHD ${lineData.total}`,
       ];
       // Attach the REAL line items + breakdown inside the configuration object too
-      const configWithItems = { ...buildSelection(), package: lineData.pkgName, package_multiplier: lineData.pkgMult, line_items: lineData.items, subtotal: lineData.subtotal, package_adjustment: lineData.pkgAdj, vat: lineData.vat, vat_rate: lineData.vatRate, total: lineData.total, price_breakdown: price || null };
+      const configWithItems = { ...buildSelection(), quote_ref: quoteRef, package: lineData.pkgName, package_multiplier: lineData.pkgMult, line_items: lineData.items, subtotal: lineData.subtotal, package_adjustment: lineData.pkgAdj, vat: lineData.vat, vat_rate: lineData.vatRate, total: lineData.total, price_breakdown: price || null };
       const r = await fetch(SUPA_URL + '/functions/v1/submit_design_quote', {
         method: 'POST',
         headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           platform: 'website',
+          quote_ref: quoteRef,
           customer_id: user?.id || null,
           customer_name: name || 'Website Visitor',
           customer_phone: phone || null,
@@ -1787,12 +1822,111 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+  // Today's date, e.g. "27 Jun 2026" — for the branded design image.
+  const brandDateStr = () => { try { return new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }); } catch (e) { return ''; } };
+  // Project / spec line for the branded image: "Walk-in Wardrobe — l-shape, 200+150 × 240 × 60 cm".
+  const brandSpecLine = () => {
+    const sizeString = (supportsSideAB && layout === 'l-shape')
+      ? `${dims.sideA}+${dims.sideB} × ${dims.height} × ${dims.depth} cm`
+      : `${dims.width} × ${dims.height} × ${dims.depth} cm`;
+    return `${selProduct?.name || 'Design'} — ${layout}, ${sizeString}`;
+  };
   const goVisualise = () => {
-    setQuoteErr('');
+    setQuoteErr(''); setBrandedImg(null);
     // Capture the live 3D snapshot now, while the config canvas is still mounted, for the quote area.
-    try { const s = plannerApi.current && plannerApi.current.snapshot ? plannerApi.current.snapshot() : null; if (s) setQuoteImg(s); } catch (e) {}
+    try {
+      const s = plannerApi.current && plannerApi.current.snapshot ? plannerApi.current.snapshot() : null;
+      if (s) {
+        setQuoteImg(s);
+        // Brand the snapshot (logo header + date + project name + consultation footer) for display + download.
+        brandRender(s, {
+          footTitle: 'Your design — 3D concept',
+          footNote: 'Indicative 3D impression. Exact finishes confirmed at your free design consultation.',
+          specLine: brandSpecLine(),
+          dateStr: brandDateStr(),
+        }).then(b => { if (b) setBrandedImg(b); }).catch(() => {});
+      }
+    } catch (e) {}
     setStage('visualise');
   };
+  // ── Option A: formal printable quotation (PDF via the browser print dialog) ──
+  // Builds a self-contained HTML document (letterhead, spec, branded design image,
+  // itemized table, subtotal/VAT/TOTAL, footer) and opens it in a new window, then
+  // calls print() so the user can "Save as PDF". No external lib — print-to-PDF is the deliverable.
+  const downloadQuotePdf = () => {
+    const ld = buildLineItems();
+    const finName = (FINISHES.find(f=>f.id===finishId)||{}).name || finishId;
+    const sizeStr = (supportsSideAB&&layout==='l-shape') ? `${dims.sideA}+${dims.sideB} × ${dims.height} × ${dims.depth} cm` : `${dims.width} × ${dims.height} × ${dims.depth} cm`;
+    const dateStr = brandDateStr();
+    const preparedFor = (user && user.name) || (qForm && qForm.name) || 'Valued client';
+    const img = brandedImg || renderUrl || quoteImg || '';
+    const esc = (s) => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const money = (n) => 'BHD ' + Number(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    const rows = ld.items.map(li => (
+      `<tr><td class="desc">${esc(li.label)}${li.detail ? `<span class="sub">${esc(li.detail)}</span>` : ''}</td>`
+      + `<td class="amt">${li.price === 0 ? 'Included' : money(li.price)}</td></tr>`
+    )).join('');
+    const pkgRow = ld.pkgAdj !== 0
+      ? `<tr><td class="desc">${esc(ld.pkgName)} package (×${ld.pkgMult})</td><td class="amt">${ld.pkgAdj > 0 ? '+ ' : '− '}${money(Math.abs(ld.pkgAdj))}</td></tr>`
+      : '';
+    const vatRow = ld.vat > 0
+      ? `<tr><td class="desc">VAT (${Math.round(ld.vatRate*100)}%)</td><td class="amt">${money(ld.vat)}</td></tr>`
+      : '';
+    const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"/>`
+      + `<meta name="viewport" content="width=device-width, initial-scale=1"/>`
+      + `<title>Quotation ${esc(quoteRef)} — The Closets</title>`
+      + `<style>`
+      + `*{box-sizing:border-box;margin:0;padding:0}`
+      + `body{font-family:Inter,-apple-system,Segoe UI,Arial,sans-serif;color:#211c18;background:#f3f3f3;padding:28px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}`
+      + `.sheet{max-width:820px;margin:0 auto;background:#ffffff;padding:48px 52px;box-shadow:0 6px 30px rgba(0,0,0,.12)}`
+      + `.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #F2731C;padding-bottom:18px;margin-bottom:24px}`
+      + `.wordmark{font-size:24px;font-weight:800;letter-spacing:.02em;color:#211c18}`
+      + `.tag{font-size:12px;color:#8a7f72;margin-top:3px}`
+      + `.qbox{text-align:right}`
+      + `.qbox .t{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#8a7f72}`
+      + `.qbox .ref{font-size:16px;font-weight:800;color:#C2410C;margin-top:2px}`
+      + `.qbox .date{font-size:12px;color:#4a423b;margin-top:2px}`
+      + `.prepared{font-size:13px;color:#4a423b;margin-bottom:4px}`
+      + `.prepared b{color:#211c18}`
+      + `.spec{font-size:12.5px;color:#4a423b;background:#f7f2ec;border:1px solid #e6ddd1;border-radius:8px;padding:10px 14px;margin:14px 0 20px}`
+      + `.img{width:100%;border:1px solid #e6ddd1;border-radius:8px;display:block;margin-bottom:22px}`
+      + `table{width:100%;border-collapse:collapse;margin-bottom:6px}`
+      + `th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8a7f72;border-bottom:2px solid #211c18;padding:8px 0}`
+      + `th.amt,td.amt{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}`
+      + `td{padding:9px 0;border-bottom:1px solid #e6ddd1;font-size:13.5px;vertical-align:top}`
+      + `td.desc .sub{display:block;font-size:11px;color:#8a7f72;margin-top:2px}`
+      + `tr.sum td{border-bottom:none;padding:6px 0;color:#4a423b;font-size:13px}`
+      + `tr.total td{border-top:2px solid #211c18;padding-top:12px;font-size:17px;font-weight:800;color:#211c18}`
+      + `tr.total td.amt{color:#C2410C}`
+      + `.foot{margin-top:28px;padding-top:16px;border-top:1px solid #e6ddd1;font-size:11.5px;color:#8a7f72}`
+      + `.foot .contact{color:#C2410C;font-weight:700;margin-top:6px}`
+      + `@page{size:A4;margin:14mm}`
+      + `@media print{body{background:#fff;padding:0}.sheet{box-shadow:none;max-width:none;padding:0}}`
+      + `</style></head><body><div class="sheet">`
+      + `<div class="head"><div><div class="wordmark">THE CLOSETS</div><div class="tag">Bespoke furniture · Bahrain</div></div>`
+      + `<div class="qbox"><div class="t">Quotation</div><div class="ref">#${esc(quoteRef)}</div><div class="date">${esc(dateStr)}</div></div></div>`
+      + `<div class="prepared">Prepared for <b>${esc(preparedFor)}</b></div>`
+      + `<div class="spec">${esc(selProduct?.name || 'Wardrobe')} · ${esc(layout)} · ${esc(sizeStr)} · ${esc(finName)} · ${esc(ld.pkgName)} package</div>`
+      + (img ? `<img class="img" src="${img}" alt="Your design"/>` : '')
+      + `<table><thead><tr><th>Description</th><th class="amt">Amount</th></tr></thead><tbody>`
+      + rows
+      + `<tr class="sum"><td class="desc">Subtotal</td><td class="amt">${money(ld.subtotal)}</td></tr>`
+      + pkgRow
+      + vatRow
+      + `<tr class="total"><td>TOTAL</td><td class="amt">${money(ld.total)}</td></tr>`
+      + `</tbody></table>`
+      + `<div class="foot">Indicative — valid 30 days. Free design visit confirms an exact quote.`
+      + `<div class="contact">theclosets.co · +973 1700 1700</div></div>`
+      + `</div>`
+      + `<script>window.onload=function(){setTimeout(function(){window.print();},350);};<\/script>`
+      + `</body></html>`;
+    let win = null;
+    try { win = window.open('', '_blank'); } catch (e) {}
+    if (!win) { toast('Please allow pop-ups to download your quotation PDF.', 'error'); return; }
+    try { win.document.open(); win.document.write(html); win.document.close(); }
+    catch (e) { toast('Could not open the quotation — please try again.', 'error'); }
+  };
+
   // Reusable 5-step progress spine (clone of Raumplus/Wren step counter), shared across stages.
   const planSteps = (cur) => {
     const order = ['product','ai','config','visualise','quote'];
@@ -1931,7 +2065,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
     const finName = (FINISHES.find(f=>f.id===finishId)||{}).name || finishId;
     const sizeStr = (supportsSideAB&&layout==='l-shape') ? `${dims.sideA}+${dims.sideB} × ${dims.height} × ${dims.depth} cm` : `${dims.width} × ${dims.height} × ${dims.depth} cm`;
     return (
-      <div style={{ minHeight:'100dvh', paddingTop:80, paddingBottom:40 }}>
+      <div style={{ minHeight:'100dvh', paddingTop:80, paddingBottom:'calc(56px + env(safe-area-inset-bottom))' }}>
         <div style={{ maxWidth:1440, margin:'0 auto', padding: mobile?'0 16px':'0 28px' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', margin:'12px 0 10px' }}>
             <span onClick={()=>setStage('config')} style={{ cursor:'pointer', fontSize:13, color:'var(--ink-soft)' }}>‹ Back to configure</span>
@@ -1939,41 +2073,55 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             <button type="button" aria-label="Close" onClick={()=>setPage('home')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>Close ✕</button>
           </div>
           {planSteps('visualise')}
-          <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1.4fr 1fr', gap:20, alignItems:'start' }}>
-            {/* Visual: photoreal render if generated, else live 3D */}
-            <div style={{ background:'#f5f5f7', borderRadius:20, position:'relative', minHeight: mobile?320:560, overflow:'hidden' }}>
-              {renderUrl
-                ? <img src={renderUrl} alt="Photorealistic render of your design" style={{ width:'100%', display:'block' }} />
-                : <Wardrobe3D apiRef={plannerApi} finishHex={finishHex} layout={layout} glass={hasGlass} handles={hasHandles} led={hasLed} mobile={mobile} tall product={prodKey} widthCm={sizeW} heightCm={dims.height} depthCm={dims.depth} sideACm={dims.sideA} sideBCm={dims.sideB} unit={unit} />}
-              <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', bottom:12, right:12, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,#F2731C,#C2410C)', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(242,115,28,.4)' }}>
+          {/* ── OPTION B: visual hero (left) + on-screen quotation (right) ── */}
+          <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1.25fr 1fr', gap:20, alignItems:'start' }}>
+            {/* LEFT — branded design image / live 3D hero with a quotation chip overlaid */}
+            <div style={{ background:'#f5f5f7', borderRadius:20, position:'relative', minHeight: mobile?300:560, overflow:'hidden' }}>
+              {(renderUrl || brandedImg)
+                ? <img src={renderUrl || brandedImg} alt="Your design" style={{ width:'100%', display:'block' }} />
+                : (quoteImg
+                    ? <img src={quoteImg} alt="Your design" style={{ width:'100%', display:'block' }} />
+                    : <Wardrobe3D apiRef={plannerApi} finishHex={finishHex} layout={layout} glass={hasGlass} handles={hasHandles} led={hasLed} mobile={mobile} tall product={prodKey} widthCm={sizeW} heightCm={dims.height} depthCm={dims.depth} sideACm={dims.sideA} sideBCm={dims.sideB} unit={unit} />)}
+              {/* Quotation #ref · date chip (top-left so it clears the photoreal CTA top-right) */}
+              <div style={{ position:'absolute', top:12, left:12, zIndex:3, display:'inline-flex', alignItems:'center', gap:7, padding:'7px 12px', borderRadius:999, background:'rgba(33,28,24,.82)', color:'#fff', fontSize:11.5, fontWeight:600, letterSpacing:'.02em', backdropFilter:'blur(4px)' }}>
+                <i className="ti ti-file-invoice" aria-hidden="true" /> #{quoteRef} · {brandDateStr()}
+              </div>
+              {/* Top-right so it never overlaps the 3D zoom controls (bottom-right) or the drag-to-rotate hint (bottom-left). */}
+              <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', top:12, right:12, zIndex:3, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,#F2731C,#C2410C)', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(242,115,28,.4)' }}>
                 <i className={rendering ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" />
                 {rendering ? 'Rendering…' : (renderUrl ? 'Regenerate' : 'Make it photorealistic')}
               </button>
-            </div>
-            {/* Summary + itemized detail */}
-            <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-              {/* Rendered design image inside the quote area (photoreal if present, else 3D snapshot) + Download */}
-              {(renderUrl || quoteImg) && (
-                <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:12 }}>
-                  <img src={renderUrl || quoteImg} alt="Your design" style={{ width:'100%', display:'block', borderRadius:10 }} />
-                  <a href={renderUrl || quoteImg} download={renderUrl ? 'closets-design.jpg' : 'closets-design.png'} style={{ display:'inline-flex', alignItems:'center', gap:6, marginTop:10, padding:'8px 14px', borderRadius:10, background:'var(--ink)', color:'#fff', textDecoration:'none', fontSize:12.5, fontWeight:700 }}>
-                    <i className="ti ti-download" aria-hidden="true" /> Download image
-                  </a>
-                </div>
+              {(renderUrl || brandedImg || quoteImg) && (
+                <a href={renderUrl || brandedImg || quoteImg} download="closets-design.jpg" style={{ position:'absolute', bottom:12, right:12, zIndex:3, display:'inline-flex', alignItems:'center', gap:6, padding:'8px 13px', borderRadius:10, background:'rgba(33,28,24,.82)', color:'#fff', textDecoration:'none', fontSize:12, fontWeight:700, backdropFilter:'blur(4px)' }}>
+                  <i className="ti ti-download" aria-hidden="true" /> Save image
+                </a>
               )}
-              <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'18px 18px 16px' }}>
-                <div className="display" style={{ fontSize:20, color:'var(--ink)', marginBottom:12 }}>Your design</div>
+            </div>
+            {/* RIGHT — on-screen quotation */}
+            <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+              <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'20px 20px 18px' }}>
+                {/* Quote header: ref + date prominent */}
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:10, paddingBottom:14, borderBottom:'2px solid var(--ink)', marginBottom:14 }}>
+                  <div>
+                    <div className="eyebrow" style={{ marginBottom:4 }}>Quotation</div>
+                    <div className="display" style={{ fontSize:19, color:'var(--ink)', lineHeight:1.2 }}>#{quoteRef}</div>
+                    <div style={{ fontSize:12.5, color:'var(--muted)', marginTop:2 }}>{brandDateStr()}</div>
+                  </div>
+                  <div style={{ textAlign:'right' }}>
+                    <div style={{ fontSize:11.5, color:'var(--ink-soft)' }}>Estimated total</div>
+                    <div style={{ fontSize:26, fontWeight:800, color:'var(--clay)', fontVariantNumeric:'tabular-nums' }}>{fmt(lineData.total)}</div>
+                  </div>
+                </div>
+                {/* Your design summary */}
+                <div className="display" style={{ fontSize:16, color:'var(--ink)', marginBottom:8 }}>Your design</div>
                 {[['Product', selProduct?.name || 'Wardrobe'],['Layout', layout],['Finish', finName],['Size', sizeStr],['Package', `${selPkg.name} (×${selPkg.mult})`]].map(([k,v])=>(
                   <div key={k} style={{ display:'flex', justifyContent:'space-between', padding:'7px 0', borderBottom:'1px solid var(--line)', fontSize:13.5 }}>
                     <span style={{ color:'var(--ink-soft)' }}>{k}</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{v}</span>
                   </div>
                 ))}
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginTop:12 }}>
-                  <span style={{ fontSize:13, color:'var(--ink-soft)' }}>Estimated total</span>
-                  <span style={{ fontSize:24, fontWeight:700, color:'var(--clay)' }}>{fmt(lineData.total)}</span>
-                </div>
               </div>
-              <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 18px' }}>
+              {/* Itemized quotation */}
+              <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'16px 20px' }}>
                 <div onClick={()=>setShowItemized(s=>!s)} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', cursor:'pointer' }}>
                   <span style={{ fontSize:15, fontWeight:700, color:'var(--ink)' }}>Itemized quotation</span>
                   <i className={`ti ti-chevron-${showItemized?'up':'down'}`} style={{ color:'var(--muted)' }} aria-hidden="true" />
@@ -1983,37 +2131,51 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                     {lineData.items.map((li,i)=>(
                       <div key={i} style={{ display:'flex', justifyContent:'space-between', gap:10, padding:'6px 0', borderBottom:'1px solid var(--line)', fontSize:13 }}>
                         <span style={{ color:'var(--ink)' }}>{li.label}{li.detail?<span style={{ color:'var(--muted)', display:'block', fontSize:11 }}>{li.detail}</span>:null}</span>
-                        <span style={{ fontWeight:600, color: li.price===0?'var(--muted)':'var(--ink)', whiteSpace:'nowrap' }}>{li.price===0?'Included':fmt(li.price)}</span>
+                        <span style={{ fontWeight:600, color: li.price===0?'var(--muted)':'var(--ink)', whiteSpace:'nowrap', fontVariantNumeric:'tabular-nums' }}>{li.price===0?'Included':fmt(li.price)}</span>
                       </div>
                     ))}
                     <div style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', fontSize:13, color:'var(--ink-soft)' }}>
-                      <span>Subtotal</span><span style={{ fontWeight:600 }}>{fmt(lineData.subtotal)}</span>
+                      <span>Subtotal</span><span style={{ fontWeight:600, fontVariantNumeric:'tabular-nums' }}>{fmt(lineData.subtotal)}</span>
                     </div>
                     {lineData.pkgAdj !== 0 && (
                       <div style={{ display:'flex', justifyContent:'space-between', padding:'4px 0', fontSize:13, color:'var(--ink-soft)' }}>
-                        <span>{selPkg.name} package (×{selPkg.mult})</span><span style={{ fontWeight:600 }}>{lineData.pkgAdj>0?'+ ':'− '}{fmt(Math.abs(lineData.pkgAdj))}</span>
+                        <span>{selPkg.name} package (×{selPkg.mult})</span><span style={{ fontWeight:600, fontVariantNumeric:'tabular-nums' }}>{lineData.pkgAdj>0?'+ ':'− '}{fmt(Math.abs(lineData.pkgAdj))}</span>
                       </div>
                     )}
                     {lineData.vat > 0 && (
                       <div style={{ display:'flex', justifyContent:'space-between', padding:'4px 0', fontSize:13, color:'var(--ink-soft)' }}>
-                        <span>VAT ({Math.round(lineData.vatRate*100)}%)</span><span style={{ fontWeight:600 }}>{fmt(lineData.vat)}</span>
+                        <span>VAT ({Math.round(lineData.vatRate*100)}%)</span><span style={{ fontWeight:600, fontVariantNumeric:'tabular-nums' }}>{fmt(lineData.vat)}</span>
                       </div>
                     )}
                     <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 0 0', marginTop:6, borderTop:'2px solid var(--ink)', fontSize:15, fontWeight:800, color:'var(--ink)' }}>
-                      <span>TOTAL</span><span style={{ color:'var(--clay)' }}>{fmt(lineData.total)}</span>
+                      <span>TOTAL</span><span style={{ color:'var(--clay)', fontVariantNumeric:'tabular-nums' }}>{fmt(lineData.total)}</span>
                     </div>
                   </div>
                 )}
-                <div style={{ fontSize:10.5, color:'var(--muted)', marginTop:10 }}>Indicative — your free design visit confirms an exact, itemised quote.</div>
+                <div style={{ fontSize:10.5, color:'var(--muted)', marginTop:10 }}>Indicative — valid 30 days. Your free design visit confirms an exact, itemised quote.</div>
               </div>
               {quoteErr && <div role="alert" style={{ background:'#fdecea', border:'1px solid #f5c6c0', color:'#b3261e', borderRadius:12, padding:'10px 14px', fontSize:13 }}>{quoteErr}</div>}
+              {/* CTAs — primary (quote) + secondary (download PDF). Edit + PDF on one row, primary below. */}
               <div style={{ display:'flex', gap:8 }}>
                 <button type="button" className="btn-secondary" disabled={busy} onClick={()=>setStage('config')} style={{ flex:1, borderRadius:12, color:'var(--ink-soft)' }}>‹ Edit</button>
-                <button type="button" className="btn-clay" disabled={busy} onClick={requestQuote} style={{ flex:2, borderRadius:12 }}>{busy?'Sending…':(user?'Continue — get my quote →':'Sign in & get my quote →')}</button>
+                <button type="button" className="btn-secondary" onClick={downloadQuotePdf} style={{ flex:2, borderRadius:12, color:'var(--ink-soft)', display:'inline-flex', alignItems:'center', justifyContent:'center', gap:7 }}><i className="ti ti-download" aria-hidden="true" /> Download quotation (PDF)</button>
               </div>
+              {!mobile && (
+                <button type="button" className="btn-clay" disabled={busy} onClick={requestQuote} style={{ width:'100%', borderRadius:12 }}>{busy?'Sending…':(user?'Get my quote →':'Sign in & quote →')}</button>
+              )}
             </div>
           </div>
         </div>
+        {/* Mobile sticky CTA bar */}
+        {mobile && (
+          <div style={{ position:'fixed', left:0, right:0, bottom:0, zIndex:80, background:'rgba(247,242,236,.96)', backdropFilter:'blur(8px)', borderTop:'1px solid var(--line)', padding:'10px 16px calc(10px + env(safe-area-inset-bottom))', display:'flex', alignItems:'center', gap:12 }}>
+            <div style={{ flexShrink:0 }}>
+              <div style={{ fontSize:10.5, color:'var(--ink-soft)' }}>Total</div>
+              <div style={{ fontSize:18, fontWeight:800, color:'var(--clay)', fontVariantNumeric:'tabular-nums' }}>{fmt(lineData.total)}</div>
+            </div>
+            <button type="button" className="btn-clay" disabled={busy} onClick={requestQuote} style={{ flex:1, borderRadius:12, minHeight:46 }}>{busy?'Sending…':(user?'Get my quote →':'Sign in & quote →')}</button>
+          </div>
+        )}
         {/* photoreal modal (shared) */}
         {(rendering || renderUrl || renderErr) && (
           <div onClick={()=>{ if(!rendering){ setRenderErr(''); } }} style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(15,18,22,.72)', display: renderErr?'flex':'none', alignItems:'center', justifyContent:'center', padding:20 }}>
