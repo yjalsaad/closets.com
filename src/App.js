@@ -25,6 +25,19 @@ const mergeDesigns = (existing, incoming) => {
 };
 const AppCtx = createContext(null);
 
+// Inline-SVG icons for high-visibility customer-facing AI/chat surfaces.
+// These render reliably even if the Tabler icon web-font fails to load.
+const Spark = ({ size = 18, color = 'currentColor', style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={color} aria-hidden="true" style={style}>
+    <path d="M12 2l1.6 5.5a4 4 0 0 0 2.9 2.9L22 12l-5.5 1.6a4 4 0 0 0-2.9 2.9L12 22l-1.6-5.5a4 4 0 0 0-2.9-2.9L2 12l5.5-1.6a4 4 0 0 0 2.9-2.9z" />
+  </svg>
+);
+const SendIcon = ({ size = 18, color = 'currentColor', style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={style}>
+    <path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4z" />
+  </svg>
+);
+
 // ── i18n: interface translation (EN / AR) ──
 const I18N = {
   // nav
@@ -400,7 +413,7 @@ function Photo({ src, alt = '', style, className = '', imgClass = '', par }) {
   const [err, setErr] = useState(false);
   const cls = (className + (par ? ' par' : '')).trim();
   const dpr = par ? { 'data-par': par } : {};
-  if (err) return <div className={cls} {...dpr} role="img" aria-label={alt} style={{ ...style, background: 'linear-gradient(135deg,#efe7dc,#d8ccbb)' }} />;
+  if (err) return <div className={cls} {...dpr} role="img" aria-label={alt} style={{ ...style, background: 'linear-gradient(135deg,var(--sand),#d8ccbb)' }} />;
   return <div className={cls} {...dpr} style={{ ...style, overflow: 'hidden' }}>
     <img src={src} alt={alt} loading="lazy" onError={() => setErr(true)} className={imgClass} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
   </div>;
@@ -1544,7 +1557,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
       <div style={{ width:'100%', maxWidth:640 }}>{planSteps('ai')}</div>
       <div style={{ maxWidth:580, width:'100%', background:'#fff', border:'1px solid var(--line)', borderRadius:22, padding: mobile?22:30 }}>
         <div style={{ display:'flex', gap:10, alignItems:'center', marginBottom:8 }}>
-          <i className="ti ti-sparkles" style={{ fontSize:22, color:'var(--clay)' }} aria-hidden="true" />
+          <Spark size={22} color="var(--clay)" />
           <span className="display" style={{ fontSize:20, color:'var(--ink)' }}>Describe your space</span>
         </div>
         <p style={{ fontSize:14, color:'var(--ink-soft)', marginBottom:16, lineHeight:1.6 }}>We'll design a tailored starting point in seconds.</p>
@@ -1611,7 +1624,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           {/* BIG 3D STAGE */}
           <div style={{ background:'#f5f5f7', borderRadius:20, position:'relative', minHeight: mobile?340:560, overflow:'hidden' }}>
             <Wardrobe3D apiRef={plannerApi} finishHex={finishHex} layout={layout} glass={hasGlass} handles={hasHandles} led={hasLed} mobile={mobile} tall product={prodKey} widthCm={layout==='l-shape' ? (Number(dims.sideA)+Number(dims.sideB)) : dims.width} heightCm={dims.height} depthCm={dims.depth} />
-            {aiSummary && <div style={{ position:'absolute', top:12, left:12, right:12, fontSize:12, background:'var(--sand)', color:'var(--clay-deep)', padding:'8px 12px', borderRadius:12 }}><i className="ti ti-sparkles" aria-hidden="true" /> {aiSummary}</div>}
+            {aiSummary && <div style={{ position:'absolute', top:12, left:12, right:12, fontSize:12, background:'var(--sand)', color:'var(--clay-deep)', padding:'8px 12px', borderRadius:12 }}><Spark size={12} color="var(--clay-deep)" style={{ verticalAlign:'-1px' }} /> {aiSummary}</div>}
             <div style={{ position:'absolute', top:12, right:12, display:'flex', gap:6, alignItems:'center', fontSize:11, color:'#86868b', background:'rgba(255,255,255,.85)', padding:'5px 10px', borderRadius:10 }}>
               <i className="ti ti-rotate-360" aria-hidden="true" /> {t('dragRotate')}
             </div>
@@ -1629,7 +1642,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             <div onClick={()=>{ if(!rendering){ setRenderUrl(null); setRenderErr(''); } }} style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(15,18,22,.72)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
               <div onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:18, maxWidth:880, width:'100%', maxHeight:'90vh', overflow:'auto', boxShadow:'0 20px 60px rgba(0,0,0,.4)' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 18px', borderBottom:'1px solid #eee' }}>
-                  <span style={{ fontSize:15, fontWeight:700, color:'#1d1d1f' }}><i className="ti ti-sparkles" aria-hidden="true" /> Photorealistic render</span>
+                  <span style={{ fontSize:15, fontWeight:700, color:'#1d1d1f' }}><Spark size={15} style={{ verticalAlign:'-2px' }} /> Photorealistic render</span>
                   <span onClick={()=>{ if(!rendering){ setRenderUrl(null); setRenderErr(''); } }} style={{ cursor:'pointer', color:'#999', fontSize:18 }}>✕</span>
                 </div>
                 <div style={{ padding:18, textAlign:'center' }}>
@@ -3138,7 +3151,7 @@ function AIDesignerPage({ setPage, user }) {
       {/* ── RESULT ── */}
       <div>
         {!hasResult && <div style={{ border:'1px dashed var(--line)', borderRadius:20, padding:'56px 24px', textAlign:'center', color:'var(--muted)', fontSize:15, background:'#fff' }}>
-          <i className="ti ti-sparkles" style={{ fontSize:30, color:'var(--clay)', display:'block', marginBottom:12 }} aria-hidden="true" />
+          <Spark size={30} color="var(--clay)" style={{ display:'block', marginBottom:12 }} />
           {needsPhoto?'Your before / after redesign and a tailored concept will appear here.':'Your AI concept — layout, materials, colours and package options — will appear here.'}
         </div>}
 
@@ -3252,7 +3265,7 @@ function ChatWidget({ setPage }) {
     {open && (
       <div style={{ position:'fixed', right: mobile?10:24, bottom: mobile?150:92, zIndex:1400, width: mobile?'calc(100vw - 20px)':380, maxWidth:'calc(100vw - 20px)', height:520, maxHeight:'70vh', background:'#fff', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,.22)', border:'1px solid #ececec', display:'flex', flexDirection:'column', overflow:'hidden' }}>
         <div style={{ background:'#1d1d1f', color:'#fff', padding:'14px 18px' }}>
-          <div style={{ fontWeight:600, fontSize:15, display:'flex', alignItems:'center', gap:8 }}><i className="ti ti-sparkles" style={{ color:'#F9A35C' }} aria-hidden="true" /> Closets Assistant</div>
+          <div style={{ fontWeight:600, fontSize:15, display:'flex', alignItems:'center', gap:8 }}><Spark size={16} color="#F9A35C" /> Closets Assistant</div>
           <div style={{ fontSize:12, color:'#bdbdbd', marginTop:2 }}>AI-powered · replies in seconds</div>
         </div>
         <div ref={listRef} style={{ flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:10, background:'#fafafa' }}>
@@ -3262,7 +3275,7 @@ function ChatWidget({ setPage }) {
         </div>
         <div style={{ display:'flex', gap:8, padding:'12px', borderTop:'1px solid #ececec' }}>
           <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter') send(); }} placeholder="Ask anything…" style={{ flex:1, border:'1px solid #e0e0e0', borderRadius:980, padding:'10px 16px', fontSize:14, outline:'none' }} />
-          <button type="button" onClick={()=>send()} disabled={busy||!input.trim()} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:'50%', width:40, height:40, cursor:'pointer', flexShrink:0, opacity:(busy||!input.trim())?0.5:1 }}><i className="ti ti-send" style={{ fontSize:18 }} aria-hidden="true" /></button>
+          <button type="button" onClick={()=>send()} disabled={busy||!input.trim()} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:'50%', width:40, height:40, cursor:'pointer', flexShrink:0, opacity:(busy||!input.trim())?0.5:1 }}><SendIcon size={18} color="#fff" /></button>
         </div>
       </div>
     )}
@@ -3643,7 +3656,7 @@ function KitchenStudioPage({ setPage, user }) {
                 <rect x={PAD} y={PAD} width={IW} height={IH} rx="8" fill="#fff" stroke="#cbbfae" strokeWidth="2" strokeDasharray="5 5" />
                 {['top','bottom','left','right'].map(k=><Fragment key={k}>{wallRects(k)}</Fragment>)}
                 {['top','bottom','left','right'].map(k=><Fragment key={'h'+k}>{wallHi(k)}</Fragment>)}
-                <text x={VW/2} y={VH-8} textAnchor="middle" fontSize="11" fill="#8a7f72">{room.w} × {room.l} cm</text>
+                <text x={VW/2} y={VH-8} textAnchor="middle" fontSize="11" fill="var(--muted)">{room.w} × {room.l} cm</text>
               </svg>
             </div>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginTop:14 }}>
@@ -4044,7 +4057,7 @@ function DesignBuilderPage({ setPage, user }) {
                       {p.vw > 30 && p.vh > 14 && <text x={p.x + p.vw/2} y={p.y + p.vh/2 + 3} textAnchor="middle" fontSize="9" fill="#fff" style={{ pointerEvents:'none' }}>{p.name}</text>}
                       {sel && <text x={p.x + p.vw/2} y={p.y - 4} textAnchor="middle" fontSize="9" fill="var(--ink)" style={{ pointerEvents:'none' }}>{p.w}×{p.h}cm</text>}
                     </g>); })}
-                  <text x={VW/2} y={VH-7} textAnchor="middle" fontSize="10" fill="#8a7f72">{survey.room_w} × {survey.room_l} cm · {parts.length} part{parts.length===1?'':'s'}</text>
+                  <text x={VW/2} y={VH-7} textAnchor="middle" fontSize="10" fill="var(--muted)">{survey.room_w} × {survey.room_l} cm · {parts.length} part{parts.length===1?'':'s'}</text>
                 </svg>
               </div>
               {selId && (() => { const p = parts.find(x => x.id === selId); if (!p) return null; return (
