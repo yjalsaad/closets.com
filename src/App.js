@@ -401,7 +401,8 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
 /* ── HERO ── */
 // ── Home redesign helpers (editorial-luxury) ──────────────────────────
 const HOME_IMG = {
-  hero:    'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2000&q=80',
+  // Brand story imagery — generated for The Closets (warm walnut, brass, soft daylight).
+  hero:    'https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20260627_154323_ed082b3f-44ad-4a97-9ca4-278b83a6e9f6.png',
   walkin:  'https://images.unsplash.com/photo-1558997519-83ea9252edf8?auto=format&fit=crop&w=1400&q=80',
   kitchen: 'https://images.unsplash.com/photo-1556909212-d5b604d0c90d?auto=format&fit=crop&w=1400&q=80',
   wardrobe:'https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=1400&q=80',
@@ -517,6 +518,7 @@ function Hero({ setPage, banners }) {
       <section ref={heroRef} onMouseMove={onHeroMove} style={{ position: 'relative', minHeight: '100svh', display: 'flex', alignItems: 'flex-end', overflow: 'hidden', background: '#15110e' }}>
         <Photo src={HOME_IMG.hero} alt="Bespoke walk-in closet interior by The Closets" imgClass="hero-img kenburns" style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
         <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(180deg, rgba(20,16,12,.34) 0%, rgba(20,16,12,.12) 38%, rgba(20,16,12,.82) 100%)' }} />
+        <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', mixBlendMode: 'overlay', opacity: .07, backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
         <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: 1280, margin: '0 auto', padding: mobile ? '120px 24px 72px' : '0 48px 88px' }}>
           <div className="rv eyebrow" style={{ color: '#E7BBA0', marginBottom: 18 }}>Bespoke furniture · Kingdom of Bahrain</div>
           <h1 className="display rv-words" style={{ color: '#fff', fontSize: mobile ? 'clamp(42px,12.5vw,60px)' : 'clamp(64px,7.2vw,112px)', maxWidth: 1040, marginBottom: 24 }}>
@@ -2646,18 +2648,30 @@ function HomePage({ products, testimonials, banners, siteLogo, setPage, addToCar
             </div>
             <button type="button" className="btn-line" onClick={() => setPage('products')}>Explore all →</button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: mobile ? 16 : 22 }}>
-            {services.map(([name, desc, img], i) => (
-              <button type="button" key={name} className="rv tile-zoom lift" onClick={() => setPage('products')} style={{ '--d': (i % 3 * 0.08) + 's', position: 'relative', border: 'none', borderRadius: 20, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 300 : 380, padding: 0, background: '#15110e' }}>
-                <Photo src={img} alt={name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,0) 35%, rgba(20,16,12,.85) 100%)' }} />
-                <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: 24, zIndex: 2 }}>
-                  <div className="display" style={{ color: '#fff', fontSize: 24, marginBottom: 6 }}>{name}</div>
-                  <div style={{ color: 'rgba(255,255,255,.8)', fontSize: 14, lineHeight: 1.55 }}>{desc}</div>
-                  <div style={{ color: '#E7BBA0', fontSize: 13, fontWeight: 600, marginTop: 14, letterSpacing: '.04em' }}>View →</div>
-                </div>
-              </button>
-            ))}
+          {/* Asymmetric bento grid — a hero tile anchors the composition instead of a uniform 3-up row */}
+          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(6,1fr)', gridAutoRows: mobile ? 'auto' : '224px', gap: mobile ? 16 : 18 }}>
+            {services.map(([name, desc, img], i) => {
+              const span = mobile ? {} : [
+                { gridColumn: 'span 3', gridRow: 'span 2' },
+                { gridColumn: 'span 3' },
+                { gridColumn: 'span 3' },
+                { gridColumn: 'span 2' },
+                { gridColumn: 'span 2' },
+                { gridColumn: 'span 2' },
+              ][i] || { gridColumn: 'span 2' };
+              const big = i === 0;
+              return (
+                <button type="button" key={name} className="rv tile-zoom lift" onClick={() => setPage('products')} style={{ ...span, '--d': (i * 0.07) + 's', position: 'relative', border: 'none', borderRadius: big ? 24 : 18, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 280 : 0, padding: 0, background: '#15110e' }}>
+                  <Photo src={img} alt={name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,0) 30%, rgba(20,16,12,.88) 100%)' }} />
+                  <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: big ? 28 : 22, zIndex: 2 }}>
+                    <div className="display" style={{ color: '#fff', fontSize: big ? 30 : 22, marginBottom: 6, letterSpacing: '-.01em' }}>{name}</div>
+                    <div style={{ color: 'rgba(255,255,255,.82)', fontSize: big ? 15 : 13.5, lineHeight: 1.55, maxWidth: 360 }}>{desc}</div>
+                    <div style={{ color: '#E7BBA0', fontSize: 13, fontWeight: 600, marginTop: 14, letterSpacing: '.04em' }}>View →</div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>
