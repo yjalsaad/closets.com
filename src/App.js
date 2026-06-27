@@ -3257,14 +3257,12 @@ const CARD_DETAILS = [
   { name: 'CASEY BLAKE', number: '6011 2748 9163 0027', cvv: '628' },
   { name: 'RILEY STONE', number: '4127 6630 8845 1192', cvv: '751' },
 ];
-function DigitalCardCarousel({ user }) {
+function DigitalCardCarousel({ user, setPage }) {
   const containerRef = useRef(null);
   const progressRef = useRef(0);
   const mouseRef = useRef({ x: 0, y: 0, tx: 0, ty: 0 });
   const cardRefs = useRef([]);
   const reduceMotion = useRef(false);
-
-  const cardCount = 5;
   const thicknessLayers = [-1.47, -0.73, 0, 0.73, 1.47];
 
   // Aliases so the verbatim source render-loop math reads unchanged.
@@ -3272,12 +3270,47 @@ function DigitalCardCarousel({ user }) {
   const mouse = mouseRef;
   const cardsRefs = cardRefs;
 
-  // Personalize the first card with the logged-in user's name (uppercased).
-  const details = (() => {
-    const base = CARD_DETAILS.map(d => ({ ...d }));
-    if (user && user.name) base[0] = { ...base[0], name: String(user.name).toUpperCase() };
-    return base;
-  })();
+  // ── Real card data ──────────────────────────────────────────────────────
+  // Fetch the logged-in customer's own slug, then the rendered card. We reuse
+  // the module-level cardRpc helper (card_owner_slug → card_render), mirroring
+  // the customer-portal fetch pattern.
+  const [cards, setCards] = useState(null); // null = loading, [] = no card, [..] = ready
+  useEffect(() => {
+    let alive = true;
+    if (!user || !user.id) { setCards([]); return; }
+    setCards(null);
+    cardRpc('card_owner_slug', { p_owner_type: 'customer', p_owner_id: user.id })
+      .then((r) => {
+        const slug = r && r.slug;
+        if (!slug) { if (alive) setCards([]); return null; }
+        return cardRpc('card_render', { p_slug: slug });
+      })
+      .then((res) => {
+        if (!alive || !res) return;
+        if (res && res.ok && res.card) setCards([res.card]);
+        else setCards([]);
+      })
+      .catch(() => { if (alive) setCards([]); });
+    return () => { alive = false; };
+  }, [user]);
+
+  // Map a real card → the face model used by the front/back faces.
+  const details = (cards || []).map((c) => ({
+    name: String(c.display_name || (user && user.name) || '').toUpperCase(),
+    number: c.membership_no || c.id || '',
+    title: c.title || '',
+    company: c.company_name || '',
+    contact: c.phone || c.mobile || c.whatsapp || '',
+    email: c.email || '',
+    location: c.location || '',
+    photo: c.photo_url || '',
+    logo: c.logo_url || '',
+  }));
+
+  // ONE card → single premium 3D card (auto-advance disabled). Multiple cards →
+  // auto-advancing carousel. Guarded so cardCount is never 0 in the render loop.
+  const cardCount = Math.max(1, details.length);
+  const singleCard = details.length <= 1;
 
   // Responsive card metrics (kept from source). The overlay text/fontMetrics
   // layer from the source is dropped — the section heading lives outside the scene.
@@ -3322,8 +3355,9 @@ function DigitalCardCarousel({ user }) {
     const renderLoop = () => {
       mouse.current.targetX = mouse.current.tx;
       mouse.current.targetY = mouse.current.ty;
-      const speed = reduceMotion.current ? 0.00045 : 0.0016;
-      progress.current += speed;
+      // Single card → keep it centered (no auto-advance); still tilts to mouse.
+      if (singleCard) { progress.current = 0; }
+      else { const speed = reduceMotion.current ? 0.00045 : 0.0016; progress.current += speed; }
       mouse.current.x += (mouse.current.targetX - mouse.current.x) * 0.08;
       mouse.current.y += (mouse.current.targetY - mouse.current.y) * 0.08;
       const cards = cardsRefs.current;
@@ -3379,7 +3413,36 @@ function DigitalCardCarousel({ user }) {
     };
     raf = window.requestAnimationFrame(renderLoop);
     return () => window.cancelAnimationFrame(raf);
-  }, []);
+  }, [cardCount, singleCard]);
+
+  // ── Loading skeleton — don't flash sample data ──────────────────────────
+  if (cards === null) {
+    return (
+      <div ref={containerRef} style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <div style={{ width: 336, maxWidth: '82%', aspectRatio: '1.5925 / 1', borderRadius: 18, background: 'linear-gradient(110deg, #141414 30%, #222 50%, #141414 70%)', backgroundSize: '200% 100%', animation: 'cardShimmer 1.4s ease-in-out infinite', boxShadow: '0 30px 80px rgba(0,0,0,0.6)' }} />
+        <style>{'@keyframes cardShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}'}</style>
+      </div>
+    );
+  }
+
+  // ── No-card fallback — slim on-brand prompt (no big black 3D scene) ──────
+  if (!details.length) {
+    return (
+      <div ref={containerRef} style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px', overflow: 'hidden' }}>
+        <div style={{ maxWidth: 460, textAlign: 'center', color: '#fff' }}>
+          <div style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.4, marginBottom: 8 }}>Your digital membership card</div>
+          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', marginBottom: 20 }}>Set it up in your account to share your details instantly.</div>
+          <button
+            type="button"
+            onClick={() => setPage && setPage('portal')}
+            style={{ display: 'inline-block', padding: '11px 22px', borderRadius: 14, border: '1px solid rgba(231,187,160,0.5)', background: 'transparent', color: '#E7BBA0', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em', cursor: 'pointer' }}
+          >
+            Set up my card
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} style={{ position: 'absolute', inset: 0, perspective: '1350px', background: '#000', overflow: 'hidden' }}>
@@ -3423,6 +3486,12 @@ function DigitalCardCarousel({ user }) {
                           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.55) 100%)' }} />
+                        {/* Real avatar near the chip (if a photo exists) */}
+                        {det.photo && (
+                          <div style={{ position: 'absolute', top: '30%', right: '8%', zIndex: 3, width: 38, height: 38, borderRadius: '50%', overflow: 'hidden', border: '1.5px solid rgba(255,255,255,0.7)', boxShadow: '0 4px 14px rgba(0,0,0,0.4)' }}>
+                            <img src={det.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </div>
+                        )}
                         {/* Silver metallic chip — verbatim source SVG, per-card gradient id */}
                         <div style={{ position: 'absolute', top: '32%', left: '8%', zIndex: 2 }}>
                           <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:29,height:29}}>
@@ -3448,6 +3517,16 @@ function DigitalCardCarousel({ user }) {
                           <div style={{ width: 30, height: 30, borderRadius: '50%', backgroundColor: 'rgba(235,235,235,0.85)' }} />
                           <div style={{ width: 30, height: 30, borderRadius: '50%', backgroundColor: 'rgba(245,170,90,0.85)', marginLeft: -12, mixBlendMode: 'screen' }} />
                         </div>
+                        {/* Real identity overlay — bottom-left, legible over video */}
+                        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '46%', background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%)', zIndex: 2, pointerEvents: 'none' }} />
+                        <div style={{ position: 'absolute', left: '8%', right: '40%', bottom: '9%', zIndex: 3 }}>
+                          <div style={{ fontSize: 15, fontWeight: 600, color: '#fff', letterSpacing: '0.01em', textShadow: '0 1px 6px rgba(0,0,0,0.55)', lineHeight: 1.2 }}>{det.name}</div>
+                          {(det.title || det.company) && (
+                            <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.8)', marginTop: 3, textShadow: '0 1px 5px rgba(0,0,0,0.5)', lineHeight: 1.25 }}>
+                              {[det.title, det.company].filter(Boolean).join(' · ')}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                     {/* BACK FACE */}
@@ -3463,14 +3542,17 @@ function DigitalCardCarousel({ user }) {
                         />
                         {/* Dark magnetic stripe */}
                         <div style={{ position: 'absolute', top: '14%', left: 0, right: 0, height: 38, backgroundColor: '#050505', zIndex: 2 }} />
-                        {/* Cardholder details — mono */}
-                        <div style={{ position: 'absolute', left: '8%', right: '8%', bottom: '14%', color: 'rgba(255,255,255,0.92)', fontFamily: "'JetBrains Mono', monospace", zIndex: 2 }}>
-                          <div style={{ fontSize: 9, letterSpacing: '0.14em', opacity: 0.6, marginBottom: 4 }}>CARDHOLDER</div>
-                          <div style={{ fontSize: 12, letterSpacing: '0.08em', marginBottom: 10 }}>{det.name}</div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                            <div style={{ fontSize: 12, letterSpacing: '0.1em' }}>{det.number}</div>
-                            <div style={{ fontSize: 11, letterSpacing: '0.1em', opacity: 0.85 }}>CVV {det.cvv}</div>
-                          </div>
+                        {/* Membership details — mono (no CVV; business cards have none) */}
+                        <div style={{ position: 'absolute', left: '8%', right: '8%', bottom: '12%', color: 'rgba(255,255,255,0.92)', fontFamily: "'JetBrains Mono', monospace", zIndex: 2 }}>
+                          <div style={{ fontSize: 9, letterSpacing: '0.14em', opacity: 0.6, marginBottom: 4 }}>MEMBERSHIP</div>
+                          <div style={{ fontSize: 14, letterSpacing: '0.12em', marginBottom: 12 }}>{det.number}</div>
+                          <div style={{ fontSize: 11.5, letterSpacing: '0.06em', marginBottom: 4 }}>{det.name}</div>
+                          {(det.title || det.company) && (
+                            <div style={{ fontSize: 9.5, letterSpacing: '0.04em', opacity: 0.78, marginBottom: 4 }}>{[det.title, det.company].filter(Boolean).join(' · ')}</div>
+                          )}
+                          {(det.contact || det.email) && (
+                            <div style={{ fontSize: 9.5, letterSpacing: '0.04em', opacity: 0.78 }}>{[det.contact, det.email].filter(Boolean).join('  ·  ')}</div>
+                          )}
                         </div>
                       </div>
                     )}
@@ -3522,7 +3604,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
             </div>
           </div>
           <div style={{ position: 'relative', width: '100%', height: mobile ? 460 : 540, marginTop: mobile ? 24 : 36, background: '#000', overflow: 'hidden' }}>
-            <DigitalCardCarousel user={user} />
+            <DigitalCardCarousel user={user} setPage={setPage} />
           </div>
         </section>
       )}
