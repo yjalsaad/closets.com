@@ -403,10 +403,10 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
 const HOME_IMG = {
   // Brand story imagery — generated for The Closets (warm walnut, brass, soft daylight).
   hero:    'https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20260627_154323_ed082b3f-44ad-4a97-9ca4-278b83a6e9f6.png',
-  walkin:  'https://images.unsplash.com/photo-1558997519-83ea9252edf8?auto=format&fit=crop&w=1400&q=80',
-  kitchen: 'https://images.unsplash.com/photo-1556909212-d5b604d0c90d?auto=format&fit=crop&w=1400&q=80',
+  walkin:  'https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20260627_160149_897b07fc-8a2a-4e1d-8a77-e77cacffa5b0.png',
+  kitchen: 'https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20260627_154428_5823e707-b25e-41bc-b372-6acd7166bddf.png',
   wardrobe:'https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=1400&q=80',
-  living:  'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1400&q=80',
+  living:  'https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20260627_155945_016fe59a-81d0-465d-9f96-1a674fd99b99.png',
   detail:  'https://images.unsplash.com/photo-1600121848594-d8644e57abab?auto=format&fit=crop&w=1200&q=80',
 };
 // Image with graceful warm-gradient fallback (so a missing/blocked photo never looks broken).
@@ -2593,6 +2593,7 @@ function HomePage({ products, testimonials, banners, siteLogo, setPage, addToCar
   useReveal();
   useHomeFx();
   const P = mobile ? '24px' : '48px';
+  const NOISE = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
   const featured = products.filter(p => p.active !== false).slice(0, 3);
   const services = [
     ['Kitchens', 'Precision cabinetry, engineered for daily life.', HOME_IMG.kitchen],
@@ -2705,8 +2706,9 @@ function HomePage({ products, testimonials, banners, siteLogo, setPage, addToCar
       )}
 
       {/* Process timeline */}
-      <section style={{ background: 'var(--ink)', color: '#fff', padding: `${mobile ? 64 : 110}px ${P}` }}>
-        <div style={{ maxWidth: 1180, margin: '0 auto' }}>
+      <section style={{ position: 'relative', overflow: 'hidden', background: 'var(--ink)', color: '#fff', padding: `${mobile ? 64 : 110}px ${P}` }}>
+        <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .05, mixBlendMode: 'overlay', backgroundImage: NOISE }} />
+        <div style={{ position: 'relative', maxWidth: 1180, margin: '0 auto' }}>
           <div className="rv" style={{ maxWidth: 560, marginBottom: 56 }}>
             <div className="eyebrow" style={{ color: '#E7BBA0', marginBottom: 14 }}>How it works</div>
             <h2 className="display" style={{ fontSize: mobile ? 30 : 48 }}>From first sketch to final fit.</h2>
@@ -2723,17 +2725,28 @@ function HomePage({ products, testimonials, banners, siteLogo, setPage, addToCar
         </div>
       </section>
 
-      {/* AI designer band */}
-      <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 96}px ${P}` }}>
-        <div className="rv-sc" style={{ position: 'relative', borderRadius: 26, overflow: 'hidden', background: '#15110e', minHeight: mobile ? 340 : 380, display: 'flex', alignItems: 'center' }}>
-          <Photo src={HOME_IMG.living} alt="" par=".06" style={{ position: 'absolute', inset: '-8%', opacity: .5 }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(20,16,12,.92), rgba(20,16,12,.5))' }} />
-          <div style={{ position: 'relative', zIndex: 2, padding: mobile ? '36px 26px' : '56px', maxWidth: 620 }}>
-            <div className="eyebrow" style={{ color: '#E7BBA0', marginBottom: 14 }}>New · AI Interior Designer</div>
-            <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 28 : 40, marginBottom: 14 }}>See your room, reimagined.</h2>
-            <p style={{ color: 'rgba(255,255,255,.78)', fontSize: mobile ? 15 : 17, lineHeight: 1.65, marginBottom: 26 }}>Describe your space or upload a photo and get a tailored design — layout, materials and a photorealistic render — in seconds.</p>
-            <button type="button" className="btn-clay" onClick={() => setPage('ai')}>Try the AI Designer ✦</button>
+      {/* AI designer band — editorial hero banner (safe-zone text left, photo right, single CTA) */}
+      <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 100}px ${P}` }}>
+        <div className="rv-sc" style={{ position: 'relative', borderRadius: 26, overflow: 'hidden', background: '#15110e', display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1.05fr .95fr', alignItems: 'stretch', minHeight: mobile ? 'auto' : 440 }}>
+          {mobile && <Photo src={HOME_IMG.living} alt="" par=".06" style={{ position: 'absolute', inset: 0, opacity: .32, zIndex: 0 }} />}
+          {mobile && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.55), rgba(20,16,12,.92))', zIndex: 1 }} />}
+          <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .06, mixBlendMode: 'overlay', backgroundImage: NOISE, zIndex: 1 }} />
+          <div style={{ position: 'relative', zIndex: 2, padding: mobile ? '40px 26px 44px' : '64px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start', background: 'rgba(231,187,160,.14)', border: '1px solid rgba(231,187,160,.3)', color: '#E7BBA0', fontSize: 12, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 980, marginBottom: 18 }}>✦ New · AI Interior Designer</span>
+            <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 30 : 46, lineHeight: 1.05, letterSpacing: '-.02em', marginBottom: 16 }}>See your room,<br />reimagined in seconds.</h2>
+            <p style={{ color: 'rgba(255,255,255,.78)', fontSize: mobile ? 15 : 17, lineHeight: 1.65, marginBottom: 28, maxWidth: 440 }}>Upload a photo or describe your space — our AI returns a tailored layout, materials and a photorealistic render you can refine with our designers.</p>
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+              <button type="button" className="btn-clay" onClick={() => setPage('ai')} style={{ fontSize: 15, padding: '14px 26px' }}>Try the AI Designer →</button>
+              <span style={{ color: 'rgba(255,255,255,.6)', fontSize: 13 }}>Free · no signup</span>
+            </div>
           </div>
+          {!mobile && (
+            <div style={{ position: 'relative', minHeight: 440 }}>
+              <Photo src={HOME_IMG.living} alt="A living room reimagined by The Closets AI designer" style={{ position: 'absolute', inset: 0 }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, #15110e 0%, rgba(21,17,14,.25) 24%, rgba(21,17,14,0) 52%)' }} />
+              <span style={{ position: 'absolute', top: 18, right: 18, background: 'rgba(20,16,12,.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', color: '#fff', fontSize: 11, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', padding: '5px 11px', borderRadius: 980, border: '1px solid rgba(255,255,255,.2)' }}>After ✦</span>
+            </div>
+          )}
         </div>
       </section>
 
@@ -2748,17 +2761,20 @@ function HomePage({ products, testimonials, banners, siteLogo, setPage, addToCar
         </section>
       )}
 
-      {/* Cinematic CTA */}
+      {/* Cinematic CTA — full-width hero banner */}
       <section style={{ position: 'relative', overflow: 'hidden', background: '#15110e' }}>
-        <Photo src={HOME_IMG.walkin} alt="" par=".08" style={{ position: 'absolute', inset: '-10%', opacity: .45 }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.7), rgba(20,16,12,.86))' }} />
-        <div className="rv" style={{ position: 'relative', zIndex: 2, maxWidth: 680, margin: '0 auto', textAlign: 'center', padding: `${mobile ? 80 : 130}px ${P}` }}>
-          <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 34 : 60, lineHeight: 1.08, marginBottom: 18 }}>Let’s design your space.</h2>
-          <p style={{ color: 'rgba(255,255,255,.8)', fontSize: mobile ? 16 : 19, lineHeight: 1.6, marginBottom: 34 }}>Book a free home consultation — no obligation, just ideas.</p>
+        <Photo src={HOME_IMG.hero} alt="" par=".08" style={{ position: 'absolute', inset: '-10%', opacity: .42 }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(120% 90% at 50% 18%, rgba(20,16,12,.35), rgba(20,16,12,.9) 78%)' }} />
+        <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .07, mixBlendMode: 'overlay', backgroundImage: NOISE }} />
+        <div className="rv" style={{ position: 'relative', zIndex: 2, maxWidth: 720, margin: '0 auto', textAlign: 'center', padding: `${mobile ? 84 : 140}px ${P}` }}>
+          <div className="eyebrow" style={{ color: '#E7BBA0', marginBottom: 18, justifyContent: 'center' }}>Start your project</div>
+          <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 36 : 64, lineHeight: 1.05, letterSpacing: '-.02em', marginBottom: 18 }}>Let’s design your space.</h2>
+          <p style={{ color: 'rgba(255,255,255,.82)', fontSize: mobile ? 16 : 19, lineHeight: 1.6, marginBottom: 34, maxWidth: 520, marginLeft: 'auto', marginRight: 'auto' }}>Book a free home consultation — no obligation, just ideas, measured and quoted by our own team.</p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button type="button" className="btn-clay" onClick={() => setPage('contact')} style={{ fontSize: 16, padding: '16px 32px' }}>Book a consultation</button>
-            <button type="button" onClick={() => setPage('planner')} style={{ background: 'rgba(255,255,255,.1)', color: '#fff', border: '1px solid rgba(255,255,255,.45)', borderRadius: 14, padding: '15px 30px', fontSize: 16, fontWeight: 500, cursor: 'pointer', minHeight: 50 }}>Design online</button>
+            <button type="button" className="btn-clay" onClick={() => setPage('contact')} style={{ fontSize: 16, padding: '16px 32px' }}>Book a consultation →</button>
+            <button type="button" onClick={() => setPage('planner')} style={{ background: 'rgba(255,255,255,.1)', color: '#fff', border: '1px solid rgba(255,255,255,.45)', borderRadius: 14, padding: '15px 30px', fontSize: 16, fontWeight: 500, cursor: 'pointer', minHeight: 50, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>Design online</button>
           </div>
+          <div style={{ marginTop: 26, color: 'rgba(255,255,255,.55)', fontSize: 13, letterSpacing: '.03em' }}>Own Bahrain workshop · 2-year warranty · Installed by our team</div>
         </div>
       </section>
 
