@@ -1280,6 +1280,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   const [configStep, setConfigStep] = useState(0);
   const [pkg, setPkg] = useState(1); // selected package index (Standard default)
   const [showItemized, setShowItemized] = useState(true);
+  const [quoteImg, setQuoteImg] = useState(null); // captured 3D snapshot shown in the quote area
   const [quoteSent, setQuoteSent] = useState(false); // post-submit success (guest → account invite)
   const priceTimer = useRef(null);
   // Package tiers — multipliers + labels (shared between config & quote)
@@ -1307,7 +1308,40 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   const catKeys = Object.keys(cats);
   const prodLayouts = Array.isArray(prodCfg?.layouts) ? prodCfg.layouts : null;
 
-  // When the product changes, reset layout + option selections to that product's defaults
+  // ── Per-product dimension model (driven by DB config) ──
+  // Kitchen layouts are runs (length), doors carry a thin "thickness" depth, etc.
+  const KITCHEN_RUN_LAYOUTS = ['l-shape','u-shape','parallel'];
+  const isKitchen = prodKey === 'kitchen';
+  const isDoors = prodKey === 'doors';
+  // L-shape Side A/B only makes sense for these products (wardrobe/walkin/walk-in dressing rooms).
+  const supportsSideAB = (prodKey === 'wardrobe' || prodKey === 'walkin');
+  // Build a {min,max,step,allowed} spec for a dimension from the config array.
+  const dimSpec = useCallback((axis, fallback) => {
+    const arr = prodCfg && Array.isArray(prodCfg[axis]) ? prodCfg[axis].map(Number).filter(n => !isNaN(n)) : null;
+    if (arr && arr.length) {
+      const sorted = [...arr].sort((a,b)=>a-b);
+      return { min: sorted[0], max: sorted[sorted.length-1], allowed: sorted, discrete: sorted.length > 1 };
+    }
+    return { min: fallback[0], max: fallback[1], allowed: null, discrete: false };
+  }, [prodCfg]);
+  const widthSpec  = dimSpec('widths_cm',  [120,400]);
+  const heightSpec = dimSpec('heights_cm', [180,300]);
+  const depthSpec  = dimSpec('depths_cm',  [40,80]);
+  // Snap a value to the nearest allowed discrete value (or clamp into [min,max]).
+  const snapDim = useCallback((spec, val) => {
+    const v = Number(val);
+    if (spec.allowed && spec.allowed.length) {
+      return spec.allowed.reduce((best,a)=> Math.abs(a-v) < Math.abs(best-v) ? a : best, spec.allowed[0]);
+    }
+    return Math.max(spec.min, Math.min(spec.max, isNaN(v) ? spec.min : v));
+  }, []);
+  // A sensible default for a product: middle-ish allowed value, or midpoint of range.
+  const defaultDim = useCallback((spec) => {
+    if (spec.allowed && spec.allowed.length) return spec.allowed[Math.floor((spec.allowed.length-1)/2)];
+    return Math.round((spec.min + spec.max) / 2);
+  }, []);
+
+  // When the product changes, reset layout + option selections + dims to that product's defaults
   const lastProdRef = useRef(prodKey);
   useEffect(() => {
     if (lastProdRef.current !== prodKey) {
@@ -1315,15 +1349,19 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
       const firstLayout = (prodLayouts && prodLayouts[0]?.id) || 'single';
       setLayout(firstLayout);
       setSel({});
+      // Initialise dims from this product's config so sliders/3D start in-range.
+      const w = defaultDim(widthSpec), h = defaultDim(heightSpec), d = defaultDim(depthSpec);
+      setDims({ width: w, height: h, depth: d, sideA: w, sideB: Math.round(w * 0.7) });
     }
-  }, [prodKey, prodLayouts]);
+  }, [prodKey, prodLayouts, widthSpec, heightSpec, depthSpec, defaultDim]);
 
   const buildSelection = useCallback(() => {
     const ids = [];
     Object.values(sel).forEach(v => { if (Array.isArray(v)) ids.push(...v); else if (v) ids.push(v); });
-    const w = layout === 'l-shape' ? (Number(dims.sideA) + Number(dims.sideB)) : dims.width;
+    const useAB = supportsSideAB && layout === 'l-shape';
+    const w = useAB ? (Number(dims.sideA) + Number(dims.sideB)) : dims.width;
     return { product: prodKey, width_cm: w, height_cm: dims.height, depth_cm: dims.depth, delivery: false, installation: false, modules: [{ options: ids }], layout };
-  }, [sel, dims, layout, prodKey]);
+  }, [sel, dims, layout, prodKey, supportsSideAB]);
 
   useEffect(() => {
     if (!settings || stage !== 'config') return;
@@ -1456,13 +1494,15 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
     const id = uid();
     await api('product_configurations', { method:'POST', body:[{
       id, customer_id:user?.id||null, customer_name:user?.name||null, customer_email:user?.email||null, customer_phone:user?.phone||null,
-      product_name:(selProduct?.name ? selProduct.name+' — ' : '')+'Custom ('+layout+', '+(layout==='l-shape'?(dims.sideA+'+'+dims.sideB):dims.width)+'×'+dims.height+'cm)',
+      product_name:(selProduct?.name ? selProduct.name+' — ' : '')+'Custom ('+layout+', '+((supportsSideAB&&layout==='l-shape')?(dims.sideA+'+'+dims.sideB):dims.width)+'×'+dims.height+'cm)',
       configuration:buildSelection(), total_price:total, subtotal:price?.goods_subtotal||null,
       discount_amount:price?.discount_amount||null, vat_amount:price?.vat_amount||null, price_breakdown:price||null,
       status, share_token:id, created_at:new Date().toISOString() }] });
     return id;
   };
   const save = async () => {
+    // Require login to save — remember the intent and resume after auth.
+    if (!user) { pendingAction.current = 'save'; if (openAuth) openAuth('register'); else setPage('portal'); return; }
     setBusy(true);
     try { await persist('saved'); setSaved(true); toast('Design saved','success'); }
     catch (e) { toast('Could not save: ' + (e?.message || 'please try again'), 'error'); }
@@ -1471,42 +1511,55 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   // Selected package + package-adjusted total (used by config price card AND the quote)
   const selPkg = PACKAGES[Math.max(0, Math.min(pkg, PACKAGES.length-1))] || PACKAGES[1];
   const pkgTotal = Math.round(total * selPkg.mult);
-  // Build an itemized quotation: base carcass, doors/finish, each chosen option, package line, subtotal + TOTAL.
+  // Build a REAL itemized quotation straight from fn_configurator_price:
+  // base_price line + each RPC line + layout_price + package adjustment + VAT → TOTAL.
   const buildLineItems = useCallback(() => {
-    const finName = (FINISHES.find(f=>f.id===finishId)||{}).name || finishId;
+    const p = price || {};
     const items = [];
-    // Heuristic split of the base price into carcass + doors/finish so the customer sees structure.
-    const base = Number(total) || 0;
-    const carcass = Math.round(base * 0.6);
-    const doorsFinish = base - carcass;
-    items.push({ label:'Base carcass & structure', detail:`${selProduct?.name || 'Wardrobe'} · ${layout}`, price:carcass });
-    items.push({ label:`Doors & finish — ${finName}`, detail:'Fronts, edging & hardware', price:doorsFinish });
-    // Each chosen option with its price
-    Object.keys(sel).forEach(ck => {
-      const cat = cats[ck]; if (!cat) return;
-      const v = sel[ck]; const arr = Array.isArray(v) ? v : (v ? [v] : []);
-      arr.forEach(id => {
-        const it = (cat.items||[]).find(i => i.id === id); if (!it) return;
-        const incl = it.price_type==='included' || +it.price===0;
-        items.push({ label:`${cat.label||ck}: ${it.name}`, detail: incl ? 'Included' : null, price: incl ? 0 : Math.round(+it.price||0) });
-      });
+    const round = (n) => Math.round(Number(n) || 0);
+    // 1) Base price (carcass + structure for the chosen size)
+    const base = round(p.base_price);
+    if (base) items.push({ label:'Base price', detail:`${selProduct?.name || 'Wardrobe'} · ${layout}`, price: base });
+    // 2) Real priced lines returned by the RPC (chosen options / materials / glass etc.)
+    (Array.isArray(p.lines) ? p.lines : []).forEach(ln => {
+      const amt = round(ln.amount);
+      items.push({ label: ln.name || 'Option', detail: amt===0 ? 'Included' : null, price: amt });
     });
-    const subtotal = base;
-    return { items, subtotal, pkgName: selPkg.name, pkgMult: selPkg.mult, total: pkgTotal };
-  }, [total, finishId, sel, cats, layout, selProduct, selPkg, pkgTotal]);
+    // 3) Layout price (e.g. L-shape / island uplift) if any
+    const layoutPrice = round(p.layout_price);
+    if (layoutPrice) { const lay = (prodLayouts||LAYOUTS).find(l=>l.id===layout); items.push({ label:`Layout — ${lay?.label || layout}`, detail:null, price: layoutPrice }); }
+    // Goods subtotal as priced by the RPC (pre-VAT, pre-package).
+    const goods = round(p.pre_vat_total != null ? p.pre_vat_total : (p.goods_subtotal != null ? p.goods_subtotal : total));
+    // 4) Package adjustment — multiplier applied to goods.
+    const goodsPkg = round(goods * selPkg.mult);
+    const pkgAdj = goodsPkg - goods;
+    // 5) VAT on the package-adjusted goods.
+    const vatRate = (typeof p.vat_rate === 'number') ? p.vat_rate : 0;
+    const vat = round(goodsPkg * vatRate);
+    const grand = goodsPkg + vat;
+    return {
+      items, subtotal: goods,
+      pkgName: selPkg.name, pkgMult: selPkg.mult, pkgAdj,
+      vatRate, vat, goodsPkg,
+      total: grand,
+    };
+  }, [price, total, selProduct, layout, prodLayouts, selPkg]);
   const [showQuote, setShowQuote] = useState(false);
   const [qForm, setQForm] = useState({ name:'', phone:'', email:'' });
+  const [quoteErr, setQuoteErr] = useState(''); // visible inline error for the quote flow
   // Submit the design as a quote through the shared edge function so the team
   // receives the spec + a copy of the live 3D design. Contact = signed-in user or modal input.
   const submitQuote = async (contact) => {
     const name = contact?.name || user?.name, phone = contact?.phone || user?.phone, email = contact?.email || user?.email;
-    setBusy(true);
-    // Capture the 3D snapshot BEFORE closing the modal / navigating, while the canvas is still mounted.
-    const imageB64 = (plannerApi.current && plannerApi.current.snapshot ? plannerApi.current.snapshot() : null);
+    setBusy(true); setQuoteErr('');
+    // Capture the design image: live 3D snapshot if mounted, else the photoreal render or the snapshot we took entering Visualise.
+    let imageB64 = null;
+    try { imageB64 = (plannerApi.current && plannerApi.current.snapshot) ? plannerApi.current.snapshot() : null; } catch (e) {}
+    if (!imageB64) imageB64 = renderUrl || quoteImg || null;
     try {
       // Build a readable design summary so the sales team sees the spec in the quote itself
       const finName = (FINISHES.find(f=>f.id===finishId)||{}).name || finishId;
-      const sizeStr = layout==='l-shape' ? `${dims.sideA}+${dims.sideB}×${dims.height}×${dims.depth}cm` : `${dims.width}×${dims.height}×${dims.depth}cm`;
+      const sizeStr = (supportsSideAB&&layout==='l-shape') ? `${dims.sideA}+${dims.sideB}×${dims.height}×${dims.depth}cm` : `${dims.width}×${dims.height}×${dims.depth}cm`;
       const chosenOpts = Object.keys(sel).map(ck => { const lbl = catChosen(ck); return lbl ? `${cats[ck]?.label||ck}: ${lbl}` : null; }).filter(Boolean);
       // Full itemized breakdown for the sales team / Bonsai Hub
       const lineData = buildLineItems();
@@ -1518,10 +1571,12 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
         `— Itemized —`,
         ...lineData.items.map(li => `• ${li.label}${li.detail?` (${li.detail})`:''}: BHD ${li.price}`),
         `Subtotal: BHD ${lineData.subtotal}`,
+        ...(lineData.pkgAdj ? [`${lineData.pkgName} package: BHD ${lineData.pkgAdj>0?'+':''}${lineData.pkgAdj}`] : []),
+        ...(lineData.vat ? [`VAT (${Math.round(lineData.vatRate*100)}%): BHD ${lineData.vat}`] : []),
         `Estimated total (${lineData.pkgName}): BHD ${lineData.total}`,
       ];
-      // Attach the line items inside the configuration object too
-      const configWithItems = { ...buildSelection(), package: lineData.pkgName, package_multiplier: lineData.pkgMult, line_items: lineData.items, subtotal: lineData.subtotal, total: lineData.total };
+      // Attach the REAL line items + breakdown inside the configuration object too
+      const configWithItems = { ...buildSelection(), package: lineData.pkgName, package_multiplier: lineData.pkgMult, line_items: lineData.items, subtotal: lineData.subtotal, package_adjustment: lineData.pkgAdj, vat: lineData.vat, vat_rate: lineData.vatRate, total: lineData.total, price_breakdown: price || null };
       const r = await fetch(SUPA_URL + '/functions/v1/submit_design_quote', {
         method: 'POST',
         headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
@@ -1550,16 +1605,39 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           setPage('home');
         }
       } else {
-        toast('Could not send quote: ' + ((data && data.error) || 'please try again'), 'error');
+        const msg = 'Could not send your quote: ' + ((data && data.error) || 'please check your details and try again') + '.';
+        setQuoteErr(msg); toast(msg, 'error');
       }
-    } catch (e) { toast('Could not send quote: ' + (e?.message || 'please try again'), 'error'); }
+    } catch (e) { const msg = 'Could not send your quote: ' + (e?.message || 'network error — please try again') + '.'; setQuoteErr(msg); toast(msg, 'error'); }
     finally { setBusy(false); }
   };
   const requestQuote = () => {
-    if (!user) { setQForm({ name:'', phone:'', email:'' }); setShowQuote(true); return; }
+    // Require login for a quote — remember the intent, prefill from any guest form, resume after auth.
+    if (!user) {
+      pendingAction.current = 'quote';
+      const pf = (qForm.name || qForm.phone || qForm.email) ? { name:qForm.name, phone:qForm.phone, email:qForm.email } : undefined;
+      setQuoteErr('');
+      if (openAuth) openAuth('register', pf); else { setShowQuote(true); }
+      return;
+    }
     submitQuote();
   };
-  const goVisualise = () => setStage('visualise');
+  // Resume a gated action (save/quote) the moment the user finishes logging in.
+  const pendingAction = useRef(null);
+  useEffect(() => {
+    if (user && pendingAction.current) {
+      const act = pendingAction.current; pendingAction.current = null;
+      if (act === 'save') save();
+      else if (act === 'quote') submitQuote();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+  const goVisualise = () => {
+    setQuoteErr('');
+    // Capture the live 3D snapshot now, while the config canvas is still mounted, for the quote area.
+    try { const s = plannerApi.current && plannerApi.current.snapshot ? plannerApi.current.snapshot() : null; if (s) setQuoteImg(s); } catch (e) {}
+    setStage('visualise');
+  };
   // Reusable 5-step progress spine (clone of Raumplus/Wren step counter), shared across stages.
   const planSteps = (cur) => {
     const order = ['product','ai','config','visualise','quote'];
@@ -1690,7 +1768,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   );
 
   // ── STAGE 3: SINGLE-SCREEN CONFIG ──
-  const sizeW = layout === 'l-shape' ? (Number(dims.sideA)+Number(dims.sideB)) : dims.width;
+  const sizeW = (supportsSideAB && layout === 'l-shape') ? (Number(dims.sideA)+Number(dims.sideB)) : dims.width;
   // status: 'done' (green check + chosenLabel), 'open' (orange), 'empty' (hollow)
   const renderSection = (id, title, children, status, chosenLabel) => {
     const isOpen = openSec === id;
@@ -1718,7 +1796,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   if (stage === 'visualise') {
     const lineData = buildLineItems();
     const finName = (FINISHES.find(f=>f.id===finishId)||{}).name || finishId;
-    const sizeStr = layout==='l-shape' ? `${dims.sideA}+${dims.sideB} × ${dims.height} × ${dims.depth} cm` : `${dims.width} × ${dims.height} × ${dims.depth} cm`;
+    const sizeStr = (supportsSideAB&&layout==='l-shape') ? `${dims.sideA}+${dims.sideB} × ${dims.height} × ${dims.depth} cm` : `${dims.width} × ${dims.height} × ${dims.depth} cm`;
     return (
       <div style={{ minHeight:'100dvh', paddingTop:80, paddingBottom:40 }}>
         <div style={{ maxWidth:1440, margin:'0 auto', padding: mobile?'0 16px':'0 28px' }}>
@@ -1741,6 +1819,15 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             </div>
             {/* Summary + itemized detail */}
             <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+              {/* Rendered design image inside the quote area (photoreal if present, else 3D snapshot) + Download */}
+              {(renderUrl || quoteImg) && (
+                <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:12 }}>
+                  <img src={renderUrl || quoteImg} alt="Your design" style={{ width:'100%', display:'block', borderRadius:10 }} />
+                  <a href={renderUrl || quoteImg} download={renderUrl ? 'closets-design.jpg' : 'closets-design.png'} style={{ display:'inline-flex', alignItems:'center', gap:6, marginTop:10, padding:'8px 14px', borderRadius:10, background:'var(--ink)', color:'#fff', textDecoration:'none', fontSize:12.5, fontWeight:700 }}>
+                    <i className="ti ti-download" aria-hidden="true" /> Download image
+                  </a>
+                </div>
+              )}
               <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'18px 18px 16px' }}>
                 <div className="display" style={{ fontSize:20, color:'var(--ink)', marginBottom:12 }}>Your design</div>
                 {[['Product', selProduct?.name || 'Wardrobe'],['Layout', layout],['Finish', finName],['Size', sizeStr],['Package', `${selPkg.name} (×${selPkg.mult})`]].map(([k,v])=>(
@@ -1769,9 +1856,16 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                     <div style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', fontSize:13, color:'var(--ink-soft)' }}>
                       <span>Subtotal</span><span style={{ fontWeight:600 }}>{fmt(lineData.subtotal)}</span>
                     </div>
-                    <div style={{ display:'flex', justifyContent:'space-between', padding:'4px 0', fontSize:13, color:'var(--ink-soft)' }}>
-                      <span>{selPkg.name} package (×{selPkg.mult})</span><span style={{ fontWeight:600 }}>{fmt(lineData.total - lineData.subtotal)}</span>
-                    </div>
+                    {lineData.pkgAdj !== 0 && (
+                      <div style={{ display:'flex', justifyContent:'space-between', padding:'4px 0', fontSize:13, color:'var(--ink-soft)' }}>
+                        <span>{selPkg.name} package (×{selPkg.mult})</span><span style={{ fontWeight:600 }}>{lineData.pkgAdj>0?'+ ':'− '}{fmt(Math.abs(lineData.pkgAdj))}</span>
+                      </div>
+                    )}
+                    {lineData.vat > 0 && (
+                      <div style={{ display:'flex', justifyContent:'space-between', padding:'4px 0', fontSize:13, color:'var(--ink-soft)' }}>
+                        <span>VAT ({Math.round(lineData.vatRate*100)}%)</span><span style={{ fontWeight:600 }}>{fmt(lineData.vat)}</span>
+                      </div>
+                    )}
                     <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 0 0', marginTop:6, borderTop:'2px solid var(--ink)', fontSize:15, fontWeight:800, color:'var(--ink)' }}>
                       <span>TOTAL</span><span style={{ color:'var(--clay)' }}>{fmt(lineData.total)}</span>
                     </div>
@@ -1779,9 +1873,10 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                 )}
                 <div style={{ fontSize:10.5, color:'var(--muted)', marginTop:10 }}>Indicative — your free design visit confirms an exact, itemised quote.</div>
               </div>
+              {quoteErr && <div role="alert" style={{ background:'#fdecea', border:'1px solid #f5c6c0', color:'#b3261e', borderRadius:12, padding:'10px 14px', fontSize:13 }}>{quoteErr}</div>}
               <div style={{ display:'flex', gap:8 }}>
                 <button type="button" className="btn-secondary" disabled={busy} onClick={()=>setStage('config')} style={{ flex:1, borderRadius:12, color:'var(--ink-soft)' }}>‹ Edit</button>
-                <button type="button" className="btn-clay" disabled={busy} onClick={requestQuote} style={{ flex:2, borderRadius:12 }}>{busy?'Sending…':'Continue — get my quote →'}</button>
+                <button type="button" className="btn-clay" disabled={busy} onClick={requestQuote} style={{ flex:2, borderRadius:12 }}>{busy?'Sending…':(user?'Continue — get my quote →':'Sign in & get my quote →')}</button>
               </div>
             </div>
           </div>
@@ -1826,15 +1921,15 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1.55fr 1fr', gap:20, alignItems:'stretch' }}>
           {/* BIG 3D STAGE */}
           <div style={{ background:'#f5f5f7', borderRadius:20, position:'relative', minHeight: mobile?360:640, overflow:'hidden' }}>
-            <Wardrobe3D apiRef={plannerApi} finishHex={finishHex} layout={layout} glass={hasGlass} handles={hasHandles} led={hasLed} mobile={mobile} tall product={prodKey} widthCm={layout==='l-shape' ? (Number(dims.sideA)+Number(dims.sideB)) : dims.width} heightCm={dims.height} depthCm={dims.depth} />
+            <Wardrobe3D apiRef={plannerApi} finishHex={finishHex} layout={layout} glass={hasGlass} handles={hasHandles} led={hasLed} mobile={mobile} tall product={prodKey} widthCm={sizeW} heightCm={dims.height} depthCm={dims.depth} />
             {/* #4 — live dimension labels along the edges */}
             <div style={{ position:'absolute', inset:0, pointerEvents:'none' }}>
               {(() => { const lab = (txt) => ({ position:'absolute', fontSize:11, fontWeight:600, color:'var(--ink)', background:'rgba(250,245,238,.88)', border:'1px solid var(--line)', padding:'3px 8px', borderRadius:999, whiteSpace:'nowrap' }); return (<>
                 <span style={{ ...lab(), left:'50%', bottom:54, transform:'translateX(-50%)' }}>W {sizeW} cm</span>
                 <span style={{ ...lab(), left:10, top:'50%', transform:'translateY(-50%)' }}>H {dims.height} cm</span>
                 <span style={{ ...lab(), right:10, top:64 }}>D {dims.depth} cm</span>
-                {layout==='l-shape' && <span style={{ ...lab(), left:10, bottom:54 }}>A {dims.sideA} cm</span>}
-                {layout==='l-shape' && <span style={{ ...lab(), left:'50%', top:64, transform:'translateX(-50%)' }}>B {dims.sideB} cm</span>}
+                {supportsSideAB&&layout==='l-shape' && <span style={{ ...lab(), left:10, bottom:54 }}>A {dims.sideA} cm</span>}
+                {supportsSideAB&&layout==='l-shape' && <span style={{ ...lab(), left:'50%', top:64, transform:'translateX(-50%)' }}>B {dims.sideB} cm</span>}
               </>); })()}
             </div>
             {aiSummary && <div style={{ position:'absolute', top:12, left:12, right:12, fontSize:12, background:'var(--sand)', color:'var(--clay-deep)', padding:'8px 12px', borderRadius:12 }}><Spark size={12} color="var(--clay-deep)" style={{ verticalAlign:'-1px' }} /> {aiSummary}</div>}
@@ -1843,7 +1938,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             </div>
             <div style={{ position:'absolute', bottom:12, left:12, display:'flex', gap:6, alignItems:'center', fontSize:12, color:'#6e6e73', background:'rgba(255,255,255,.85)', padding:'5px 10px', borderRadius:10 }}>
               <i className="ti ti-ruler-2" aria-hidden="true" />
-              {layout==='l-shape' ? `${dims.sideA}+${dims.sideB} × ${dims.height} × ${dims.depth} cm` : `${dims.width} × ${dims.height} × ${dims.depth} cm`}
+              {(supportsSideAB&&layout==='l-shape') ? `${dims.sideA}+${dims.sideB} × ${dims.height} × ${dims.depth} cm` : `${dims.width} × ${dims.height} × ${dims.depth} cm`}
             </div>
             <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', bottom:12, right:12, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(249,115,22,.4)' }}>
               <i className={rendering ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" />
@@ -1887,23 +1982,47 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                     </button> ); })}
                 </div>
               );
-              const sizeBody = layout==='l-shape' ? (
-                <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-                  {[['Side A','sideA'],['Side B','sideB'],['Height','height'],['Depth','depth']].map(([lbl,key])=>(
-                    <div key={key} style={{ display:'flex', alignItems:'center', gap:10 }}>
-                      <span style={{ fontSize:13, color:'#6e6e73', width:60 }}>{lbl}</span>
-                      <input type="number" value={dims[key]} onChange={e=>setDims(c=>({...c,[key]:parseInt(e.target.value)||0}))} style={{ width:100, padding:'8px 10px', border:'0.5px solid #d0d0d0', borderRadius:8 }} /><span style={{ fontSize:12, color:'#aaa' }}>cm</span>
+              // A single dimension control: discrete chip-row if the product defines a value list, else a slider.
+              const dimControl = (lbl, key, spec) => {
+                const onChange = (raw) => setDims(c => ({ ...c, [key]: snapDim(spec, raw) }));
+                if (spec.discrete && spec.allowed) {
+                  return (
+                    <div key={key} style={{ marginBottom:16 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}><span style={{ fontSize:13, color:'var(--ink-soft)' }}>{lbl}</span><span style={{ fontSize:14, fontWeight:600, color:'var(--clay)' }}>{dims[key]} cm</span></div>
+                      <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                        {spec.allowed.map(v=>{ const on = Number(dims[key])===v; return (
+                          <button key={v} type="button" onClick={()=>onChange(v)} style={{ minWidth:52, padding:'7px 10px', borderRadius:9, border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', fontSize:13, fontWeight: on?700:500, color: on?'var(--clay)':'var(--ink)', cursor:'pointer' }}>{v}</button>
+                        ); })}
+                      </div>
                     </div>
-                  ))}
+                  );
+                }
+                return (
+                  <div key={key} style={{ marginBottom:16 }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}><span style={{ fontSize:13, color:'var(--ink-soft)' }}>{lbl}</span><span style={{ fontSize:14, fontWeight:600, color:'var(--clay)' }}>{dims[key]} cm</span></div>
+                    <input type="range" min={spec.min} max={spec.max} value={dims[key]} onChange={e=>onChange(parseInt(e.target.value))} style={{ width:'100%', accentColor:'var(--clay)' }} />
+                    <div style={{ display:'flex', justifyContent:'space-between', fontSize:10.5, color:'var(--muted)', marginTop:2 }}><span>{spec.min} cm</span><span>{spec.max} cm</span></div>
+                  </div>
+                );
+              };
+              // Width label adapts: kitchen/walkin runs are "run length"; doors width is the leaf width.
+              const widthLabel = isKitchen ? (KITCHEN_RUN_LAYOUTS.includes(layout) ? 'Run length' : 'Run width')
+                : (prodKey==='walkin' ? 'Room width' : (isDoors ? 'Door width' : 'Width'));
+              const depthLabel = isDoors ? 'Thickness' : 'Depth';
+              const sizeBody = (supportsSideAB && layout==='l-shape') ? (
+                <div>
+                  <div style={{ fontSize:11.5, color:'var(--muted)', marginBottom:10 }}>L-shape — set each run, then the height & depth.</div>
+                  {dimControl('Side A', 'sideA', widthSpec)}
+                  {dimControl('Side B', 'sideB', widthSpec)}
+                  {dimControl('Height', 'height', heightSpec)}
+                  {dimControl(depthLabel, 'depth', depthSpec)}
                 </div>
               ) : (
                 <div>
-                  {[['Width','width',120,400],['Height','height',180,300],['Depth','depth',40,80]].map(([lbl,key,min,max])=>(
-                    <div key={key} style={{ marginBottom:16 }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}><span style={{ fontSize:13, color:'#6e6e73' }}>{lbl}</span><span style={{ fontSize:14, fontWeight:600, color:'var(--clay)' }}>{dims[key]}cm</span></div>
-                      <input type="range" min={min} max={max} value={dims[key]} onChange={e=>setDims(c=>({...c,[key]:parseInt(e.target.value)}))} style={{ width:'100%', accentColor:'var(--clay)' }} />
-                    </div>
-                  ))}
+                  {isKitchen && KITCHEN_RUN_LAYOUTS.includes(layout) && <div style={{ fontSize:11.5, color:'var(--muted)', marginBottom:10 }}>Total run length across all sides of your {layout} kitchen.</div>}
+                  {dimControl(widthLabel, 'width', widthSpec)}
+                  {dimControl('Height', 'height', heightSpec)}
+                  {dimControl(depthLabel, 'depth', depthSpec)}
                 </div>
               );
               const finishBody = (
@@ -1992,7 +2111,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                 <button type="button" className="btn-secondary" disabled={busy} onClick={save} style={{ flex:1, borderRadius:12, color: saved?'var(--good)':'var(--ink-soft)' }}>{saved?'✓ Saved':'Save'}</button>
                 <button type="button" className="btn-clay" disabled={busy} onClick={goVisualise} style={{ flex:2, borderRadius:12 }}>Continue →</button>
               </div>
-              <button type="button" disabled={busy} onClick={requestQuote} style={{ width:'100%', marginTop:8, background:'none', border:'none', fontSize:12.5, color:'var(--muted)', cursor:'pointer' }}>or get a quote now →</button>
+              <button type="button" disabled={busy} onClick={requestQuote} style={{ width:'100%', marginTop:8, background:'none', border:'none', fontSize:12.5, color:'var(--muted)', cursor:'pointer' }}>{user?'or get a quote now →':'or sign in & get a quote →'}</button>
             </div>
           </div>
         </div>
@@ -2010,6 +2129,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
               <input value={qForm.phone} onChange={e=>setQForm(s=>({...s,phone:e.target.value}))} aria-label="Phone (+973…)" placeholder="Phone (+973…)" inputMode="tel" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
               <input value={qForm.email} onChange={e=>setQForm(s=>({...s,email:e.target.value}))} aria-label="Email (optional)" placeholder="Email (optional)" inputMode="email" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
             </div>
+            {quoteErr && <div role="alert" style={{ marginTop:12, background:'#fdecea', border:'1px solid #f5c6c0', color:'#b3261e', borderRadius:12, padding:'10px 14px', fontSize:13 }}>{quoteErr}</div>}
             <div style={{ display:'flex', gap:10, marginTop:18 }}>
               <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>Cancel</button>
               <button type="button" className="btn-clay" disabled={busy || !qForm.name.trim() || !qForm.phone.trim()} onClick={()=>submitQuote(qForm)} style={{ flex:2, borderRadius:12, opacity:(busy||!qForm.name.trim()||!qForm.phone.trim())?.6:1 }}>{busy?'Sending…':'Send my quote request'}</button>
@@ -2432,8 +2552,8 @@ function HomeHub({ user, setUser, setPage }) {
 }
 
 /* ── AUTH ── */
-function AuthModal({ mode, setMode, setUser, onClose }) {
-  const [form, setForm] = useState({ name:'', email:'', password:'', phone:'' });
+function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
+  const [form, setForm] = useState({ name: prefill?.name||'', email: prefill?.email||'', password:'', phone: prefill?.phone||'' });
   const [loading, setLoading] = useState(false);
   const [rstep, setRstep] = useState('request');
   const [rotp, setRotp] = useState('');
@@ -4682,6 +4802,7 @@ export default function App() {
   const [user, setUser] = useState(() => { try { const u = localStorage.getItem('closets_user'); return u ? JSON.parse(u) : null; } catch { return null; } });
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login');
+  const [authPrefill, setAuthPrefill] = useState(null);
   const [siteLogo, setSiteLogo] = useState(null);
   const [banners, setBanners] = useState([]);
   useEffect(() => {
@@ -4695,7 +4816,7 @@ export default function App() {
     }).catch(()=>{});
   }, []);
   const addToCart = item => setCart(c => [...c, item]);
-  const openAuth = (mode = 'login') => { setAuthMode(mode); setAuthOpen(true); };
+  const openAuth = (mode = 'login', prefill) => { setAuthMode(mode); setAuthPrefill(prefill && typeof prefill==='object' ? prefill : null); setAuthOpen(true); };
   const productId = page.startsWith('product-') ? page.replace('product-','') : null;
   return (
     <AppCtx.Provider value={{ user, setUser, cart, setCart, addToCart, setPage, lang, setLang }}>
@@ -4727,7 +4848,7 @@ export default function App() {
       {!['portal','checkout','planner'].includes(page) && <SiteFooter setPage={setPage} />}
       <ChatWidget setPage={setPage} />
       <CartDrawer cart={cart} setCart={setCart} open={cartOpen} setOpen={setCartOpen} setPage={setPage} />
-      {authOpen && <AuthModal mode={authMode} setMode={setAuthMode} setUser={setUser} onClose={()=>setAuthOpen(false)} />}
+      {authOpen && <AuthModal mode={authMode} setMode={setAuthMode} setUser={setUser} prefill={authPrefill} onClose={()=>{ setAuthOpen(false); setAuthPrefill(null); }} />}
       <Toasts />
     </AppCtx.Provider>
   );
