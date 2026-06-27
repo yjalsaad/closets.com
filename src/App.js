@@ -1394,9 +1394,10 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   const doPhotoreal = async () => {
     if (!user) { if (openAuth) openAuth('register'); else setPage('portal'); return; }
     const api = plannerApi.current;
-    if (!api || !api.snapshot) { setRenderErr('The 3D view is still loading — try again in a moment.'); return; }
-    const img = api.snapshot();
-    if (!img) { setRenderErr('Could not capture the design. Rotate it once, then try again.'); return; }
+    // Use the live 3D snapshot if the canvas is mounted (Configure stage); otherwise fall back to the
+    // snapshot captured when entering Visualise (where the live canvas is not mounted).
+    const img = (api && api.snapshot && api.snapshot()) || quoteImg || null;
+    if (!img) { setRenderErr('Could not capture the design — go back to Configure, rotate the model once, then try again.'); return; }
     setRendering(true); setRenderErr(''); setRenderUrl(null);
     try {
       const r = await fetch(SUPA_URL + '/functions/v1/render_photoreal', {
