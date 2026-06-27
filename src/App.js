@@ -816,12 +816,15 @@ function useThreeLoaded() {
 }
 
 // Live 3D wardrobe preview. Recolours/reshapes from props; drag to rotate.
-function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, tall, widthCm, heightCm, depthCm, product, apiRef }) {
+function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, tall, widthCm, heightCm, depthCm, sideACm, sideBCm, product, apiRef, unit = 'cm', preset = 'iso', scaleMode = 'fit' }) {
   const { ready, failed } = useThreeLoaded();
   const mountRef = useRef(null);
-  const stateRef = useRef({ finishHex, layout, glass, handles, led, widthCm, heightCm, depthCm, product });
+  const stateRef = useRef({ finishHex, layout, glass, handles, led, widthCm, heightCm, depthCm, sideACm, sideBCm, product, unit, scaleMode });
   const sceneRef = useRef(null);
-  useEffect(() => { stateRef.current = { finishHex, layout, glass, handles, led, widthCm, heightCm, depthCm, product }; if (sceneRef.current) sceneRef.current.rebuild(); }, [finishHex, layout, glass, handles, led, widthCm, heightCm, depthCm, product]);
+  useEffect(() => { stateRef.current = { finishHex, layout, glass, handles, led, widthCm, heightCm, depthCm, sideACm, sideBCm, product, unit, scaleMode }; if (sceneRef.current) sceneRef.current.rebuild(); }, [finishHex, layout, glass, handles, led, widthCm, heightCm, depthCm, sideACm, sideBCm, product, unit, scaleMode]);
+  // Camera preset changes are applied imperatively (no rebuild needed).
+  // Unit changes flow through the stateRef effect above (rebuild regenerates labels).
+  useEffect(() => { if (sceneRef.current && sceneRef.current.setPreset) sceneRef.current.setPreset(preset); }, [preset]);
 
   useEffect(() => {
     if (!ready || !mountRef.current || !window.THREE) return;
@@ -1031,18 +1034,122 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
       return g;
     }
 
+    // ── Dimension annotations that live IN the scene (track rotation/zoom) ──
+    let curUnit = stateRef.current.unit || 'cm';
+    let floorGroup = null;       // faint floor grid + human reference (True-scale)
+    const DIM_COL = 0x9a6a3c;    // literal hex only (clay-deep family) — never a CSS var
+    // A sprite text label drawn onto a CanvasTexture (literal hex strings only).
+    function makeLabel(text) {
+      const pad = 8, fs = 44;
+      const c = document.createElement('canvas');
+      const cx = c.getContext('2d');
+      cx.font = `700 ${fs}px Inter, Arial, sans-serif`;
+      const tw = Math.ceil(cx.measureText(text).width);
+      c.width = tw + pad * 2 + 4; c.height = fs + pad * 2;
+      const x = c.getContext('2d');
+      // rounded pill background
+      const r = 14, w = c.width, h = c.height;
+      x.fillStyle = 'rgba(250,245,238,0.94)';
+      x.strokeStyle = '#e3d6c6'; x.lineWidth = 2;
+      x.beginPath();
+      x.moveTo(r, 0); x.arcTo(w, 0, w, h, r); x.arcTo(w, h, 0, h, r);
+      x.arcTo(0, h, 0, 0, r); x.arcTo(0, 0, w, 0, r); x.closePath();
+      x.fill(); x.stroke();
+      x.fillStyle = '#3a2a1c';
+      x.font = `700 ${fs}px Inter, Arial, sans-serif`;
+      x.textBaseline = 'middle'; x.textAlign = 'center';
+      x.fillText(text, w / 2, h / 2 + 2);
+      const tex = new THREE.CanvasTexture(c); tex.needsUpdate = true;
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+      sp.renderOrder = 999;
+      const scl = 0.0042; sp.scale.set(c.width * scl, c.height * scl, 1);
+      return sp;
+    }
+    const fmtVal = (cm) => curUnit === 'in'
+      ? (Math.round((cm / 2.54) * 10) / 10) + ' in'
+      : Math.round(cm) + ' cm';
+    // A leader line (THREE.Line) with two short end ticks.
+    function dimLine(ax, ay, az, bx, by, bz) {
+      const g = new THREE.Group();
+      const mLine = new THREE.LineBasicMaterial({ color: DIM_COL, transparent: true, opacity: 0.9, depthTest: false });
+      const pts = [new THREE.Vector3(ax, ay, az), new THREE.Vector3(bx, by, bz)];
+      const ln = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mLine);
+      ln.renderOrder = 998; g.add(ln);
+      return g;
+    }
+    // Build measurement leaders around the model's (post-fit) bounding box.
+    function addDimensions(target, st) {
+      try {
+        const bb = new THREE.Box3().setFromObject(target);
+        if (!isFinite(bb.min.x) || !isFinite(bb.max.x)) return;
+        const sz = new THREE.Vector3(); bb.getSize(sz);
+        const dg = new THREE.Group();
+        const off = Math.max(sz.x, sz.y, sz.z) * 0.12 + 0.25;
+        const minX = bb.min.x, maxX = bb.max.x, minY = bb.min.y, maxY = bb.max.y, maxZ = bb.max.z, minZ = bb.min.z;
+        const isAB = (st.product === 'wardrobe' || st.product === 'walkin') && st.layout === 'l-shape';
+        // WIDTH — along bottom front edge
+        const wy = minY - off, wz = maxZ;
+        dg.add(dimLine(minX, wy, wz, maxX, wy, wz));
+        const wl = makeLabel(isAB ? `W ${fmtVal((Number(st.sideACm)||0)+(Number(st.sideBCm)||0))}` : `W ${fmtVal(st.widthCm)}`);
+        wl.position.set((minX + maxX) / 2, wy - off * 0.5, wz); dg.add(wl);
+        // HEIGHT — along left edge
+        const hx = minX - off, hz = maxZ;
+        dg.add(dimLine(hx, minY, hz, hx, maxY, hz));
+        const hl = makeLabel(`H ${fmtVal(st.heightCm)}`);
+        hl.position.set(hx - off * 0.5, (minY + maxY) / 2, hz); dg.add(hl);
+        // DEPTH — along one bottom corner (z axis)
+        const dx = maxX + off * 0.6, dy = minY;
+        dg.add(dimLine(dx, dy, minZ, dx, dy, maxZ));
+        const dl = makeLabel(`D ${fmtVal(st.depthCm)}`);
+        dl.position.set(dx + off * 0.5, dy, (minZ + maxZ) / 2); dg.add(dl);
+        // L-shape legs A / B
+        if (isAB) {
+          const al = makeLabel(`A ${fmtVal(st.sideACm)}`);
+          al.position.set(minX + sz.x * 0.25, minY - off * 1.4, wz); dg.add(al);
+          const bl = makeLabel(`B ${fmtVal(st.sideBCm)}`);
+          bl.position.set(maxX - sz.x * 0.25, minY - off * 1.4, wz); dg.add(bl);
+        }
+        target.add(dg);
+      } catch (e) { /* dims optional */ }
+    }
+    // Faint floor grid + a subtle human-scale silhouette for True-scale mode.
+    function addFloor(target, st) {
+      try {
+        if (st.scaleMode !== 'true') return;
+        const bb = new THREE.Box3().setFromObject(target);
+        const sz = new THREE.Vector3(); bb.getSize(sz);
+        const fg = new THREE.Group();
+        const span = Math.max(sz.x, sz.z) * 2.4 + 2;
+        const grid = new THREE.GridHelper(span, Math.max(6, Math.round(span)), 0xcfc4b4, 0xe3dccf);
+        grid.material.transparent = true; grid.material.opacity = 0.5;
+        grid.position.y = bb.min.y - 0.01; fg.add(grid);
+        // human-scale reference (~170cm) standing beside the model
+        const hRef = (170 / (st.heightCm || 240)) * sz.y; // 170cm relative to model height
+        const torso = new THREE.Mesh(new THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(hRef * 0.09, hRef * 0.62, 4, 8) : new THREE.CylinderGeometry(hRef * 0.09, hRef * 0.09, hRef * 0.8, 8),
+          new THREE.MeshStandardMaterial({ color: 0xbcae9c, transparent: true, opacity: 0.5, roughness: 1 }));
+        torso.position.set(bb.max.x + hRef * 0.45, bb.min.y + hRef * 0.5, bb.max.z);
+        fg.add(torso);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(hRef * 0.11, 12, 12),
+          new THREE.MeshStandardMaterial({ color: 0xbcae9c, transparent: true, opacity: 0.5, roughness: 1 }));
+        head.position.set(bb.max.x + hRef * 0.45, bb.min.y + hRef * 0.92, bb.max.z);
+        fg.add(head);
+        target.add(fg);
+      } catch (e) { /* floor optional */ }
+    }
+
     function rebuild() {
       const st = stateRef.current;
+      curUnit = st.unit || 'cm';
       if (group) scene.remove(group);
       group = new THREE.Group();
       if (st.product === 'tv') {
         group.add(buildTV(st));
-        scene.add(group); autoFit(group);
+        scene.add(group); finishBuild(group, st);
         return;
       }
-      if (st.product === 'doors') { group.add(buildDoors(st)); scene.add(group); autoFit(group); return; }
-      if (st.product === 'kitchen') { group.add(buildKitchen(st)); scene.add(group); autoFit(group); return; }
-      if (st.product === 'storage') { group.add(buildStorage(st)); scene.add(group); autoFit(group); return; }
+      if (st.product === 'doors') { group.add(buildDoors(st)); scene.add(group); finishBuild(group, st); return; }
+      if (st.product === 'kitchen') { group.add(buildKitchen(st)); scene.add(group); finishBuild(group, st); return; }
+      if (st.product === 'storage') { group.add(buildStorage(st)); scene.add(group); finishBuild(group, st); return; }
       if (st.product === 'walkin') {
         const W = Math.max(3, Math.min(7, (st.widthCm || 300) / 50));
         const H = Math.max(3.5, Math.min(6, (st.heightCm || 240) / 50));
@@ -1055,7 +1162,7 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
         if (st.layout === 'u-shape') { group.add(left()); group.add(right()); }
         if (st.layout === 'l-shape') { group.add(left()); }
         if (st.layout === 'parallel') { group.add(left()); group.add(right()); }
-        scene.add(group); autoFit(group);
+        scene.add(group); finishBuild(group, st);
         return;
       }
       // ── Consistent cm → scene scale so the model TRULY reflects entered dims ──
@@ -1070,7 +1177,17 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
       if (st.layout === 'l-shape') { const w2 = cabinet(sideW, H, D, 2, st); w2.position.set(-(W/2+D/2), 0, sideW/2 - D/2); w2.rotation.y = Math.PI / 2; group.add(w2); }
       if (st.layout === 'walk-in') { const w2 = cabinet(sideW, H, D, 2, st); w2.position.set(-(W/2+D/2), 0, sideW/2 - D/2); w2.rotation.y = Math.PI / 2; group.add(w2); const w3 = cabinet(sideW, H, D, 2, st); w3.position.set(W/2+D/2, 0, sideW/2 - D/2); w3.rotation.y = -Math.PI / 2; group.add(w3); }
       scene.add(group);
-      autoFit(group);
+      finishBuild(group, st);
+    }
+    // After the model is built: fit/scale it, then attach dimension leaders + (optional) floor.
+    function finishBuild(g, st) {
+      autoFit(g);
+      // Compute dims in local space (ignore the group scale autoFit just applied), then restore.
+      const savedScale = g.scale.x;
+      g.scale.setScalar(1);
+      addDimensions(g, st);
+      addFloor(g, st);
+      g.scale.setScalar(savedScale);
     }
     // Uniformly scale + recenter any group so its largest dimension fits a target span.
     // This keeps relative proportions (so editing Side A/B, Height or Depth visibly changes the model)
@@ -1117,9 +1234,23 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
         return oc.toDataURL('image/jpeg', 0.9);
       } catch (e) { return null; }
     };
-    sceneRef.current = { rebuild, zoomBy: (d) => { tZoom = clamp(tZoom + d, 5, 16); }, reset: () => { tRotY = -0.5; tRotX = 0.05; tZoom = 9; }, snapshot };
-    if (apiRef) apiRef.current = sceneRef.current;
+    // Camera presets animate via the smooth rotation/zoom targets (the model rotates, not the camera).
+    const applyPreset = (p) => {
+      if (p === 'front') { tRotY = 0; tRotX = 0; tZoom = 9; }
+      else if (p === 'top') { tRotY = 0; tRotX = 1.45; tZoom = 9; }   // ~83° → clean plan view
+      else { tRotY = -0.5; tRotX = 0.05; tZoom = 9; }                 // iso (default)
+    };
     const onResize = () => { const nw = mount.clientWidth || w, nh = mount.clientHeight || h; if (nw < 50 || nh < 50) return; renderer.setSize(nw, nh); camera.aspect = nw / nh; camera.updateProjectionMatrix(); };
+    sceneRef.current = {
+      rebuild,
+      zoomBy: (d) => { tZoom = clamp(tZoom + d, 5, 16); },
+      reset: () => { tRotY = -0.5; tRotX = 0.05; tZoom = 9; },
+      setPreset: applyPreset,
+      setUnit: (u) => { curUnit = u; if (stateRef.current) stateRef.current.unit = u; rebuild(); },
+      refit: () => { onResize(); },
+      snapshot,
+    };
+    if (apiRef) apiRef.current = sceneRef.current;
     window.addEventListener('resize', onResize);
     // Re-measure once the container has settled (fixes skew from 0-size init)
     let ro = null;
@@ -1275,9 +1406,20 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
     };
     reader.readAsDataURL(file);
   };
-  const [openSec, setOpenSec] = useState('layout');
-  const [showExtras, setShowExtras] = useState(false);
-  const [configStep, setConfigStep] = useState(0);
+  // ── Wave 2: living configurator accordion (multiple sections open at once) ──
+  // Essentials open by default; optional categories collapsed.
+  const [openSecs, setOpenSecs] = useState(() => new Set(['layout','size','door_finishes']));
+  const toggleSec = (id) => setOpenSecs(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  // ── Wave 2: 3D toolbar state (lifted into PlannerPage, passed to Wardrobe3D) ──
+  const [unit, setUnit] = useState('cm');         // 'cm' | 'in'
+  const [camPreset, setCamPreset] = useState('iso'); // 'front' | 'iso' | 'top'
+  const [scaleMode, setScaleMode] = useState('fit'); // 'fit' | 'true'
+  const [railCollapsed, setRailCollapsed] = useState(false); // expand 3D to near full width
+  // Re-fit the 3D after the rail collapses/expands (container width changed).
+  useEffect(() => {
+    const id = setTimeout(() => { try { if (plannerApi.current && plannerApi.current.refit) plannerApi.current.refit(); } catch (e) {} }, 360);
+    return () => clearTimeout(id);
+  }, [railCollapsed]);
   const [pkg, setPkg] = useState(1); // selected package index (Standard default)
   const [showItemized, setShowItemized] = useState(true);
   const [quoteImg, setQuoteImg] = useState(null); // captured 3D snapshot shown in the quote area
@@ -1769,28 +1911,6 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
 
   // ── STAGE 3: SINGLE-SCREEN CONFIG ──
   const sizeW = (supportsSideAB && layout === 'l-shape') ? (Number(dims.sideA)+Number(dims.sideB)) : dims.width;
-  // status: 'done' (green check + chosenLabel), 'open' (orange), 'empty' (hollow)
-  const renderSection = (id, title, children, status, chosenLabel) => {
-    const isOpen = openSec === id;
-    const st = isOpen ? 'open' : status;
-    return (
-      <div key={id} style={{ border: isOpen?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:12, overflow:'hidden', flexShrink:0 }}>
-        <div onClick={()=>setOpenSec(isOpen?'':id)} style={{ cursor:'pointer', padding:'0 15px', minHeight:50, display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:14, fontWeight:600, background:'#fff', lineHeight:1.2 }}>
-          <span style={{ display:'flex', alignItems:'center', gap:9 }}>
-            {st==='done' && <span style={{ width:22, height:22, borderRadius:'50%', background:'#1D9E75', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><i className="ti ti-check" style={{ color:'#fff', fontSize:14 }} aria-hidden="true" /></span>}
-            {st==='open' && <span style={{ width:22, height:22, borderRadius:'50%', border:'2px solid var(--clay)', flexShrink:0 }} />}
-            {st==='empty' && <span style={{ width:22, height:22, borderRadius:'50%', border:'1.5px solid #d0d0d0', flexShrink:0 }} />}
-            <span style={{ color: st==='empty'?'#86868b':'#1d1d1f' }}>{title}</span>
-          </span>
-          <span style={{ display:'flex', alignItems:'center', gap:8 }}>
-            {!isOpen && chosenLabel && <span style={{ fontSize:12, color:'#86868b', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{chosenLabel}</span>}
-            <i className={`ti ti-chevron-${isOpen?'down':'right'}`} style={{ color:'#aaa' }} aria-hidden="true" />
-          </span>
-        </div>
-        {isOpen && <div style={{ padding:'4px 15px 16px' }}>{children}</div>}
-      </div>
-    );
-  };
 
   // ── STAGE 4: VISUALISE (real stage, after config) ──
   if (stage === 'visualise') {
@@ -1811,7 +1931,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             <div style={{ background:'#f5f5f7', borderRadius:20, position:'relative', minHeight: mobile?320:560, overflow:'hidden' }}>
               {renderUrl
                 ? <img src={renderUrl} alt="Photorealistic render of your design" style={{ width:'100%', display:'block' }} />
-                : <Wardrobe3D apiRef={plannerApi} finishHex={finishHex} layout={layout} glass={hasGlass} handles={hasHandles} led={hasLed} mobile={mobile} tall product={prodKey} widthCm={sizeW} heightCm={dims.height} depthCm={dims.depth} />}
+                : <Wardrobe3D apiRef={plannerApi} finishHex={finishHex} layout={layout} glass={hasGlass} handles={hasHandles} led={hasLed} mobile={mobile} tall product={prodKey} widthCm={sizeW} heightCm={dims.height} depthCm={dims.depth} sideACm={dims.sideA} sideBCm={dims.sideB} unit={unit} />}
               <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', bottom:12, right:12, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,#F2731C,#C2410C)', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(242,115,28,.4)' }}>
                 <i className={rendering ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" />
                 {rendering ? 'Rendering…' : (renderUrl ? 'Regenerate' : 'Make it photorealistic')}
@@ -1909,8 +2029,8 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   }
 
   return (
-    <div style={{ minHeight:'100dvh', paddingTop:80, paddingBottom:40, fontSize: mobile?14:15 }}>
-      <div style={{ maxWidth:1440, margin:'0 auto', padding: mobile?'0 16px':'0 28px' }}>
+    <div style={{ minHeight:'100dvh', paddingTop:80, paddingBottom: mobile?120:40, fontSize: mobile?15:16 }}>
+      <div style={{ maxWidth:1560, margin:'0 auto', padding: mobile?'0 14px':'0 32px' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', margin:'12px 0 10px' }}>
           <span onClick={()=>setStage('product')} style={{ cursor:'pointer', fontSize:13, color:'var(--ink-soft)' }}>‹ All products</span>
           <span style={{ fontSize:13, color:'var(--muted)' }}>{selProduct?.name || 'Wardrobe'}</span>
@@ -1918,27 +2038,40 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
         </div>
         {planSteps('config')}
 
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1.55fr 1fr', gap:20, alignItems:'stretch' }}>
+        {(() => {
+          // toolbar pill styles (literal hex / tokens only)
+          const seg = (active) => ({ padding:'6px 11px', fontSize:12, fontWeight:600, cursor:'pointer', border:'none', background: active?'var(--clay)':'transparent', color: active?'#fff':'var(--ink-soft)', borderRadius:8 });
+          const segWrap = { display:'flex', gap:2, background:'rgba(255,255,255,.92)', border:'1px solid var(--line)', borderRadius:10, padding:3, boxShadow:'0 1px 3px rgba(0,0,0,.08)' };
+          return (<>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':(railCollapsed?'1fr 0px':'1.9fr 1fr'), gap: railCollapsed?0:20, alignItems:'stretch', transition:'grid-template-columns .35s ease, gap .35s ease' }}>
           {/* BIG 3D STAGE */}
-          <div style={{ background:'#f5f5f7', borderRadius:20, position:'relative', minHeight: mobile?360:640, overflow:'hidden' }}>
-            <Wardrobe3D apiRef={plannerApi} finishHex={finishHex} layout={layout} glass={hasGlass} handles={hasHandles} led={hasLed} mobile={mobile} tall product={prodKey} widthCm={sizeW} heightCm={dims.height} depthCm={dims.depth} />
-            {/* #4 — live dimension labels along the edges */}
-            <div style={{ position:'absolute', inset:0, pointerEvents:'none' }}>
-              {(() => { const lab = (txt) => ({ position:'absolute', fontSize:11, fontWeight:600, color:'var(--ink)', background:'rgba(250,245,238,.88)', border:'1px solid var(--line)', padding:'3px 8px', borderRadius:999, whiteSpace:'nowrap' }); return (<>
-                <span style={{ ...lab(), left:'50%', bottom:54, transform:'translateX(-50%)' }}>W {sizeW} cm</span>
-                <span style={{ ...lab(), left:10, top:'50%', transform:'translateY(-50%)' }}>H {dims.height} cm</span>
-                <span style={{ ...lab(), right:10, top:64 }}>D {dims.depth} cm</span>
-                {supportsSideAB&&layout==='l-shape' && <span style={{ ...lab(), left:10, bottom:54 }}>A {dims.sideA} cm</span>}
-                {supportsSideAB&&layout==='l-shape' && <span style={{ ...lab(), left:'50%', top:64, transform:'translateX(-50%)' }}>B {dims.sideB} cm</span>}
-              </>); })()}
-            </div>
-            {aiSummary && <div style={{ position:'absolute', top:12, left:12, right:12, fontSize:12, background:'var(--sand)', color:'var(--clay-deep)', padding:'8px 12px', borderRadius:12 }}><Spark size={12} color="var(--clay-deep)" style={{ verticalAlign:'-1px' }} /> {aiSummary}</div>}
-            <div style={{ position:'absolute', top:12, right:12, display:'flex', gap:6, alignItems:'center', fontSize:11, color:'#86868b', background:'rgba(255,255,255,.85)', padding:'5px 10px', borderRadius:10 }}>
-              <i className="ti ti-rotate-360" aria-hidden="true" /> {t('dragRotate')}
+          <div style={{ background:'#f5f5f7', borderRadius:20, minHeight: mobile?'46vh':(railCollapsed?720:640), height: mobile?'46vh':undefined, position: mobile?'sticky':'relative', top: mobile?64:undefined, zIndex: mobile?5:undefined, overflow:'hidden' }}>
+            <Wardrobe3D apiRef={plannerApi} finishHex={finishHex} layout={layout} glass={hasGlass} handles={hasHandles} led={hasLed} mobile={mobile} tall product={prodKey} widthCm={sizeW} heightCm={dims.height} depthCm={dims.depth} sideACm={dims.sideA} sideBCm={dims.sideB} unit={unit} preset={camPreset} scaleMode={scaleMode} />
+            {aiSummary && <div style={{ position:'absolute', top:54, left:12, right:12, fontSize:12, background:'var(--sand)', color:'var(--clay-deep)', padding:'8px 12px', borderRadius:12 }}><Spark size={12} color="var(--clay-deep)" style={{ verticalAlign:'-1px' }} /> {aiSummary}</div>}
+            {/* 3D TOOLBAR — units · presets · true-scale · expand rail */}
+            <div style={{ position:'absolute', top:12, left:12, right:12, display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
+              <div style={segWrap} role="group" aria-label="Units">
+                <button type="button" style={seg(unit==='cm')} onClick={()=>setUnit('cm')}>cm</button>
+                <button type="button" style={seg(unit==='in')} onClick={()=>setUnit('in')}>in</button>
+              </div>
+              <div style={segWrap} role="group" aria-label="Camera view">
+                <button type="button" style={seg(camPreset==='front')} onClick={()=>setCamPreset('front')}>Front</button>
+                <button type="button" style={seg(camPreset==='iso')} onClick={()=>setCamPreset('iso')}>Iso</button>
+                <button type="button" style={seg(camPreset==='top')} onClick={()=>setCamPreset('top')}>Top</button>
+              </div>
+              <div style={segWrap} role="group" aria-label="Scale mode">
+                <button type="button" style={seg(scaleMode==='fit')} onClick={()=>setScaleMode('fit')}>Fit</button>
+                <button type="button" style={seg(scaleMode==='true')} onClick={()=>setScaleMode('true')}>True scale</button>
+              </div>
+              {!mobile && (
+                <button type="button" aria-label={railCollapsed?'Show options':'Expand 3D'} onClick={()=>setRailCollapsed(c=>!c)} style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:6, padding:'6px 12px', fontSize:12, fontWeight:600, cursor:'pointer', border:'1px solid var(--line)', background:'rgba(255,255,255,.92)', color:'var(--ink-soft)', borderRadius:10, boxShadow:'0 1px 3px rgba(0,0,0,.08)' }}>
+                  <i className={`ti ti-${railCollapsed?'layout-sidebar-right-expand':'arrows-maximize'}`} aria-hidden="true" /> {railCollapsed?'Show options':'Expand 3D'}
+                </button>
+              )}
             </div>
             <div style={{ position:'absolute', bottom:12, left:12, display:'flex', gap:6, alignItems:'center', fontSize:12, color:'#6e6e73', background:'rgba(255,255,255,.85)', padding:'5px 10px', borderRadius:10 }}>
               <i className="ti ti-ruler-2" aria-hidden="true" />
-              {(supportsSideAB&&layout==='l-shape') ? `${dims.sideA}+${dims.sideB} × ${dims.height} × ${dims.depth} cm` : `${dims.width} × ${dims.height} × ${dims.depth} cm`}
+              {(() => { const cv = (cm)=> unit==='in' ? (Math.round((cm/2.54)*10)/10)+' in' : cm+' cm'; return (supportsSideAB&&layout==='l-shape') ? `${cv(dims.sideA)} + ${cv(dims.sideB)} × ${cv(dims.height)} × ${cv(dims.depth)}` : `${cv(dims.width)} × ${cv(dims.height)} × ${cv(dims.depth)}`; })()}
             </div>
             <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', bottom:12, right:12, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(249,115,22,.4)' }}>
               <i className={rendering ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" />
@@ -1969,8 +2102,8 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             </div>
           )}
 
-          {/* OPTIONS RAIL */}
-          <div style={{ display:'flex', flexDirection:'column', gap:10, maxHeight: mobile?'none':640, overflowY: mobile?'visible':'auto', overflowX:'hidden', paddingRight:4 }}>
+          {/* OPTIONS RAIL — living configurator (accordion) + sticky summary */}
+          <div style={{ display: railCollapsed?'none':'flex', flexDirection:'column', gap:10, maxHeight: mobile?'none':720, overflowY: mobile?'visible':'auto', overflowX:'hidden', paddingRight:4, marginTop: mobile?14:0 }}>
             {(() => {
               const lay = (prodLayouts || LAYOUTS);
               const layoutBody = (
@@ -2051,70 +2184,129 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                     </div> ); })}
                 </div>
               ); };
-              const stepList = [
-                { id:'layout', title:'Layout', body:layoutBody },
-                { id:'size', title:'Size', body:sizeBody },
-                { id:'door_finishes', title:'Finish', body:finishBody },
-                ...catKeys.filter(k=>k!=='door_finishes').map(ck=>({ id:ck, title:(cats[ck].label||ck), optional:true, body:catBody(ck) })),
-              ];
-              const N = stepList.length;
-              const idx = Math.max(0, Math.min(configStep, N-1));
-              const cur = stepList[idx];
-              const pct = Math.round(((idx+1)/N)*100);
+              // ── Living accordion: essentials (expanded) + optional categories (collapsed) ──
+              const finName = (FINISHES.find(f=>f.id===finishId)||{}).name || finishId;
+              const layLabel = (lay.find(l=>l.id===layout)||{}).label || layout;
+              const sizeLabel = (() => { const cv = (cm)=> unit==='in' ? (Math.round((cm/2.54)*10)/10)+'"' : cm; return (supportsSideAB&&layout==='l-shape') ? `${cv(dims.sideA)}+${cv(dims.sideB)}×${cv(dims.height)}` : `${cv(dims.width)}×${cv(dims.height)}×${cv(dims.depth)} ${unit}`; })();
+              const layoutSet = !!layout, sizeSet = dims.width>0 || (supportsSideAB&&layout==='l-shape'), finishSet = !!finishId;
+              const readyForQuote = layoutSet && sizeSet && finishSet;
+              // One accordion section. essential = green-check header w/ value; optional = "optional" tag.
+              const Section = ({ id, title, body, essential, chosen }) => {
+                const isOpen = openSecs.has(id);
+                const done = essential && !!chosen;
+                return (
+                  <div style={{ border: isOpen?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:12, overflow:'hidden', flexShrink:0, background:'#fff' }}>
+                    <button type="button" onClick={()=>toggleSec(id)} aria-expanded={isOpen} style={{ width:'100%', cursor:'pointer', padding:'0 15px', minHeight:52, display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:14.5, fontWeight:600, background:'#fff', lineHeight:1.2, border:'none', textAlign:'left' }}>
+                      <span style={{ display:'flex', alignItems:'center', gap:9 }}>
+                        {done
+                          ? <span style={{ width:22, height:22, borderRadius:'50%', background:'#1D9E75', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><i className="ti ti-check" style={{ color:'#fff', fontSize:14 }} aria-hidden="true" /></span>
+                          : <span style={{ width:22, height:22, borderRadius:'50%', border: essential?'2px solid var(--clay)':'1.5px solid #d0d0d0', flexShrink:0 }} />}
+                        <span style={{ color:'var(--ink)' }}>{title}</span>
+                        {!essential && <span style={{ fontSize:10.5, fontWeight:600, color:'var(--muted)', background:'var(--sand)', padding:'2px 8px', borderRadius:6 }}>optional</span>}
+                      </span>
+                      <span style={{ display:'flex', alignItems:'center', gap:8 }}>
+                        {!isOpen && chosen && <span style={{ fontSize:12, color:'#86868b', maxWidth:140, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{chosen}</span>}
+                        <i className={`ti ti-chevron-${isOpen?'down':'right'}`} style={{ color:'#aaa' }} aria-hidden="true" />
+                      </span>
+                    </button>
+                    {isOpen && <div style={{ padding:'4px 15px 16px' }}>{body}</div>}
+                  </div>
+                );
+              };
+              const optionalCats = catKeys.filter(k=>k!=='door_finishes');
               return (<>
-                <div style={{ marginBottom:2 }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-                    <span style={{ fontSize:14, fontWeight:700, color:'var(--ink)' }}>Step {idx+1} <span style={{ color:'var(--muted)', fontWeight:500 }}>of {N}</span></span>
-                    {idx>=2 && <span style={{ fontSize:12, fontWeight:700, color:'#1D9E75', background:'#1D9E7522', padding:'4px 12px', borderRadius:999 }}>✓ Ready for a quote</span>}
-                  </div>
-                  <div style={{ height:10, background:'#ececec', borderRadius:999, overflow:'hidden' }}><div style={{ width:pct+'%', height:'100%', background:'linear-gradient(90deg,#F2731C,#C2410C)', borderRadius:999, transition:'width .3s' }} /></div>
+                {/* Ready-for-a-quote pill */}
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:2 }}>
+                  <span className="eyebrow" style={{ fontSize:12 }}>Your design</span>
+                  <span style={{ fontSize:12, fontWeight:700, padding:'4px 12px', borderRadius:999, transition:'all .25s',
+                    color: readyForQuote?'#1D9E75':'var(--muted)', background: readyForQuote?'#1D9E7522':'var(--sand)' }}>
+                    {readyForQuote ? '✓ Ready for a quote' : 'Set layout · size · finish'}
+                  </span>
                 </div>
-                <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:14, padding:'16px 16px 18px' }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:14 }}>
-                    <span className="display" style={{ fontSize:19, color:'var(--ink)' }}>{cur.title}</span>
-                    {cur.optional && <span style={{ fontSize:11, color:'var(--muted)' }}>optional</span>}
-                  </div>
-                  {cur.body}
-                </div>
-                <div style={{ display:'flex', gap:10, alignItems:'center', marginTop:2 }}>
-                  <button type="button" disabled={idx===0} onClick={()=>setConfigStep(idx-1)} style={{ background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'11px 16px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor: idx===0?'default':'pointer', opacity: idx===0?.4:1 }}>‹ Back</button>
-                  {idx < N-1
-                    ? <button type="button" className="btn-clay" onClick={()=>setConfigStep(idx+1)} style={{ flex:1, borderRadius:12 }}>{idx>=2 ? 'Add an extra →' : 'Continue →'}</button>
-                    : <button type="button" className="btn-clay" onClick={()=>setConfigStep(0)} style={{ flex:1, borderRadius:12 }}>Review from start ↻</button>}
-                </div>
-                {idx>=2 && idx<N-1 && <div style={{ textAlign:'center', marginTop:8 }}><span onClick={()=>setConfigStep(N-1)} style={{ fontSize:12.5, color:'var(--muted)', cursor:'pointer' }}>Skip extras — go to quote ↓</span></div>}
+                {/* ESSENTIALS */}
+                <Section id="layout" title="Layout" essential chosen={layLabel} body={layoutBody} />
+                <Section id="size" title="Size" essential chosen={sizeLabel} body={sizeBody} />
+                <Section id="door_finishes" title="Finish" essential chosen={finName} body={finishBody} />
+                {/* OPTIONAL CATEGORIES */}
+                {optionalCats.length>0 && <div style={{ fontSize:11.5, fontWeight:600, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'.04em', margin:'6px 2px 0' }}>Optional extras</div>}
+                {optionalCats.map(ck => (
+                  <Section key={ck} id={ck} title={cats[ck].label||ck} chosen={catChosen(ck)} body={catBody(ck)} />
+                ))}
               </>);
             })()}
 
-            {/* PRICE + CTA */}
-            <div style={{ marginTop:6, background:'#fff', border:'0.5px solid #e6e6e6', borderRadius:14, padding:'14px 16px', position: mobile?'static':'sticky', bottom:0 }}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:10 }}>
-                <span style={{ fontSize:12, color:'#86868b' }}>Estimated total · {selPkg.name}</span>
-                <span style={{ fontSize:22, fontWeight:700, color:'var(--clay)' }}>{pricing?'…':fmt(pkgTotal)}</span>
-              </div>
-              {total>0 && !pricing && (
-                <div style={{ marginBottom:12 }}>
-                  <div style={{ fontSize:11, color:'#86868b', marginBottom:6 }}>Choose your package</div>
-                  <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6 }}>
-                    {PACKAGES.map((p,i)=>{ const on = i===pkg; return (
-                      <button key={p.name} type="button" onClick={()=>setPkg(i)} style={{ border:'1px solid '+(on?'var(--clay)':'#e6e6e6'), background:on?'var(--sand)':'#fff', borderRadius:10, padding:'8px 6px', textAlign:'center', cursor:'pointer' }}>
-                        <div style={{ fontSize:11, fontWeight:700, color:on?'var(--clay)':'#1d1d1f' }}>{p.name}</div>
-                        <div style={{ fontSize:12, fontWeight:700, color:'#1d1d1f', marginTop:3 }}>{fmt(Math.round(total*p.mult))}</div>
-                        <div style={{ fontSize:9, color:'#999', marginTop:2, lineHeight:1.2 }}>{p.hl}</div>
-                      </button>
-                    ); })}
-                  </div>
-                  <div style={{ fontSize:10, color:'#aaa', marginTop:5 }}>Indicative ranges — your free design visit confirms an exact quote.</div>
+            {/* STICKY SUMMARY — single primary CTA */}
+            {!mobile && (
+              <div style={{ marginTop:6, background:'#fff', border:'0.5px solid #e6e6e6', borderRadius:14, padding:'16px', position:'sticky', bottom:0, boxShadow:'0 -2px 12px rgba(0,0,0,.04)' }}>
+                <div style={{ fontSize:13, color:'var(--ink-soft)', marginBottom:10, lineHeight:1.5 }}>
+                  <strong style={{ color:'var(--ink)' }}>{selProduct?.name || 'Wardrobe'}</strong> · {(lay.find(l=>l.id===layout)||{}).label || layout} · {(() => { const cv = (cm)=> unit==='in' ? (Math.round((cm/2.54)*10)/10)+'"' : cm+'cm'; return (supportsSideAB&&layout==='l-shape') ? `${cv(dims.sideA)}+${cv(dims.sideB)}` : `${cv(dims.width)}×${cv(dims.height)}`; })()} · {(FINISHES.find(f=>f.id===finishId)||{}).name || finishId}
                 </div>
-              )}
-              <div style={{ display:'flex', gap:8 }}>
-                <button type="button" className="btn-secondary" disabled={busy} onClick={save} style={{ flex:1, borderRadius:12, color: saved?'var(--good)':'var(--ink-soft)' }}>{saved?'✓ Saved':'Save'}</button>
-                <button type="button" className="btn-clay" disabled={busy} onClick={goVisualise} style={{ flex:2, borderRadius:12 }}>Continue →</button>
+                {total>0 && !pricing && (
+                  <div style={{ marginBottom:12 }}>
+                    <div style={{ fontSize:11, color:'#86868b', marginBottom:6 }}>Package</div>
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6 }}>
+                      {PACKAGES.map((p,i)=>{ const on = i===pkg; return (
+                        <button key={p.name} type="button" onClick={()=>setPkg(i)} style={{ border:'1px solid '+(on?'var(--clay)':'#e6e6e6'), background:on?'var(--sand)':'#fff', borderRadius:10, padding:'8px 6px', textAlign:'center', cursor:'pointer' }}>
+                          <div style={{ fontSize:11, fontWeight:700, color:on?'var(--clay)':'#1d1d1f' }}>{p.name}</div>
+                          <div style={{ fontSize:12, fontWeight:700, color:'#1d1d1f', marginTop:3 }}>{fmt(Math.round(total*p.mult))}</div>
+                        </button>
+                      ); })}
+                    </div>
+                  </div>
+                )}
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6 }}>
+                  <span style={{ fontSize:12, color:'#86868b' }}>Estimated total · {selPkg.name}</span>
+                  <span style={{ fontSize:24, fontWeight:700, color:'var(--clay)' }}>{pricing?'…':fmt(pkgTotal)}</span>
+                </div>
+                {total>0 && !pricing && (
+                  <div style={{ marginBottom:10 }}>
+                    <button type="button" onClick={()=>setShowItemized(s=>!s)} style={{ background:'none', border:'none', padding:0, fontSize:12.5, fontWeight:600, color:'var(--clay-deep)', cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
+                      <i className={`ti ti-chevron-${showItemized?'up':'down'}`} aria-hidden="true" /> See itemized breakdown
+                    </button>
+                    {showItemized && (() => { const ld = buildLineItems(); return (
+                      <div style={{ marginTop:8, borderTop:'1px solid var(--line)', paddingTop:8 }}>
+                        {ld.items.map((li,i)=>(
+                          <div key={i} style={{ display:'flex', justifyContent:'space-between', gap:10, padding:'3px 0', fontSize:12.5 }}>
+                            <span style={{ color:'var(--ink-soft)' }}>{li.label}</span>
+                            <span style={{ fontWeight:600, color: li.price===0?'var(--muted)':'var(--ink)', whiteSpace:'nowrap' }}>{li.price===0?'Included':fmt(li.price)}</span>
+                          </div>
+                        ))}
+                        {ld.pkgAdj !== 0 && <div style={{ display:'flex', justifyContent:'space-between', padding:'3px 0', fontSize:12.5, color:'var(--ink-soft)' }}><span>{ld.pkgName} package</span><span style={{ fontWeight:600 }}>{ld.pkgAdj>0?'+ ':'− '}{fmt(Math.abs(ld.pkgAdj))}</span></div>}
+                        {ld.vat>0 && <div style={{ display:'flex', justifyContent:'space-between', padding:'3px 0', fontSize:12.5, color:'var(--ink-soft)' }}><span>VAT ({Math.round(ld.vatRate*100)}%)</span><span style={{ fontWeight:600 }}>{fmt(ld.vat)}</span></div>}
+                      </div>
+                    ); })()}
+                  </div>
+                )}
+                <div style={{ fontSize:11.5, color:'var(--muted)', marginBottom:12 }}>Indicative — your free design visit confirms an exact, itemised quote.</div>
+                {/* ONE primary CTA */}
+                <button type="button" className="btn-clay" disabled={busy} onClick={goVisualise} style={{ width:'100%', borderRadius:12, fontSize:15 }}>Visualise my design →</button>
+                <div style={{ display:'flex', gap:8, marginTop:8 }}>
+                  <button type="button" className="btn-secondary" disabled={busy} onClick={save} style={{ flex:1, borderRadius:12, color: saved?'var(--good)':'var(--ink-soft)' }}>{saved?'✓ Saved':'Save'}</button>
+                  <button type="button" disabled={busy} onClick={requestQuote} style={{ flex:1, borderRadius:12, background:'none', border:'1px solid var(--line)', fontSize:13, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{user?'Get a quote':'Sign in & quote'}</button>
+                </div>
               </div>
-              <button type="button" disabled={busy} onClick={requestQuote} style={{ width:'100%', marginTop:8, background:'none', border:'none', fontSize:12.5, color:'var(--muted)', cursor:'pointer' }}>{user?'or get a quote now →':'or sign in & get a quote →'}</button>
-            </div>
+            )}
           </div>
         </div>
+        {/* Mobile: price + primary CTA pinned to the bottom (safe-area aware) */}
+        {mobile && (
+          <div style={{ position:'fixed', left:0, right:0, bottom:0, zIndex:30, background:'#fff', borderTop:'1px solid var(--line)', padding:'10px 14px calc(10px + env(safe-area-inset-bottom))', boxShadow:'0 -4px 16px rgba(0,0,0,.08)' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:8 }}>
+              <span style={{ fontSize:12, color:'#86868b' }}>Estimated · {selPkg.name}</span>
+              <span style={{ fontSize:20, fontWeight:700, color:'var(--clay)' }}>{pricing?'…':fmt(pkgTotal)}</span>
+            </div>
+            <button type="button" className="btn-clay" disabled={busy} onClick={goVisualise} style={{ width:'100%', borderRadius:12 }}>Visualise my design →</button>
+          </div>
+        )}
+        {railCollapsed && !mobile && (
+          <div style={{ position:'fixed', right:24, bottom:24, zIndex:30, display:'flex', gap:10, alignItems:'center', background:'#fff', border:'1px solid var(--line)', borderRadius:14, padding:'10px 14px', boxShadow:'0 8px 24px rgba(0,0,0,.12)' }}>
+            <span style={{ fontSize:13, color:'var(--ink-soft)' }}>Est. <strong style={{ color:'var(--clay)' }}>{pricing?'…':fmt(pkgTotal)}</strong></span>
+            <button type="button" className="btn-clay" disabled={busy} onClick={goVisualise} style={{ borderRadius:10, padding:'8px 14px', fontSize:13.5 }}>Visualise →</button>
+          </div>
+        )}
+        </>
+        );
+        })()}
       </div>
 
       {/* Inline branded quote contact form (replaces window.prompt) */}
