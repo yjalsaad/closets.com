@@ -10567,9 +10567,22 @@ function DesignBuilderPage({ setPage, user }) {
 export default function App() {
   return <SiteContentProvider><AppInner /></SiteContentProvider>;
 }
+const PATH_TO_PAGE = { '':'home','/':'home','/home':'home','/kitchen':'kitchen','/kitchens':'kitchen','/wardrobes':'wardrobes','/wardrobe':'wardrobes','/tv':'tv','/tv-units':'tv','/doors':'doors','/door':'doors','/office':'office','/about':'about','/contact':'contact','/services':'services','/showrooms':'showrooms','/blog':'blog','/faq':'faq','/offers':'offers','/projects':'projects','/booking':'booking','/directory':'directory','/portal':'portal' };
+function initialPage() {
+  try {
+    const sp = new URLSearchParams(window.location.search);
+    const qp = (sp.get('page') || sp.get('p') || '').toLowerCase();
+    if (qp && PATH_TO_PAGE['/' + qp]) return PATH_TO_PAGE['/' + qp];
+    if (qp) return qp;
+    const path = (window.location.pathname || '/').replace(/\/+$/, '').toLowerCase() || '/';
+    if (PATH_TO_PAGE[path]) return PATH_TO_PAGE[path];
+    if (path.startsWith('/product-')) return path.slice(1);
+  } catch (e) {}
+  return 'home';
+}
 function AppInner() {
   useSiteContent();   // subscribe: re-render the whole tree once managed content loads
-  const [page, setPage] = useState('home');
+  const [page, setPage] = useState(initialPage);
   const [lang, setLang] = useState(() => { try { return localStorage.getItem('closets_lang') || 'en'; } catch { return 'en'; } });
   useEffect(() => {
     try { localStorage.setItem('closets_lang', lang); } catch {}
