@@ -232,7 +232,7 @@ const CSS = `
   }
   @keyframes bannerFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
   .hero-content { position: relative; z-index: 1; }
-  body { background: #fff; color: #1d1d1f; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; -webkit-font-smoothing: antialiased; overscroll-behavior: none; }
+  body { background: #fff; color: #1d1d1f; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; -webkit-font-smoothing: antialiased; }
   ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 2px; }
   input, select, textarea, button { font-family: inherit; }
   @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -304,13 +304,14 @@ const CSS = `
     .grid-2 { grid-template-columns: 1fr !important; }
     .grid-3 { grid-template-columns: 1fr 1fr !important; }
     .grid-4 { grid-template-columns: 1fr 1fr !important; }
-    /* Mobile overflow guard — no element should push the page wider than the viewport */
-    html, body { overflow-x: hidden; max-width: 100%; }
+    /* Mobile overflow guard — clip horizontal without creating a scroll container
+       (overflow-x:hidden on html/body traps the mouse wheel; overflow-x:clip does not) */
+    body { overflow-x: clip; max-width: 100%; }
     /* Any auto-fill grid with a large min collapses to a single column on phones */
     .resp-2col { grid-template-columns: 1fr !important; }
   }
-  /* Global safety net: never let a stray wide element create horizontal scroll */
-  html, body { overflow-x: hidden; }
+  /* Global safety net: clip stray horizontal overflow WITHOUT trapping the wheel */
+  body { overflow-x: clip; }
   @media (min-width: 768px) {
     .hide-desktop { display: none !important; }
     .btn:hover { background: var(--clay-deep); opacity: .9; }
@@ -5207,6 +5208,577 @@ const K_STORAGE = [
 // Layout id → Wardrobe3D layout the kitchen builder understands.
 const k3dLayout = (id) => (K_LAYOUTS.find(l=>l.id===id)?.model) || 'single';
 
+/* ════════════════════════════════════════════════════════════════════════════
+   PROFESSIONAL KITCHEN PLANNER WIZARD  ·  fit-to-viewport two-pane app shell
+   Wired to route 'kitchen-planner'. Reuses Wardrobe3D product="kitchen".
+   ════════════════════════════════════════════════════════════════════════════ */
+
+// ── Pro wizard data tables (BHD).  Real catalogue lives in website_products /
+//    design_materials; these are the planner's transparent default price tables. ──
+const KW_ROOM_SHAPES = [
+  { id:'rectangle', name:'Rectangle',  sub:'Standard four-wall room',     ic:'M3 6h18v12H3z' },
+  { id:'square',    name:'Square',     sub:'Equal length & width',        ic:'M5 5h14v14H5z' },
+  { id:'lroom',     name:'L-shaped room', sub:'Room with a return wall',  ic:'M4 4h5v11h11v5H4z' },
+  { id:'custom',    name:'Custom',     sub:'Irregular — set dimensions',  ic:'M4 6l6-2 4 3 6-2v13l-6 2-4-3-6 2z' },
+];
+const KW_OPENING_TYPES = ['Door','Window','Column','Beam','AC duct'];
+const KW_LAYOUTS = [
+  { id:'single',    name:'Single Wall', sub:'One run along a wall',        model:'single' },
+  { id:'galley',    name:'Galley',      sub:'Two runs facing each other',  model:'parallel' },
+  { id:'l-shape',   name:'L-Shape',     sub:'Two runs meeting in a corner',model:'l-shape' },
+  { id:'u-shape',   name:'U-Shape',     sub:'Three runs around three walls',model:'u-shape' },
+  { id:'island',    name:'Island',      sub:'A run plus a central island', model:'island' },
+  { id:'peninsula', name:'Peninsula',   sub:'A connected return / breakfast bar', model:'l-shape' },
+];
+// Cabinets — id, label, width(mm), base price BHD, kind
+const KW_BASE_UNITS = [
+  { id:'b150po', label:'150 pull-out', w:150, price:95 },
+  { id:'b300',  label:'300 base',   w:300, price:70 },
+  { id:'b400',  label:'400 base',   w:400, price:80 },
+  { id:'b450',  label:'450 base',   w:450, price:85 },
+  { id:'b500',  label:'500 base',   w:500, price:92 },
+  { id:'b600',  label:'600 base',   w:600, price:100 },
+  { id:'b800',  label:'800 base',   w:800, price:130 },
+  { id:'b900',  label:'900 base',   w:900, price:145 },
+  { id:'bcorn', label:'Corner unit',w:900, price:165 },
+];
+const KW_WALL_UNITS = [
+  { id:'w300', label:'300 wall', w:300, price:48 },
+  { id:'w400', label:'400 wall', w:400, price:55 },
+  { id:'w450', label:'450 wall', w:450, price:58 },
+  { id:'w600', label:'600 wall', w:600, price:68 },
+  { id:'w800', label:'800 wall', w:800, price:88 },
+  { id:'w900', label:'900 wall', w:900, price:98 },
+  { id:'wlift',label:'Lift-up wall', w:600, price:120 },
+];
+const KW_TALL_UNITS = [
+  { id:'tpantry', label:'Pantry',         w:600, price:280 },
+  { id:'toven',   label:'Oven tower',     w:600, price:320 },
+  { id:'tfridge', label:'Fridge housing', w:600, price:300 },
+  { id:'tutil',   label:'Utility tower',  w:600, price:260 },
+];
+const KW_CARCASS = [
+  { id:'mdf',  name:'MDF',     mult:1.00, sub:'Moisture-resistant board' },
+  { id:'ply',  name:'Plywood', mult:1.18, sub:'Premium, screw-holding' },
+  { id:'mfc',  name:'MFC',     mult:0.92, sub:'Melamine-faced chipboard' },
+];
+const KW_DOORS = [
+  { id:'laminate', name:'Laminate',   mult:1.00, hex:'#e9e5dd' },
+  { id:'acrylic',  name:'Acrylic',    mult:1.22, hex:'#27384f' },
+  { id:'pet',      name:'PET',        mult:1.12, hex:'#8f9d7e' },
+  { id:'veneer',   name:'Veneer',     mult:1.30, hex:'#5a3a20' },
+  { id:'lacquer',  name:'Lacquer',    mult:1.28, hex:'#f5f3ee' },
+  { id:'solid',    name:'Solid wood', mult:1.45, hex:'#c89b5e' },
+];
+const KW_COUNTERTOPS = [
+  { id:'quartz',    name:'Quartz',    perM:320 },
+  { id:'granite',   name:'Granite',   perM:280 },
+  { id:'porcelain', name:'Porcelain', perM:300 },
+  { id:'marble',    name:'Marble',    perM:360 },
+  { id:'compact',   name:'Compact surface', perM:340 },
+];
+const KW_ACCESSORIES = [
+  { id:'handles',  name:'Handles',       price:60,  unit:'set' },
+  { id:'gola',     name:'Gola profile',  price:140, unit:'run' },
+  { id:'lighting', name:'LED lighting',  price:120, unit:'kit' },
+  { id:'cutlery',  name:'Cutlery trays', price:55,  unit:'set' },
+  { id:'waste',    name:'Waste bins',    price:130, unit:'unit' },
+  { id:'pullouts', name:'Pull-outs',     price:90,  unit:'unit' },
+];
+
+// distance helper for the work triangle (points in mm), returns metres
+const kwDist = (a, b) => Math.sqrt(Math.pow((a.x-b.x),2)+Math.pow((a.y-b.y),2)) / 1000;
+const kwLegOK = (m) => m >= 1.2 && m <= 2.7;
+
+function KitchenPlannerWizard({ setPage, user, openAuth }) {
+  const mobile = useMobile();
+  const [step, setStep] = useState(0);
+  // Step 1
+  const [shape, setShape] = useState('rectangle');
+  // Step 2
+  const [dims, setDims] = useState({ length:4000, width:3000, ceiling:2700 });
+  // Step 3
+  const [openings, setOpenings] = useState([{ id:uid(), type:'Door', pos:500, width:900 }]);
+  // Step 4
+  const [layout, setLayout] = useState('l-shape');
+  const [lp, setLp] = useState({
+    wallLen:4000, wallA:3600, wallB:2800, corner:'L-return', galleyGap:1400,
+    uA:3200, uB:2600, uC:3200, entrance:1000,
+    islandW:2400, islandD:1000, seats:3, islandFn:'Multi-purpose',
+    penW:1800, penD:600, clearance:1000,
+  });
+  // Step 5 — work triangle points (mm, room-space)
+  const [tri, setTri] = useState({
+    fridge:{ x:600,  y:600 },
+    sink:{   x:2000, y:600 },
+    hob:{    x:3200, y:600 },
+  });
+  const [drag, setDrag] = useState(null);
+  // Step 6 — cabinet modules: {key, id, kind, qty}
+  const [modules, setModules] = useState([
+    { key:uid(), id:'b600', kind:'base', qty:3 },
+    { key:uid(), id:'w600', kind:'wall', qty:2 },
+    { key:uid(), id:'tpantry', kind:'tall', qty:1 },
+  ]);
+  // Step 7
+  const [mats, setMats] = useState({ carcass:'mdf', door:'laminate', counter:'quartz' });
+  // Step 8 — accessory qty map
+  const [acc, setAcc] = useState({ handles:1, lighting:1 });
+  // preview
+  const [view3d, setView3d] = useState(false);
+  const [showPrev, setShowPrev] = useState(!mobile);
+  const [busy, setBusy] = useState(false);
+  const [showQuote, setShowQuote] = useState(false);
+  const [contact, setContact] = useState({ name:user?.name||'', phone:user?.phone||'', email:user?.email||'', date:'' });
+
+  const lay = KW_LAYOUTS.find(l=>l.id===layout) || KW_LAYOUTS[0];
+  const carc = KW_CARCASS.find(c=>c.id===mats.carcass) || KW_CARCASS[0];
+  const door = KW_DOORS.find(d=>d.id===mats.door) || KW_DOORS[0];
+  const ctop = KW_COUNTERTOPS.find(c=>c.id===mats.counter) || KW_COUNTERTOPS[0];
+  const allUnits = [...KW_BASE_UNITS, ...KW_WALL_UNITS, ...KW_TALL_UNITS];
+  const findU = (id) => allUnits.find(u=>u.id===id);
+
+  // ── Work-triangle legs ──
+  const legFS = kwDist(tri.fridge, tri.sink);
+  const legSH = kwDist(tri.sink, tri.hob);
+  const legHF = kwDist(tri.hob, tri.fridge);
+  const triTotal = legFS + legSH + legHF;
+  const triOK = kwLegOK(legFS) && kwLegOK(legSH) && kwLegOK(legHF);
+
+  // ── BOM + cost ──
+  const matMult = carc.mult * door.mult;
+  const bom = modules.filter(m=>m.qty>0).map(m=>{
+    const u = findU(m.id); if (!u) return null;
+    const unitPrice = Math.round(u.price * (m.kind==='tall' ? carc.mult : matMult));
+    return { key:m.key, name:u.label+' '+(m.kind), qty:m.qty, w:u.w, kind:m.kind, line: unitPrice*m.qty, unitPrice };
+  }).filter(Boolean);
+  const cabinetTotal = bom.reduce((s,b)=>s+b.line,0);
+  // countertop metres = total base-unit run width
+  const baseRunMm = modules.filter(m=>m.kind==='base').reduce((s,m)=>{ const u=findU(m.id); return s + (u?u.w*m.qty:0); }, 0);
+  const counterM = baseRunMm/1000;
+  const counterTotal = Math.round(counterM * ctop.perM);
+  const accItems = KW_ACCESSORIES.filter(a=>(acc[a.id]||0)>0).map(a=>({ ...a, qty:acc[a.id], line:a.price*acc[a.id] }));
+  const accTotal = accItems.reduce((s,a)=>s+a.line,0);
+  const grandTotal = cabinetTotal + counterTotal + accTotal;
+
+  // ── Capacity / collision check ──
+  const availMm = (() => {
+    if (layout==='single') return lp.wallLen;
+    if (layout==='galley') return lp.wallLen*2 || dims.length*2;
+    if (layout==='l-shape'||layout==='peninsula') return (lp.wallA||0)+(lp.wallB||0);
+    if (layout==='u-shape') return (lp.uA||0)+(lp.uB||0)+(lp.uC||0);
+    if (layout==='island') return lp.wallLen + (lp.islandW||0);
+    return dims.length;
+  })();
+  const baseWallMm = modules.filter(m=>m.kind==='base'||m.kind==='tall').reduce((s,m)=>{ const u=findU(m.id); return s+(u?u.w*m.qty:0); },0);
+  const overCapacity = baseWallMm > availMm;
+
+  const view3dLayout = lay.model;
+
+  // ── 2D top-down plan (SVG, room-space mm → px) ──
+  const planView = (h) => {
+    const L = Math.max(1000, dims.length), W = Math.max(1000, dims.width);
+    const pad = 26, vw = 320, vh = 232;
+    const sc = Math.min((vw-pad*2)/L, (vh-pad*2)/W);
+    const ox = pad + ((vw-pad*2)-L*sc)/2, oy = pad + ((vh-pad*2)-W*sc)/2;
+    const X = (mm)=>ox+mm*sc, Y = (mm)=>oy+mm*sc;
+    // cabinet runs (rectangles, 600mm deep)
+    const dep = 600*sc;
+    const runs = [];
+    if (layout==='single'){ runs.push([ox,oy,L*sc,dep]); }
+    else if (layout==='galley'){ runs.push([ox,oy,L*sc,dep]); runs.push([ox,oy+W*sc-dep,L*sc,dep]); }
+    else if (layout==='l-shape'||layout==='peninsula'){ runs.push([ox,oy,L*sc,dep]); runs.push([ox,oy,dep,W*sc]); }
+    else if (layout==='u-shape'){ runs.push([ox,oy,L*sc,dep]); runs.push([ox,oy,dep,W*sc]); runs.push([ox+L*sc-dep,oy,dep,W*sc]); }
+    else if (layout==='island'){ runs.push([ox,oy,L*sc,dep]); runs.push([X(L/2-(lp.islandW||2400)/2),Y(W/2-(lp.islandD||1000)/2),(lp.islandW||2400)*sc,(lp.islandD||1000)*sc]); }
+    const markers = [
+      { p:tri.fridge, c:'#2563eb', t:'F' },
+      { p:tri.sink,   c:'#0891b2', t:'S' },
+      { p:tri.hob,    c:'#dc2626', t:'H' },
+    ];
+    return (
+      <svg viewBox={`0 0 ${vw} ${vh}`} style={{ width:'100%', height:h, display:'block', background:'#fbf8f3' }} aria-label="Kitchen 2D plan">
+        {/* room walls */}
+        <rect x={ox} y={oy} width={L*sc} height={W*sc} fill="#ffffff" stroke="#9a6a3c" strokeWidth="2.5" />
+        {/* cabinet runs */}
+        {runs.map((r,i)=><rect key={i} x={r[0]} y={r[1]} width={r[2]} height={r[3]} fill={door.hex} fillOpacity="0.55" stroke="#9a6a3c" strokeWidth="1" />)}
+        {/* openings on the bottom wall */}
+        {openings.map((o)=>{ const ow=Math.max(200,o.width||600)*sc; const ox2=X(Math.min(L-(o.width||600), o.pos||0)); const col= o.type==='Door'?'#16a34a':o.type==='Window'?'#0ea5e9':'#b45309';
+          return <g key={o.id}><rect x={ox2} y={oy+W*sc-3} width={ow} height={6} fill={col} /><text x={ox2+ow/2} y={oy+W*sc+13} fontSize="8" fill={col} textAnchor="middle">{o.type[0]}</text></g>; })}
+        {/* work-triangle legs */}
+        <line x1={X(tri.fridge.x)} y1={Y(tri.fridge.y)} x2={X(tri.sink.x)} y2={Y(tri.sink.y)} stroke={kwLegOK(legFS)?'#16a34a':'#d97706'} strokeWidth="1.5" strokeDasharray="4 3" />
+        <line x1={X(tri.sink.x)} y1={Y(tri.sink.y)} x2={X(tri.hob.x)} y2={Y(tri.hob.y)} stroke={kwLegOK(legSH)?'#16a34a':'#d97706'} strokeWidth="1.5" strokeDasharray="4 3" />
+        <line x1={X(tri.hob.x)} y1={Y(tri.hob.y)} x2={X(tri.fridge.x)} y2={Y(tri.fridge.y)} stroke={kwLegOK(legHF)?'#16a34a':'#d97706'} strokeWidth="1.5" strokeDasharray="4 3" />
+        {markers.map((m,i)=>(<g key={i}><circle cx={X(m.p.x)} cy={Y(m.p.y)} r="9" fill={m.c} /><text x={X(m.p.x)} y={Y(m.p.y)+3.5} fontSize="9" fontWeight="700" fill="#fff" textAnchor="middle">{m.t}</text></g>))}
+        {/* dimension labels */}
+        <text x={ox+L*sc/2} y={oy-7} fontSize="9" fill="#9a6a3c" textAnchor="middle">{L} mm</text>
+        <text x={ox-7} y={oy+W*sc/2} fontSize="9" fill="#9a6a3c" textAnchor="middle" transform={`rotate(-90 ${ox-7} ${oy+W*sc/2})`}>{W} mm</text>
+      </svg>
+    );
+  };
+
+  // drag work-triangle markers in step 5
+  const triSvgRef = useRef(null);
+  const onTriMove = (e) => {
+    if (!drag || !triSvgRef.current) return;
+    const r = triSvgRef.current.getBoundingClientRect();
+    const cx = (e.touches?e.touches[0].clientX:e.clientX) - r.left;
+    const cy = (e.touches?e.touches[0].clientY:e.clientY) - r.top;
+    const L = Math.max(1000, dims.length), W = Math.max(1000, dims.width);
+    const pad=26, vw=320, vh=232;
+    const sc = Math.min((vw-pad*2)/L, (vh-pad*2)/W);
+    const ox = pad+((vw-pad*2)-L*sc)/2, oy = pad+((vh-pad*2)-W*sc)/2;
+    const mx = Math.max(0, Math.min(L, ((cx / r.width * vw) - ox)/sc));
+    const my = Math.max(0, Math.min(W, ((cy / r.height * vh) - oy)/sc));
+    setTri(t=>({ ...t, [drag]:{ x:Math.round(mx), y:Math.round(my) } }));
+  };
+
+  // ── steps meta ──
+  const STEPS = ['Room shape','Dimensions','Openings','Layout','Work triangle','Cabinets','Materials','Accessories','Quote'];
+  const next = () => setStep(s=>Math.min(STEPS.length-1, s+1));
+  const back = () => setStep(s=>Math.max(0, s-1));
+  const canNext = (() => {
+    if (step===1) return dims.length>=1000 && dims.width>=1000 && dims.ceiling>=2000;
+    return true;
+  })();
+
+  // ── styles ──
+  const HEADER = mobile?72:56, BAR=52;
+  const inS = { width:'100%', padding:'9px 11px', border:'1px solid var(--line)', background:'#fff', borderRadius:10, fontSize:14, fontFamily:'inherit', color:'var(--ink)', boxSizing:'border-box' };
+  const card = (on) => ({ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'11px 13px', cursor:'pointer', fontFamily:'inherit' });
+  const labelS = { fontSize:11.5, fontWeight:600, color:'var(--ink-soft)', marginBottom:4, display:'block' };
+  const sectionH = (n,t,s) => (<div style={{ marginBottom:14 }}><h3 className="display" style={{ fontSize:19, color:'var(--ink)', margin:'0 0 3px' }}>{n} · {t}</h3>{s&&<p style={{ fontSize:13, color:'var(--ink-soft)', margin:0 }}>{s}</p>}</div>);
+
+  const numField = (lbl, val, set, min, max, unit='mm') => (
+    <label style={{ display:'block' }}><span style={labelS}>{lbl}</span>
+      <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+        <input type="number" value={val} min={min} max={max} onChange={e=>set(Number(e.target.value))} style={inS} />
+        <span style={{ fontSize:12, color:'var(--muted)' }}>{unit}</span>
+      </div>
+    </label>
+  );
+
+  // ── save design ──
+  const saveDesign = async () => {
+    setBusy(true);
+    try {
+      const token = uid();
+      const breakdown = { cabinets:cabinetTotal, countertop:counterTotal, accessories:accTotal };
+      const config = { product:'kitchen', plan_version:'wizard-v1', shape, dimensions:dims, openings,
+        layout, layout_name:lay.name, layout_params:lp,
+        work_triangle:{ fridge:tri.fridge, sink:tri.sink, hob:tri.hob, legs:{ fridge_sink:+legFS.toFixed(2), sink_hob:+legSH.toFixed(2), hob_fridge:+legHF.toFixed(2) }, total:+triTotal.toFixed(2), valid:triOK },
+        modules:bom.map(b=>({ name:b.name, qty:b.qty, width_mm:b.w, line_bhd:b.line })),
+        materials:{ carcass:carc.name, door:door.name, countertop:ctop.name, countertop_metres:+counterM.toFixed(2) },
+        accessories:accItems.map(a=>({ name:a.name, qty:a.qty, line_bhd:a.line })),
+        capacity:{ available_mm:availMm, used_mm:baseWallMm, over:overCapacity },
+        estimate_bhd:grandTotal };
+      await api('product_configurations', { method:'POST', body:[{ id:token, customer_id:user?.id||null, product_id:KITCHEN_CATALOG_ANCHORS.modern.id,
+        customer_name:user?.name||null, customer_email:user?.email||null, customer_phone:user?.phone||null,
+        product_name:`Kitchen plan — ${lay.name} (${(baseRunMm/1000).toFixed(1)}m)`, configuration:config, total_price:grandTotal,
+        price_breakdown:breakdown, status:'kitchen-plan', share_token:token, created_at:new Date().toISOString() }] });
+      toast('Design saved — reference '+token,'success');
+    } catch(e) { toast('Could not save: '+(e?.message||'try again'),'error'); }
+    finally { setBusy(false); }
+  };
+
+  const submitQuote = async (c) => {
+    if (!c.name.trim() || !c.phone.trim()) { toast('Please add your name and phone','error'); return; }
+    setBusy(true);
+    try {
+      const token = uid();
+      const breakdown = { cabinets:cabinetTotal, countertop:counterTotal, accessories:accTotal };
+      const config = { product:'kitchen', plan_version:'wizard-v1', shape, dimensions:dims, layout, layout_name:lay.name,
+        work_triangle_valid:triOK, modules:bom.map(b=>({ name:b.name, qty:b.qty, line_bhd:b.line })),
+        materials:{ carcass:carc.name, door:door.name, countertop:ctop.name }, estimate_bhd:grandTotal };
+      await api('product_configurations', { method:'POST', body:[{ id:token, customer_id:user?.id||null, product_id:KITCHEN_CATALOG_ANCHORS.modern.id,
+        customer_name:c.name, customer_email:c.email||null, customer_phone:c.phone||null,
+        product_name:`Kitchen plan — ${lay.name} (${(baseRunMm/1000).toFixed(1)}m)`, configuration:config, total_price:grandTotal,
+        price_breakdown:breakdown, status:'kitchen-plan', share_token:token, created_at:new Date().toISOString() }] });
+      const leadId = 'LEAD-'+Date.now().toString(36).toUpperCase();
+      const note = [`🍽️ Kitchen Planner Wizard`, `Layout: ${lay.name}  ·  Room ${dims.length}×${dims.width}mm`,
+        `Cabinets: ${bom.length} module lines  ·  Run ${(baseRunMm/1000).toFixed(1)}m`,
+        `Materials: ${carc.name} carcass · ${door.name} doors · ${ctop.name} top`,
+        `Work triangle: ${triOK?'within guidelines':'review needed'} (${triTotal.toFixed(1)}m total)`,
+        `Indicative estimate: BHD ${grandTotal}`, c.date?`Preferred visit: ${c.date}`:'', `Plan ref: ${token}`].filter(Boolean).join('\n');
+      await api('leads', { method:'POST', body:[{ id:leadId, name:c.name, email:c.email||null, phone:c.phone||null,
+        source:'website_kitchen_planner', status:'New', stage:'New', platform:'Website', interest:'Kitchen (planner wizard)',
+        budget:grandTotal, value:grandTotal, notes:note, created_at:new Date().toISOString() }] });
+      toast('Quote request sent — our kitchen team will be in touch','success');
+      setShowQuote(false);
+      if (!user && openAuth) openAuth('register', { name:c.name, phone:c.phone, email:c.email });
+      else setPage('home');
+    } catch(e) { toast('Could not send: '+(e?.message||'try again'),'error'); }
+    finally { setBusy(false); }
+  };
+
+  // print-friendly PDF quotation
+  const downloadPDF = () => {
+    const w = window.open('', '_blank');
+    if (!w) { toast('Allow pop-ups to download the quotation','error'); return; }
+    const rows = [
+      ...bom.map(b=>`<tr><td>${b.name} ×${b.qty}</td><td style="text-align:right">${fmt(b.line)}</td></tr>`),
+      `<tr><td>Countertop — ${ctop.name} (${counterM.toFixed(1)}m)</td><td style="text-align:right">${fmt(counterTotal)}</td></tr>`,
+      ...accItems.map(a=>`<tr><td>${a.name} ×${a.qty}</td><td style="text-align:right">${fmt(a.line)}</td></tr>`),
+    ].join('');
+    w.document.write(`<html><head><title>Kitchen Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:#C2410C;text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
+      <h1>The Closets — Kitchen Quotation</h1>
+      <p class="muted">${lay.name} layout · Room ${dims.length}×${dims.width}×${dims.ceiling}mm · ${carc.name} carcass · ${door.name} doors</p>
+      <p class="muted">Work triangle: ${triOK?'within recommended guidelines':'review recommended'} — total ${triTotal.toFixed(1)}m</p>
+      <table><tbody>${rows}</tbody></table>
+      <div class="tot">Estimated total: ${fmt(grandTotal)}</div>
+      <p class="muted" style="margin-top:24px">Indicative guide price. A free design visit confirms exact measurements and a fully itemised quote.</p>
+      </body></html>`);
+    w.document.close();
+    setTimeout(()=>{ try{ w.print(); }catch(e){} }, 350);
+  };
+
+  const updMod = (key, qty) => setModules(ms=>ms.map(m=>m.key===key?{...m,qty:Math.max(0,qty)}:m));
+  const addMod = (id, kind) => setModules(ms=>[...ms, { key:uid(), id, kind, qty:1 }]);
+  const rmMod = (key) => setModules(ms=>ms.filter(m=>m.key!==key));
+
+  // ── PREVIEW pane (shared) ──
+  const previewPane = (h3d, h2d) => (
+    <div style={{ display:'flex', flexDirection:'column', gap:10, height:'100%' }}>
+      <div style={{ display:'flex', gap:6 }}>
+        <button type="button" onClick={()=>setView3d(false)} style={{ flex:1, padding:'6px', borderRadius:9, fontSize:12, fontWeight:600, cursor:'pointer', border:'none', background:!view3d?'var(--clay)':'var(--sand)', color:!view3d?'#fff':'var(--ink-soft)' }}>2D plan</button>
+        <button type="button" onClick={()=>setView3d(true)} style={{ flex:1, padding:'6px', borderRadius:9, fontSize:12, fontWeight:600, cursor:'pointer', border:'none', background:view3d?'var(--clay)':'var(--sand)', color:view3d?'#fff':'var(--ink-soft)' }}>3D view</button>
+      </div>
+      <div style={{ background:'var(--sand)', borderRadius:12, overflow:'hidden', flex:1, minHeight:0 }}>
+        {view3d
+          ? <div style={{ height:'100%', minHeight:h3d }}><Wardrobe3D product="kitchen" layout={view3dLayout} finishHex={door.hex} handles={(acc.handles||0)>0} led={(acc.lighting||0)>0} glass={false} widthCm={Math.max(120,Math.round((baseRunMm||dims.length)/10))} mobile={mobile} preset="iso" /></div>
+          : planView(h2d)}
+      </div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
+        <span style={{ fontSize:11, color:'var(--muted)' }}>{lay.name} · {(baseRunMm/1000).toFixed(1)}m run</span>
+        <span className="display" style={{ fontSize:20, color:'var(--clay)' }}>{fmt(grandTotal)}</span>
+      </div>
+      {overCapacity && <div style={{ fontSize:11, color:'var(--danger,#b91c1c)', background:'rgba(220,38,38,.08)', borderRadius:8, padding:'6px 9px' }}>⚠ Modules ({(baseWallMm/1000).toFixed(1)}m) exceed available wall ({(availMm/1000).toFixed(1)}m).</div>}
+    </div>
+  );
+
+  // ── STEP CONTENT ──
+  const stepContent = () => {
+    switch(step) {
+      case 0: return (<>{sectionH('1','Room shape','Start with the overall footprint of your space.')}
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr', gap:10 }}>
+          {KW_ROOM_SHAPES.map(s=>{ const on=shape===s.id; return (
+            <button key={s.id} type="button" onClick={()=>setShape(s.id)} style={card(on)}>
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5"><path d={s.ic} /></svg>
+              <div style={{ fontSize:14, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)', marginTop:6 }}>{s.name}</div>
+              <div style={{ fontSize:11.5, color:'var(--muted)' }}>{s.sub}</div>
+            </button>); })}
+        </div></>);
+      case 1: return (<>{sectionH('2','Room dimensions','Enter interior wall-to-wall measurements in millimetres.')}
+        <div style={{ display:'grid', gap:12 }}>
+          {numField('Length', dims.length, v=>setDims(d=>({...d,length:v})), 1000, 12000)}
+          {numField('Width', dims.width, v=>setDims(d=>({...d,width:v})), 1000, 12000)}
+          {numField('Ceiling height', dims.ceiling, v=>setDims(d=>({...d,ceiling:v})), 2000, 4000)}
+          {(dims.length<1000||dims.width<1000||dims.ceiling<2000) && <div style={{ fontSize:12, color:'var(--danger,#b91c1c)' }}>Length & width need ≥1000mm and ceiling ≥2000mm.</div>}
+        </div></>);
+      case 2: return (<>{sectionH('3','Openings & obstacles','Add doors, windows, columns, beams and AC ducts — they appear on the plan.')}
+        <div style={{ display:'grid', gap:9 }}>
+          {openings.map((o)=>(
+            <div key={o.id} style={{ border:'1px solid var(--line)', borderRadius:11, padding:'9px 10px', background:'#fff' }}>
+              <div style={{ display:'grid', gridTemplateColumns:'1.2fr 1fr 1fr auto', gap:7, alignItems:'end' }}>
+                <label><span style={labelS}>Type</span>
+                  <select value={o.type} onChange={e=>setOpenings(os=>os.map(x=>x.id===o.id?{...x,type:e.target.value}:x))} style={inS}>{KW_OPENING_TYPES.map(t=><option key={t}>{t}</option>)}</select></label>
+                <label><span style={labelS}>Position</span><input type="number" value={o.pos} onChange={e=>setOpenings(os=>os.map(x=>x.id===o.id?{...x,pos:Number(e.target.value)}:x))} style={inS} /></label>
+                <label><span style={labelS}>Width</span><input type="number" value={o.width} onChange={e=>setOpenings(os=>os.map(x=>x.id===o.id?{...x,width:Number(e.target.value)}:x))} style={inS} /></label>
+                <button type="button" onClick={()=>setOpenings(os=>os.filter(x=>x.id!==o.id))} style={{ background:'none', border:'1px solid var(--line)', borderRadius:9, padding:'9px 11px', cursor:'pointer', color:'var(--muted)' }}>✕</button>
+              </div>
+            </div>))}
+          <button type="button" onClick={()=>setOpenings(os=>[...os,{ id:uid(), type:'Window', pos:1500, width:1000 }])} style={{ border:'1px dashed var(--line)', borderRadius:11, padding:'10px', background:'var(--sand)', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--clay-deep)' }}>+ Add opening</button>
+        </div></>);
+      case 3: return (<>{sectionH('4','Select layout','Pick a configuration — then set its parameters below.')}
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr 1fr', gap:9, marginBottom:14 }}>
+          {KW_LAYOUTS.map(l=>{ const on=layout===l.id; return (
+            <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:'9px 10px' }}>
+              <div style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{l.name}</div>
+              <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>{l.sub}</div>
+            </button>); })}
+        </div>
+        <div style={{ background:'var(--sand)', borderRadius:12, padding:'13px 14px' }}>
+          <div className="eyebrow" style={{ fontSize:11, marginBottom:10 }}>{lay.name} parameters</div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:11 }}>
+            {layout==='single' && <>{numField('Total wall length', lp.wallLen, v=>setLp(p=>({...p,wallLen:v})), 1000, 12000)}<div style={{ gridColumn:'1/-1', fontSize:12, color:'var(--ink-soft)' }}>Set fridge / sink / hob & tall-unit positions on the next step.</div></>}
+            {layout==='galley' && <>{numField('Run length', lp.wallLen, v=>setLp(p=>({...p,wallLen:v})), 1000, 12000)}{numField('Distance between runs', lp.galleyGap, v=>setLp(p=>({...p,galleyGap:v})), 800, 4000)}{lp.galleyGap<1200 && <div style={{ gridColumn:'1/-1', fontSize:12, color:'var(--danger,#b91c1c)' }}>⚠ Gap below 1200mm — two cooks can't pass comfortably.</div>}</>}
+            {(layout==='l-shape'||layout==='peninsula') && <>{numField('Wall A length', lp.wallA, v=>setLp(p=>({...p,wallA:v})), 800, 9000)}{numField('Wall B length', lp.wallB, v=>setLp(p=>({...p,wallB:v})), 800, 9000)}<label style={{ gridColumn: layout==='peninsula'?'auto':'1/-1' }}><span style={labelS}>Corner type</span><select value={lp.corner} onChange={e=>setLp(p=>({...p,corner:e.target.value}))} style={inS}><option>L-return</option><option>Diagonal corner</option><option>Magic corner</option><option>Carousel</option></select></label>{layout==='peninsula' && numField('Access clearance', lp.clearance, v=>setLp(p=>({...p,clearance:v})), 800, 2000)}</>}
+            {layout==='u-shape' && <>{numField('Wall A', lp.uA, v=>setLp(p=>({...p,uA:v})), 800, 9000)}{numField('Wall B', lp.uB, v=>setLp(p=>({...p,uB:v})), 800, 9000)}{numField('Wall C', lp.uC, v=>setLp(p=>({...p,uC:v})), 800, 9000)}{numField('Entrance opening', lp.entrance, v=>setLp(p=>({...p,entrance:v})), 700, 3000)}<label style={{ gridColumn:'1/-1' }}><span style={labelS}>Corner cabinet types</span><select value={lp.corner} onChange={e=>setLp(p=>({...p,corner:e.target.value}))} style={inS}><option>Magic corner</option><option>Carousel</option><option>Diagonal corner</option><option>L-return</option></select></label></>}
+            {layout==='island' && <>{numField('Island width', lp.islandW, v=>setLp(p=>({...p,islandW:v})), 800, 4000)}{numField('Island depth', lp.islandD, v=>setLp(p=>({...p,islandD:v})), 600, 1600)}{numField('Run length', lp.wallLen, v=>setLp(p=>({...p,wallLen:v})), 1000, 12000)}{numField('Seating count', lp.seats, v=>setLp(p=>({...p,seats:v})), 0, 12, 'seats')}<label style={{ gridColumn:'1/-1' }}><span style={labelS}>Island function</span><select value={lp.islandFn} onChange={e=>setLp(p=>({...p,islandFn:e.target.value}))} style={inS}>{['Prep','Cooking','Sink','Dining','Multi-purpose'].map(f=><option key={f}>{f}</option>)}</select></label></>}
+            {layout==='peninsula' && <>{numField('Peninsula width', lp.penW, v=>setLp(p=>({...p,penW:v})), 800, 3000)}{numField('Peninsula depth', lp.penD, v=>setLp(p=>({...p,penD:v})), 400, 1200)}{numField('Seating positions', lp.seats, v=>setLp(p=>({...p,seats:v})), 0, 8, 'seats')}</>}
+          </div>
+        </div></>);
+      case 4: return (<>{sectionH('5','Work triangle','Drag Fridge (F), Sink (S) and Hob (H) on the plan. Each leg should be 1.2–2.7m.')}
+        <div style={{ background:'var(--sand)', borderRadius:12, padding:10, marginBottom:12, touchAction:'none' }}
+             ref={triSvgRef} onMouseMove={onTriMove} onMouseUp={()=>setDrag(null)} onMouseLeave={()=>setDrag(null)} onTouchMove={onTriMove} onTouchEnd={()=>setDrag(null)}>
+          <svg viewBox="0 0 320 232" style={{ width:'100%', height:mobile?200:240, display:'block' }}>
+            {(()=>{ const L=Math.max(1000,dims.length),W=Math.max(1000,dims.width),pad=26,vw=320,vh=232,sc=Math.min((vw-pad*2)/L,(vh-pad*2)/W),ox=pad+((vw-pad*2)-L*sc)/2,oy=pad+((vh-pad*2)-W*sc)/2;const X=mm=>ox+mm*sc,Y=mm=>oy+mm*sc;
+              return (<><rect x={ox} y={oy} width={L*sc} height={W*sc} fill="#fff" stroke="#9a6a3c" strokeWidth="2" />
+                <line x1={X(tri.fridge.x)} y1={Y(tri.fridge.y)} x2={X(tri.sink.x)} y2={Y(tri.sink.y)} stroke={kwLegOK(legFS)?'#16a34a':'#d97706'} strokeWidth="2" />
+                <line x1={X(tri.sink.x)} y1={Y(tri.sink.y)} x2={X(tri.hob.x)} y2={Y(tri.hob.y)} stroke={kwLegOK(legSH)?'#16a34a':'#d97706'} strokeWidth="2" />
+                <line x1={X(tri.hob.x)} y1={Y(tri.hob.y)} x2={X(tri.fridge.x)} y2={Y(tri.fridge.y)} stroke={kwLegOK(legHF)?'#16a34a':'#d97706'} strokeWidth="2" />
+                {[['fridge','#2563eb','F'],['sink','#0891b2','S'],['hob','#dc2626','H']].map(([k,c,t])=>(
+                  <g key={k} style={{ cursor:'grab' }} onMouseDown={()=>setDrag(k)} onTouchStart={()=>setDrag(k)}><circle cx={X(tri[k].x)} cy={Y(tri[k].y)} r="12" fill={c} /><text x={X(tri[k].x)} y={Y(tri[k].y)+4} fontSize="11" fontWeight="700" fill="#fff" textAnchor="middle">{t}</text></g>))}
+              </>); })()}
+          </svg>
+        </div>
+        <div style={{ display:'grid', gap:7 }}>
+          {[['Fridge → Sink',legFS],['Sink → Hob',legSH],['Hob → Fridge',legHF]].map(([l,v])=>(
+            <div key={l} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fff', border:'1px solid var(--line)', borderRadius:10, padding:'8px 11px' }}>
+              <span style={{ fontSize:13, color:'var(--ink)' }}>{l}</span>
+              <span style={{ fontSize:13, fontWeight:600, color: kwLegOK(v)?'#16a34a':'#d97706' }}>{v.toFixed(2)}m {kwLegOK(v)?'✓':'⚠'}</span>
+            </div>))}
+          <div style={{ display:'flex', justifyContent:'space-between', padding:'8px 11px', fontWeight:700 }}>
+            <span style={{ fontSize:13, color:'var(--ink)' }}>Total triangle</span>
+            <span style={{ fontSize:13, color: triOK?'#16a34a':'#d97706' }}>{triTotal.toFixed(2)}m</span>
+          </div>
+        </div></>);
+      case 5: return (<>{sectionH('6','Cabinets','Add base, wall and tall units with quantities.')}
+        <div style={{ display:'grid', gap:8, marginBottom:14 }}>
+          {modules.filter(m=>m.qty>0).map(m=>{ const u=findU(m.id); if(!u) return null; return (
+            <div key={m.key} style={{ display:'flex', alignItems:'center', gap:9, background:'#fff', border:'1px solid var(--line)', borderRadius:10, padding:'8px 10px' }}>
+              <div style={{ flex:1 }}><div style={{ fontSize:13, fontWeight:600, color:'var(--ink)' }}>{u.label} <span style={{ fontSize:11, color:'var(--muted)', textTransform:'capitalize' }}>· {m.kind}</span></div><div style={{ fontSize:11, color:'var(--muted)' }}>{u.w}mm · {fmt(Math.round(u.price*(m.kind==='tall'?carc.mult:matMult)))}/unit</div></div>
+              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <button type="button" onClick={()=>updMod(m.key,m.qty-1)} style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--line)', background:'#fff', cursor:'pointer' }}>−</button>
+                <span style={{ minWidth:18, textAlign:'center', fontSize:13, fontWeight:600 }}>{m.qty}</span>
+                <button type="button" onClick={()=>updMod(m.key,m.qty+1)} style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--line)', background:'#fff', cursor:'pointer' }}>+</button>
+                <button type="button" onClick={()=>rmMod(m.key)} style={{ marginLeft:4, background:'none', border:'none', color:'var(--muted)', cursor:'pointer' }}>✕</button>
+              </div>
+            </div>); })}
+        </div>
+        {[['Base units',KW_BASE_UNITS,'base'],['Wall units',KW_WALL_UNITS,'wall'],['Tall units',KW_TALL_UNITS,'tall']].map(([title,list,kind])=>(
+          <div key={kind} style={{ marginBottom:12 }}>
+            <div className="eyebrow" style={{ fontSize:11, marginBottom:7 }}>{title}</div>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:7 }}>
+              {list.map(u=>(<button key={u.id} type="button" onClick={()=>addMod(u.id,kind)} style={{ border:'1px solid var(--line)', borderRadius:9, padding:'7px 10px', background:'#fff', cursor:'pointer', fontSize:12, color:'var(--ink-soft)' }}>+ {u.label}</button>))}
+            </div>
+          </div>))}</>);
+      case 6: return (<>{sectionH('7','Materials','Carcass, door finish and countertop drive the price.')}
+        {[['Carcass','carcass',KW_CARCASS],['Door finish','door',KW_DOORS]].map(([title,key,list])=>(
+          <div key={key} style={{ marginBottom:14 }}>
+            <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>{title}</div>
+            <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(3,1fr)', gap:8 }}>
+              {list.map(o=>{ const on=mats[key]===o.id; return (
+                <button key={o.id} type="button" onClick={()=>setMats(m=>({...m,[key]:o.id}))} style={card(on)}>
+                  {o.hex && <div style={{ height:30, borderRadius:7, background:o.hex, marginBottom:6 }} />}
+                  <div style={{ fontSize:13, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{o.name}</div>
+                  <div style={{ fontSize:10.5, color:'var(--muted)' }}>{o.sub||('×'+o.mult.toFixed(2))}</div>
+                </button>); })}
+            </div>
+          </div>))}
+        <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>Countertop</div>
+        <div style={{ display:'grid', gap:8 }}>
+          {KW_COUNTERTOPS.map(c=>{ const on=mats.counter===c.id; return (
+            <button key={c.id} type="button" onClick={()=>setMats(m=>({...m,counter:c.id}))} style={{ ...card(on), display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <span style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{c.name}</span>
+              <span style={{ fontSize:12.5, fontWeight:700, color:'var(--clay)' }}>{fmt(c.perM)}/m</span>
+            </button>); })}
+        </div></>);
+      case 7: return (<>{sectionH('8','Accessories','Set quantities for the finishing details.')}
+        <div style={{ display:'grid', gap:9 }}>
+          {KW_ACCESSORIES.map(a=>{ const q=acc[a.id]||0; const on=q>0; return (
+            <div key={a.id} style={{ display:'flex', alignItems:'center', gap:9, border: on?'2px solid var(--clay)':'1px solid var(--line)', background:on?'var(--sand)':'#fff', borderRadius:11, padding:'9px 11px' }}>
+              <div style={{ flex:1 }}><div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{a.name}</div><div style={{ fontSize:11, color:'var(--muted)' }}>{fmt(a.price)} / {a.unit}</div></div>
+              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <button type="button" onClick={()=>setAcc(s=>({...s,[a.id]:Math.max(0,q-1)}))} style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--line)', background:'#fff', cursor:'pointer' }}>−</button>
+                <span style={{ minWidth:18, textAlign:'center', fontSize:13, fontWeight:600 }}>{q}</span>
+                <button type="button" onClick={()=>setAcc(s=>({...s,[a.id]:q+1}))} style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--line)', background:'#fff', cursor:'pointer' }}>+</button>
+              </div>
+            </div>); })}
+        </div></>);
+      case 8: return (<>{sectionH('9','Summary & quote','Your bill of materials, live cost estimate and next steps.')}
+        <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:12, overflow:'hidden', marginBottom:12 }}>
+          <div style={{ padding:'8px 12px', background:'var(--sand)', fontSize:11.5, fontWeight:700, color:'var(--ink-soft)' }}>Bill of materials</div>
+          {bom.map(b=>(<div key={b.key} style={{ display:'flex', justifyContent:'space-between', padding:'7px 12px', fontSize:12.5, borderTop:'1px solid var(--line)' }}><span style={{ color:'var(--ink-soft)' }}>{b.name} ×{b.qty}</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(b.line)}</span></div>))}
+          <div style={{ display:'flex', justifyContent:'space-between', padding:'7px 12px', fontSize:12.5, borderTop:'1px solid var(--line)' }}><span style={{ color:'var(--ink-soft)' }}>Countertop · {ctop.name} ({counterM.toFixed(1)}m)</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(counterTotal)}</span></div>
+          {accItems.map(a=>(<div key={a.id} style={{ display:'flex', justifyContent:'space-between', padding:'7px 12px', fontSize:12.5, borderTop:'1px solid var(--line)' }}><span style={{ color:'var(--ink-soft)' }}>{a.name} ×{a.qty}</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(a.line)}</span></div>))}
+          <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 12px', borderTop:'2px solid var(--line)', background:'var(--sand)' }}><span style={{ fontWeight:700, color:'var(--ink)' }}>Estimated total</span><span className="display" style={{ fontSize:19, color:'var(--clay-deep)' }}>{fmt(grandTotal)}</span></div>
+        </div>
+        <div style={{ background: triOK?'rgba(22,163,74,.08)':'rgba(217,119,6,.08)', borderRadius:10, padding:'9px 12px', fontSize:12.5, color: triOK?'#15803d':'#b45309', marginBottom:12 }}>
+          Work triangle: {triOK?'within recommended guidelines ✓':'one or more legs out of range ⚠'} · total {triTotal.toFixed(1)}m
+        </div>
+        {overCapacity && <div style={{ fontSize:12.5, color:'var(--danger,#b91c1c)', marginBottom:12 }}>⚠ Cabinet run exceeds available wall length — reduce modules or extend walls.</div>}
+        <div style={{ display:'grid', gap:8 }}>
+          <button type="button" disabled={busy} onClick={saveDesign} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:11, padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>Save design</button>
+          <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:11 }}>{user?'Get quote →':'Sign in & get quote →'}</button>
+          <button type="button" onClick={downloadPDF} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:11, padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>Download PDF quotation</button>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginTop:6 }}>
+            {[['AI design suggestions'],['Manufacturing drawings'],['CNC cut list'],['Revision history'],['Approval workflow']].map(([t])=>(
+              <button key={t} type="button" disabled title="Coming soon" style={{ border:'1px dashed var(--line)', background:'var(--sand)', borderRadius:10, padding:'9px', fontSize:11.5, color:'var(--muted)', cursor:'not-allowed' }}>{t} · soon</button>))}
+          </div>
+        </div></>);
+      default: return null;
+    }
+  };
+
+  // ── APP SHELL (fit-to-viewport) ──
+  return (
+    <div style={{ height: mobile?'100dvh':`calc(100dvh - ${HEADER}px)`, marginTop: HEADER, display:'flex', flexDirection:'column', background:'var(--cream)', overflow:'hidden' }}>
+      {/* step bar */}
+      <div style={{ height:BAR, flexShrink:0, display:'flex', alignItems:'center', gap:4, overflowX:'auto', padding:'0 12px', borderBottom:'1px solid var(--line)', background:'#fff' }}>
+        {STEPS.map((s,i)=>{ const done=i<step, now=i===step; return (
+          <button key={s} type="button" onClick={()=>i<=step&&setStep(i)} style={{ flexShrink:0, display:'flex', alignItems:'center', gap:5, background:'none', border:'none', cursor:i<=step?'pointer':'default', padding:'2px 6px' }}>
+            <span style={{ width:20, height:20, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10.5, fontWeight:700, background: now?'var(--clay)':done?'var(--clay-deep)':'var(--sand)', color:(!now&&!done)?'var(--muted)':'#fff' }}>{done?'✓':i+1}</span>
+            <span style={{ fontSize:12, fontWeight:now?700:500, color:now?'var(--ink)':done?'var(--ink-soft)':'var(--muted)', whiteSpace:'nowrap' }}>{s}</span>
+          </button>); })}
+      </div>
+
+      {/* two-pane body */}
+      <div style={{ flex:1, minHeight:0, display:'flex', flexDirection: mobile?'column':'row' }}>
+        {/* LEFT — controls (own scroll) */}
+        <div style={{ width: mobile?'auto':410, flexShrink:0, overflowY:'auto', WebkitOverflowScrolling:'touch', padding: mobile?'14px 14px 0':'18px 20px', borderRight: mobile?'none':'1px solid var(--line)', flex: mobile?1:'none', minHeight:0 }}>
+          <div style={{ maxWidth:560, margin:'0 auto', paddingBottom: mobile?16:30 }}>{stepContent()}</div>
+        </div>
+        {/* RIGHT — sticky preview (desktop) */}
+        {!mobile && (
+          <div style={{ flex:1, minWidth:0, padding:'18px 20px', display:'flex', flexDirection:'column' }}>
+            <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:14, boxShadow:'var(--shadow)', flex:1, display:'flex', flexDirection:'column', minHeight:0 }}>
+              {previewPane(280, '100%')}
+            </div>
+          </div>
+        )}
+        {/* mobile collapsible preview */}
+        {mobile && showPrev && (
+          <div style={{ flexShrink:0, padding:'10px 14px', borderTop:'1px solid var(--line)', background:'#fff' }}>
+            <div style={{ height:200 }}>{previewPane(190,190)}</div>
+          </div>
+        )}
+      </div>
+
+      {/* bottom action bar */}
+      <div style={{ flexShrink:0, display:'flex', alignItems:'center', gap:10, padding:'9px 14px calc(9px + env(safe-area-inset-bottom))', borderTop:'1px solid var(--line)', background:'rgba(255,255,255,.97)', backdropFilter:'blur(10px)' }}>
+        {step>0 ? <button type="button" onClick={back} style={{ background:'none', border:'1px solid var(--line)', borderRadius:11, padding:'10px 16px', fontSize:13.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>‹ Back</button>
+          : <button type="button" onClick={()=>setPage('kitchen')} style={{ background:'none', border:'1px solid var(--line)', borderRadius:11, padding:'10px 16px', fontSize:13, color:'var(--muted)', cursor:'pointer' }}>‹ Exit</button>}
+        {mobile && <button type="button" onClick={()=>setShowPrev(v=>!v)} style={{ background:'var(--sand)', border:'none', borderRadius:11, padding:'10px 12px', fontSize:12.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{showPrev?'Hide':'Preview'}</button>}
+        <div style={{ flex:1, textAlign: mobile?'center':'right', minWidth:0 }}><span style={{ fontSize:10.5, color:'var(--muted)' }}>Total </span><span className="display" style={{ fontSize:17, color:'var(--clay)' }}>{fmt(grandTotal)}</span></div>
+        {step<STEPS.length-1
+          ? <button type="button" className="btn-clay" disabled={!canNext} onClick={next} style={{ borderRadius:11, minWidth:120, opacity:canNext?1:.55 }}>Next →</button>
+          : <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:11, minWidth:120 }}>Get quote →</button>}
+      </div>
+
+      {/* QUOTE modal */}
+      {showQuote && (
+        <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
+          <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:420, width:'100%', padding:24 }}>
+            <div className="eyebrow" style={{ marginBottom:8 }}>Almost there</div>
+            <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 6px' }}>Get your kitchen quote</h3>
+            <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)' }}>{lay.name} · {door.name} · {ctop.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(grandTotal)}</b></div>
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} placeholder="Your name" style={inS} />
+              <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} placeholder="Phone (+973…)" inputMode="tel" style={inS} />
+              <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} placeholder="Email (optional)" inputMode="email" style={inS} />
+              <input type="date" value={contact.date} onChange={e=>setContact(c=>({...c,date:e.target.value}))} style={inS} />
+            </div>
+            <div style={{ display:'flex', gap:10, marginTop:16 }}>
+              <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>Cancel</button>
+              <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submitQuote(contact)} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?'Sending…':(user?'Send quote request':'Sign in & send')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── PART 1 + 4 · KITCHEN DESIGN STUDIO (guided configurator + live 3D + quote) ── */
 function KitchenStudio({ setPage, user, openAuth }) {
   const mobile = useMobile();
@@ -7010,7 +7582,7 @@ export default function App() {
       {page==='ai' && <PageBoundary key="ai"><AIDesignerPage setPage={setPage} user={user} /></PageBoundary>}
       {page==='wardrobes' && <PageBoundary key="wardrobes"><WardrobesPage setPage={setPage} products={products} /></PageBoundary>}
       {page==='kitchen' && <PageBoundary key="kitchen"><KitchenPage setPage={setPage} products={products} /></PageBoundary>}
-      {page==='kitchen-planner' && <PageBoundary key="kp"><KitchenStudio setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
+      {page==='kitchen-planner' && <PageBoundary key="kp"><KitchenPlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
       {page==='design-builder' && <PageBoundary key="db"><DesignBuilderPage setPage={setPage} user={user} /></PageBoundary>}
       {page==='planner' && <PageBoundary key="planner"><PlannerPage setPage={setPage} user={user} openAuth={openAuth} siteLogo={siteLogo} /></PageBoundary>}
       {page.startsWith('cat:') && <CategoryPage category={page.slice(4)} products={products} setPage={setPage} addToCart={addToCart} />}
