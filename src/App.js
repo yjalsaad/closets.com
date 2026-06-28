@@ -25,6 +25,39 @@ const mergeDesigns = (existing, incoming) => {
 };
 const AppCtx = createContext(null);
 
+// ── Site content (CMS) layer ──────────────────────────────────────────
+// All editable header/footer/page copy lives in public.website_content
+// (key → value). We fetch every row once on mount, build a module-level
+// {key: value} map, and expose cms(key, fallback) to read it anywhere.
+// A context provider re-renders the tree once content arrives so the first
+// paint uses fallbacks and silently upgrades to managed copy when loaded.
+const CMS_MAP = {};                 // module-level cache: { 'home.hero.title': 'value', ... }
+const SiteContentCtx = createContext(0);
+// cms('home.hero.title', 'Made to fit your life.') → managed value if present & non-empty, else fallback.
+function cms(key, fallback = '') {
+  const v = CMS_MAP[key];
+  return (v !== undefined && v !== null && String(v).trim() !== '') ? v : fallback;
+}
+function useSiteContent() { return useContext(SiteContentCtx); }
+function SiteContentProvider({ children }) {
+  const [version, setVersion] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const rows = await api('website_content?active=is.true&deleted_at=is.null');
+        if (!alive) return;
+        if (Array.isArray(rows)) {
+          rows.forEach(r => { if (r && r.key != null) CMS_MAP[r.key] = r.value; });
+          setVersion(v => v + 1);   // bump → re-render tree so cms() reads fresh values
+        }
+      } catch (_) { /* resilient: keep empty map, fallbacks render */ }
+    })();
+    return () => { alive = false; };
+  }, []);
+  return <SiteContentCtx.Provider value={version}>{children}</SiteContentCtx.Provider>;
+}
+
 // Inline-SVG icons for high-visibility customer-facing AI/chat surfaces.
 // These render reliably even if the Tabler icon web-font fails to load.
 const Spark = ({ size = 18, color = 'currentColor', style }) => (
@@ -528,12 +561,12 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
     {/* Slim top bar — logo + actions */}
     <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:900, height:56, display:'flex', alignItems:'center', justifyContent:'space-between', padding: mobile?'0 16px':'0 32px', background: scrolled?'rgba(247,242,236,.92)':'rgba(247,242,236,.72)', backdropFilter:'blur(18px) saturate(180%)', borderBottom: scrolled?'1px solid var(--line)':'1px solid transparent', transition:'all .3s' }}>
       <button type="button" onClick={()=>{ setPage('home'); setMenuOpen(false); }} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>
-        {siteLogo
-          ? <img src={siteLogo} alt="The Closets" style={{ height:32, width:'auto', maxWidth:120, objectFit:'contain', borderRadius:6 }} />
-          : <span style={{ fontFamily:'Fraunces, Georgia, serif', fontSize:16, fontWeight:600, color:'var(--ink)', letterSpacing:'.02em' }}>THE CLOSETS</span>}
+        {(cms('header.logo', '') || siteLogo)
+          ? <img src={cms('header.logo', '') || siteLogo} alt="The Closets" style={{ height:32, width:'auto', maxWidth:120, objectFit:'contain', borderRadius:6 }} />
+          : <span style={{ fontFamily:'Fraunces, Georgia, serif', fontSize:16, fontWeight:600, color:'var(--ink)', letterSpacing:'.02em' }}>{cms('header.brand', 'THE CLOSETS')}</span>}
       </button>
       <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-        {!mobile && <button type="button" onClick={()=>setPage('booking')} style={{ background:'var(--clay)', border:'none', borderRadius:980, padding:'8px 16px', fontSize:13, fontWeight:600, color:'#fff', cursor:'pointer' }}>Book a visit</button>}
+        {!mobile && <button type="button" onClick={()=>setPage('booking')} style={{ background:'var(--clay)', border:'none', borderRadius:980, padding:'8px 16px', fontSize:13, fontWeight:600, color:'#fff', cursor:'pointer' }}>{cms('header.cta.book', 'Book a visit')}</button>}
         <button type="button" onClick={()=>setLang(lang==='ar'?'en':'ar')} title="Language" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'7px 13px', fontSize:13, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{lang==='ar'?'EN':'ع'}</button>
         {user ? <button type="button" onClick={()=>setPage('portal')} style={{ background:'rgba(242,115,28,.12)', border:'none', borderRadius:980, padding:'7px 14px', fontSize:13, fontWeight:500, color:'var(--clay-deep)', cursor:'pointer' }}>{user.name?.split(' ')[0]}</button>
           : <button type="button" onClick={()=>openAuth('login')} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'7px 14px', fontSize:13, fontWeight:500, color:'var(--ink)', cursor:'pointer' }}>{tr('signIn')}</button>}
@@ -572,7 +605,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
           <div style={{ flex:1 }} />
           <button type="button" onClick={()=>navTo('planner')} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:6, padding:'10px 14px', fontSize:14, fontWeight:600, color:'var(--clay)' }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-            Start designing
+            {cms('header.cta.design', 'Start designing')}
           </button>
         </div>
 
@@ -770,7 +803,7 @@ function Hero({ setPage, banners }) {
   }, [banners]);
   const banner = banners?.[bannerIdx];
   const onHeroMove = (e) => { const el = heroRef.current; if (!el || mobile) return; const r = el.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5; const img = el.querySelector('.hero-img'); if (img) img.style.transform = `scale(1.14) translate(${x * -16}px, ${y * -16}px)`; };
-  const HWORDS = ['Made', 'to', 'fit', 'your', 'life.'];
+  const HWORDS = cms('home.hero.title', 'Made to fit your life.').split(/\s+/);
 
   return (
     <>
@@ -802,20 +835,20 @@ function Hero({ setPage, banners }) {
 
       {/* ── Cinematic hero ── */}
       <section ref={heroRef} onMouseMove={onHeroMove} style={{ position: 'relative', minHeight: '100svh', display: 'flex', alignItems: 'flex-end', overflow: 'hidden', background: '#15110e' }}>
-        <Photo src={HOME_IMG.hero} alt="Bespoke walk-in closet interior by The Closets" imgClass="hero-img kenburns" style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
+        <Photo src={cms('home.hero.image', HOME_IMG.hero)} alt="Bespoke walk-in closet interior by The Closets" imgClass="hero-img kenburns" style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
         <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(180deg, rgba(20,16,12,.34) 0%, rgba(20,16,12,.12) 38%, rgba(20,16,12,.82) 100%)' }} />
         <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', mixBlendMode: 'overlay', opacity: .07, backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
         <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: 1280, margin: '0 auto', padding: mobile ? '120px 24px 72px' : '0 48px 88px' }}>
-          <div className="rv eyebrow" style={{ color: '#E7BBA0', marginBottom: 18 }}>Bespoke furniture · Kingdom of Bahrain</div>
+          <div className="rv eyebrow" style={{ color: '#E7BBA0', marginBottom: 18 }}>{cms('home.hero.eyebrow', 'Bespoke furniture · Kingdom of Bahrain')}</div>
           <h1 className="display rv-words" style={{ color: '#fff', fontSize: mobile ? 'clamp(42px,12.5vw,60px)' : 'clamp(64px,7.2vw,112px)', maxWidth: 1040, marginBottom: 24 }}>
             {HWORDS.map((w, i) => <span key={i} className="w" style={{ transitionDelay: (.12 + i * .11) + 's', marginRight: '.26em' }}>{w}</span>)}
           </h1>
           <p className="rv" style={{ '--d': '.5s', color: 'rgba(255,255,255,.84)', fontSize: mobile ? 17 : 21, fontWeight: 300, lineHeight: 1.6, maxWidth: 540, marginBottom: 34 }}>
-            Walk-in closets, kitchens and storage — handcrafted in our own Bahrain workshop and designed around the way you live.
+            {cms('home.hero.subtitle', 'Walk-in closets, kitchens and storage — handcrafted in our own Bahrain workshop and designed around the way you live.')}
           </p>
           <div className="rv" style={{ '--d': '.66s', display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
-            <button type="button" className="btn-clay" onClick={() => setPage('planner')} style={{ fontSize: 16, padding: '16px 30px' }}>Design yours →</button>
-            <button type="button" onClick={() => setPage('products')} style={{ background: 'rgba(255,255,255,.1)', color: '#fff', border: '1px solid rgba(255,255,255,.45)', borderRadius: 14, padding: '15px 28px', fontSize: 16, fontWeight: 500, cursor: 'pointer', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', minHeight: 50 }}>View collection</button>
+            <button type="button" className="btn-clay" onClick={() => setPage('planner')} style={{ fontSize: 16, padding: '16px 30px' }}>{cms('home.hero.cta', 'Design yours →')}</button>
+            <button type="button" onClick={() => setPage('products')} style={{ background: 'rgba(255,255,255,.1)', color: '#fff', border: '1px solid rgba(255,255,255,.45)', borderRadius: 14, padding: '15px 28px', fontSize: 16, fontWeight: 500, cursor: 'pointer', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', minHeight: 50 }}>{cms('home.hero.cta2', 'View collection')}</button>
           </div>
         </div>
         {!mobile && <div className="scroll-cue" style={{ position: 'absolute', bottom: 30, left: '50%', transform: 'translateX(-50%)', zIndex: 2 }} />}
@@ -3354,11 +3387,11 @@ function AboutPage() {
   return (
     <div style={{ minHeight:'100dvh', paddingTop: mobile ? 16 : 72, paddingBottom: mobile ? 80 : 0, background:'#fff' }}>
       <div style={{ maxWidth:860, margin:'0 auto', padding: mobile ? '24px 16px 60px' : '60px 40px 100px' }}>
-        <div style={{ fontSize:13, fontWeight:500, color:'var(--clay)', marginBottom:12 }}>{t('ourStory')}</div>
-        <h1 style={{ fontSize: mobile ? 36 : 64, fontWeight:700, letterSpacing:'-.04em', color:'#1d1d1f', lineHeight:1.05, marginBottom:32 }}>{t('precision')}<br />{t('permanence')}</h1>
+        <div style={{ fontSize:13, fontWeight:500, color:'var(--clay)', marginBottom:12 }}>{cms('about.hero.eyebrow', t('ourStory'))}</div>
+        <h1 style={{ fontSize: mobile ? 36 : 64, fontWeight:700, letterSpacing:'-.04em', color:'#1d1d1f', lineHeight:1.05, marginBottom:32 }}>{cms('about.hero.title', t('precision')+' '+t('permanence'))}</h1>
         <div style={{ display:'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? 16 : 40, marginBottom:48 }}>
-          <p style={{ fontSize:16, lineHeight:1.8, color:'#6e6e73' }}>{t('aboutP1')}</p>
-          <p style={{ fontSize:16, lineHeight:1.8, color:'#6e6e73' }}>{t('aboutP2')}</p>
+          <p style={{ fontSize:16, lineHeight:1.8, color:'#6e6e73' }}>{cms('about.p1', t('aboutP1'))}</p>
+          <p style={{ fontSize:16, lineHeight:1.8, color:'#6e6e73' }}>{cms('about.p2', t('aboutP2'))}</p>
         </div>
         {[['2010','Founded in Manama, Bahrain'],['2013','First flagship showroom'],['2016','Bespoke configurator launched'],['2019','Expanded to four locations'],['2022','500+ projects completed'],['2024','Digital hub launched']].map(([year,event],i)=>(
           <div key={year} className="reveal" style={{ transitionDelay:`${i*.07}s`, display:'flex', gap:28, padding:'18px 0', borderBottom:'1px solid #f5f5f7', alignItems:'center' }}>
@@ -3412,7 +3445,7 @@ function DirectoryPage({ setPage }) {
   }, [type, q]);
   const tabs = [['','All'],['vendor','Vendors & Partners'],['customer','Members'],['employee','Team']];
   return (
-    <PageWrap title="Directory" sub="Verified vendors, partners and members of The Closets International">
+    <PageWrap title={cms('directory.hero.title','Directory')} sub={cms('directory.hero.subtitle','Verified vendors, partners and members of The Closets International')}>
       <input value={q} onChange={e=>setQ(e.target.value)} aria-label="Search by name, trade or location" placeholder="Search by name, trade or location…"
         style={{ width:'100%', maxWidth:520, padding:'13px 18px', borderRadius:980, border:'1px solid #ececec', fontSize:15, marginBottom:16, fontFamily:'inherit' }}/>
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:24 }}>
@@ -3462,9 +3495,9 @@ function ContactPage() {
     <div style={{ minHeight:'100dvh', paddingTop: mobile ? 88 : 112, paddingBottom: mobile ? 80 : 60, background:'var(--cream)' }}>
       <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile ? '0 24px' : '0 32px', display: mobile ? 'block' : 'grid', gridTemplateColumns:'1fr 1fr', gap:72, alignItems:'start' }}>
         <div className="rv-l" style={{ marginBottom: mobile ? 36 : 0 }}>
-          <div className="eyebrow" style={{ marginBottom:14 }}>Get in touch</div>
-          <h1 className="display" style={{ fontSize: mobile ? 36 : 56, color:'var(--ink)', marginBottom:16, lineHeight:1.05 }}>Let’s start your project.</h1>
-          <p style={{ fontSize:17, color:'var(--ink-soft)', lineHeight:1.7, marginBottom:30 }}>Tell us about your space and we’ll arrange a free home or showroom visit — no obligation.</p>
+          <div className="eyebrow" style={{ marginBottom:14 }}>{cms('contact.hero.eyebrow', 'Get in touch')}</div>
+          <h1 className="display" style={{ fontSize: mobile ? 36 : 56, color:'var(--ink)', marginBottom:16, lineHeight:1.05 }}>{cms('contact.hero.title', 'Let’s start your project.')}</h1>
+          <p style={{ fontSize:17, color:'var(--ink-soft)', lineHeight:1.7, marginBottom:30 }}>{cms('contact.hero.subtitle', 'Tell us about your space and we’ll arrange a free home or showroom visit — no obligation.')}</p>
           {[['📍','Showrooms','Manama · Riffa · Saar · Isa Town', null],['📞','Phone','+973 1700 1700','tel:+97317001700'],['✉️','Email','hello@theclosets.co','mailto:hello@theclosets.co'],['⏰','Hours','Sat–Thu · 9am–8pm', null]].map(([icon,label,val,href])=>(
             <div key={label} style={{ display:'flex', gap:14, padding:'15px 0', borderBottom:'1px solid var(--line)' }}>
               <span style={{ fontSize:18 }}>{icon}</span>
@@ -4071,9 +4104,9 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
       {/* c. Choose a free appointment */}
       <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 88}px ${P} ${mobile ? 8 : 24}px` }}>
         <div className="rv" style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 40px' }}>
-          <div className="eyebrow" style={{ marginBottom: 14 }}>It starts with a chat</div>
-          <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>Choose a free appointment.</h2>
-          <p style={{ fontSize: mobile ? 15 : 17, color: 'var(--ink-soft)', lineHeight: 1.7, marginTop: 14 }}>However you like to plan, there’s no charge and no obligation — just expert ideas for your space.</p>
+          <div className="eyebrow" style={{ marginBottom: 14 }}>{cms('home.appt.eyebrow', 'It starts with a chat')}</div>
+          <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>{cms('home.appt.title', 'Choose a free appointment.')}</h2>
+          <p style={{ fontSize: mobile ? 15 : 17, color: 'var(--ink-soft)', lineHeight: 1.7, marginTop: 14 }}>{cms('home.appt.subtitle', 'However you like to plan, there’s no charge and no obligation — just expert ideas for your space.')}</p>
         </div>
         <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 12 : 18 }}>
           {appointments.map(([title, desc, ic], i) => (
@@ -4090,8 +4123,8 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
       {/* d. Choose your room type */}
       <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 48 : 72}px ${P}` }}>
         <div className="rv" style={{ marginBottom: 32 }}>
-          <div className="eyebrow" style={{ marginBottom: 14 }}>What are you planning?</div>
-          <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>Choose your room.</h2>
+          <div className="eyebrow" style={{ marginBottom: 14 }}>{cms('home.rooms.eyebrow', 'What are you planning?')}</div>
+          <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>{cms('home.rooms.title', 'Choose your room.')}</h2>
         </div>
         <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: mobile ? 16 : 20 }}>
           {rooms.map(([name, sub, img, route], i) => (
@@ -4112,8 +4145,8 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
       <section style={{ background: 'var(--sand)', padding: `${mobile ? 56 : 96}px ${P}` }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div className="rv" style={{ textAlign: 'center', maxWidth: 620, margin: '0 auto 40px' }}>
-            <div className="eyebrow" style={{ marginBottom: 14 }}>Where to begin</div>
-            <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>Designs you’ll love.</h2>
+            <div className="eyebrow" style={{ marginBottom: 14 }}>{cms('home.designs.eyebrow', 'Where to begin')}</div>
+            <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>{cms('home.designs.title', 'Designs you’ll love.')}</h2>
           </div>
           <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? 16 : 22, marginBottom: 28 }}>
             {[['Wardrobes', 'Fitted, sliding & walk-in storage built around your life.', '/layouts/wardrobe/wardrobe-walkin.jpg', 'wardrobes'], ['Kitchens', 'Precision cabinetry, worktops and finishes for daily living.', '/layouts/kitchen/island.jpg', 'kitchen']].map(([name, desc, img, route]) => (
@@ -4179,9 +4212,9 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
       {/* g. Why The Closets / value strip + animated counters */}
       <section style={{ maxWidth: 1100, margin: '0 auto', padding: `${mobile ? 48 : 80}px ${P}` }}>
         <div className="rv" style={{ textAlign: 'center', maxWidth: 700, margin: '0 auto 56px' }}>
-          <div className="eyebrow" style={{ marginBottom: 16 }}>Why The Closets</div>
-          <h2 className="display" style={{ fontSize: mobile ? 30 : 46, color: 'var(--ink)' }}>A workshop, not a warehouse.</h2>
-          <p style={{ fontSize: mobile ? 16 : 18, color: 'var(--ink-soft)', lineHeight: 1.7, marginTop: 18 }}>Everything we make is designed, built and installed by our own people in Bahrain — so the piece you imagine is the piece you live with.</p>
+          <div className="eyebrow" style={{ marginBottom: 16 }}>{cms('home.why.eyebrow', 'Why The Closets')}</div>
+          <h2 className="display" style={{ fontSize: mobile ? 30 : 46, color: 'var(--ink)' }}>{cms('home.why.title', 'A workshop, not a warehouse.')}</h2>
+          <p style={{ fontSize: mobile ? 16 : 18, color: 'var(--ink-soft)', lineHeight: 1.7, marginTop: 18 }}>{cms('home.why.subtitle', 'Everything we make is designed, built and installed by our own people in Bahrain — so the piece you imagine is the piece you live with.')}</p>
         </div>
         <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 28 : 20 }}>
           <Stat to={500} suffix="+" label="Projects delivered" />
@@ -4355,11 +4388,11 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(120% 90% at 50% 18%, rgba(20,16,12,.35), rgba(20,16,12,.9) 78%)' }} />
         <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .07, mixBlendMode: 'overlay', backgroundImage: NOISE }} />
         <div className="rv" style={{ position: 'relative', zIndex: 2, maxWidth: 720, margin: '0 auto', textAlign: 'center', padding: `${mobile ? 84 : 140}px ${P}` }}>
-          <div className="eyebrow" style={{ color: '#E7BBA0', marginBottom: 18, justifyContent: 'center' }}>Start your project</div>
-          <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 36 : 64, lineHeight: 1.05, letterSpacing: '-.02em', marginBottom: 18 }}>Let’s design your space.</h2>
-          <p style={{ color: 'rgba(255,255,255,.82)', fontSize: mobile ? 16 : 19, lineHeight: 1.6, marginBottom: 34, maxWidth: 520, marginLeft: 'auto', marginRight: 'auto' }}>Book a free home consultation — no obligation, just ideas, measured and quoted by our own team.</p>
+          <div className="eyebrow" style={{ color: '#E7BBA0', marginBottom: 18, justifyContent: 'center' }}>{cms('home.cta.eyebrow', 'Start your project')}</div>
+          <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 36 : 64, lineHeight: 1.05, letterSpacing: '-.02em', marginBottom: 18 }}>{cms('home.cta.title', 'Let’s design your space.')}</h2>
+          <p style={{ color: 'rgba(255,255,255,.82)', fontSize: mobile ? 16 : 19, lineHeight: 1.6, marginBottom: 34, maxWidth: 520, marginLeft: 'auto', marginRight: 'auto' }}>{cms('home.cta.subtitle', 'Book a free home consultation — no obligation, just ideas, measured and quoted by our own team.')}</p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button type="button" className="btn-clay" onClick={() => setPage('contact')} style={{ fontSize: 16, padding: '16px 32px' }}>Book a consultation →</button>
+            <button type="button" className="btn-clay" onClick={() => setPage('contact')} style={{ fontSize: 16, padding: '16px 32px' }}>{cms('home.cta.button', 'Book a consultation →')}</button>
             <button type="button" onClick={() => setPage('planner')} style={{ background: 'rgba(255,255,255,.1)', color: '#fff', border: '1px solid rgba(255,255,255,.45)', borderRadius: 14, padding: '15px 30px', fontSize: 16, fontWeight: 500, cursor: 'pointer', minHeight: 50, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>Design online</button>
           </div>
           <div style={{ marginTop: 26, color: 'rgba(255,255,255,.55)', fontSize: 13, letterSpacing: '.03em' }}>Own Bahrain workshop · 2-year warranty · Installed by our team</div>
@@ -4391,7 +4424,7 @@ function ShowroomsPage() {
   const [rows,setRows]=useState([]);
   // Single source of truth: same content the Hub manages & the app shows.
   useEffect(()=>{ api('rpc/content_list',{method:'POST',body:{p_section:'showroom'}}).then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
-  return (<PageWrap eyebrow="Visit us" title="Showrooms across Bahrain." sub="Experience our craftsmanship in person — see the finishes, open the drawers, feel the build.">
+  return (<PageWrap eyebrow={cms('showrooms.hero.eyebrow','Visit us')} title={cms('showrooms.hero.title','Showrooms across Bahrain.')} sub={cms('showrooms.hero.subtitle','Experience our craftsmanship in person — see the finishes, open the drawers, feel the build.')}>
     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:22 }}>
       {rows.map(s=>{ const m=s.meta||{}; return (
         <div key={s.id} className="rv lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden' }}>
@@ -4412,7 +4445,7 @@ function ShowroomsPage() {
 function BlogPage() {
   const [rows,setRows]=useState([]);
   useEffect(()=>{ api('rpc/content_list',{method:'POST',body:{p_section:'inspiration'}}).then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
-  return (<PageWrap eyebrow="Inspiration" title="Ideas & guides." sub="Trends, tips and real projects for kitchens, wardrobes and storage.">
+  return (<PageWrap eyebrow={cms('blog.hero.eyebrow','Inspiration')} title={cms('blog.hero.title','Ideas & guides.')} sub={cms('blog.hero.subtitle','Trends, tips and real projects for kitchens, wardrobes and storage.')}>
     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))', gap:22 }}>
       {rows.map(b=>(
         <div key={b.id} className="rv lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', cursor:'pointer' }}>
@@ -4438,7 +4471,7 @@ function CareersPage() {
     await api('rpc/public_lead_submit',{method:'POST',body:{ p_name:f.name, p_phone:f.phone, p_email:f.email||null, p_source:'Website - Careers', p_interest:job.job_title, p_message:'Career application — '+job.job_title+(f.note?(' — '+f.note):''), p_meta:{ job_id:job.id, type:'career' } }});
     setSentFor(job.id); toast('Application received ✓','success');
   };
-  return (<PageWrap title="Careers" sub="Join a team that builds beautiful, lasting spaces.">
+  return (<PageWrap title={cms('careers.hero.title','Careers')} sub={cms('careers.hero.subtitle','Join a team that builds beautiful, lasting spaces.')}>
     <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
       {rows.map(j=>(<div key={j.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
@@ -4469,7 +4502,7 @@ const inp = { background:'var(--sand)', border:'1px solid var(--line)', borderRa
 function OffersPage({ setPage }) {
   const [rows,setRows]=useState([]);
   useEffect(()=>{ api('store_offers?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
-  return (<PageWrap title="Offers & promotions" sub="Current savings on bespoke kitchens, wardrobes and storage.">
+  return (<PageWrap title={cms('offers.hero.title','Offers & promotions')} sub={cms('offers.hero.subtitle','Current savings on bespoke kitchens, wardrobes and storage.')}>
     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
       {rows.map(o=>(<div key={o.id} style={{ background:'linear-gradient(135deg,var(--sand),#fff)', border:'1px solid var(--clay)33', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
         {o.badge && <span style={{ display:'inline-block', background:'var(--clay)', color:'#fff', fontSize:12, fontWeight:700, padding:'5px 12px', borderRadius:980 }}>{o.badge}</span>}
@@ -4484,7 +4517,7 @@ function OffersPage({ setPage }) {
 function FaqPage() {
   const [rows,setRows]=useState([]); const [open,setOpen]=useState(null);
   useEffect(()=>{ api('website_faqs?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
-  return (<PageWrap title="Frequently asked questions" sub="Everything you need to know about designing with us.">
+  return (<PageWrap title={cms('faq.hero.title','Frequently asked questions')} sub={cms('faq.hero.subtitle','Everything you need to know about designing with us.')}>
     <div style={{ maxWidth:760, display:'flex', flexDirection:'column', gap:12 }}>
       {rows.map(q=>(<div key={q.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:16, overflow:'hidden' }}>
         <button type="button" onClick={()=>setOpen(open===q.id?null:q.id)} style={{ width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'18px 20px', fontSize:16, fontWeight:600, color:'#1d1d1f', display:'flex', justifyContent:'space-between', gap:12 }}>
@@ -4531,9 +4564,9 @@ function ServicesPage({ user, setPage, openAuth }) {
     <div style={{ minHeight: '100dvh', background: 'var(--cream)', paddingTop: 104, paddingBottom: 90 }}>
       <div style={{ maxWidth: 1180, margin: '0 auto', padding: '0 24px' }}>
         <div className="rv" style={{ maxWidth: 680, marginBottom: 36 }}>
-          <div className="eyebrow" style={{ marginBottom: 14 }}>Home services</div>
-          <h1 className="display" style={{ fontSize: 'clamp(36px,5vw,56px)', color: 'var(--ink)', marginBottom: 14 }}>Help around the home, on demand.</h1>
-          <p style={{ fontSize: 17, color: 'var(--ink-soft)', lineHeight: 1.7 }}>Carpentry, repairs, cleaning, AC and more — scheduled or ASAP, by vetted providers.{user ? '' : ' Sign in to book.'}</p>
+          <div className="eyebrow" style={{ marginBottom: 14 }}>{cms('services.hero.eyebrow', 'Home services')}</div>
+          <h1 className="display" style={{ fontSize: 'clamp(36px,5vw,56px)', color: 'var(--ink)', marginBottom: 14 }}>{cms('services.hero.title', 'Help around the home, on demand.')}</h1>
+          <p style={{ fontSize: 17, color: 'var(--ink-soft)', lineHeight: 1.7 }}>{cms('services.hero.subtitle', 'Carpentry, repairs, cleaning, AC and more — scheduled or ASAP, by vetted providers.')}{user ? '' : ' Sign in to book.'}</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(250px,1fr))', gap: 18 }}>
           {cats.map(c => (
@@ -4612,7 +4645,7 @@ function BookingPage({ setPage }) {
     finally{ setBusy(false); }
   };
   if(sent) return (<PageWrap eyebrow="Booked" title="Thank you."><div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding:36, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div className="display" style={{ fontSize:24, color:'var(--ink)', marginTop:14 }}>Your {f.type.toLowerCase()} is requested.</div><div style={{ fontSize:15, color:'var(--ink-soft)', marginTop:10, lineHeight:1.6 }}>Our design team will call you to confirm the time. No obligation, completely free.</div><button type="button" className="btn-clay" onClick={()=>setPage('home')} style={{ marginTop:22 }}>Back to home</button></div></PageWrap>);
-  return (<PageWrap eyebrow="Free design visit" title="Book your free visit." sub="A designer measures your space and creates a bespoke 2D & 3D concept — free, with no obligation.">
+  return (<PageWrap eyebrow={cms('booking.hero.eyebrow','Free design visit')} title={cms('booking.hero.title','Book your free visit.')} sub={cms('booking.hero.subtitle','A designer measures your space and creates a bespoke 2D & 3D concept — free, with no obligation.')}>
     <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding: mobile?22:30, maxWidth:720 }}>
       <div className="eyebrow" style={{ fontSize:11, marginBottom:10 }}>Appointment type</div>
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:18 }}>
@@ -4844,21 +4877,21 @@ function SiteFooter({ setPage }) {
     <div style={{ maxWidth:1280, margin:'0 auto' }}>
       <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'2fr 1fr 1fr 1fr', gap: mobile?28:48 }}>
         <div style={{ gridColumn: mobile?'1 / -1':'auto' }}>
-          <div className="display" style={{ fontSize:22, color:'var(--ink)' }}>The Closets Co.</div>
-          <div style={{ fontSize:14, color:'var(--ink-soft)', marginTop:12, lineHeight:1.65, maxWidth:300 }}>Premium bespoke wardrobes, kitchens and storage — designed, manufactured and installed in the Kingdom of Bahrain.</div>
+          <div className="display" style={{ fontSize:22, color:'var(--ink)' }}>{cms('footer.brand', 'The Closets Co.')}</div>
+          <div style={{ fontSize:14, color:'var(--ink-soft)', marginTop:12, lineHeight:1.65, maxWidth:300 }}>{cms('footer.blurb', 'Premium bespoke wardrobes, kitchens and storage — designed, manufactured and installed in the Kingdom of Bahrain.')}</div>
           <div style={{ display:'flex', gap:14, marginTop:18, flexWrap:'wrap' }}>
-            <button type="button" onClick={()=>setPage('booking')} className="btn-clay" style={{ padding:'12px 22px', fontSize:14 }}>Book a free visit</button>
-            <a href="https://wa.me/97317001700" style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:980, padding:'11px 18px', fontSize:13.5, fontWeight:600, textDecoration:'none' }}>WhatsApp us</a>
+            <button type="button" onClick={()=>setPage('booking')} className="btn-clay" style={{ padding:'12px 22px', fontSize:14 }}>{cms('footer.cta.book', 'Book a free visit')}</button>
+            <a href="https://wa.me/97317001700" style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:980, padding:'11px 18px', fontSize:13.5, fontWeight:600, textDecoration:'none' }}>{cms('footer.cta.whatsapp', 'WhatsApp us')}</a>
           </div>
         </div>
-        {col('Here to help',[['FAQ','faq'],['Delivery & install','contact'],['Warranty service','warranty'],['Maintenance','maintenance'],['Reviews','projects'],['Contact us','contact']])}
-        {col('Ways to shop',[['Book an appointment','booking'],['Request a brochure','contact'],['Finance & payment','booking'],['Find a showroom','showrooms'],['Recommend a friend','contact']])}
-        {col('About',[['About The Closets','about'],['Why The Closets','about'],['Careers','careers'],['Offers','offers'],['Sitemap','products']])}
+        {col(cms('footer.col1.title','Here to help'),[['FAQ','faq'],['Delivery & install','contact'],['Warranty service','warranty'],['Maintenance','maintenance'],['Reviews','projects'],['Contact us','contact']])}
+        {col(cms('footer.col2.title','Ways to shop'),[['Book an appointment','booking'],['Request a brochure','contact'],['Finance & payment','booking'],['Find a showroom','showrooms'],['Recommend a friend','contact']])}
+        {col(cms('footer.col3.title','About'),[['About The Closets','about'],['Why The Closets','about'],['Careers','careers'],['Offers','offers'],['Sitemap','products']])}
       </div>
 
       {/* Social row */}
       <div style={{ display:'flex', alignItems:'center', gap:12, marginTop:40, flexWrap:'wrap' }}>
-        <span style={{ fontSize:13, fontWeight:600, color:'var(--ink)' }}>Follow us</span>
+        <span style={{ fontSize:13, fontWeight:600, color:'var(--ink)' }}>{cms('footer.social.title', 'Follow us')}</span>
         {social.map(([name,href,d])=>(
           <a key={name} href={href} aria-label={name} target="_blank" rel="noreferrer" style={{ width:38, height:38, borderRadius:'50%', background:'#fff', border:'1px solid var(--line)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--ink)' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={d}/></svg>
@@ -4874,8 +4907,8 @@ function SiteFooter({ setPage }) {
       </div>
 
       <div style={{ borderTop:'1px solid var(--line)', marginTop:32, paddingTop:22, display:'flex', flexDirection: mobile?'column':'row', justifyContent:'space-between', gap:8, fontSize:13, color:'var(--muted)' }}>
-        <span>© 2026 The Closets Co. W.L.L. — Manama, Bahrain</span>
-        <span>+973 1700 1700 · hello@theclosets.co</span>
+        <span>{cms('footer.copyright', '© 2026 The Closets Co. W.L.L. — Manama, Bahrain')}</span>
+        <span>{cms('footer.contact', '+973 1700 1700 · hello@theclosets.co')}</span>
       </div>
     </div>
   </footer>);
@@ -4942,7 +4975,7 @@ function PortfolioPage({ setPage }) {
   const [rows,setRows]=useState([]);
   useEffect(()=>{ api('website_projects?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
   const cats=['Kitchens','Wardrobes','Walk-In Closets','TV Units','Doors','Storage Solutions','Office Furniture'];
-  return (<PageWrap title="Our projects" sub="Real spaces we have designed, manufactured and installed across Bahrain.">
+  return (<PageWrap title={cms('projects.hero.title','Our projects')} sub={cms('projects.hero.subtitle','Real spaces we have designed, manufactured and installed across Bahrain.')}>
     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:20, marginBottom:48 }}>
       {rows.map(p=>(<div key={p.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
         {p.before_url && p.after_url ? <BeforeAfter before={p.before_url} after={p.after_url} />
@@ -8664,13 +8697,13 @@ function WardrobesPage({ setPage, products }) {
   return (
     <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?56:64, paddingBottom:90 }}>
       {/* HERO */}
-      <section style={{ position:'relative', minHeight: mobile?440:560, display:'flex', alignItems:'flex-end', backgroundImage:`linear-gradient(to top, rgba(20,16,12,.72), rgba(20,16,12,.15)), url('${heroImg}')`, backgroundSize:'cover', backgroundPosition:'center' }}>
+      <section style={{ position:'relative', minHeight: mobile?440:560, display:'flex', alignItems:'flex-end', backgroundImage:`linear-gradient(to top, rgba(20,16,12,.72), rgba(20,16,12,.15)), url('${cms('wardrobe.hero.image', heroImg)}')`, backgroundSize:'cover', backgroundPosition:'center' }}>
         <div style={{ ...wrap, paddingBottom: mobile?32:54, color:'#fff' }}>
-          <div style={{ fontSize:12, letterSpacing:'.18em', textTransform:'uppercase', opacity:.85, marginBottom:12 }}>Bespoke wardrobes &amp; walk-in closets · Bahrain</div>
-          <h1 className="display" style={{ fontSize: mobile?34:60, lineHeight:1.05, maxWidth:780, margin:0 }}>Storage that disappears into the architecture.</h1>
-          <p style={{ fontSize: mobile?15:19, maxWidth:560, marginTop:14, opacity:.92, lineHeight:1.55 }}>Our flagship craft — walk-in dressing rooms, sliding and fitted wardrobes, designed to the centimetre. Choose your type, interior and finish, then see it in 3D with a live quote.</p>
+          <div style={{ fontSize:12, letterSpacing:'.18em', textTransform:'uppercase', opacity:.85, marginBottom:12 }}>{cms('wardrobe.hero.eyebrow', 'Bespoke wardrobes & walk-in closets · Bahrain')}</div>
+          <h1 className="display" style={{ fontSize: mobile?34:60, lineHeight:1.05, maxWidth:780, margin:0 }}>{cms('wardrobe.hero.title', 'Storage that disappears into the architecture.')}</h1>
+          <p style={{ fontSize: mobile?15:19, maxWidth:560, marginTop:14, opacity:.92, lineHeight:1.55 }}>{cms('wardrobe.hero.subtitle', 'Our flagship craft — walk-in dressing rooms, sliding and fitted wardrobes, designed to the centimetre. Choose your type, interior and finish, then see it in 3D with a live quote.')}</p>
           <div style={{ display:'flex', gap:12, marginTop:24, flexWrap:'wrap' }}>
-            <button type="button" className="btn-clay" onClick={()=>setPage('wardrobe-planner')} style={{ borderRadius:14 }}>Open the Design Studio →</button>
+            <button type="button" className="btn-clay" onClick={()=>setPage('wardrobe-planner')} style={{ borderRadius:14 }}>{cms('wardrobe.hero.cta', 'Open the Design Studio →')}</button>
             <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.12)', color:'#fff', border:'1px solid rgba(255,255,255,.45)', borderRadius:14, padding:'15px 28px', fontSize:16, fontWeight:600, cursor:'pointer', backdropFilter:'blur(6px)' }}>Book a free visit</button>
           </div>
         </div>
@@ -8678,8 +8711,8 @@ function WardrobesPage({ setPage, products }) {
 
       {/* TYPES gallery */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div className="eyebrow" style={{ marginBottom:10 }}>Wardrobe types</div>
-        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>Find your fit.</h2>
+        <div className="eyebrow" style={{ marginBottom:10 }}>{cms('wardrobe.s1.eyebrow', 'Wardrobe types')}</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('wardrobe.s1.title', 'Find your fit.')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>From a full walk-in dressing room to a flush reach-in run — four ways to bring order to your bedroom.</p>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
           {wTypes.map(t=>(
@@ -8892,13 +8925,13 @@ function KitchenPage({ setPage, products }) {
   return (
     <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?56:64, paddingBottom:90 }}>
       {/* HERO */}
-      <section style={{ position:'relative', minHeight: mobile?440:560, display:'flex', alignItems:'flex-end', backgroundImage:`linear-gradient(to top, rgba(20,16,12,.72), rgba(20,16,12,.15)), url('${heroImg}')`, backgroundSize:'cover', backgroundPosition:'center' }}>
+      <section style={{ position:'relative', minHeight: mobile?440:560, display:'flex', alignItems:'flex-end', backgroundImage:`linear-gradient(to top, rgba(20,16,12,.72), rgba(20,16,12,.15)), url('${cms('kitchen.hero.image', heroImg)}')`, backgroundSize:'cover', backgroundPosition:'center' }}>
         <div style={{ ...wrap, paddingBottom: mobile?32:54, color:'#fff' }}>
-          <div style={{ fontSize:12, letterSpacing:'.18em', textTransform:'uppercase', opacity:.85, marginBottom:12 }}>Bespoke kitchens · Bahrain</div>
-          <h1 className="display" style={{ fontSize: mobile?34:60, lineHeight:1.05, maxWidth:760, margin:0 }}>Precision cabinetry, engineered for daily life.</h1>
-          <p style={{ fontSize: mobile?15:19, maxWidth:540, marginTop:14, opacity:.92, lineHeight:1.55 }}>Designed, manufactured and installed by our own team. Choose your layout, cabinets and worktop — then see it in 3D with a live quote.</p>
+          <div style={{ fontSize:12, letterSpacing:'.18em', textTransform:'uppercase', opacity:.85, marginBottom:12 }}>{cms('kitchen.hero.eyebrow', 'Bespoke kitchens · Bahrain')}</div>
+          <h1 className="display" style={{ fontSize: mobile?34:60, lineHeight:1.05, maxWidth:760, margin:0 }}>{cms('kitchen.hero.title', 'Precision cabinetry, engineered for daily life.')}</h1>
+          <p style={{ fontSize: mobile?15:19, maxWidth:540, marginTop:14, opacity:.92, lineHeight:1.55 }}>{cms('kitchen.hero.subtitle', 'Designed, manufactured and installed by our own team. Choose your layout, cabinets and worktop — then see it in 3D with a live quote.')}</p>
           <div style={{ display:'flex', gap:12, marginTop:24, flexWrap:'wrap' }}>
-            <button type="button" className="btn-clay" onClick={()=>setPage('kitchen-planner')} style={{ borderRadius:14 }}>Open the Design Studio →</button>
+            <button type="button" className="btn-clay" onClick={()=>setPage('kitchen-planner')} style={{ borderRadius:14 }}>{cms('kitchen.hero.cta', 'Open the Design Studio →')}</button>
             <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.12)', color:'#fff', border:'1px solid rgba(255,255,255,.45)', borderRadius:14, padding:'15px 28px', fontSize:16, fontWeight:600, cursor:'pointer', backdropFilter:'blur(6px)' }}>Book a free visit</button>
           </div>
         </div>
@@ -8906,8 +8939,8 @@ function KitchenPage({ setPage, products }) {
 
       {/* STYLE GALLERY */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div className="eyebrow" style={{ marginBottom:10 }}>Kitchen styles</div>
-        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>Find your look.</h2>
+        <div className="eyebrow" style={{ marginBottom:10 }}>{cms('kitchen.s1.eyebrow', 'Kitchen styles')}</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('kitchen.s1.title', 'Find your look.')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:560, marginBottom:22 }}>From timeless shaker to seamless handleless — six door styles, endless finishes.</p>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(3,1fr)', gap:16 }}>
           {K_CAB_STYLES.map(s=>(
@@ -9073,13 +9106,13 @@ function OfficePage({ setPage, products }) {
   return (
     <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?56:64, paddingBottom:90 }}>
       {/* HERO */}
-      <section style={{ position:'relative', minHeight: mobile?440:560, display:'flex', alignItems:'flex-end', backgroundImage:`linear-gradient(to top, rgba(20,16,12,.72), rgba(20,16,12,.15)), url('${heroImg}')`, backgroundSize:'cover', backgroundPosition:'center' }}>
+      <section style={{ position:'relative', minHeight: mobile?440:560, display:'flex', alignItems:'flex-end', backgroundImage:`linear-gradient(to top, rgba(20,16,12,.72), rgba(20,16,12,.15)), url('${cms('office.hero.image', heroImg)}')`, backgroundSize:'cover', backgroundPosition:'center' }}>
         <div style={{ ...wrap, paddingBottom: mobile?32:54, color:'#fff' }}>
-          <div style={{ fontSize:12, letterSpacing:'.18em', textTransform:'uppercase', opacity:.85, marginBottom:12 }}>Bespoke home offices &amp; study spaces · Bahrain</div>
-          <h1 className="display" style={{ fontSize: mobile?34:60, lineHeight:1.05, maxWidth:780, margin:0 }}>A workspace built around the way you work.</h1>
-          <p style={{ fontSize: mobile?15:19, maxWidth:560, marginTop:14, opacity:.92, lineHeight:1.55 }}>From a floating desk in the bedroom to a full storage wall with an integrated worktop — designed to the centimetre. Choose your layout, desk and finish, then plan it with a live quote.</p>
+          <div style={{ fontSize:12, letterSpacing:'.18em', textTransform:'uppercase', opacity:.85, marginBottom:12 }}>{cms('office.hero.eyebrow', 'Bespoke home offices & study spaces · Bahrain')}</div>
+          <h1 className="display" style={{ fontSize: mobile?34:60, lineHeight:1.05, maxWidth:780, margin:0 }}>{cms('office.hero.title', 'A workspace built around the way you work.')}</h1>
+          <p style={{ fontSize: mobile?15:19, maxWidth:560, marginTop:14, opacity:.92, lineHeight:1.55 }}>{cms('office.hero.subtitle', 'From a floating desk in the bedroom to a full storage wall with an integrated worktop — designed to the centimetre. Choose your layout, desk and finish, then plan it with a live quote.')}</p>
           <div style={{ display:'flex', gap:12, marginTop:24, flexWrap:'wrap' }}>
-            <button type="button" className="btn-clay" onClick={()=>setPage('office-planner')} style={{ borderRadius:14 }}>Open the office planner →</button>
+            <button type="button" className="btn-clay" onClick={()=>setPage('office-planner')} style={{ borderRadius:14 }}>{cms('office.hero.cta', 'Open the office planner →')}</button>
             <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.12)', color:'#fff', border:'1px solid rgba(255,255,255,.45)', borderRadius:14, padding:'15px 28px', fontSize:16, fontWeight:600, cursor:'pointer', backdropFilter:'blur(6px)' }}>Book a free visit</button>
           </div>
         </div>
@@ -10229,6 +10262,10 @@ function DesignBuilderPage({ setPage, user }) {
 }
 
 export default function App() {
+  return <SiteContentProvider><AppInner /></SiteContentProvider>;
+}
+function AppInner() {
+  useSiteContent();   // subscribe: re-render the whole tree once managed content loads
   const [page, setPage] = useState('home');
   const [lang, setLang] = useState(() => { try { return localStorage.getItem('closets_lang') || 'en'; } catch { return 'en'; } });
   useEffect(() => {
