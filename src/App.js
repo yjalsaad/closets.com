@@ -411,10 +411,10 @@ const NAV_GROUPS = [
     columns: [
       { title: 'Rooms & products', items: [
         ['Interior & sliding doors', 'cat:Doors'], ['TV & media units', 'cat:TV Units'],
-        ['Storage & home office', 'cat:Storage Solutions'], ['Vanity units', 'cat:Vanity Units'],
+        ['Home office', 'office'], ['Storage & home office', 'cat:Storage Solutions'], ['Vanity units', 'cat:Vanity Units'],
       ] },
       { title: 'Explore', items: [
-        ['Wood door planner', 'door-planner'], ['TV & media unit planner', 'tv-planner'], ['Browse the full gallery →', 'products'], ['Recent projects', 'projects'],
+        ['Wood door planner', 'door-planner'], ['TV & media unit planner', 'tv-planner'], ['Office planner', 'office-planner'], ['Browse the full gallery →', 'products'], ['Recent projects', 'projects'],
       ], accent: true },
     ],
   },
@@ -422,7 +422,7 @@ const NAV_GROUPS = [
     key: 'studio', label: 'Design studio',
     columns: [
       { title: 'Plan it yourself', items: [
-        ['Wardrobe planner', 'wardrobe-planner'], ['Kitchen planner', 'kitchen-planner'], ['TV unit planner', 'tv-planner'], ['Wood door planner', 'door-planner'], ['AI interior designer', 'ai'],
+        ['Wardrobe planner', 'wardrobe-planner'], ['Kitchen planner', 'kitchen-planner'], ['TV unit planner', 'tv-planner'], ['Office planner', 'office-planner'], ['Wood door planner', 'door-planner'], ['AI interior designer', 'ai'],
       ] },
       { title: 'Talk to a designer', items: [
         ['Book a design appointment →', 'booking'], ['Visit a showroom', 'showrooms'],
@@ -571,7 +571,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
     {!mobile && <div style={{ height: 0 }} aria-hidden="true" />}
 
     {/* Floating bottom dock — hidden on the planner (all screen sizes) so it can't cover the planner's own Back/Close/CTA navigation */}
-    {!['planner','kitchen-planner','tv-planner','door-planner','wardrobe-planner','cat:Doors'].includes(page) && (
+    {!['planner','kitchen-planner','tv-planner','door-planner','wardrobe-planner','office-planner','cat:Doors'].includes(page) && (
     <div style={{ position:'fixed', bottom: mobile?'calc(14px + env(safe-area-inset-bottom))':18, left:'50%', transform:'translateX(-50%)', zIndex:900, display:'flex', alignItems:'flex-end', gap: mobile?16:24, maxWidth:'calc(100vw - 24px)', background:'rgba(255,255,255,.92)', backdropFilter:'blur(18px) saturate(180%)', border:'1px solid rgba(0,0,0,.06)', borderRadius:999, padding: mobile?'7px 18px':'8px 24px', boxShadow:'0 10px 34px rgba(33,28,24,.16)' }}>
       {DOCK.map(d => {
         const active = page===d.id;
@@ -3994,13 +3994,14 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
   // d. Room types.
   const rooms = [
     ['Wardrobes', 'Walk-in, sliding & fitted', '/layouts/wardrobe/wardrobe-walkin.jpg', 'wardrobes'],
-    ['Kitchens', 'Modern, shaker & handleless', HOME_IMG.kitchen, 'kitchen'],
-    ['Doors & more', 'Doors, media & storage', HOME_IMG.living, 'door-planner'],
+    ['Kitchens', 'Modern, shaker & handleless', '/layouts/kitchen/island.jpg', 'kitchen'],
+    ['Home office', 'Desks, storage & built-ins', '/layouts/office/l-shaped.jpg', 'office'],
+    ['Doors & more', 'Doors, media & storage', '/layouts/door/pivot.jpg', 'door-planner'],
   ];
   // e. Style quick-links.
   const styleLinks = [
     ['Walk-in closets', 'wardrobes'], ['Sliding wardrobes', 'wardrobes'], ['Shaker kitchens', 'kitchen'],
-    ['Handleless kitchens', 'kitchen'], ['TV & media units', 'tv-planner'], ['Home office', 'products'],
+    ['Handleless kitchens', 'kitchen'], ['TV & media units', 'tv-planner'], ['Home office', 'office'],
   ];
   const steps = [
     ['01', 'Consultation', 'A free home or showroom visit to understand your space, style and budget.'],
@@ -4072,7 +4073,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
             <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>Designs you’ll love.</h2>
           </div>
           <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? 16 : 22, marginBottom: 28 }}>
-            {[['Wardrobes', 'Fitted, sliding & walk-in storage built around your life.', '/layouts/wardrobe/wardrobe-walkin.jpg', 'wardrobes'], ['Kitchens', 'Precision cabinetry, worktops and finishes for daily living.', HOME_IMG.kitchen, 'kitchen']].map(([name, desc, img, route]) => (
+            {[['Wardrobes', 'Fitted, sliding & walk-in storage built around your life.', '/layouts/wardrobe/wardrobe-walkin.jpg', 'wardrobes'], ['Kitchens', 'Precision cabinetry, worktops and finishes for daily living.', '/layouts/kitchen/island.jpg', 'kitchen']].map(([name, desc, img, route]) => (
               <button type="button" key={name} className="tile-zoom lift" onClick={() => setPage(route)} style={{ position: 'relative', border: 'none', padding: 0, borderRadius: 24, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 300 : 420, background: '#15110e' }}>
                 <Photo src={img} alt={name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.05) 30%, rgba(20,16,12,.85) 100%)' }} />
@@ -5129,15 +5130,15 @@ const KITCHEN_CATALOG_ANCHORS = {
 // `model` maps to Wardrobe3D.buildKitchen layouts: single | l-shape | u-shape | parallel | island
 const K_LAYOUTS = [
   { id:'straight', name:'Straight / single-wall', sub:'One clean run along a single wall', runM:3.0, model:'single',
-    plan:'M24,150 h212 v26 h-212 z', best:'Compact kitchens & open-plan walls', ic:'M4 14h16v4H4z' },
+    plan:'M24,150 h212 v26 h-212 z', best:'Compact kitchens & open-plan walls', ic:'M4 14h16v4H4z', img:'/layouts/kitchen/single-wall.jpg' },
   { id:'galley',   name:'Galley',   sub:'Two runs facing each other', runM:5.6, model:'parallel',
-    plan:'M24,40 h212 v22 h-212 z M24,154 h212 v22 h-212 z', best:'Narrow rooms, serious cooks', ic:'M4 5h16v3H4z M4 16h16v3H4z' },
+    plan:'M24,40 h212 v22 h-212 z M24,154 h212 v22 h-212 z', best:'Narrow rooms, serious cooks', ic:'M4 5h16v3H4z M4 16h16v3H4z', img:'/layouts/kitchen/galley.jpg' },
   { id:'l-shape',  name:'L-shaped', sub:'Two runs that meet in a corner', runM:5.6, model:'l-shape',
-    plan:'M24,40 h26 v136 h186 v-26 h-160 v-110 z', best:'The all-rounder — most popular', ic:'M4 4h4v16h12v-4H8V4z' },
+    plan:'M24,40 h26 v136 h186 v-26 h-160 v-110 z', best:'The all-rounder — most popular', ic:'M4 4h4v16h12v-4H8V4z', img:'/layouts/kitchen/l-shape.jpg' },
   { id:'u-shape',  name:'U-shaped', sub:'Three runs around three walls', runM:7.8, model:'u-shape',
-    plan:'M24,40 h26 v110 h160 v-110 h26 v136 h-212 z', best:'Maximum storage & worktop', ic:'M4 4h4v12h8V4h4v16H4z' },
+    plan:'M24,40 h26 v110 h160 v-110 h26 v136 h-212 z', best:'Maximum storage & worktop', ic:'M4 4h4v12h8V4h4v16H4z', img:'/layouts/kitchen/u-shape.jpg' },
   { id:'island',   name:'Island',   sub:'A run plus a central island', runM:6.5, model:'island',
-    plan:'M24,150 h212 v26 h-212 z M92,86 h84 v34 h-84 z', best:'Sociable, open-plan entertaining', ic:'M4 16h16v4H4z M9 8h6v4H9z' },
+    plan:'M24,150 h212 v26 h-212 z M92,86 h84 v34 h-84 z', best:'Sociable, open-plan entertaining', ic:'M4 16h16v4H4z M9 8h6v4H9z', img:'/layouts/kitchen/island.jpg' },
 ];
 
 // CABINET STYLE — door construction; `mult` scales the cabinetry rate.
@@ -5224,12 +5225,12 @@ const KW_ROOM_SHAPES = [
 ];
 const KW_OPENING_TYPES = ['Door','Window','Column','Beam','AC duct'];
 const KW_LAYOUTS = [
-  { id:'single',    name:'Single Wall', sub:'One run along a wall',        model:'single' },
-  { id:'galley',    name:'Galley',      sub:'Two runs facing each other',  model:'parallel' },
-  { id:'l-shape',   name:'L-Shape',     sub:'Two runs meeting in a corner',model:'l-shape' },
-  { id:'u-shape',   name:'U-Shape',     sub:'Three runs around three walls',model:'u-shape' },
-  { id:'island',    name:'Island',      sub:'A run plus a central island', model:'island' },
-  { id:'peninsula', name:'Peninsula',   sub:'A connected return / breakfast bar', model:'l-shape' },
+  { id:'single',    name:'Single Wall', sub:'One run along a wall',        model:'single',   img:'/layouts/kitchen/single-wall.jpg' },
+  { id:'galley',    name:'Galley',      sub:'Two runs facing each other',  model:'parallel', img:'/layouts/kitchen/galley.jpg' },
+  { id:'l-shape',   name:'L-Shape',     sub:'Two runs meeting in a corner',model:'l-shape',  img:'/layouts/kitchen/l-shape.jpg' },
+  { id:'u-shape',   name:'U-Shape',     sub:'Three runs around three walls',model:'u-shape', img:'/layouts/kitchen/u-shape.jpg' },
+  { id:'island',    name:'Island',      sub:'A run plus a central island', model:'island',   img:'/layouts/kitchen/island.jpg' },
+  { id:'peninsula', name:'Peninsula',   sub:'A connected return / breakfast bar', model:'l-shape', img:'/layouts/kitchen/peninsula.jpg' },
 ];
 // Cabinets — id, label, width(mm), base price BHD, kind
 const KW_BASE_UNITS = [
@@ -5305,12 +5306,12 @@ const TV_ROOM_TYPES = [
 const TV_OPENING_TYPES = ['Door','Window','Column','AC unit','Electrical outlet'];
 // Layouts — each carries its modular composition + a 'feature' flag set.
 const TV_LAYOUTS = [
-  { id:'floating',  name:'Floating',        sub:'Floating base + wall panel', feats:['floating base','TV wall panel','optional LED','hidden cable mgmt'] },
-  { id:'fullwall',  name:'Full Wall',       sub:'Tall cabinets + display',    feats:['TV centre','tall cabinets','display shelves','closed storage','decorative panels'] },
-  { id:'shelves',   name:'Display Shelves', sub:'Open shelves + niches',      feats:['open shelves','display niches','LED','decorative panels'] },
-  { id:'fireplace', name:'Fireplace',       sub:'Electric fire + cladding',   feats:['TV section','electric fireplace','stone / wood cladding','storage'] },
-  { id:'minimal',   name:'Minimal',         sub:'Panel + floating shelf',     feats:['wall panel','floating shelf','hidden wiring'] },
-  { id:'storage',   name:'Storage Wall',    sub:'Bookcases + cabinets',       feats:['TV section','bookcases','cabinets','display areas'] },
+  { id:'floating',  name:'Floating',        sub:'Floating base + wall panel', feats:['floating base','TV wall panel','optional LED','hidden cable mgmt'], img:'/layouts/tv/floating.jpg' },
+  { id:'fullwall',  name:'Full Wall',       sub:'Tall cabinets + display',    feats:['TV centre','tall cabinets','display shelves','closed storage','decorative panels'], img:'/layouts/tv/full-wall.jpg' },
+  { id:'shelves',   name:'Display Shelves', sub:'Open shelves + niches',      feats:['open shelves','display niches','LED','decorative panels'], img:'/layouts/tv/display-shelves.jpg' },
+  { id:'fireplace', name:'Fireplace',       sub:'Electric fire + cladding',   feats:['TV section','electric fireplace','stone / wood cladding','storage'], img:'/layouts/tv/fireplace.jpg' },
+  { id:'minimal',   name:'Minimal',         sub:'Panel + floating shelf',     feats:['wall panel','floating shelf','hidden wiring'], img:'/layouts/tv/minimal.jpg' },
+  { id:'storage',   name:'Storage Wall',    sub:'Bookcases + cabinets',       feats:['TV section','bookcases','cabinets','display areas'], img:'/layouts/tv/storage-wall.jpg' },
 ];
 // Modular blocks — id, label, base price BHD, the layouts they belong to.
 const TV_BLOCKS = [
@@ -5376,6 +5377,84 @@ const TV_LIGHTING = [
   { id:'spot',     name:'Spot lights',   price:110 },
 ];
 const TV_CATALOG_ANCHOR = { id:'wp-tv-01', name:'Bespoke TV / Media Wall' };
+
+/* ════════════════════════════════════════════════════════════════════════════
+   PROFESSIONAL HOME OFFICE PLANNER WIZARD  ·  data tables (BHD)
+   Wired to route 'office-planner'. Mirrors the TV unit wizard exactly:
+   fit-to-viewport two-pane shell, 9 steps, 2D elevation, live BOM + cost +
+   Save / Quote / PDF. Six layouts each carry a brand office render photo. */
+const OFFICE_ROOM_TYPES = [
+  { id:'home',    name:'Home office',       sub:'Dedicated work room',   ic:'M4 7h16v12H4zM4 11h16M9 7V5h6v2' },
+  { id:'study',   name:'Study',            sub:'Reading & focus space', ic:'M4 5h16v14H4zM8 5v14M4 9h4M4 13h4' },
+  { id:'bedroom', name:'Bedroom corner',   sub:'Desk in the bedroom',   ic:'M3 18v-6h18v6M3 12V8a2 2 0 012-2h6v6' },
+  { id:'living',  name:'Living room nook', sub:'Work in the lounge',    ic:'M3 11l9-7 9 7M5 10v10h14V10' },
+  { id:'guest',   name:'Guest room',       sub:'Dual-use spare room',   ic:'M3 17v-5a2 2 0 012-2h14a2 2 0 012 2v5M3 17h18M6 17v2M18 17v2' },
+];
+const OFFICE_OPENING_TYPES = ['Door','Window','Column','AC unit','Electrical outlet'];
+// Six office layouts — each carries a brand render photo + a feature flag set.
+const OFFICE_LAYOUTS = [
+  { id:'wall-storage',  name:'Wall Storage Office',        sub:'Full storage wall + desk',   feats:['storage wall','desk run','open + closed units','optional LED'], img:'/layouts/office/wall-storage.jpg' },
+  { id:'corner',        name:'Corner Home Office',         sub:'Two-wall corner desk',       feats:['corner desk','overhead shelves','base cabinets','cable mgmt'], img:'/layouts/office/corner.jpg' },
+  { id:'built-in',      name:'Built-in Office with Shelves',sub:'Joinery + display shelving', feats:['built-in desk','display shelves','closed storage','decor panels'], img:'/layouts/office/built-in.jpg' },
+  { id:'storage-desk',  name:'Storage Wall with Desk',     sub:'Floor-to-ceiling + worktop', feats:['tall storage','integrated desk','file storage','LED'], img:'/layouts/office/storage-desk.jpg' },
+  { id:'minimal',       name:'Minimal Home Office',        sub:'Floating desk + shelf',      feats:['floating desk','floating shelf','hidden wiring'], img:'/layouts/office/minimal.jpg' },
+  { id:'l-shaped',      name:'L-Shaped Home Office',       sub:'L-return desk + storage',    feats:['L-shape desk','return worktop','drawers','tall unit'], img:'/layouts/office/l-shaped.jpg' },
+];
+// Modular blocks — id, label, base price BHD.
+const OFFICE_BLOCKS = [
+  { id:'desk',     name:'Desk / Worktop',        price:220 },
+  { id:'return',   name:'Return Worktop',        price:140 },
+  { id:'tallcab',  name:'Tall Storage Unit',     price:260 },
+  { id:'basecab',  name:'Base Cabinet',          price:160 },
+  { id:'openshelf',name:'Open Shelf',            price:55 },
+  { id:'drawer',   name:'Drawer Unit',           price:130 },
+  { id:'file',     name:'File / Filing Unit',    price:150 },
+  { id:'overhead', name:'Overhead Cabinet',      price:120 },
+  { id:'decor',    name:'Decorative Panel',      price:150 },
+  { id:'pedestal', name:'Mobile Pedestal',       price:110 },
+];
+// Default block composition per layout: [blockId, defaultQty]
+const OFFICE_LAYOUT_BLOCKS = {
+  'wall-storage': [['desk',1],['tallcab',2],['basecab',2],['openshelf',4],['overhead',2]],
+  'corner':       [['desk',1],['return',1],['overhead',2],['basecab',2],['openshelf',2]],
+  'built-in':     [['desk',1],['openshelf',6],['basecab',2],['decor',1]],
+  'storage-desk': [['desk',1],['tallcab',3],['file',1],['overhead',2]],
+  'minimal':      [['desk',1],['openshelf',1]],
+  'l-shaped':     [['desk',1],['return',1],['drawer',1],['tallcab',1],['pedestal',1]],
+};
+const OFFICE_DESK_SHAPES = ['Single','Return','L-shape'];
+const OFFICE_WORKTOPS = [
+  { id:'laminate', name:'Laminate',     mult:1.00, hex:'#d8cdbd', sub:'Durable HPL' },
+  { id:'veneer',   name:'Wood veneer',  mult:1.30, hex:'#5a3a20', sub:'Real wood' },
+  { id:'solid',    name:'Solid surface',mult:1.45, hex:'#ece9e3', sub:'Seamless' },
+  { id:'quartz',   name:'Quartz',       mult:1.60, hex:'#cfcabf', sub:'Engineered stone' },
+];
+const OFFICE_STORAGE = [ // step 6 qty steppers
+  { id:'openshelf',name:'Open shelves',    unit:'shelf',   price:55  },
+  { id:'closed',   name:'Closed cabinets', unit:'cabinet', price:160 },
+  { id:'drawers',  name:'Drawers',         unit:'drawer',  price:130 },
+  { id:'tall',     name:'Tall units',      unit:'unit',    price:260 },
+  { id:'file',     name:'File storage',    unit:'unit',    price:150 },
+];
+const OFFICE_CARCASS = [
+  { id:'mdf', name:'MDF',     mult:1.00, sub:'Moisture-resistant board' },
+  { id:'ply', name:'Plywood', mult:1.18, sub:'Premium, screw-holding' },
+  { id:'mfc', name:'MFC',     mult:0.92, sub:'Melamine-faced chipboard' },
+];
+const OFFICE_FINISH = [
+  { id:'melamine', name:'Melamine',       mult:1.00, hex:'#e9e5dd' },
+  { id:'laminate', name:'Laminate',       mult:1.08, hex:'#d8cdbd' },
+  { id:'acrylic',  name:'Acrylic',        mult:1.24, hex:'#27384f' },
+  { id:'veneer',   name:'Veneer',         mult:1.32, hex:'#5a3a20' },
+  { id:'lacquer',  name:'Lacquer paint',  mult:1.30, hex:'#f5f3ee' },
+];
+const OFFICE_LIGHTING = [
+  { id:'shelfled', name:'Shelf LED',           price:120 },
+  { id:'undercab', name:'Under-cabinet LED',   price:110 },
+  { id:'task',     name:'Desk task light',     price:90  },
+  { id:'ambient',  name:'Ambient strip',       price:90  },
+];
+const OFFICE_CATALOG_ANCHOR = { id:'wp-office-01', name:'Bespoke Home Office' };
 
 /* ════════════════════════════════════════════════════════════════════════════
    PROFESSIONAL WARDROBE PLANNER WIZARD  ·  data tables (BHD)
@@ -5822,9 +5901,12 @@ function TVUnitPlannerWizard({ setPage, user, openAuth }) {
       case 3: return (<>{sectionH('4','Layout','Pick a configuration — then tune its parameters and modular blocks.')}
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr 1fr', gap:9, marginBottom:14 }}>
           {TV_LAYOUTS.map(l=>{ const on=layout===l.id; return (
-            <button key={l.id} type="button" onClick={()=>pickLayout(l.id)} style={{ ...card(on), padding:'9px 10px' }}>
-              <div style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{l.name}</div>
-              <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>{l.sub}</div>
+            <button key={l.id} type="button" onClick={()=>pickLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden' }}>
+              <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?120:140, objectFit:'cover', borderTopLeftRadius:12, borderTopRightRadius:12 }} />
+              <div style={{ padding:'9px 10px' }}>
+                <div style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{l.name}</div>
+                <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>{l.sub}</div>
+              </div>
             </button>); })}
         </div>
         <div style={{ background:'var(--sand)', borderRadius:12, padding:'13px 14px', marginBottom:12 }}>
@@ -6002,17 +6084,469 @@ function TVUnitPlannerWizard({ setPage, user, openAuth }) {
   );
 }
 
+/* ════════════════════════════════════════════════════════════════════════════
+   HOME OFFICE PLANNER WIZARD  ·  fit-to-viewport two-pane app shell
+   Route 'office-planner'.  9 steps · live 2D elevation · BOM + cost +
+   Save / Quote / PDF.  Modelled exactly on TVUnitPlannerWizard for consistency.
+   ════════════════════════════════════════════════════════════════════════════ */
+function OfficePlannerWizard({ setPage, user, openAuth }) {
+  const mobile = useMobile();
+  const [step, setStep] = useState(0);
+  // Step 1
+  const [roomType, setRoomType] = useState('home');
+  // Step 2
+  const [dims, setDims] = useState({ wallW:3600, wallH:2700, ceiling:2900 });
+  // Step 3
+  const [openings, setOpenings] = useState([{ id:uid(), type:'Window', pos:2200, width:1200 }]);
+  // Step 4
+  const [layout, setLayout] = useState('wall-storage');
+  const [blocks, setBlocks] = useState(() => {
+    const m = {}; (OFFICE_LAYOUT_BLOCKS['wall-storage']).forEach(([id,q])=>m[id]=q); return m;
+  });
+  // Step 5 — desk & worktop
+  const [desk, setDesk] = useState({ length:1600, depth:600, shape:'Single', worktop:'laminate' });
+  // Step 6 — storage qty steppers
+  const [store, setStore] = useState({ openshelf:4, closed:2, drawers:1, tall:1, file:0 });
+  // Step 7 — materials
+  const [mats, setMats] = useState({ carcass:'mdf', finish:'melamine' });
+  // Step 8 — lighting toggles
+  const [light, setLight] = useState({ shelfled:true, undercab:false, task:true, ambient:false });
+  // preview / submit
+  const [showPrev, setShowPrev] = useState(!mobile);
+  const [busy, setBusy] = useState(false);
+  const [showQuote, setShowQuote] = useState(false);
+  const [contact, setContact] = useState({ name:user?.name||'', phone:user?.phone||'', email:user?.email||'', date:'' });
+
+  const lay  = OFFICE_LAYOUTS.find(l=>l.id===layout) || OFFICE_LAYOUTS[0];
+  const room = OFFICE_ROOM_TYPES.find(r=>r.id===roomType) || OFFICE_ROOM_TYPES[0];
+  const carc = OFFICE_CARCASS.find(c=>c.id===mats.carcass) || OFFICE_CARCASS[0];
+  const fin  = OFFICE_FINISH.find(f=>f.id===mats.finish) || OFFICE_FINISH[0];
+  const wtop = OFFICE_WORKTOPS.find(w=>w.id===desk.worktop) || OFFICE_WORKTOPS[0];
+
+  // when the layout changes, reseed the block composition
+  const pickLayout = (id) => {
+    setLayout(id);
+    const m = {}; (OFFICE_LAYOUT_BLOCKS[id]||[]).forEach(([bid,q])=>m[bid]=q); setBlocks(m);
+  };
+  const setBlock = (id, q) => setBlocks(b=>({ ...b, [id]:Math.max(0, q) }));
+
+  // ── BOM + cost ──
+  const matMult = carc.mult * fin.mult;
+  // carcass-built blocks get material multiplier; desk/return also pick up worktop multiplier; decor flat
+  const carcassBlocks = ['tallcab','basecab','openshelf','drawer','file','overhead','pedestal'];
+  const deskBlocks = ['desk','return'];
+  const bom = OFFICE_BLOCKS.filter(b=>(blocks[b.id]||0)>0).map(b=>{
+    const qty = blocks[b.id];
+    let unit = b.price;
+    if (carcassBlocks.includes(b.id)) unit = Math.round(b.price*matMult);
+    else if (deskBlocks.includes(b.id)) unit = Math.round(b.price*wtop.mult*carc.mult);
+    return { id:b.id, name:b.name, qty, unitPrice:unit, line:unit*qty };
+  });
+  const blocksTotal = bom.reduce((s,b)=>s+b.line,0);
+  // storage requirements priced per qty
+  const storeItems = OFFICE_STORAGE.filter(s=>(store[s.id]||0)>0).map(s=>({ ...s, qty:store[s.id], line:s.price*store[s.id] }));
+  const storeTotal = storeItems.reduce((s,a)=>s+a.line,0);
+  // lighting
+  const lightItems = OFFICE_LIGHTING.filter(l=>light[l.id]).map(l=>({ ...l, qty:1, line:l.price }));
+  const lightTotal = lightItems.reduce((s,a)=>s+a.line,0);
+  const grandTotal = blocksTotal + storeTotal + lightTotal;
+
+  // ── validation ──
+  const dimsOK = dims.wallW>=1000 && dims.wallH>=2000 && dims.ceiling>=dims.wallH;
+  const deskOK = desk.depth>=450 && desk.depth<=800 && desk.length>=900;
+  const deskOverWall = desk.length > dims.wallW;
+
+  // ── styles (mirror TV wizard) ──
+  const HEADER = mobile?72:56, BAR=52;
+  const inS = { width:'100%', padding:'9px 11px', border:'1px solid var(--line)', background:'#fff', borderRadius:10, fontSize:14, fontFamily:'inherit', color:'var(--ink)', boxSizing:'border-box' };
+  const card = (on) => ({ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'11px 13px', cursor:'pointer', fontFamily:'inherit' });
+  const labelS = { fontSize:11.5, fontWeight:600, color:'var(--ink-soft)', marginBottom:4, display:'block' };
+  const sectionH = (n,t,s) => (<div style={{ marginBottom:14 }}><h3 className="display" style={{ fontSize:19, color:'var(--ink)', margin:'0 0 3px' }}>{n} · {t}</h3>{s&&<p style={{ fontSize:13, color:'var(--ink-soft)', margin:0 }}>{s}</p>}</div>);
+  const numField = (lbl, val, set, min, max, unit='mm') => (
+    <label style={{ display:'block' }}><span style={labelS}>{lbl}</span>
+      <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+        <input type="number" value={val} min={min} max={max} onChange={e=>set(Number(e.target.value))} style={inS} />
+        <span style={{ fontSize:12, color:'var(--muted)' }}>{unit}</span>
+      </div>
+    </label>
+  );
+  const stepper = (val, set, min=0) => (
+    <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+      <button type="button" onClick={()=>set(Math.max(min,val-1))} style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--line)', background:'#fff', cursor:'pointer' }}>−</button>
+      <span style={{ minWidth:18, textAlign:'center', fontSize:13, fontWeight:600 }}>{val}</span>
+      <button type="button" onClick={()=>set(val+1)} style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--line)', background:'#fff', cursor:'pointer' }}>+</button>
+    </div>
+  );
+  const toggleRow = (on, set, name, sub) => (
+    <button type="button" onClick={set} style={{ ...card(on), display:'flex', alignItems:'center', justifyContent:'space-between', gap:9 }}>
+      <span><span style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)', display:'block' }}>{name}</span>{sub&&<span style={{ fontSize:11, color:'var(--muted)' }}>{sub}</span>}</span>
+      <span style={{ width:38, height:22, borderRadius:11, background:on?'var(--clay)':'var(--line)', position:'relative', flexShrink:0, transition:'background .15s' }}>
+        <span style={{ position:'absolute', top:2, left:on?18:2, width:18, height:18, borderRadius:'50%', background:'#fff', transition:'left .15s' }} /></span>
+    </button>
+  );
+
+  // ── 2D ELEVATION (front view) ──
+  const elevation = (h) => {
+    const W = Math.max(1000, dims.wallW), H = Math.max(1500, dims.wallH);
+    const pad = 30, vw = 340, vh = 250;
+    const sc = Math.min((vw-pad*2)/W, (vh-pad*2)/H);
+    const ox = pad + ((vw-pad*2)-W*sc)/2, oy = pad + ((vh-pad*2)-H*sc)/2;
+    const X = (mm)=>ox+mm*sc, Yt = (mm)=>oy+(H-mm)*sc; // mm-from-floor → svg y
+    const cx = ox + W*sc/2;
+    const deskTop = 740;                                  // worktop height (mm)
+    const deskW = Math.min(W, desk.length)*sc;
+    const deskY = Yt(deskTop);
+    const tallW = Math.min(520*sc, W*sc*0.22);
+    return (
+      <svg viewBox={`0 0 ${vw} ${vh}`} style={{ width:'100%', height:h, display:'block', background:'#fbf8f3' }} aria-label="Home office elevation">
+        {/* wall */}
+        <rect x={ox} y={oy} width={W*sc} height={H*sc} fill="#ffffff" stroke="#9a6a3c" strokeWidth="2.5" />
+        {/* floor line */}
+        <line x1={ox} y1={oy+H*sc} x2={ox+W*sc} y2={oy+H*sc} stroke="#9a6a3c" strokeWidth="3" />
+        {/* openings */}
+        {openings.map(o=>{ const owmm=Math.max(150,o.width||600); const ow=owmm*sc; const x=X(Math.max(0,Math.min(W-owmm,o.pos||0)));
+          const col = o.type==='Door'?'#16a34a':o.type==='Window'?'#0ea5e9':o.type==='Column'?'#6b7280':o.type==='AC unit'?'#0891b2':'#b45309';
+          const oy2 = o.type==='Window'?Yt(2000):o.type==='AC unit'?Yt(2300):oy; const oh = o.type==='Window'?900*sc:o.type==='AC unit'?300*sc:(o.type==='Column'?H*sc:H*sc);
+          return <g key={o.id}><rect x={x} y={o.type==='Door'||o.type==='Column'?oy:oy2} width={o.type==='Electrical outlet'?7:ow} height={o.type==='Electrical outlet'?7:oh} fill={col} fillOpacity={o.type==='Electrical outlet'?1:0.18} stroke={col} strokeWidth="1" /><text x={x+ow/2} y={oy-3} fontSize="7.5" fill={col} textAnchor="middle">{o.type[0]}</text></g>; })}
+        {/* tall storage units flanking (storage layouts) */}
+        {(layout==='wall-storage'||layout==='storage-desk') && <>
+          <rect x={ox+6} y={oy+6} width={tallW} height={H*sc-12} fill={fin.hex} stroke="#9a6a3c" strokeWidth="1" />
+          <rect x={ox+W*sc-6-tallW} y={oy+6} width={tallW} height={H*sc-12} fill={fin.hex} stroke="#9a6a3c" strokeWidth="1" />
+        </>}
+        {/* L-shape tall unit on the right */}
+        {layout==='l-shaped' && <rect x={ox+W*sc-6-tallW} y={oy+6} width={tallW} height={H*sc-12} fill={fin.hex} stroke="#9a6a3c" strokeWidth="1" />}
+        {/* overhead cabinets above the desk */}
+        {(layout==='wall-storage'||layout==='corner'||layout==='storage-desk') &&
+          <rect x={cx-deskW/2} y={Yt(2200)} width={deskW} height={Math.max(8,360*sc)} fill={fin.hex} stroke="#9a6a3c" strokeWidth="1" rx="2" />}
+        {/* open display shelves */}
+        {(layout==='built-in'||layout==='wall-storage') && [0,1,2,3].map(i=>(
+          <rect key={i} x={cx-deskW/2} y={Yt(2100 - i*340)} width={deskW} height={5} fill="#9a6a3c" />))}
+        {/* decorative back panel (built-in / minimal) */}
+        {(layout==='built-in'||layout==='minimal') &&
+          <rect x={cx-deskW/2-6} y={Yt(1700)} width={deskW+12} height={(1700-deskTop)*sc} fill={fin.hex} fillOpacity="0.4" stroke="#9a6a3c" strokeWidth="0.6" />}
+        {/* floating shelf for minimal */}
+        {layout==='minimal' && <rect x={cx-deskW/2} y={Yt(1500)} width={deskW} height={6} fill="#9a6a3c" />}
+        {/* worktop / desk surface */}
+        <rect x={cx-deskW/2} y={deskY-7} width={deskW} height={9} fill={wtop.hex} stroke="#9a6a3c" strokeWidth="1.2" rx="2" />
+        {/* desk legs / base cabinet */}
+        <rect x={cx-deskW/2} y={deskY} width={Math.max(60,deskW*0.32)} height={deskTop*sc} fill={fin.hex} stroke="#9a6a3c" strokeWidth="1" />
+        {desk.shape!=='Single'
+          ? <rect x={cx+deskW/2-Math.max(60,deskW*0.18)} y={deskY} width={Math.max(60,deskW*0.18)} height={deskTop*sc} fill={fin.hex} stroke="#9a6a3c" strokeWidth="1" />
+          : <line x1={cx+deskW/2-2} y1={deskY} x2={cx+deskW/2-2} y2={oy+H*sc} stroke="#9a6a3c" strokeWidth="2" />}
+        {/* monitor + chair sketch */}
+        <rect x={cx-46} y={deskY-7-46} width={64} height={38} fill="#1f2937" stroke="#000" strokeWidth="1" rx="2" />
+        <rect x={cx-18} y={deskY-7-8} width={8} height={8} fill="#374151" />
+        <rect x={cx+deskW/2-60} y={deskY+8} width={26} height={4} fill="#9a6a3c" rx="2" />
+        {/* dimension labels */}
+        <text x={ox+W*sc/2} y={oy-9} fontSize="9" fill="#9a6a3c" textAnchor="middle">{W} mm</text>
+        <text x={ox-9} y={oy+H*sc/2} fontSize="9" fill="#9a6a3c" textAnchor="middle" transform={`rotate(-90 ${ox-9} ${oy+H*sc/2})`}>{H} mm</text>
+        <line x1={ox-4} y1={deskY} x2={ox+4} y2={deskY} stroke="#0891b2" strokeWidth="1.5" />
+        <text x={ox+6} y={deskY-3} fontSize="7.5" fill="#0891b2">Desk {deskTop}mm</text>
+      </svg>
+    );
+  };
+
+  // ── steps meta ──
+  const STEPS = ['Room','Dimensions','Openings','Layout','Desk','Storage','Materials','Lighting','Quote'];
+  const next = () => setStep(s=>Math.min(STEPS.length-1, s+1));
+  const back = () => setStep(s=>Math.max(0, s-1));
+  const canNext = (() => { if (step===1) return dimsOK; return true; })();
+
+  // ── save / quote / pdf ──
+  const buildConfig = () => ({
+    product:'home_office', plan_version:'wizard-v1', room_type:room.name,
+    wall:{ width_mm:dims.wallW, height_mm:dims.wallH, ceiling_mm:dims.ceiling }, openings,
+    layout, layout_name:lay.name,
+    desk:{ length_mm:desk.length, depth_mm:desk.depth, shape:desk.shape, worktop:wtop.name },
+    storage:Object.entries(store).filter(([,v])=>v>0).map(([k,v])=>({ item:k, qty:v })),
+    materials:{ carcass:carc.name, finish:fin.name, worktop:wtop.name },
+    lighting:Object.keys(light).filter(k=>light[k]),
+    modules:bom.map(b=>({ name:b.name, qty:b.qty, line_bhd:b.line })),
+    estimate_bhd:grandTotal });
+
+  const saveDesign = async () => {
+    setBusy(true);
+    try {
+      const token = uid();
+      const breakdown = { modules:blocksTotal, storage:storeTotal, lighting:lightTotal };
+      await api('product_configurations', { method:'POST', body:[{ id:token, customer_id:user?.id||null, product_id:OFFICE_CATALOG_ANCHOR.id,
+        customer_name:user?.name||null, customer_email:user?.email||null, customer_phone:user?.phone||null,
+        product_name:`Home office — ${lay.name} (${(dims.wallW/1000).toFixed(1)}m wall)`, configuration:buildConfig(), total_price:grandTotal,
+        price_breakdown:breakdown, status:'office-plan', share_token:token, created_at:new Date().toISOString() }] });
+      toast('Design saved — reference '+token,'success');
+    } catch(e) { toast('Could not save: '+(e?.message||'try again'),'error'); }
+    finally { setBusy(false); }
+  };
+
+  const submitQuote = async (c) => {
+    if (!c.name.trim() || !c.phone.trim()) { toast('Please add your name and phone','error'); return; }
+    setBusy(true);
+    try {
+      const token = uid();
+      const breakdown = { modules:blocksTotal, storage:storeTotal, lighting:lightTotal };
+      await api('product_configurations', { method:'POST', body:[{ id:token, customer_id:user?.id||null, product_id:OFFICE_CATALOG_ANCHOR.id,
+        customer_name:c.name, customer_email:c.email||null, customer_phone:c.phone||null,
+        product_name:`Home office — ${lay.name} (${(dims.wallW/1000).toFixed(1)}m wall)`, configuration:buildConfig(), total_price:grandTotal,
+        price_breakdown:breakdown, status:'office-plan', share_token:token, created_at:new Date().toISOString() }] });
+      const leadId = 'LEAD-'+Date.now().toString(36).toUpperCase();
+      const note = [`🖥️ Home Office Planner Wizard`, `Room: ${room.name}  ·  Wall ${dims.wallW}×${dims.wallH}mm`,
+        `Layout: ${lay.name}  ·  ${bom.length} module lines`,
+        `Desk: ${desk.length}×${desk.depth}mm ${desk.shape}  ·  ${wtop.name} worktop`,
+        `Materials: ${carc.name} carcass · ${fin.name} finish`,
+        `Indicative estimate: BHD ${grandTotal}`, c.date?`Preferred visit: ${c.date}`:'', `Plan ref: ${token}`].filter(Boolean).join('\n');
+      await api('leads', { method:'POST', body:[{ id:leadId, name:c.name, email:c.email||null, phone:c.phone||null,
+        source:'website_office_planner', status:'New', stage:'New', platform:'Website', interest:'Home Office (planner wizard)',
+        budget:grandTotal, value:grandTotal, notes:note, created_at:new Date().toISOString() }] });
+      toast('Quote request sent — our design team will be in touch','success');
+      setShowQuote(false);
+      if (!user && openAuth) openAuth('register', { name:c.name, phone:c.phone, email:c.email });
+      else setPage('home');
+    } catch(e) { toast('Could not send: '+(e?.message||'try again'),'error'); }
+    finally { setBusy(false); }
+  };
+
+  const downloadPDF = () => {
+    const w = window.open('', '_blank');
+    if (!w) { toast('Allow pop-ups to download the quotation','error'); return; }
+    const rows = [
+      ...bom.map(b=>`<tr><td>${b.name} ×${b.qty}</td><td style="text-align:right">${fmt(b.line)}</td></tr>`),
+      ...storeItems.map(s=>`<tr><td>${s.name} ×${s.qty}</td><td style="text-align:right">${fmt(s.line)}</td></tr>`),
+      ...lightItems.map(l=>`<tr><td>${l.name}</td><td style="text-align:right">${fmt(l.line)}</td></tr>`),
+    ].join('');
+    w.document.write(`<html><head><title>Home Office Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:#C2410C;text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
+      <h1>The Closets — Home Office Quotation</h1>
+      <p class="muted">${room.name} · ${lay.name} layout · Wall ${dims.wallW}×${dims.wallH}mm · ${carc.name} carcass · ${fin.name} finish · ${wtop.name} worktop</p>
+      <p class="muted">Desk ${desk.length}×${desk.depth}mm · ${desk.shape}</p>
+      <table><tbody>${rows}</tbody></table>
+      <div class="tot">Estimated total: ${fmt(grandTotal)}</div>
+      <p class="muted" style="margin-top:24px">Indicative guide price. A free design visit confirms exact measurements and a fully itemised quote.</p>
+      </body></html>`);
+    w.document.close();
+    setTimeout(()=>{ try{ w.print(); }catch(e){} }, 350);
+  };
+
+  // ── STEP CONTENT ──
+  const stepContent = () => {
+    switch(step) {
+      case 0: return (<>{sectionH('1','Room type','Where will this home office live?')}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+          {OFFICE_ROOM_TYPES.map(r=>{ const on=roomType===r.id; return (
+            <button key={r.id} type="button" onClick={()=>setRoomType(r.id)} style={card(on)}>
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5"><path d={r.ic} /></svg>
+              <div style={{ fontSize:14, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)', marginTop:6 }}>{r.name}</div>
+              <div style={{ fontSize:11.5, color:'var(--muted)' }}>{r.sub}</div>
+            </button>); })}
+        </div></>);
+      case 1: return (<>{sectionH('2','Wall / room dimensions','Measure the wall the office will sit against, in millimetres.')}
+        <div style={{ display:'grid', gap:12 }}>
+          {numField('Wall width', dims.wallW, v=>setDims(d=>({...d,wallW:v})), 1000, 12000)}
+          {numField('Wall height', dims.wallH, v=>setDims(d=>({...d,wallH:v})), 2000, 5000)}
+          {numField('Ceiling height', dims.ceiling, v=>setDims(d=>({...d,ceiling:v})), 2000, 5000)}
+          {!dimsOK && <div style={{ fontSize:12, color:'var(--danger,#b91c1c)' }}>Wall ≥1000mm wide, ≥2000mm tall, and ceiling ≥ wall height.</div>}
+          <div style={{ fontSize:12, color:'var(--ink-soft)', background:'var(--sand)', borderRadius:10, padding:'8px 11px' }}>Recommended: worktop at 720–760mm, desk depth 600–700mm, knee clearance ≥600mm wide.</div>
+        </div></>);
+      case 2: return (<>{sectionH('3','Openings & constraints','Add doors, windows, columns, AC units and outlets — they appear on the elevation.')}
+        <div style={{ display:'grid', gap:9 }}>
+          {openings.map(o=>(
+            <div key={o.id} style={{ border:'1px solid var(--line)', borderRadius:11, padding:'9px 10px', background:'#fff' }}>
+              <div style={{ display:'grid', gridTemplateColumns:'1.3fr 1fr 1fr auto', gap:7, alignItems:'end' }}>
+                <label><span style={labelS}>Type</span>
+                  <select value={o.type} onChange={e=>setOpenings(os=>os.map(x=>x.id===o.id?{...x,type:e.target.value}:x))} style={inS}>{OFFICE_OPENING_TYPES.map(t=><option key={t}>{t}</option>)}</select></label>
+                <label><span style={labelS}>Position</span><input type="number" value={o.pos} onChange={e=>setOpenings(os=>os.map(x=>x.id===o.id?{...x,pos:Number(e.target.value)}:x))} style={inS} /></label>
+                <label><span style={labelS}>Width</span><input type="number" value={o.width} onChange={e=>setOpenings(os=>os.map(x=>x.id===o.id?{...x,width:Number(e.target.value)}:x))} style={inS} /></label>
+                <button type="button" onClick={()=>setOpenings(os=>os.filter(x=>x.id!==o.id))} style={{ background:'none', border:'1px solid var(--line)', borderRadius:9, padding:'9px 11px', cursor:'pointer', color:'var(--muted)' }}>✕</button>
+              </div>
+            </div>))}
+          <button type="button" onClick={()=>setOpenings(os=>[...os,{ id:uid(), type:'Electrical outlet', pos:1900, width:150 }])} style={{ border:'1px dashed var(--line)', borderRadius:11, padding:'10px', background:'var(--sand)', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--clay-deep)' }}>+ Add opening / constraint</button>
+        </div></>);
+      case 3: return (<>{sectionH('4','Layout','Pick a configuration — then tune its modular blocks below.')}
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr 1fr', gap:9, marginBottom:14 }}>
+          {OFFICE_LAYOUTS.map(l=>{ const on=layout===l.id; return (
+            <button key={l.id} type="button" onClick={()=>pickLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden' }}>
+              <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?120:140, objectFit:'cover', borderTopLeftRadius:12, borderTopRightRadius:12 }} />
+              <div style={{ padding:'9px 10px' }}>
+                <div style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{l.name}</div>
+                <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>{l.sub}</div>
+              </div>
+            </button>); })}
+        </div>
+        <div style={{ background:'var(--sand)', borderRadius:12, padding:'13px 14px', marginBottom:12 }}>
+          <div className="eyebrow" style={{ fontSize:11, marginBottom:6 }}>{lay.name}</div>
+          <div style={{ fontSize:11.5, color:'var(--ink-soft)' }}>Includes: {lay.feats.join(' · ')}</div>
+        </div>
+        {/* modular blocks for this layout */}
+        <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>Modular blocks</div>
+        <div style={{ display:'grid', gap:8 }}>
+          {OFFICE_BLOCKS.map(b=>{ const q=blocks[b.id]||0; const on=q>0; const unit=carcassBlocks.includes(b.id)?Math.round(b.price*matMult):deskBlocks.includes(b.id)?Math.round(b.price*wtop.mult*carc.mult):b.price; return (
+            <div key={b.id} style={{ display:'flex', alignItems:'center', gap:9, border:on?'2px solid var(--clay)':'1px solid var(--line)', background:on?'var(--sand)':'#fff', borderRadius:11, padding:'8px 11px' }}>
+              <div style={{ flex:1 }}><div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{b.name}</div><div style={{ fontSize:11, color:'var(--muted)' }}>{fmt(unit)} / unit</div></div>
+              {stepper(q, v=>setBlock(b.id,v))}
+            </div>); })}
+        </div></>);
+      case 4: return (<>{sectionH('5','Desk & worktop','Size your desk and choose the worktop material.')}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:11, marginBottom:14 }}>
+          {numField('Desk length', desk.length, v=>setDesk(d=>({...d,length:v})), 600, 12000)}
+          {numField('Desk depth', desk.depth, v=>setDesk(d=>({...d,depth:v})), 400, 900)}
+          <label style={{ gridColumn:'1/-1' }}><span style={labelS}>Desk shape</span>
+            <select value={desk.shape} onChange={e=>setDesk(d=>({...d,shape:e.target.value}))} style={inS}>{OFFICE_DESK_SHAPES.map(s=><option key={s}>{s}</option>)}</select></label>
+          {!deskOK && <div style={{ gridColumn:'1/-1', fontSize:11.5, color:'var(--danger,#b91c1c)' }}>⚠ Aim for desk depth 450–800mm and length ≥900mm.</div>}
+          {deskOverWall && <div style={{ gridColumn:'1/-1', fontSize:11.5, color:'var(--danger,#b91c1c)' }}>⚠ Desk length exceeds wall width ({(dims.wallW/1000).toFixed(1)}m).</div>}
+        </div>
+        <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>Worktop material</div>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(4,1fr)', gap:8 }}>
+          {OFFICE_WORKTOPS.map(o=>{ const on=desk.worktop===o.id; return (
+            <button key={o.id} type="button" onClick={()=>setDesk(d=>({...d,worktop:o.id}))} style={card(on)}>
+              <div style={{ height:30, borderRadius:7, background:o.hex, marginBottom:6 }} />
+              <div style={{ fontSize:13, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{o.name}</div>
+              <div style={{ fontSize:10.5, color:'var(--muted)' }}>{o.sub}</div>
+            </button>); })}
+        </div></>);
+      case 5: return (<>{sectionH('6','Storage','How much storage does the office need?')}
+        <div style={{ display:'grid', gap:9 }}>
+          {OFFICE_STORAGE.map(s=>{ const q=store[s.id]||0; const on=q>0; return (
+            <div key={s.id} style={{ display:'flex', alignItems:'center', gap:9, border:on?'2px solid var(--clay)':'1px solid var(--line)', background:on?'var(--sand)':'#fff', borderRadius:11, padding:'9px 11px' }}>
+              <div style={{ flex:1 }}><div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{s.name}</div><div style={{ fontSize:11, color:'var(--muted)' }}>{fmt(s.price)} / {s.unit}</div></div>
+              {stepper(q, v=>setStore(st=>({...st,[s.id]:v})))}
+            </div>); })}
+        </div></>);
+      case 6: return (<>{sectionH('7','Materials','Carcass and finish drive the look and the price.')}
+        {[['Carcass','carcass',OFFICE_CARCASS],['Finish','finish',OFFICE_FINISH]].map(([title,key,list])=>(
+          <div key={key} style={{ marginBottom:14 }}>
+            <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>{title}</div>
+            <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(3,1fr)', gap:8 }}>
+              {list.map(o=>{ const on=mats[key]===o.id; return (
+                <button key={o.id} type="button" onClick={()=>setMats(m=>({...m,[key]:o.id}))} style={card(on)}>
+                  {o.hex && <div style={{ height:30, borderRadius:7, background:o.hex, marginBottom:6 }} />}
+                  <div style={{ fontSize:13, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{o.name}</div>
+                  <div style={{ fontSize:10.5, color:'var(--muted)' }}>{o.sub||('×'+o.mult.toFixed(2))}</div>
+                </button>); })}
+            </div>
+          </div>))}</>);
+      case 7: return (<>{sectionH('8','Lighting','Integrated lighting keeps the desk bright and the shelves glowing.')}
+        <div style={{ display:'grid', gap:8 }}>
+          {OFFICE_LIGHTING.map(l=>toggleRow(light[l.id], ()=>setLight(s=>({...s,[l.id]:!s[l.id]})), l.name, `adds ${fmt(l.price)}`))}
+        </div></>);
+      case 8: return (<>{sectionH('9','Summary & quote','Your bill of materials, live cost estimate and next steps.')}
+        <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:12, overflow:'hidden', marginBottom:12 }}>
+          <div style={{ padding:'8px 12px', background:'var(--sand)', fontSize:11.5, fontWeight:700, color:'var(--ink-soft)' }}>Bill of materials</div>
+          {bom.map(b=>(<div key={b.id} style={{ display:'flex', justifyContent:'space-between', padding:'7px 12px', fontSize:12.5, borderTop:'1px solid var(--line)' }}><span style={{ color:'var(--ink-soft)' }}>{b.name} ×{b.qty}</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(b.line)}</span></div>))}
+          {storeItems.map(s=>(<div key={s.id} style={{ display:'flex', justifyContent:'space-between', padding:'7px 12px', fontSize:12.5, borderTop:'1px solid var(--line)' }}><span style={{ color:'var(--ink-soft)' }}>{s.name} ×{s.qty}</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(s.line)}</span></div>))}
+          {lightItems.map(l=>(<div key={l.id} style={{ display:'flex', justifyContent:'space-between', padding:'7px 12px', fontSize:12.5, borderTop:'1px solid var(--line)' }}><span style={{ color:'var(--ink-soft)' }}>{l.name}</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(l.line)}</span></div>))}
+          <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 12px', borderTop:'2px solid var(--line)', background:'var(--sand)' }}><span style={{ fontWeight:700, color:'var(--ink)' }}>Estimated total</span><span className="display" style={{ fontSize:19, color:'var(--clay-deep)' }}>{fmt(grandTotal)}</span></div>
+        </div>
+        <div style={{ background:'rgba(8,145,178,.08)', borderRadius:10, padding:'9px 12px', fontSize:12.5, color:'#0e7490', marginBottom:12 }}>
+          Work guidance: set the worktop at 720–760mm, allow ≥600mm knee clearance, and run a dedicated outlet + cable tray behind the desk. Tall units fix to a timber sub-frame.
+        </div>
+        {deskOverWall && <div style={{ fontSize:12.5, color:'var(--danger,#b91c1c)', marginBottom:12 }}>⚠ Desk length exceeds the wall — reduce length or widen the wall.</div>}
+        <div style={{ display:'grid', gap:8 }}>
+          <button type="button" disabled={busy} onClick={saveDesign} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:11, padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>Save design</button>
+          <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:11 }}>{user?'Get quote →':'Sign in & get quote →'}</button>
+          <button type="button" onClick={downloadPDF} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:11, padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>Download PDF quotation</button>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginTop:6 }}>
+            {[['AI layout suggestions'],['Drag-and-drop modules'],['Ergonomic check'],['AR room preview'],['Manufacturing drawings'],['CNC cut list export']].map(([t])=>(
+              <button key={t} type="button" disabled title="Coming soon" style={{ border:'1px dashed var(--line)', background:'var(--sand)', borderRadius:10, padding:'9px', fontSize:11.5, color:'var(--muted)', cursor:'not-allowed' }}>{t} · soon</button>))}
+          </div>
+        </div></>);
+      default: return null;
+    }
+  };
+
+  // ── PREVIEW pane ──
+  const previewPane = (h) => (
+    <div style={{ display:'flex', flexDirection:'column', gap:10, height:'100%' }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <span style={{ fontSize:12, fontWeight:600, color:'var(--ink-soft)' }}>2D elevation · front view</span>
+        <span style={{ fontSize:11, color:'var(--muted)' }}>{room.name}</span>
+      </div>
+      <div style={{ background:'var(--sand)', borderRadius:12, overflow:'hidden', flex:1, minHeight:0 }}>{elevation(h)}</div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
+        <span style={{ fontSize:11, color:'var(--muted)' }}>{lay.name} · {desk.shape} desk · {(dims.wallW/1000).toFixed(1)}m wall</span>
+        <span className="display" style={{ fontSize:20, color:'var(--clay)' }}>{fmt(grandTotal)}</span>
+      </div>
+      {deskOverWall && <div style={{ fontSize:11, color:'var(--danger,#b91c1c)', background:'rgba(220,38,38,.08)', borderRadius:8, padding:'6px 9px' }}>⚠ Desk wider than the wall.</div>}
+    </div>
+  );
+
+  // ── APP SHELL (fit-to-viewport) ──
+  return (
+    <div style={{ height: mobile?'100dvh':`calc(100dvh - ${HEADER}px)`, marginTop: HEADER, display:'flex', flexDirection:'column', background:'var(--cream)', overflow:'hidden' }}>
+      {/* step bar */}
+      <div style={{ height:BAR, flexShrink:0, display:'flex', alignItems:'center', gap:4, overflowX:'auto', padding:'0 12px', borderBottom:'1px solid var(--line)', background:'#fff' }}>
+        {STEPS.map((s,i)=>{ const done=i<step, now=i===step; return (
+          <button key={s} type="button" onClick={()=>i<=step&&setStep(i)} style={{ flexShrink:0, display:'flex', alignItems:'center', gap:5, background:'none', border:'none', cursor:i<=step?'pointer':'default', padding:'2px 6px' }}>
+            <span style={{ width:20, height:20, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10.5, fontWeight:700, background: now?'var(--clay)':done?'var(--clay-deep)':'var(--sand)', color:(!now&&!done)?'var(--muted)':'#fff' }}>{done?'✓':i+1}</span>
+            <span style={{ fontSize:12, fontWeight:now?700:500, color:now?'var(--ink)':done?'var(--ink-soft)':'var(--muted)', whiteSpace:'nowrap' }}>{s}</span>
+          </button>); })}
+      </div>
+
+      {/* two-pane body */}
+      <div style={{ flex:1, minHeight:0, display:'flex', flexDirection: mobile?'column':'row' }}>
+        {/* LEFT — controls (own scroll) */}
+        <div style={{ width: mobile?'auto':410, flexShrink:0, overflowY:'auto', WebkitOverflowScrolling:'touch', padding: mobile?'14px 14px 0':'18px 20px', borderRight: mobile?'none':'1px solid var(--line)', flex: mobile?1:'none', minHeight:0 }}>
+          <div style={{ maxWidth:560, margin:'0 auto', paddingBottom: mobile?16:30 }}>{stepContent()}</div>
+        </div>
+        {/* RIGHT — sticky preview (desktop) */}
+        {!mobile && (
+          <div style={{ flex:1, minWidth:0, padding:'18px 20px', display:'flex', flexDirection:'column' }}>
+            <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:14, boxShadow:'var(--shadow)', flex:1, display:'flex', flexDirection:'column', minHeight:0 }}>
+              {previewPane('100%')}
+            </div>
+          </div>
+        )}
+        {/* mobile collapsible preview */}
+        {mobile && showPrev && (
+          <div style={{ flexShrink:0, padding:'10px 14px', borderTop:'1px solid var(--line)', background:'#fff' }}>
+            <div style={{ height:210 }}>{previewPane(200)}</div>
+          </div>
+        )}
+      </div>
+
+      {/* bottom action bar */}
+      <div style={{ flexShrink:0, display:'flex', alignItems:'center', gap:10, padding:'9px 14px calc(9px + env(safe-area-inset-bottom))', borderTop:'1px solid var(--line)', background:'rgba(255,255,255,.97)', backdropFilter:'blur(10px)' }}>
+        {step>0 ? <button type="button" onClick={back} style={{ background:'none', border:'1px solid var(--line)', borderRadius:11, padding:'10px 16px', fontSize:13.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>‹ Back</button>
+          : <button type="button" onClick={()=>setPage('office')} style={{ background:'none', border:'1px solid var(--line)', borderRadius:11, padding:'10px 16px', fontSize:13, color:'var(--muted)', cursor:'pointer' }}>‹ Exit</button>}
+        {mobile && <button type="button" onClick={()=>setShowPrev(v=>!v)} style={{ background:'var(--sand)', border:'none', borderRadius:11, padding:'10px 12px', fontSize:12.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{showPrev?'Hide':'Preview'}</button>}
+        <div style={{ flex:1, textAlign: mobile?'center':'right', minWidth:0 }}><span style={{ fontSize:10.5, color:'var(--muted)' }}>Total </span><span className="display" style={{ fontSize:17, color:'var(--clay)' }}>{fmt(grandTotal)}</span></div>
+        {step<STEPS.length-1
+          ? <button type="button" className="btn-clay" disabled={!canNext} onClick={next} style={{ borderRadius:11, minWidth:120, opacity:canNext?1:.55 }}>Next →</button>
+          : <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:11, minWidth:120 }}>Get quote →</button>}
+      </div>
+
+      {/* QUOTE modal */}
+      {showQuote && (
+        <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
+          <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:420, width:'100%', padding:24 }}>
+            <div className="eyebrow" style={{ marginBottom:8 }}>Almost there</div>
+            <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 6px' }}>Get your home office quote</h3>
+            <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)' }}>{lay.name} · {desk.shape} desk · {fin.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(grandTotal)}</b></div>
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} placeholder="Your name" style={inS} />
+              <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} placeholder="Phone (+973…)" inputMode="tel" style={inS} />
+              <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} placeholder="Email (optional)" inputMode="email" style={inS} />
+              <input type="date" value={contact.date} onChange={e=>setContact(c=>({...c,date:e.target.value}))} style={inS} />
+            </div>
+            <div style={{ display:'flex', gap:10, marginTop:16 }}>
+              <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>Cancel</button>
+              <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submitQuote(contact)} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?'Sending…':(user?'Send quote request':'Sign in & send')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── WOOD DOOR PLANNER WIZARD · data tables (BHD) ──
    Wired to route 'door-planner'. Pure 2D door elevation + live BOM + cost + quote.
    Standard dims (W×H mm): Bedroom 800–900×2100–2400; Bathroom 700–800×2100–2400;
    Main entrance 1000–1400×2400–3200; Double 1400–2000×2400–3200; Pivot 1200–1800×2700–3500. */
 const DOOR_TYPES = [
-  { id:'single',  name:'Single Swing',  sub:'One hinged leaf',            note:'The everyday interior door — one leaf on side hinges.', leaves:1, mode:'swing',  ic:'M5 3h14v18H5zM15 12h0.01' },
-  { id:'double',  name:'Double Swing',  sub:'Two hinged leaves',          note:'Grand entrances & majlis — two meeting leaves.',       leaves:2, mode:'swing',  ic:'M4 3h7v18H4zM13 3h7v18h-7zM9 12h0.01M15 12h0.01' },
-  { id:'sliding', name:'Sliding',       sub:'Slides on a track',          note:'Space-saving — the leaf glides along a wall track.',   leaves:1, mode:'slide',  ic:'M3 5h18v14H3zM12 5v14M7 12h3M14 12h3' },
-  { id:'pivot',   name:'Pivot',         sub:'Centre / offset pivot',      note:'Architectural statement — turns on a floor pivot.',    leaves:1, mode:'pivot',  ic:'M5 3h14v18H5zM12 3v18' },
-  { id:'hidden',  name:'Hidden',        sub:'Flush concealed frame',      note:'Invisible door — flush with the wall, no visible frame.',leaves:1,mode:'swing',  ic:'M5 3h14v18H5zM5 12h14' },
-  { id:'folding', name:'Folding',       sub:'Bi-fold panels',             note:'Folds back in panels for a wide clear opening.',       leaves:2, mode:'fold',   ic:'M4 3h4v18H4zM8 3h4v18H8zM12 3h4v18h-4zM16 3h4v18h-4z' },
+  { id:'single',  name:'Single Swing',  sub:'One hinged leaf',            note:'The everyday interior door — one leaf on side hinges.', leaves:1, mode:'swing',  ic:'M5 3h14v18H5zM15 12h0.01', img:'/layouts/door/single-swing.jpg' },
+  { id:'double',  name:'Double Swing',  sub:'Two hinged leaves',          note:'Grand entrances & majlis — two meeting leaves.',       leaves:2, mode:'swing',  ic:'M4 3h7v18H4zM13 3h7v18h-7zM9 12h0.01M15 12h0.01', img:'/layouts/door/double-swing.jpg' },
+  { id:'sliding', name:'Sliding',       sub:'Slides on a track',          note:'Space-saving — the leaf glides along a wall track.',   leaves:1, mode:'slide',  ic:'M3 5h18v14H3zM12 5v14M7 12h3M14 12h3', img:'/layouts/door/sliding.jpg' },
+  { id:'pivot',   name:'Pivot',         sub:'Centre / offset pivot',      note:'Architectural statement — turns on a floor pivot.',    leaves:1, mode:'pivot',  ic:'M5 3h14v18H5zM12 3v18', img:'/layouts/door/pivot.jpg' },
+  { id:'hidden',  name:'Hidden',        sub:'Flush concealed frame',      note:'Invisible door — flush with the wall, no visible frame.',leaves:1,mode:'swing',  ic:'M5 3h14v18H5zM5 12h14', img:'/layouts/door/hidden.jpg' },
+  { id:'folding', name:'Folding',       sub:'Bi-fold panels',             note:'Folds back in panels for a wide clear opening.',       leaves:2, mode:'fold',   ic:'M4 3h4v18H4zM8 3h4v18H8zM12 3h4v18h-4zM16 3h4v18h-4z', img:'/layouts/door/folding.jpg' },
 ];
 // Quick-start priority configurations (Step 1 cards)
 const DOOR_PRESETS = [
@@ -7015,11 +7549,13 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
         <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>Door type</div>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr', gap:10 }}>
           {DOOR_TYPES.map(t=>{ const on=doorType===t.id; return (
-            <button key={t.id} type="button" onClick={()=>setDoorType(t.id)} style={card(on)}>
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.4"><path d={t.ic} /></svg>
-              <div style={{ fontSize:14, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)', marginTop:6 }}>{t.name}</div>
-              <div style={{ fontSize:11, color:'var(--muted)' }}>{t.sub}</div>
-              <div style={{ fontSize:11, color:'var(--ink-soft)', marginTop:6 }}>{t.note}</div>
+            <button key={t.id} type="button" onClick={()=>setDoorType(t.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left' }}>
+              <img src={t.img} alt={t.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?120:150, objectFit:'cover', borderTopLeftRadius:12, borderTopRightRadius:12 }} />
+              <div style={{ padding:'10px 12px' }}>
+                <div style={{ fontSize:14, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{t.name}</div>
+                <div style={{ fontSize:11, color:'var(--muted)' }}>{t.sub}</div>
+                <div style={{ fontSize:11, color:'var(--ink-soft)', marginTop:6 }}>{t.note}</div>
+              </div>
             </button>); })}
         </div></>);
       case 1: return (<>{sectionH('2','Location','Where will this door go? We pre-fill recommended dimensions.')}
@@ -7530,9 +8066,12 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
       case 3: return (<>{sectionH('4','Select layout','Pick a configuration — then set its parameters below.')}
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr 1fr', gap:9, marginBottom:14 }}>
           {KW_LAYOUTS.map(l=>{ const on=layout===l.id; return (
-            <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:'9px 10px' }}>
-              <div style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{l.name}</div>
-              <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>{l.sub}</div>
+            <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden' }}>
+              <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?120:140, objectFit:'cover', borderTopLeftRadius:12, borderTopRightRadius:12 }} />
+              <div style={{ padding:'9px 10px' }}>
+                <div style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{l.name}</div>
+                <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>{l.sub}</div>
+              </div>
             </button>); })}
         </div>
         <div style={{ background:'var(--sand)', borderRadius:12, padding:'13px 14px' }}>
@@ -8325,10 +8864,12 @@ function KitchenPage({ setPage, products }) {
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>Made to fit your room.</h2>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
           {K_LAYOUTS.map(l=>(
-            <div key={l.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 14px', textAlign:'center' }}>
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.4" style={{ margin:'0 auto 8px' }}><path d={l.ic} /></svg>
-              <div style={{ fontSize:14, fontWeight:600, color:'var(--ink)' }}>{l.name}</div>
-              <div style={{ fontSize:11.5, color:'var(--muted)', marginTop:4, lineHeight:1.4 }}>{l.sub}</div>
+            <div key={l.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, overflow:'hidden', textAlign:'center' }}>
+              <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?110:130, objectFit:'cover' }} />
+              <div style={{ padding:'14px 12px 16px' }}>
+                <div style={{ fontSize:14, fontWeight:600, color:'var(--ink)' }}>{l.name}</div>
+                <div style={{ fontSize:11.5, color:'var(--muted)', marginTop:4, lineHeight:1.4 }}>{l.sub}</div>
+              </div>
             </div>
           ))}
         </div>
@@ -8432,6 +8973,160 @@ function KitchenPage({ setPage, products }) {
           <p style={{ fontSize: mobile?15:18, opacity:.92, maxWidth:520, margin:'0 auto 22px' }}>Design it in 3D with a live quote, or book a free home visit — no obligation.</p>
           <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
             <button type="button" onClick={()=>setPage('kitchen-planner')} style={{ background:'#fff', color:'var(--clay-deep)', border:'none', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:700, cursor:'pointer' }}>Open Design Studio →</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>Book a free visit</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function OfficePage({ setPage, products }) {
+  const mobile = useMobile();
+  const [faq, setFaq] = useState(-1);
+  const officeProducts = (products||[]).filter(p =>
+    /office|study|desk|workspace|home\s*office/i.test(p.category||'') ||
+    /office|study|desk/i.test(p.name||''));
+  const heroImg = '/layouts/office/l-shaped.jpg';
+  const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
+  const FAQS = [
+    ['How much does a fitted home office cost?', 'A minimal floating desk setup starts from around BD 540, a corner or built-in office from BD 1,100, and a full floor-to-ceiling storage wall with integrated desk from BD 2,400+. Price is driven transparently by the metres of cabinetry, your worktop and storage — build a live estimate in the office planner.'],
+    ['How long does it take?', 'Most home offices are designed, manufactured and installed within 4–7 weeks of sign-off. Real-wood veneer and quartz worktops sit at the longer end.'],
+    ['Can you build into an alcove or awkward corner?', 'Absolutely. Every office is made to measure — we scribe desks and storage into alcoves, corners and sloped ceilings so every centimetre works.'],
+    ['Do you handle cable management?', 'Yes — we build in cable trays, grommets and a dedicated power route behind the desk so the setup stays tidy and the wiring stays hidden.'],
+    ['What hardware do you use?', 'Blum soft-close hinges and full-extension drawer runners as standard, plus warm 3000K LED for shelves and under-cabinet task light — all backed by our 10-year cabinetry warranty.'],
+    ['What warranty do I get?', '10 years on cabinetry and soft-close hardware, plus 5–10 years on finishes depending on the material you choose.'],
+  ];
+
+  return (
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?56:64, paddingBottom:90 }}>
+      {/* HERO */}
+      <section style={{ position:'relative', minHeight: mobile?440:560, display:'flex', alignItems:'flex-end', backgroundImage:`linear-gradient(to top, rgba(20,16,12,.72), rgba(20,16,12,.15)), url('${heroImg}')`, backgroundSize:'cover', backgroundPosition:'center' }}>
+        <div style={{ ...wrap, paddingBottom: mobile?32:54, color:'#fff' }}>
+          <div style={{ fontSize:12, letterSpacing:'.18em', textTransform:'uppercase', opacity:.85, marginBottom:12 }}>Bespoke home offices &amp; study spaces · Bahrain</div>
+          <h1 className="display" style={{ fontSize: mobile?34:60, lineHeight:1.05, maxWidth:780, margin:0 }}>A workspace built around the way you work.</h1>
+          <p style={{ fontSize: mobile?15:19, maxWidth:560, marginTop:14, opacity:.92, lineHeight:1.55 }}>From a floating desk in the bedroom to a full storage wall with an integrated worktop — designed to the centimetre. Choose your layout, desk and finish, then plan it with a live quote.</p>
+          <div style={{ display:'flex', gap:12, marginTop:24, flexWrap:'wrap' }}>
+            <button type="button" className="btn-clay" onClick={()=>setPage('office-planner')} style={{ borderRadius:14 }}>Open the office planner →</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.12)', color:'#fff', border:'1px solid rgba(255,255,255,.45)', borderRadius:14, padding:'15px 28px', fontSize:16, fontWeight:600, cursor:'pointer', backdropFilter:'blur(6px)' }}>Book a free visit</button>
+          </div>
+        </div>
+      </section>
+
+      {/* LAYOUT TYPES gallery — each uses its /layouts/office/<id>.jpg photo */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div className="eyebrow" style={{ marginBottom:10 }}>Office layouts</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>Find your setup.</h2>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>Six ways to bring a proper, productive workspace into your home — from minimal to a full storage wall.</p>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
+          {OFFICE_LAYOUTS.map(t=>(
+            <button key={t.id} type="button" onClick={()=>setPage('office-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+              <div style={{ height: mobile?170:210, background:`url('${t.img}') center/cover` }} />
+              <div style={{ padding:'18px 20px' }}>
+                <div style={{ fontSize:20, fontWeight:600, color:'var(--ink)' }}>{t.name}</div>
+                <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{t.sub}</div>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:6, margin:'12px 0' }}>
+                  {t.feats.map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{c}</span>))}
+                </div>
+                <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600 }}>Design yours →</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* STORAGE & DESK strip */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div className="eyebrow" style={{ marginBottom:10 }}>Desk &amp; storage</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>Organised to the centimetre.</h2>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>Mix open shelving, closed cabinets, drawers, tall units and file storage — every element priced transparently per unit.</p>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
+          {OFFICE_STORAGE.map(f=>(
+            <div key={f.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 14px', textAlign:'center' }}>
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.4" style={{ margin:'0 auto 8px' }}><path d="M4 6h16v12H4z M4 12h16" /></svg>
+              <div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{f.name}</div>
+              <div style={{ fontSize:11, color:'var(--muted)', marginTop:3, lineHeight:1.35 }}>per {f.unit}</div>
+              <div style={{ fontSize:12, color:'var(--clay)', fontWeight:700, marginTop:6 }}>+{fmt(f.price)}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* MATERIALS note (worktops) */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div className="eyebrow" style={{ marginBottom:10 }}>Worktops &amp; materials</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>Surfaces that work hard.</h2>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>From durable laminate to engineered quartz — pick the worktop and finish that suit your work and your room.</p>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(4,1fr)', gap:14 }}>
+          {OFFICE_WORKTOPS.map(w=>(
+            <div key={w.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 16px' }}>
+              <div style={{ height:36, borderRadius:9, background:w.hex, border:'1px solid var(--line)', marginBottom:10 }} />
+              <div style={{ fontSize:16, fontWeight:600, color:'var(--ink)' }}>{w.name}</div>
+              <div style={{ fontSize:12.5, color:'var(--muted)', marginTop:3 }}>{w.sub}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FEATURES / why us */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
+          {[
+            ['Made to measure','Surveyed, scribed and fitted to your exact walls and alcoves — no gaps, no filler panels.','M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
+            ['Cable management built in','Trays, grommets and a dedicated power route keep the desk tidy and the wiring hidden.','M4 7h16v10H4z M8 12h8'],
+            ['One team, end to end','Design, manufacture, deliver and install — handled by our own team, never sub-let.','M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
+          ].map(([t,d,ic])=>(
+            <div key={t} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5" style={{ marginBottom:12 }}><path d={ic} /></svg>
+              <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{t}</div>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', marginTop:6, lineHeight:1.55 }}>{d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CATALOG anchors (real products) */}
+      {officeProducts.length>0 && (
+        <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+          <div className="eyebrow" style={{ marginBottom:10 }}>Starting points</div>
+          <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>Popular home offices.</h2>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
+            {officeProducts.map(p=>(
+              <button key={p.id} type="button" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+                <div style={{ height:160, background: p.image_url?`url('${p.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }} />
+                <div style={{ padding:'14px 16px' }}>
+                  <div style={{ fontSize:16, fontWeight:600, color:'var(--ink)' }}>{p.name}</div>
+                  <div style={{ fontSize:13, color:'var(--muted)', marginTop:4 }}>From {fmt(p.price)}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* FAQ */}
+      <section style={{ ...wrap, marginTop: mobile?40:64, maxWidth:820 }}>
+        <div className="eyebrow" style={{ marginBottom:10, textAlign:'center' }}>Good to know</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px', textAlign:'center' }}>Home office questions, answered.</h2>
+        <div style={{ display:'grid', gap:10 }}>
+          {FAQS.map(([q,a],i)=>{ const on=faq===i; return (
+            <div key={i} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:14, overflow:'hidden' }}>
+              <button type="button" onClick={()=>setFaq(on?-1:i)} style={{ width:'100%', textAlign:'left', background:'none', border:'none', padding:'16px 18px', fontSize:15.5, fontWeight:600, color:'var(--ink)', cursor:'pointer', display:'flex', justifyContent:'space-between', gap:12 }}>
+                <span>{q}</span><span style={{ color:'var(--clay)', flexShrink:0 }}>{on?'–':'+'}</span>
+              </button>
+              {on && <div style={{ padding:'0 18px 16px', fontSize:14, color:'var(--ink-soft)', lineHeight:1.6 }}>{a}</div>}
+            </div>
+          ); })}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div style={{ background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', borderRadius:22, padding: mobile?'32px 24px':'52px 48px', textAlign:'center', color:'#fff' }}>
+          <h2 className="display" style={{ fontSize: mobile?28:42, margin:'0 0 10px' }}>Your dream home office starts here.</h2>
+          <p style={{ fontSize: mobile?15:18, opacity:.92, maxWidth:520, margin:'0 auto 22px' }}>Plan it with a live quote, or book a free home visit — no obligation.</p>
+          <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
+            <button type="button" onClick={()=>setPage('office-planner')} style={{ background:'#fff', color:'var(--clay-deep)', border:'none', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:700, cursor:'pointer' }}>Open the office planner →</button>
             <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>Book a free visit</button>
           </div>
         </div>
@@ -9525,6 +10220,8 @@ export default function App() {
       {page==='tv-planner' && <PageBoundary key="tvp"><TVUnitPlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
       {page==='door-planner' && <PageBoundary key="dp"><DoorPlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
       {page==='wardrobe-planner' && <PageBoundary key="wp"><WardrobePlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
+      {page==='office' && <PageBoundary key="office"><OfficePage setPage={setPage} products={products} /></PageBoundary>}
+      {page==='office-planner' && <PageBoundary key="op"><OfficePlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
       {page==='design-builder' && <PageBoundary key="db"><DesignBuilderPage setPage={setPage} user={user} /></PageBoundary>}
       {page==='planner' && <PageBoundary key="planner"><PlannerPage setPage={setPage} user={user} openAuth={openAuth} siteLogo={siteLogo} /></PageBoundary>}
       {page==='cat:Doors' && <PageBoundary key="dpc"><DoorPlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
