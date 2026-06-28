@@ -385,7 +385,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
     { id:'menu', label:'Menu', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg> },
   ];
   const go = (id) => { if (id==='menu') setMenuOpen(true); else { setPage(id); setMenuOpen(false); } };
-  const ALL_LINKS = [['home','Home'],['products','Gallery'],['projects','Projects'],['planner','Design'],['ai','AI Designer'],['services','Services'],['showrooms','Showrooms'],['directory','Directory'],['blog','Inspiration'],['contact','Contact']];
+  const ALL_LINKS = [['home','Home'],['products','Gallery'],['kitchen','Kitchens'],['projects','Projects'],['planner','Design'],['ai','AI Designer'],['services','Services'],['showrooms','Showrooms'],['directory','Directory'],['blog','Inspiration'],['contact','Contact']];
 
   return (<>
     {/* Slim top bar — logo + actions */}
@@ -408,7 +408,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
     </nav>
 
     {/* Floating bottom dock — hidden on the planner (all screen sizes) so it can't cover the planner's own Back/Close/CTA navigation */}
-    {page!=='planner' && (
+    {!['planner','kitchen-planner'].includes(page) && (
     <div style={{ position:'fixed', bottom: mobile?'calc(14px + env(safe-area-inset-bottom))':18, left:'50%', transform:'translateX(-50%)', zIndex:900, display:'flex', alignItems:'flex-end', gap: mobile?16:24, maxWidth:'calc(100vw - 24px)', background:'rgba(255,255,255,.92)', backdropFilter:'blur(18px) saturate(180%)', border:'1px solid rgba(0,0,0,.06)', borderRadius:999, padding: mobile?'7px 18px':'8px 24px', boxShadow:'0 10px 34px rgba(33,28,24,.16)' }}>
       {DOCK.map(d => {
         const active = page===d.id;
@@ -3849,7 +3849,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
               ][i] || { gridColumn: 'span 2' };
               const big = i === 0;
               return (
-                <button type="button" key={name} className="rv tile-zoom lift" onClick={() => setPage('products')} style={{ ...span, '--d': (i * 0.07) + 's', position: 'relative', border: 'none', borderRadius: big ? 24 : 18, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 280 : 0, padding: 0, background: '#15110e' }}>
+                <button type="button" key={name} className="rv tile-zoom lift" onClick={() => setPage(name==='Kitchens' ? 'kitchen' : 'products')} style={{ ...span, '--d': (i * 0.07) + 's', position: 'relative', border: 'none', borderRadius: big ? 24 : 18, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 280 : 0, padding: 0, background: '#15110e' }}>
                   <Photo src={img} alt={name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,0) 30%, rgba(20,16,12,.88) 100%)' }} />
                   <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: big ? 28 : 22, zIndex: 2 }}>
@@ -4441,7 +4441,7 @@ function SiteFooter({ setPage }) {
           <div style={{ fontSize:14, color:'#86868b', marginTop:10, lineHeight:1.6, maxWidth:280 }}>Premium bespoke kitchens, wardrobes and storage — designed, manufactured and installed in the Kingdom of Bahrain.</div>
           <a href="https://wa.me/97317000000" style={{ display:'inline-block', marginTop:14, background:'#25D366', color:'#fff', borderRadius:980, padding:'9px 18px', fontSize:13, fontWeight:600, textDecoration:'none' }}>WhatsApp us</a>
         </div>
-        {col('Explore',[['Gallery','products'],['Design Builder','design-builder'],['Kitchen Planner','kitchen-planner'],['3D Planner','planner'],['AI Designer','ai'],['Inspiration','blog']])}
+        {col('Explore',[['Gallery','products'],['Kitchens','kitchen'],['Kitchen Studio','kitchen-planner'],['3D Planner','planner'],['AI Designer','ai'],['Inspiration','blog']])}
         {col('Company',[['Our Story','about'],['Showrooms','showrooms'],['Careers','careers'],['Offers','offers']])}
         {col('Support',[['Book a visit','booking'],['Contact','contact'],['Maintenance','maintenance'],['Warranty','warranty'],['FAQ','faq']])}
       </div>
@@ -4594,6 +4594,596 @@ const KITCHEN_STYLES = [
 ];
 const KITCHEN_WORKTOPS = [['laminate','Laminate','Budget-friendly',0],['solid_wood','Solid wood','Warm & natural',650],['quartz','Quartz','Durable premium',1400],['granite','Granite','Natural stone',1200]];
 const KITCHEN_HANDLES = [['bar','Brushed bar','Modern',0],['knob','Classic knob','Traditional',0],['handleless','Handleless / J-pull','Seamless',180],['brass','Antique brass','Statement',120]];
+
+/* ════════════════════════════════════════════════════════════════════════
+   KITCHEN SECTION — rich data model (real DB prices where present, sensible
+   defaults otherwise). All prices in BHD. Drivers are transparent:
+   cabinets are priced per linear metre of run; worktops per metre; appliances
+   per unit; storage per unit. Confirmed exactly on the free design visit.
+   ──────────────────────────────────────────────────────────────────────── */
+
+// Catalogue anchors pulled from website_products (category ~ 'kitchen'):
+//   wp-kit-01 Bespoke Modern Kitchen  BD 4200   ·  wp-kit-02 Shaker Country  BD 4800
+//   wp-107   Modular L-Shaped         BD 2200   ·  wp-108 Pantry Cabinet     BD 410
+const KITCHEN_CATALOG_ANCHORS = {
+  modern:  { id:'wp-kit-01', name:'Bespoke Modern Kitchen', from:4200 },
+  shaker:  { id:'wp-kit-02', name:'Shaker Country Kitchen', from:4800 },
+  modular: { id:'wp-107',    name:'Modular Kitchen — L-Shaped', from:2200 },
+  pantry:  { id:'wp-108',    name:'Kitchen Pantry Cabinet', from:410 },
+};
+
+// LAYOUT — drives the 3D shape + a base run length (m) used for live pricing.
+// `model` maps to Wardrobe3D.buildKitchen layouts: single | l-shape | u-shape | parallel | island
+const K_LAYOUTS = [
+  { id:'straight', name:'Straight / single-wall', sub:'One clean run along a single wall', runM:3.0, model:'single',
+    plan:'M24,150 h212 v26 h-212 z', best:'Compact kitchens & open-plan walls', ic:'M4 14h16v4H4z' },
+  { id:'galley',   name:'Galley',   sub:'Two runs facing each other', runM:5.6, model:'parallel',
+    plan:'M24,40 h212 v22 h-212 z M24,154 h212 v22 h-212 z', best:'Narrow rooms, serious cooks', ic:'M4 5h16v3H4z M4 16h16v3H4z' },
+  { id:'l-shape',  name:'L-shaped', sub:'Two runs that meet in a corner', runM:5.6, model:'l-shape',
+    plan:'M24,40 h26 v136 h186 v-26 h-160 v-110 z', best:'The all-rounder — most popular', ic:'M4 4h4v16h12v-4H8V4z' },
+  { id:'u-shape',  name:'U-shaped', sub:'Three runs around three walls', runM:7.8, model:'u-shape',
+    plan:'M24,40 h26 v110 h160 v-110 h26 v136 h-212 z', best:'Maximum storage & worktop', ic:'M4 4h4v12h8V4h4v16H4z' },
+  { id:'island',   name:'Island',   sub:'A run plus a central island', runM:6.5, model:'island',
+    plan:'M24,150 h212 v26 h-212 z M92,86 h84 v34 h-84 z', best:'Sociable, open-plan entertaining', ic:'M4 16h16v4H4z M9 8h6v4H9z' },
+];
+
+// CABINET STYLE — door construction; `mult` scales the cabinetry rate.
+// `model` maps to a Wardrobe3D finish hex so the 3D recolours live.
+const K_CAB_STYLES = [
+  { id:'shaker',     name:'Shaker',           sub:'Framed door, timeless', mult:1.00, lead:'5–6 weeks', constr:'5-piece solid-frame door with recessed centre panel', hex:'#c89b5e', g:'linear-gradient(135deg,#c89b5e,#9c6b34)' },
+  { id:'flat_slab',  name:'Flat / slab',      sub:'Clean, handleless-ready', mult:1.08, lead:'5–6 weeks', constr:'Single flat MDF/ply slab, edge-banded, sprayed', hex:'#e9e5dd', g:'linear-gradient(135deg,#f3f3f1,#d6cfc4)' },
+  { id:'handleless', name:'Handleless J-pull', sub:'Seamless, contemporary', mult:1.18, lead:'6–7 weeks', constr:'Integrated J-profile grip rail — no surface handles', hex:'#3a3a3c', g:'linear-gradient(135deg,#3a3a3c,#171717)' },
+  { id:'inframe',    name:'In-frame',         sub:'Heritage craftsmanship', mult:1.35, lead:'7–9 weeks', constr:'Doors set within a solid timber face frame', hex:'#8f9d7e', g:'linear-gradient(135deg,#9aa88a,#6f7d60)' },
+  { id:'gloss',      name:'High-gloss',       sub:'Reflective, premium', mult:1.22, lead:'6–7 weeks', constr:'Acrylic high-gloss faced slab, mirror finish', hex:'#27384f', g:'linear-gradient(135deg,#2c3e57,#16243a)' },
+  { id:'veneer',     name:'Real-wood veneer', sub:'Natural grain, luxe', mult:1.30, lead:'7–8 weeks', constr:'Sliced timber veneer on stable substrate, lacquered', hex:'#5a3a20', g:'linear-gradient(135deg,#6b4423,#3f2a17)' },
+];
+
+// CABINET FINISH / COLOUR — recolours the 3D (hex literal, ok inside canvas).
+const K_FINISHES = [
+  { id:'cashmere',  name:'Cashmere',     hex:'#e4ddcf' },
+  { id:'pure_white',name:'Pure white',   hex:'#f5f3ee' },
+  { id:'sage',      name:'Sage green',   hex:'#8f9d7e' },
+  { id:'navy',      name:'Deep navy',    hex:'#27384f' },
+  { id:'graphite',  name:'Matt graphite',hex:'#3a3a3c' },
+  { id:'oak',       name:'Natural oak',  hex:'#c89b5e' },
+  { id:'walnut',    name:'Walnut',       hex:'#5a3a20' },
+  { id:'clay',      name:'Terracotta',   hex:'#c2774a' },
+];
+
+// WORKTOP — priced per linear metre of base run. Full spec for the detail view.
+const K_WORKTOPS = [
+  { id:'laminate',   name:'Laminate',       perM:60,  sub:'Budget-friendly, huge choice',
+    desc:'High-pressure laminate over moisture-resistant board. The most affordable surface with hundreds of décors.',
+    thick:'38mm', warranty:'2 years', lead:'2–3 weeks', care:'Wipe clean; avoid standing water at joins', heat:'Low', scratch:'Medium' },
+  { id:'solid_wood', name:'Solid wood / butcher block', perM:180, sub:'Warm & natural',
+    desc:'Staved solid oak or beech block. Adds warmth; can be sanded and re-oiled over its lifetime.',
+    thick:'40mm', warranty:'5 years', lead:'3–4 weeks', care:'Re-oil 2–3× a year; keep away from sinks', heat:'Medium', scratch:'Medium' },
+  { id:'granite',    name:'Granite',        perM:280, sub:'Natural stone, unique',
+    desc:'Quarried natural stone slab, each piece unique. Extremely hard-wearing and heat resistant.',
+    thick:'20–30mm', warranty:'10 years', lead:'3–4 weeks', care:'Re-seal annually; mild detergent only', heat:'High', scratch:'High' },
+  { id:'quartz',     name:'Quartz (engineered stone)', perM:320, sub:'Durable premium',
+    desc:'Engineered quartz — non-porous, stain & scratch resistant, consistent colour. Our most popular worktop.',
+    thick:'20–30mm', warranty:'15 years', lead:'3–4 weeks', care:'Soap & water — no sealing needed', heat:'High', scratch:'Very high' },
+  { id:'solid_surf', name:'Solid surface (acrylic)', perM:300, sub:'Seamless, repairable',
+    desc:'Acrylic composite cast to shape — invisible joints, integrated sinks, repairable surface.',
+    thick:'12–25mm', warranty:'10 years', lead:'3–4 weeks', care:'Buff out scuffs with a soft pad', heat:'Medium', scratch:'High' },
+];
+
+// APPLIANCE PACKAGES — per-unit, transparent.
+const K_APPLIANCES = [
+  { id:'hob',   name:'Hob',          sub:'Induction / gas / ceramic', price:240, ic:'M5 5h14v14H5z M9 9h0 M15 9h0 M9 15h0 M15 15h0' },
+  { id:'oven',  name:'Built-in oven',sub:'Single multifunction',      price:320, ic:'M5 4h14v16H5z M5 9h14 M9 6h0' },
+  { id:'hood',  name:'Extractor hood',sub:'Chimney / integrated',     price:180, ic:'M4 9h16l-2 5H6z M9 4h6v3H9z' },
+  { id:'sink',  name:'Sink & tap',   sub:'Undermount + mixer',        price:160, ic:'M4 9h16v3H4z M9 12v4a3 3 0 006 0M12 4v5' },
+  { id:'fridge',name:'Fridge-freezer',sub:'Integrated tall',          price:520, ic:'M7 3h10v18H7z M7 9h10 M9 6h0 M9 12h0' },
+  { id:'dish',  name:'Dishwasher',   sub:'Fully integrated 60cm',     price:300, ic:'M4 4h16v16H4z M4 8h16 M8 12h8 M8 16h8' },
+  { id:'micro', name:'Microwave',    sub:'Built-in combi',            price:240, ic:'M3 6h18v12H3z M16 6v12 M6 10h6 M6 14h6' },
+  { id:'wine',  name:'Wine cooler',  sub:'Under-counter',             price:380, ic:'M8 3h8v6a4 4 0 01-8 0z M12 13v6 M9 21h6' },
+];
+
+// STORAGE & INTERIOR ADD-ONS — per-unit upgrades.
+const K_STORAGE = [
+  { id:'larder',   name:'Pull-out larder', sub:'Full-height tandem',  price:340, ic:'M7 3h10v18H7z M7 9h10 M7 15h10' },
+  { id:'corner',   name:'Magic corner',    sub:'Swing-out corner kit', price:220, ic:'M4 4h16v16H4z M4 12a8 8 0 008-8' },
+  { id:'cutlery',  name:'Cutlery inserts',  sub:'Soft-close drawer set', price:60, ic:'M4 7h16v10H4z M8 7v10 M12 7v10 M16 7v10' },
+  { id:'bin',      name:'Recycling bin set',sub:'Integrated 2/3-way',   price:130, ic:'M6 7h12l-1 13H7z M9 4h6v3H9z' },
+  { id:'spice',    name:'Spice pull-out',   sub:'150mm base unit',      price:90,  ic:'M9 3h6v18H9z M9 9h6' },
+  { id:'led',      name:'LED under-cabinet', sub:'Warm 3000K strip',    price:120, ic:'M5 8h14 M7 12h10 M9 16h6' },
+  { id:'plinth',   name:'Plinth drawers',   sub:'Hidden toe-kick store', price:150, ic:'M4 16h16v3H4z M6 16v-2h12v2' },
+  { id:'pantry',   name:'Walk-in pantry',   sub:'Bespoke shelving wall', price:480, ic:'M5 3h14v18H5z M5 8h14 M5 13h14' },
+];
+
+// Layout id → Wardrobe3D layout the kitchen builder understands.
+const k3dLayout = (id) => (K_LAYOUTS.find(l=>l.id===id)?.model) || 'single';
+
+/* ── PART 1 + 4 · KITCHEN DESIGN STUDIO (guided configurator + live 3D + quote) ── */
+function KitchenStudio({ setPage, user, openAuth }) {
+  const mobile = useMobile();
+  const [step, setStep] = useState(0);
+  const [layout, setLayout] = useState('l-shape');
+  const [styleId, setStyleId] = useState('shaker');
+  const [worktop, setWorktop] = useState('quartz');
+  const [finishId, setFinishId] = useState('sage');
+  const [handle, setHandle] = useState('bar');
+  const [appliances, setAppliances] = useState(['hob','oven','hood','sink']);
+  const [storage, setStorage] = useState(['cutlery','bin']);
+  const [view3d, setView3d] = useState(true);
+  const [specOpen, setSpecOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [showQuote, setShowQuote] = useState(false);
+  const [contact, setContact] = useState({ name:user?.name||'', phone:user?.phone||'', email:user?.email||'', date:'' });
+
+  const lay = K_LAYOUTS.find(l=>l.id===layout) || K_LAYOUTS[0];
+  const cab = K_CAB_STYLES.find(s=>s.id===styleId) || K_CAB_STYLES[0];
+  const wt  = K_WORKTOPS.find(w=>w.id===worktop) || K_WORKTOPS[0];
+  const fin = K_FINISHES.find(f=>f.id===finishId) || K_FINISHES[0];
+  const hd  = KITCHEN_HANDLES.find(h=>h[0]===handle) || KITCHEN_HANDLES[0];
+  const runM = lay.runM;
+  const appsList = appliances.map(id=>K_APPLIANCES.find(a=>a.id===id)).filter(Boolean);
+  const storeList = storage.map(id=>K_STORAGE.find(s=>s.id===id)).filter(Boolean);
+
+  // ── Transparent pricing model (BHD) ──
+  const CABINET_RATE = 720;                              // per linear metre, base
+  const cabinetCost  = Math.round(runM * CABINET_RATE * cab.mult);
+  const worktopCost  = Math.round(runM * wt.perM);
+  const handleCost   = Math.round(runM / 0.6) * (hd[3] > 0 ? Math.round(hd[3] / 15) : 0); // ~1 handle / 0.6m
+  const applianceCost= appsList.reduce((s,a)=>s+a.price, 0);
+  const storageCost  = storeList.reduce((s,a)=>s+a.price, 0);
+  const est = Math.max(0, cabinetCost + worktopCost + handleCost + applianceCost + storageCost);
+
+  const toggle = (arr, set, id) => set(arr.includes(id) ? arr.filter(x=>x!==id) : [...arr, id]);
+
+  const STEPS = [
+    { key:'layout',    label:'Layout' },
+    { key:'cabinets',  label:'Cabinets' },
+    { key:'worktop',   label:'Worktop' },
+    { key:'finish',    label:'Finish' },
+    { key:'appliances',label:'Appliances' },
+    { key:'hardware',  label:'Hardware' },
+    { key:'storage',   label:'Storage' },
+    { key:'summary',   label:'Quote' },
+  ];
+  const cur = STEPS[step];
+
+  // top-down plan tinted by chosen finish
+  const planSvg = (h=mobile?120:150) => (
+    <svg viewBox="0 0 260 200" style={{ width:'100%', height:h, display:'block' }} aria-label="Kitchen layout plan">
+      <rect x="10" y="14" width="240" height="172" rx="10" fill="#fff" stroke="#cbbfae" strokeWidth="2" strokeDasharray="5 5" />
+      <path d={lay.plan} fill={fin.hex} stroke="rgba(0,0,0,.14)" strokeWidth="1" />
+    </svg>
+  );
+
+  const submit = async (c) => {
+    if (!c.name.trim() || !c.phone.trim()) { toast('Please add your name and phone','error'); return; }
+    setBusy(true);
+    try {
+      const cfgId = uid();
+      const breakdown = { cabinets:cabinetCost, worktop:worktopCost, handles:handleCost, appliances:applianceCost, storage:storageCost };
+      const spec = { product:'kitchen', layout, layout_name:lay.name, run_metres:runM, cabinet_style:cab.name, cabinet_mult:cab.mult,
+        worktop:wt.name, finish:fin.name, handles:hd[1], appliances:appsList.map(a=>a.name), storage:storeList.map(s=>s.name),
+        estimate_bhd:est, price_drivers:breakdown };
+      await api('product_configurations', { method:'POST', body:[{ id:cfgId, customer_id:user?.id||null, product_id:KITCHEN_CATALOG_ANCHORS.modern.id,
+        customer_name:c.name||user?.name||null, customer_email:c.email||user?.email||null, customer_phone:c.phone||user?.phone||null,
+        product_name:`Kitchen — ${lay.name}, ${cab.name} (${runM.toFixed(1)}m)`, configuration:spec, total_price:est,
+        price_breakdown:breakdown, status:'kitchen-studio', share_token:cfgId, created_at:new Date().toISOString() }] });
+      const leadId = 'LEAD-'+Date.now().toString(36).toUpperCase();
+      const note = [`🍽️ Website Kitchen Design Studio`, `Layout: ${lay.name}  ·  ${runM.toFixed(1)}m run`,
+        `Cabinets: ${cab.name}  ·  Finish: ${fin.name}  ·  Handles: ${hd[1]}`, `Worktop: ${wt.name}`,
+        `Appliances: ${appsList.map(a=>a.name).join(', ')||'—'}`, `Storage: ${storeList.map(s=>s.name).join(', ')||'—'}`,
+        `Indicative estimate: BHD ${est}`, c.date?`Preferred appointment: ${c.date}`:'', `Plan ref: ${cfgId}`].filter(Boolean).join('\n');
+      await api('leads', { method:'POST', body:[{ id:leadId, name:c.name||'Website Visitor', email:c.email||null, phone:c.phone||null,
+        source:'website_kitchen_studio', status:'New', stage:'New', platform:'Website', interest:'Kitchen (design studio)',
+        budget:est, value:est, notes:note, created_at:new Date().toISOString() }] });
+      toast('Quote request sent — our kitchen team will be in touch','success');
+      setShowQuote(false);
+      if (!user && openAuth) openAuth('register', { name:c.name, phone:c.phone, email:c.email });
+      else setPage('home');
+    } catch(e) { toast('Could not send: '+(e?.message||'please try again'),'error'); }
+    finally { setBusy(false); }
+  };
+
+  const inS = { width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' };
+  const card = (on) => ({ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:14, padding:'12px 14px', cursor:'pointer' });
+  const next = () => setStep(s=>Math.min(STEPS.length-1, s+1));
+  const back = () => setStep(s=>Math.max(0, s-1));
+
+  return (
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?80:100, paddingBottom: mobile?120:90 }}>
+      <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'0 14px':'0 28px' }}>
+        <div style={{ textAlign:'center', marginBottom:16 }}>
+          <div className="eyebrow" style={{ marginBottom:10 }}>Kitchen Design Studio</div>
+          <h1 className="display" style={{ fontSize: mobile?28:44, color:'var(--ink)' }}>Design your kitchen, step by step.</h1>
+          <p style={{ color:'var(--ink-soft)', fontSize: mobile?14:16, marginTop:8, maxWidth:560, margin:'8px auto 0' }}>Pick a layout, choose your cabinets, worktop and finishes — see it in 3D and watch your quote build live.</p>
+        </div>
+
+        {/* Stepper */}
+        <div style={{ display:'flex', gap:6, overflowX:'auto', padding:'0 2px 10px', margin:'0 auto 18px', maxWidth:880, justifyContent: mobile?'flex-start':'center' }}>
+          {STEPS.map((s,i)=>{ const done=i<step, now=i===step; return (
+            <button key={s.key} type="button" onClick={()=>i<=step&&setStep(i)} style={{ flexShrink:0, display:'flex', alignItems:'center', gap:6, background:'none', border:'none', cursor:i<=step?'pointer':'default', padding:'2px 4px' }}>
+              <span style={{ width:22, height:22, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, background: now?'var(--clay)':done?'var(--clay-deep)':'var(--sand)', color:(!now&&!done)?'var(--muted)':'#fff' }}>{done?'✓':i+1}</span>
+              <span style={{ fontSize:12.5, fontWeight: now?700:500, color: now?'var(--ink)':done?'var(--ink-soft)':'var(--muted)' }}>{s.label}</span>
+            </button>
+          ); })}
+        </div>
+
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1.05fr 1fr', gap:20, alignItems:'start' }}>
+          {/* ── PREVIEW + live quote ── */}
+          <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding:16, boxShadow:'var(--shadow)', position: mobile?'static':'sticky', top:90 }}>
+            <div style={{ display:'flex', gap:6, marginBottom:10 }}>
+              <button type="button" onClick={()=>setView3d(true)} style={{ flex:1, padding:'7px', borderRadius:10, fontSize:12.5, fontWeight:600, cursor:'pointer', border:'none', background: view3d?'var(--clay)':'var(--sand)', color: view3d?'#fff':'var(--ink-soft)' }}>3D view</button>
+              <button type="button" onClick={()=>setView3d(false)} style={{ flex:1, padding:'7px', borderRadius:10, fontSize:12.5, fontWeight:600, cursor:'pointer', border:'none', background:!view3d?'var(--clay)':'var(--sand)', color:!view3d?'#fff':'var(--ink-soft)' }}>2D plan</button>
+            </div>
+            <div style={{ background:'var(--sand)', borderRadius:14, padding: view3d?0:14, overflow:'hidden', minHeight: mobile?220:320 }}>
+              {view3d
+                ? <div style={{ height: mobile?240:360 }}><Wardrobe3D product="kitchen" layout={k3dLayout(layout)} finishHex={fin.hex} handles={handle!=='handleless'} led={storage.includes('led')} glass={false} widthCm={Math.round(runM*100)} mobile={mobile} preset="iso" /></div>
+                : planSvg()}
+            </div>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginTop:14 }}>
+              <span style={{ fontSize:12, color:'var(--muted)' }}>Indicative estimate · {runM.toFixed(1)}m run</span>
+              <span className="display" style={{ fontSize: mobile?24:28, color:'var(--clay)' }}>{fmt(est)}</span>
+            </div>
+            {/* live price drivers */}
+            <div style={{ marginTop:10, fontSize:12, color:'var(--ink-soft)', display:'grid', gap:4 }}>
+              {[['Cabinets ('+cab.name+', '+runM.toFixed(1)+'m)',cabinetCost],['Worktop ('+wt.name+')',worktopCost],['Handles',handleCost],['Appliances ('+appsList.length+')',applianceCost],['Storage add-ons ('+storeList.length+')',storageCost]].map(([l,v])=>(
+                <div key={l} style={{ display:'flex', justifyContent:'space-between' }}><span>{l}</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(v)}</span></div>
+              ))}
+            </div>
+            <div style={{ fontSize:11, color:'var(--muted)', marginTop:8, lineHeight:1.5 }}>A transparent guide price — your free design visit confirms exact dimensions, units and an itemised quote.</div>
+            <button type="button" onClick={()=>setSpecOpen(true)} style={{ marginTop:10, width:'100%', background:'var(--sand)', border:'1px solid var(--line)', borderRadius:12, padding:'10px', fontSize:13, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>View full spec & pricing detail</button>
+            {!mobile && <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ width:'100%', marginTop:10, borderRadius:12 }}>{user?'Get my quote →':'Sign in & get quote →'}</button>}
+          </div>
+
+          {/* ── STEP PANEL ── */}
+          <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding: mobile?16:24, boxShadow:'var(--shadow)' }}>
+            {cur.key==='layout' && (<>
+              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>1 · Choose your layout</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>How does your kitchen wrap around the room?</p>
+              <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:10 }}>
+                {K_LAYOUTS.map(l=>{ const on=layout===l.id; return (
+                  <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={card(on)}>
+                    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.6"><path d={l.ic} /></svg>
+                      <div><div style={{ fontSize:14.5, fontWeight:600, color: on?'var(--clay-deep)':'var(--ink)' }}>{l.name}</div><div style={{ fontSize:11.5, color:'var(--muted)', marginTop:2 }}>{l.sub}</div></div>
+                    </div>
+                    <div style={{ fontSize:11, color:'var(--ink-soft)', marginTop:8, paddingTop:8, borderTop:'1px solid var(--line)' }}>{l.best} · ~{l.runM}m run</div>
+                  </button>); })}
+              </div>
+            </>)}
+
+            {cur.key==='cabinets' && (<>
+              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>2 · Cabinet style</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>The door design sets the tone — and the cabinetry rate.</p>
+              <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr 1fr', gap:10 }}>
+                {K_CAB_STYLES.map(s=>{ const on=styleId===s.id; return (
+                  <button key={s.id} type="button" onClick={()=>setStyleId(s.id)} style={{ ...card(on), padding:0, overflow:'hidden' }}>
+                    <div style={{ height:46, background:s.g }} />
+                    <div style={{ padding:'9px 11px' }}>
+                      <div style={{ fontSize:13, fontWeight:600, color: on?'var(--clay-deep)':'var(--ink)' }}>{s.name}</div>
+                      <div style={{ fontSize:10.5, color:'var(--muted)', marginTop:2 }}>{s.sub}</div>
+                      <div style={{ fontSize:10.5, color:'var(--ink-soft)', marginTop:4 }}>×{s.mult.toFixed(2)} · {s.lead}</div>
+                    </div>
+                  </button>); })}
+              </div>
+            </>)}
+
+            {cur.key==='worktop' && (<>
+              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>3 · Worktop / countertop</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>Priced per linear metre of base run.</p>
+              <div style={{ display:'grid', gap:9 }}>
+                {K_WORKTOPS.map(w=>{ const on=worktop===w.id; return (
+                  <button key={w.id} type="button" onClick={()=>setWorktop(w.id)} style={card(on)}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
+                      <span style={{ fontSize:14, fontWeight:600, color: on?'var(--clay-deep)':'var(--ink)' }}>{w.name}</span>
+                      <span style={{ fontSize:12.5, fontWeight:700, color:'var(--clay)' }}>{fmt(w.perM)}/m</span>
+                    </div>
+                    <div style={{ fontSize:11.5, color:'var(--muted)', marginTop:3 }}>{w.sub} · {w.thick} · {w.warranty} warranty · heat {w.heat}</div>
+                  </button>); })}
+              </div>
+            </>)}
+
+            {cur.key==='finish' && (<>
+              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>4 · Cabinet finish &amp; colour</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>Recolours your 3D preview instantly.</p>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(92px,1fr))', gap:10 }}>
+                {K_FINISHES.map(f=>{ const on=finishId===f.id; return (
+                  <button key={f.id} type="button" onClick={()=>setFinishId(f.id)} style={{ border: on?'2px solid var(--clay)':'1px solid var(--line)', borderRadius:12, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0 }}>
+                    <div style={{ height:46, background:f.hex }} />
+                    <div style={{ fontSize:11.5, fontWeight:600, color: on?'var(--clay-deep)':'var(--ink)', padding:'7px 6px' }}>{f.name}</div>
+                  </button>); })}
+              </div>
+            </>)}
+
+            {cur.key==='appliances' && (<>
+              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>5 · Appliance package</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>Tap to add — each appliance is priced per unit.</p>
+              <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr', gap:9 }}>
+                {K_APPLIANCES.map(a=>{ const on=appliances.includes(a.id); return (
+                  <button key={a.id} type="button" onClick={()=>toggle(appliances,setAppliances,a.id)} style={{ ...card(on), display:'flex', alignItems:'center', gap:10 }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5"><path d={a.ic} /></svg>
+                    <div style={{ flex:1 }}><div style={{ fontSize:13, fontWeight:600, color:'var(--ink)' }}>{a.name}</div><div style={{ fontSize:10.5, color:'var(--muted)' }}>{a.sub} · {fmt(a.price)}</div></div>
+                    <span style={{ fontSize:16, color: on?'var(--clay)':'var(--line)' }}>{on?'✓':'+'}</span>
+                  </button>); })}
+              </div>
+            </>)}
+
+            {cur.key==='hardware' && (<>
+              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>6 · Hardware / handles</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>The finishing detail on every door and drawer.</p>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:9 }}>
+                {KITCHEN_HANDLES.map(([id,name,sub,add])=>{ const on=handle===id; return (
+                  <button key={id} type="button" onClick={()=>setHandle(id)} style={card(on)}>
+                    <div style={{ fontSize:13.5, fontWeight:600, color: on?'var(--clay-deep)':'var(--ink)' }}>{name}</div>
+                    <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>{sub}{add>0?` · +${fmt(add)} (set)`:' · included'}</div>
+                  </button>); })}
+              </div>
+            </>)}
+
+            {cur.key==='storage' && (<>
+              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>7 · Storage &amp; interiors</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>Clever add-ons that make the kitchen work harder.</p>
+              <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr', gap:9 }}>
+                {K_STORAGE.map(a=>{ const on=storage.includes(a.id); return (
+                  <button key={a.id} type="button" onClick={()=>toggle(storage,setStorage,a.id)} style={{ ...card(on), display:'flex', alignItems:'center', gap:10 }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5"><path d={a.ic} /></svg>
+                    <div style={{ flex:1 }}><div style={{ fontSize:13, fontWeight:600, color:'var(--ink)' }}>{a.name}</div><div style={{ fontSize:10.5, color:'var(--muted)' }}>{a.sub} · {fmt(a.price)}</div></div>
+                    <span style={{ fontSize:16, color: on?'var(--clay)':'var(--line)' }}>{on?'✓':'+'}</span>
+                  </button>); })}
+              </div>
+            </>)}
+
+            {cur.key==='summary' && (<>
+              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>Your kitchen</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 14px' }}>Review your design, then book a free visit for an exact quote.</p>
+              <div style={{ background:'var(--sand)', borderRadius:12, padding:'14px 16px', fontSize:13.5, color:'var(--ink-soft)', lineHeight:1.85 }}>
+                <div><b style={{ color:'var(--ink)' }}>Layout</b> · {lay.name} (~{runM.toFixed(1)}m)</div>
+                <div><b style={{ color:'var(--ink)' }}>Cabinets</b> · {cab.name} in {fin.name}</div>
+                <div><b style={{ color:'var(--ink)' }}>Worktop</b> · {wt.name}</div>
+                <div><b style={{ color:'var(--ink)' }}>Handles</b> · {hd[1]}</div>
+                <div><b style={{ color:'var(--ink)' }}>Appliances</b> · {appsList.map(a=>a.name).join(', ')||'None selected'}</div>
+                <div><b style={{ color:'var(--ink)' }}>Storage</b> · {storeList.map(s=>s.name).join(', ')||'None selected'}</div>
+                <div style={{ marginTop:8, paddingTop:8, borderTop:'1px solid var(--line)' }}><b style={{ color:'var(--clay-deep)', fontSize:16 }}>Estimate · {fmt(est)}</b></div>
+              </div>
+              <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ width:'100%', marginTop:16, borderRadius:14 }}>{user?'Get my quote →':'Sign in & get quote →'}</button>
+              <div style={{ fontSize:11.5, color:'var(--muted)', textAlign:'center', marginTop:8 }}>Free design visit · no obligation · exact itemised quote on the day</div>
+            </>)}
+
+            {/* nav */}
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:20, gap:10 }}>
+              {step>0 ? <button type="button" onClick={back} style={{ background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'11px 18px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>‹ Back</button>
+                : <button type="button" onClick={()=>setPage('kitchen')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>‹ Back to Kitchens</button>}
+              {step<STEPS.length-1 && <button type="button" className="btn-clay" onClick={next} style={{ borderRadius:12, minWidth:140 }}>Continue →</button>}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* mobile sticky quote bar */}
+      {mobile && (
+        <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:920, background:'rgba(255,255,255,.96)', backdropFilter:'blur(12px)', borderTop:'1px solid var(--line)', padding:'10px 14px calc(10px + env(safe-area-inset-bottom))', display:'flex', alignItems:'center', gap:12 }}>
+          <div style={{ flex:1 }}><div style={{ fontSize:10.5, color:'var(--muted)' }}>Estimate · {runM.toFixed(1)}m</div><div className="display" style={{ fontSize:20, color:'var(--clay)' }}>{fmt(est)}</div></div>
+          <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:12, padding:'12px 18px', fontSize:14, whiteSpace:'nowrap' }}>{user?'Get quote':'Sign in & quote'}</button>
+        </div>
+      )}
+
+      {/* SPEC & PRICING DETAIL drawer (Part 3) */}
+      {specOpen && (
+        <div onClick={()=>setSpecOpen(false)} style={{ position:'fixed', inset:0, zIndex:10000, background:'rgba(20,16,12,.55)', backdropFilter:'blur(3px)', display:'flex', justifyContent:'flex-end' }}>
+          <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', width: mobile?'100%':440, maxWidth:'100%', height:'100%', overflowY:'auto', padding:'24px 22px', boxShadow:'-12px 0 40px rgba(0,0,0,.2)' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:0 }}>Spec &amp; pricing</h3>
+              <button type="button" onClick={()=>setSpecOpen(false)} style={{ background:'none', border:'none', fontSize:20, color:'var(--muted)', cursor:'pointer' }}>✕</button>
+            </div>
+            {[
+              ['Cabinet style', cab.name, [['Construction',cab.constr],['Cabinetry rate','BD '+CABINET_RATE+'/m × '+cab.mult.toFixed(2)+' = '+fmt(Math.round(CABINET_RATE*cab.mult))+'/m'],['Lead time',cab.lead],['Warranty','10 years on cabinetry']]],
+              ['Worktop', wt.name, [['Description',wt.desc],['Thickness',wt.thick],['Price driver',fmt(wt.perM)+' per linear metre'],['Heat / scratch',wt.heat+' / '+wt.scratch],['Care',wt.care],['Lead time',wt.lead],['Warranty',wt.warranty]]],
+              ['Finish & hardware', fin.name+' · '+hd[1], [['Colour',fin.name],['Handles',hd[1]+' '+(hd[3]>0?'(+'+fmt(hd[3])+' / set)':'(included)')],['Hinges','Soft-close Blum, included'],['Drawers','Soft-close runners, included']]],
+            ].map(([title,head,rows])=>(
+              <div key={title} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:14, padding:'14px 16px', marginBottom:12 }}>
+                <div className="eyebrow" style={{ fontSize:11, marginBottom:4 }}>{title}</div>
+                <div style={{ fontSize:15, fontWeight:700, color:'var(--ink)', marginBottom:8 }}>{head}</div>
+                {rows.map(([k,v])=>(<div key={k} style={{ display:'flex', gap:10, padding:'5px 0', borderTop:'1px solid var(--line)', fontSize:12.5 }}><span style={{ color:'var(--muted)', minWidth:108 }}>{k}</span><span style={{ color:'var(--ink-soft)', flex:1 }}>{v}</span></div>))}
+              </div>
+            ))}
+            <div style={{ background:'var(--sand)', borderRadius:14, padding:'14px 16px', fontSize:12.5, color:'var(--ink-soft)', lineHeight:1.6 }}>
+              <b style={{ color:'var(--ink)' }}>How pricing works.</b> Cabinets are charged per linear metre of run × your door-style factor. Worktops are per metre. Appliances and storage add-ons are per unit. Typical base units are 60cm wide × 72cm high × 60cm deep; tall units 200cm+. Every figure here is indicative — your free design visit confirms exact measurements and a fully itemised quote.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QUOTE modal */}
+      {showQuote && (
+        <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
+          <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:26 }}>
+            <div className="eyebrow" style={{ marginBottom:8 }}>Almost there</div>
+            <h3 className="display" style={{ fontSize:24, color:'var(--ink)', margin:'0 0 6px' }}>Get your kitchen quote</h3>
+            <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)', lineHeight:1.6 }}>{lay.name} · {cab.name} · {wt.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(est)}</b></div>
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} aria-label="Your name" placeholder="Your name" style={inS} />
+              <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} aria-label="Phone" placeholder="Phone (+973…)" inputMode="tel" style={inS} />
+              <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} aria-label="Email" placeholder="Email (optional)" inputMode="email" style={inS} />
+              <input type="date" value={contact.date} onChange={e=>setContact(c=>({...c,date:e.target.value}))} style={inS} />
+            </div>
+            <div style={{ display:'flex', gap:10, marginTop:16 }}>
+              <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>Cancel</button>
+              <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submit(contact)} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?'Sending…':(user?'Send quote request':'Sign in & send')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── PART 2 · KITCHEN editorial landing / catalog page ── */
+function KitchenPage({ setPage, products }) {
+  const mobile = useMobile();
+  const [faq, setFaq] = useState(-1);
+  const kitchenProducts = (products||[]).filter(p => /kitchen/i.test(p.category||'') || /kitchen/i.test(p.name||''));
+  const heroImg = HOME_IMG.kitchen;
+  const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
+  const FAQS = [
+    ['How much does a bespoke kitchen cost?', 'Our kitchens start from around BD 2,200 for a compact modular L-shape and BD 4,200+ for a fully bespoke design. Price is driven transparently by the metres of cabinetry, your door style, worktop choice and appliances — build a live estimate in the Design Studio.'],
+    ['How long does it take?', 'Most kitchens are designed, manufactured and installed within 6–9 weeks of sign-off, depending on door style and worktop. In-frame and veneer doors sit at the longer end.'],
+    ['Do you handle the full project?', 'Yes — design, manufacture, delivery, fitting, worktop templating and appliance installation are all handled by our own team across Bahrain.'],
+    ['Can I keep my existing appliances?', 'Absolutely. Choose only the appliance housings you need in the Design Studio and we will build around your existing units.'],
+    ['What warranty do I get?', '10 years on cabinetry and soft-close hardware, plus 2–15 years on worktops depending on the material you choose.'],
+  ];
+
+  return (
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?56:64, paddingBottom:90 }}>
+      {/* HERO */}
+      <section style={{ position:'relative', minHeight: mobile?440:560, display:'flex', alignItems:'flex-end', backgroundImage:`linear-gradient(to top, rgba(20,16,12,.72), rgba(20,16,12,.15)), url('${heroImg}')`, backgroundSize:'cover', backgroundPosition:'center' }}>
+        <div style={{ ...wrap, paddingBottom: mobile?32:54, color:'#fff' }}>
+          <div style={{ fontSize:12, letterSpacing:'.18em', textTransform:'uppercase', opacity:.85, marginBottom:12 }}>Bespoke kitchens · Bahrain</div>
+          <h1 className="display" style={{ fontSize: mobile?34:60, lineHeight:1.05, maxWidth:760, margin:0 }}>Precision cabinetry, engineered for daily life.</h1>
+          <p style={{ fontSize: mobile?15:19, maxWidth:540, marginTop:14, opacity:.92, lineHeight:1.55 }}>Designed, manufactured and installed by our own team. Choose your layout, cabinets and worktop — then see it in 3D with a live quote.</p>
+          <div style={{ display:'flex', gap:12, marginTop:24, flexWrap:'wrap' }}>
+            <button type="button" className="btn-clay" onClick={()=>setPage('kitchen-planner')} style={{ borderRadius:14 }}>Open the Design Studio →</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.12)', color:'#fff', border:'1px solid rgba(255,255,255,.45)', borderRadius:14, padding:'15px 28px', fontSize:16, fontWeight:600, cursor:'pointer', backdropFilter:'blur(6px)' }}>Book a free visit</button>
+          </div>
+        </div>
+      </section>
+
+      {/* STYLE GALLERY */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div className="eyebrow" style={{ marginBottom:10 }}>Kitchen styles</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>Find your look.</h2>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:560, marginBottom:22 }}>From timeless shaker to seamless handleless — six door styles, endless finishes.</p>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(3,1fr)', gap:16 }}>
+          {K_CAB_STYLES.map(s=>(
+            <button key={s.id} type="button" onClick={()=>setPage('kitchen-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+              <div style={{ height: mobile?110:150, background:s.g }} />
+              <div style={{ padding:'14px 16px' }}>
+                <div style={{ fontSize:17, fontWeight:600, color:'var(--ink)' }}>{s.name}</div>
+                <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{s.sub}</div>
+                <div style={{ fontSize:12.5, color:'var(--clay)', marginTop:10, fontWeight:600 }}>Design this style →</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* LAYOUTS strip */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div className="eyebrow" style={{ marginBottom:10 }}>Every layout</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>Made to fit your room.</h2>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
+          {K_LAYOUTS.map(l=>(
+            <div key={l.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 14px', textAlign:'center' }}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.4" style={{ margin:'0 auto 8px' }}><path d={l.ic} /></svg>
+              <div style={{ fontSize:14, fontWeight:600, color:'var(--ink)' }}>{l.name}</div>
+              <div style={{ fontSize:11.5, color:'var(--muted)', marginTop:4, lineHeight:1.4 }}>{l.sub}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* MATERIALS showcase (worktops) */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div className="eyebrow" style={{ marginBottom:10 }}>Worktops &amp; materials</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>Surfaces that last.</h2>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:560, marginBottom:22 }}>Transparent per-metre pricing on every worktop, with full specs so you can compare like for like.</p>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:14 }}>
+          {K_WORKTOPS.map(w=>(
+            <div key={w.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'18px 20px' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
+                <span style={{ fontSize:17, fontWeight:600, color:'var(--ink)' }}>{w.name}</span>
+                <span style={{ fontSize:14, fontWeight:700, color:'var(--clay)' }}>{fmt(w.perM)}/m</span>
+              </div>
+              <p style={{ fontSize:13, color:'var(--ink-soft)', margin:'8px 0', lineHeight:1.55 }}>{w.desc}</p>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                {[w.thick, 'Heat '+w.heat, 'Scratch '+w.scratch, w.warranty+' warranty', w.lead].map(t=>(
+                  <span key={t} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{t}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FEATURES / why us */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
+          {[
+            ['Made in Bahrain','Manufactured in our own workshop — full control over quality and lead time.','M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
+            ['Soft-close as standard','Blum soft-close hinges and runners on every door and drawer, backed for 10 years.','M4 7h16v10H4z M8 12h8'],
+            ['One team, end to end','Design, build, deliver, fit and template — handled by us, never sub-let.','M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
+          ].map(([t,d,ic])=>(
+            <div key={t} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5" style={{ marginBottom:12 }}><path d={ic} /></svg>
+              <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{t}</div>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', marginTop:6, lineHeight:1.55 }}>{d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CATALOG anchors (real products) */}
+      {kitchenProducts.length>0 && (
+        <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+          <div className="eyebrow" style={{ marginBottom:10 }}>Starting points</div>
+          <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>Popular kitchens.</h2>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
+            {kitchenProducts.map(p=>(
+              <button key={p.id} type="button" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+                <div style={{ height:160, background: p.image_url?`url('${p.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }} />
+                <div style={{ padding:'14px 16px' }}>
+                  <div style={{ fontSize:16, fontWeight:600, color:'var(--ink)' }}>{p.name}</div>
+                  <div style={{ fontSize:13, color:'var(--muted)', marginTop:4 }}>From {fmt(p.price)}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* BEFORE / AFTER */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div style={{ background:'var(--ink)', borderRadius:22, padding: mobile?'28px 22px':'44px 48px', color:'#fff', display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:28, alignItems:'center' }}>
+          <div>
+            <div style={{ fontSize:12, letterSpacing:'.16em', textTransform:'uppercase', opacity:.7, marginBottom:10 }}>Transformations</div>
+            <h2 className="display" style={{ fontSize: mobile?26:36, margin:'0 0 12px' }}>From tired to timeless.</h2>
+            <p style={{ fontSize:15, opacity:.85, lineHeight:1.6, marginBottom:20 }}>We have transformed kitchens across Bahrain — from compact apartments to villa open-plan spaces. Start with a free design visit and we will show you what is possible in your room.</p>
+            <button type="button" className="btn-clay" onClick={()=>setPage('projects')} style={{ borderRadius:14 }}>See real projects →</button>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            <div style={{ height: mobile?120:170, borderRadius:14, background:`url('${HOME_IMG.kitchen}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:999, padding:'3px 10px' }}>After</span></div>
+            <div style={{ height: mobile?120:170, borderRadius:14, background:`url('${HOME_IMG.living}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:999, padding:'3px 10px' }}>Detail</span></div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section style={{ ...wrap, marginTop: mobile?40:64, maxWidth:820 }}>
+        <div className="eyebrow" style={{ marginBottom:10, textAlign:'center' }}>Good to know</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px', textAlign:'center' }}>Kitchen questions, answered.</h2>
+        <div style={{ display:'grid', gap:10 }}>
+          {FAQS.map(([q,a],i)=>{ const on=faq===i; return (
+            <div key={i} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:14, overflow:'hidden' }}>
+              <button type="button" onClick={()=>setFaq(on?-1:i)} style={{ width:'100%', textAlign:'left', background:'none', border:'none', padding:'16px 18px', fontSize:15.5, fontWeight:600, color:'var(--ink)', cursor:'pointer', display:'flex', justifyContent:'space-between', gap:12 }}>
+                <span>{q}</span><span style={{ color:'var(--clay)', flexShrink:0 }}>{on?'–':'+'}</span>
+              </button>
+              {on && <div style={{ padding:'0 18px 16px', fontSize:14, color:'var(--ink-soft)', lineHeight:1.6 }}>{a}</div>}
+            </div>
+          ); })}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div style={{ background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', borderRadius:22, padding: mobile?'32px 24px':'52px 48px', textAlign:'center', color:'#fff' }}>
+          <h2 className="display" style={{ fontSize: mobile?28:42, margin:'0 0 10px' }}>Your dream kitchen starts here.</h2>
+          <p style={{ fontSize: mobile?15:18, opacity:.92, maxWidth:520, margin:'0 auto 22px' }}>Design it in 3D with a live quote, or book a free home visit — no obligation.</p>
+          <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
+            <button type="button" onClick={()=>setPage('kitchen-planner')} style={{ background:'#fff', color:'var(--clay-deep)', border:'none', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:700, cursor:'pointer' }}>Open Design Studio →</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>Book a free visit</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
 
 function WrenPlannerPage({ setPage, user }) {
   const mobile = useMobile();
@@ -5674,7 +6264,8 @@ export default function App() {
       {page==='maintenance' && <MaintenancePage />}
       {page==='warranty' && <WarrantyPage />}
       {page==='ai' && <PageBoundary key="ai"><AIDesignerPage setPage={setPage} user={user} /></PageBoundary>}
-      {page==='kitchen-planner' && <PageBoundary key="kp"><KitchenStudioPage setPage={setPage} user={user} /></PageBoundary>}
+      {page==='kitchen' && <PageBoundary key="kitchen"><KitchenPage setPage={setPage} products={products} /></PageBoundary>}
+      {page==='kitchen-planner' && <PageBoundary key="kp"><KitchenStudio setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
       {page==='design-builder' && <PageBoundary key="db"><DesignBuilderPage setPage={setPage} user={user} /></PageBoundary>}
       {page==='planner' && <PageBoundary key="planner"><PlannerPage setPage={setPage} user={user} openAuth={openAuth} siteLogo={siteLogo} /></PageBoundary>}
       {page.startsWith('cat:') && <CategoryPage category={page.slice(4)} products={products} setPage={setPage} addToCart={addToCart} />}
