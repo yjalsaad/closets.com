@@ -129,6 +129,49 @@ function useMobile() {
   return mobile;
 }
 
+// ── useLayouts(category) ──
+// Fetches CMS-managed layout content from public.website_layouts (anon-readable)
+// once on mount. Returns { map, list, loading } where `map` is keyed by
+// layout_key. On any error / empty result it resolves to {} so every caller
+// safely falls back to its hardcoded constants. Purely additive — never throws.
+function useLayouts(category) {
+  const [state, setState] = useState({ map: {}, list: [], loading: true });
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const rows = await api(`website_layouts?category=eq.${encodeURIComponent(category)}&active=is.true&deleted_at=is.null&order=sort_order.asc`);
+        if (!alive) return;
+        const list = Array.isArray(rows) ? rows : [];
+        const map = {};
+        list.forEach(r => { if (r && r.layout_key) map[r.layout_key] = r; });
+        setState({ map, list, loading: false });
+      } catch (_) {
+        if (alive) setState({ map: {}, list: [], loading: false });
+      }
+    })();
+    return () => { alive = false; };
+  }, [category]);
+  return state;
+}
+
+// Merge a CMS layout row over a hardcoded layout constant, by layout_key.
+// DB values (image, title, subtitle, bullets, description) win when present;
+// everything else (pricing params, ids, model maps) stays on the constant.
+// `c` is the constant (must carry an `id`); `dbMap` is from useLayouts().
+function mergeLayout(c, dbMap) {
+  const row = dbMap && c ? dbMap[c.id] : null;
+  if (!row) return c;
+  const merged = { ...c };
+  if (row.image_url) { merged.img = row.image_url; merged.image_url = row.image_url; }
+  if (row.title) merged.name = row.title;
+  if (row.subtitle) merged.sub = row.subtitle;
+  if (Array.isArray(row.bullets) && row.bullets.length) merged.bullets = row.bullets;
+  if (row.description) merged.desc = row.description;
+  if (row.hero_url) merged.hero_url = row.hero_url;
+  return merged;
+}
+
 let _toast = null;
 const toast = (msg, type = 'info') => {
   if (!_toast) return;
@@ -5613,6 +5656,9 @@ function wwAllocate(profile) {
 
 function TVUnitPlannerWizard({ setPage, user, openAuth }) {
   const mobile = useMobile();
+  const { map: dbLayouts } = useLayouts('tv');
+  // DISPLAY-ONLY merge: pricing / blocks / feats stay on TV_LAYOUTS.
+  const tvLayoutsView = TV_LAYOUTS.map(l => mergeLayout(l, dbLayouts));
   const [step, setStep] = useState(0);
   // Step 1
   const [roomType, setRoomType] = useState('living');
@@ -5900,7 +5946,7 @@ function TVUnitPlannerWizard({ setPage, user, openAuth }) {
         </div></>);
       case 3: return (<>{sectionH('4','Layout','Pick a configuration — then tune its parameters and modular blocks.')}
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr 1fr', gap:9, marginBottom:14 }}>
-          {TV_LAYOUTS.map(l=>{ const on=layout===l.id; return (
+          {tvLayoutsView.map(l=>{ const on=layout===l.id; return (
             <button key={l.id} type="button" onClick={()=>pickLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden' }}>
               <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?120:140, objectFit:'cover', borderTopLeftRadius:12, borderTopRightRadius:12 }} />
               <div style={{ padding:'9px 10px' }}>
@@ -6091,6 +6137,9 @@ function TVUnitPlannerWizard({ setPage, user, openAuth }) {
    ════════════════════════════════════════════════════════════════════════════ */
 function OfficePlannerWizard({ setPage, user, openAuth }) {
   const mobile = useMobile();
+  const { map: dbLayouts } = useLayouts('office');
+  // DISPLAY-ONLY merge: pricing / blocks / feats stay on OFFICE_LAYOUTS.
+  const officeLayoutsView = OFFICE_LAYOUTS.map(l => mergeLayout(l, dbLayouts));
   const [step, setStep] = useState(0);
   // Step 1
   const [roomType, setRoomType] = useState('home');
@@ -6361,7 +6410,7 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
         </div></>);
       case 3: return (<>{sectionH('4','Layout','Pick a configuration — then tune its modular blocks below.')}
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr 1fr', gap:9, marginBottom:14 }}>
-          {OFFICE_LAYOUTS.map(l=>{ const on=layout===l.id; return (
+          {officeLayoutsView.map(l=>{ const on=layout===l.id; return (
             <button key={l.id} type="button" onClick={()=>pickLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden' }}>
               <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?120:140, objectFit:'cover', borderTopLeftRadius:12, borderTopRightRadius:12 }} />
               <div style={{ padding:'9px 10px' }}>
@@ -6663,6 +6712,9 @@ const DOOR_CATALOG_ANCHOR = { id:'wp-door-01', name:'Bespoke Wood Door' };
    ════════════════════════════════════════════════════════════════════════════ */
 function WardrobePlannerWizard({ setPage, user, openAuth }) {
   const mobile = useMobile();
+  const { map: dbLayouts } = useLayouts('wardrobe');
+  // DISPLAY-ONLY merge: pricing / model3d maps stay on WW_LAYOUTS.
+  const wwLayoutsView = WW_LAYOUTS.map(l => mergeLayout(l, dbLayouts));
   const [step, setStep] = useState(0);
   // Step 1 — room type
   const [roomType, setRoomType] = useState('master');
@@ -6993,7 +7045,7 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
         </div></>);
       case 3: return (<>{sectionH('4','Wardrobe layout','Pick a configuration — then set its parameters below.')}
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr 1fr', gap:9, marginBottom:14 }}>
-          {WW_LAYOUTS.map(l=>{ const on=layout===l.id; return (
+          {wwLayoutsView.map(l=>{ const on=layout===l.id; return (
             <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden' }}>
               <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?120:140, objectFit:'cover', borderTopLeftRadius:12, borderTopRightRadius:12 }} />
               <div style={{ padding:'9px 10px' }}>
@@ -7234,6 +7286,9 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
 
 function DoorPlannerWizard({ setPage, user, openAuth }) {
   const mobile = useMobile();
+  const { map: dbLayouts } = useLayouts('door');
+  // DISPLAY-ONLY merge: leaves / mode / presets stay on DOOR_TYPES.
+  const doorTypesView = DOOR_TYPES.map(t => mergeLayout(t, dbLayouts));
   const [step, setStep] = useState(0);
   // Step 1
   const [doorType, setDoorType] = useState('single');
@@ -7548,13 +7603,13 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
         </div>
         <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>Door type</div>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr', gap:10 }}>
-          {DOOR_TYPES.map(t=>{ const on=doorType===t.id; return (
+          {doorTypesView.map(t=>{ const on=doorType===t.id; return (
             <button key={t.id} type="button" onClick={()=>setDoorType(t.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left' }}>
               <img src={t.img} alt={t.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?120:150, objectFit:'cover', borderTopLeftRadius:12, borderTopRightRadius:12 }} />
               <div style={{ padding:'10px 12px' }}>
                 <div style={{ fontSize:14, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{t.name}</div>
                 <div style={{ fontSize:11, color:'var(--muted)' }}>{t.sub}</div>
-                <div style={{ fontSize:11, color:'var(--ink-soft)', marginTop:6 }}>{t.note}</div>
+                <div style={{ fontSize:11, color:'var(--ink-soft)', marginTop:6 }}>{t.desc || t.note}</div>
               </div>
             </button>); })}
         </div></>);
@@ -7767,6 +7822,9 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
 
 function KitchenPlannerWizard({ setPage, user, openAuth }) {
   const mobile = useMobile();
+  const { map: dbLayouts } = useLayouts('kitchen');
+  // DISPLAY-ONLY merge: model maps / params stay on KW_LAYOUTS.
+  const kwLayoutsView = KW_LAYOUTS.map(l => mergeLayout(l, dbLayouts));
   const [step, setStep] = useState(0);
   // Step 1
   const [shape, setShape] = useState('rectangle');
@@ -8065,7 +8123,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
         </div></>);
       case 3: return (<>{sectionH('4','Select layout','Pick a configuration — then set its parameters below.')}
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr 1fr', gap:9, marginBottom:14 }}>
-          {KW_LAYOUTS.map(l=>{ const on=layout===l.id; return (
+          {kwLayoutsView.map(l=>{ const on=layout===l.id; return (
             <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden' }}>
               <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?120:140, objectFit:'cover', borderTopLeftRadius:12, borderTopRightRadius:12 }} />
               <div style={{ padding:'9px 10px' }}>
@@ -8260,6 +8318,9 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
 /* ── PART 1 + 4 · KITCHEN DESIGN STUDIO (guided configurator + live 3D + quote) ── */
 function KitchenStudio({ setPage, user, openAuth }) {
   const mobile = useMobile();
+  const { map: dbLayouts } = useLayouts('kitchen');
+  // DISPLAY-ONLY merge (icon-card studio): pricing / model maps stay on K_LAYOUTS.
+  const kLayoutsView = K_LAYOUTS.map(l => mergeLayout(l, dbLayouts));
   const [step, setStep] = useState(0);
   const [layout, setLayout] = useState('l-shape');
   const [styleId, setStyleId] = useState('shaker');
@@ -8400,7 +8461,7 @@ function KitchenStudio({ setPage, user, openAuth }) {
               <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>1 · Choose your layout</h3>
               <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>How does your kitchen wrap around the room?</p>
               <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:10 }}>
-                {K_LAYOUTS.map(l=>{ const on=layout===l.id; return (
+                {kLayoutsView.map(l=>{ const on=layout===l.id; return (
                   <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={card(on)}>
                     <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.6"><path d={l.ic} /></svg>
@@ -8584,10 +8645,12 @@ function WardrobesPage({ setPage, products }) {
   const mobile = useMobile();
   const [faq, setFaq] = useState(-1);
   const [specOpen, setSpecOpen] = useState(false);
+  const { map: dbLayouts } = useLayouts('wardrobe');
+  const wTypes = W_TYPES.map(t => mergeLayout(t, dbLayouts));
   const wardrobeProducts = (products||[]).filter(p =>
     /wardrobe|closet|walk\-?in|dress|storage/i.test(p.category||'') ||
     /wardrobe|closet|walk\-?in|dress/i.test(p.name||''));
-  const heroImg = HOME_IMG.walkin || HOME_IMG.wardrobe || HOME_IMG.hero;
+  const heroImg = (dbLayouts.walkin && dbLayouts.walkin.hero_url) || HOME_IMG.walkin || HOME_IMG.wardrobe || HOME_IMG.hero;
   const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
   const FAQS = [
     ['How much does a fitted wardrobe cost?', 'Reach-in and kids wardrobes start from around BD 540, fitted hinged wardrobes from BD 720, sliding wardrobes from BD 1,000, and a full walk-in dressing room from BD 5,200. Price is driven transparently by the metres of run, your finish and the interior fittings you choose — build a live estimate in the Design Studio.'],
@@ -8619,7 +8682,7 @@ function WardrobesPage({ setPage, products }) {
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>Find your fit.</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>From a full walk-in dressing room to a flush reach-in run — four ways to bring order to your bedroom.</p>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
-          {W_TYPES.map(t=>(
+          {wTypes.map(t=>(
             <button key={t.id} type="button" onClick={()=>setPage('wardrobe-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
               <div style={{ height: mobile?170:210, position:'relative', background: t.img?`url('${t.img}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }}>
                 <span style={{ position:'absolute', top:12, left:12, background:'rgba(20,16,12,.62)', color:'#fff', fontSize:12, fontWeight:600, borderRadius:999, padding:'5px 12px', backdropFilter:'blur(4px)' }}>From {fmt(t.from)}</span>
@@ -8629,7 +8692,7 @@ function WardrobesPage({ setPage, products }) {
                 <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{t.sub}</div>
                 <p style={{ fontSize:13.5, color:'var(--ink-soft)', margin:'10px 0', lineHeight:1.55 }}>{t.desc}</p>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:12 }}>
-                  {t.chips.map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{c}</span>))}
+                  {(Array.isArray(t.bullets)&&t.bullets.length?t.bullets:t.chips).map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{c}</span>))}
                 </div>
                 <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600 }}>Design this in 3D →</div>
               </div>
@@ -8813,6 +8876,8 @@ function WardrobesPage({ setPage, products }) {
 function KitchenPage({ setPage, products }) {
   const mobile = useMobile();
   const [faq, setFaq] = useState(-1);
+  const { map: dbLayouts } = useLayouts('kitchen');
+  const kLayouts = K_LAYOUTS.map(l => mergeLayout(l, dbLayouts));
   const kitchenProducts = (products||[]).filter(p => /kitchen/i.test(p.category||'') || /kitchen/i.test(p.name||''));
   const heroImg = HOME_IMG.kitchen;
   const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
@@ -8863,12 +8928,17 @@ function KitchenPage({ setPage, products }) {
         <div className="eyebrow" style={{ marginBottom:10 }}>Every layout</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>Made to fit your room.</h2>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
-          {K_LAYOUTS.map(l=>(
+          {kLayouts.map(l=>(
             <div key={l.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, overflow:'hidden', textAlign:'center' }}>
               <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?110:130, objectFit:'cover' }} />
               <div style={{ padding:'14px 12px 16px' }}>
                 <div style={{ fontSize:14, fontWeight:600, color:'var(--ink)' }}>{l.name}</div>
                 <div style={{ fontSize:11.5, color:'var(--muted)', marginTop:4, lineHeight:1.4 }}>{l.sub}</div>
+                {Array.isArray(l.bullets) && l.bullets.length>0 && (
+                  <div style={{ display:'flex', flexWrap:'wrap', gap:5, justifyContent:'center', marginTop:8 }}>
+                    {l.bullets.slice(0,3).map(b=>(<span key={b} style={{ fontSize:10.5, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'3px 8px' }}>{b}</span>))}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -8984,10 +9054,12 @@ function KitchenPage({ setPage, products }) {
 function OfficePage({ setPage, products }) {
   const mobile = useMobile();
   const [faq, setFaq] = useState(-1);
+  const { map: dbLayouts } = useLayouts('office');
+  const officeLayouts = OFFICE_LAYOUTS.map(l => mergeLayout(l, dbLayouts));
   const officeProducts = (products||[]).filter(p =>
     /office|study|desk|workspace|home\s*office/i.test(p.category||'') ||
     /office|study|desk/i.test(p.name||''));
-  const heroImg = '/layouts/office/l-shaped.jpg';
+  const heroImg = (dbLayouts['l-shaped'] && dbLayouts['l-shaped'].hero_url) || '/layouts/office/l-shaped.jpg';
   const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
   const FAQS = [
     ['How much does a fitted home office cost?', 'A minimal floating desk setup starts from around BD 540, a corner or built-in office from BD 1,100, and a full floor-to-ceiling storage wall with integrated desk from BD 2,400+. Price is driven transparently by the metres of cabinetry, your worktop and storage — build a live estimate in the office planner.'],
@@ -9019,14 +9091,15 @@ function OfficePage({ setPage, products }) {
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>Find your setup.</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>Six ways to bring a proper, productive workspace into your home — from minimal to a full storage wall.</p>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
-          {OFFICE_LAYOUTS.map(t=>(
+          {officeLayouts.map(t=>(
             <button key={t.id} type="button" onClick={()=>setPage('office-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
               <div style={{ height: mobile?170:210, background:`url('${t.img}') center/cover` }} />
               <div style={{ padding:'18px 20px' }}>
                 <div style={{ fontSize:20, fontWeight:600, color:'var(--ink)' }}>{t.name}</div>
                 <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{t.sub}</div>
+                {t.desc && <p style={{ fontSize:13, color:'var(--ink-soft)', margin:'8px 0 0', lineHeight:1.5 }}>{t.desc}</p>}
                 <div style={{ display:'flex', flexWrap:'wrap', gap:6, margin:'12px 0' }}>
-                  {t.feats.map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{c}</span>))}
+                  {(Array.isArray(t.bullets)&&t.bullets.length?t.bullets:t.feats).map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{c}</span>))}
                 </div>
                 <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600 }}>Design yours →</div>
               </div>
