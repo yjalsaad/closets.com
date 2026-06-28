@@ -3993,7 +3993,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
   ];
   // d. Room types.
   const rooms = [
-    ['Wardrobes', 'Walk-in, sliding & fitted', HOME_IMG.walkin, 'wardrobes'],
+    ['Wardrobes', 'Walk-in, sliding & fitted', '/layouts/wardrobe/wardrobe-walkin.jpg', 'wardrobes'],
     ['Kitchens', 'Modern, shaker & handleless', HOME_IMG.kitchen, 'kitchen'],
     ['Doors & more', 'Doors, media & storage', HOME_IMG.living, 'door-planner'],
   ];
@@ -4072,7 +4072,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
             <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>Designs you’ll love.</h2>
           </div>
           <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? 16 : 22, marginBottom: 28 }}>
-            {[['Wardrobes', 'Fitted, sliding & walk-in storage built around your life.', HOME_IMG.walkin, 'wardrobes'], ['Kitchens', 'Precision cabinetry, worktops and finishes for daily living.', HOME_IMG.kitchen, 'kitchen']].map(([name, desc, img, route]) => (
+            {[['Wardrobes', 'Fitted, sliding & walk-in storage built around your life.', '/layouts/wardrobe/wardrobe-walkin.jpg', 'wardrobes'], ['Kitchens', 'Precision cabinetry, worktops and finishes for daily living.', HOME_IMG.kitchen, 'kitchen']].map(([name, desc, img, route]) => (
               <button type="button" key={name} className="tile-zoom lift" onClick={() => setPage(route)} style={{ position: 'relative', border: 'none', padding: 0, borderRadius: 24, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 300 : 420, background: '#15110e' }}>
                 <Photo src={img} alt={name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.05) 30%, rgba(20,16,12,.85) 100%)' }} />
@@ -5012,19 +5012,19 @@ const WARDROBE_CATALOG_ANCHORS = {
 const W_TYPES = [
   { id:'walkin',  name:'Walk-in closet',  sub:'A private dressing room of your own', from:5200,
     desc:'Open-plan hanging, drawer banks, an island and full-height storage — the flagship. Organised to the centimetre, lit like a boutique.',
-    img:HOME_IMG.walkin, best:'Master suites & dressing rooms', ic:'M4 4h16v16H4z M4 10h16 M12 4v16',
+    img:'/layouts/wardrobe/wardrobe-walkin.jpg', best:'Master suites & dressing rooms', ic:'M4 4h16v16H4z M4 10h16 M12 4v16',
     chips:['Island optional','Boutique LED','Open-plan'] },
   { id:'sliding', name:'Sliding-door wardrobe', sub:'Space-saving, seamless fronts', from:1000,
     desc:'Floor-to-ceiling sliding doors in glass, mirror or panelled finish. No swing clearance — ideal where space is tight.',
-    img:HOME_IMG.wardrobe, best:'Compact bedrooms & alcoves', ic:'M4 4h16v16H4z M12 4v16',
+    img:'/layouts/wardrobe/wardrobe-sliding.jpg', best:'Compact bedrooms & alcoves', ic:'M4 4h16v16H4z M12 4v16',
     chips:['Soft-close runners','Mirror option','Zero swing'] },
   { id:'hinged',  name:'Hinged / fitted wardrobe', sub:'Classic doors, fully fitted', from:720,
     desc:'Made-to-measure hinged doors fitted wall-to-wall and floor-to-ceiling — every centimetre used, scribed to your walls.',
-    img:HOME_IMG.detail, best:'Most bedrooms — the all-rounder', ic:'M4 4h16v16H4z M9 4v16 M15 4v16',
+    img:'/layouts/wardrobe/wardrobe-hinged.jpg', best:'Most bedrooms — the all-rounder', ic:'M4 4h16v16H4z M9 4v16 M15 4v16',
     chips:['Blum hinges','Wall-to-wall','Made to measure'] },
   { id:'reachin', name:'Fitted / reach-in', sub:'Built-in storage that disappears', from:540,
     desc:'A reach-in run built into the architecture — handleless fronts that read as a wall, with a fully fitted interior behind.',
-    img:HOME_IMG.living, best:'Hallways, kids rooms & studies', ic:'M4 4h16v16H4z M4 12h16',
+    img:'/layouts/wardrobe/wardrobe-straight.jpg', best:'Hallways, kids rooms & studies', ic:'M4 4h16v16H4z M4 12h16',
     chips:['Handleless','Flush-fit','Bespoke interior'] },
 ];
 
@@ -5400,12 +5400,12 @@ const WW_CONSTRAINT_TYPES = ['Door','Window','Column','Beam','AC unit','Electric
 // Six layouts. `model3d` + `product3d` map to the shared Wardrobe3D builder
 // (straight→single, L-Shape→l-shape, U-Shape/Walk-in→u-shape walkin, sliding/hinged→single).
 const WW_LAYOUTS = [
-  { id:'straight', name:'Straight',        sub:'One run along a single wall',        model3d:'single',  product3d:'' },
-  { id:'l-shape',  name:'L-Shape',         sub:'Two runs meeting in a corner',       model3d:'l-shape', product3d:'' },
-  { id:'u-shape',  name:'U-Shape walk-in', sub:'Three runs around three walls',      model3d:'u-shape', product3d:'walkin' },
-  { id:'walkin',   name:'Walk-in room',    sub:'Open dressing room with island',     model3d:'u-shape', product3d:'walkin' },
-  { id:'sliding',  name:'Sliding',         sub:'Sliding-door fitted wardrobe',       model3d:'single',  product3d:'' },
-  { id:'hinged',   name:'Hinged',          sub:'Hinged-door fitted wardrobe',        model3d:'single',  product3d:'' },
+  { id:'straight', name:'Straight',        sub:'One run along a single wall',        model3d:'single',  product3d:'',       img:'/layouts/wardrobe/wardrobe-straight.jpg' },
+  { id:'l-shape',  name:'L-Shape',         sub:'Two runs meeting in a corner',       model3d:'l-shape', product3d:'',       img:'/layouts/wardrobe/wardrobe-l-shape.jpg' },
+  { id:'u-shape',  name:'U-Shape walk-in', sub:'Three runs around three walls',      model3d:'u-shape', product3d:'walkin', img:'/layouts/wardrobe/wardrobe-u-shape.jpg' },
+  { id:'walkin',   name:'Walk-in room',    sub:'Open dressing room with island',     model3d:'u-shape', product3d:'walkin', img:'/layouts/wardrobe/wardrobe-walkin.jpg' },
+  { id:'sliding',  name:'Sliding',         sub:'Sliding-door fitted wardrobe',       model3d:'single',  product3d:'',       img:'/layouts/wardrobe/wardrobe-sliding.jpg' },
+  { id:'hinged',   name:'Hinged',          sub:'Hinged-door fitted wardrobe',        model3d:'single',  product3d:'',       img:'/layouts/wardrobe/wardrobe-hinged.jpg' },
 ];
 // Storage priorities — id, label, whether a count input applies + its noun.
 const WW_PRIORITIES = [
@@ -6460,9 +6460,12 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
       case 3: return (<>{sectionH('4','Wardrobe layout','Pick a configuration — then set its parameters below.')}
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr 1fr', gap:9, marginBottom:14 }}>
           {WW_LAYOUTS.map(l=>{ const on=layout===l.id; return (
-            <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:'9px 10px' }}>
-              <div style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{l.name}</div>
-              <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>{l.sub}</div>
+            <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden' }}>
+              <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?120:140, objectFit:'cover', borderTopLeftRadius:12, borderTopRightRadius:12 }} />
+              <div style={{ padding:'9px 10px' }}>
+                <div style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{l.name}</div>
+                <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>{l.sub}</div>
+              </div>
             </button>); })}
         </div>
         <div style={{ background:'var(--sand)', borderRadius:12, padding:'13px 14px' }}>
