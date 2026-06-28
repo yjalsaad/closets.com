@@ -329,8 +329,8 @@ const CSS = `
   a, button, [role="button"], input[type="submit"], label { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   button:not(:disabled), a[href], [role="button"] { cursor: pointer; }
   button:disabled { opacity: .5; cursor: not-allowed; }
-  /* Smooth in-page navigation + anchor offset for the fixed header */
-  html { scroll-behavior: smooth; }
+  /* Anchor offset for the fixed header. (No global smooth-scroll — it can make
+     wheel/trackpad scrolling feel laggy or "stuck" on some devices.) */
   :target { scroll-margin-top: 96px; }
   /* Data legibility: tabular figures for prices, stats and counters */
   .tnum, .price, .stat-num { font-variant-numeric: tabular-nums; }
