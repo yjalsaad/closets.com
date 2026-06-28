@@ -346,10 +346,27 @@ const CSS = `
 
 function useReveal() {
   useEffect(() => {
+    const SEL = '.reveal, .rv, .rv-l, .rv-r, .rv-sc, .rv-words';
     const obs = new IntersectionObserver(entries => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vis'); obs.unobserve(e.target); } }), { threshold: 0.06, rootMargin: '0px 0px -8% 0px' });
-    document.querySelectorAll('.reveal, .rv, .rv-l, .rv-r, .rv-sc, .rv-words').forEach(el => obs.observe(el));
-    return () => obs.disconnect();
-  });
+    const observeAll = () => {
+      document.querySelectorAll(SEL).forEach(el => {
+        if (el.classList.contains('vis')) return;
+        const r = el.getBoundingClientRect();
+        // Reveal anything already in (or above) the viewport immediately, observe the rest.
+        if (r.top < window.innerHeight && r.bottom > 0) el.classList.add('vis');
+        else obs.observe(el);
+      });
+    };
+    observeAll();
+    // Pick up nodes added after first paint (lazy data, route content).
+    const mo = new MutationObserver(() => observeAll());
+    mo.observe(document.body, { childList: true, subtree: true });
+    // Safety net: content must never stay permanently hidden if the observer is starved.
+    const onScroll = () => observeAll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    const failsafe = setTimeout(() => { document.querySelectorAll(SEL).forEach(el => el.classList.add('vis')); }, 2600);
+    return () => { obs.disconnect(); mo.disconnect(); window.removeEventListener('scroll', onScroll); clearTimeout(failsafe); };
+  }, []);
 }
 
 /* ── NAV (desktop) + BOTTOM TAB BAR (mobile) ── */
@@ -3464,10 +3481,12 @@ function DigitalCardCarousel({ user, setPage }) {
     title: c.title || '',
     company: c.company_name || '',
     contact: c.phone || c.mobile || c.whatsapp || '',
+    website: c.website || '',
     email: c.email || '',
     location: c.location || '',
     photo: c.photo_url || '',
     logo: c.logo_url || '',
+    slug: c.slug || '',
   }));
 
   // ONE card → single premium 3D card (auto-advance disabled). Multiple cards →
@@ -3582,7 +3601,7 @@ function DigitalCardCarousel({ user, setPage }) {
   if (cards === null) {
     return (
       <div ref={containerRef} style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        <div style={{ width: 336, maxWidth: '82%', aspectRatio: '1.5925 / 1', borderRadius: 18, background: 'linear-gradient(110deg, #141414 30%, #222 50%, #141414 70%)', backgroundSize: '200% 100%', animation: 'cardShimmer 1.4s ease-in-out infinite', boxShadow: '0 30px 80px rgba(0,0,0,0.6)' }} />
+        <div style={{ width: 336, maxWidth: '82%', aspectRatio: '1.5925 / 1', borderRadius: 18, border: '1px solid #3a3128', background: 'linear-gradient(110deg, #15120f 30%, #241d14 50%, #15120f 70%)', backgroundSize: '200% 100%', animation: 'cardShimmer 1.4s ease-in-out infinite', boxShadow: '0 30px 80px rgba(0,0,0,0.6)' }} />
         <style>{'@keyframes cardShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}'}</style>
       </div>
     );
@@ -3633,39 +3652,51 @@ function DigitalCardCarousel({ user, setPage }) {
                       borderRadius: 18,
                       overflow: 'hidden',
                       transform: 'translateZ(' + tz + 'px)',
-                      backgroundColor: (isFront || isBack) ? 'transparent' : '#808080',
+                      backgroundColor: (isFront || isBack) ? 'transparent' : '#2a241c',
                       boxShadow: isFront ? '0 30px 80px rgba(0,0,0,0.65)' : 'none',
                     }}
                   >
-                    {/* FRONT FACE */}
+                    {/* FRONT FACE — Metal Black (matte near-black + gold foil) */}
                     {isFront && (
-                      <div style={{ position: 'absolute', inset: 0, borderRadius: 18, overflow: 'hidden', backgroundColor: accent }}>
-                        <video
-                          src={video}
-                          autoPlay
-                          muted
-                          loop
-                          playsInline
-                          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.55) 100%)' }} />
-                        {/* Real avatar near the chip (if a photo exists) */}
+                      <div style={{ position: 'absolute', inset: 0, borderRadius: 18, overflow: 'hidden', backgroundColor: '#15120f', border: '1px solid #3a3128', backgroundImage: 'radial-gradient(120% 80% at 82% -10%, rgba(214,163,92,0.12), transparent 58%)' }}>
+                        {/* subtle vignette + sheen */}
+                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(0,0,0,0.0) 40%, rgba(0,0,0,0.35) 100%)', zIndex: 1 }} />
+                        {/* top row: wordmark + sub on left, emblem on right */}
+                        <div style={{ position: 'absolute', top: '11%', left: '8%', zIndex: 3 }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.18em', color: '#d6a35c' }}>THE CLOSETS</div>
+                          {(det.title || det.company) && (
+                            <div style={{ fontSize: 8.5, color: '#9b8a73', marginTop: 3, letterSpacing: '0.04em' }}>
+                              {[det.title, det.company].filter(Boolean).join(' · ')}
+                            </div>
+                          )}
+                        </div>
+                        {/* Real avatar near the emblem (if a photo exists) */}
                         {det.photo && (
-                          <div style={{ position: 'absolute', top: '30%', right: '8%', zIndex: 3, width: 38, height: 38, borderRadius: '50%', overflow: 'hidden', border: '1.5px solid rgba(255,255,255,0.7)', boxShadow: '0 4px 14px rgba(0,0,0,0.4)' }}>
+                          <div style={{ position: 'absolute', top: '30%', right: '8%', zIndex: 3, width: 38, height: 38, borderRadius: '50%', overflow: 'hidden', border: '1.5px solid #d6a35c', boxShadow: '0 4px 14px rgba(0,0,0,0.5)' }}>
                             <img src={det.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </div>
                         )}
-                        {/* Silver metallic chip — verbatim source SVG, per-card gradient id */}
+                        {/* Gold chip */}
                         <div style={{ position: 'absolute', top: '32%', left: '8%', zIndex: 2 }}>
-                          <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:29,height:29}}>
-                            <path fillRule="evenodd" clipRule="evenodd" d="M20 8H40V14C40.0016 14.5299 40.2128 15.0377 40.5875 15.4125C40.9623 15.7872 41.4701 15.9984 42 16H59V24H42C41.4701 24.0016 40.9623 24.2128 40.5875 24.5875C40.2128 24.9623 40.0016 25.4701 40 26V52H20V8ZM18 8H8.00039C4.47435 8 1.56576 10.6083 1.08 14H18V8ZM1 16V24V26V34V36V44H18V36H1V34H18V26H1V24H18V16H1ZM1.08 46C1.56576 49.3917 4.47435 52 8.00039 52H18V46H1.08ZM42 14V8H52.0004C55.5264 8 58.4342 10.6084 58.92 14H42ZM59 26H42V34H59V26ZM59 36H42V44H59V36ZM52.0004 52H42V46H58.92C58.4342 49.3916 55.5264 52 52.0004 52Z" fill={`url(#chip_${i})`}/>
-                            <path fillRule="evenodd" clipRule="evenodd" d="M1.02453 14.4146C1.00608 14.609 0.998061 14.8045 1.00039 15C1.00039 14.8028 1.00854 14.6076 1.02453 14.4146ZM1.00039 45C0.998061 45.1955 1.00608 45.391 1.02453 45.5854C1.00854 45.3924 1.00039 45.1972 1.00039 45ZM59.0004 15C59.0026 14.8176 58.9955 14.6353 58.9794 14.4538C58.9933 14.634 59.0004 14.8162 59.0004 15ZM59.0004 45C59.0004 45.1838 58.9933 45.366 58.9794 45.5462C58.9955 45.3647 59.0026 45.1824 59.0004 45Z" fill="#B7B7B7"/>
-                            <defs><linearGradient id={`chip_${i}`} x1="30" y1="8" x2="30" y2="52" gradientUnits="userSpaceOnUse"><stop stopColor="white"/><stop offset="1" stopColor="#999999"/></linearGradient></defs>
-                          </svg>
+                          <div style={{ width: 38, height: 27, borderRadius: 6, background: 'linear-gradient(135deg,#e6c074,#a9803a)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.35), 0 2px 6px rgba(0,0,0,0.45)', position: 'relative' }}>
+                            <div style={{ position: 'absolute', inset: '5px 6px', borderRadius: 3, boxShadow: 'inset 0 0 0 1px rgba(122,86,30,0.55)' }} />
+                          </div>
                         </div>
-                        {/* JWT logo top-right — verbatim source SVG */}
-                        <div style={{ position: 'absolute', top: '12%', right: '8%', zIndex: 2 }}>
-                          <svg viewBox="0 0 341 49" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:110,height:'auto'}}>
+                        {/* Gold wordmark/logo emblem top-right */}
+                        <div style={{ position: 'absolute', top: '11%', right: '8%', zIndex: 2, width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #3a3128', background: 'radial-gradient(circle at 35% 30%, rgba(214,163,92,0.25), transparent 60%)' }}>
+                          {det.logo ? (
+                            <img src={det.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                          ) : (
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: 16, height: 16 }}>
+                              <path d="M4 19V7l8-4 8 4v12" stroke="#d6a35c" strokeWidth="1.6" strokeLinejoin="round" />
+                              <path d="M9 19v-6h6v6" stroke="#d6a35c" strokeWidth="1.6" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                        </div>
+                        {/* hidden ref-keepers — preserve unused source vars without rendering them */}
+                        <div style={{ display: 'none' }} aria-hidden="true">
+                          <span>{video}</span><span>{accent}</span>
+                          <svg viewBox="0 0 341 49" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:0,height:0}}>
                             <path d="M8.75294 47.68C6.10761 47.68 4.10227 47.04 2.73694 45.76C1.41427 44.48 0.582275 42.7733 0.240941 40.64C-0.100392 38.464 -0.0790588 36.0747 0.304941 33.472C0.731608 30.8267 1.37161 28.1813 2.22494 25.536C3.07827 22.848 3.99561 20.3307 4.97694 17.984C6.00094 15.5947 6.93961 13.5893 7.79294 11.968C8.26227 11.072 8.88094 10.56 9.64894 10.432C10.4169 10.2613 11.1423 10.368 11.8249 10.752C12.5503 11.136 13.0623 11.6907 13.3609 12.416C13.7023 13.1413 13.6383 13.9307 13.1689 14.784C11.2916 18.368 9.79828 21.7813 8.68894 25.024C7.57961 28.2667 6.85427 31.1467 6.51294 33.664C6.21427 36.1387 6.23561 38.1013 6.57694 39.552C6.96094 40.96 7.68628 41.664 8.75294 41.664C9.73428 41.664 10.8009 41.3013 11.9529 40.576C13.1049 39.8507 14.3423 38.5493 15.6649 36.672C17.0303 34.6667 18.3529 32.064 19.6329 28.864C20.9556 25.6213 22.1289 21.8667 23.1529 17.6C23.4089 16.6187 23.8783 15.9573 24.5609 15.616C25.2863 15.2747 26.0329 15.2107 26.8009 15.424C27.5689 15.6373 28.1876 16.064 28.6569 16.704C29.1263 17.3013 29.2543 18.0693 29.0409 19.008C27.9316 23.616 27.3769 27.5627 27.3769 30.848C27.4196 34.1333 27.7609 36.5227 28.4009 38.016C28.8703 39.0827 29.4249 39.8507 30.0649 40.32C30.7476 40.7893 31.4943 41.024 32.3049 41.024C33.1156 41.024 33.9689 40.7253 34.8649 40.128C35.8036 39.488 36.7209 38.4 37.6169 36.864C38.5556 35.328 39.3876 33.216 40.1129 30.528C37.6809 28.48 35.6756 25.7707 34.0969 22.4C32.5183 19.0293 31.7289 15.168 31.7289 10.816C31.7289 8.93867 31.9423 7.21067 32.3689 5.632C32.7956 4.05333 33.5209 2.79467 34.5449 1.856C35.5689 0.874666 36.9769 0.383999 38.7689 0.383999C40.9449 0.383999 42.7156 1.17333 44.0809 2.752C45.4463 4.288 46.4489 6.37867 47.0889 9.024C47.7289 11.6267 48.0063 14.5493 47.9209 17.792C47.8783 21.0347 47.5369 24.3413 46.8969 27.712C47.5369 28.0107 48.2196 28.2453 48.9449 28.416C49.7129 28.5867 50.4809 28.672 51.2489 28.672C52.9983 28.672 54.7903 28.416 56.6249 27.904C58.5023 27.3493 60.1023 26.6453 61.4249 25.792C62.2783 25.2373 63.0676 25.088 63.7929 25.344C64.5183 25.5573 65.0943 26.0053 65.521 26.688C65.9476 27.328 66.1183 28.0533 66.0329 28.864C65.9903 29.632 65.5636 30.272 64.7529 30.784C62.8756 32.0213 60.7423 33.0027 58.3529 33.728C56.0063 34.4533 53.6383 34.816 51.2489 34.816C49.2863 34.816 47.3449 34.4533 45.4249 33.728C44.1876 37.7387 42.5023 40.96 40.3689 43.392C38.2356 45.824 35.5476 47.04 32.3049 47.04C30.2569 47.04 28.3583 46.4427 26.6089 45.248C24.9023 44.0107 23.6223 42.4107 22.7689 40.448C22.5983 40.064 22.4276 39.6587 22.2569 39.232C22.1289 38.8053 22.0223 38.4 21.9369 38.016C21.7236 38.4 21.4889 38.7627 21.2329 39.104C21.0196 39.4453 20.7849 39.7867 20.5289 40.128C18.9503 42.3467 17.1796 44.16 15.2169 45.568C13.2969 46.976 11.1423 47.68 8.75294 47.68ZM41.5849 23.104C42.0116 19.9893 42.1183 17.3653 41.9049 15.232C41.6916 13.0987 41.3503 11.392 40.8809 10.112C40.4116 8.78933 39.9423 7.85067 39.4729 7.296C39.0463 6.69867 38.8116 6.4 38.7689 6.4C38.7689 6.4 38.6836 6.42133 38.5129 6.464C38.3849 6.464 38.2356 6.76267 38.0649 7.36C37.9369 7.91467 37.8729 9.06667 37.8729 10.816C37.8729 12.992 38.1929 15.168 38.8329 17.344C39.4729 19.4773 40.3903 21.3973 41.5849 23.104Z" fill="white"/>
                             <path d="M91.5429 48.768C89.5376 48.768 87.9163 48.3627 86.6789 47.552C85.4843 46.784 84.6096 45.76 84.0549 44.48C83.5003 43.1573 83.2016 41.7493 83.1589 40.256C81.3243 42.4747 79.2763 44.224 77.0149 45.504C74.7963 46.7413 72.4709 47.36 70.0389 47.36C68.1189 47.36 66.3056 46.912 64.5989 46.016C62.8923 45.0773 61.5056 43.6907 60.4389 41.856C59.4149 39.9787 58.9029 37.6107 58.9029 34.752C58.9029 31.7653 59.5216 28.8427 60.7589 25.984C62.0389 23.0827 63.7669 20.48 65.9429 18.176C68.1616 15.8293 70.6789 13.9733 73.4949 12.608C76.3536 11.2 79.3403 10.496 82.4549 10.496C84.5029 10.496 86.5296 10.752 88.5349 11.264C90.5403 11.776 92.2896 12.5227 93.7829 13.504C94.6363 14.0587 95.1056 14.72 95.1909 15.488C95.2763 16.256 95.0843 16.9813 94.6149 17.664C94.1883 18.304 93.6123 18.752 92.8869 19.008C92.1616 19.264 91.3936 19.136 90.5829 18.624C89.7723 18.112 88.5563 17.6427 86.9349 17.216C85.3563 16.7467 83.8629 16.512 82.4549 16.512C80.0229 16.512 77.7616 17.0667 75.6709 18.176C73.5803 19.2853 71.7243 20.736 70.1029 22.528C68.5243 24.32 67.2869 26.2827 66.3909 28.416C65.4949 30.5493 65.0469 32.6613 65.0469 34.752C65.0469 35.8187 65.1749 36.864 65.4309 37.888C65.7296 38.8693 66.2416 39.7013 66.9669 40.384C67.6923 41.024 68.7163 41.344 70.0389 41.344C71.3189 41.344 72.7483 40.9173 74.3269 40.064C75.9483 39.168 77.4843 37.76 78.9349 35.84C79.8309 34.6453 80.7696 33.216 81.7509 31.552C82.7323 29.8453 83.6283 28.16 84.4389 26.496C85.2923 24.7893 85.9749 23.3387 86.4869 22.144C86.8283 21.2907 87.3403 20.736 88.0229 20.48C88.7483 20.224 89.4736 20.224 90.1989 20.48C90.9243 20.6933 91.5003 21.0987 91.9269 21.696C92.3536 22.2933 92.4816 23.04 92.3109 23.936L89.4949 37.632C89.1963 39.1253 89.1963 40.2347 89.4949 40.96C89.7936 41.6853 90.1776 42.176 90.6469 42.432C91.1163 42.6453 91.4149 42.752 91.5429 42.752C92.2256 42.752 93.1003 42.432 94.1669 41.792C95.2336 41.1093 96.5563 39.8507 98.1349 38.016C99.4576 36.5227 100.823 34.7733 102.231 32.768C103.682 30.72 105.068 28.6293 106.391 26.496C107.756 24.32 108.972 22.272 110.039 20.352C111.148 18.3893 112.023 16.768 112.663 15.488C113.09 14.592 113.687 14.0587 114.455 13.888C115.223 13.7173 115.948 13.824 116.631 14.208C117.356 14.5493 117.868 15.0827 118.167 15.808C118.508 16.4907 118.466 17.28 118.039 18.176C117.356 19.584 116.439 21.2907 115.287 23.296C114.178 25.3013 112.919 27.4347 111.511 29.696C110.146 31.9147 108.695 34.0907 107.159 36.224C105.666 38.3573 104.194 40.2773 102.743 41.984C101.036 43.9467 99.2869 45.568 97.4949 46.848C95.7456 48.128 93.7616 48.768 91.5429 48.768Z" fill="white"/>
                             <path d="M118.45 48.448C115.549 48.448 113.351 47.6373 111.858 46.016C110.407 44.352 109.533 42.0267 109.234 39.04C108.978 36.0533 109.17 32.5547 109.81 28.544C110.493 24.5333 111.517 20.16 112.882 15.424C113.181 14.4427 113.693 13.8027 114.418 13.504C115.143 13.1627 115.89 13.12 116.658 13.376C117.426 13.632 118.023 14.08 118.45 14.72C118.919 15.36 119.026 16.1493 118.77 17.088C117.191 22.464 116.146 26.8373 115.634 30.208C115.165 33.536 115.037 36.096 115.25 37.888C115.463 39.6373 115.869 40.832 116.466 41.472C117.106 42.112 117.767 42.432 118.45 42.432C119.303 42.432 120.413 41.9413 121.778 40.96C123.143 39.936 124.594 38.5067 126.13 36.672C127.666 34.8373 129.138 32.7253 130.546 30.336C129.778 27.904 129.394 25.152 129.394 22.08C129.394 20.2027 129.501 18.176 129.714 16C129.97 13.7813 130.397 11.6907 130.994 9.728C131.634 7.76533 132.509 6.18667 133.618 4.992C134.77 3.79733 136.242 3.264 138.034 3.392C139.485 3.52 140.573 4.032 141.298 4.928C142.066 5.824 142.535 6.95467 142.706 8.32C142.919 9.68533 142.941 11.1573 142.77 12.736C142.599 14.272 142.343 15.808 142.002 17.344C141.661 18.8373 141.319 20.16 140.978 21.312C139.954 24.8107 138.781 28.032 137.458 30.976C138.61 33.024 140.061 34.432 141.81 35.2C143.559 35.968 145.33 36.2453 147.122 36.032C148.914 35.776 150.45 35.2427 151.73 34.432C152.583 33.8773 153.373 33.728 154.098 33.984C154.823 34.1973 155.399 34.6453 155.826 35.328C156.295 35.968 156.487 36.6933 156.402 37.504C156.317 38.272 155.869 38.912 155.058 39.424C152.967 40.7893 150.642 41.6427 148.082 41.984C145.565 42.3253 143.09 42.0907 140.658 41.28C138.226 40.4693 136.093 39.04 134.258 36.992C132.039 40.576 129.586 43.392 126.898 45.44C124.253 47.4453 121.437 48.448 118.45 48.448ZM135.666 18.112C136.391 15.5947 136.882 13.7173 137.138 12.48C137.394 11.2427 137.522 10.432 137.522 10.048C137.522 9.62133 137.522 9.408 137.522 9.408C137.522 9.408 137.394 9.68533 137.138 10.24C136.882 10.752 136.605 11.648 136.306 12.928C136.007 14.1653 135.794 15.8933 135.666 18.112Z" fill="white"/>
@@ -3675,46 +3706,45 @@ function DigitalCardCarousel({ user, setPage }) {
                             <path d="M283.745 13.248C288.055 13.248 291.468 14.5067 293.985 17.024C296.545 19.4987 297.825 23.1467 297.825 27.968V47.488H291.681V28.672C291.681 25.3867 290.892 22.912 289.313 21.248C287.735 19.584 285.473 18.752 282.529 18.752C279.201 18.752 276.577 19.7333 274.657 21.696C272.737 23.616 271.777 26.3893 271.777 30.016V47.488H265.633V13.568H271.521V18.688C272.759 16.9387 274.423 15.5947 276.513 14.656C278.647 13.7173 281.057 13.248 283.745 13.248ZM319.82 31.68L312.78 38.208V47.488H306.636V0H312.78V30.464L331.276 13.568H338.7L324.428 27.584L340.108 47.488H332.556L319.82 31.68Z" fill="white"/>
                           </svg>
                         </div>
-                        {/* Two intersecting circles bottom-right */}
-                        <div style={{ position: 'absolute', bottom: '10%', right: '8%', display: 'flex', alignItems: 'center', zIndex: 2 }}>
-                          <div style={{ width: 30, height: 30, borderRadius: '50%', backgroundColor: 'rgba(235,235,235,0.85)' }} />
-                          <div style={{ width: 30, height: 30, borderRadius: '50%', backgroundColor: 'rgba(245,170,90,0.85)', marginLeft: -12, mixBlendMode: 'screen' }} />
-                        </div>
-                        {/* Real identity overlay — bottom-left, legible over video */}
-                        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '46%', background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%)', zIndex: 2, pointerEvents: 'none' }} />
-                        <div style={{ position: 'absolute', left: '8%', right: '40%', bottom: '9%', zIndex: 3 }}>
-                          <div style={{ fontSize: 15, fontWeight: 600, color: '#fff', letterSpacing: '0.01em', textShadow: '0 1px 6px rgba(0,0,0,0.55)', lineHeight: 1.2 }}>{det.name}</div>
+                        {/* Bottom identity block — holder name, role, member id */}
+                        <div style={{ position: 'absolute', left: '8%', right: '8%', bottom: '9%', zIndex: 3 }}>
+                          <div style={{ fontSize: 16, fontWeight: 800, color: '#f3ead9', letterSpacing: '0.01em', lineHeight: 1.15 }}>{det.name}</div>
                           {(det.title || det.company) && (
-                            <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.8)', marginTop: 3, textShadow: '0 1px 5px rgba(0,0,0,0.5)', lineHeight: 1.25 }}>
+                            <div style={{ fontSize: 10, color: '#b6a489', marginTop: 3, letterSpacing: '0.02em', lineHeight: 1.25 }}>
                               {[det.title, det.company].filter(Boolean).join(' · ')}
+                            </div>
+                          )}
+                          {det.number && (
+                            <div style={{ fontSize: 9.5, color: '#8f7f69', marginTop: 7, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.14em' }}>
+                              ID · {det.number}
                             </div>
                           )}
                         </div>
                       </div>
                     )}
-                    {/* BACK FACE */}
+                    {/* BACK FACE — Metal Black: wordmark + gold QR panel + contact row */}
                     {isBack && (
-                      <div style={{ position: 'absolute', inset: 0, borderRadius: 18, overflow: 'hidden', backgroundColor: '#0c0c0c', transform: 'rotateY(180deg)' }}>
-                        <video
-                          src={video}
-                          autoPlay
-                          muted
-                          loop
-                          playsInline
-                          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'blur(14px) brightness(0.45)', transform: 'scale(1.15)' }}
-                        />
-                        {/* Dark magnetic stripe */}
-                        <div style={{ position: 'absolute', top: '14%', left: 0, right: 0, height: 38, backgroundColor: '#050505', zIndex: 2 }} />
-                        {/* Membership details — mono (no CVV; business cards have none) */}
-                        <div style={{ position: 'absolute', left: '8%', right: '8%', bottom: '12%', color: 'rgba(255,255,255,0.92)', fontFamily: "'JetBrains Mono', monospace", zIndex: 2 }}>
-                          <div style={{ fontSize: 9, letterSpacing: '0.14em', opacity: 0.6, marginBottom: 4 }}>MEMBERSHIP</div>
-                          <div style={{ fontSize: 14, letterSpacing: '0.12em', marginBottom: 12 }}>{det.number}</div>
-                          <div style={{ fontSize: 11.5, letterSpacing: '0.06em', marginBottom: 4 }}>{det.name}</div>
+                      <div style={{ position: 'absolute', inset: 0, borderRadius: 18, overflow: 'hidden', backgroundColor: '#15120f', border: '1px solid #3a3128', backgroundImage: 'radial-gradient(110% 70% at 50% -10%, rgba(214,163,92,0.10), transparent 60%)', transform: 'rotateY(180deg)' }}>
+                        {/* wordmark top */}
+                        <div style={{ position: 'absolute', top: '10%', left: '8%', right: '8%', textAlign: 'center', fontSize: 11, fontWeight: 700, letterSpacing: '0.18em', color: '#d6a35c', zIndex: 2 }}>THE CLOSETS</div>
+                        {/* gold QR panel with dark modules */}
+                        <div style={{ position: 'absolute', top: '24%', left: '50%', transform: 'translateX(-50%)', zIndex: 2, background: 'linear-gradient(135deg,#e6c074,#caa256)', padding: 7, borderRadius: 9, boxShadow: '0 6px 16px rgba(0,0,0,0.45), inset 0 1px 1px rgba(255,255,255,0.4)' }}>
+                          <img
+                            alt=""
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&margin=0&color=15120f&bgcolor=e6c074&data=${encodeURIComponent('https://closets-website.vercel.app/card.html?c=' + (det.slug || ''))}`}
+                            style={{ display: 'block', width: 64, height: 64 }}
+                          />
+                        </div>
+                        {/* membership + identity + contact — mono */}
+                        <div style={{ position: 'absolute', left: '8%', right: '8%', bottom: '10%', color: '#b6a489', fontFamily: "'JetBrains Mono', monospace", zIndex: 2 }}>
+                          <div style={{ fontSize: 9, letterSpacing: '0.14em', color: '#8f7f69', marginBottom: 4 }}>MEMBERSHIP</div>
+                          <div style={{ fontSize: 13, letterSpacing: '0.12em', color: '#f3ead9', marginBottom: 10 }}>{det.number}</div>
+                          <div style={{ fontSize: 11, letterSpacing: '0.06em', color: '#f3ead9', marginBottom: 4 }}>{det.name}</div>
                           {(det.title || det.company) && (
-                            <div style={{ fontSize: 9.5, letterSpacing: '0.04em', opacity: 0.78, marginBottom: 4 }}>{[det.title, det.company].filter(Boolean).join(' · ')}</div>
+                            <div style={{ fontSize: 9, letterSpacing: '0.04em', color: '#b6a489', marginBottom: 4 }}>{[det.title, det.company].filter(Boolean).join(' · ')}</div>
                           )}
-                          {(det.contact || det.email) && (
-                            <div style={{ fontSize: 9.5, letterSpacing: '0.04em', opacity: 0.78 }}>{[det.contact, det.email].filter(Boolean).join('  ·  ')}</div>
+                          {(det.contact || det.website) && (
+                            <div style={{ fontSize: 9, letterSpacing: '0.04em', color: '#b6a489' }}>{[det.contact, det.website].filter(Boolean).join('  ·  ')}</div>
                           )}
                         </div>
                       </div>
