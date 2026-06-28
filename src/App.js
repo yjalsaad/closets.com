@@ -3787,21 +3787,6 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
       <div id="scrollProgress" />
       <Hero setPage={setPage} banners={banners} />
 
-      {/* Membership digital card — logged-in only */}
-      {user && (
-        <section style={{ background: '#000', padding: `${mobile ? 44 : 64}px 0 ${mobile ? 40 : 60}px` }}>
-          <div style={{ maxWidth: 1280, margin: '0 auto', padding: `0 ${P}` }}>
-            <div className="rv" style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto' }}>
-              <div className="eyebrow" style={{ marginBottom: 14, color: '#E7BBA0' }}>Your membership</div>
-              <h2 className="display" style={{ fontSize: mobile ? 30 : 46, color: '#fff' }}>Your digital card</h2>
-            </div>
-          </div>
-          <div style={{ position: 'relative', width: '100%', height: mobile ? 460 : 540, marginTop: mobile ? 24 : 36, background: '#000', overflow: 'hidden' }}>
-            <DigitalCardCarousel user={user} setPage={setPage} />
-          </div>
-        </section>
-      )}
-
       {/* Trust marquee */}
       <div className="marquee-wrap" style={{ borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)', padding: '18px 0', background: 'var(--cream)' }}>
         <div className="marquee">
