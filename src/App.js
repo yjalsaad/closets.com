@@ -486,7 +486,7 @@ const NAV_GROUPS = [
     key: 'doors', label: 'Doors & more',
     columns: [
       { title: 'Rooms & products', items: [
-        ['Interior & sliding doors', 'cat:Doors'], ['TV & media units', 'cat:TV Units'],
+        ['Doors', 'doors'], ['TV & media units', 'tv'],
         ['Home office', 'office'], ['Storage & home office', 'cat:Storage Solutions'], ['Vanity units', 'cat:Vanity Units'],
       ] },
       { title: 'Explore', items: [
@@ -4072,12 +4072,13 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
     ['Wardrobes', 'Walk-in, sliding & fitted', '/layouts/wardrobe/wardrobe-walkin.jpg', 'wardrobes'],
     ['Kitchens', 'Modern, shaker & handleless', '/layouts/kitchen/island.jpg', 'kitchen'],
     ['Home office', 'Desks, storage & built-ins', '/layouts/office/l-shaped.jpg', 'office'],
-    ['Doors & more', 'Doors, media & storage', '/layouts/door/pivot.jpg', 'door-planner'],
+    ['Doors', 'Swing, sliding, pivot & hidden', '/layouts/door/pivot.jpg', 'doors'],
+    ['TV & media units', 'Floating, full-wall & storage', '/layouts/tv/floating.jpg', 'tv'],
   ];
   // e. Style quick-links.
   const styleLinks = [
     ['Walk-in closets', 'wardrobes'], ['Sliding wardrobes', 'wardrobes'], ['Shaker kitchens', 'kitchen'],
-    ['Handleless kitchens', 'kitchen'], ['TV & media units', 'tv-planner'], ['Home office', 'office'],
+    ['Handleless kitchens', 'kitchen'], ['TV & media units', 'tv'], ['Home office', 'office'],
   ];
   const steps = [
     ['01', 'Consultation', 'A free home or showroom visit to understand your space, style and budget.'],
@@ -9241,6 +9242,308 @@ function OfficePage({ setPage, products }) {
   );
 }
 
+/* ── TV & MEDIA UNITS · editorial catalogue / landing page (mirrors OfficePage) ──
+   Group key 'tv'. 6-layout gallery from useLayouts('tv'); "Design yours →" → 'tv-planner'.
+   Hero + section headings fully Hub-editable via cms('tv.*', fallback). */
+function TVUnitPage({ setPage, products }) {
+  const mobile = useMobile();
+  const [faq, setFaq] = useState(-1);
+  const { map: dbLayouts } = useLayouts('tv');
+  const tvLayouts = TV_LAYOUTS.map(l => mergeLayout(l, dbLayouts));
+  const tvProducts = (products||[]).filter(p =>
+    /tv|media|entertainment|living/i.test(p.category||'') ||
+    /tv|media|entertainment/i.test(p.name||''));
+  const heroImg = (dbLayouts['fullwall'] && dbLayouts['fullwall'].hero_url) || '/layouts/tv/full-wall.jpg';
+  const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
+  const FAQS = [
+    [cms('tv.faq.q1','How much does a bespoke TV / media wall cost?'), cms('tv.faq.a1','A minimal panel-and-shelf setup starts from around BD 480, a floating media unit from BD 900, and a full floor-to-ceiling media wall with display, storage and lighting from BD 2,200+. Price is driven transparently by the metres of cabinetry, your finish and the extras — build a live estimate in the TV unit planner.')],
+    [cms('tv.faq.q2','How long does it take?'), cms('tv.faq.a2','Most media walls are designed, manufactured and installed within 4–7 weeks of sign-off. Real-wood veneer, stone cladding and integrated fireplaces sit at the longer end.')],
+    [cms('tv.faq.q3','Can you hide the cables and the AV gear?'), cms('tv.faq.a3','Yes — we build in cable trays, conduits and ventilated bays for the receiver, console and router, with a dedicated power route so nothing is on show.')],
+    [cms('tv.faq.q4','Can you build around a fireplace or an awkward wall?'), cms('tv.faq.a4','Absolutely. Every unit is made to measure — we scribe around fireplaces, columns, windows and AC units so the wall reads as one seamless piece.')],
+    [cms('tv.faq.q5','What hardware and lighting do you use?'), cms('tv.faq.a5','Blum soft-close hinges and full-extension runners as standard, plus warm 3000K LED for shelves, niches and back panels — all backed by our 10-year cabinetry warranty.')],
+    [cms('tv.faq.q6','What warranty do I get?'), cms('tv.faq.a6','10 years on cabinetry and soft-close hardware, plus 5–10 years on finishes depending on the material you choose.')],
+  ];
+
+  return (
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?56:64, paddingBottom:90 }}>
+      {/* HERO */}
+      <section style={{ position:'relative', minHeight: mobile?440:560, display:'flex', alignItems:'flex-end', backgroundImage:`linear-gradient(to top, rgba(20,16,12,.72), rgba(20,16,12,.15)), url('${cms('tv.hero.image', heroImg)}')`, backgroundSize:'cover', backgroundPosition:'center' }}>
+        <div style={{ ...wrap, paddingBottom: mobile?32:54, color:'#fff' }}>
+          <div style={{ fontSize:12, letterSpacing:'.18em', textTransform:'uppercase', opacity:.85, marginBottom:12 }}>{cms('tv.hero.eyebrow', 'Bespoke TV & media walls · Bahrain')}</div>
+          <h1 className="display" style={{ fontSize: mobile?34:60, lineHeight:1.05, maxWidth:780, margin:0 }}>{cms('tv.hero.title', 'A media wall built around your living room.')}</h1>
+          <p style={{ fontSize: mobile?15:19, maxWidth:560, marginTop:14, opacity:.92, lineHeight:1.55 }}>{cms('tv.hero.subtitle', 'From a minimal floating panel to a full floor-to-ceiling wall with display, storage, lighting and a fireplace — designed to the centimetre. Choose your layout and finish, then plan it with a live quote.')}</p>
+          <div style={{ display:'flex', gap:12, marginTop:24, flexWrap:'wrap' }}>
+            <button type="button" className="btn-clay" onClick={()=>setPage('tv-planner')} style={{ borderRadius:14 }}>{cms('tv.hero.cta', 'Open the TV unit planner →')}</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.12)', color:'#fff', border:'1px solid rgba(255,255,255,.45)', borderRadius:14, padding:'15px 28px', fontSize:16, fontWeight:600, cursor:'pointer', backdropFilter:'blur(6px)' }}>Book a free visit</button>
+          </div>
+        </div>
+      </section>
+
+      {/* LAYOUT TYPES gallery — each uses its /layouts/tv/<id>.jpg photo */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div className="eyebrow" style={{ marginBottom:10 }}>{cms('tv.layouts.eyebrow','TV & media layouts')}</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('tv.layouts.title','Find your media wall.')}</h2>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{cms('tv.layouts.subtitle','Six ways to bring the living room together around the screen — from a minimal floating panel to a full storage wall.')}</p>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
+          {tvLayouts.map(t=>(
+            <button key={t.id} type="button" onClick={()=>setPage('tv-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+              <div style={{ height: mobile?170:210, background:`url('${t.img}') center/cover` }} />
+              <div style={{ padding:'18px 20px' }}>
+                <div style={{ fontSize:20, fontWeight:600, color:'var(--ink)' }}>{t.name}</div>
+                <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{t.sub}</div>
+                {t.desc && <p style={{ fontSize:13, color:'var(--ink-soft)', margin:'8px 0 0', lineHeight:1.5 }}>{t.desc}</p>}
+                <div style={{ display:'flex', flexWrap:'wrap', gap:6, margin:'12px 0' }}>
+                  {(Array.isArray(t.bullets)&&t.bullets.length?t.bullets:t.feats).map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{c}</span>))}
+                </div>
+                <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600 }}>Design yours →</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* STORAGE & DISPLAY strip */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div className="eyebrow" style={{ marginBottom:10 }}>{cms('tv.storage.eyebrow','Display & storage')}</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('tv.storage.title','Every box, book and console in its place.')}</h2>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{cms('tv.storage.subtitle','Mix open shelving, display niches, closed cabinets and ventilated AV bays — every element priced transparently per unit.')}</p>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(6,1fr)', gap:12 }}>
+          {TV_STORAGE.map(f=>(
+            <div key={f.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 14px', textAlign:'center' }}>
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.4" style={{ margin:'0 auto 8px' }}><path d="M4 6h16v12H4z M4 12h16" /></svg>
+              <div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{f.name}</div>
+              <div style={{ fontSize:11, color:'var(--muted)', marginTop:3, lineHeight:1.35 }}>per {f.unit}</div>
+              <div style={{ fontSize:12, color:'var(--clay)', fontWeight:700, marginTop:6 }}>+{fmt(f.price)}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* MATERIALS note (finishes) */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div className="eyebrow" style={{ marginBottom:10 }}>{cms('tv.materials.eyebrow','Finishes & materials')}</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('tv.materials.title','Surfaces that set the mood.')}</h2>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{cms('tv.materials.subtitle','From durable melamine to real-wood veneer and high-gloss lacquer — pick the finish and decorative panel that suit your room.')}</p>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:14 }}>
+          {TV_FINISH.map(w=>(
+            <div key={w.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 16px' }}>
+              <div style={{ height:36, borderRadius:9, background:w.hex, border:'1px solid var(--line)', marginBottom:10 }} />
+              <div style={{ fontSize:16, fontWeight:600, color:'var(--ink)' }}>{w.name}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FEATURES / why us */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
+          {[
+            ['Made to measure','Surveyed, scribed and fitted to your exact wall — around fireplaces, columns and AC units, with no gaps or filler panels.','M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
+            ['Cable & AV management built in','Trays, conduits and ventilated bays for your console, receiver and router keep the wall tidy and the wiring hidden.','M4 7h16v10H4z M8 12h8'],
+            ['One team, end to end','Design, manufacture, deliver and install — handled by our own team, never sub-let.','M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
+          ].map(([t,d,ic])=>(
+            <div key={t} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5" style={{ marginBottom:12 }}><path d={ic} /></svg>
+              <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{t}</div>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', marginTop:6, lineHeight:1.55 }}>{d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CATALOG anchors (real products) */}
+      {tvProducts.length>0 && (
+        <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+          <div className="eyebrow" style={{ marginBottom:10 }}>Starting points</div>
+          <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>Popular media walls.</h2>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
+            {tvProducts.map(p=>(
+              <button key={p.id} type="button" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+                <div style={{ height:160, background: p.image_url?`url('${p.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }} />
+                <div style={{ padding:'14px 16px' }}>
+                  <div style={{ fontSize:16, fontWeight:600, color:'var(--ink)' }}>{p.name}</div>
+                  <div style={{ fontSize:13, color:'var(--muted)', marginTop:4 }}>From {fmt(p.price)}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* FAQ */}
+      <section style={{ ...wrap, marginTop: mobile?40:64, maxWidth:820 }}>
+        <div className="eyebrow" style={{ marginBottom:10, textAlign:'center' }}>Good to know</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px', textAlign:'center' }}>{cms('tv.faq.title','Media wall questions, answered.')}</h2>
+        <div style={{ display:'grid', gap:10 }}>
+          {FAQS.map(([q,a],i)=>{ const on=faq===i; return (
+            <div key={i} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:14, overflow:'hidden' }}>
+              <button type="button" onClick={()=>setFaq(on?-1:i)} style={{ width:'100%', textAlign:'left', background:'none', border:'none', padding:'16px 18px', fontSize:15.5, fontWeight:600, color:'var(--ink)', cursor:'pointer', display:'flex', justifyContent:'space-between', gap:12 }}>
+                <span>{q}</span><span style={{ color:'var(--clay)', flexShrink:0 }}>{on?'–':'+'}</span>
+              </button>
+              {on && <div style={{ padding:'0 18px 16px', fontSize:14, color:'var(--ink-soft)', lineHeight:1.6 }}>{a}</div>}
+            </div>
+          ); })}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div style={{ background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', borderRadius:22, padding: mobile?'32px 24px':'52px 48px', textAlign:'center', color:'#fff' }}>
+          <h2 className="display" style={{ fontSize: mobile?28:42, margin:'0 0 10px' }}>{cms('tv.cta.title','Your dream media wall starts here.')}</h2>
+          <p style={{ fontSize: mobile?15:18, opacity:.92, maxWidth:520, margin:'0 auto 22px' }}>{cms('tv.cta.subtitle','Plan it with a live quote, or book a free home visit — no obligation.')}</p>
+          <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
+            <button type="button" onClick={()=>setPage('tv-planner')} style={{ background:'#fff', color:'var(--clay-deep)', border:'none', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:700, cursor:'pointer' }}>{cms('tv.cta.button','Open the TV unit planner →')}</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>Book a free visit</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+/* ── DOORS · editorial catalogue / landing page (mirrors OfficePage) ──
+   Group key 'door'. 6 door-type gallery from useLayouts('door'); "Design yours →" → 'door-planner'.
+   Hero + section headings fully Hub-editable via cms('door.*', fallback). */
+function DoorsPage({ setPage, products }) {
+  const mobile = useMobile();
+  const [faq, setFaq] = useState(-1);
+  const { map: dbLayouts } = useLayouts('door');
+  const doorTypes = DOOR_TYPES.map(l => mergeLayout(l, dbLayouts));
+  const doorProducts = (products||[]).filter(p =>
+    /door/i.test(p.category||'') || /door/i.test(p.name||''));
+  const heroImg = (dbLayouts['pivot'] && dbLayouts['pivot'].hero_url) || '/layouts/door/pivot.jpg';
+  const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
+  const FAQS = [
+    [cms('door.faq.q1','How much does a bespoke wood door cost?'), cms('door.faq.a1','A flush hollow-core interior door starts from around BD 120, a solid-core veneer door from BD 280, and a statement pivot or double majlis door from BD 700+. Price is driven transparently by the size, core, finish and hardware — build a live estimate in the wood door planner.')],
+    [cms('door.faq.q2','How long does it take?'), cms('door.faq.a2','Most doors are manufactured and installed within 3–6 weeks of sign-off. Solid timber, fire-rated cores and decorative inlays sit at the longer end.')],
+    [cms('door.faq.q3','Can you match an existing door or frame?'), cms('door.faq.a3','Yes — every door is made to measure. We survey the opening, match the wood, finish and hardware, and scribe the frame so it sits flush and operates perfectly.')],
+    [cms('door.faq.q4','Do you supply hidden / flush doors?'), cms('door.faq.a4','We do — concealed aluminium jambs with a flush leaf that reads as part of the wall, ideal for a clean, minimal interior.')],
+    [cms('door.faq.q5','What hardware do you use?'), cms('door.faq.a5','Concealed and standard hinges, soft-close systems, and a full range of European locks and handles — all backed by our cabinetry-grade warranty.')],
+    [cms('door.faq.q6','Do you do fire-rated doors?'), cms('door.faq.a6','Yes — 60-minute certified fire-rated cores with the correct intumescent seals and frames, finished to match the rest of your interior.')],
+  ];
+
+  return (
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?56:64, paddingBottom:90 }}>
+      {/* HERO */}
+      <section style={{ position:'relative', minHeight: mobile?440:560, display:'flex', alignItems:'flex-end', backgroundImage:`linear-gradient(to top, rgba(20,16,12,.72), rgba(20,16,12,.15)), url('${cms('door.hero.image', heroImg)}')`, backgroundSize:'cover', backgroundPosition:'center' }}>
+        <div style={{ ...wrap, paddingBottom: mobile?32:54, color:'#fff' }}>
+          <div style={{ fontSize:12, letterSpacing:'.18em', textTransform:'uppercase', opacity:.85, marginBottom:12 }}>{cms('door.hero.eyebrow', 'Bespoke wood doors · Bahrain')}</div>
+          <h1 className="display" style={{ fontSize: mobile?34:60, lineHeight:1.05, maxWidth:780, margin:0 }}>{cms('door.hero.title', 'Doors made to measure, finished to match.')}</h1>
+          <p style={{ fontSize: mobile?15:19, maxWidth:560, marginTop:14, opacity:.92, lineHeight:1.55 }}>{cms('door.hero.subtitle', 'From a flush interior leaf to a statement pivot or a grand double majlis door — designed to the millimetre. Choose your type, wood and finish, then plan it with a live quote.')}</p>
+          <div style={{ display:'flex', gap:12, marginTop:24, flexWrap:'wrap' }}>
+            <button type="button" className="btn-clay" onClick={()=>setPage('door-planner')} style={{ borderRadius:14 }}>{cms('door.hero.cta', 'Open the wood door planner →')}</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.12)', color:'#fff', border:'1px solid rgba(255,255,255,.45)', borderRadius:14, padding:'15px 28px', fontSize:16, fontWeight:600, cursor:'pointer', backdropFilter:'blur(6px)' }}>Book a free visit</button>
+          </div>
+        </div>
+      </section>
+
+      {/* DOOR TYPES gallery — each uses its /layouts/door/<id>.jpg photo */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div className="eyebrow" style={{ marginBottom:10 }}>{cms('door.layouts.eyebrow','Door types')}</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('door.layouts.title','Find your door.')}</h2>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{cms('door.layouts.subtitle','Six ways to open a room — from an everyday swing leaf to a space-saving slider, a statement pivot or a concealed flush door.')}</p>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
+          {doorTypes.map(t=>(
+            <button key={t.id} type="button" onClick={()=>setPage('door-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+              <div style={{ height: mobile?170:210, background:`url('${t.img}') center/cover` }} />
+              <div style={{ padding:'18px 20px' }}>
+                <div style={{ fontSize:20, fontWeight:600, color:'var(--ink)' }}>{t.name}</div>
+                <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{t.sub}</div>
+                {(t.desc || t.note) && <p style={{ fontSize:13, color:'var(--ink-soft)', margin:'8px 0 0', lineHeight:1.5 }}>{t.desc || t.note}</p>}
+                {Array.isArray(t.bullets)&&t.bullets.length>0 && (
+                  <div style={{ display:'flex', flexWrap:'wrap', gap:6, margin:'12px 0' }}>
+                    {t.bullets.map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{c}</span>))}
+                  </div>
+                )}
+                <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600, marginTop:12 }}>Design yours →</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* WOODS & FINISHES strip */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div className="eyebrow" style={{ marginBottom:10 }}>{cms('door.materials.eyebrow','Woods & finishes')}</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('door.materials.title','The right wood, finished your way.')}</h2>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{cms('door.materials.subtitle','From warm oak to deep ebony, in veneer, laminate or hand-sprayed PU paint — pick the wood and surface that suit your interior.')}</p>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:14 }}>
+          {DOOR_WOODS.map(w=>(
+            <div key={w.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 16px' }}>
+              <div style={{ height:36, borderRadius:9, background:w.hex, border:'1px solid var(--line)', marginBottom:10 }} />
+              <div style={{ fontSize:16, fontWeight:600, color:'var(--ink)' }}>{w.name}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FEATURES / why us */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
+          {[
+            ['Made to measure','Surveyed and built to your exact opening — the leaf, frame and hardware all scribed so the door sits flush and swings true.','M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
+            ['Solid cores & quiet hardware','Hollow, semi-solid, solid or fire-rated cores with soft-close hinges and European locks for a reassuring, silent close.','M4 7h16v10H4z M8 12h8'],
+            ['One team, end to end','Design, manufacture, deliver and install — handled by our own team, never sub-let.','M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
+          ].map(([t,d,ic])=>(
+            <div key={t} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5" style={{ marginBottom:12 }}><path d={ic} /></svg>
+              <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{t}</div>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', marginTop:6, lineHeight:1.55 }}>{d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CATALOG anchors (real products) */}
+      {doorProducts.length>0 && (
+        <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+          <div className="eyebrow" style={{ marginBottom:10 }}>Starting points</div>
+          <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>Popular doors.</h2>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
+            {doorProducts.map(p=>(
+              <button key={p.id} type="button" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+                <div style={{ height:160, background: p.image_url?`url('${p.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }} />
+                <div style={{ padding:'14px 16px' }}>
+                  <div style={{ fontSize:16, fontWeight:600, color:'var(--ink)' }}>{p.name}</div>
+                  <div style={{ fontSize:13, color:'var(--muted)', marginTop:4 }}>From {fmt(p.price)}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* FAQ */}
+      <section style={{ ...wrap, marginTop: mobile?40:64, maxWidth:820 }}>
+        <div className="eyebrow" style={{ marginBottom:10, textAlign:'center' }}>Good to know</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px', textAlign:'center' }}>{cms('door.faq.title','Door questions, answered.')}</h2>
+        <div style={{ display:'grid', gap:10 }}>
+          {FAQS.map(([q,a],i)=>{ const on=faq===i; return (
+            <div key={i} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:14, overflow:'hidden' }}>
+              <button type="button" onClick={()=>setFaq(on?-1:i)} style={{ width:'100%', textAlign:'left', background:'none', border:'none', padding:'16px 18px', fontSize:15.5, fontWeight:600, color:'var(--ink)', cursor:'pointer', display:'flex', justifyContent:'space-between', gap:12 }}>
+                <span>{q}</span><span style={{ color:'var(--clay)', flexShrink:0 }}>{on?'–':'+'}</span>
+              </button>
+              {on && <div style={{ padding:'0 18px 16px', fontSize:14, color:'var(--ink-soft)', lineHeight:1.6 }}>{a}</div>}
+            </div>
+          ); })}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div style={{ background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', borderRadius:22, padding: mobile?'32px 24px':'52px 48px', textAlign:'center', color:'#fff' }}>
+          <h2 className="display" style={{ fontSize: mobile?28:42, margin:'0 0 10px' }}>{cms('door.cta.title','Your perfect door starts here.')}</h2>
+          <p style={{ fontSize: mobile?15:18, opacity:.92, maxWidth:520, margin:'0 auto 22px' }}>{cms('door.cta.subtitle','Plan it with a live quote, or book a free home visit — no obligation.')}</p>
+          <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
+            <button type="button" onClick={()=>setPage('door-planner')} style={{ background:'#fff', color:'var(--clay-deep)', border:'none', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:700, cursor:'pointer' }}>{cms('door.cta.button','Open the wood door planner →')}</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>Book a free visit</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function WrenPlannerPage({ setPage, user }) {
   const mobile = useMobile();
   const [step, setStep] = useState(1);
@@ -10331,13 +10634,15 @@ function AppInner() {
       {page==='door-planner' && <PageBoundary key="dp"><DoorPlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
       {page==='wardrobe-planner' && <PageBoundary key="wp"><WardrobePlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
       {page==='office' && <PageBoundary key="office"><OfficePage setPage={setPage} products={products} /></PageBoundary>}
+      {page==='tv' && <PageBoundary key="tv"><TVUnitPage setPage={setPage} products={products} /></PageBoundary>}
+      {page==='doors' && <PageBoundary key="doors"><DoorsPage setPage={setPage} products={products} /></PageBoundary>}
       {page==='office-planner' && <PageBoundary key="op"><OfficePlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
       {page==='design-builder' && <PageBoundary key="db"><DesignBuilderPage setPage={setPage} user={user} /></PageBoundary>}
       {page==='planner' && <PageBoundary key="planner"><PlannerPage setPage={setPage} user={user} openAuth={openAuth} siteLogo={siteLogo} /></PageBoundary>}
       {page==='cat:Doors' && <PageBoundary key="dpc"><DoorPlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
       {page.startsWith('cat:') && page!=='cat:Doors' && <CategoryPage category={page.slice(4)} products={products} setPage={setPage} addToCart={addToCart} />}
       {!['portal','checkout','planner'].includes(page) && <SiteFooter setPage={setPage} />}
-      <ChatWidget setPage={setPage} />
+      {!['kitchen-planner','tv-planner','door-planner','wardrobe-planner','office-planner','planner'].includes(page) && <ChatWidget setPage={setPage} />}
       <CartDrawer cart={cart} setCart={setCart} open={cartOpen} setOpen={setCartOpen} setPage={setPage} />
       {authOpen && <AuthModal mode={authMode} setMode={setAuthMode} setUser={setUser} prefill={authPrefill} onClose={()=>{ setAuthOpen(false); setAuthPrefill(null); }} />}
       <Toasts />
