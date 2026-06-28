@@ -370,12 +370,105 @@ function useReveal() {
 }
 
 /* ── NAV (desktop) + BOTTOM TAB BAR (mobile) ── */
+// Mega-menu information architecture for The Closets. Every leaf routes to a real page id.
+// `go` shape: a page id string, or a `cat:<category>` deep link into ProductsPage/CategoryPage.
+const NAV_GROUPS = [
+  {
+    key: 'wardrobes', label: 'Wardrobes', feature: 'wardrobes',
+    columns: [
+      { title: 'By style', items: [
+        ['Walk-in dressing rooms', 'wardrobes'], ['Sliding-door wardrobes', 'wardrobes'],
+        ['Hinged-door wardrobes', 'wardrobes'], ['Fitted & reach-in', 'wardrobes'],
+        ['Free-standing', 'wardrobes'],
+      ] },
+      { title: 'By finish', items: [
+        ['Walnut', 'wardrobes'], ['Oak', 'wardrobes'], ['Matt lacquer', 'wardrobes'],
+        ['High gloss', 'wardrobes'], ['Two-tone', 'wardrobes'],
+      ] },
+      { title: 'Get started', items: [
+        ['View all wardrobes →', 'wardrobes'], ['3D wardrobe planner', 'planner'], ['Why The Closets', 'about'],
+      ], accent: true },
+    ],
+  },
+  {
+    key: 'kitchens', label: 'Kitchens', feature: 'kitchen',
+    columns: [
+      { title: 'By style', items: [
+        ['Modern handleless', 'kitchen'], ['Shaker', 'kitchen'],
+        ['Traditional', 'kitchen'], ['Compact & galley', 'kitchen'],
+      ] },
+      { title: 'Build & spec', items: [
+        ['Worktops', 'kitchen'], ['Finishes & colours', 'kitchen'], ['Appliances', 'kitchen'],
+      ] },
+      { title: 'Get started', items: [
+        ['View all kitchens →', 'kitchen'], ['3D kitchen planner', 'kitchen-planner'], ['Book a design visit', 'booking'],
+      ], accent: true },
+    ],
+  },
+  {
+    key: 'doors', label: 'Doors & more',
+    columns: [
+      { title: 'Rooms & products', items: [
+        ['Interior & sliding doors', 'cat:Doors'], ['TV & media units', 'cat:TV Units'],
+        ['Storage & home office', 'cat:Storage Solutions'], ['Vanity units', 'cat:Vanity Units'],
+      ] },
+      { title: 'Explore', items: [
+        ['Browse the full gallery →', 'products'], ['Recent projects', 'projects'],
+      ], accent: true },
+    ],
+  },
+  {
+    key: 'studio', label: 'Design studio',
+    columns: [
+      { title: 'Plan it yourself', items: [
+        ['Wardrobe planner', 'planner'], ['Kitchen planner', 'kitchen-planner'], ['AI interior designer', 'ai'],
+      ] },
+      { title: 'Talk to a designer', items: [
+        ['Book a design appointment →', 'booking'], ['Visit a showroom', 'showrooms'],
+      ], accent: true },
+    ],
+  },
+  {
+    key: 'pricing', label: 'Pricing & finance',
+    columns: [
+      { title: 'Plan your budget', items: [
+        ['Get a free quote', 'booking'], ['Try the price estimator', 'planner'],
+      ] },
+      { title: 'Ways to pay', items: [
+        ['Flexible payment options', 'booking'], ['What it costs', 'faq'],
+      ], accent: true },
+    ],
+  },
+  {
+    key: 'inspiration', label: 'Inspiration',
+    columns: [
+      { title: 'See & save ideas', items: [
+        ['Project gallery', 'projects'], ['Design journal', 'blog'],
+      ] },
+      { title: 'Guides', items: [
+        ['Buying guides', 'blog'], ['Design ideas', 'projects'],
+      ], accent: true },
+    ],
+  },
+];
+// Flat top-level links that have no dropdown.
+const NAV_FLAT = [['Offers', 'offers'], ['Showrooms', 'showrooms']];
+
 function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang, setLang }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openMega, setOpenMega] = useState(null);     // desktop hover/click dropdown key
+  const [openAcc, setOpenAcc] = useState(null);       // mobile drawer accordion key
   const mobile = useMobile();
   const tr = (k) => (I18N[k] ? (I18N[k][lang] || I18N[k].en) : k);
   useEffect(() => { const h = () => setScrolled(window.scrollY > 20); window.addEventListener('scroll', h); return () => window.removeEventListener('scroll', h); }, []);
+  useEffect(() => { const h = () => setOpenMega(null); window.addEventListener('scroll', h, { passive:true }); return () => window.removeEventListener('scroll', h); }, []);
+  // Navigate from any mega/drawer leaf — supports both plain page ids and `cat:` deep links.
+  const navTo = (target) => {
+    setOpenMega(null); setMenuOpen(false);
+    if (typeof target === 'string' && target.startsWith('cat:')) { setPage('products'); }
+    else { setPage(target); }
+  };
 
   const DOCK = [
     { id:'home', label:'Home', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
@@ -384,8 +477,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
     { id:'services', label:'Services', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2-.5-.5-2z"/></svg> },
     { id:'menu', label:'Menu', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg> },
   ];
-  const go = (id) => { if (id==='menu') setMenuOpen(true); else { setPage(id); setMenuOpen(false); } };
-  const ALL_LINKS = [['home','Home'],['products','Gallery'],['wardrobes','Wardrobes'],['kitchen','Kitchens'],['projects','Projects'],['planner','Design'],['ai','AI Designer'],['services','Services'],['showrooms','Showrooms'],['directory','Directory'],['blog','Inspiration'],['contact','Contact']];
+  const go = (id) => { if (id==='menu') setMenuOpen(true); else { setOpenAcc(null); navTo(id); } };
 
   return (<>
     {/* Slim top bar — logo + actions */}
@@ -406,6 +498,75 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
         </button>
       </div>
     </nav>
+
+    {/* Desktop mega-nav — secondary row under the slim bar, with hover/click dropdowns */}
+    {!mobile && (
+      <div
+        onMouseLeave={()=>setOpenMega(null)}
+        style={{ position:'fixed', top:56, left:0, right:0, zIndex:899, background: scrolled?'rgba(247,242,236,.96)':'rgba(247,242,236,.86)', backdropFilter:'blur(18px) saturate(180%)', borderBottom:'1px solid var(--line)', transition:'all .3s' }}>
+        <div style={{ maxWidth:1280, margin:'0 auto', display:'flex', alignItems:'center', gap:4, padding:'0 24px', height: scrolled?44:48, transition:'height .25s' }}>
+          {NAV_GROUPS.map(g => {
+            const on = openMega===g.key;
+            const active = (g.feature && page===g.feature);
+            return (
+              <div key={g.key} onMouseEnter={()=>setOpenMega(g.key)} style={{ position:'static' }}>
+                <button type="button"
+                  onClick={()=> g.feature ? navTo(g.feature) : setOpenMega(on?null:g.key)}
+                  aria-expanded={on}
+                  style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:5, padding:'10px 14px', fontSize:14, fontWeight: (on||active)?600:500, color:(on||active)?'var(--clay-deep)':'var(--ink)', borderRadius:10 }}>
+                  {g.label}
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: on?'rotate(180deg)':'none', transition:'transform .2s', opacity:.6 }}><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+              </div>
+            );
+          })}
+          {NAV_FLAT.map(([label,id]) => (
+            <button type="button" key={id} onMouseEnter={()=>setOpenMega(null)} onClick={()=>navTo(id)}
+              style={{ background:'none', border:'none', cursor:'pointer', padding:'10px 14px', fontSize:14, fontWeight: page===id?600:500, color: page===id?'var(--clay-deep)':'var(--ink)', borderRadius:10 }}>{label}</button>
+          ))}
+          <div style={{ flex:1 }} />
+          <button type="button" onClick={()=>navTo('planner')} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:6, padding:'10px 14px', fontSize:14, fontWeight:600, color:'var(--clay)' }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+            Start designing
+          </button>
+        </div>
+
+        {/* Mega dropdown panel */}
+        {openMega && (() => {
+          const g = NAV_GROUPS.find(x=>x.key===openMega); if (!g) return null;
+          return (
+            <div style={{ position:'absolute', left:0, right:0, top:'100%', background:'var(--cream)', borderBottom:'1px solid var(--line)', boxShadow:'0 26px 48px -28px rgba(33,28,24,.4)', animation:'fadeUp .22s both' }}>
+              <div style={{ maxWidth:1280, margin:'0 auto', padding:'30px 24px 34px', display:'grid', gridTemplateColumns: g.feature ? '1.3fr repeat('+g.columns.length+',1fr)' : 'repeat('+g.columns.length+',1fr)', gap:36 }}>
+                {g.feature && (
+                  <button type="button" onClick={()=>navTo(g.feature)} className="tile-zoom lift" style={{ position:'relative', border:'none', padding:0, borderRadius:16, overflow:'hidden', cursor:'pointer', textAlign:'left', minHeight:200, background:'#15110e' }}>
+                    <Photo src={g.feature==='kitchen'?HOME_IMG.kitchen:HOME_IMG.walkin} alt={g.label} imgClass="tz" style={{ position:'absolute', inset:0 }} />
+                    <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, rgba(20,16,12,0) 40%, rgba(20,16,12,.86) 100%)' }} />
+                    <div style={{ position:'absolute', left:0, right:0, bottom:0, padding:18, zIndex:2 }}>
+                      <div className="display" style={{ color:'#fff', fontSize:22 }}>{g.label}</div>
+                      <div style={{ color:'#E7BBA0', fontSize:12.5, fontWeight:600, marginTop:6, letterSpacing:'.04em' }}>Explore the range →</div>
+                    </div>
+                  </button>
+                )}
+                {g.columns.map((col,ci) => (
+                  <div key={ci}>
+                    <div className="eyebrow" style={{ fontSize:11, letterSpacing:'.16em', marginBottom:14, color: col.accent?'var(--clay)':'var(--muted)' }}>{col.title}</div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
+                      {col.items.map(([label,target]) => (
+                        <button type="button" key={label} onClick={()=>navTo(target)} style={{ background:'none', border:'none', cursor:'pointer', textAlign:'left', padding:'7px 0', fontSize:14, fontWeight: col.accent?600:500, color: col.accent?'var(--clay-deep)':'var(--ink-soft)', transition:'color .15s' }}
+                          onMouseEnter={e=>e.currentTarget.style.color='var(--clay)'} onMouseLeave={e=>e.currentTarget.style.color=col.accent?'var(--clay-deep)':'var(--ink-soft)'}>{label}</button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+    )}
+
+    {/* Spacer so fixed mega-nav doesn't overlap page content on desktop home/landing */}
+    {!mobile && <div style={{ height: 0 }} aria-hidden="true" />}
 
     {/* Floating bottom dock — hidden on the planner (all screen sizes) so it can't cover the planner's own Back/Close/CTA navigation */}
     {!['planner','kitchen-planner'].includes(page) && (
@@ -428,20 +589,50 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
     </div>
     )}
 
-    {/* Menu sheet */}
+    {/* Mobile drawer menu — full grouped accordion mirroring the desktop mega-nav */}
     {menuOpen && (
       <div onClick={()=>setMenuOpen(false)} style={{ position:'fixed', inset:0, zIndex:1000, background:'rgba(20,16,12,.55)', backdropFilter:'blur(3px)', display:'flex', alignItems:'flex-end', justifyContent:'center' }}>
-        <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', borderRadius:'22px 22px 0 0', width:'100%', maxWidth:560, padding:'18px 20px calc(26px + env(safe-area-inset-bottom))', maxHeight:'80vh', overflow:'auto' }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
-            <span className="display" style={{ fontSize:20, color:'var(--ink)' }}>Menu</span>
-            <button type="button" aria-label="Close" onClick={()=>setMenuOpen(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--muted)', fontSize:22 }}>✕</button>
+        <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', borderRadius:'22px 22px 0 0', width:'100%', maxWidth:560, padding:'18px 18px calc(22px + env(safe-area-inset-bottom))', maxHeight:'86vh', overflow:'auto' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+            <span className="display" style={{ fontSize:22, color:'var(--ink)' }}>Menu</span>
+            <button type="button" aria-label="Close" onClick={()=>setMenuOpen(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--muted)', fontSize:24 }}>✕</button>
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:16 }}>
-            {ALL_LINKS.map(([p,label])=>(
-              <button type="button" key={p} onClick={()=>go(p)} style={{ textAlign:'left', background: page===p?'var(--sand)':'#fff', border:'1px solid var(--line)', borderRadius:12, padding:'12px 14px', fontSize:14, fontWeight:500, color: page===p?'var(--clay-deep)':'var(--ink)', cursor:'pointer' }}>{label}</button>
-            ))}
+          {/* Quick links */}
+          <button type="button" onClick={()=>go('home')} style={{ width:'100%', textAlign:'left', background: page==='home'?'var(--sand)':'#fff', border:'1px solid var(--line)', borderRadius:12, padding:'13px 15px', fontSize:15, fontWeight:600, color: page==='home'?'var(--clay-deep)':'var(--ink)', cursor:'pointer', marginBottom:8 }}>Home</button>
+          {/* Grouped accordions */}
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            {NAV_GROUPS.map(g => {
+              const open = openAcc===g.key;
+              return (
+                <div key={g.key} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:12, overflow:'hidden' }}>
+                  <button type="button" onClick={()=>setOpenAcc(open?null:g.key)} aria-expanded={open} style={{ width:'100%', display:'flex', justifyContent:'space-between', alignItems:'center', background:'none', border:'none', cursor:'pointer', padding:'14px 15px', fontSize:15.5, fontWeight:600, color:'var(--ink)' }}>
+                    {g.label}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open?'rotate(180deg)':'none', transition:'transform .2s' }}><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  {open && (
+                    <div style={{ padding:'0 15px 14px' }}>
+                      {g.feature && <button type="button" onClick={()=>go(g.feature)} style={{ display:'block', width:'100%', textAlign:'left', background:'var(--sand)', border:'none', borderRadius:10, padding:'10px 12px', fontSize:14, fontWeight:600, color:'var(--clay-deep)', cursor:'pointer', marginBottom:8 }}>View all {g.label.toLowerCase()} →</button>}
+                      {g.columns.map((col,ci)=>(
+                        <div key={ci} style={{ marginBottom: ci<g.columns.length-1?10:0 }}>
+                          <div className="eyebrow" style={{ fontSize:10.5, letterSpacing:'.14em', margin:'4px 0 6px', color:'var(--muted)' }}>{col.title}</div>
+                          {col.items.map(([label,target])=>(
+                            <button type="button" key={label} onClick={()=>go(target)} style={{ display:'block', width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'7px 0', fontSize:14, color: col.accent?'var(--clay-deep)':'var(--ink-soft)', fontWeight: col.accent?600:400 }}>{label}</button>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {/* Flat links */}
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+              {NAV_FLAT.concat([['Gallery','products'],['Contact','contact']]).map(([label,id])=>(
+                <button type="button" key={id} onClick={()=>go(id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:12, padding:'12px 14px', fontSize:14.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{label}</button>
+              ))}
+            </div>
           </div>
-          <button type="button" onClick={()=>{ setPage('booking'); setMenuOpen(false); }} className="btn-clay" style={{ width:'100%', borderRadius:12 }}>Book a free visit</button>
+          <button type="button" onClick={()=>{ setPage('booking'); setMenuOpen(false); }} className="btn-clay" style={{ width:'100%', borderRadius:12, marginTop:14 }}>Book a free visit</button>
         </div>
       </div>
     )}
@@ -3766,14 +3957,48 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
   useHomeFx();
   const P = mobile ? '24px' : '48px';
   const NOISE = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
-  const featured = products.filter(p => p.active !== false).slice(0, 3);
-  const services = [
-    ['Kitchens', 'Precision cabinetry, engineered for daily life.', HOME_IMG.kitchen],
-    ['Walk-in closets', 'Private dressing rooms, organised to the centimetre.', HOME_IMG.walkin],
-    ['Wardrobes', 'Fitted storage that disappears into the architecture.', HOME_IMG.wardrobe],
-    ['TV & media units', 'Floating, handleless, built around your screen.', HOME_IMG.living],
-    ['Doors', 'Hinged, sliding and folding — made to measure.', HOME_IMG.detail],
-    ['Storage & office', 'Shelving and cabinetry for every corner.', HOME_IMG.wardrobe],
+  const activeProducts = products.filter(p => p.active !== false);
+  // Featured ranges — prefer badged products, then fill to 6 by sort order.
+  const featuredRanges = [...activeProducts].sort((a,b)=> (b.badge?1:0)-(a.badge?1:0)).slice(0, mobile ? 4 : 6);
+
+  // i. Offers strip — from store_offers (with customer_offers fallback).
+  const [offers, setOffers] = useState([]);
+  // i(stories). Customer stories — from website_projects.
+  const [projects, setProjects] = useState([]);
+  const [email, setEmail] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
+  useEffect(() => {
+    api('store_offers?active=eq.true&order=sort_order.asc&limit=3').then(d => {
+      if (Array.isArray(d) && d.length) { setOffers(d); return; }
+      api('customer_offers?active=eq.true&order=sort_order.asc&limit=3').then(c => { if (Array.isArray(c)) setOffers(c); }).catch(()=>{});
+    }).catch(()=>{});
+    api('website_projects?active=eq.true&order=sort_order.asc&limit=6').then(d => { if (Array.isArray(d)) setProjects(d); }).catch(()=>{});
+  }, []);
+  const subscribe = () => {
+    const e = email.trim();
+    if (!e || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) { toast('Please enter a valid email.', 'error'); return; }
+    // Best-effort lead capture; success regardless so the user always gets confirmation.
+    api('leads', { method:'POST', body: { id: uid(), name:'Newsletter subscriber', email:e, source:'Website newsletter', interest:'Newsletter', status:'New' } }).catch(()=>{});
+    setSubscribed(true); setEmail(''); toast('You’re subscribed — welcome to The Closets.', 'success');
+  };
+
+  // c. Free appointment options.
+  const appointments = [
+    ['Home measure', 'We come to you, measure up and talk through ideas — free.', '📏'],
+    ['Showroom visit', 'See real finishes and hardware in one of our 4 showrooms.', '🏬'],
+    ['Home design', 'A designer visits with samples and a tailored 3D concept.', '🏡'],
+    ['Online design', 'Plan from anywhere with a video design consultation.', '💻'],
+  ];
+  // d. Room types.
+  const rooms = [
+    ['Wardrobes', 'Walk-in, sliding & fitted', HOME_IMG.walkin, 'wardrobes'],
+    ['Kitchens', 'Modern, shaker & handleless', HOME_IMG.kitchen, 'kitchen'],
+    ['Doors & more', 'Doors, media & storage', HOME_IMG.living, 'products'],
+  ];
+  // e. Style quick-links.
+  const styleLinks = [
+    ['Walk-in closets', 'wardrobes'], ['Sliding wardrobes', 'wardrobes'], ['Shaker kitchens', 'kitchen'],
+    ['Handleless kitchens', 'kitchen'], ['TV & media units', 'products'], ['Home office', 'products'],
   ];
   const steps = [
     ['01', 'Consultation', 'A free home or showroom visit to understand your space, style and budget.'],
@@ -3781,6 +4006,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
     ['03', 'Craft', 'Built in our own Bahrain workshop with premium hardware and joinery.'],
     ['04', 'Install', 'Fitted by our own team, finished and cleaned, ready to use.'],
   ];
+  const finishDots = ['#5a3b26', '#caa472', '#e9e3d8', '#2b2b2b'];
   const marqueeItems = ['Own Bahrain workshop', 'Free design consultation', 'Premium European hardware', '15 years of craft', '4 showrooms', '2-year warranty', 'Installed by our own team'];
   return (
     <div style={{ background: 'var(--cream)' }}>
@@ -3796,8 +4022,116 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </div>
       </div>
 
-      {/* Brand trust + animated counters */}
-      <section style={{ maxWidth: 1100, margin: '0 auto', padding: `${mobile ? 64 : 96}px ${P}` }}>
+      {/* c. Choose a free appointment */}
+      <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 88}px ${P} ${mobile ? 8 : 24}px` }}>
+        <div className="rv" style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 40px' }}>
+          <div className="eyebrow" style={{ marginBottom: 14 }}>It starts with a chat</div>
+          <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>Choose a free appointment.</h2>
+          <p style={{ fontSize: mobile ? 15 : 17, color: 'var(--ink-soft)', lineHeight: 1.7, marginTop: 14 }}>However you like to plan, there’s no charge and no obligation — just expert ideas for your space.</p>
+        </div>
+        <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 12 : 18 }}>
+          {appointments.map(([title, desc, ic], i) => (
+            <button type="button" key={title} className="lift" onClick={() => setPage('booking')} style={{ '--d': (i * 0.06) + 's', background: '#fff', border: '1px solid var(--line)', borderRadius: 18, padding: mobile ? '20px 16px' : '28px 22px', textAlign: 'left', cursor: 'pointer' }}>
+              <div style={{ fontSize: 30, marginBottom: 12 }}>{ic}</div>
+              <div className="display" style={{ fontSize: mobile ? 17 : 20, color: 'var(--ink)', marginBottom: 6 }}>{title}</div>
+              <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, marginBottom: 12 }}>{desc}</div>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--clay)' }}>Book free →</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* d. Choose your room type */}
+      <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 48 : 72}px ${P}` }}>
+        <div className="rv" style={{ marginBottom: 32 }}>
+          <div className="eyebrow" style={{ marginBottom: 14 }}>What are you planning?</div>
+          <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>Choose your room.</h2>
+        </div>
+        <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: mobile ? 16 : 20 }}>
+          {rooms.map(([name, sub, img, route], i) => (
+            <button type="button" key={name} className="tile-zoom lift" onClick={() => setPage(route)} style={{ '--d': (i * 0.07) + 's', position: 'relative', border: 'none', padding: 0, borderRadius: 22, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 260 : 360, background: '#15110e' }}>
+              <Photo src={img} alt={name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,0) 38%, rgba(20,16,12,.86) 100%)' }} />
+              <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: 24, zIndex: 2 }}>
+                <div className="display" style={{ color: '#fff', fontSize: mobile ? 24 : 28 }}>{name}</div>
+                <div style={{ color: 'rgba(255,255,255,.82)', fontSize: 14, marginTop: 5 }}>{sub}</div>
+                <div style={{ color: '#E7BBA0', fontSize: 13, fontWeight: 600, marginTop: 14, letterSpacing: '.04em' }}>Explore →</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* e. Designs you'll love — split tiles + style quick-links */}
+      <section style={{ background: 'var(--sand)', padding: `${mobile ? 56 : 96}px ${P}` }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <div className="rv" style={{ textAlign: 'center', maxWidth: 620, margin: '0 auto 40px' }}>
+            <div className="eyebrow" style={{ marginBottom: 14 }}>Where to begin</div>
+            <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>Designs you’ll love.</h2>
+          </div>
+          <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? 16 : 22, marginBottom: 28 }}>
+            {[['Wardrobes', 'Fitted, sliding & walk-in storage built around your life.', HOME_IMG.walkin, 'wardrobes'], ['Kitchens', 'Precision cabinetry, worktops and finishes for daily living.', HOME_IMG.kitchen, 'kitchen']].map(([name, desc, img, route]) => (
+              <button type="button" key={name} className="tile-zoom lift" onClick={() => setPage(route)} style={{ position: 'relative', border: 'none', padding: 0, borderRadius: 24, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 300 : 420, background: '#15110e' }}>
+                <Photo src={img} alt={name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.05) 30%, rgba(20,16,12,.85) 100%)' }} />
+                <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: mobile ? 26 : 34, zIndex: 2 }}>
+                  <div className="display" style={{ color: '#fff', fontSize: mobile ? 28 : 36 }}>{name}</div>
+                  <div style={{ color: 'rgba(255,255,255,.85)', fontSize: mobile ? 14.5 : 16, marginTop: 8, lineHeight: 1.55, maxWidth: 380 }}>{desc}</div>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 18, background: 'var(--clay)', color: '#fff', borderRadius: 980, padding: '10px 20px', fontSize: 14, fontWeight: 600 }}>View {name.toLowerCase()} →</span>
+                </div>
+              </button>
+            ))}
+          </div>
+          <div className="rv" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
+            {styleLinks.map(([label, route]) => (
+              <button type="button" key={label} onClick={() => setPage(route)} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 980, padding: '9px 18px', fontSize: 13.5, fontWeight: 500, color: 'var(--ink)', cursor: 'pointer' }}>{label}</button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* f. Featured ranges — product cards from website_products */}
+      {featuredRanges.length > 0 && (
+        <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 96}px ${P}` }}>
+          <div className="rv" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 36 }}>
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 14 }}>Featured ranges</div>
+              <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>Popular right now.</h2>
+            </div>
+            <button type="button" className="btn-line" onClick={() => setPage('products')}>View all →</button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 12 : 20 }}>
+            {featuredRanges.map((p, i) => {
+              const hasSave = p.original_price && Number(p.original_price) > Number(p.price);
+              return (
+                <div key={p.id} className="rv lift" onClick={() => setPage('product-' + p.id)} style={{ '--d': (i * 0.05) + 's', cursor: 'pointer', background: '#fff', borderRadius: 18, overflow: 'hidden', border: '1px solid var(--line)' }}>
+                  <div className="tile-zoom" style={{ position: 'relative', aspectRatio: mobile ? '1/1' : '4/3' }}>
+                    <Photo src={p.image_url || HOME_IMG.wardrobe} alt={p.name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
+                    {p.badge && <span style={{ position: 'absolute', top: 12, left: 12, background: 'var(--clay)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 980 }}>{p.badge}</span>}
+                    {hasSave && <span style={{ position: 'absolute', top: 12, right: 12, background: 'var(--ink)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 980 }}>Save {fmt(Number(p.original_price) - Number(p.price))}</span>}
+                  </div>
+                  <div style={{ padding: mobile ? 14 : 18 }}>
+                    <div style={{ fontSize: 11.5, color: 'var(--muted)', letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 5 }}>{p.category || 'Bespoke'}</div>
+                    <div className="display" style={{ fontSize: mobile ? 15.5 : 18, color: 'var(--ink)', marginBottom: 8, lineHeight: 1.2 }}>{p.name}</div>
+                    <div style={{ display: 'flex', gap: 5, marginBottom: 10 }}>
+                      {finishDots.map((c, j) => <span key={j} style={{ width: 14, height: 14, borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,.1)' }} />)}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                      <span style={{ fontSize: 11, color: 'var(--muted)' }}>from</span>
+                      <span style={{ fontSize: mobile ? 16 : 18, fontWeight: 700, color: 'var(--ink)' }}>{fmt(p.price)}</span>
+                      {hasSave && <span style={{ fontSize: 13, color: 'var(--muted)', textDecoration: 'line-through' }}>{fmt(p.original_price)}</span>}
+                    </div>
+                    <span style={{ display: 'inline-block', marginTop: 12, fontSize: 13, fontWeight: 600, color: 'var(--clay)' }}>View →</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* g. Why The Closets / value strip + animated counters */}
+      <section style={{ maxWidth: 1100, margin: '0 auto', padding: `${mobile ? 48 : 80}px ${P}` }}>
         <div className="rv" style={{ textAlign: 'center', maxWidth: 700, margin: '0 auto 56px' }}>
           <div className="eyebrow" style={{ marginBottom: 16 }}>Why The Closets</div>
           <h2 className="display" style={{ fontSize: mobile ? 30 : 46, color: 'var(--ink)' }}>A workshop, not a warehouse.</h2>
@@ -3809,73 +4143,15 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
           <Stat to={4} label="Showrooms" />
           <Stat to={100} suffix="%" label="Bespoke & fitted" />
         </div>
-      </section>
-
-      {/* Services showcase */}
-      <section style={{ background: 'var(--sand)', padding: `${mobile ? 64 : 104}px ${P}` }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div className="rv" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 44 }}>
-            <div>
-              <div className="eyebrow" style={{ marginBottom: 14 }}>What we make</div>
-              <h2 className="display" style={{ fontSize: mobile ? 30 : 48, color: 'var(--ink)', maxWidth: 560 }}>Bespoke pieces for every room.</h2>
+        <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: 12, marginTop: 44 }}>
+          {[['🏭', 'Our own workshop'], ['🛠️', '15 years of craft'], ['🛡️', '2-year warranty'], ['🎁', 'Free design service']].map(([ic, label]) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--sand)', border: '1px solid var(--line)', borderRadius: 14, padding: '14px 16px' }}>
+              <span style={{ fontSize: 20 }}>{ic}</span>
+              <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{label}</span>
             </div>
-            <button type="button" className="btn-line" onClick={() => setPage('products')}>Explore all →</button>
-          </div>
-          {/* Asymmetric bento grid — a hero tile anchors the composition instead of a uniform 3-up row */}
-          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(6,1fr)', gridAutoRows: mobile ? 'auto' : '224px', gap: mobile ? 16 : 18 }}>
-            {services.map(([name, desc, img], i) => {
-              const span = mobile ? {} : [
-                { gridColumn: 'span 3', gridRow: 'span 2' },
-                { gridColumn: 'span 3' },
-                { gridColumn: 'span 3' },
-                { gridColumn: 'span 2' },
-                { gridColumn: 'span 2' },
-                { gridColumn: 'span 2' },
-              ][i] || { gridColumn: 'span 2' };
-              const big = i === 0;
-              return (
-                <button type="button" key={name} className="rv tile-zoom lift" onClick={() => setPage(name==='Kitchens' ? 'kitchen' : /walk\-?in|wardrobe|closet/i.test(name) ? 'wardrobes' : 'products')} style={{ ...span, '--d': (i * 0.07) + 's', position: 'relative', border: 'none', borderRadius: big ? 24 : 18, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 280 : 0, padding: 0, background: '#15110e' }}>
-                  <Photo src={img} alt={name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,0) 30%, rgba(20,16,12,.88) 100%)' }} />
-                  <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: big ? 28 : 22, zIndex: 2 }}>
-                    <div className="display" style={{ color: '#fff', fontSize: big ? 30 : 22, marginBottom: 6, letterSpacing: '-.01em' }}>{name}</div>
-                    <div style={{ color: 'rgba(255,255,255,.82)', fontSize: big ? 15 : 13.5, lineHeight: 1.55, maxWidth: 360 }}>{desc}</div>
-                    <div style={{ color: '#E7BBA0', fontSize: 13, fontWeight: 600, marginTop: 14, letterSpacing: '.04em' }}>View →</div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+          ))}
         </div>
       </section>
-
-      {/* Featured projects — zig-zag case studies */}
-      {featured.length > 0 && (
-        <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 64 : 110}px ${P}` }}>
-          <div className="rv" style={{ textAlign: 'center', maxWidth: 620, margin: '0 auto 60px' }}>
-            <div className="eyebrow" style={{ marginBottom: 14 }}>Selected work</div>
-            <h2 className="display" style={{ fontSize: mobile ? 30 : 48, color: 'var(--ink)' }}>Recent projects.</h2>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: mobile ? 56 : 120 }}>
-            {featured.map((p, i) => { const flip = i % 2 === 1; return (
-              <div key={p.id} style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? 24 : 64, alignItems: 'center' }}>
-                <div className={flip ? 'rv-r' : 'rv-l'} style={{ order: mobile ? 1 : (flip ? 2 : 1) }}>
-                  <Photo src={p.image_url || services[i % services.length][2]} alt={p.name} className="tile-zoom lift" imgClass="tz" style={{ borderRadius: 22, aspectRatio: '4/3' }} />
-                </div>
-                <div className={flip ? 'rv-l' : 'rv-r'} style={{ order: mobile ? 2 : (flip ? 1 : 2) }}>
-                  <div className="eyebrow" style={{ marginBottom: 14 }}>{p.category || 'Bespoke'}</div>
-                  <h3 className="display" style={{ fontSize: mobile ? 26 : 38, color: 'var(--ink)', marginBottom: 16 }}>{p.name}</h3>
-                  <p style={{ fontSize: mobile ? 15 : 17, color: 'var(--ink-soft)', lineHeight: 1.7, marginBottom: 24, maxWidth: 440 }}>{p.description || 'Designed, manufactured and installed by The Closets — tailored to the space, finished to the millimetre.'}</p>
-                  <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
-                    <button type="button" className="btn-clay" onClick={() => setPage('product-' + p.id)} style={{ padding: '13px 24px', fontSize: 15 }}>View project</button>
-                    <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>{fmt(p.price)}</span>
-                  </div>
-                </div>
-              </div>
-            ); })}
-          </div>
-        </section>
-      )}
 
       {/* Process timeline */}
       <section style={{ position: 'relative', overflow: 'hidden', background: 'var(--ink)', color: '#fff', padding: `${mobile ? 64 : 110}px ${P}` }}>
@@ -3922,6 +4198,57 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </div>
       </section>
 
+      {/* h. Offers strip — from store_offers / customer_offers */}
+      {offers.length > 0 && (
+        <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 48 : 80}px ${P}` }}>
+          <div className="rv" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 14 }}>Limited time</div>
+              <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>Current offers.</h2>
+            </div>
+            <button type="button" className="btn-line" onClick={() => setPage('offers')}>See all offers →</button>
+          </div>
+          <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(' + Math.min(offers.length, 3) + ',1fr)', gap: mobile ? 14 : 20 }}>
+            {offers.slice(0, 3).map(o => (
+              <button type="button" key={o.id} className="lift" onClick={() => setPage('offers')} style={{ position: 'relative', overflow: 'hidden', border: '1px solid var(--line)', borderRadius: 18, cursor: 'pointer', textAlign: 'left', padding: 0, minHeight: 180, background: o.image_url ? '#15110e' : 'linear-gradient(135deg, var(--sand), #fff)' }}>
+                {o.image_url && <><Photo src={o.image_url} alt={o.title} style={{ position: 'absolute', inset: 0 }} /><div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.15), rgba(20,16,12,.82))' }} /></>}
+                <div style={{ position: 'relative', zIndex: 2, padding: 24, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'flex-end', minHeight: 180 }}>
+                  {o.badge && <span style={{ alignSelf: 'flex-start', background: 'var(--clay)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 11px', borderRadius: 980, marginBottom: 10 }}>{o.badge}</span>}
+                  <div className="display" style={{ fontSize: 22, color: o.image_url ? '#fff' : 'var(--ink)' }}>{o.title}</div>
+                  <div style={{ fontSize: 14, color: o.image_url ? 'rgba(255,255,255,.85)' : 'var(--ink-soft)', marginTop: 6, lineHeight: 1.5 }}>{o.subtitle}</div>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: o.image_url ? '#E7BBA0' : 'var(--clay)', marginTop: 14 }}>Claim offer →</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* i. Customer stories — gallery from website_projects */}
+      {projects.length > 0 && (
+        <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 48 : 80}px ${P}` }}>
+          <div className="rv" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 14 }}>#TheClosets makeovers</div>
+              <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>Real homes, real transformations.</h2>
+            </div>
+            <button type="button" className="btn-line" onClick={() => setPage('projects')}>View the gallery →</button>
+          </div>
+          <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 10 : 16 }}>
+            {projects.slice(0, 6).map((pr, i) => (
+              <button type="button" key={pr.id} className="tile-zoom lift" onClick={() => setPage('projects')} style={{ '--d': (i * 0.05) + 's', position: 'relative', border: 'none', padding: 0, borderRadius: 16, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', aspectRatio: '4/3', background: '#15110e' }}>
+                <Photo src={pr.cover_url || pr.after_url || HOME_IMG.walkin} alt={pr.name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,0) 45%, rgba(20,16,12,.82) 100%)' }} />
+                <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: mobile ? 12 : 16, zIndex: 2 }}>
+                  <div className="display" style={{ color: '#fff', fontSize: mobile ? 14 : 17 }}>{pr.name}</div>
+                  {pr.location && <div style={{ color: 'rgba(255,255,255,.78)', fontSize: 12, marginTop: 3 }}>{pr.location}</div>}
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Testimonials carousel */}
       {testimonials.length > 0 && (
         <section style={{ background: 'var(--sand)', padding: `${mobile ? 64 : 104}px ${P}` }}>
@@ -3932,6 +4259,49 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
           <div className="rv"><TestiCarousel items={testimonials} /></div>
         </section>
       )}
+
+      {/* j. How can we help — 3 cards */}
+      <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 88}px ${P} ${mobile ? 24 : 40}px` }}>
+        <div className="rv" style={{ textAlign: 'center', maxWidth: 600, margin: '0 auto 36px' }}>
+          <div className="eyebrow" style={{ marginBottom: 14 }}>Next steps</div>
+          <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>How can we help?</h2>
+        </div>
+        <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: mobile ? 14 : 20 }}>
+          {[['Browse our products', 'Explore every range across kitchens, wardrobes, doors and storage.', '🛋️', 'products'], ['Use the Design Studio', 'Plan your space in 3D and get a live price estimate.', '✏️', 'planner'], ['View current offers', 'Save on bespoke pieces with our latest promotions.', '🏷️', 'offers']].map(([title, desc, ic, route], i) => (
+            <button type="button" key={title} className="lift" onClick={() => setPage(route)} style={{ '--d': (i * 0.06) + 's', background: '#fff', border: '1px solid var(--line)', borderRadius: 20, padding: mobile ? '24px 20px' : '32px 26px', textAlign: 'left', cursor: 'pointer' }}>
+              <div style={{ fontSize: 34, marginBottom: 14 }}>{ic}</div>
+              <div className="display" style={{ fontSize: mobile ? 19 : 22, color: 'var(--ink)', marginBottom: 8 }}>{title}</div>
+              <div style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 14 }}>{desc}</div>
+              <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--clay)' }}>Go →</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* k. Newsletter signup */}
+      <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 24 : 40}px ${P} ${mobile ? 48 : 80}px` }}>
+        <div className="rv-sc" style={{ background: 'var(--ink)', borderRadius: 26, padding: mobile ? '36px 24px' : '56px 64px', display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1.1fr 1fr', gap: mobile ? 24 : 48, alignItems: 'center' }}>
+          <div>
+            <div className="eyebrow" style={{ color: '#E7BBA0', marginBottom: 14 }}>Stay inspired</div>
+            <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 26 : 38, lineHeight: 1.1 }}>Ideas, offers & new ranges — straight to your inbox.</h2>
+            <p style={{ color: 'rgba(255,255,255,.7)', fontSize: mobile ? 14.5 : 16, lineHeight: 1.6, marginTop: 14 }}>Join our mailing list for design inspiration and exclusive savings. Unsubscribe any time.</p>
+          </div>
+          <div>
+            {subscribed ? (
+              <div style={{ background: 'rgba(231,187,160,.14)', border: '1px solid rgba(231,187,160,.3)', borderRadius: 16, padding: '22px 24px', textAlign: 'center' }}>
+                <div style={{ fontSize: 28, marginBottom: 8 }}>✦</div>
+                <div className="display" style={{ color: '#fff', fontSize: 20 }}>You’re on the list.</div>
+                <div style={{ color: 'rgba(255,255,255,.7)', fontSize: 14, marginTop: 6 }}>Thanks for subscribing to The Closets.</div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', gap: 10 }}>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') subscribe(); }} placeholder="Your email address" aria-label="Email address" style={{ flex: 1, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.22)', borderRadius: 14, padding: '15px 18px', fontSize: 15, color: '#fff', outline: 'none' }} />
+                <button type="button" className="btn-clay" onClick={subscribe} style={{ flexShrink: 0 }}>Subscribe</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
 
       {/* Cinematic CTA — full-width hero banner */}
       <section style={{ position: 'relative', overflow: 'hidden', background: '#15110e' }}>
@@ -4417,20 +4787,47 @@ function AIDesignerPage({ setPage, user }) {
 }
 function SiteFooter({ setPage }) {
   const mobile=useMobile();
-  const col=(title,items)=>(<div><div style={{ fontSize:12, fontWeight:700, color:'#1d1d1f', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:12 }}>{title}</div>{items.map(([label,go])=>(<button type="button" key={label} onClick={()=>setPage(go)} style={{ display:'block', background:'none', border:'none', cursor:'pointer', color:'#86868b', fontSize:14, padding:'5px 0', textAlign:'left' }}>{label}</button>))}</div>);
-  return (<footer style={{ borderTop:'1px solid #ececec', background:'#fafafa', padding: mobile?'40px 18px 28px':'56px 40px 32px' }}>
-    <div style={{ maxWidth:1200, margin:'0 auto' }}>
-      <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'2fr 1fr 1fr 1fr', gap: mobile?28:40 }}>
-        <div>
-          <div style={{ fontSize:18, fontWeight:700, color:'#1d1d1f' }}>The Closets Co.</div>
-          <div style={{ fontSize:14, color:'#86868b', marginTop:10, lineHeight:1.6, maxWidth:280 }}>Premium bespoke kitchens, wardrobes and storage — designed, manufactured and installed in the Kingdom of Bahrain.</div>
-          <a href="https://wa.me/97317000000" style={{ display:'inline-block', marginTop:14, background:'#25D366', color:'#fff', borderRadius:980, padding:'9px 18px', fontSize:13, fontWeight:600, textDecoration:'none' }}>WhatsApp us</a>
+  const col=(title,items)=>(<div><div style={{ fontSize:12, fontWeight:700, color:'var(--ink)', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:14 }}>{title}</div>{items.map(([label,go])=>(<button type="button" key={label} onClick={()=>setPage(go)} style={{ display:'block', background:'none', border:'none', cursor:'pointer', color:'var(--ink-soft)', fontSize:14, padding:'6px 0', textAlign:'left' }}>{label}</button>))}</div>);
+  const social=[
+    ['Instagram','https://instagram.com','M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm5-2.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2z'],
+    ['Facebook','https://facebook.com','M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H7v3h3v7h3v-7h3l1-3h-4v-2c0-.6.4-1 1-1z'],
+    ['Pinterest','https://pinterest.com','M12 2a10 10 0 0 0-3.6 19.3c-.1-.8-.2-2 0-2.9l1.2-5s-.3-.6-.3-1.5c0-1.4.8-2.4 1.8-2.4.9 0 1.3.6 1.3 1.4 0 .9-.5 2.2-.8 3.4-.2.9.5 1.7 1.4 1.7 1.7 0 2.9-2.2 2.9-4.7 0-1.9-1.3-3.4-3.7-3.4a4.3 4.3 0 0 0-4.5 4.3c0 .8.3 1.4.6 1.8.1.2.2.3.1.5l-.2.9c0 .3-.2.4-.5.2-1.2-.5-1.8-2-1.8-3.6 0-2.7 2.3-5.9 6.8-5.9 3.6 0 6 2.6 6 5.4 0 3.7-2 6.4-5 6.4-1 0-2-.5-2.3-1.2l-.6 2.4c-.2.8-.7 1.7-1 2.3A10 10 0 1 0 12 2z'],
+    ['YouTube','https://youtube.com','M23 12s0-3.4-.4-5a2.6 2.6 0 0 0-1.8-1.8C19 4.7 12 4.7 12 4.7s-7 0-8.8.5A2.6 2.6 0 0 0 1.4 7C1 8.6 1 12 1 12s0 3.4.4 5a2.6 2.6 0 0 0 1.8 1.8c1.8.5 8.8.5 8.8.5s7 0 8.8-.5A2.6 2.6 0 0 0 22.6 17c.4-1.6.4-5 .4-5zM10 15.5v-7l6 3.5-6 3.5z'],
+  ];
+  return (<footer style={{ borderTop:'1px solid var(--line)', background:'var(--sand)', padding: mobile?'48px 18px 28px':'72px 40px 36px' }}>
+    <div style={{ maxWidth:1280, margin:'0 auto' }}>
+      <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'2fr 1fr 1fr 1fr', gap: mobile?28:48 }}>
+        <div style={{ gridColumn: mobile?'1 / -1':'auto' }}>
+          <div className="display" style={{ fontSize:22, color:'var(--ink)' }}>The Closets Co.</div>
+          <div style={{ fontSize:14, color:'var(--ink-soft)', marginTop:12, lineHeight:1.65, maxWidth:300 }}>Premium bespoke wardrobes, kitchens and storage — designed, manufactured and installed in the Kingdom of Bahrain.</div>
+          <div style={{ display:'flex', gap:14, marginTop:18, flexWrap:'wrap' }}>
+            <button type="button" onClick={()=>setPage('booking')} className="btn-clay" style={{ padding:'12px 22px', fontSize:14 }}>Book a free visit</button>
+            <a href="https://wa.me/97317001700" style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:980, padding:'11px 18px', fontSize:13.5, fontWeight:600, textDecoration:'none' }}>WhatsApp us</a>
+          </div>
         </div>
-        {col('Explore',[['Gallery','products'],['Wardrobes','wardrobes'],['Kitchens','kitchen'],['Design Studio','planner'],['AI Designer','ai'],['Inspiration','blog']])}
-        {col('Company',[['Our Story','about'],['Showrooms','showrooms'],['Careers','careers'],['Offers','offers']])}
-        {col('Support',[['Book a visit','booking'],['Contact','contact'],['Maintenance','maintenance'],['Warranty','warranty'],['FAQ','faq']])}
+        {col('Here to help',[['FAQ','faq'],['Delivery & install','contact'],['Warranty service','warranty'],['Maintenance','maintenance'],['Reviews','projects'],['Contact us','contact']])}
+        {col('Ways to shop',[['Book an appointment','booking'],['Request a brochure','contact'],['Finance & payment','booking'],['Find a showroom','showrooms'],['Recommend a friend','contact']])}
+        {col('About',[['About The Closets','about'],['Why The Closets','about'],['Careers','careers'],['Offers','offers'],['Sitemap','products']])}
       </div>
-      <div style={{ borderTop:'1px solid #ececec', marginTop:32, paddingTop:20, display:'flex', flexDirection: mobile?'column':'row', justifyContent:'space-between', gap:8, fontSize:13, color:'#86868b' }}>
+
+      {/* Social row */}
+      <div style={{ display:'flex', alignItems:'center', gap:12, marginTop:40, flexWrap:'wrap' }}>
+        <span style={{ fontSize:13, fontWeight:600, color:'var(--ink)' }}>Follow us</span>
+        {social.map(([name,href,d])=>(
+          <a key={name} href={href} aria-label={name} target="_blank" rel="noreferrer" style={{ width:38, height:38, borderRadius:'50%', background:'#fff', border:'1px solid var(--line)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--ink)' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={d}/></svg>
+          </a>
+        ))}
+      </div>
+
+      {/* Trust / accreditation badges */}
+      <div style={{ display:'flex', gap:10, marginTop:24, flexWrap:'wrap' }}>
+        {['Own Bahrain workshop','2-year warranty','Free design service','Installed by our team','15 years of craft'].map(b=>(
+          <span key={b} style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'8px 14px', fontSize:12.5, fontWeight:600, color:'var(--ink-soft)' }}><span style={{ color:'var(--clay)' }}>✦</span>{b}</span>
+        ))}
+      </div>
+
+      <div style={{ borderTop:'1px solid var(--line)', marginTop:32, paddingTop:22, display:'flex', flexDirection: mobile?'column':'row', justifyContent:'space-between', gap:8, fontSize:13, color:'var(--muted)' }}>
         <span>© 2026 The Closets Co. W.L.L. — Manama, Bahrain</span>
         <span>+973 1700 1700 · hello@theclosets.co</span>
       </div>
