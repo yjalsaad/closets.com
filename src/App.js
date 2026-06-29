@@ -423,7 +423,47 @@ const CSS = `
     *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
     .kenburns, .marquee, .blob-1, .blob-2, .blob-3, .blob-4 { animation: none !important; }
     .rv, .rv-l, .rv-r, .rv-sc, .rv-words .w { opacity: 1 !important; transform: none !important; }
+    .yas-aurora, .yas-orb, .yas-spark, .yas-shimmer-box { animation: none !important; }
   }
+  /* ── AI YAS flagship page ── */
+  .yas-hero { position:relative; overflow:hidden; background:#0e0c14; color:#fff; }
+  .yas-aurora { position:absolute; inset:-30% -10%; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(40% 50% at 20% 30%, rgba(242,115,28,.55), transparent 60%),
+      radial-gradient(45% 55% at 80% 20%, rgba(139,92,246,.45), transparent 60%),
+      radial-gradient(50% 50% at 60% 80%, rgba(6,182,212,.40), transparent 60%),
+      radial-gradient(40% 40% at 15% 85%, rgba(242,115,28,.30), transparent 60%);
+    filter:blur(40px); animation:yasAurora 22s ease-in-out infinite; }
+  @keyframes yasAurora {
+    0%,100% { transform:translate3d(0,0,0) scale(1); }
+    33%     { transform:translate3d(3%,-2%,0) scale(1.08); }
+    66%     { transform:translate3d(-3%,2%,0) scale(0.96); }
+  }
+  .yas-gridlines { position:absolute; inset:0; z-index:0; pointer-events:none;
+    background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+    background-size:54px 54px; mask-image:radial-gradient(ellipse 90% 70% at 50% 40%, black, transparent); -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 40%, black, transparent); }
+  .yas-orb { position:absolute; border-radius:50%; filter:blur(2px); pointer-events:none; z-index:0;
+    background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.9), rgba(242,115,28,.2)); animation:yasFloat 9s ease-in-out infinite; }
+  @keyframes yasFloat { 0%,100% { transform:translateY(0); opacity:.5; } 50% { transform:translateY(-22px); opacity:1; } }
+  .yas-noise { position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.5;
+    background:radial-gradient(circle at 50% 0%, rgba(255,255,255,.06), transparent 55%); }
+  .yas-promptbar { background:rgba(255,255,255,.07); border:1.5px solid rgba(255,255,255,.18); border-radius:20px;
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); box-shadow:0 30px 80px -30px rgba(0,0,0,.7); }
+  .yas-prompt-input { background:transparent; border:none; outline:none; color:#fff; font-size:17px; width:100%; font-family:inherit; }
+  .yas-prompt-input::placeholder { color:rgba(255,255,255,.55); }
+  .yas-glass { background:#fff; border:1px solid var(--line); border-radius:20px; transition:transform .4s cubic-bezier(.22,1,.36,1), box-shadow .4s, border-color .25s; }
+  @media (min-width:768px){ .yas-glass.yas-int:hover { transform:translateY(-5px); box-shadow:0 30px 60px -30px rgba(33,28,24,.4); border-color:rgba(242,115,28,.55); } }
+  .yas-chip { border-radius:999px; padding:8px 15px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .18s; border-width:1.5px; border-style:solid; }
+  .yas-spark { display:inline-block; animation:yasSpin 4s linear infinite; }
+  @keyframes yasSpin { from { transform:rotate(0); } to { transform:rotate(360deg); } }
+  .yas-shimmer-box { position:relative; overflow:hidden; background:linear-gradient(100deg,#efe7dc 30%,#f7f2ec 50%,#efe7dc 70%); background-size:200% 100%; animation:yasShimmer 1.4s ease-in-out infinite; border-radius:12px; }
+  @keyframes yasShimmer { from { background-position:200% 0; } to { background-position:-200% 0; } }
+  .yas-cap { display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); color:rgba(255,255,255,.92); border-radius:999px; padding:9px 15px; font-size:13px; font-weight:600; }
+  .yas-modal-back { position:fixed; inset:0; z-index:1200; background:rgba(14,12,20,.62); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); display:flex; align-items:flex-start; justify-content:center; padding:24px 16px; overflow-y:auto; animation:fadeIn .2s ease; }
+  .yas-modal { background:var(--cream); border-radius:24px; width:100%; max-width:880px; margin:auto; box-shadow:0 40px 100px -30px rgba(0,0,0,.6); animation:fadeUp .3s cubic-bezier(.22,1,.36,1); overflow:hidden; }
+  .yas-typing span { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--clay); margin:0 2px; animation:yasBlink 1.2s infinite both; }
+  .yas-typing span:nth-child(2){ animation-delay:.2s; } .yas-typing span:nth-child(3){ animation-delay:.4s; }
+  @keyframes yasBlink { 0%,80%,100%{ opacity:.25; transform:translateY(0);} 40%{ opacity:1; transform:translateY(-3px);} }
 `;
 
 function useReveal() {
@@ -503,7 +543,7 @@ const NAV_GROUPS = [
     key: 'studio', label: 'Design studio',
     columns: [
       { title: 'Plan it yourself', items: [
-        ['How it works', 'how-it-works'], ['Wardrobe planner', 'wardrobe-planner'], ['Kitchen planner', 'kitchen-planner'], ['TV unit planner', 'tv-planner'], ['Office planner', 'office-planner'], ['Wood door planner', 'door-planner'], ['AI interior designer', 'ai'],
+        ['✨ AI YAS', 'ai-yas'], ['How it works', 'how-it-works'], ['Wardrobe planner', 'wardrobe-planner'], ['Kitchen planner', 'kitchen-planner'], ['TV unit planner', 'tv-planner'], ['Office planner', 'office-planner'], ['Wood door planner', 'door-planner'], ['AI interior designer', 'ai'],
       ] },
       { title: 'Talk to a designer', items: [
         ['How the planner works →', 'how-it-works'], ['Book a design appointment →', 'booking'], ['Visit a showroom', 'showrooms'],
@@ -603,6 +643,8 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
               </div>
             );
           })}
+          <button type="button" onMouseEnter={()=>setOpenMega(null)} onClick={()=>navTo('ai-yas')}
+            style={{ cursor:'pointer', padding:'8px 14px', fontSize:14, fontWeight:700, color: page==='ai-yas'?'#fff':'var(--clay-deep)', background: page==='ai-yas'?'var(--clay)':'var(--sand)', border:'1px solid '+(page==='ai-yas'?'var(--clay)':'rgba(242,115,28,.35)'), borderRadius:999, display:'inline-flex', alignItems:'center', gap:6 }}>✨ AI YAS</button>
           {NAV_FLAT.map(([label,id]) => (
             <button type="button" key={id} onMouseEnter={()=>setOpenMega(null)} onClick={()=>navTo(id)}
               style={{ background:'none', border:'none', cursor:'pointer', padding:'10px 14px', fontSize:14, fontWeight: page===id?600:500, color: page===id?'var(--clay-deep)':'var(--ink)', borderRadius:10 }}>{label}</button>
@@ -708,6 +750,8 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
                 </div>
               );
             })}
+            {/* AI YAS — headline feature */}
+            <button type="button" onClick={()=>go('ai-yas')} style={{ width:'100%', textAlign:'left', background: page==='ai-yas'?'var(--clay)':'var(--sand)', border:'1px solid '+(page==='ai-yas'?'var(--clay)':'rgba(242,115,28,.35)'), borderRadius:12, padding:'13px 15px', fontSize:15, fontWeight:700, color: page==='ai-yas'?'#fff':'var(--clay-deep)', cursor:'pointer', marginBottom:8 }}>✨ AI YAS — your AI design partner</button>
             {/* Flat links */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
               {NAV_FLAT.concat([['Gallery','products'],['Contact','contact']]).map(([label,id])=>(
@@ -5605,6 +5649,574 @@ function RequestPage({ kind, title, sub, refLabel }) {
     </div>
   </PageWrap>);
 }
+// ════════════════════════════════════════════════════════════════════════
+//  AI YAS — flagship AI hub. Launches every AI capability of the platform.
+//  Defensive everywhere: any failed/unconfigured AI call shows a friendly
+//  state and a CTA, never crashes the UI.
+// ════════════════════════════════════════════════════════════════════════
+const YAS_HEAD = { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' };
+async function yasCall(fn, body) {
+  // Returns { ok, data } | { ok:false, warm:true } — never throws.
+  try {
+    const r = await fetch(SUPA_URL + '/functions/v1/' + fn, { method: 'POST', headers: YAS_HEAD, body: JSON.stringify(body || {}) });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d && d.ok !== false) return { ok: true, data: d };
+    return { ok: false, warm: true, error: (d && d.error) || ('AI error ' + r.status) };
+  } catch (e) { return { ok: false, warm: true, error: 'network' }; }
+}
+// FileReader → downscaled JPEG data URL (reuses the planner's resize approach).
+function yasReadImage(file, cb) {
+  if (!file) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      const max = 1024; let w = im.width, h = im.height;
+      if (w > h && w > max) { h = Math.round(h * max / w); w = max; } else if (h > max) { w = Math.round(w * max / h); h = max; }
+      try {
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(im, 0, 0, w, h);
+        const u = c.toDataURL('image/jpeg', 0.72);
+        cb({ dataUrl: u, media_type: 'image/jpeg', base64: u.split(',')[1] });
+      } catch (e) { cb({ dataUrl: rd.result, media_type: 'image/jpeg', base64: String(rd.result).split(',')[1] }); }
+    };
+    im.onerror = () => cb(null);
+    im.src = rd.result;
+  };
+  rd.onerror = () => cb(null);
+  rd.readAsDataURL(file);
+}
+const YAS_PRODUCTS = [
+  { id: '', label: 'Any space' },
+  { id: 'kitchen', label: 'Kitchen' },
+  { id: 'wardrobe', label: 'Wardrobe' },
+  { id: 'tv', label: 'TV unit' },
+  { id: 'doors', label: 'Doors' },
+  { id: 'storage', label: 'Office' },
+];
+const YAS_STYLES = [
+  'Modern', 'Minimalist', 'Scandinavian', 'Luxury', 'Industrial', 'Japandi',
+  'Classic', 'Boho', 'Coastal', 'Monochrome', 'Warm Neutral', 'Bold',
+];
+// Map friendly style names → ai_room_redesign style ids (defensive default).
+const YAS_STYLE_MAP = {
+  Modern: 'minimal', Minimalist: 'minimal', Scandinavian: 'scandinavian', Luxury: 'modern_luxe',
+  Industrial: 'modern_luxe', Japandi: 'warm_oak', Classic: 'warm_oak', Boho: 'coastal',
+  Coastal: 'coastal', Monochrome: 'modern_luxe', 'Warm Neutral': 'warm_oak', Bold: 'bold_walnut',
+};
+
+// A pill chip used across the page.
+function YasChip({ active, onClick, children, dark }) {
+  const base = dark
+    ? { borderColor: active ? 'var(--clay)' : 'rgba(255,255,255,.22)', background: active ? 'var(--clay)' : 'rgba(255,255,255,.06)', color: active ? '#fff' : 'rgba(255,255,255,.9)' }
+    : { borderColor: active ? 'var(--clay)' : 'var(--line)', background: active ? 'var(--sand)' : '#fff', color: active ? 'var(--clay-deep)' : 'var(--ink-soft)' };
+  return <button type="button" className="yas-chip" onClick={onClick} style={base}>{children}</button>;
+}
+
+function YasModal({ title, subtitle, onClose, children }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow; document.body.style.overflow = 'hidden';
+    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = prev; };
+  }, [onClose]);
+  return (
+    <div className="yas-modal-back" onClick={onClose}>
+      <div className="yas-modal" onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: '22px 24px 14px', borderBottom: '1px solid var(--line)' }}>
+          <div>
+            <h3 className="display" style={{ fontSize: 24, color: 'var(--ink)' }}>{title}</h3>
+            {subtitle && <div style={{ fontSize: 13.5, color: 'var(--muted)', marginTop: 4 }}>{subtitle}</div>}
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close" style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '50%', width: 38, height: 38, fontSize: 20, cursor: 'pointer', color: 'var(--ink-soft)', flexShrink: 0 }}>×</button>
+        </div>
+        <div style={{ padding: '20px 24px 26px' }}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+const YAS_DISCLAIMER = 'AI impression — confirmed at your free design consultation.';
+function YasNote({ children }) {
+  return <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 10, lineHeight: 1.5 }}>{children || YAS_DISCLAIMER}</div>;
+}
+
+// ── Reusable concept-result card (shared by hero + Text-to-Design tool) ──
+function YasConceptCard({ concept, setPage }) {
+  const chip = (t, i) => <span key={i} style={{ background: 'var(--sand)', color: 'var(--clay-deep)', borderRadius: 999, padding: '6px 12px', fontSize: 13, fontWeight: 500 }}>{t}</span>;
+  return (
+    <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 18, padding: 22, marginTop: 16 }}>
+      <div className="eyebrow">AI concept</div>
+      <h3 className="display" style={{ fontSize: 24, color: 'var(--ink)', margin: '6px 0 4px' }}>{concept.title}</h3>
+      <div style={{ fontSize: 13, color: 'var(--muted)' }}>{concept.product} · {concept.layout} · {concept.finish_id} finish · {concept.width_cm}×{concept.height_cm}cm</div>
+      {concept.summary && <p style={{ fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.65, marginTop: 12 }}>{concept.summary}</p>}
+      {Array.isArray(concept.materials) && concept.materials.length > 0 && (
+        <><h4 style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink)', marginTop: 16, marginBottom: 8, letterSpacing: '.06em' }}>MATERIALS</h4>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>{concept.materials.map(chip)}</div></>
+      )}
+      {Array.isArray(concept.colors) && concept.colors.length > 0 && (
+        <><h4 style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink)', marginTop: 16, marginBottom: 8, letterSpacing: '.06em' }}>COLOURS</h4>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>{concept.colors.map(chip)}</div></>
+      )}
+      {Array.isArray(concept.storage_ideas) && concept.storage_ideas.length > 0 && (
+        <><h4 style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink)', marginTop: 16, marginBottom: 8, letterSpacing: '.06em' }}>SMART STORAGE</h4>
+          <ul style={{ margin: 0, paddingLeft: 18, color: 'var(--ink-soft)', fontSize: 14, lineHeight: 1.7 }}>{concept.storage_ideas.map((m, i) => <li key={i}>{m}</li>)}</ul></>
+      )}
+      {Array.isArray(concept.packages) && concept.packages.length > 0 && (
+        <><h4 style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink)', marginTop: 18, marginBottom: 8, letterSpacing: '.06em' }}>PACKAGES (indicative)</h4>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 10 }}>
+            {concept.packages.map((p, i) => (
+              <div key={p.tier} style={{ border: '1px solid ' + (i === 1 ? 'var(--clay)' : 'var(--line)'), background: i === 1 ? 'var(--sand)' : '#fff', borderRadius: 12, padding: '12px 14px' }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: i === 1 ? 'var(--clay-deep)' : 'var(--ink)' }}>{p.tier}{i === 1 ? ' · recommended' : ''}</div>
+                <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--ink)', marginTop: 3 }}>BD {Number(p.price_from || 0).toLocaleString()}–{Number(p.price_to || 0).toLocaleString()}</div>
+                <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, lineHeight: 1.4 }}>{p.includes}</div>
+              </div>
+            ))}
+          </div></>
+      )}
+      <div style={{ display: 'flex', gap: 10, marginTop: 18, flexWrap: 'wrap' }}>
+        <button type="button" className="btn-clay" onClick={() => setPage('planner')} style={{ borderRadius: 999, padding: '11px 20px', fontSize: 14 }}>Refine in 3D planner</button>
+        <button type="button" onClick={() => setPage('booking')} style={{ background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 999, padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Book a free visit</button>
+      </div>
+      <YasNote />
+    </div>
+  );
+}
+
+// ── A styled fallback concept when no AI backend is available ──
+function yasFallbackConcept(prompt, product) {
+  const p = product || 'kitchen';
+  const titles = { kitchen: 'Warm Handleless Kitchen', wardrobe: 'Tailored Walk-in Wardrobe', tv: 'Floating Media Wall', doors: 'Bespoke Fitted Doors', storage: 'Integrated Home Office' };
+  const base = { kitchen: 4200, wardrobe: 2400, tv: 1500, doors: 1200, storage: 2800 }[p] || 3000;
+  const mk = (m) => [Math.round(base * m * 0.9), Math.round(base * m * 1.15)];
+  return {
+    title: titles[p] || 'Your Bespoke Concept',
+    product: p, layout: p === 'kitchen' ? 'l-shape' : 'single', finish_id: 'oak',
+    width_cm: p === 'kitchen' ? 320 : 200, height_cm: p === 'kitchen' ? 90 : 240,
+    summary: (prompt ? '"' + prompt.slice(0, 120) + '" — ' : '') + 'a cohesive starting concept in warm, durable materials, designed around how you live and built in our Bahrain workshop.',
+    materials: ['Premium laminate', 'Soft-close hardware', 'LED-ready interiors', 'Brushed-metal handles'],
+    colors: ['Warm oak', 'Cream', 'Graphite accent'],
+    storage_ideas: ['Full-height pull-outs', 'Hidden internal lighting', 'Custom dividers for your items'],
+    packages: [
+      { tier: 'Economy', price_from: mk(0.72)[0], price_to: mk(0.72)[1], includes: 'Quality essentials, laminate finishes' },
+      { tier: 'Standard', price_from: mk(1)[0], price_to: mk(1)[1], includes: 'Premium laminate/veneer, soft-close, LED-ready' },
+      { tier: 'Premium', price_from: mk(1.45)[0], price_to: mk(1.45)[1], includes: 'Veneer/painted finishes, integrated lighting' },
+      { tier: 'Luxury', price_from: mk(2.1)[0], price_to: mk(2.1)[1], includes: 'Top-tier materials, bespoke detailing' },
+    ],
+  };
+}
+
+// ════════════ TOOL PANELS (each rendered inside a YasModal) ════════════
+
+// 1) Text-to-Design (also powers the hero) — ai_design_concept w/ fallback.
+function YasTextToDesign({ initialPrompt, initialProduct, setPage }) {
+  const [prompt, setPrompt] = useState(initialPrompt || '');
+  const [product, setProduct] = useState(initialProduct || '');
+  const [budget, setBudget] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [concept, setConcept] = useState(null);
+  const [warm, setWarm] = useState(false);
+  const run = async () => {
+    if (!prompt.trim()) { toast('Describe your space first', 'error'); return; }
+    setBusy(true); setConcept(null); setWarm(false);
+    const res = await yasCall('ai_design_concept', { requirements: prompt.trim(), product: product || undefined, budget: budget ? Number(budget) : undefined });
+    if (res.ok && res.data.concept) { setConcept(res.data.concept); }
+    else { setConcept(yasFallbackConcept(prompt.trim(), product)); setWarm(true); }
+    setBusy(false);
+  };
+  return (
+    <div>
+      <textarea value={prompt} onChange={e => setPrompt(e.target.value)} rows={3} className="inp" placeholder="Describe your dream space — e.g. a warm oak walk-in wardrobe with lots of shoe storage and soft lighting" style={{ resize: 'vertical', marginBottom: 12 }} />
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+        {YAS_PRODUCTS.map(p => <YasChip key={p.id || 'any'} active={product === p.id} onClick={() => setProduct(p.id)}>{p.label}</YasChip>)}
+      </div>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <input value={budget} onChange={e => setBudget(e.target.value)} inputMode="numeric" className="inp" placeholder="Budget BHD (optional)" style={{ maxWidth: 220 }} />
+        <button type="button" className="btn-clay" disabled={busy} onClick={run} style={{ opacity: busy ? .6 : 1 }}>{busy ? 'Designing…' : '✨ Generate concept'}</button>
+      </div>
+      {busy && <div className="yas-shimmer-box" style={{ height: 120, marginTop: 16 }} />}
+      {warm && concept && <div style={{ fontSize: 12.5, color: 'var(--clay-deep)', marginTop: 14, background: 'var(--sand)', padding: '9px 12px', borderRadius: 10 }}>Our live AI is warming up — here's a starter concept. <button type="button" onClick={() => setPage('booking')} style={{ background: 'none', border: 'none', color: 'var(--clay-deep)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Book a free design consultation</button> for a tailored design.</div>}
+      {concept && <YasConceptCard concept={concept} setPage={setPage} />}
+    </div>
+  );
+}
+
+// 2) AI Room Redesign — upload photo + style → ai_room_redesign, before/after.
+function YasRoomRedesign({ setPage }) {
+  const [image, setImage] = useState(null);
+  const [style, setStyle] = useState('Modern');
+  const [busy, setBusy] = useState(false);
+  const [url, setUrl] = useState(null);
+  const [err, setErr] = useState('');
+  const [pos, setPos] = useState(55);
+  const run = async (styleName) => {
+    if (!image) { toast('Add a room photo first', 'error'); return; }
+    const sName = styleName || style;
+    setBusy(true); setErr(''); setUrl(null);
+    const res = await yasCall('ai_room_redesign', { image_base64: image.base64, style: YAS_STYLE_MAP[sName] || 'minimal', strength: 0.7 });
+    if (res.ok && res.data.url) { setUrl(res.data.url); setPos(55); }
+    else { setErr(res.error === 'Render not configured' ? 'Photoreal rendering isn’t switched on yet — book a free design visit and we’ll show you in person.' : 'Couldn’t render that one — try another photo.'); }
+    setBusy(false);
+  };
+  return (
+    <div>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 12, border: '1.5px dashed var(--line)', background: '#fff', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', marginBottom: 14 }}>
+        {image ? <img src={image.dataUrl} alt="your room" style={{ width: 64, height: 48, objectFit: 'cover', borderRadius: 9 }} /> : <Spark size={24} color="var(--clay)" />}
+        <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)' }}>{image ? 'Photo added — tap to change' : 'Upload a photo of your room'}</span>
+        <input type="file" accept="image/*" onChange={e => yasReadImage(e.target.files && e.target.files[0], img => { if (img) { setImage(img); setUrl(null); setErr(''); } })} style={{ display: 'none' }} />
+      </label>
+      <div className="eyebrow" style={{ marginBottom: 10 }}>Pick a style</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+        {YAS_STYLES.map(s => <YasChip key={s} active={style === s} onClick={() => { setStyle(s); if (image && url) run(s); }}>{s}</YasChip>)}
+      </div>
+      <button type="button" className="btn-clay" disabled={busy} onClick={() => run()} style={{ opacity: busy ? .6 : 1 }}>{busy ? 'Redesigning…' : '✨ Redesign my room'}</button>
+      {busy && <div className="yas-shimmer-box" style={{ height: 240, marginTop: 16 }} />}
+      {!busy && err && <div style={{ marginTop: 16, padding: '16px', background: 'var(--sand)', borderRadius: 12, color: 'var(--clay-deep)', fontSize: 14 }}>{err}</div>}
+      {!busy && url && image && (
+        <div style={{ marginTop: 16 }}>
+          <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', aspectRatio: '4 / 3', background: '#000' }}>
+            <img src={url} alt="After — AI redesign" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={image.dataUrl} alt="Before — your room" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', clipPath: 'inset(0 ' + (100 - pos) + '% 0 0)' }} />
+            <div style={{ position: 'absolute', top: 0, bottom: 0, left: pos + '%', width: 2, background: '#fff', boxShadow: '0 0 8px rgba(0,0,0,.4)' }} />
+            <span style={{ position: 'absolute', top: 10, left: 10, background: 'rgba(20,16,12,.7)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 99 }}>BEFORE</span>
+            <span style={{ position: 'absolute', top: 10, right: 10, background: 'var(--clay)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 99 }}>AFTER ✦</span>
+            <input type="range" min={0} max={100} value={pos} onChange={e => setPos(Number(e.target.value))} aria-label="Compare before and after" style={{ position: 'absolute', left: '6%', right: '6%', bottom: 12, width: '88%', accentColor: 'var(--clay)' }} />
+          </div>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12 }}>
+            <a href={url} download="closets-ai-redesign.jpg" target="_blank" rel="noreferrer" style={{ padding: '8px 14px', borderRadius: 99, background: 'var(--ink)', color: '#fff', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>Download</a>
+            <button type="button" onClick={() => setPage('booking')} className="btn-clay" style={{ padding: '8px 14px', borderRadius: 99, fontSize: 13 }}>Make it real →</button>
+          </div>
+          <YasNote />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 3) Style Finder / Moodboard — vibe tags → ai_design_concept → palette (fallback curated).
+const YAS_VIBES = ['Calm', 'Warm', 'Bold', 'Natural', 'Luxe', 'Airy', 'Moody', 'Playful', 'Timeless', 'Coastal'];
+const YAS_PALETTES = {
+  default: { style: 'Warm Modern', colors: [['Warm Oak', '#c89b5e'], ['Soft Cream', '#efe7dc'], ['Graphite', '#3a3a3c'], ['Clay', '#F2731C']], materials: ['Natural oak veneer', 'Matt lacquer', 'Brushed brass', 'Linen textiles'] },
+  Moody: { style: 'Bold Walnut', colors: [['Deep Walnut', '#3f2a17'], ['Forest', '#2f4030'], ['Bronze', '#8a6a3a'], ['Charcoal', '#1f1c19']], materials: ['Walnut veneer', 'Smoked glass', 'Antique bronze', 'Velvet accents'] },
+  Coastal: { style: 'Coastal Calm', colors: [['Whitewash', '#eef1f0'], ['Sea Blue', '#7fa9b3'], ['Sand', '#d8c8ad'], ['Driftwood', '#b6a892']], materials: ['Whitewashed oak', 'Woven rattan', 'Soft cotton', 'Matte ceramic'] },
+  Luxe: { style: 'Modern Luxe', colors: [['Matte Black', '#1d1d1f'], ['Marble White', '#f3f1ec'], ['Champagne Gold', '#cbab73'], ['Slate', '#54585c']], materials: ['Marble surfaces', 'Brushed gold', 'High-gloss lacquer', 'Smoked mirror'] },
+};
+function YasStyleFinder({ setPage }) {
+  const [vibes, setVibes] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [board, setBoard] = useState(null);
+  const toggle = (v) => setVibes(s => s.includes(v) ? s.filter(x => x !== v) : (s.length < 3 ? [...s, v] : s));
+  const run = async () => {
+    if (vibes.length === 0) { toast('Pick a few vibes', 'error'); return; }
+    setBusy(true); setBoard(null);
+    const res = await yasCall('ai_design_concept', { requirements: 'Suggest an interior style and a material + colour palette for a bespoke space with these vibes: ' + vibes.join(', ') + '. Focus on materials and colours.' });
+    let pal = YAS_PALETTES.default;
+    for (const v of vibes) { if (YAS_PALETTES[v]) { pal = YAS_PALETTES[v]; break; } }
+    if (res.ok && res.data.concept) {
+      const c = res.data.concept;
+      const colors = Array.isArray(c.colors) && c.colors.length ? c.colors.map((n, i) => [n, pal.colors[i % pal.colors.length][1]]) : pal.colors;
+      const materials = Array.isArray(c.materials) && c.materials.length ? c.materials : pal.materials;
+      setBoard({ style: c.title || pal.style, colors, materials, summary: c.summary });
+    } else {
+      setBoard({ style: pal.style, colors: pal.colors, materials: pal.materials, summary: 'A curated moodboard to start your project.' });
+    }
+    setBusy(false);
+  };
+  return (
+    <div>
+      <div className="eyebrow" style={{ marginBottom: 10 }}>Pick up to 3 vibes</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+        {YAS_VIBES.map(v => <YasChip key={v} active={vibes.includes(v)} onClick={() => toggle(v)}>{v}</YasChip>)}
+      </div>
+      <button type="button" className="btn-clay" disabled={busy} onClick={run} style={{ opacity: busy ? .6 : 1 }}>{busy ? 'Curating…' : '✨ Build my moodboard'}</button>
+      {busy && <div className="yas-shimmer-box" style={{ height: 140, marginTop: 16 }} />}
+      {board && (
+        <div style={{ marginTop: 18, background: '#fff', border: '1px solid var(--line)', borderRadius: 16, padding: 20 }}>
+          <div className="eyebrow">Your AI moodboard</div>
+          <h3 className="display" style={{ fontSize: 22, color: 'var(--ink)', margin: '6px 0 12px' }}>{board.style}</h3>
+          {board.summary && <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 14 }}>{board.summary}</p>}
+          <div style={{ display: 'flex', gap: 0, borderRadius: 12, overflow: 'hidden', marginBottom: 14 }}>
+            {board.colors.map(([name, hex], i) => (
+              <div key={i} style={{ flex: 1, textAlign: 'center' }}>
+                <div style={{ height: 56, background: hex }} />
+                <div style={{ fontSize: 10.5, color: 'var(--muted)', padding: '5px 2px', background: '#fff' }}>{name}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {board.materials.map((m, i) => <span key={i} style={{ background: 'var(--sand)', color: 'var(--clay-deep)', borderRadius: 999, padding: '6px 12px', fontSize: 13, fontWeight: 500 }}>{m}</span>)}
+          </div>
+          <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
+            <button type="button" className="btn-clay" onClick={() => setPage('planner')} style={{ borderRadius: 999, padding: '10px 18px', fontSize: 13.5 }}>Use in 3D planner</button>
+            <button type="button" onClick={() => setPage('booking')} style={{ background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 999, padding: '10px 18px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>Book a free visit</button>
+          </div>
+          <YasNote />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 4) Budget Assistant — budget + product → ai_design_concept packages (fallback tiered).
+function YasBudgetAssistant({ setPage }) {
+  const [budget, setBudget] = useState('');
+  const [product, setProduct] = useState('kitchen');
+  const [busy, setBusy] = useState(false);
+  const [concept, setConcept] = useState(null);
+  const run = async () => {
+    const b = Number(budget);
+    if (!b || b < 100) { toast('Enter a budget in BHD', 'error'); return; }
+    setBusy(true); setConcept(null);
+    const res = await yasCall('ai_design_concept', { requirements: 'Recommend a sensible ' + product + ' specification that fits within a budget of BHD ' + b + '. List the best materials and storage we can include at this budget.', product, budget: b });
+    if (res.ok && res.data.concept) setConcept(res.data.concept);
+    else setConcept(yasFallbackConcept('within BHD ' + b, product));
+    setBusy(false);
+  };
+  return (
+    <div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+        {YAS_PRODUCTS.filter(p => p.id).map(p => <YasChip key={p.id} active={product === p.id} onClick={() => setProduct(p.id)}>{p.label}</YasChip>)}
+      </div>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative' }}>
+          <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 14, fontWeight: 600, color: 'var(--muted)' }}>BHD</span>
+          <input value={budget} onChange={e => setBudget(e.target.value)} inputMode="numeric" className="inp" placeholder="Your budget" style={{ paddingLeft: 48, maxWidth: 220 }} />
+        </div>
+        <button type="button" className="btn-clay" disabled={busy} onClick={run} style={{ opacity: busy ? .6 : 1 }}>{busy ? 'Calculating…' : '✨ Recommend a spec'}</button>
+      </div>
+      {busy && <div className="yas-shimmer-box" style={{ height: 120, marginTop: 16 }} />}
+      {concept && <YasConceptCard concept={concept} setPage={setPage} />}
+    </div>
+  );
+}
+
+// 5) Material & Product Picks — recommend_products (always returns ok with fallback).
+function YasProductPicks({ setPage }) {
+  const [interest, setInterest] = useState('kitchen');
+  const [busy, setBusy] = useState(false);
+  const [items, setItems] = useState(null);
+  const [warm, setWarm] = useState(false);
+  const run = async () => {
+    setBusy(true); setItems(null); setWarm(false);
+    const res = await yasCall('recommend_products', { interest });
+    if (res.ok && Array.isArray(res.data.items)) { setItems(res.data.items); if (res.data.items.length === 0) setWarm(true); }
+    else { setItems([]); setWarm(true); }
+    setBusy(false);
+  };
+  return (
+    <div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+        {['kitchen', 'wardrobe', 'tv', 'doors', 'storage', 'vanity'].map(c => <YasChip key={c} active={interest === c} onClick={() => setInterest(c)}>{c.charAt(0).toUpperCase() + c.slice(1)}</YasChip>)}
+      </div>
+      <button type="button" className="btn-clay" disabled={busy} onClick={run} style={{ opacity: busy ? .6 : 1 }}>{busy ? 'Finding…' : '✨ Recommend products'}</button>
+      {busy && <div className="yas-shimmer-box" style={{ height: 100, marginTop: 16 }} />}
+      {items && items.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12, marginTop: 16 }}>
+          {items.map((it, i) => (
+            <button type="button" key={it.id || i} onClick={() => it.id && setPage('product-' + it.id)} style={{ textAlign: 'left', background: '#fff', border: '1px solid var(--line)', borderRadius: 14, padding: 14, cursor: 'pointer' }}>
+              <div style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.25 }}>{it.name}</div>
+              <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 3 }}>{it.category}{it.price ? ' · BD ' + Number(it.price).toLocaleString() : ''}</div>
+              {it.reason && <div style={{ fontSize: 12, color: 'var(--clay-deep)', marginTop: 8, fontStyle: 'italic' }}>{it.reason}</div>}
+            </button>
+          ))}
+        </div>
+      )}
+      {items && items.length === 0 && warm && (
+        <div style={{ marginTop: 16, padding: 16, background: 'var(--sand)', borderRadius: 12, color: 'var(--clay-deep)', fontSize: 14 }}>Our recommender is warming up. <button type="button" onClick={() => setPage('products')} style={{ background: 'none', border: 'none', color: 'var(--clay-deep)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Browse the full collection</button>.</div>
+      )}
+    </div>
+  );
+}
+
+// 6) Ask YAS — compact chat over support_chat (defensive).
+function YasChat() {
+  const [msgs, setMsgs] = useState([{ role: 'assistant', content: 'Hi! I’m YAS, your design assistant. Ask me about products, lead times, finance, our process — anything.' }]);
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const endRef = useRef(null);
+  useEffect(() => { if (endRef.current) endRef.current.scrollTop = endRef.current.scrollHeight; }, [msgs, busy]);
+  const send = async () => {
+    const text = input.trim();
+    if (!text || busy) return;
+    const next = [...msgs, { role: 'user', content: text }];
+    setMsgs(next); setInput(''); setBusy(true);
+    const res = await yasCall('support_chat', { messages: next.filter(m => m.role === 'user' || m.role === 'assistant') });
+    if (res.ok && res.data.reply) setMsgs(m => [...m, { role: 'assistant', content: res.data.reply }]);
+    else setMsgs(m => [...m, { role: 'assistant', content: 'I’m having a quick connection hiccup. You can WhatsApp our team on +973 1700 1700 or book a free design visit and we’ll help right away.' }]);
+    setBusy(false);
+  };
+  return (
+    <div>
+      <div ref={endRef} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 16, padding: 16, height: 320, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {msgs.map((m, i) => (
+          <div key={i} style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '82%', background: m.role === 'user' ? 'var(--clay)' : 'var(--sand)', color: m.role === 'user' ? '#fff' : 'var(--ink)', padding: '10px 14px', borderRadius: 14, fontSize: 14, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{m.content}</div>
+        ))}
+        {busy && <div style={{ alignSelf: 'flex-start', background: 'var(--sand)', padding: '12px 16px', borderRadius: 14 }}><span className="yas-typing"><span /><span /><span /></span></div>}
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') send(); }} className="inp" placeholder="Ask YAS anything…" />
+        <button type="button" className="btn-clay" disabled={busy} onClick={send} style={{ flexShrink: 0, opacity: busy ? .6 : 1 }}>Send</button>
+      </div>
+    </div>
+  );
+}
+
+// ── The flagship hub page ──
+function AiYasPage({ setPage }) {
+  const mobile = useMobile();
+  useReveal();
+  const [heroPrompt, setHeroPrompt] = useState('');
+  const [heroProduct, setHeroProduct] = useState('');
+  const [openTool, setOpenTool] = useState(null); // tool id | { id, prompt, product }
+  const launchHero = () => {
+    if (!heroPrompt.trim()) { toast('Describe your space to generate', 'info'); return; }
+    setOpenTool({ id: 'text', prompt: heroPrompt, product: heroProduct });
+  };
+  const TOOLS = [
+    { id: 'text', icon: '✶', title: 'Text-to-Design', value: 'Describe it in words — get a full concept, materials & pricing.', cta: 'Describe & generate' },
+    { id: 'redesign', icon: '🖼', title: 'AI Room Redesign', value: 'Upload a photo of your room, pick a style, see it transformed.', cta: 'Upload & restyle' },
+    { id: 'moodboard', icon: '◑', title: 'Style Finder & Moodboard', value: 'Choose a few vibes — AI builds a style, colour & material board.', cta: 'Build a moodboard' },
+    { id: 'budget', icon: '◈', title: 'Budget Assistant', value: 'Set a budget in BHD — AI recommends the best spec for it.', cta: 'Plan to budget' },
+    { id: 'picks', icon: '❖', title: 'Material & Product Picks', value: 'Smart picks from our live collection, tailored to your room.', cta: 'Get picks' },
+    { id: 'chat', icon: '✦', title: 'Ask YAS — Design Chat', value: 'Chat with our AI about products, process, finance and lead times.', cta: 'Start chatting' },
+    { id: 'render', icon: '◆', title: 'Photoreal Render', value: 'Turn a design into a lifelike, photorealistic room render.', action: () => setPage('planner'), cta: 'Open in planner' },
+    { id: 'visualiser', icon: '⬡', title: 'AI Visualiser — Room Designer', value: 'Design your space live in our interactive 3D Room Designer.', action: () => setPage('planner'), cta: 'Open Room Designer' },
+  ];
+  const CAPS = ['Text-to-design', 'Room redesign', 'Photoreal render', 'Style moodboards', 'Budget planning', 'Product picks', 'Design chat', '3D visualiser', 'Smart recommendations', 'Instant concepts'];
+  const STEPS = [
+    { n: '01', t: 'Describe', d: 'Tell YAS what you want in plain words, or upload a photo of your room.', img: '/layouts/wardrobe/wardrobe-walkin.jpg' },
+    { n: '02', t: 'Generate', d: 'AI composes a concept — layout, materials, colours and indicative pricing in seconds.', img: '/layouts/kitchen/island.jpg' },
+    { n: '03', t: 'Refine & quote', d: 'Open it in the 3D planner or book a free visit for an exact, itemised quote.', img: '/layouts/TV/floating.jpg' },
+  ];
+  // Resolve a robust image for the 3 steps (defensive — Photo handles errors anyway).
+  const renderToolModal = () => {
+    if (!openTool) return null;
+    const id = typeof openTool === 'string' ? openTool : openTool.id;
+    const close = () => setOpenTool(null);
+    if (id === 'text') return <YasModal title="Text-to-Design" subtitle="Describe your dream space — YAS designs it." onClose={close}><YasTextToDesign initialPrompt={typeof openTool === 'object' ? openTool.prompt : ''} initialProduct={typeof openTool === 'object' ? openTool.product : ''} setPage={setPage} /></YasModal>;
+    if (id === 'redesign') return <YasModal title="AI Room Redesign" subtitle="Upload a photo and reimagine your room." onClose={close}><YasRoomRedesign setPage={setPage} /></YasModal>;
+    if (id === 'moodboard') return <YasModal title="Style Finder & Moodboard" subtitle="Pick your vibe — get a curated board." onClose={close}><YasStyleFinder setPage={setPage} /></YasModal>;
+    if (id === 'budget') return <YasModal title="AI Budget Assistant" subtitle="Tell YAS your budget — get the best spec." onClose={close}><YasBudgetAssistant setPage={setPage} /></YasModal>;
+    if (id === 'picks') return <YasModal title="Material & Product Picks" subtitle="AI picks from our live collection." onClose={close}><YasProductPicks setPage={setPage} /></YasModal>;
+    if (id === 'chat') return <YasModal title="Ask YAS" subtitle="Your AI design assistant." onClose={close}><YasChat /></YasModal>;
+    return null;
+  };
+
+  return (
+    <div style={{ minHeight: '100dvh', background: 'var(--cream)' }}>
+      {/* ── HERO ── */}
+      <section className="yas-hero" style={{ paddingTop: mobile ? 96 : 130, paddingBottom: mobile ? 56 : 84 }}>
+        <div className="yas-aurora" />
+        <div className="yas-gridlines" />
+        <div className="yas-noise" />
+        <div className="yas-orb" style={{ width: 90, height: 90, top: '22%', left: '8%', animationDelay: '0s' }} />
+        <div className="yas-orb" style={{ width: 50, height: 50, top: '60%', right: '12%', animationDelay: '1.5s' }} />
+        <div className="yas-orb" style={{ width: 30, height: 30, top: '30%', right: '24%', animationDelay: '3s' }} />
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 980, margin: '0 auto', padding: mobile ? '0 22px' : '0 32px', textAlign: 'center' }}>
+          <div className="yas-cap" style={{ marginBottom: 22 }}><span className="yas-spark">✦</span> Powered by The Closets AI · Bahrain</div>
+          <h1 className="display" style={{ fontSize: mobile ? 52 : 92, lineHeight: .98, letterSpacing: '-.03em', color: '#fff', marginBottom: 18 }}>
+            AI&nbsp;<span style={{ background: 'linear-gradient(100deg,#F2731C,#f0a05a,#8b5cf6)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent' }}>YAS</span>
+          </h1>
+          <p style={{ fontSize: mobile ? 17 : 21, color: 'rgba(255,255,255,.82)', lineHeight: 1.55, maxWidth: 640, margin: '0 auto 34px' }}>Your AI design partner — describe it, see it, build it. Real renders, tailored concepts and instant pricing for kitchens, wardrobes and every room.</p>
+          {/* Flagship prompt bar */}
+          <div className="yas-promptbar" style={{ padding: mobile ? 14 : 18, textAlign: 'left', maxWidth: 760, margin: '0 auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span className="yas-spark" style={{ fontSize: 20, color: 'var(--clay)' }}>✦</span>
+              <input
+                className="yas-prompt-input"
+                value={heroPrompt}
+                onChange={e => setHeroPrompt(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') launchHero(); }}
+                placeholder="Describe your dream kitchen, wardrobe or room…"
+                aria-label="Describe your dream space"
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 14, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                {YAS_PRODUCTS.filter(p => p.id).map(p => <YasChip key={p.id} dark active={heroProduct === p.id} onClick={() => setHeroProduct(heroProduct === p.id ? '' : p.id)}>{p.label}</YasChip>)}
+              </div>
+              <button type="button" className="btn-clay" onClick={launchHero} style={{ borderRadius: 14, padding: '12px 22px', fontSize: 15, flexShrink: 0 }}>✨ Generate</button>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 18, justifyContent: 'center', marginTop: 26, flexWrap: 'wrap', fontSize: 13, color: 'rgba(255,255,255,.6)' }}>
+            <span>No sign-up to try</span><span>·</span><span>Instant concepts</span><span>·</span><span>Free design visit to confirm</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── AI TOOLS GRID ── */}
+      <section style={{ maxWidth: 1180, margin: '0 auto', padding: mobile ? '56px 22px' : '88px 32px' }}>
+        <div className="rv" style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 44px' }}>
+          <div className="eyebrow" style={{ marginBottom: 12 }}>One hub · Every AI tool</div>
+          <h2 className="display" style={{ fontSize: mobile ? 32 : 46, color: 'var(--ink)' }}>Everything AI can do for your space.</h2>
+          <p style={{ fontSize: mobile ? 15 : 17, color: 'var(--ink-soft)', marginTop: 14, lineHeight: 1.6 }}>Tap any tool to launch it right here — no waiting, no forms.</p>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(auto-fit,minmax(270px,1fr))', gap: 18 }}>
+          {TOOLS.map((tool, i) => (
+            <div key={tool.id} className="yas-glass yas-int rv" style={{ '--d': (i * 0.05) + 's', padding: 24, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ width: 50, height: 50, borderRadius: 14, background: 'linear-gradient(135deg,var(--sand),#fff)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: 'var(--clay)', marginBottom: 16 }}>{tool.icon}</div>
+              <h3 className="display" style={{ fontSize: 20, color: 'var(--ink)', marginBottom: 8 }}>{tool.title}</h3>
+              <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55, flex: 1, marginBottom: 18 }}>{tool.value}</p>
+              <button type="button" onClick={() => tool.action ? tool.action() : setOpenTool(tool.id)} style={{ alignSelf: 'flex-start', background: 'var(--sand)', color: 'var(--clay-deep)', border: '1px solid var(--line)', borderRadius: 999, padding: '10px 18px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>{tool.cta} →</button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── HOW AI YAS WORKS ── */}
+      <section style={{ background: '#fff', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+        <div style={{ maxWidth: 1180, margin: '0 auto', padding: mobile ? '56px 22px' : '88px 32px' }}>
+          <div className="rv" style={{ textAlign: 'center', marginBottom: 44 }}>
+            <div className="eyebrow" style={{ marginBottom: 12 }}>How AI YAS works</div>
+            <h2 className="display" style={{ fontSize: mobile ? 32 : 46, color: 'var(--ink)' }}>Describe → Generate → Refine.</h2>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: 20 }}>
+            {STEPS.map((s, i) => (
+              <div key={s.n} className="rv" style={{ '--d': (i * 0.08) + 's' }}>
+                <div style={{ position: 'relative', borderRadius: 18, overflow: 'hidden', aspectRatio: '4 / 3', marginBottom: 16 }}>
+                  <Photo src={s.img} alt={s.t} style={{ position: 'absolute', inset: 0 }} />
+                  <div style={{ position: 'absolute', top: 14, left: 14, width: 44, height: 44, borderRadius: '50%', background: 'rgba(14,12,20,.55)', backdropFilter: 'blur(6px)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 15 }}>{s.n}</div>
+                </div>
+                <h3 className="display" style={{ fontSize: 22, color: 'var(--ink)', marginBottom: 8 }}>{s.t}</h3>
+                <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.6 }}>{s.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CAPABILITIES STRIP ── */}
+      <section style={{ background: '#0e0c14', position: 'relative', overflow: 'hidden' }}>
+        <div className="yas-aurora" style={{ opacity: .5 }} />
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 1100, margin: '0 auto', padding: mobile ? '50px 22px' : '70px 32px', textAlign: 'center' }}>
+          <div className="eyebrow" style={{ color: '#f0a05a', marginBottom: 18 }}>Capabilities</div>
+          <h2 className="display" style={{ fontSize: mobile ? 28 : 40, color: '#fff', marginBottom: 26 }}>One AI, end to end.</h2>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
+            {CAPS.map(c => <span key={c} className="yas-cap">✦ {c}</span>)}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA BAND ── */}
+      <section style={{ maxWidth: 1180, margin: '0 auto', padding: mobile ? '56px 22px' : '88px 32px' }}>
+        <div className="rv" style={{ background: 'linear-gradient(135deg,#1d1611,#2a2018)', borderRadius: 28, padding: mobile ? '40px 26px' : '64px 56px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+          <div className="yas-aurora" style={{ opacity: .45 }} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h2 className="display" style={{ fontSize: mobile ? 32 : 52, color: '#fff', lineHeight: 1.05, marginBottom: 16 }}>Start designing with AI.</h2>
+            <p style={{ fontSize: mobile ? 16 : 19, color: 'rgba(255,255,255,.8)', maxWidth: 540, margin: '0 auto 30px', lineHeight: 1.6 }}>Let YAS sketch your concept in seconds — then have our Bahrain team measure, refine and quote it for free.</p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button type="button" className="btn-clay" onClick={() => setPage('planner')} style={{ fontSize: 16, padding: '16px 30px' }}>Open the Room Designer →</button>
+              <button type="button" onClick={() => setPage('booking')} style={{ background: 'rgba(255,255,255,.1)', color: '#fff', border: '1px solid rgba(255,255,255,.4)', borderRadius: 14, padding: '15px 28px', fontSize: 16, fontWeight: 500, cursor: 'pointer', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', minHeight: 50 }}>Book a free design visit</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {renderToolModal()}
+    </div>
+  );
+}
+
 function AIDesignerPage({ setPage, user }) {
   const mobile=useMobile();
   const STYLES=[
@@ -5798,7 +6410,7 @@ function SiteFooter({ setPage }) {
             <a href="https://wa.me/97317001700" style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:980, padding:'11px 18px', fontSize:13.5, fontWeight:600, textDecoration:'none' }}>{cms('footer.cta.whatsapp', 'WhatsApp us')}</a>
           </div>
         </div>
-        {col(cms('footer.col1.title','Here to help'),[['How it works','how-it-works'],['FAQ','faq'],['Delivery & install','contact'],['Warranty service','warranty'],['Maintenance','maintenance'],['Reviews','projects'],['Contact us','contact']])}
+        {col(cms('footer.col1.title','Here to help'),[['✨ AI YAS','ai-yas'],['How it works','how-it-works'],['FAQ','faq'],['Delivery & install','contact'],['Warranty service','warranty'],['Maintenance','maintenance'],['Reviews','projects'],['Contact us','contact']])}
         {col(cms('footer.col2.title','Ways to shop'),[['Book an appointment','booking'],['Request a brochure','contact'],['Finance & payment','booking'],['Find a showroom','showrooms'],['Recommend a friend','contact']])}
         {col(cms('footer.col3.title','About'),[['About The Closets','about'],['Why The Closets','about'],['Careers','careers'],['Offers','offers'],['Sitemap','products']])}
       </div>
@@ -11989,7 +12601,7 @@ function DesignBuilderPage({ setPage, user }) {
 export default function App() {
   return <SiteContentProvider><AppInner /></SiteContentProvider>;
 }
-const PATH_TO_PAGE = { '':'home','/':'home','/home':'home','/kitchen':'kitchen','/kitchens':'kitchen','/wardrobes':'wardrobes','/wardrobe':'wardrobes','/tv':'tv','/tv-units':'tv','/doors':'doors','/door':'doors','/office':'office','/about':'about','/contact':'contact','/services':'services','/showrooms':'showrooms','/blog':'blog','/faq':'faq','/offers':'offers','/projects':'projects','/booking':'booking','/directory':'directory','/portal':'portal','/how-it-works':'how-it-works','/guide':'how-it-works' };
+const PATH_TO_PAGE = { '':'home','/':'home','/home':'home','/kitchen':'kitchen','/kitchens':'kitchen','/wardrobes':'wardrobes','/wardrobe':'wardrobes','/tv':'tv','/tv-units':'tv','/doors':'doors','/door':'doors','/office':'office','/about':'about','/contact':'contact','/services':'services','/showrooms':'showrooms','/blog':'blog','/faq':'faq','/offers':'offers','/projects':'projects','/booking':'booking','/directory':'directory','/portal':'portal','/how-it-works':'how-it-works','/guide':'how-it-works','/ai-yas':'ai-yas','/ai':'ai-yas','/ai-designer':'ai' };
 function initialPage() {
   try {
     const sp = new URLSearchParams(window.location.search);
@@ -12062,6 +12674,7 @@ function AppInner() {
       {page==='projects' && <PortfolioPage setPage={setPage} />}
       {page==='maintenance' && <MaintenancePage />}
       {page==='warranty' && <WarrantyPage />}
+      {page==='ai-yas' && <PageBoundary key="ai-yas"><AiYasPage setPage={setPage} user={user} /></PageBoundary>}
       {page==='ai' && <PageBoundary key="ai"><AIDesignerPage setPage={setPage} user={user} /></PageBoundary>}
       {page==='wardrobes' && <PageBoundary key="wardrobes"><WardrobesPage setPage={setPage} products={products} /></PageBoundary>}
       {page==='kitchen' && <PageBoundary key="kitchen"><KitchenPage setPage={setPage} products={products} /></PageBoundary>}
