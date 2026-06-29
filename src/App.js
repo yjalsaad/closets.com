@@ -7078,13 +7078,16 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
           <button type="button" onClick={()=>setCons(cs=>[...cs,{ id:uid(), type:'Window', pos:1500, width:1000 }])} style={{ border:'1px dashed var(--line)', borderRadius:11, padding:'10px', background:'var(--sand)', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--clay-deep)' }}>+ Add constraint</button>
         </div></>);
       case 3: return (<>{sectionH('4','Wardrobe layout','Pick a configuration — then set its parameters below.')}
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr 1fr', gap:9, marginBottom:14 }}>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?14:18, marginBottom:18 }}>
           {wwLayoutsView.map(l=>{ const on=layout===l.id; return (
-            <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden' }}>
-              <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?120:140, objectFit:'cover', borderTopLeftRadius:12, borderTopRightRadius:12 }} />
-              <div style={{ padding:'9px 10px' }}>
-                <div style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{l.name}</div>
-                <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>{l.sub}</div>
+            <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:16, boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
+              <div style={{ position:'relative', width:'100%', aspectRatio:'1017 / 602', background:'var(--cream,#f7f2ec)', overflow:'hidden' }}>
+                <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height:'100%', objectFit:'cover' }} />
+                {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:999, letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
+              </div>
+              <div style={{ padding: mobile?'13px 15px':'15px 17px', borderTop:'1px solid var(--line)' }}>
+                <div style={{ fontSize: mobile?16:17, fontWeight:700, color:on?'var(--clay-deep)':'var(--ink)', lineHeight:1.22 }}>{l.name}</div>
+                <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{l.sub}</div>
               </div>
             </button>); })}
         </div>
