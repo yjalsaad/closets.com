@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, createContext, useContext, Component, Fragment, createElement } from 'react';
+import KitchenScene3D from './KitchenScene3D';
 
 // build: services-nav-redeploy 2026-06-25 r2
 const SUPA_URL = 'https://jflmbfxbhpioyniibjsj.supabase.co';
@@ -1612,6 +1613,9 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   const [rendering, setRendering] = useState(false);
   const [renderUrl, setRenderUrl] = useState(null);
   const [renderErr, setRenderErr] = useState('');
+  // ── Room Designer (Wren-style interactive material visualiser) ──
+  // Opened as a full-screen overlay from the Configure/Visualise steps (kitchen only).
+  const [roomDesignerOpen, setRoomDesignerOpen] = useState(false);
   // Wrap a design image (3D snapshot or AI render) in a branded "The Closets" template
   // (logo header + spec/date strip + footer). Falls back to the raw image on any failure.
   // opts: { footTitle, footNote, specLine, dateStr } — all optional.
@@ -2136,6 +2140,32 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
     } catch (e) {}
     setStage('visualise');
   };
+  // Map the chosen Room Designer materials into the configurator's `sel` map where a
+  // clean category match exists, so the live price + Quote update. Defensive: only writes
+  // categories that actually exist in the active product's config (single-select only).
+  const reflectRoomMaterial = (surfaceKey, material) => {
+    try {
+      if (!material || !cats || !cats[surfaceKey]) return false;
+      const opts = (cats[surfaceKey].options) || [];
+      // Match by id or by (case-insensitive) name.
+      const found = opts.find(o => o.id === material.id || (o.name && material.name && String(o.name).toLowerCase() === String(material.name).toLowerCase()));
+      if (!found) return false;
+      pick(surfaceKey, found.id, false);
+      return true;
+    } catch (e) { return false; }
+  };
+  // Build the Room Designer overlay once; shown from Configure or Visualise (kitchen only).
+  const roomDesignerOverlay = (isKitchen && roomDesignerOpen) ? (
+    <RoomDesigner
+      mobile={mobile}
+      sceneShapeFallback={layout}
+      onClose={() => setRoomDesignerOpen(false)}
+      onReflectMaterial={reflectRoomMaterial}
+      onGoToSummary={() => { setRoomDesignerOpen(false); goVisualise(); }}
+      photorealReq={{ product: prodKey, finish: finishId, getImage: () => { try { const a = plannerApi.current; return (a && a.snapshot && a.snapshot()) || quoteImg || null; } catch (e) { return quoteImg || null; } } }}
+      indicativeTotal={(() => { try { return buildLineItems().total; } catch (e) { return null; } })()}
+    />
+  ) : null;
   // ── Option A: formal printable quotation (PDF via the browser print dialog) ──
   // Builds a self-contained HTML document (letterhead, spec, branded design image,
   // itemized table, subtotal/VAT/TOTAL, footer) and opens it in a new window, then
@@ -2383,6 +2413,11 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                   <i className="ti ti-download" aria-hidden="true" /> Save image
                 </a>
               )}
+              {isKitchen && (
+                <button type="button" onClick={()=>setRoomDesignerOpen(true)} style={{ position:'absolute', bottom:12, left:12, zIndex:3, display:'inline-flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor:'pointer', background:'rgba(255,255,255,.95)', color:'var(--clay-deep)', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(0,0,0,.18)' }}>
+                  🎨 Open Room Designer
+                </button>
+              )}
             </div>
             {/* RIGHT — on-screen quotation */}
             <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
@@ -2474,6 +2509,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             <div style={{ background:'#fff', borderRadius:18, padding:'40px 50px', textAlign:'center', color:'#6e6e73', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>Creating your photorealistic render… ~15–25 seconds.</div></div>
           </div>
         )}
+        {roomDesignerOverlay}
         {/* guest quote success → account invite */}
         {quoteSent && (
           <div style={{ position:'fixed', inset:0, zIndex:10000, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
@@ -2499,6 +2535,14 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           <button type="button" aria-label="Close" onClick={()=>setPage('home')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>Close ✕</button>
         </div>
         {planSteps('config')}
+
+        {isKitchen && (
+          <div style={{ display:'flex', justifyContent:'center', marginBottom:14 }}>
+            <button type="button" onClick={()=>setRoomDesignerOpen(true)} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'9px 18px', borderRadius:999, border:'1px solid var(--clay)', cursor:'pointer', background:'var(--sand)', color:'var(--clay-deep)', fontSize:13.5, fontWeight:700 }}>
+              🎨 Open Room Designer
+            </button>
+          </div>
+        )}
 
         {(() => {
           // toolbar pill styles (literal hex / tokens only)
@@ -2880,6 +2924,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
         </div>
       )}
 
+      {roomDesignerOverlay}
       {/* guest quote success → account invite (also reachable from config-direct quote) */}
       {quoteSent && (
         <div style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
@@ -2890,6 +2935,288 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             <button type="button" className="btn-clay" onClick={()=>{ const c = quoteSent; if (openAuth) openAuth('register', c && typeof c==='object' ? c : undefined); else setPage('portal'); }} style={{ width:'100%', borderRadius:12, marginBottom:10 }}>Create my account</button>
             <button type="button" onClick={()=>{ setQuoteSent(false); setPage('home'); }} style={{ background:'none', border:'none', fontSize:13.5, color:'var(--muted)', cursor:'pointer' }}>Maybe later</button>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── ROOM DESIGNER (Wren-style interactive material visualiser) ──────────
+   Full-screen overlay. Left = the room scene (base image + mask tint layers +
+   clickable "+" hotspots, or a 3D scene). Right = a material panel grouped by
+   group_name with circular swatches. Three render approaches share one
+   `selections` state:
+     A) live mask tint over the base image (graceful no-mask fallback)
+     B) photoreal render via the existing render_photoreal edge function
+     C) interactive 3D via <KitchenScene3D/>
+   Reads design_scenes / scene_surfaces / design_materials over REST. */
+function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, onGoToSummary, photorealReq, indicativeTotal }) {
+  const [loading, setLoading] = useState(true);
+  const [loadErr, setLoadErr] = useState('');
+  const [scene, setScene] = useState(null);
+  const [surfaces, setSurfaces] = useState([]);            // scene_surfaces rows (ordered)
+  const [materials, setMaterials] = useState([]);          // design_materials rows (ordered)
+  const [selections, setSelections] = useState({});        // { [surface_key]: materialRow }
+  const [activeSurface, setActiveSurface] = useState(null);// open panel surface_key (null = closed)
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [mode, setMode] = useState('live');                // 'live' | '3d'
+  const [pulseKey, setPulseKey] = useState(null);          // hotspot pulse for no-mask feedback
+  // Photoreal render state (Approach B)
+  const [prBusy, setPrBusy] = useState(false);
+  const [prUrl, setPrUrl] = useState(null);
+  const [prErr, setPrErr] = useState('');
+
+  // ── Defensive data load ──
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      setLoading(true); setLoadErr('');
+      try {
+        const scenes = await api('design_scenes?active=is.true&deleted_at=is.null&order=sort.asc&limit=1');
+        const sc = Array.isArray(scenes) && scenes[0] ? scenes[0] : null;
+        if (!sc) { if (alive) { setLoadErr('No room scene is set up yet.'); setLoading(false); } return; }
+        const [surf, mats] = await Promise.all([
+          api('scene_surfaces?scene_id=eq.' + encodeURIComponent(sc.id) + '&deleted_at=is.null&order=sort.asc'),
+          api('design_materials?active=is.true&deleted_at=is.null&order=sort.asc'),
+        ]);
+        if (!alive) return;
+        setScene(sc);
+        setSurfaces(Array.isArray(surf) ? surf : []);
+        setMaterials(Array.isArray(mats) ? mats : []);
+        setLoading(false);
+      } catch (e) {
+        if (alive) { setLoadErr('Could not load the room designer. Please try again.'); setLoading(false); }
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  const sceneShape = (scene && scene.shape_key) || sceneShapeFallback || 'island';
+  const aspect = (scene && scene.img_w && scene.img_h) ? (scene.img_h / scene.img_w) : (602 / 1017);
+
+  // Materials for the currently-open surface, grouped by group_name (ordered).
+  const groupedForActive = useCallback(() => {
+    const list = materials.filter(m => m.category === activeSurface);
+    const groups = [];
+    const byName = new Map();
+    list.forEach(m => {
+      const g = m.group_name || 'Finishes';
+      if (!byName.has(g)) { const arr = []; byName.set(g, arr); groups.push([g, arr]); }
+      byName.get(g).push(m);
+    });
+    return { count: list.length, groups };
+  }, [materials, activeSurface]);
+
+  const openPanelFor = (key) => { setActiveSurface(key); setPanelOpen(true); };
+  const surfaceLabel = (key) => { const s = surfaces.find(x => x.surface_key === key); return (s && s.label) || (key ? key.charAt(0).toUpperCase() + key.slice(1) : ''); };
+
+  const chooseMaterial = (key, m) => {
+    setSelections(s => ({ ...s, [key]: m }));
+    // No-mask responsiveness: pulse the hotspot briefly.
+    setPulseKey(key);
+    setTimeout(() => setPulseKey(k => (k === key ? null : k)), 650);
+    // Defensive pricing reflection into the configurator.
+    try { if (onReflectMaterial) onReflectMaterial(key, m); } catch (e) {}
+  };
+
+  // Map selections → KitchenScene3D `materials` prop shape.
+  const selectionsAsMaterials = (() => {
+    const out = {};
+    Object.keys(selections).forEach(k => { const m = selections[k]; if (m) out[k] = { hex: m.hex || undefined, texture_url: m.texture_url || undefined }; });
+    return out;
+  })();
+
+  const anySurfaceHasMask = surfaces.some(s => s.mask_url);
+
+  // ── Approach B: photoreal render reusing the existing edge function shape ──
+  const renderPhotoreal = async () => {
+    if (!photorealReq || !photorealReq.getImage) { setPrErr('Render isn’t available here.'); return; }
+    const img = photorealReq.getImage();
+    if (!img) { setPrErr('Could not capture the design — open the 3D Configure view once, then try again.'); return; }
+    setPrBusy(true); setPrErr(''); setPrUrl(null);
+    const surfacesPayload = surfaces
+      .map(s => { const m = selections[s.surface_key]; return m ? { key: s.surface_key, name: m.name, hex: m.hex } : null; })
+      .filter(Boolean);
+    try {
+      const r = await fetch(SUPA_URL + '/functions/v1/render_photoreal', {
+        method: 'POST', headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_base64: img, product: photorealReq.product, finish: photorealReq.finish, surfaces: surfacesPayload }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (d && d.ok && d.url) setPrUrl(d.url);
+      else setPrErr(d && d.error === 'Render not configured' ? 'Photorealistic rendering isn’t switched on yet.' : 'Render failed — please try again.');
+    } catch (e) { setPrErr('Network error — please try again.'); }
+    setPrBusy(false);
+  };
+
+  const seg = (active) => ({ padding:'7px 16px', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', background: active?'var(--clay)':'transparent', color: active?'#fff':'var(--ink-soft)', borderRadius:8 });
+
+  // ── Scene stage (left) ──
+  const sceneStage = (
+    <div style={{ position:'relative', width:'100%', maxWidth:880, margin:'0 auto' }}>
+      <div style={{ position:'relative', width:'100%', paddingTop:(aspect*100)+'%', borderRadius:16, overflow:'hidden', background:'#e9e4dc', boxShadow:'0 6px 30px rgba(0,0,0,.14)' }}>
+        {mode === '3d' ? (
+          <div style={{ position:'absolute', inset:0 }}>
+            <KitchenScene3D materials={selectionsAsMaterials} shape={sceneShape} activeSurface={activeSurface} onPickSurface={(key)=>openPanelFor(key)} height={mobile ? 320 : 520} />
+          </div>
+        ) : (
+          <>
+            {/* base image */}
+            {scene && scene.base_image_url && (
+              <img src={scene.base_image_url} alt="Room" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} onError={(e)=>{ e.target.style.display='none'; }} />
+            )}
+            {/* Approach A: mask tint layers (one per surface that has a mask + selection) */}
+            {surfaces.map(s => {
+              const m = selections[s.surface_key];
+              if (!m || !s.mask_url) return null;
+              return (
+                <img key={'mask-'+s.id} src={s.mask_url} alt="" aria-hidden="true"
+                  style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', backgroundColor: m.hex || 'transparent', mixBlendMode: s.blend_mode || 'multiply', pointerEvents:'none' }} />
+              );
+            })}
+            {/* "+" hotspots */}
+            {surfaces.map(s => {
+              const x = Number(s.hotspot_x_pct) || 50, y = Number(s.hotspot_y_pct) || 50;
+              const chosen = selections[s.surface_key];
+              const pulsing = pulseKey === s.surface_key;
+              return (
+                <button key={'hs-'+s.id} type="button" onClick={()=>openPanelFor(s.surface_key)} title={s.label || s.surface_key}
+                  style={{ position:'absolute', left:x+'%', top:y+'%', transform:'translate(-50%,-50%)', width:34, height:34, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(255,255,255,.96)', color:'var(--clay)', fontSize:20, fontWeight:800, lineHeight:'34px', textAlign:'center', boxShadow:'0 2px 10px rgba(0,0,0,.28)', outline:(activeSurface===s.surface_key)?'3px solid var(--clay)':'2px solid rgba(255,255,255,.7)', transition:'transform .2s ease', ...(pulsing ? { transform:'translate(-50%,-50%) scale(1.35)' } : {}) }}>
+                  {chosen ? '✓' : '+'}
+                </button>
+              );
+            })}
+          </>
+        )}
+      </div>
+      {/* No-mask fallback: "Current finishes" chip strip */}
+      {mode === 'live' && !anySurfaceHasMask && (
+        <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginTop:12, justifyContent:'center' }}>
+          {surfaces.map(s => {
+            const m = selections[s.surface_key];
+            return (
+              <button key={'chip-'+s.id} type="button" onClick={()=>openPanelFor(s.surface_key)}
+                style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'6px 12px 6px 6px', borderRadius:999, border:'1px solid var(--line)', background:'#fff', cursor:'pointer', fontSize:12.5 }}>
+                <span style={{ width:22, height:22, borderRadius:'50%', flexShrink:0, border:'1px solid rgba(0,0,0,.1)', background: m ? (m.hex || 'var(--sand)') : 'var(--sand)', backgroundImage: m && m.swatch_url ? `url(${m.swatch_url})` : undefined, backgroundSize:'cover' }} />
+                <span style={{ fontWeight:700, color:'var(--ink)' }}>{surfaceLabel(s.surface_key)}</span>
+                <span style={{ color:'var(--muted)' }}>{m ? m.name : 'Choose'}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {!anySurfaceHasMask && mode === 'live' && (
+        <div style={{ textAlign:'center', fontSize:11.5, color:'var(--muted)', marginTop:8 }}>Tap a “+” marker or chip to change a finish. Switch to 3D for a live preview.</div>
+      )}
+    </div>
+  );
+
+  // ── Material panel (right / bottom-sheet) ──
+  const { count, groups } = groupedForActive();
+  const materialPanel = panelOpen ? (
+    <div style={ mobile
+      ? { position:'fixed', left:0, right:0, bottom:0, zIndex:5, maxHeight:'72vh', background:'var(--cream)', borderTopLeftRadius:20, borderTopRightRadius:20, boxShadow:'0 -8px 30px rgba(0,0,0,.25)', display:'flex', flexDirection:'column' }
+      : { width:340, flexShrink:0, background:'var(--cream)', borderRadius:18, border:'1px solid var(--line)', display:'flex', flexDirection:'column', maxHeight:'78vh' } }>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 18px 12px', borderBottom:'1px solid var(--line)' }}>
+        <div style={{ fontSize:16, fontWeight:800, color:'var(--ink)' }}>{surfaceLabel(activeSurface)} <span style={{ color:'var(--muted)', fontWeight:600, fontSize:13 }}>({count} item{count===1?'':'s'})</span></div>
+        <button type="button" aria-label="Close panel" onClick={()=>{ setPanelOpen(false); setActiveSurface(null); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, color:'var(--muted)', lineHeight:1 }}>✕</button>
+      </div>
+      <div style={{ overflowY:'auto', padding:'8px 14px 18px' }}>
+        {count === 0 && <div style={{ padding:'24px 6px', color:'var(--muted)', fontSize:13.5, textAlign:'center' }}>No finishes available for this surface yet.</div>}
+        {groups.map(([gname, items]) => (
+          <div key={gname} style={{ marginTop:10 }}>
+            <div style={{ fontSize:11, letterSpacing:'.12em', textTransform:'uppercase', color:'var(--muted)', fontWeight:700, margin:'8px 4px 10px' }}>{gname}</div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(72px,1fr))', gap:12 }}>
+              {items.map(m => {
+                const on = selections[activeSurface] && selections[activeSurface].id === m.id;
+                return (
+                  <button key={m.id} type="button" onClick={()=>chooseMaterial(activeSurface, m)} title={m.name}
+                    style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6, background:'none', border:'none', cursor:'pointer', padding:0 }}>
+                    <span style={{ position:'relative', width:54, height:54, borderRadius:'50%', flexShrink:0, background: m.hex || 'var(--sand)', backgroundImage: m.swatch_url ? `url(${m.swatch_url})` : undefined, backgroundSize:'cover', backgroundPosition:'center', boxShadow: on ? '0 0 0 3px var(--cream), 0 0 0 5px var(--clay)' : 'inset 0 0 0 1px rgba(0,0,0,.12)' }}>
+                      {on && <span style={{ position:'absolute', right:-2, bottom:-2, width:20, height:20, borderRadius:'50%', background:'var(--clay)', color:'#fff', fontSize:12, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', border:'2px solid var(--cream)' }}>✓</span>}
+                    </span>
+                    <span style={{ fontSize:11, lineHeight:1.25, textAlign:'center', color: on ? 'var(--ink)' : 'var(--ink-soft)', fontWeight: on ? 700 : 500 }}>{m.name}</span>
+                    {m.price_per_m2 ? <span style={{ fontSize:10, color:'var(--muted)' }}>{fmt(m.price_per_m2)}/m²</span> : null}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  ) : null;
+
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:11000, background:'var(--cream)', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+      {/* Top bar */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, padding:'12px 16px', borderBottom:'1px solid var(--line)', background:'#fff', flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <button type="button" aria-label="Close room designer" onClick={onClose} style={{ background:'none', border:'1px solid var(--line)', borderRadius:10, padding:'7px 12px', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--ink-soft)' }}>‹ Close</button>
+          <span style={{ fontSize:15, fontWeight:800, color:'var(--ink)' }}>🎨 Room Designer</span>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          {/* Live / 3D toggle (Approach C) */}
+          <div style={{ display:'flex', gap:2, background:'var(--sand)', border:'1px solid var(--line)', borderRadius:10, padding:3 }}>
+            <button type="button" onClick={()=>setMode('live')} style={seg(mode==='live')}>Live</button>
+            <button type="button" onClick={()=>setMode('3d')} style={seg(mode==='3d')}>3D</button>
+          </div>
+          <button type="button" onClick={onGoToSummary} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:10, border:'none', cursor:'pointer', background:'#1D9E75', color:'#fff', fontSize:13.5, fontWeight:700 }}>Go to Kitchen Summary →</button>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div style={{ flex:1, overflowY:'auto', padding: mobile ? '14px 12px 80px' : '20px 24px' }}>
+        {loading && <div style={{ textAlign:'center', padding:'80px 20px', color:'var(--muted)' }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:24 }} /><div style={{ marginTop:10 }}>Loading the room designer…</div></div>}
+        {!loading && loadErr && (
+          <div style={{ textAlign:'center', padding:'70px 20px', color:'var(--muted)' }}>
+            <div style={{ fontSize:15, fontWeight:700, color:'var(--ink)', marginBottom:6 }}>Room designer unavailable</div>
+            <div style={{ fontSize:13.5, marginBottom:16 }}>{loadErr}</div>
+            <button type="button" className="btn-secondary" onClick={onClose} style={{ borderRadius:12 }}>Close</button>
+          </div>
+        )}
+        {!loading && !loadErr && (
+          <div style={{ display:'flex', gap:20, alignItems:'flex-start', flexDirection: mobile ? 'column' : 'row', maxWidth:1320, margin:'0 auto' }}>
+            <div style={{ flex:1, minWidth:0, width:'100%' }}>
+              {sceneStage}
+              {/* Indicative price + photoreal (Approach B) */}
+              <div style={{ display:'flex', flexWrap:'wrap', gap:12, alignItems:'center', justifyContent:'center', marginTop:18 }}>
+                {indicativeTotal != null && (
+                  <div style={{ fontSize:13, color:'var(--ink-soft)' }}>Indicative total <strong style={{ color:'var(--clay)', fontSize:16 }}>{fmt(indicativeTotal)}</strong></div>
+                )}
+                <button type="button" onClick={renderPhotoreal} disabled={prBusy} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:12, border:'none', cursor: prBusy?'wait':'pointer', background:'linear-gradient(135deg,#F2731C,#C2410C)', color:'#fff', fontSize:13.5, fontWeight:700, boxShadow:'0 4px 14px rgba(242,115,28,.35)' }}>
+                  <i className={prBusy ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" /> {prBusy ? 'Rendering…' : 'Render photoreal'}
+                </button>
+              </div>
+              {prErr && <div role="alert" style={{ marginTop:12, maxWidth:520, marginLeft:'auto', marginRight:'auto', background:'#fdecea', border:'1px solid #f5c6c0', color:'#b3261e', borderRadius:12, padding:'10px 14px', fontSize:13, textAlign:'center' }}>{prErr}</div>}
+              {prUrl && (
+                <div style={{ marginTop:14, textAlign:'center' }}>
+                  <img src={prUrl} alt="Photoreal render" style={{ maxWidth:'100%', borderRadius:14, border:'1px solid var(--line)' }} />
+                  <div style={{ marginTop:8 }}><a href={prUrl} download="closets-room.jpg" style={{ fontSize:12.5, color:'var(--clay-deep)', fontWeight:700, textDecoration:'none' }}>↓ Save render</a></div>
+                  <div style={{ fontSize:10.5, color:'var(--muted)', marginTop:6 }}>Indicative AI impression. Exact finishes confirmed at your free design consultation.</div>
+                </div>
+              )}
+            </div>
+            {/* Right panel (desktop). On mobile it renders as a fixed bottom sheet. */}
+            {!mobile && (
+              <div style={{ flexShrink:0 }}>
+                {materialPanel || (
+                  <div style={{ width:340, background:'#fff', borderRadius:18, border:'1px solid var(--line)', padding:'22px 20px', color:'var(--ink-soft)', fontSize:13.5 }}>
+                    <div style={{ fontSize:15, fontWeight:800, color:'var(--ink)', marginBottom:8 }}>Style your kitchen</div>
+                    Tap a “+” marker on the room (or a surface in 3D) to choose finishes for cabinets, worktops, walls and more.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      {/* Mobile bottom-sheet panel */}
+      {mobile && materialPanel}
+      {/* Photoreal pending overlay */}
+      {prBusy && (
+        <div style={{ position:'fixed', inset:0, zIndex:11050, background:'rgba(15,18,22,.72)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
+          <div style={{ background:'#fff', borderRadius:18, padding:'36px 46px', textAlign:'center', color:'#6e6e73', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>Creating your photorealistic render… ~15–25 seconds.</div></div>
         </div>
       )}
     </div>
