@@ -2965,6 +2965,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
   const [panelOpen, setPanelOpen] = useState(false);
   const [mode, setMode] = useState('live');                // 'live' | '3d'
   const [pulseKey, setPulseKey] = useState(null);          // hotspot pulse for no-mask feedback
+  const [hoverKey, setHoverKey] = useState(null);          // hotspot hover label
   // Photoreal render state (Approach B)
   const [prBusy, setPrBusy] = useState(false);
   const [prUrl, setPrUrl] = useState(null);
@@ -3044,24 +3045,92 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
 
   const anySurfaceHasMask = surfaces.some(s => s.mask_url);
 
+  // Resolve a possibly-relative URL (e.g. "/layouts/…") to an absolute one.
+  const absUrl = (u) => {
+    if (!u) return u;
+    if (/^https?:\/\//i.test(u) || u.startsWith('data:')) return u;
+    try { return new URL(u, window.location.origin).href; } catch (_) { return u; }
+  };
+
+  // Load an image with CORS enabled; resolves to the HTMLImageElement.
+  const loadImg = (src) => new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('img load failed: ' + src));
+    img.src = absUrl(src);
+  });
+
+  // ── Self-capture the Live preview onto an offscreen canvas (base + tinted masks). ──
+  // Returns a JPEG data-URI, or null if everything (incl. the base fallback) fails.
+  const captureLivePreview = useCallback(async () => {
+    if (!scene || !scene.base_image_url) return null;
+    try {
+      const base = await loadImg(scene.base_image_url);
+      const w = Number(scene.img_w) || base.naturalWidth || base.width || 1017;
+      const h = Number(scene.img_h) || base.naturalHeight || base.height || 602;
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(base, 0, 0, w, h);
+
+      // Tint each masked surface that has a selected material.
+      for (const s of surfaces) {
+        const m = selections[s.surface_key];
+        if (!m || !s.mask_url) continue;
+        let mask;
+        try { mask = await loadImg(s.mask_url); } catch (_) { continue; }
+        // 1) Build the tinted shape on a temp canvas via source-in.
+        const tmp = document.createElement('canvas');
+        tmp.width = w; tmp.height = h;
+        const tctx = tmp.getContext('2d');
+        tctx.drawImage(mask, 0, 0, w, h);
+        tctx.globalCompositeOperation = 'source-in';
+        tctx.fillStyle = m.hex || '#888888';
+        tctx.fillRect(0, 0, w, h);
+        // 2) Composite the tinted shape onto the main canvas.
+        ctx.save();
+        ctx.globalCompositeOperation = (s.blend_mode === 'multiply') ? 'multiply' : 'source-over';
+        ctx.globalAlpha = 0.9;
+        ctx.drawImage(tmp, 0, 0, w, h);
+        ctx.restore();
+      }
+      return canvas.toDataURL('image/jpeg', 0.9);
+    } catch (e) {
+      // CORS-tainted canvas or any failure → fall back to the plain base image as a data URL.
+      try {
+        const r = await fetch(absUrl(scene.base_image_url));
+        const blob = await r.blob();
+        return await new Promise((resolve) => {
+          const fr = new FileReader();
+          fr.onload = () => resolve(fr.result);
+          fr.onerror = () => resolve(null);
+          fr.readAsDataURL(blob);
+        });
+      } catch (_) { return null; }
+    }
+  }, [scene, surfaces, selections]);
+
   // ── Approach B: photoreal render reusing the existing edge function shape ──
   const renderPhotoreal = async () => {
-    if (!photorealReq || !photorealReq.getImage) { setPrErr('Render isn’t available here.'); return; }
-    const img = photorealReq.getImage();
-    if (!img) { setPrErr('Could not capture the design — open the 3D Configure view once, then try again.'); return; }
     setPrBusy(true); setPrErr(''); setPrUrl(null);
+    // Prefer an external planner snapshot (backward compat); otherwise self-capture.
+    let img = null;
+    try { img = (photorealReq && photorealReq.getImage && photorealReq.getImage()) || null; } catch (_) { img = null; }
+    if (!img) img = await captureLivePreview();
+    if (!img) { setPrErr('We couldn’t prepare your design for rendering. Please pick a finish or two and try again.'); setPrBusy(false); return; }
     const surfacesPayload = surfaces
       .map(s => { const m = selections[s.surface_key]; return m ? { key: s.surface_key, name: m.name, hex: m.hex } : null; })
       .filter(Boolean);
     try {
       const r = await fetch(SUPA_URL + '/functions/v1/render_photoreal', {
         method: 'POST', headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image_base64: img, product: photorealReq.product, finish: photorealReq.finish, surfaces: surfacesPayload }),
+        body: JSON.stringify({ image_base64: img, product: (photorealReq && photorealReq.product) || 'kitchen', finish: photorealReq && photorealReq.finish, surfaces: surfacesPayload }),
       });
       const d = await r.json().catch(() => ({}));
       if (d && d.ok && d.url) setPrUrl(d.url);
-      else setPrErr(d && d.error === 'Render not configured' ? 'Photorealistic rendering isn’t switched on yet.' : 'Render failed — please try again.');
-    } catch (e) { setPrErr('Network error — please try again.'); }
+      else setPrErr(d && d.error === 'Render not configured' ? 'Photorealistic rendering isn’t switched on yet — your live preview above still reflects every finish.' : 'Render didn’t come through this time. Please try again in a moment.');
+    } catch (e) { setPrErr('Network hiccup — please try again in a moment.'); }
     setPrBusy(false);
   };
 
@@ -3079,58 +3148,90 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
           <>
             {/* base image */}
             {scene && scene.base_image_url && (
-              <img src={scene.base_image_url} alt="Room" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} onError={(e)=>{ e.target.style.display='none'; }} />
+              <img src={absUrl(scene.base_image_url)} alt="Room" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} onError={(e)=>{ e.target.style.display='none'; }} />
             )}
             {/* Approach A: mask tint layers (one per surface that has a mask + selection) */}
             {surfaces.map(s => {
               const m = selections[s.surface_key];
               if (!m || !s.mask_url) return null;
-              const maskUrl = `url(${s.mask_url})`;
+              const maskUrl = `url(${absUrl(s.mask_url)})`;
               return (
                 <div key={'mask-'+s.id} aria-hidden="true"
                   style={{ position:'absolute', inset:0, pointerEvents:'none',
                     backgroundColor: m.hex || 'transparent',
-                    backgroundImage: m.texture_url ? `url(${m.texture_url})` : undefined,
+                    backgroundImage: m.texture_url ? `url(${absUrl(m.texture_url)})` : undefined,
                     backgroundSize: m.texture_url ? 'cover' : undefined,
                     mixBlendMode: s.blend_mode || 'multiply',
+                    transition:'background-color .45s ease, opacity .45s ease',
                     WebkitMaskImage: maskUrl, maskImage: maskUrl,
                     WebkitMaskSize: '100% 100%', maskSize: '100% 100%',
                     WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat' }} />
               );
             })}
-            {/* "+" hotspots */}
+            {/* Refined hotspots: white disc + clay glyph, active pulse + hover label */}
             {surfaces.map(s => {
               const x = Number(s.hotspot_x_pct) || 50, y = Number(s.hotspot_y_pct) || 50;
               const chosen = selections[s.surface_key];
+              const isActive = activeSurface === s.surface_key;
               const pulsing = pulseKey === s.surface_key;
+              const showLabel = hoverKey === s.surface_key || isActive;
               return (
-                <button key={'hs-'+s.id} type="button" onClick={()=>openPanelFor(s.surface_key)} title={s.label || s.surface_key}
-                  style={{ position:'absolute', left:x+'%', top:y+'%', transform:'translate(-50%,-50%)', width:34, height:34, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(255,255,255,.96)', color:'var(--clay)', fontSize:20, fontWeight:800, lineHeight:'34px', textAlign:'center', boxShadow:'0 2px 10px rgba(0,0,0,.28)', outline:(activeSurface===s.surface_key)?'3px solid var(--clay)':'2px solid rgba(255,255,255,.7)', transition:'transform .2s ease', ...(pulsing ? { transform:'translate(-50%,-50%) scale(1.35)' } : {}) }}>
-                  {chosen ? '✓' : '+'}
-                </button>
+                <div key={'hs-'+s.id} style={{ position:'absolute', left:x+'%', top:y+'%', transform:'translate(-50%,-50%)', zIndex: isActive ? 3 : 2 }}>
+                  {/* active pulse ring */}
+                  {(isActive || pulsing) && (
+                    <span aria-hidden="true" style={{ position:'absolute', left:'50%', top:'50%', width:36, height:36, marginLeft:-18, marginTop:-18, borderRadius:'50%', border:'2px solid var(--clay)', animation:'rdPulse 1.6s ease-out infinite', pointerEvents:'none' }} />
+                  )}
+                  <button type="button"
+                    onClick={()=>openPanelFor(s.surface_key)}
+                    onMouseEnter={()=>setHoverKey(s.surface_key)} onMouseLeave={()=>setHoverKey(k=>k===s.surface_key?null:k)}
+                    aria-label={(s.label || s.surface_key) + (chosen ? (' — ' + chosen.name) : '')} title={s.label || s.surface_key}
+                    style={{ position:'relative', width:32, height:32, borderRadius:'50%', border:'none', cursor:'pointer',
+                      background:'#fff', color: chosen ? '#1D9E75' : 'var(--clay)', fontSize:17, fontWeight:800, lineHeight:'32px', textAlign:'center',
+                      boxShadow: isActive ? '0 4px 16px rgba(0,0,0,.30)' : '0 2px 9px rgba(0,0,0,.24)',
+                      outline: isActive ? '3px solid var(--clay)' : '2px solid rgba(255,255,255,.85)', outlineOffset:0,
+                      transform: pulsing ? 'scale(1.28)' : (isActive ? 'scale(1.08)' : 'scale(1)'),
+                      transition:'transform .22s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease' }}>
+                    {chosen ? '✓' : '+'}
+                  </button>
+                  {/* hover / active label with a tiny swatch */}
+                  {showLabel && (
+                    <div aria-hidden="true" style={{ position:'absolute', left:'50%', top:-12, transform:'translate(-50%,-100%)', whiteSpace:'nowrap', background:'rgba(28,24,20,.92)', color:'#fff', fontSize:11.5, fontWeight:600, padding:'5px 9px', borderRadius:8, boxShadow:'0 4px 14px rgba(0,0,0,.28)', display:'flex', alignItems:'center', gap:6, pointerEvents:'none' }}>
+                      <span style={{ width:11, height:11, borderRadius:'50%', flexShrink:0, background: chosen ? (chosen.hex || 'var(--sand)') : 'rgba(255,255,255,.35)', boxShadow:'inset 0 0 0 1px rgba(255,255,255,.4)' }} />
+                      <span>{s.label || s.surface_key}{chosen ? ' · ' + chosen.name : ''}</span>
+                    </div>
+                  )}
+                </div>
               );
             })}
           </>
         )}
       </div>
-      {/* No-mask fallback: "Current finishes" chip strip */}
-      {mode === 'live' && !anySurfaceHasMask && (
-        <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginTop:12, justifyContent:'center' }}>
-          {surfaces.map(s => {
-            const m = selections[s.surface_key];
-            return (
-              <button key={'chip-'+s.id} type="button" onClick={()=>openPanelFor(s.surface_key)}
-                style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'6px 12px 6px 6px', borderRadius:999, border:'1px solid var(--line)', background:'#fff', cursor:'pointer', fontSize:12.5 }}>
-                <span style={{ width:22, height:22, borderRadius:'50%', flexShrink:0, border:'1px solid rgba(0,0,0,.1)', background: m ? (m.hex || 'var(--sand)') : 'var(--sand)', backgroundImage: m && m.swatch_url ? `url(${m.swatch_url})` : undefined, backgroundSize:'cover' }} />
-                <span style={{ fontWeight:700, color:'var(--ink)' }}>{surfaceLabel(s.surface_key)}</span>
-                <span style={{ color:'var(--muted)' }}>{m ? m.name : 'Choose'}</span>
-              </button>
-            );
-          })}
+      {/* "Your finishes" summary strip — one chip per surface, click to open its panel */}
+      {surfaces.length > 0 && (
+        <div style={{ marginTop:16 }}>
+          <div style={{ fontSize:10.5, letterSpacing:'.13em', textTransform:'uppercase', color:'var(--muted)', fontWeight:700, textAlign:'center', marginBottom:9 }}>Your finishes</div>
+          <div style={{ display:'flex', gap:8, flexWrap:'wrap', justifyContent:'center' }}>
+            {surfaces.map(s => {
+              const m = selections[s.surface_key];
+              const on = activeSurface === s.surface_key;
+              return (
+                <button key={'chip-'+s.id} type="button" onClick={()=>openPanelFor(s.surface_key)} title={surfaceLabel(s.surface_key)}
+                  style={{ display:'inline-flex', alignItems:'center', gap:9, padding:'6px 14px 6px 6px', borderRadius:999,
+                    border: on ? '1.5px solid var(--clay)' : '1px solid var(--line)',
+                    background: on ? 'rgba(242,115,28,.06)' : '#fff', cursor:'pointer', fontSize:12.5,
+                    boxShadow: on ? '0 2px 8px rgba(242,115,28,.14)' : '0 1px 3px rgba(0,0,0,.05)', transition:'all .2s ease' }}>
+                  <span style={{ width:24, height:24, borderRadius:'50%', flexShrink:0, boxShadow:'inset 0 0 0 1px rgba(0,0,0,.12)',
+                    background: m ? (m.hex || 'var(--sand)') : 'var(--sand)', backgroundImage: m && m.swatch_url ? `url(${absUrl(m.swatch_url)})` : undefined, backgroundSize:'cover', backgroundPosition:'center', transition:'background-color .35s ease' }} />
+                  <span style={{ fontWeight:700, color:'var(--ink)' }}>{surfaceLabel(s.surface_key)}</span>
+                  <span style={{ color: m ? 'var(--clay-deep)' : 'var(--muted)', fontWeight: m ? 600 : 400 }}>{m ? m.name : 'Choose'}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
       {!anySurfaceHasMask && mode === 'live' && (
-        <div style={{ textAlign:'center', fontSize:11.5, color:'var(--muted)', marginTop:8 }}>Tap a “+” marker or chip to change a finish. Switch to 3D for a live preview.</div>
+        <div style={{ textAlign:'center', fontSize:11.5, color:'var(--muted)', marginTop:9 }}>Tap a marker or chip to change a finish. Switch to 3D for a live preview.</div>
       )}
     </div>
   );
@@ -3139,25 +3240,31 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
   const { count, groups } = groupedForActive();
   const materialPanel = panelOpen ? (
     <div style={ mobile
-      ? { position:'fixed', left:0, right:0, bottom:0, zIndex:5, maxHeight:'72vh', background:'var(--cream)', borderTopLeftRadius:20, borderTopRightRadius:20, boxShadow:'0 -8px 30px rgba(0,0,0,.25)', display:'flex', flexDirection:'column' }
-      : { width:340, flexShrink:0, background:'var(--cream)', borderRadius:18, border:'1px solid var(--line)', display:'flex', flexDirection:'column', maxHeight:'78vh' } }>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 18px 12px', borderBottom:'1px solid var(--line)' }}>
-        <div style={{ fontSize:16, fontWeight:800, color:'var(--ink)' }}>{surfaceLabel(activeSurface)} <span style={{ color:'var(--muted)', fontWeight:600, fontSize:13 }}>({count} item{count===1?'':'s'})</span></div>
-        <button type="button" aria-label="Close panel" onClick={()=>{ setPanelOpen(false); setActiveSurface(null); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, color:'var(--muted)', lineHeight:1 }}>✕</button>
+      ? { position:'fixed', left:0, right:0, bottom:0, zIndex:5, maxHeight:'74vh', background:'var(--cream)', borderTopLeftRadius:22, borderTopRightRadius:22, boxShadow:'0 -10px 38px rgba(0,0,0,.26)', display:'flex', flexDirection:'column', animation:'rdSheetUp .32s cubic-bezier(.22,1,.36,1)' }
+      : { width:344, flexShrink:0, background:'var(--cream)', borderRadius:20, border:'1px solid var(--line)', display:'flex', flexDirection:'column', maxHeight:'78vh', boxShadow:'0 10px 34px rgba(0,0,0,.10)', animation:'rdPanelIn .3s ease' } }>
+      {mobile && <div aria-hidden="true" style={{ width:38, height:4, borderRadius:99, background:'var(--line)', margin:'9px auto 2px' }} />}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding: mobile ? '8px 18px 12px' : '17px 18px 13px', borderBottom:'1px solid var(--line)' }}>
+        <div>
+          <div style={{ fontSize:10.5, letterSpacing:'.13em', textTransform:'uppercase', color:'var(--muted)', fontWeight:700, marginBottom:2 }}>Choose finish</div>
+          <div style={{ fontSize:17, fontWeight:800, color:'var(--ink)', letterSpacing:'-.01em' }}>{surfaceLabel(activeSurface)} <span style={{ color:'var(--muted)', fontWeight:600, fontSize:13 }}>· {count} option{count===1?'':'s'}</span></div>
+        </div>
+        <button type="button" aria-label="Close panel" onClick={()=>{ setPanelOpen(false); setActiveSurface(null); }} style={{ width:32, height:32, flexShrink:0, borderRadius:'50%', background:'#fff', border:'1px solid var(--line)', cursor:'pointer', fontSize:15, color:'var(--ink-soft)', lineHeight:1, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
       </div>
-      <div style={{ overflowY:'auto', padding:'8px 14px 18px' }}>
-        {count === 0 && <div style={{ padding:'24px 6px', color:'var(--muted)', fontSize:13.5, textAlign:'center' }}>No finishes available for this surface yet.</div>}
+      <div style={{ overflowY:'auto', padding:'10px 16px 20px' }}>
+        {count === 0 && <div style={{ padding:'30px 6px', color:'var(--muted)', fontSize:13.5, textAlign:'center' }}>No finishes available for this surface yet.</div>}
         {groups.map(([gname, items]) => (
-          <div key={gname} style={{ marginTop:10 }}>
-            <div style={{ fontSize:11, letterSpacing:'.12em', textTransform:'uppercase', color:'var(--muted)', fontWeight:700, margin:'8px 4px 10px' }}>{gname}</div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(72px,1fr))', gap:12 }}>
+          <div key={gname} style={{ marginTop:12 }}>
+            <div style={{ fontSize:11, letterSpacing:'.13em', textTransform:'uppercase', color:'var(--clay-deep)', fontWeight:800, margin:'6px 4px 12px' }}>{gname}</div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(76px,1fr))', gap:14 }}>
               {items.map(m => {
                 const on = selections[activeSurface] && selections[activeSurface].id === m.id;
                 return (
                   <button key={m.id} type="button" onClick={()=>chooseMaterial(activeSurface, m)} title={m.name}
-                    style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6, background:'none', border:'none', cursor:'pointer', padding:0 }}>
-                    <span style={{ position:'relative', width:54, height:54, borderRadius:'50%', flexShrink:0, background: m.hex || 'var(--sand)', backgroundImage: m.swatch_url ? `url(${m.swatch_url})` : undefined, backgroundSize:'cover', backgroundPosition:'center', boxShadow: on ? '0 0 0 3px var(--cream), 0 0 0 5px var(--clay)' : 'inset 0 0 0 1px rgba(0,0,0,.12)' }}>
-                      {on && <span style={{ position:'absolute', right:-2, bottom:-2, width:20, height:20, borderRadius:'50%', background:'var(--clay)', color:'#fff', fontSize:12, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', border:'2px solid var(--cream)' }}>✓</span>}
+                    style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:7, background:'none', border:'none', cursor:'pointer', padding:0 }}>
+                    <span style={{ position:'relative', width:56, height:56, borderRadius:'50%', flexShrink:0, background: m.hex || 'var(--sand)', backgroundImage: m.swatch_url ? `url(${absUrl(m.swatch_url)})` : undefined, backgroundSize:'cover', backgroundPosition:'center',
+                      boxShadow: on ? '0 0 0 3px var(--cream), 0 0 0 5px var(--clay), 0 3px 10px rgba(242,115,28,.3)' : 'inset 0 0 0 1px rgba(0,0,0,.12)',
+                      transform: on ? 'scale(1.06)' : 'scale(1)', transition:'transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease' }}>
+                      {on && <span style={{ position:'absolute', right:-3, bottom:-3, width:21, height:21, borderRadius:'50%', background:'var(--clay)', color:'#fff', fontSize:12, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', border:'2px solid var(--cream)' }}>✓</span>}
                     </span>
                     <span style={{ fontSize:11, lineHeight:1.25, textAlign:'center', color: on ? 'var(--ink)' : 'var(--ink-soft)', fontWeight: on ? 700 : 500 }}>{m.name}</span>
                     {m.price_per_m2 ? <span style={{ fontSize:10, color:'var(--muted)' }}>{fmt(m.price_per_m2)}/m²</span> : null}
@@ -3173,6 +3280,13 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
 
   return (
     <div style={{ position:'fixed', inset:0, zIndex:11000, background:'var(--cream)', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+      <style>{`
+        @keyframes rdPulse { 0% { transform:scale(.7); opacity:.85; } 70% { opacity:0; } 100% { transform:scale(1.9); opacity:0; } }
+        @keyframes rdSheetUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+        @keyframes rdPanelIn { from { opacity:0; transform:translateX(10px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes rdSpin { to { transform:rotate(360deg); } }
+        @keyframes rdFade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+      `}</style>
       {/* Top bar */}
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, padding:'12px 16px', borderBottom:'1px solid var(--line)', background:'#fff', flexShrink:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
@@ -3219,12 +3333,18 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
                   <i className={prBusy ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" /> {prBusy ? 'Rendering…' : 'Render photoreal'}
                 </button>
               </div>
-              {prErr && <div role="alert" style={{ marginTop:12, maxWidth:520, marginLeft:'auto', marginRight:'auto', background:'#fdecea', border:'1px solid #f5c6c0', color:'#b3261e', borderRadius:12, padding:'10px 14px', fontSize:13, textAlign:'center' }}>{prErr}</div>}
+              {prErr && <div role="alert" style={{ marginTop:12, maxWidth:540, marginLeft:'auto', marginRight:'auto', background:'#fff7f3', border:'1px solid #f3d3c2', color:'var(--clay-deep)', borderRadius:12, padding:'11px 16px', fontSize:13, textAlign:'center', animation:'rdFade .25s ease' }}>{prErr}</div>}
               {prUrl && (
-                <div style={{ marginTop:14, textAlign:'center' }}>
-                  <img src={prUrl} alt="Photoreal render" style={{ maxWidth:'100%', borderRadius:14, border:'1px solid var(--line)' }} />
-                  <div style={{ marginTop:8 }}><a href={prUrl} download="closets-room.jpg" style={{ fontSize:12.5, color:'var(--clay-deep)', fontWeight:700, textDecoration:'none' }}>↓ Save render</a></div>
-                  <div style={{ fontSize:10.5, color:'var(--muted)', marginTop:6 }}>Indicative AI impression. Exact finishes confirmed at your free design consultation.</div>
+                <div style={{ marginTop:18, maxWidth:640, marginLeft:'auto', marginRight:'auto', background:'#fff', borderRadius:20, border:'1px solid var(--line)', boxShadow:'0 12px 40px rgba(0,0,0,.12)', overflow:'hidden', animation:'rdFade .35s ease' }}>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 18px', borderBottom:'1px solid var(--line)' }}>
+                    <span style={{ fontSize:12.5, fontWeight:800, letterSpacing:'.04em', textTransform:'uppercase', color:'var(--clay-deep)' }}>Photoreal render</span>
+                    <button type="button" onClick={()=>{ setPrUrl(null); setPrErr(''); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, fontWeight:700, color:'var(--ink-soft)' }}>← Back to design</button>
+                  </div>
+                  <img src={prUrl} alt="Photoreal render of your kitchen" style={{ display:'block', width:'100%' }} />
+                  <div style={{ padding:'14px 18px 16px', textAlign:'center' }}>
+                    <a href={prUrl} download="closets-room.jpg" style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'9px 18px', borderRadius:11, background:'var(--clay)', color:'#fff', fontSize:13, fontWeight:700, textDecoration:'none', boxShadow:'0 3px 12px rgba(242,115,28,.32)' }}>↓ Download render</a>
+                    <div style={{ fontSize:10.5, color:'var(--muted)', marginTop:10 }}>Indicative AI impression. Exact finishes confirmed at your free design consultation.</div>
+                  </div>
                 </div>
               )}
             </div>
@@ -3246,8 +3366,12 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
       {mobile && materialPanel}
       {/* Photoreal pending overlay */}
       {prBusy && (
-        <div style={{ position:'fixed', inset:0, zIndex:11050, background:'rgba(15,18,22,.72)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
-          <div style={{ background:'#fff', borderRadius:18, padding:'36px 46px', textAlign:'center', color:'#6e6e73', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>Creating your photorealistic render… ~15–25 seconds.</div></div>
+        <div style={{ position:'fixed', inset:0, zIndex:11050, background:'rgba(15,18,22,.74)', backdropFilter:'blur(2px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
+          <div style={{ background:'#fff', borderRadius:20, padding:'38px 48px', textAlign:'center', boxShadow:'0 20px 60px rgba(0,0,0,.4)', maxWidth:340 }}>
+            <span aria-hidden="true" style={{ display:'inline-block', width:38, height:38, borderRadius:'50%', border:'3px solid var(--sand)', borderTopColor:'var(--clay)', animation:'rdSpin .8s linear infinite' }} />
+            <div style={{ marginTop:16, fontSize:15.5, fontWeight:800, color:'var(--ink)' }}>Rendering your kitchen…</div>
+            <div style={{ marginTop:6, fontSize:13, color:'var(--muted)' }}>Compositing your finishes into a photoreal scene. This usually takes 15–25 seconds.</div>
+          </div>
         </div>
       )}
     </div>
