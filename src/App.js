@@ -499,10 +499,10 @@ const NAV_GROUPS = [
     key: 'studio', label: 'Design studio',
     columns: [
       { title: 'Plan it yourself', items: [
-        ['Wardrobe planner', 'wardrobe-planner'], ['Kitchen planner', 'kitchen-planner'], ['TV unit planner', 'tv-planner'], ['Office planner', 'office-planner'], ['Wood door planner', 'door-planner'], ['AI interior designer', 'ai'],
+        ['How it works', 'how-it-works'], ['Wardrobe planner', 'wardrobe-planner'], ['Kitchen planner', 'kitchen-planner'], ['TV unit planner', 'tv-planner'], ['Office planner', 'office-planner'], ['Wood door planner', 'door-planner'], ['AI interior designer', 'ai'],
       ] },
       { title: 'Talk to a designer', items: [
-        ['Book a design appointment →', 'booking'], ['Visit a showroom', 'showrooms'],
+        ['How the planner works →', 'how-it-works'], ['Book a design appointment →', 'booking'], ['Visit a showroom', 'showrooms'],
       ], accent: true },
     ],
   },
@@ -3942,6 +3942,249 @@ function AboutPage() {
   );
 }
 
+/* ── HOW IT WORKS — Planner guide ── */
+function FaqRow({ q, a, open, onToggle }) {
+  return (
+    <div style={{ borderBottom:'1px solid var(--line)' }}>
+      <button type="button" onClick={onToggle} aria-expanded={open}
+        style={{ width:'100%', display:'flex', justifyContent:'space-between', alignItems:'center', gap:16, background:'none', border:'none', cursor:'pointer', textAlign:'left', padding:'20px 4px', fontSize:17, fontWeight:600, color:'var(--ink)' }}>
+        <span>{q}</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink:0, transform: open?'rotate(45deg)':'none', transition:'transform .25s' }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      {open && <div style={{ padding:'0 4px 22px', fontSize:15.5, lineHeight:1.75, color:'var(--ink-soft)', maxWidth:760 }}>{a}</div>}
+    </div>
+  );
+}
+
+function PlannerGuidePage({ setPage }) {
+  const mobile = useMobile();
+  useReveal();
+  const [openFaq, setOpenFaq] = useState(0);
+
+  const STEPS = [
+    {
+      n: '01', title: 'Pick your product & layout',
+      body: 'Choose what you are building — a kitchen, wardrobe, TV unit, door or home office — then select the layout that matches your room, from galley and L-shape to walk-in and full-wall.',
+      img: '/layouts/kitchen/l-shape.jpg', alt: 'Selecting an L-shape kitchen layout',
+    },
+    {
+      n: '02', title: 'Set your space',
+      body: 'Enter your wall dimensions and mark openings like windows, doors and sockets. Approximate measurements are fine to start — our team confirms everything on a free site visit.',
+      img: '/layouts/wardrobe/wardrobe-walkin.jpg', alt: 'Setting wardrobe dimensions and openings',
+    },
+    {
+      n: '03', title: 'Choose finishes & accessories',
+      body: 'Pick your finish family, worktops, door fronts, handles and interior accessories. Every choice updates your design live, so you always see what you are getting.',
+      img: '/layouts/TV/full-wall.jpg', alt: 'Choosing finishes for a full-wall media unit',
+    },
+    {
+      n: '04', title: 'See your price & request a quote',
+      body: 'Your indicative price in BHD updates as you design. Happy with it? Save your design and request a formal quote — manufactured and installed in Bahrain.',
+      img: '/layouts/office/built-in.jpg', alt: 'Reviewing an indicative price for a built-in office',
+    },
+  ];
+
+  const DESIGNER_FEATURES = [
+    { icon: '🎯', title: 'Clickable hotspots', body: 'Tap any surface in a real room — cabinets, worktop, doors, handles — and swap its material in a click.' },
+    { icon: '🎨', title: 'Finish per surface', body: 'Mix and match finish families across every surface until the whole space feels right.' },
+    { icon: '🔄', title: 'Live photo ⇄ 3D', body: 'Switch between a real photo and an interactive 3D view to judge proportions and depth.' },
+    { icon: '✨', title: 'Render photoreal', body: 'Generate a photoreal AI image of your exact choices to share or save before you commit.' },
+  ];
+
+  const CATEGORIES = [
+    { name: 'Kitchen', page: 'kitchen-planner', img: '/layouts/kitchen/island.jpg', desc: 'Handleless, shaker or traditional — built around how you cook.', steps: 5 },
+    { name: 'Wardrobe', page: 'wardrobe-planner', img: '/layouts/wardrobe/wardrobe-sliding.jpg', desc: 'Walk-in, sliding or hinged storage tailored to your room.', steps: 5 },
+    { name: 'TV & media', page: 'tv-planner', img: '/layouts/TV/floating.jpg', desc: 'Floating, full-wall or fireplace media walls with hidden storage.', steps: 4 },
+    { name: 'Doors', page: 'door-planner', img: '/layouts/door/single-swing.jpg', desc: 'Swing, sliding, pivot or hidden doors in bespoke finishes.', steps: 4 },
+    { name: 'Home Office', page: 'office-planner', img: '/layouts/office/corner.jpg', desc: 'Built-in desks and storage that fit the room and the way you work.', steps: 4 },
+  ];
+
+  const TIPS = [
+    { t: 'Measure twice', d: 'Note wall lengths, ceiling height and any sockets or windows before you start — it makes every step faster.' },
+    { t: 'Start with the layout', d: 'Get the shape right first. The right layout solves most design problems before you pick a single finish.' },
+    { t: 'Pick a finish family', d: 'Choose one finish direction — warm wood, matt lacquer or two-tone — and let everything else follow it.' },
+    { t: 'Use the work triangle', d: 'For kitchens, keep sink, hob and fridge in an easy triangle so cooking always feels effortless.' },
+    { t: 'Save & share', d: 'Save your design to revisit later or share it with family — and bring it to your free visit.' },
+    { t: 'Book a visit to confirm', d: 'A designer confirms measurements and details on site, so your final piece fits perfectly.' },
+  ];
+
+  const FAQS = [
+    { q: 'Is the planner free to use?', a: 'Yes — designing and pricing your space is completely free, with no obligation. You only commit once you accept a formal quote.' },
+    { q: 'Do I need exact measurements?', a: 'No. Approximate dimensions are enough to start and get an indicative price. Our team confirms exact measurements during a free site visit before manufacturing.' },
+    { q: 'Can I save my design?', a: 'Yes. Create a free account to save any design, come back to it later, and share it. Your saved designs appear in your account portal.' },
+    { q: 'Is the price final?', a: 'The planner gives an accurate indicative price in BHD based on your choices. Your final quote is confirmed after a site visit and any custom details are agreed.' },
+    { q: 'Can I change materials later?', a: 'Absolutely. You can revisit your saved design and swap finishes, worktops or accessories any time before you confirm your order.' },
+    { q: 'Do you install?', a: 'Yes. Everything is bespoke — designed, manufactured and installed by our own team in the Kingdom of Bahrain, with a 2-year warranty.' },
+  ];
+
+  const HERO_IMG = '/layouts/kitchen/island.jpg';
+
+  return (
+    <div style={{ minHeight:'100dvh', background:'var(--cream)' }}>
+      {/* HERO */}
+      <section style={{ position:'relative', overflow:'hidden', paddingTop: mobile?96:120 }}>
+        <div style={{ maxWidth:1280, margin:'0 auto', padding: mobile?'0 22px':'0 40px', display:'grid', gridTemplateColumns: mobile?'1fr':'1.05fr 1fr', gap: mobile?28:56, alignItems:'center', paddingBottom: mobile?44:72 }}>
+          <div className="rv">
+            <div className="eyebrow" style={{ marginBottom:16 }}>How the planner works</div>
+            <h1 className="display" style={{ fontSize: mobile?40:68, lineHeight:1.03, color:'var(--ink)', letterSpacing:'-.03em' }}>Design your space in minutes</h1>
+            <p style={{ fontSize: mobile?16.5:19, lineHeight:1.7, color:'var(--ink-soft)', marginTop:20, maxWidth:540 }}>
+              Plan a kitchen, wardrobe, TV unit, door or home office online — pick a layout, set your space, choose your finishes and see your price in BHD. Bespoke, manufactured and installed in Bahrain.
+            </p>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:14, marginTop:28 }}>
+              <button type="button" className="btn-clay" onClick={()=>setPage('planner')} style={{ fontSize:16 }}>Start designing →</button>
+              <button type="button" onClick={()=>setPage('booking')} style={{ background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:14, padding:'15px 26px', fontSize:16, fontWeight:600, cursor:'pointer', minHeight:50 }}>Book a free visit</button>
+            </div>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:18, marginTop:30, fontSize:13.5, color:'var(--muted)', fontWeight:600 }}>
+              <span style={{ display:'inline-flex', alignItems:'center', gap:7 }}><span style={{ color:'var(--clay)' }}>✦</span>Free to use</span>
+              <span style={{ display:'inline-flex', alignItems:'center', gap:7 }}><span style={{ color:'var(--clay)' }}>✦</span>No obligation</span>
+              <span style={{ display:'inline-flex', alignItems:'center', gap:7 }}><span style={{ color:'var(--clay)' }}>✦</span>2-year warranty</span>
+            </div>
+          </div>
+          <div className="rv tile-zoom" style={{ position:'relative', borderRadius:24, overflow:'hidden', minHeight: mobile?260:440, boxShadow:'0 30px 60px -28px rgba(33,28,24,.5)' }}>
+            <Photo src={HERO_IMG} alt="Designing a bespoke kitchen with an island" imgClass="tz" style={{ position:'absolute', inset:0 }} />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, rgba(20,16,12,0) 55%, rgba(20,16,12,.45) 100%)' }} />
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS — 4 steps */}
+      <section style={{ background:'#fff', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
+        <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'56px 22px':'88px 40px' }}>
+          <div className="rv" style={{ maxWidth:680, marginBottom: mobile?40:64 }}>
+            <div className="eyebrow" style={{ marginBottom:14 }}>How it works</div>
+            <h2 className="display" style={{ fontSize: mobile?32:48, color:'var(--ink)', lineHeight:1.08 }}>Four simple steps</h2>
+            <p style={{ fontSize: mobile?16:18, color:'var(--ink-soft)', marginTop:14, lineHeight:1.7 }}>The same easy flow whatever you are planning — from first layout to a price you can act on.</p>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap: mobile?40:72 }}>
+            {STEPS.map((s, i) => {
+              const flip = i % 2 === 1;
+              return (
+                <div key={s.n} className="rv" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?22:56, alignItems:'center' }}>
+                  <div className="tile-zoom" style={{ position:'relative', borderRadius:20, overflow:'hidden', minHeight: mobile?220:340, order: (!mobile && flip)?2:1, boxShadow:'0 22px 44px -26px rgba(33,28,24,.45)' }}>
+                    <Photo src={s.img} alt={s.alt} imgClass="tz" style={{ position:'absolute', inset:0 }} />
+                  </div>
+                  <div style={{ order: (!mobile && flip)?1:2 }}>
+                    <div style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:54, height:54, borderRadius:'50%', background:'var(--sand)', color:'var(--clay-deep)', fontSize:20, fontWeight:800, marginBottom:16 }}>{s.n}</div>
+                    <h3 className="display" style={{ fontSize: mobile?26:34, color:'var(--ink)', lineHeight:1.12 }}>{s.title}</h3>
+                    <p style={{ fontSize: mobile?16:17.5, color:'var(--ink-soft)', marginTop:12, lineHeight:1.75, maxWidth:480 }}>{s.body}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* THE ROOM DESIGNER */}
+      <section>
+        <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'56px 22px':'88px 40px' }}>
+          <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?28:56, alignItems:'center' }}>
+            <div className="rv tile-zoom" style={{ position:'relative', borderRadius:24, overflow:'hidden', minHeight: mobile?260:420, boxShadow:'0 30px 60px -30px rgba(33,28,24,.5)' }}>
+              <Photo src="/layouts/kitchen/island.jpg" alt="Interactive Room Designer with clickable surfaces" imgClass="tz" style={{ position:'absolute', inset:0 }} />
+              <span style={{ position:'absolute', top:16, left:16, background:'rgba(255,255,255,.95)', color:'var(--clay-deep)', fontSize:12.5, fontWeight:800, borderRadius:999, padding:'7px 14px', boxShadow:'0 4px 14px rgba(0,0,0,.16)' }}>🎨 Room Designer</span>
+            </div>
+            <div className="rv">
+              <div className="eyebrow" style={{ marginBottom:14 }}>The Room Designer</div>
+              <h2 className="display" style={{ fontSize: mobile?32:46, color:'var(--ink)', lineHeight:1.08 }}>See it before you build it</h2>
+              <p style={{ fontSize: mobile?16:18, color:'var(--ink-soft)', marginTop:14, lineHeight:1.75, maxWidth:520 }}>
+                Our interactive visualiser turns your choices into a real room you can play with. Click any surface to change its finish, flip between a live photo and 3D, then render a photoreal image. It works for kitchens, wardrobes, TV units, doors and offices.
+              </p>
+              <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:14, marginTop:26 }}>
+                {DESIGNER_FEATURES.map(f => (
+                  <div key={f.title} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'18px 18px' }}>
+                    <div style={{ fontSize:22, marginBottom:8 }} aria-hidden="true">{f.icon}</div>
+                    <div style={{ fontSize:15.5, fontWeight:700, color:'var(--ink)' }}>{f.title}</div>
+                    <div style={{ fontSize:13.5, color:'var(--ink-soft)', marginTop:6, lineHeight:1.6 }}>{f.body}</div>
+                  </div>
+                ))}
+              </div>
+              <button type="button" className="btn-clay" onClick={()=>setPage('kitchen-planner')} style={{ marginTop:26 }}>Try the Room Designer →</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PLAN ANY PRODUCT */}
+      <section style={{ background:'#fff', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
+        <div style={{ maxWidth:1280, margin:'0 auto', padding: mobile?'56px 22px':'88px 40px' }}>
+          <div className="rv" style={{ maxWidth:680, marginBottom: mobile?32:48 }}>
+            <div className="eyebrow" style={{ marginBottom:14 }}>Plan any product</div>
+            <h2 className="display" style={{ fontSize: mobile?32:48, color:'var(--ink)', lineHeight:1.08 }}>One planner for every room</h2>
+            <p style={{ fontSize: mobile?16:18, color:'var(--ink-soft)', marginTop:14, lineHeight:1.7 }}>Each planner is tuned to its product, with the right layouts, finishes and accessories built in.</p>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(auto-fill,minmax(230px,1fr))', gap:20 }}>
+            {CATEGORIES.map(c => (
+              <button type="button" key={c.name} onClick={()=>setPage(c.page)}
+                className="rv lift"
+                style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', cursor:'pointer', textAlign:'left', padding:0, display:'flex', flexDirection:'column' }}>
+                <div className="tile-zoom" style={{ position:'relative', height:180 }}>
+                  <Photo src={c.img} alt={c.name} imgClass="tz" style={{ position:'absolute', inset:0 }} />
+                  <span style={{ position:'absolute', top:12, right:12, background:'rgba(255,255,255,.94)', color:'var(--clay-deep)', fontSize:11.5, fontWeight:700, borderRadius:999, padding:'5px 11px' }}>{c.steps} steps</span>
+                </div>
+                <div style={{ padding:'20px 20px 22px', flex:1, display:'flex', flexDirection:'column' }}>
+                  <div className="display" style={{ fontSize:21, color:'var(--ink)' }}>{c.name}</div>
+                  <div style={{ fontSize:14, color:'var(--ink-soft)', marginTop:8, lineHeight:1.6, flex:1 }}>{c.desc}</div>
+                  <span style={{ marginTop:16, color:'var(--clay)', fontSize:14, fontWeight:700 }}>Start {c.name.toLowerCase()} planner →</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* TIPS */}
+      <section>
+        <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'56px 22px':'88px 40px' }}>
+          <div className="rv" style={{ maxWidth:680, marginBottom: mobile?32:48 }}>
+            <div className="eyebrow" style={{ marginBottom:14 }}>Tips for a great design</div>
+            <h2 className="display" style={{ fontSize: mobile?32:48, color:'var(--ink)', lineHeight:1.08 }}>Get it right, first time</h2>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(auto-fill,minmax(330px,1fr))', gap:18 }}>
+            {TIPS.map((tip, i) => (
+              <div key={tip.t} className="rv" style={{ display:'flex', gap:16, background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+                <div style={{ flexShrink:0, width:38, height:38, borderRadius:'50%', background:'var(--sand)', color:'var(--clay-deep)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:800 }}>{i+1}</div>
+                <div>
+                  <div style={{ fontSize:16.5, fontWeight:700, color:'var(--ink)' }}>{tip.t}</div>
+                  <div style={{ fontSize:14.5, color:'var(--ink-soft)', marginTop:6, lineHeight:1.65 }}>{tip.d}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section style={{ background:'#fff', borderTop:'1px solid var(--line)' }}>
+        <div style={{ maxWidth:900, margin:'0 auto', padding: mobile?'56px 22px':'88px 40px' }}>
+          <div className="rv" style={{ marginBottom: mobile?24:36 }}>
+            <div className="eyebrow" style={{ marginBottom:14 }}>Questions</div>
+            <h2 className="display" style={{ fontSize: mobile?32:46, color:'var(--ink)', lineHeight:1.08 }}>Frequently asked</h2>
+          </div>
+          <div className="rv">
+            {FAQS.map((f, i) => (
+              <FaqRow key={f.q} q={f.q} a={f.a} open={openFaq===i} onToggle={()=>setOpenFaq(openFaq===i?-1:i)} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA BAND */}
+      <section style={{ background:'var(--ink)', color:'#fff' }}>
+        <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'56px 22px':'80px 40px', textAlign:'center' }}>
+          <h2 className="display" style={{ fontSize: mobile?32:48, color:'#fff', lineHeight:1.08 }}>Ready to start?</h2>
+          <p style={{ fontSize: mobile?16:18, color:'rgba(255,255,255,.78)', marginTop:14, maxWidth:560, marginLeft:'auto', marginRight:'auto', lineHeight:1.7 }}>
+            Design your space in minutes, or book a free visit and a designer will plan it with you.
+          </p>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:14, justifyContent:'center', marginTop:28 }}>
+            <button type="button" className="btn-clay" onClick={()=>setPage('planner')} style={{ fontSize:16 }}>Start designing →</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'transparent', color:'#fff', border:'1px solid rgba(255,255,255,.4)', borderRadius:14, padding:'15px 26px', fontSize:16, fontWeight:600, cursor:'pointer', minHeight:50 }}>Book a visit</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 /* ── CONTACT ── */
 const HUB_ORIGIN = 'https://closets-hub.vercel.app';
 const cardRpc = (name, body) => api('rpc/' + name, { method:'POST', headers:{ ...H, Prefer:'return=representation' }, body });
@@ -5423,7 +5666,7 @@ function SiteFooter({ setPage }) {
             <a href="https://wa.me/97317001700" style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:980, padding:'11px 18px', fontSize:13.5, fontWeight:600, textDecoration:'none' }}>{cms('footer.cta.whatsapp', 'WhatsApp us')}</a>
           </div>
         </div>
-        {col(cms('footer.col1.title','Here to help'),[['FAQ','faq'],['Delivery & install','contact'],['Warranty service','warranty'],['Maintenance','maintenance'],['Reviews','projects'],['Contact us','contact']])}
+        {col(cms('footer.col1.title','Here to help'),[['How it works','how-it-works'],['FAQ','faq'],['Delivery & install','contact'],['Warranty service','warranty'],['Maintenance','maintenance'],['Reviews','projects'],['Contact us','contact']])}
         {col(cms('footer.col2.title','Ways to shop'),[['Book an appointment','booking'],['Request a brochure','contact'],['Finance & payment','booking'],['Find a showroom','showrooms'],['Recommend a friend','contact']])}
         {col(cms('footer.col3.title','About'),[['About The Closets','about'],['Why The Closets','about'],['Careers','careers'],['Offers','offers'],['Sitemap','products']])}
       </div>
@@ -11453,7 +11696,7 @@ function DesignBuilderPage({ setPage, user }) {
 export default function App() {
   return <SiteContentProvider><AppInner /></SiteContentProvider>;
 }
-const PATH_TO_PAGE = { '':'home','/':'home','/home':'home','/kitchen':'kitchen','/kitchens':'kitchen','/wardrobes':'wardrobes','/wardrobe':'wardrobes','/tv':'tv','/tv-units':'tv','/doors':'doors','/door':'doors','/office':'office','/about':'about','/contact':'contact','/services':'services','/showrooms':'showrooms','/blog':'blog','/faq':'faq','/offers':'offers','/projects':'projects','/booking':'booking','/directory':'directory','/portal':'portal' };
+const PATH_TO_PAGE = { '':'home','/':'home','/home':'home','/kitchen':'kitchen','/kitchens':'kitchen','/wardrobes':'wardrobes','/wardrobe':'wardrobes','/tv':'tv','/tv-units':'tv','/doors':'doors','/door':'doors','/office':'office','/about':'about','/contact':'contact','/services':'services','/showrooms':'showrooms','/blog':'blog','/faq':'faq','/offers':'offers','/projects':'projects','/booking':'booking','/directory':'directory','/portal':'portal','/how-it-works':'how-it-works','/guide':'how-it-works' };
 function initialPage() {
   try {
     const sp = new URLSearchParams(window.location.search);
@@ -11513,6 +11756,7 @@ function AppInner() {
       {page==='portal' && (user ? <HomeHub user={user} setUser={setUser} setPage={setPage} /> : <div style={{ paddingTop:120, textAlign:'center', padding:'120px 24px' }}><button type="button" className="btn" onClick={()=>openAuth('login')} style={{ borderRadius:14 }}>{I18N.signInHub[lang]||I18N.signInHub.en}</button></div>)}
       {page==='checkout' && <CheckoutPage cart={cart} setCart={setCart} user={user} setPage={setPage} />}
       {page==='about' && <AboutPage />}
+      {page==='how-it-works' && <PlannerGuidePage setPage={setPage} />}
       {page==='contact' && <ContactPage />}
       {page==='directory' && <DirectoryPage setPage={setPage} />}
       {page==='showrooms' && <ShowroomsPage />}
