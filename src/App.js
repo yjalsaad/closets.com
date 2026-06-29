@@ -2953,7 +2953,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
      B) photoreal render via the existing render_photoreal edge function
      C) interactive 3D via <KitchenScene3D/>
    Reads design_scenes / scene_surfaces / design_materials over REST. */
-function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, onGoToSummary, photorealReq, indicativeTotal }) {
+function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, onGoToSummary, photorealReq, indicativeTotal, category = 'kitchen' }) {
   const [loading, setLoading] = useState(true);
   const [loadErr, setLoadErr] = useState('');
   const [scene, setScene] = useState(null);
@@ -8423,6 +8423,173 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
   );
 }
 
+/* ──────────────────────────────────────────────────────────────────
+   buildProductionDocs(cfg) — derive factory-ready documents from a
+   saved/live kitchen planner configuration. Pure & defensive: it reads
+   whatever fields exist on cfg and omits columns it cannot determine.
+   cfg shape (all optional):
+     modules: [{ name, qty, w (width mm), kind, line }]
+     worktop: { material, metres, perM, line }
+     accessories: [{ name, qty, unit, line }]
+     materials: { carcass, door, finish }
+     dims: { length, width, ceiling }   layoutName, grandTotal
+   Standard cabinet geometry (indicative, mm): base H720 D600, wall H720
+   D350, tall H2100 D600. Edge-banding & panel counts are indicative.
+   ─────────────────────────────────────────────────────────────────── */
+function buildProductionDocs(cfg) {
+  cfg = cfg || {};
+  const modules = Array.isArray(cfg.modules) ? cfg.modules : [];
+  const accessories = Array.isArray(cfg.accessories) ? cfg.accessories : [];
+  const worktop = cfg.worktop || null;
+  const mats = cfg.materials || {};
+  const carcassMat = mats.carcass || null;
+  const doorMat = mats.door || null;
+  const finish = mats.finish || mats.door || null;
+  const r1 = n => Math.round((Number(n) || 0) * 10) / 10;
+
+  // standard geometry by kind (indicative mm)
+  const geom = (kind) => kind === 'wall' ? { h: 720, d: 350 }
+    : kind === 'tall' ? { h: 2100, d: 600 }
+    : { h: 720, d: 600 }; // base / default
+
+  // ── 1) BILL OF MATERIALS ──
+  const bomItems = [];
+  modules.forEach(m => {
+    const g = geom(m.kind);
+    const w = Number(m.w) || null;
+    bomItems.push({
+      type: 'Cabinet',
+      name: m.name || 'Module',
+      qty: Number(m.qty) || 1,
+      width_mm: w,
+      height_mm: g.h,
+      depth_mm: g.d,
+      material: [carcassMat && carcassMat + ' carcass', doorMat && doorMat + ' front'].filter(Boolean).join(' · ') || null,
+      finish: finish,
+      line_bhd: Number(m.line) || null,
+    });
+  });
+  if (worktop && (worktop.metres || worktop.line)) {
+    const metres = Number(worktop.metres) || 0;
+    const depthM = 0.6; // standard worktop depth 600mm
+    bomItems.push({
+      type: 'Worktop',
+      name: (worktop.material || 'Worktop') + ' worktop',
+      qty: 1,
+      linear_m: metres ? r1(metres) : null,
+      area_m2: metres ? r1(metres * depthM) : null,
+      material: worktop.material || null,
+      finish: 'Polished',
+      line_bhd: Number(worktop.line) || null,
+    });
+    // splashback panel (indicative): same run length, 600mm high
+    if (metres) {
+      bomItems.push({
+        type: 'Splashback',
+        name: (worktop.material || 'Matching') + ' splashback (indicative)',
+        qty: 1,
+        linear_m: r1(metres),
+        area_m2: r1(metres * 0.6),
+        material: worktop.material || null,
+        finish: null,
+        line_bhd: null,
+      });
+    }
+  }
+  accessories.forEach(a => {
+    bomItems.push({
+      type: 'Accessory',
+      name: a.name || 'Accessory',
+      qty: Number(a.qty) || 1,
+      unit: a.unit || null,
+      material: null,
+      finish: null,
+      line_bhd: Number(a.line) || null,
+    });
+  });
+  const bomTotals = {
+    cabinet_lines: modules.length,
+    cabinet_units: modules.reduce((s, m) => s + (Number(m.qty) || 0), 0),
+    accessory_lines: accessories.length,
+    worktop_metres: worktop && worktop.metres ? r1(worktop.metres) : 0,
+    estimate_bhd: Number(cfg.grandTotal) || null,
+  };
+
+  // ── 2) MANUFACTURING LIST (factory) ──
+  // panel breakdown per cabinet (indicative):
+  //  carcass = 2 sides + bottom + top/rail(2) + back = ~5 panels
+  //  doors/fronts ≈ 1 per ≤600mm of width, min 1
+  const fronts = (w) => Math.max(1, Math.ceil(((Number(w) || 600)) / 600));
+  let carcassPanels = 0, doorPanels = 0, drawerFronts = 0, edgeM = 0;
+  const mfgModules = modules.map(m => {
+    const qty = Number(m.qty) || 1;
+    const w = Number(m.w) || 600;
+    const g = geom(m.kind);
+    const cPanels = 5 * qty;                    // indicative carcass panels
+    const nFronts = fronts(w) * qty;
+    const isDrawerish = /drawer|pull-out|pull out|150/i.test(m.name || '');
+    const dFronts = isDrawerish ? nFronts : 0;
+    const dPanels = isDrawerish ? 0 : nFronts;
+    carcassPanels += cPanels;
+    doorPanels += dPanels;
+    drawerFronts += dFronts;
+    // edge-banding: perimeter of each front ≈ 2*(w + h) per front, mm→m
+    const perFront = 2 * ((w) + g.h) / 1000;
+    edgeM += perFront * nFronts;
+    return {
+      name: m.name || 'Module',
+      qty,
+      width_mm: w,
+      carcass_panels: cPanels,
+      door_fronts: dPanels,
+      drawer_fronts: dFronts,
+    };
+  });
+  // hinges/runners from module count & accessories
+  const hingeCount = doorPanels * 2;            // 2 hinges per door (indicative)
+  const accRunners = accessories.reduce((s, a) => {
+    if (/pull-?out|drawer|cutlery|waste/i.test(a.name || '')) return s + (Number(a.qty) || 0);
+    return s;
+  }, 0);
+  const runnerCount = drawerFronts + accRunners; // 1 runner pair per drawer/pull-out
+  const manufacturing = {
+    indicative: true,
+    carcass_material: carcassMat,
+    front_material: doorMat,
+    finish: finish,
+    modules: mfgModules,
+    edge_banding_m: r1(edgeM),
+    hinges_count: hingeCount,
+    runners_count: runnerCount,
+    cut_summary: {
+      total_panels: carcassPanels + doorPanels + drawerFronts,
+      carcass_panels: carcassPanels,
+      door_panels: doorPanels,
+      drawer_fronts: drawerFronts,
+    },
+  };
+
+  // ── 3) INSTALLATION LIST ──
+  const unitCount = modules.reduce((s, m) => s + (Number(m.qty) || 0), 0);
+  const appliances = modules
+    .filter(m => /oven|fridge|hob|dishwash|micro|sink|tower|housing/i.test(m.name || ''))
+    .map(m => ({ name: m.name, qty: Number(m.qty) || 1 }));
+  const worktopM = worktop && worktop.metres ? r1(worktop.metres) : 0;
+  // time estimate (indicative): base 4h + 0.6h/unit + 1h/worktop-metre + 0.4h/appliance
+  const hours = r1(4 + unitCount * 0.6 + worktopM * 1 + appliances.length * 0.4);
+  const installation = {
+    indicative: true,
+    units_to_install: unitCount,
+    worktop_fitting_m: worktopM,
+    appliances_to_connect: appliances,
+    handles_accessories_fit: accessories.map(a => ({ name: a.name, qty: Number(a.qty) || 1 })),
+    estimated_hours: hours,
+    estimated_days: r1(hours / 8),
+  };
+
+  return { bom: { items: bomItems, totals: bomTotals }, manufacturing, installation };
+}
+
 function KitchenPlannerWizard({ setPage, user, openAuth }) {
   const mobile = useMobile();
   const { map: dbLayouts } = useLayouts('kitchen');
@@ -8497,6 +8664,17 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
   const accItems = KW_ACCESSORIES.filter(a=>(acc[a.id]||0)>0).map(a=>({ ...a, qty:acc[a.id], line:a.price*acc[a.id] }));
   const accTotal = accItems.reduce((s,a)=>s+a.line,0);
   const grandTotal = cabinetTotal + counterTotal + accTotal;
+
+  // ── Production documents (BOM / manufacturing / installation) ──
+  const prodCfg = {
+    modules: bom.map(b=>({ name:b.name, qty:b.qty, w:b.w, kind:b.kind, line:b.line })),
+    worktop: { material:ctop.name, metres:counterM, perM:ctop.perM, line:counterTotal },
+    accessories: accItems.map(a=>({ name:a.name, qty:a.qty, unit:a.unit, line:a.line })),
+    materials: { carcass:carc.name, door:door.name, finish:door.name },
+    dims, layoutName:lay.name, grandTotal,
+  };
+  const prodDocs = buildProductionDocs(prodCfg);
+  const [specTab, setSpecTab] = useState('bom');
 
   // ── Capacity / collision check ──
   const availMm = (() => {
@@ -8607,6 +8785,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
         materials:{ carcass:carc.name, door:door.name, countertop:ctop.name, countertop_metres:+counterM.toFixed(2) },
         accessories:accItems.map(a=>({ name:a.name, qty:a.qty, line_bhd:a.line })),
         capacity:{ available_mm:availMm, used_mm:baseWallMm, over:overCapacity },
+        bom:prodDocs.bom, manufacturing:prodDocs.manufacturing, installation:prodDocs.installation,
         estimate_bhd:grandTotal };
       await api('product_configurations', { method:'POST', body:[{ id:token, customer_id:user?.id||null, product_id:KITCHEN_CATALOG_ANCHORS.modern.id,
         customer_name:user?.name||null, customer_email:user?.email||null, customer_phone:user?.phone||null,
@@ -8625,7 +8804,9 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
       const breakdown = { cabinets:cabinetTotal, countertop:counterTotal, accessories:accTotal };
       const config = { product:'kitchen', plan_version:'wizard-v1', shape, dimensions:dims, layout, layout_name:lay.name,
         work_triangle_valid:triOK, modules:bom.map(b=>({ name:b.name, qty:b.qty, line_bhd:b.line })),
-        materials:{ carcass:carc.name, door:door.name, countertop:ctop.name }, estimate_bhd:grandTotal };
+        materials:{ carcass:carc.name, door:door.name, countertop:ctop.name },
+        bom:prodDocs.bom, manufacturing:prodDocs.manufacturing, installation:prodDocs.installation,
+        estimate_bhd:grandTotal };
       await api('product_configurations', { method:'POST', body:[{ id:token, customer_id:user?.id||null, product_id:KITCHEN_CATALOG_ANCHORS.modern.id,
         customer_name:c.name, customer_email:c.email||null, customer_phone:c.phone||null,
         product_name:`Kitchen plan — ${lay.name} (${(baseRunMm/1000).toFixed(1)}m)`, configuration:config, total_price:grandTotal,
@@ -8656,13 +8837,48 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
       `<tr><td>Countertop — ${ctop.name} (${counterM.toFixed(1)}m)</td><td style="text-align:right">${fmt(counterTotal)}</td></tr>`,
       ...accItems.map(a=>`<tr><td>${a.name} ×${a.qty}</td><td style="text-align:right">${fmt(a.line)}</td></tr>`),
     ].join('');
-    w.document.write(`<html><head><title>Kitchen Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:#C2410C;text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
+    // ── production documents (BOM / manufacturing / installation) ──
+    const esc = s => String(s==null?'':s);
+    const D = prodDocs;
+    const dim = (i) => [i.width_mm&&i.height_mm&&i.depth_mm ? `${i.width_mm}×${i.height_mm}×${i.depth_mm}` : (i.width_mm?`${i.width_mm}w`:''), i.linear_m?`${i.linear_m}m`:'', i.area_m2?`${i.area_m2}m²`:''].filter(Boolean).join(' · ') || '—';
+    const bomRows = D.bom.items.map(i=>`<tr><td>${esc(i.type)}</td><td>${esc(i.name)}</td><td style="text-align:center">${i.qty||'—'}</td><td>${dim(i)}</td><td>${esc(i.material||'—')}</td><td>${esc(i.finish||'—')}</td><td style="text-align:right">${i.line_bhd!=null?fmt(i.line_bhd):'—'}</td></tr>`).join('');
+    const mfgRows = D.manufacturing.modules.map(m=>`<tr><td>${esc(m.name)}</td><td style="text-align:center">${m.qty}</td><td style="text-align:center">${m.width_mm}</td><td style="text-align:center">${m.carcass_panels}</td><td style="text-align:center">${m.door_fronts}</td><td style="text-align:center">${m.drawer_fronts}</td></tr>`).join('');
+    const cs = D.manufacturing.cut_summary;
+    const applRows = (D.installation.appliances_to_connect||[]).map(a=>`<li>${esc(a.name)} ×${a.qty}</li>`).join('') || '<li class="muted">None flagged</li>';
+    const accFitRows = (D.installation.handles_accessories_fit||[]).map(a=>`<li>${esc(a.name)} ×${a.qty}</li>`).join('') || '<li class="muted">None</li>';
+
+    w.document.write(`<html><head><title>Kitchen Quotation & Production Pack</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:760px;margin:0 auto}h1{font-size:24px}h2{font-size:17px;color:#9a3412;margin:30px 0 4px;border-top:2px solid #e3d6c6;padding-top:18px}table{width:100%;border-collapse:collapse;margin-top:10px}th{text-align:left;font-size:11px;color:#8a7a68;text-transform:uppercase;letter-spacing:.4px;padding:6px 4px;border-bottom:1px solid #cbb89f}td{padding:7px 4px;border-bottom:1px solid #e3d6c6;font-size:12.5px}.tot{font-size:20px;font-weight:700;color:#C2410C;text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}.tag{display:inline-block;background:#fdebd3;color:#9a3412;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;text-transform:uppercase;letter-spacing:.4px}ul{font-size:12.5px;margin:6px 0;padding-left:20px}.grid{display:flex;gap:24px;flex-wrap:wrap;font-size:12.5px;margin-top:8px}@media print{h2{page-break-after:avoid}}</style></head><body>
       <h1>The Closets — Kitchen Quotation</h1>
-      <p class="muted">${lay.name} layout · Room ${dims.length}×${dims.width}×${dims.ceiling}mm · ${carc.name} carcass · ${door.name} doors</p>
+      <p class="muted">${esc(lay.name)} layout · Room ${dims.length}×${dims.width}×${dims.ceiling}mm · ${esc(carc.name)} carcass · ${esc(door.name)} doors</p>
       <p class="muted">Work triangle: ${triOK?'within recommended guidelines':'review recommended'} — total ${triTotal.toFixed(1)}m</p>
       <table><tbody>${rows}</tbody></table>
       <div class="tot">Estimated total: ${fmt(grandTotal)}</div>
-      <p class="muted" style="margin-top:24px">Indicative guide price. A free design visit confirms exact measurements and a fully itemised quote.</p>
+      <p class="muted" style="margin-top:14px">Indicative guide price. A free design visit confirms exact measurements and a fully itemised quote.</p>
+
+      <h2>Bill of Materials</h2>
+      <table><thead><tr><th>Type</th><th>Item</th><th>Qty</th><th>Dimensions (mm)</th><th>Material</th><th>Finish</th><th style="text-align:right">Est. line</th></tr></thead><tbody>${bomRows}</tbody></table>
+      <p class="muted">${D.bom.totals.cabinet_units} cabinet units across ${D.bom.totals.cabinet_lines} lines · ${D.bom.totals.accessory_lines} accessory lines · worktop ${D.bom.totals.worktop_metres}m. Dimensions & splashback are indicative.</p>
+
+      <h2>Manufacturing List <span class="tag">Indicative</span></h2>
+      <p class="muted">Carcass: ${esc(D.manufacturing.carcass_material||'—')} · Fronts: ${esc(D.manufacturing.front_material||'—')} · Finish: ${esc(D.manufacturing.finish||'—')}</p>
+      <table><thead><tr><th>Module</th><th>Qty</th><th>Width</th><th>Carcass panels</th><th>Door fronts</th><th>Drawer fronts</th></tr></thead><tbody>${mfgRows}</tbody></table>
+      <div class="grid">
+        <div><b>Cut summary:</b> ${cs.total_panels} panels (${cs.carcass_panels} carcass · ${cs.door_panels} doors · ${cs.drawer_fronts} drawers)</div>
+        <div><b>Edge-banding:</b> ~${D.manufacturing.edge_banding_m}m</div>
+        <div><b>Hinges:</b> ${D.manufacturing.hinges_count}</div>
+        <div><b>Runner pairs:</b> ${D.manufacturing.runners_count}</div>
+      </div>
+      <p class="muted">Panel counts, edge-banding, hinges and runners are indicative — confirm against CNC nesting before cutting.</p>
+
+      <h2>Installation List <span class="tag">Indicative</span></h2>
+      <div class="grid">
+        <div><b>Units to install:</b> ${D.installation.units_to_install}</div>
+        <div><b>Worktop fitting:</b> ${D.installation.worktop_fitting_m}m</div>
+        <div><b>Est. time:</b> ${D.installation.estimated_hours}h (~${D.installation.estimated_days} day(s))</div>
+      </div>
+      <p style="font-size:12.5px;margin:10px 0 2px"><b>Appliances to connect:</b></p><ul>${applRows}</ul>
+      <p style="font-size:12.5px;margin:6px 0 2px"><b>Handles & accessories to fit:</b></p><ul>${accFitRows}</ul>
+      <p class="muted">Time estimate is indicative (base + per-unit + worktop + appliance allowances).</p>
       </body></html>`);
     w.document.close();
     setTimeout(()=>{ try{ w.print(); }catch(e){} }, 350);
@@ -8837,6 +9053,56 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
           {accItems.map(a=>(<div key={a.id} style={{ display:'flex', justifyContent:'space-between', padding:'7px 12px', fontSize:12.5, borderTop:'1px solid var(--line)' }}><span style={{ color:'var(--ink-soft)' }}>{a.name} ×{a.qty}</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(a.line)}</span></div>))}
           <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 12px', borderTop:'2px solid var(--line)', background:'var(--sand)' }}><span style={{ fontWeight:700, color:'var(--ink)' }}>Estimated total</span><span className="display" style={{ fontSize:19, color:'var(--clay-deep)' }}>{fmt(grandTotal)}</span></div>
         </div>
+
+        {/* ── Production Specification (BOM / Manufacturing / Installation) ── */}
+        <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:12, overflow:'hidden', marginBottom:12 }}>
+          <div style={{ display:'flex', gap:0, background:'var(--sand)', padding:4, borderBottom:'1px solid var(--line)' }}>
+            {[['bom','Bill of materials'],['manufacturing','Manufacturing'],['installation','Installation']].map(([id,t])=>{ const on=specTab===id; return (
+              <button key={id} type="button" onClick={()=>setSpecTab(id)} style={{ flex:1, padding:'7px 6px', border:'none', borderRadius:8, cursor:'pointer', fontSize:11.5, fontWeight:on?700:600, background:on?'#fff':'transparent', color:on?'var(--clay-deep)':'var(--ink-soft)', boxShadow:on?'0 1px 4px rgba(33,28,24,.08)':'none' }}>{t}</button>); })}
+          </div>
+          <div style={{ padding:'4px 0 8px' }}>
+            {specTab==='bom' && (<>
+              {prodDocs.bom.items.map((i,ix)=>(
+                <div key={ix} style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', gap:8, padding:'7px 12px', fontSize:12, borderTop:ix?'1px solid var(--line)':'none' }}>
+                  <div style={{ minWidth:0 }}>
+                    <span style={{ fontWeight:600, color:'var(--ink)' }}>{i.name}</span>{i.qty>1&&<span style={{ color:'var(--muted)' }}> ×{i.qty}</span>}
+                    <div style={{ fontSize:10.5, color:'var(--muted)' }}>{[i.type, i.width_mm&&i.height_mm&&i.depth_mm?`${i.width_mm}×${i.height_mm}×${i.depth_mm}mm`:(i.linear_m?`${i.linear_m}m`:null), i.area_m2?`${i.area_m2}m²`:null, i.material].filter(Boolean).join(' · ')}</div>
+                  </div>
+                  <span style={{ fontWeight:600, color:'var(--ink)', whiteSpace:'nowrap' }}>{i.line_bhd!=null?fmt(i.line_bhd):'—'}</span>
+                </div>))}
+              <div style={{ padding:'7px 12px', borderTop:'2px solid var(--line)', fontSize:11, color:'var(--muted)' }}>{prodDocs.bom.totals.cabinet_units} units · {prodDocs.bom.totals.accessory_lines} accessory lines · worktop {prodDocs.bom.totals.worktop_metres}m. Dimensions indicative.</div>
+            </>)}
+            {specTab==='manufacturing' && (<>
+              <div style={{ padding:'6px 12px', fontSize:11, color:'var(--ink-soft)' }}>{prodDocs.manufacturing.carcass_material} carcass · {prodDocs.manufacturing.front_material} fronts · {prodDocs.manufacturing.finish} finish</div>
+              {prodDocs.manufacturing.modules.map((m,ix)=>(
+                <div key={ix} style={{ display:'flex', justifyContent:'space-between', gap:8, padding:'6px 12px', fontSize:12, borderTop:'1px solid var(--line)' }}>
+                  <span style={{ color:'var(--ink)' }}>{m.name} ×{m.qty} <span style={{ color:'var(--muted)' }}>· {m.width_mm}mm</span></span>
+                  <span style={{ color:'var(--ink-soft)', whiteSpace:'nowrap' }}>{m.carcass_panels} carc · {m.door_fronts} dr · {m.drawer_fronts} drw</span>
+                </div>))}
+              <div style={{ padding:'8px 12px', borderTop:'2px solid var(--line)', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'4px 10px', fontSize:11.5, color:'var(--ink-soft)' }}>
+                <span><b style={{ color:'var(--ink)' }}>{prodDocs.manufacturing.cut_summary.total_panels}</b> panels total</span>
+                <span>Edge-band ~<b style={{ color:'var(--ink)' }}>{prodDocs.manufacturing.edge_banding_m}m</b></span>
+                <span><b style={{ color:'var(--ink)' }}>{prodDocs.manufacturing.hinges_count}</b> hinges</span>
+                <span><b style={{ color:'var(--ink)' }}>{prodDocs.manufacturing.runners_count}</b> runner pairs</span>
+              </div>
+              <div style={{ padding:'4px 12px 2px', fontSize:10.5, color:'var(--muted)' }}>All factory figures indicative — confirm against CNC nesting.</div>
+            </>)}
+            {specTab==='installation' && (<>
+              <div style={{ padding:'8px 12px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'4px 10px', fontSize:12, color:'var(--ink-soft)' }}>
+                <span><b style={{ color:'var(--ink)' }}>{prodDocs.installation.units_to_install}</b> units to install</span>
+                <span>Worktop <b style={{ color:'var(--ink)' }}>{prodDocs.installation.worktop_fitting_m}m</b></span>
+                <span style={{ gridColumn:'1/-1' }}>Est. time <b style={{ color:'var(--clay-deep)' }}>{prodDocs.installation.estimated_hours}h</b> (~{prodDocs.installation.estimated_days} day(s), indicative)</span>
+              </div>
+              <div style={{ padding:'4px 12px', fontSize:11.5, borderTop:'1px solid var(--line)' }}>
+                <div style={{ fontWeight:600, color:'var(--ink)', margin:'4px 0 2px' }}>Appliances to connect</div>
+                {prodDocs.installation.appliances_to_connect.length ? prodDocs.installation.appliances_to_connect.map((a,ix)=><div key={ix} style={{ color:'var(--ink-soft)' }}>• {a.name} ×{a.qty}</div>) : <div style={{ color:'var(--muted)' }}>None flagged</div>}
+                <div style={{ fontWeight:600, color:'var(--ink)', margin:'6px 0 2px' }}>Handles & accessories to fit</div>
+                {prodDocs.installation.handles_accessories_fit.length ? prodDocs.installation.handles_accessories_fit.map((a,ix)=><div key={ix} style={{ color:'var(--ink-soft)' }}>• {a.name} ×{a.qty}</div>) : <div style={{ color:'var(--muted)' }}>None</div>}
+              </div>
+            </>)}
+          </div>
+        </div>
+
         <div style={{ background: triOK?'rgba(22,163,74,.08)':'rgba(217,119,6,.08)', borderRadius:10, padding:'9px 12px', fontSize:12.5, color: triOK?'#15803d':'#b45309', marginBottom:12 }}>
           Work triangle: {triOK?'within recommended guidelines ✓':'one or more legs out of range ⚠'} · total {triTotal.toFixed(1)}m
         </div>
