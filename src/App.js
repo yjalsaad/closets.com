@@ -1363,6 +1363,9 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
     const fmtVal = (cm) => curUnit === 'in'
       ? (Math.round((cm / 2.54) * 10) / 10) + ' in'
       : Math.round(cm) + ' cm';
+    // Coerce a possibly-missing dimension to a finite number (matches the geometry defaults
+    // below) so dimension labels never render "NaN cm".
+    const num = (v, d) => { const n = Number(v); return isFinite(n) ? n : d; };
     // A leader line (THREE.Line) with two short end ticks.
     function dimLine(ax, ay, az, bx, by, bz) {
       const g = new THREE.Group();
@@ -1385,17 +1388,17 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
         // WIDTH — along bottom front edge
         const wy = minY - off, wz = maxZ;
         dg.add(dimLine(minX, wy, wz, maxX, wy, wz));
-        const wl = makeLabel(isAB ? `W ${fmtVal((Number(st.sideACm)||0)+(Number(st.sideBCm)||0))}` : `W ${fmtVal(st.widthCm)}`);
+        const wl = makeLabel(isAB ? `W ${fmtVal((Number(st.sideACm)||0)+(Number(st.sideBCm)||0))}` : `W ${fmtVal(num(st.widthCm, 180))}`);
         wl.position.set((minX + maxX) / 2, wy - off * 0.5, wz); dg.add(wl);
         // HEIGHT — along left edge
         const hx = minX - off, hz = maxZ;
         dg.add(dimLine(hx, minY, hz, hx, maxY, hz));
-        const hl = makeLabel(`H ${fmtVal(st.heightCm)}`);
+        const hl = makeLabel(`H ${fmtVal(num(st.heightCm, 240))}`);
         hl.position.set(hx - off * 0.5, (minY + maxY) / 2, hz); dg.add(hl);
         // DEPTH — along one bottom corner (z axis)
         const dx = maxX + off * 0.6, dy = minY;
         dg.add(dimLine(dx, dy, minZ, dx, dy, maxZ));
-        const dl = makeLabel(`D ${fmtVal(st.depthCm)}`);
+        const dl = makeLabel(`D ${fmtVal(num(st.depthCm, 60))}`);
         dl.position.set(dx + off * 0.5, dy, (minZ + maxZ) / 2); dg.add(dl);
         // L-shape legs A / B
         if (isAB) {
