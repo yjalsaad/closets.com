@@ -2963,7 +2963,8 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
   const [selections, setSelections] = useState({});        // { [surface_key]: materialRow }
   const [activeSurface, setActiveSurface] = useState(null);// open panel surface_key (null = closed)
   const [panelOpen, setPanelOpen] = useState(false);
-  const [mode, setMode] = useState('3d');                  // '3d' (hero) | 'live' (masked photo, secondary)
+  const is3DCapable = (category === 'kitchen' || category === 'wardrobe'); // categories with a real 3D scene
+  const [mode, setMode] = useState(is3DCapable ? '3d' : 'live'); // 3D hero for kitchen/wardrobe; Photo for others
   const [pulseKey, setPulseKey] = useState(null);          // hotspot pulse for no-mask feedback
   const [hoverKey, setHoverKey] = useState(null);          // hotspot hover label
   // Photoreal render state (Approach B)
