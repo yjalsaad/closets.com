@@ -4986,7 +4986,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
     ['Kitchens', 'Modern, shaker & handleless', '/layouts/kitchen/island.jpg', 'kitchen'],
     ['Home office', 'Desks, storage & built-ins', '/layouts/office/l-shaped.jpg', 'office'],
     ['Doors', 'Swing, sliding, pivot & hidden', '/layouts/door/pivot.jpg', 'doors'],
-    ['TV & media units', 'Floating, full-wall & storage', '/layouts/tv/floating.jpg', 'tv'],
+    ['TV & media units', 'Floating, full-wall & storage', '/layouts/TV/floating.jpg', 'tv'],
   ];
   // e. Style quick-links.
   const styleLinks = [
@@ -6325,12 +6325,12 @@ const TV_ROOM_TYPES = [
 const TV_OPENING_TYPES = ['Door','Window','Column','AC unit','Electrical outlet'];
 // Layouts — each carries its modular composition + a 'feature' flag set.
 const TV_LAYOUTS = [
-  { id:'floating',  name:'Floating',        sub:'Floating base + wall panel', feats:['floating base','TV wall panel','optional LED','hidden cable mgmt'], img:'/layouts/tv/floating.jpg' },
-  { id:'fullwall',  name:'Full Wall',       sub:'Tall cabinets + display',    feats:['TV centre','tall cabinets','display shelves','closed storage','decorative panels'], img:'/layouts/tv/full-wall.jpg' },
-  { id:'shelves',   name:'Display Shelves', sub:'Open shelves + niches',      feats:['open shelves','display niches','LED','decorative panels'], img:'/layouts/tv/display-shelves.jpg' },
-  { id:'fireplace', name:'Fireplace',       sub:'Electric fire + cladding',   feats:['TV section','electric fireplace','stone / wood cladding','storage'], img:'/layouts/tv/fireplace.jpg' },
-  { id:'minimal',   name:'Minimal',         sub:'Panel + floating shelf',     feats:['wall panel','floating shelf','hidden wiring'], img:'/layouts/tv/minimal.jpg' },
-  { id:'storage',   name:'Storage Wall',    sub:'Bookcases + cabinets',       feats:['TV section','bookcases','cabinets','display areas'], img:'/layouts/tv/storage-wall.jpg' },
+  { id:'floating',  name:'Floating',        sub:'Floating base + wall panel', feats:['floating base','TV wall panel','optional LED','hidden cable mgmt'], img:'/layouts/TV/floating.jpg' },
+  { id:'fullwall',  name:'Full Wall',       sub:'Tall cabinets + display',    feats:['TV centre','tall cabinets','display shelves','closed storage','decorative panels'], img:'/layouts/TV/full-wall.jpg' },
+  { id:'shelves',   name:'Display Shelves', sub:'Open shelves + niches',      feats:['open shelves','display niches','LED','decorative panels'], img:'/layouts/TV/display-shelves.jpg' },
+  { id:'fireplace', name:'Fireplace',       sub:'Electric fire + cladding',   feats:['TV section','electric fireplace','stone / wood cladding','storage'], img:'/layouts/TV/fireplace.jpg' },
+  { id:'minimal',   name:'Minimal',         sub:'Panel + floating shelf',     feats:['wall panel','floating shelf','hidden wiring'], img:'/layouts/TV/minimal.jpg' },
+  { id:'storage',   name:'Storage Wall',    sub:'Bookcases + cabinets',       feats:['TV section','bookcases','cabinets','display areas'], img:'/layouts/TV/storage-wall.jpg' },
 ];
 // Modular blocks — id, label, base price BHD, the layouts they belong to.
 const TV_BLOCKS = [
@@ -10675,7 +10675,7 @@ function TVUnitPage({ setPage, products }) {
   const tvProducts = (products||[]).filter(p =>
     /tv|media|entertainment|living/i.test(p.category||'') ||
     /tv|media|entertainment/i.test(p.name||''));
-  const heroImg = (dbLayouts['fullwall'] && dbLayouts['fullwall'].hero_url) || '/layouts/tv/full-wall.jpg';
+  const heroImg = (dbLayouts['fullwall'] && dbLayouts['fullwall'].hero_url) || '/layouts/TV/full-wall.jpg';
   const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
   const FAQS = [
     [cms('tv.faq.q1','How much does a bespoke TV / media wall cost?'), cms('tv.faq.a1','A minimal panel-and-shelf setup starts from around BD 480, a floating media unit from BD 900, and a full floor-to-ceiling media wall with display, storage and lighting from BD 2,200+. Price is driven transparently by the metres of cabinetry, your finish and the extras — build a live estimate in the TV unit planner.')],
@@ -10701,7 +10701,7 @@ function TVUnitPage({ setPage, products }) {
         </div>
       </section>
 
-      {/* LAYOUT TYPES gallery — each uses its /layouts/tv/<id>.jpg photo */}
+      {/* LAYOUT TYPES gallery — each uses its /layouts/TV/<id>.jpg photo */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{cms('tv.layouts.eyebrow','TV & media layouts')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('tv.layouts.title','Find your media wall.')}</h2>
