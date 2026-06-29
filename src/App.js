@@ -2954,6 +2954,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
   const [loading, setLoading] = useState(true);
   const [loadErr, setLoadErr] = useState('');
   const [scene, setScene] = useState(null);
+  const [scenes, setScenes] = useState([]);                // all active scenes (for the switcher)
   const [surfaces, setSurfaces] = useState([]);            // scene_surfaces rows (ordered)
   const [materials, setMaterials] = useState([]);          // design_materials rows (ordered)
   const [selections, setSelections] = useState({});        // { [surface_key]: materialRow }
@@ -2972,14 +2973,16 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
     (async () => {
       setLoading(true); setLoadErr('');
       try {
-        const scenes = await api('design_scenes?active=is.true&deleted_at=is.null&order=sort.asc&limit=1');
-        const sc = Array.isArray(scenes) && scenes[0] ? scenes[0] : null;
+        const sceneList = await api('design_scenes?active=is.true&deleted_at=is.null&order=sort.asc');
+        const all = Array.isArray(sceneList) ? sceneList : [];
+        const sc = all[0] || null;
         if (!sc) { if (alive) { setLoadErr('No room scene is set up yet.'); setLoading(false); } return; }
         const [surf, mats] = await Promise.all([
           api('scene_surfaces?scene_id=eq.' + encodeURIComponent(sc.id) + '&deleted_at=is.null&order=sort.asc'),
           api('design_materials?active=is.true&deleted_at=is.null&order=sort.asc'),
         ]);
         if (!alive) return;
+        setScenes(all);
         setScene(sc);
         setSurfaces(Array.isArray(surf) ? surf : []);
         setMaterials(Array.isArray(mats) ? mats : []);
@@ -2990,6 +2993,16 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
     })();
     return () => { alive = false; };
   }, []);
+
+  // Switch to another room scene: reload its surfaces, reset the panel + selections.
+  const selectScene = useCallback(async (sc) => {
+    if (!sc || (scene && sc.id === scene.id)) return;
+    setScene(sc); setPanelOpen(false); setActiveSurface(null); setSelections({}); setPrUrl(null); setPrErr('');
+    try {
+      const surf = await api('scene_surfaces?scene_id=eq.' + encodeURIComponent(sc.id) + '&deleted_at=is.null&order=sort.asc');
+      setSurfaces(Array.isArray(surf) ? surf : []);
+    } catch (e) { setSurfaces([]); }
+  }, [scene]);
 
   const sceneShape = (scene && scene.shape_key) || sceneShapeFallback || 'island';
   const aspect = (scene && scene.img_w && scene.img_h) ? (scene.img_h / scene.img_w) : (602 / 1017);
@@ -3162,6 +3175,13 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
           <button type="button" aria-label="Close room designer" onClick={onClose} style={{ background:'none', border:'1px solid var(--line)', borderRadius:10, padding:'7px 12px', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--ink-soft)' }}>‹ Close</button>
           <span style={{ fontSize:15, fontWeight:800, color:'var(--ink)' }}>🎨 Room Designer</span>
+          {scenes.length > 1 && (
+            <select value={scene ? scene.id : ''} onChange={e=>{ const sc = scenes.find(s=>s.id===e.target.value); if (sc) selectScene(sc); }}
+              aria-label="Choose room layout"
+              style={{ marginLeft:6, padding:'7px 10px', borderRadius:10, border:'1px solid var(--line)', background:'var(--cream)', color:'var(--ink)', fontSize:13, fontWeight:600, cursor:'pointer' }}>
+              {scenes.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          )}
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
           {/* Live / 3D toggle (Approach C) */}
