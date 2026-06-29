@@ -2953,7 +2953,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
      B) photoreal render via the existing render_photoreal edge function
      C) interactive 3D via <KitchenScene3D/>
    Reads design_scenes / scene_surfaces / design_materials over REST. */
-function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, onGoToSummary, photorealReq, indicativeTotal, category = 'kitchen' }) {
+function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, onGoToSummary, photorealReq, indicativeTotal, category = 'kitchen', dimensions = null, layoutParams = {} }) {
   const [loading, setLoading] = useState(true);
   const [loadErr, setLoadErr] = useState('');
   const [scene, setScene] = useState(null);
@@ -3185,7 +3185,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
                 scaleMode="fit"
               />
             ) : (
-              <KitchenScene3D materials={selectionsAsMaterials} shape={sceneShape} activeSurface={activeSurface} onPickSurface={(key)=>openPanelFor(key)} height={mobile ? 360 : 560} />
+              <KitchenScene3D materials={selectionsAsMaterials} shape={sceneShape} activeSurface={activeSurface} onPickSurface={(key)=>openPanelFor(key)} height={mobile ? 360 : 560} dimensions={dimensions} layoutParams={layoutParams} />
             )}
           </div>
         ) : (
@@ -9511,6 +9511,8 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
           onGoToSummary={() => { setStudioRoomDesignerOpen(false); setStep(STEPS.length-1); }}
           photorealReq={{ product: 'kitchen', finish: undefined, getImage: () => null }}
           indicativeTotal={grandTotal}
+          dimensions={{ lengthMm: dims.length, widthMm: dims.width, ceilingMm: dims.ceiling }}
+          layoutParams={lp}
         />
       ) : null}
     </div>

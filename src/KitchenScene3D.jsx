@@ -47,6 +47,10 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
  *   activeSurface : string  - surface key to subtly highlight (emissive pulse).
  *   onPickSurface : fn(surfaceKey) - called on click with the picked mesh's surface key.
  *   height      : number (default 460)
+ *   dimensions  : { lengthMm, widthMm, ceilingMm } - real room size (mm). Optional;
+ *                 when omitted the legacy 7x7x3.2m box is used (backward compatible).
+ *   layoutParams: { wallLen, wallA, wallB, galleyGap, uA, uB, uC, islandW, islandD,
+ *                   penW, penD } - run lengths (mm) used per `shape` to size cabinet rows.
  *
  * Surface keys (used by onPickSurface & materials): one of
  *   'cabinet' | 'worktop' | 'splashback' | 'wall' | 'floor' | 'handle' | 'appliance'
@@ -63,12 +67,33 @@ const DEFAULTS = {
   appliance: { hex: '#b9bcc0', rough: 0.38, metal: 0.6, clearcoat: 0.2, clearcoatRough: 0.25 },
 };
 
+// ---- Dimension helpers (module scope; no React. globals) -------------------
+// Safe number coercion: NaN / non-finite / non-positive falls back.
+function num(v, fallback) {
+  const n = typeof v === 'number' ? v : parseFloat(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+function clampNum(v, lo, hi, fallback) {
+  const n = num(v, fallback);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(hi, Math.max(lo, n));
+}
+// mm -> metres, guarded so geometry is never zero/negative.
+function mmToM(v, fallbackMm) {
+  const n = num(v, fallbackMm);
+  const m = n / 1000;
+  const fb = fallbackMm / 1000;
+  return Number.isFinite(m) && m > 0 ? m : fb;
+}
+
 export default function KitchenScene3D({
   materials = {},
   shape = 'l-shape',
   activeSurface = null,
   onPickSurface = null,
   height = 460,
+  dimensions = null,
+  layoutParams = null,
 }) {
   const mountRef = useRef(null);
   const sceneRef = useRef(null);
@@ -87,6 +112,10 @@ export default function KitchenScene3D({
   activeRef.current = activeSurface;
   pickRef.current = onPickSurface;
 
+  // Stable JSON signatures so the build effect only re-runs on real changes.
+  const dimsSig = JSON.stringify(dimensions || {});
+  const lpSig = JSON.stringify(layoutParams || {});
+
   // ---- One-time scene construction ------------------------------------------
   useEffect(() => {
     const mount = mountRef.current;
@@ -95,14 +124,41 @@ export default function KitchenScene3D({
     const width = mount.clientWidth || 640;
     const h = height;
 
+    // ---- Resolve REAL room dimensions (mm -> metres, clamped) --------------
+    // Backward compatible: when `dimensions` is absent we keep the legacy 7x7x3.2.
+    const dim = dimensions || {};
+    const DEFAULT_LEN_MM = 4000;
+    const DEFAULT_WID_MM = 4000;
+    const DEFAULT_CEIL_MM = 2700;
+    const hasDims = dimensions && (dim.lengthMm != null || dim.widthMm != null || dim.ceilingMm != null);
+    const roomLenMm = clampNum(dim.lengthMm, 1500, 8000, DEFAULT_LEN_MM);
+    const roomWidMm = clampNum(dim.widthMm, 1500, 8000, DEFAULT_WID_MM);
+    const ceilMm = clampNum(dim.ceilingMm, 2200, 3600, DEFAULT_CEIL_MM);
+    // Legacy box vs real box. ROOM_X spans the back wall (length), ROOM_Z the side (width).
+    const ROOM_X = hasDims ? mmToM(roomLenMm, DEFAULT_LEN_MM) : 7;
+    const ROOM_Z = hasDims ? mmToM(roomWidMm, DEFAULT_WID_MM) : 7;
+    const WALL_H = hasDims ? mmToM(ceilMm, DEFAULT_CEIL_MM) : 3.2;
+    // Layout run lengths (mm), guarded; default to room extents.
+    const lp = layoutParams || {};
+    const roomDiag = Math.hypot(ROOM_X, ROOM_Z, WALL_H);
+
     // ---- Scene + soft warm off-white background ----------------------------
     const scene = new Scene();
     scene.background = new Color('#f4f1ea');
     sceneRef.current = scene;
 
-    const camera = new PerspectiveCamera(42, width / h, 0.1, 100);
-    // Flattering 3/4 angle.
-    camera.position.set(4.6, 3.1, 5.6);
+    const camera = new PerspectiveCamera(42, width / h, 0.1, 200);
+    // Frame the camera to fit the room: distance scales with room size so a big
+    // room zooms out and a small one zooms in. Guarded against NaN/0.
+    const fitDist = Math.max(4.5, (Number.isFinite(roomDiag) ? roomDiag : 12) * 0.92);
+    const camX = ROOM_X * 0.34 + fitDist * 0.34;
+    const camY = Math.max(2.4, WALL_H * 0.92);
+    const camZ = ROOM_Z * 0.42 + fitDist * 0.58;
+    camera.position.set(
+      Number.isFinite(camX) ? camX : 4.6,
+      Number.isFinite(camY) ? camY : 3.1,
+      Number.isFinite(camZ) ? camZ : 5.6
+    );
     cameraRef.current = camera;
 
     // ---- Renderer (physically-based, tone-mapped, soft shadows) ------------
@@ -249,23 +305,24 @@ export default function KitchenScene3D({
       }
     };
 
-    // ---- Room dimensions ----------------------------------------------------
-    const ROOM = 7; // floor side length
-    const WALL_H = 3.2;
-
-    // Floor (large plane, receives shadows).
-    const floor = addMesh(new PlaneGeometry(ROOM, ROOM), 'floor', { cast: false });
+    // ---- Room shell (built to real L x W x H) ------------------------------
+    // ROOM_X = back-wall span (length), ROOM_Z = side-wall span (width).
+    // Floor (plane, receives shadows).
+    const floor = addMesh(new PlaneGeometry(ROOM_X, ROOM_Z), 'floor', { cast: false });
     floor.rotation.x = -Math.PI / 2;
-    // Wood/tile texture should repeat if a map is applied.
-    surfaceMatsRef.current.floor.userData.repeat = [4, 4];
+    // Repeat the floor texture ~1 tile / metre so big rooms aren't a smear.
+    surfaceMatsRef.current.floor.userData.repeat = [
+      Math.max(2, Math.round(ROOM_X)),
+      Math.max(2, Math.round(ROOM_Z)),
+    ];
 
-    // Back wall (along -Z) and Left wall (along -X)
-    const backWall = addMesh(new PlaneGeometry(ROOM, WALL_H), 'wall', { cast: false });
-    backWall.position.set(0, WALL_H / 2, -ROOM / 2);
+    // Back wall (faces +Z, along -Z plane) and Left wall (faces +X, along -X plane).
+    const backWall = addMesh(new PlaneGeometry(ROOM_X, WALL_H), 'wall', { cast: false });
+    backWall.position.set(0, WALL_H / 2, -ROOM_Z / 2);
 
-    const leftWall = addMesh(new PlaneGeometry(ROOM, WALL_H), 'wall', { cast: false });
+    const leftWall = addMesh(new PlaneGeometry(ROOM_Z, WALL_H), 'wall', { cast: false });
     leftWall.rotation.y = Math.PI / 2;
-    leftWall.position.set(-ROOM / 2, WALL_H / 2, 0);
+    leftWall.position.set(-ROOM_X / 2, WALL_H / 2, 0);
 
     // ---- Cabinet run constants (real-world scale, metres) ------------------
     const BASE_H = 0.9;     // worktop sits at ~0.9 m
@@ -397,71 +454,115 @@ export default function KitchenScene3D({
       hob.position.set(x, BASE_H + TOP_T + 0.006, z);
     }
 
-    // ---- Layout per shape ---------------------------------------------------
-    const wallZ = -ROOM / 2; // back wall plane
-    const wallX = -ROOM / 2; // left wall plane
-    const RUN_LEN = 4.0;
+    // ---- Layout per shape (built to REAL run lengths) -----------------------
+    // Wall planes from the resolved room. Back wall on -Z, left/right on +/-X.
+    const wallZ = -ROOM_Z / 2;          // back wall plane (runs along X here)
+    const wallX = -ROOM_X / 2;          // left wall plane (runs along Z here)
+    const rightZWall = ROOM_Z / 2;      // opposite (front) wall, for galley/u-shape
+    const rightXWall = ROOM_X / 2;      // opposite side wall
 
-    const buildIsland = (z = 1.4, thick = 0.07) => {
-      const islBase = addMesh(roundedBox(2.2, BASE_H - TOE, 1.0, 0.02), 'cabinet');
+    // Run length helpers: convert a layoutParam mm value to metres, fall back to
+    // the room extent, and cap to the wall it sits on so it never exceeds the room.
+    const capX = ROOM_X - 0.05;         // max along the back wall
+    const capZ = ROOM_Z - 0.05;         // max along a side wall
+    const runX = (mm) => clampNum(mmToM(mm, roomLenMm) * 1000, 600, capX * 1000, capX * 1000) / 1000;
+    const runZ = (mm) => clampNum(mmToM(mm, roomWidMm) * 1000, 600, capZ * 1000, capZ * 1000) / 1000;
+
+    // Centre a side-wall run so it starts at the back wall and grows toward the room.
+    const sideCenterFromBack = (len) => wallZ + BASE_D / 2 + len / 2;
+
+    const buildIsland = (z, islWm, islDm, thick = 0.08) => {
+      const w = clampNum(islWm * 1000, 600, (ROOM_X - 0.8) * 1000, 2200) / 1000;
+      const d = clampNum(islDm * 1000, 400, (ROOM_Z - 1.4) * 1000, 1000) / 1000;
+      const islBase = addMesh(roundedBox(w, BASE_H - TOE, d, 0.02), 'cabinet');
       islBase.position.set(0, TOE + (BASE_H - TOE) / 2, z);
-      const islPlinth = addMesh(new BoxGeometry(2.1, TOE, 0.88), 'appliance', { cast: false });
+      const islPlinth = addMesh(new BoxGeometry(Math.max(0.2, w - 0.1), TOE, Math.max(0.2, d - 0.12)), 'appliance', { cast: false });
       islPlinth.position.set(0, TOE / 2, z);
-      // thicker worktop slab on the island
-      const islTop = addMesh(roundedBox(2.34, thick, 1.12, 0.012), 'worktop');
+      // thicker worktop slab on the island (overhangs)
+      const islTop = addMesh(roundedBox(w + 0.14, thick, d + 0.12, 0.012), 'worktop');
       islTop.position.set(0, BASE_H + thick / 2, z);
       // a couple of island handles
       for (let i = 0; i < 2; i += 1) {
-        const hx = i === 0 ? -0.6 : 0.6;
+        const hx = i === 0 ? -w * 0.27 : w * 0.27;
         const hh = new CylinderGeometry(0.01, 0.01, 0.16, 12);
         const handle = addMesh(hh, 'handle');
         handle.rotation.z = Math.PI / 2;
-        handle.position.set(hx, BASE_H - 0.16, z + 0.51);
+        handle.position.set(hx, BASE_H - 0.16, z + d / 2 + 0.01);
       }
+    };
+
+    const buildPeninsula = (penWm, penDm) => {
+      // A block projecting into the room from the back run (no uppers).
+      const w = clampNum(penWm * 1000, 600, (ROOM_X - 0.6) * 1000, 1800) / 1000; // depth into room
+      const d = clampNum(penDm * 1000, 400, (ROOM_Z - 1.0) * 1000, 600) / 1000;  // breadth
+      const x = -ROOM_X / 4;                       // offset toward the left third
+      const startZ = wallZ + BASE_D;               // begins just off the back run
+      const centerZ = startZ + w / 2;
+      const body = addMesh(rotateGeoY(roundedBox(w, BASE_H - TOE, d, 0.015)), 'cabinet');
+      body.position.set(x, TOE + (BASE_H - TOE) / 2, centerZ);
+      const plinth = addMesh(new BoxGeometry(Math.max(0.2, d - 0.12), TOE, Math.max(0.2, w - 0.04)), 'appliance', { cast: false });
+      plinth.position.set(x, TOE / 2, centerZ);
+      const top = addMesh(rotateGeoY(roundedBox(w + 0.04, TOP_T, d + 0.08, 0.01)), 'worktop');
+      top.position.set(x, BASE_H + TOP_T / 2, centerZ);
     };
 
     const layouts = {
       straight: () => {
-        buildRun({ axis: 'x', length: RUN_LEN, center: 0, wallPos: wallZ });
-        addAppliance(0.8, 1.85, 0.62, { x: 1.6, y: 0.925, z: wallZ + 0.31 }); // fridge
-        addAppliance(0.62, 0.85, 0.6, { x: -1.4, y: 0.95, z: wallZ + 0.31 }); // oven
+        const L = runX(lp.wallLen);
+        buildRun({ axis: 'x', length: L, center: 0, wallPos: wallZ });
+        addAppliance(0.8, 1.85, 0.62, { x: Math.min(L / 2 - 0.4, ROOM_X / 2 - 0.4), y: 0.925, z: wallZ + 0.31 }); // fridge
+        addAppliance(0.62, 0.85, 0.6, { x: -Math.min(L / 2 - 0.4, ROOM_X / 2 - 0.4), y: 0.95, z: wallZ + 0.31 }); // oven
         addHob(0.2, wallZ + 0.31);
       },
+      single: () => { layouts.straight(); },
       'l-shape': () => {
-        buildRun({ axis: 'x', length: RUN_LEN, center: 0, wallPos: wallZ });
-        buildRun({ axis: 'z', length: 3.0, center: 1.0, wallPos: wallX, withSplash: true });
-        addAppliance(0.62, 0.85, 0.6, { x: -0.8, y: 0.95, z: wallZ + 0.31 }); // oven
-        addHood(-0.8, wallZ);
-        addHob(0.7, wallZ + 0.31);
-        addAppliance(0.8, 1.85, 0.62, { x: wallX + 0.31, y: 0.925, z: 2.2 }); // fridge
+        const A = runX(lp.wallA);                 // back run
+        const B = runZ(lp.wallB);                 // left-wall run
+        buildRun({ axis: 'x', length: A, center: 0, wallPos: wallZ });
+        buildRun({ axis: 'z', length: B, center: sideCenterFromBack(B), wallPos: wallX, withSplash: true });
+        addAppliance(0.62, 0.85, 0.6, { x: -Math.min(A / 2 - 0.4, 0.8), y: 0.95, z: wallZ + 0.31 }); // oven
+        addHood(-Math.min(A / 2 - 0.4, 0.8), wallZ);
+        addHob(Math.min(A / 4, 0.7), wallZ + 0.31);
+        addAppliance(0.8, 1.85, 0.62, { x: wallX + 0.31, y: 0.925, z: sideCenterFromBack(B) + B / 2 - 0.5 }); // fridge
       },
       galley: () => {
-        buildRun({ axis: 'x', length: RUN_LEN, center: 0, wallPos: wallZ });
-        buildRun({ axis: 'x', length: RUN_LEN, center: 0, wallPos: ROOM / 2 - BASE_D, withUpper: false });
-        addAppliance(0.62, 0.85, 0.6, { x: 0, y: 0.95, z: wallZ + 0.31 });
-        addHood(0, wallZ);
-        addHob(0, wallZ + 0.31);
+        const L = runX(lp.wallLen);
+        // Gap between the two opposing runs, clamped to room width.
+        const gapM = clampNum(mmToM(lp.galleyGap, 1400) * 1000, 900, Math.max(900, (roomWidMm - 1200)), 1400) / 1000;
+        const halfGap = gapM / 2;
+        buildRun({ axis: 'x', length: L, center: 0, wallPos: -halfGap - BASE_D });
+        buildRun({ axis: 'x', length: L, center: 0, wallPos: halfGap, withUpper: false });
+        addAppliance(0.62, 0.85, 0.6, { x: 0, y: 0.95, z: -halfGap - BASE_D + 0.31 });
+        addHood(0, -halfGap - BASE_D);
+        addHob(0, -halfGap - BASE_D + 0.31);
       },
       'u-shape': () => {
-        buildRun({ axis: 'x', length: RUN_LEN, center: 0, wallPos: wallZ });
-        buildRun({ axis: 'z', length: 3.0, center: 1.0, wallPos: wallX });
-        buildRun({ axis: 'z', length: 3.0, center: 1.0, wallPos: ROOM / 2 - BASE_D, withUpper: false });
+        const A = runX(lp.uA);                    // back
+        const B = runZ(lp.uB);                    // left
+        const C = runZ(lp.uC);                    // right
+        buildRun({ axis: 'x', length: A, center: 0, wallPos: wallZ });
+        buildRun({ axis: 'z', length: B, center: sideCenterFromBack(B), wallPos: wallX });
+        buildRun({ axis: 'z', length: C, center: sideCenterFromBack(C), wallPos: rightXWall - BASE_D, withUpper: false });
         addAppliance(0.62, 0.85, 0.6, { x: 0, y: 0.95, z: wallZ + 0.31 });
         addHood(0, wallZ);
-        addHob(0.8, wallZ + 0.31);
+        addHob(Math.min(A / 4, 0.8), wallZ + 0.31);
       },
       island: () => {
-        buildRun({ axis: 'x', length: RUN_LEN, center: 0, wallPos: wallZ });
-        buildIsland(1.4, 0.08);
-        addAppliance(0.62, 0.85, 0.6, { x: -1.4, y: 0.95, z: wallZ + 0.31 });
+        const L = runX(lp.wallLen);
+        buildRun({ axis: 'x', length: L, center: 0, wallPos: wallZ });
+        const islWm = mmToM(lp.islandW, 2400);
+        const islDm = mmToM(lp.islandD, 1000);
+        const islZ = Math.min(ROOM_Z / 2 - islDm / 2 - 0.4, wallZ + BASE_D + 1.0 + islDm / 2);
+        buildIsland(Number.isFinite(islZ) ? islZ : 1.4, islWm, islDm, 0.08);
+        addAppliance(0.62, 0.85, 0.6, { x: -Math.min(L / 2 - 0.4, 1.4), y: 0.95, z: wallZ + 0.31 });
         addHood(0, wallZ);
-        addHob(0, 1.4); // hob inset into the island
+        addHob(0, Number.isFinite(islZ) ? islZ : 1.4); // hob inset into the island
       },
       peninsula: () => {
-        // back run + an attached peninsula run extending out into the room.
-        buildRun({ axis: 'x', length: RUN_LEN, center: 0, wallPos: wallZ });
-        buildRun({ axis: 'z', length: 2.6, center: 1.3, wallPos: -0.31, withUpper: false, withSplash: false });
-        addAppliance(0.62, 0.85, 0.6, { x: -1.4, y: 0.95, z: wallZ + 0.31 });
+        const L = runX(lp.wallLen);
+        buildRun({ axis: 'x', length: L, center: 0, wallPos: wallZ });
+        buildPeninsula(mmToM(lp.penW, 1800), mmToM(lp.penD, 600));
+        addAppliance(0.62, 0.85, 0.6, { x: Math.min(L / 2 - 0.4, 1.4), y: 0.95, z: wallZ + 0.31 });
         addHood(0, wallZ);
         addHob(0, wallZ + 0.31);
       },
@@ -476,14 +577,14 @@ export default function KitchenScene3D({
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.minDistance = 3.4;
-    controls.maxDistance = 12;
+    controls.minDistance = Math.max(2.4, fitDist * 0.45);
+    controls.maxDistance = Math.max(12, fitDist * 2.0);
     controls.maxPolarAngle = Math.PI / 2.05; // never under the floor
     controls.minPolarAngle = 0.25;
     controls.enablePan = false; // keep camera centred on room
     controls.autoRotate = false; // gentle auto-rotate optional-off
     controls.autoRotateSpeed = 0.6;
-    controls.target.set(0, 0.95, 0.4); // around counter height
+    controls.target.set(0, 0.95, Math.min(0.4, ROOM_Z * 0.06)); // around counter height
     controls.update();
     controlsRef.current = controls;
 
@@ -568,7 +669,7 @@ export default function KitchenScene3D({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shape, height]);
+  }, [shape, height, dimsSig, lpSig]);
 
   // ---- Live material updates (no scene rebuild) -----------------------------
   useEffect(() => {
