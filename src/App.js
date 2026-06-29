@@ -6126,7 +6126,7 @@ function TVUnitPlannerWizard({ setPage, user, openAuth }) {
   const cabOverWall = lp.cabLen > dims.wallW;
 
   // ── styles (mirror kitchen wizard) ──
-  const HEADER = mobile?72:56, BAR=52;
+  const HEADER = mobile?72:104, BAR=52;
   const inS = { width:'100%', padding:'9px 11px', border:'1px solid var(--line)', background:'#fff', borderRadius:10, fontSize:14, fontFamily:'inherit', color:'var(--ink)', boxSizing:'border-box' };
   const card = (on) => ({ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'11px 13px', cursor:'pointer', fontFamily:'inherit' });
   const labelS = { fontSize:11.5, fontWeight:600, color:'var(--ink-soft)', marginBottom:4, display:'block' };
@@ -6601,7 +6601,7 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
   const deskOverWall = desk.length > dims.wallW;
 
   // ── styles (mirror TV wizard) ──
-  const HEADER = mobile?72:56, BAR=52;
+  const HEADER = mobile?72:104, BAR=52;
   const inS = { width:'100%', padding:'9px 11px', border:'1px solid var(--line)', background:'#fff', borderRadius:10, fontSize:14, fontFamily:'inherit', color:'var(--ink)', boxSizing:'border-box' };
   const card = (on) => ({ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'11px 13px', cursor:'pointer', fontFamily:'inherit' });
   const labelS = { fontSize:11.5, fontWeight:600, color:'var(--ink-soft)', marginBottom:4, display:'block' };
@@ -7226,7 +7226,7 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
   })();
 
   // ── styles (mirrors the kitchen / door wizards) ──
-  const HEADER = mobile?72:56, BAR=52;
+  const HEADER = mobile?72:104, BAR=52;
   const inS = { width:'100%', padding:'9px 11px', border:'1px solid var(--line)', background:'#fff', borderRadius:10, fontSize:14, fontFamily:'inherit', color:'var(--ink)', boxSizing:'border-box' };
   const card = (on) => ({ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'11px 13px', cursor:'pointer', fontFamily:'inherit' });
   const labelS = { fontSize:11.5, fontWeight:600, color:'var(--ink-soft)', marginBottom:4, display:'block' };
@@ -7790,7 +7790,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
   const grandTotal = leafTotal + frameTotal + finishTotal + glassTotal + hardwareTotal + accTotal;
 
   // ── styles (mirror kitchen / tv wizards) ──
-  const HEADER = mobile?72:56, BAR=52;
+  const HEADER = mobile?72:104, BAR=52;
   const inS = { width:'100%', padding:'9px 11px', border:'1px solid var(--line)', background:'#fff', borderRadius:10, fontSize:14, fontFamily:'inherit', color:'var(--ink)', boxSizing:'border-box' };
   const card = (on) => ({ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'11px 13px', cursor:'pointer', fontFamily:'inherit' });
   const labelS = { fontSize:11.5, fontWeight:600, color:'var(--ink-soft)', marginBottom:4, display:'block' };
@@ -8379,7 +8379,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
   })();
 
   // ── styles ──
-  const HEADER = mobile?72:56, BAR=52;
+  const HEADER = mobile?72:104, BAR=52;
   const inS = { width:'100%', padding:'9px 11px', border:'1px solid var(--line)', background:'#fff', borderRadius:10, fontSize:14, fontFamily:'inherit', color:'var(--ink)', boxSizing:'border-box' };
   const card = (on) => ({ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'11px 13px', cursor:'pointer', fontFamily:'inherit' });
   const labelS = { fontSize:11.5, fontWeight:600, color:'var(--ink-soft)', marginBottom:4, display:'block' };
