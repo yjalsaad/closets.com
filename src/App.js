@@ -5979,13 +5979,16 @@ function TVUnitPlannerWizard({ setPage, user, openAuth }) {
           <button type="button" onClick={()=>setOpenings(os=>[...os,{ id:uid(), type:'Electrical outlet', pos:1900, width:150 }])} style={{ border:'1px dashed var(--line)', borderRadius:11, padding:'10px', background:'var(--sand)', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--clay-deep)' }}>+ Add opening / constraint</button>
         </div></>);
       case 3: return (<>{sectionH('4','Layout','Pick a configuration — then tune its parameters and modular blocks.')}
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr 1fr', gap:9, marginBottom:14 }}>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?14:18, marginBottom:18 }}>
           {tvLayoutsView.map(l=>{ const on=layout===l.id; return (
-            <button key={l.id} type="button" onClick={()=>pickLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden' }}>
-              <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?120:140, objectFit:'cover', borderTopLeftRadius:12, borderTopRightRadius:12 }} />
-              <div style={{ padding:'9px 10px' }}>
-                <div style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{l.name}</div>
-                <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>{l.sub}</div>
+            <button key={l.id} type="button" onClick={()=>pickLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:16, boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
+              <div style={{ position:'relative', width:'100%', background:'var(--cream,#f7f2ec)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
+                <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height:'auto' }} />
+                {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:999, letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
+              </div>
+              <div style={{ padding: mobile?'13px 15px':'15px 17px', borderTop:'1px solid var(--line)' }}>
+                <div style={{ fontSize: mobile?16:17, fontWeight:700, color:on?'var(--clay-deep)':'var(--ink)', lineHeight:1.22 }}>{l.name}</div>
+                <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{l.sub}</div>
               </div>
             </button>); })}
         </div>
@@ -6443,13 +6446,16 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
           <button type="button" onClick={()=>setOpenings(os=>[...os,{ id:uid(), type:'Electrical outlet', pos:1900, width:150 }])} style={{ border:'1px dashed var(--line)', borderRadius:11, padding:'10px', background:'var(--sand)', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--clay-deep)' }}>+ Add opening / constraint</button>
         </div></>);
       case 3: return (<>{sectionH('4','Layout','Pick a configuration — then tune its modular blocks below.')}
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr 1fr', gap:9, marginBottom:14 }}>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?14:18, marginBottom:18 }}>
           {officeLayoutsView.map(l=>{ const on=layout===l.id; return (
-            <button key={l.id} type="button" onClick={()=>pickLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden' }}>
-              <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?120:140, objectFit:'cover', borderTopLeftRadius:12, borderTopRightRadius:12 }} />
-              <div style={{ padding:'9px 10px' }}>
-                <div style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{l.name}</div>
-                <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>{l.sub}</div>
+            <button key={l.id} type="button" onClick={()=>pickLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:16, boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
+              <div style={{ position:'relative', width:'100%', background:'var(--cream,#f7f2ec)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
+                <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height:'auto' }} />
+                {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:999, letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
+              </div>
+              <div style={{ padding: mobile?'13px 15px':'15px 17px', borderTop:'1px solid var(--line)' }}>
+                <div style={{ fontSize: mobile?16:17, fontWeight:700, color:on?'var(--clay-deep)':'var(--ink)', lineHeight:1.22 }}>{l.name}</div>
+                <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{l.sub}</div>
               </div>
             </button>); })}
         </div>
@@ -7639,14 +7645,17 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
             </button>))}
         </div>
         <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>Door type</div>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr', gap:10 }}>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?14:18 }}>
           {doorTypesView.map(t=>{ const on=doorType===t.id; return (
-            <button key={t.id} type="button" onClick={()=>setDoorType(t.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left' }}>
-              <img src={t.img} alt={t.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?120:150, objectFit:'cover', borderTopLeftRadius:12, borderTopRightRadius:12 }} />
-              <div style={{ padding:'10px 12px' }}>
-                <div style={{ fontSize:14, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{t.name}</div>
-                <div style={{ fontSize:11, color:'var(--muted)' }}>{t.sub}</div>
-                <div style={{ fontSize:11, color:'var(--ink-soft)', marginTop:6 }}>{t.desc || t.note}</div>
+            <button key={t.id} type="button" onClick={()=>setDoorType(t.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:16, boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
+              <div style={{ position:'relative', width:'100%', background:'var(--cream,#f7f2ec)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
+                <img src={t.img} alt={t.name} loading="lazy" style={{ display:'block', width:'100%', height:'auto' }} />
+                {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:999, letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
+              </div>
+              <div style={{ padding: mobile?'13px 15px':'15px 17px', borderTop:'1px solid var(--line)' }}>
+                <div style={{ fontSize: mobile?16:17, fontWeight:700, color:on?'var(--clay-deep)':'var(--ink)', lineHeight:1.22 }}>{t.name}</div>
+                <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{t.sub}</div>
+                <div style={{ fontSize:12, color:'var(--ink-soft)', marginTop:7 }}>{t.desc || t.note}</div>
               </div>
             </button>); })}
         </div></>);
@@ -8159,13 +8168,16 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
           <button type="button" onClick={()=>setOpenings(os=>[...os,{ id:uid(), type:'Window', pos:1500, width:1000 }])} style={{ border:'1px dashed var(--line)', borderRadius:11, padding:'10px', background:'var(--sand)', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--clay-deep)' }}>+ Add opening</button>
         </div></>);
       case 3: return (<>{sectionH('4','Select layout','Pick a configuration — then set its parameters below.')}
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr 1fr', gap:9, marginBottom:14 }}>
+        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?14:18, marginBottom:18 }}>
           {kwLayoutsView.map(l=>{ const on=layout===l.id; return (
-            <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden' }}>
-              <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?120:140, objectFit:'cover', borderTopLeftRadius:12, borderTopRightRadius:12 }} />
-              <div style={{ padding:'9px 10px' }}>
-                <div style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{l.name}</div>
-                <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>{l.sub}</div>
+            <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:16, boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
+              <div style={{ position:'relative', width:'100%', background:'var(--cream,#f7f2ec)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
+                <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height:'auto' }} />
+                {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:999, letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
+              </div>
+              <div style={{ padding: mobile?'13px 15px':'15px 17px', borderTop:'1px solid var(--line)' }}>
+                <div style={{ fontSize: mobile?16:17, fontWeight:700, color:on?'var(--clay-deep)':'var(--ink)', lineHeight:1.22 }}>{l.name}</div>
+                <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{l.sub}</div>
               </div>
             </button>); })}
         </div>
