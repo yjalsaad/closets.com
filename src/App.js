@@ -8263,6 +8263,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
   const [acc, setAcc] = useState({ handles:1, lighting:1 });
   // preview
   const [view3d, setView3d] = useState(false);
+  const [studioRoomDesignerOpen, setStudioRoomDesignerOpen] = useState(false);
   const [showPrev, setShowPrev] = useState(!mobile);
   const [busy, setBusy] = useState(false);
   const [showQuote, setShowQuote] = useState(false);
@@ -8478,6 +8479,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
       <div style={{ display:'flex', gap:6 }}>
         <button type="button" onClick={()=>setView3d(false)} style={{ flex:1, padding:'6px', borderRadius:9, fontSize:12, fontWeight:600, cursor:'pointer', border:'none', background:!view3d?'var(--clay)':'var(--sand)', color:!view3d?'#fff':'var(--ink-soft)' }}>2D plan</button>
         <button type="button" onClick={()=>setView3d(true)} style={{ flex:1, padding:'6px', borderRadius:9, fontSize:12, fontWeight:600, cursor:'pointer', border:'none', background:view3d?'var(--clay)':'var(--sand)', color:view3d?'#fff':'var(--ink-soft)' }}>3D view</button>
+        <button type="button" onClick={()=>setStudioRoomDesignerOpen(true)} style={{ flex:'1.4 1 0', padding:'6px', borderRadius:9, fontSize:12, fontWeight:700, cursor:'pointer', border:'none', background:'var(--clay)', color:'#fff', whiteSpace:'nowrap' }}>🎨 Open Room Designer</button>
       </div>
       <div style={{ background:'var(--sand)', borderRadius:12, overflow:'hidden', flex:1, minHeight:0 }}>
         {view3d
@@ -8718,6 +8720,19 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
           </div>
         </div>
       )}
+
+      {/* Room Designer overlay (renders its own full-screen fixed layer) */}
+      {studioRoomDesignerOpen ? (
+        <RoomDesigner
+          mobile={mobile}
+          sceneShapeFallback={layout}
+          onClose={() => setStudioRoomDesignerOpen(false)}
+          onReflectMaterial={undefined}
+          onGoToSummary={() => { setStudioRoomDesignerOpen(false); setStep(STEPS.length-1); }}
+          photorealReq={{ product: 'kitchen', finish: undefined, getImage: () => null }}
+          indicativeTotal={grandTotal}
+        />
+      ) : null}
     </div>
   );
 }
