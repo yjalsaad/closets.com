@@ -68,6 +68,34 @@ const DEFAULTS = {
   appliance: { hex: '#b9bcc0', rough: 0.38, metal: 0.6, clearcoat: 0.2, clearcoatRough: 0.25 },
 };
 
+// Appliance types we know how to place in a run. Unknown types are ignored.
+const KNOWN_APPLIANCES = ['oven', 'hob', 'hood', 'fridge', 'sink', 'dishwasher'];
+// Sensible standard set used when no appliances prop is supplied (and as the
+// fallback the BOM mirrors so the 3D and the production docs agree).
+const DEFAULT_APPLIANCES = [
+  { type: 'oven' },
+  { type: 'hob' },
+  { type: 'hood' },
+  { type: 'fridge' },
+  { type: 'sink' },
+  { type: 'dishwasher' },
+];
+
+// Normalise an appliances prop into a de-duped Set of known type strings.
+// Accepts [{type:'oven'}], ['oven'], or a mix; ignores unknown / falsy entries.
+function normalizeApplianceSet(list) {
+  const src = Array.isArray(list) && list.length ? list : DEFAULT_APPLIANCES;
+  const set = new Set();
+  src.forEach((a) => {
+    const t = typeof a === 'string' ? a : a && a.type;
+    if (typeof t === 'string') {
+      const key = t.trim().toLowerCase();
+      if (KNOWN_APPLIANCES.indexOf(key) !== -1) set.add(key);
+    }
+  });
+  return set;
+}
+
 // ---- Dimension helpers (module scope; no React. globals) -------------------
 // Safe number coercion: NaN / non-finite / non-positive falls back.
 function num(v, fallback) {
@@ -95,6 +123,7 @@ export default function KitchenScene3D({
   height = 460,
   dimensions = null,
   layoutParams = null,
+  appliances = null,
 }) {
   const mountRef = useRef(null);
   const sceneRef = useRef(null);
@@ -116,6 +145,9 @@ export default function KitchenScene3D({
   // Stable JSON signatures so the build effect only re-runs on real changes.
   const dimsSig = JSON.stringify(dimensions || {});
   const lpSig = JSON.stringify(layoutParams || {});
+  // Sorted, de-duped signature of the appliance set so the scene rebuilds only
+  // when the actual set of appliances changes (order-insensitive).
+  const appSig = JSON.stringify(Array.from(normalizeApplianceSet(appliances)).sort());
 
   // ---- One-time scene construction ------------------------------------------
   useEffect(() => {
@@ -142,6 +174,12 @@ export default function KitchenScene3D({
     // Layout run lengths (mm), guarded; default to room extents.
     const lp = layoutParams || {};
     const roomDiag = Math.hypot(ROOM_X, ROOM_Z, WALL_H);
+
+    // Resolve which appliances to place (a Set of known type strings). Each
+    // layout below only adds an appliance when `wantApp(type)` is true, so the
+    // scene reflects the exact supplied/default set.
+    const applianceSet = normalizeApplianceSet(appliances);
+    const wantApp = (t) => applianceSet.has(t);
 
     // ---- Scene + soft warm off-white background ----------------------------
     const scene = new Scene();
@@ -336,11 +374,6 @@ export default function KitchenScene3D({
     const UPPER_Y = 1.42;   // bottom of upper cabinets (~1.4 m)
     const TOE = 0.09;       // toe-kick recess height
 
-    // hood helper (uses appliance surface) - declared before use in layouts
-    function addHood(x, zWall) {
-      addAppliance(0.72, 0.34, 0.46, { x, y: UPPER_Y + 0.22, z: zWall + 0.27 });
-    }
-
     // Build one straight run of base+worktop+upstand+splashback+uppers+handles.
     // axis 'x' = run extends along X at fixed z (wall at -Z); 'z' = along Z at fixed x (wall at -X).
     const buildRun = (run) => {
@@ -484,17 +517,92 @@ export default function KitchenScene3D({
       }
     };
 
-    // ---- Appliance block builder -------------------------------------------
-    function addAppliance(w, hh, d, pos) {
+    // ---- Appliance materials & block builders ------------------------------
+    // All appliance meshes carry userData.surfaceKey='appliance' (so they pick
+    // as an appliance and follow the shared 'appliance' material's pulse), but
+    // some get a per-mesh material *variant* so they read correctly: dark glass
+    // for oven/hob/dishwasher fronts, a lighter metal for the sink basin.
+    const applianceMatVariants = {}; // variantKey -> THREE.Material (disposed on cleanup)
+    function applianceVariant(variantKey, spec) {
+      if (applianceMatVariants[variantKey]) return applianceMatVariants[variantKey];
+      const m = new MeshPhysicalMaterial({
+        color: new Color(spec.hex),
+        roughness: Number.isFinite(spec.rough) ? spec.rough : 0.3,
+        metalness: Number.isFinite(spec.metal) ? spec.metal : 0.6,
+        clearcoat: Number.isFinite(spec.clearcoat) ? spec.clearcoat : 0.4,
+        clearcoatRoughness: Number.isFinite(spec.clearcoatRough) ? spec.clearcoatRough : 0.18,
+        envMapIntensity: 1.0,
+      });
+      m.userData = { baseEmissive: new Color(0x000000) };
+      applianceMatVariants[variantKey] = m;
+      return m;
+    }
+    // Dark glass front (oven door / dishwasher integrated panel / hob glass).
+    const darkGlass = () => applianceVariant('darkGlass', { hex: '#1c1d20', rough: 0.12, metal: 0.5, clearcoat: 0.85, clearcoatRough: 0.08 });
+    // Lighter brushed metal for the sink basin.
+    const sinkMetal = () => applianceVariant('sinkMetal', { hex: '#d6d9dc', rough: 0.32, metal: 0.95, clearcoat: 0.3, clearcoatRough: 0.2 });
+
+    // Generic appliance block (shared 'appliance' metal material).
+    function addAppliance(w, hh, d, pos, mat) {
       const a = addMesh(roundedBox(w, hh, d, 0.012), 'appliance');
       a.position.set(pos.x, pos.y, pos.z);
+      if (mat) a.material = mat; // keep surfaceKey='appliance', swap the look
       return a;
     }
 
-    // Hob inset - a dark glossy slab flush in the worktop.
+    // Tall fridge/freezer block (full height) at a run end.
+    function addFridge(x, z, wallY) {
+      const fh = Math.min(1.95, Math.max(1.6, WALL_H - 0.6)); // full-height, clamped under ceiling
+      addAppliance(0.78, fh, 0.62, { x, y: TOE + fh / 2, z });
+      // a thin dark seam/handle line down the front so it reads as a fridge
+      const seam = addMesh(new BoxGeometry(0.02, fh * 0.5, 0.02), 'appliance', { cast: false });
+      seam.material = darkGlass();
+      seam.position.set(x + 0.3, TOE + fh / 2, z + 0.32);
+    }
+
+    // Built-in oven housing with a dark glass front (under-counter style).
+    function addOven(x, z) {
+      const oh = 0.85;
+      addAppliance(0.6, oh, 0.6, { x, y: TOE + oh / 2 + 0.02, z });
+      // dark glass door proud of the housing
+      const door = addMesh(new BoxGeometry(0.54, 0.5, 0.02), 'appliance', { cast: false });
+      door.material = darkGlass();
+      door.position.set(x, TOE + oh / 2 + 0.02, z + 0.31);
+    }
+
+    // Hob inset - a dark glossy glass slab flush in the worktop, mid-run.
     function addHob(x, z) {
       const hob = addMesh(new BoxGeometry(0.58, 0.012, 0.5), 'appliance', { cast: false });
+      hob.material = darkGlass();
       hob.position.set(x, BASE_H + TOP_T + 0.006, z);
+    }
+
+    // Extractor hood block above the hob, on the wall / uppers line.
+    function addHood(x, zWall) {
+      addAppliance(0.72, 0.34, 0.46, { x, y: UPPER_Y + 0.22, z: zWall + 0.27 });
+    }
+
+    // Sink — an inset basin on the worktop in lighter metal, with a mixer tap.
+    function addSink(x, z) {
+      const basin = addMesh(new BoxGeometry(0.5, 0.02, 0.4), 'appliance', { cast: false });
+      basin.material = sinkMetal();
+      basin.position.set(x, BASE_H + TOP_T + 0.002, z);
+      // recessed bowl (slightly below the worktop)
+      const bowl = addMesh(new BoxGeometry(0.4, 0.12, 0.3), 'appliance', { cast: false });
+      bowl.material = sinkMetal();
+      bowl.position.set(x, BASE_H + TOP_T - 0.06, z);
+      // mixer tap (thin cylinder) behind the basin
+      const tap = addMesh(new CylinderGeometry(0.012, 0.012, 0.26, 12), 'appliance', { cast: false });
+      tap.material = sinkMetal();
+      tap.position.set(x, BASE_H + TOP_T + 0.13, z - 0.16);
+    }
+
+    // Dishwasher — an integrated front in a base module (subtly different front).
+    function addDishwasher(x, z) {
+      const dh = BASE_H - TOE - 0.02;
+      const front = addMesh(roundedBox(0.58, dh, 0.02, 0.008), 'appliance', { cast: false });
+      front.material = darkGlass();
+      front.position.set(x, TOE + dh / 2, z + BASE_D / 2 + 0.012);
     }
 
     // ---- Layout per shape (built to REAL run lengths) -----------------------
@@ -549,13 +657,21 @@ export default function KitchenScene3D({
       top.position.set(x, BASE_H + TOP_T / 2, centerZ);
     };
 
+    // Clamp a position to the room interior so nothing exceeds the walls.
+    const clampX = (x) => clampNum(x, -ROOM_X / 2 + 0.4, ROOM_X / 2 - 0.4, 0);
+    const clampZ = (z) => clampNum(z, -ROOM_Z / 2 + 0.4, ROOM_Z / 2 - 0.4, 0);
+
     const layouts = {
       straight: () => {
         const L = runX(lp.wallLen);
         buildRun({ axis: 'x', length: L, center: 0, wallPos: wallZ });
-        addAppliance(0.8, 1.85, 0.62, { x: Math.min(L / 2 - 0.4, ROOM_X / 2 - 0.4), y: 0.925, z: wallZ + 0.31 }); // fridge
-        addAppliance(0.62, 0.85, 0.6, { x: -Math.min(L / 2 - 0.4, ROOM_X / 2 - 0.4), y: 0.95, z: wallZ + 0.31 }); // oven
-        addHob(0.2, wallZ + 0.31);
+        const end = Math.min(L / 2 - 0.45, ROOM_X / 2 - 0.45); // run-end x for the tall fridge
+        if (wantApp('fridge')) addFridge(clampX(end), wallZ + 0.31);
+        if (wantApp('oven')) addOven(clampX(-end * 0.6), wallZ + 0.3);
+        if (wantApp('hob')) addHob(clampX(0.2), wallZ + 0.31);
+        if (wantApp('hood')) addHood(clampX(0.2), wallZ);
+        if (wantApp('sink')) addSink(clampX(-0.2), wallZ + 0.31);
+        if (wantApp('dishwasher')) addDishwasher(clampX(end * 0.3), wallZ);
       },
       single: () => { layouts.straight(); },
       'l-shape': () => {
@@ -563,21 +679,30 @@ export default function KitchenScene3D({
         const B = runZ(lp.wallB);                 // left-wall run
         buildRun({ axis: 'x', length: A, center: 0, wallPos: wallZ });
         buildRun({ axis: 'z', length: B, center: sideCenterFromBack(B), wallPos: wallX, withSplash: true });
-        addAppliance(0.62, 0.85, 0.6, { x: -Math.min(A / 2 - 0.4, 0.8), y: 0.95, z: wallZ + 0.31 }); // oven
-        addHood(-Math.min(A / 2 - 0.4, 0.8), wallZ);
-        addHob(Math.min(A / 4, 0.7), wallZ + 0.31);
-        addAppliance(0.8, 1.85, 0.62, { x: wallX + 0.31, y: 0.925, z: sideCenterFromBack(B) + B / 2 - 0.5 }); // fridge
+        const ovenX = clampX(-Math.min(A / 2 - 0.45, 0.8));
+        if (wantApp('oven')) addOven(ovenX, wallZ + 0.3);
+        if (wantApp('hob')) addHob(clampX(Math.min(A / 4, 0.7)), wallZ + 0.31);
+        if (wantApp('hood')) addHood(clampX(Math.min(A / 4, 0.7)), wallZ);
+        if (wantApp('sink')) addSink(clampX(Math.min(A / 2 - 0.5, 1.2)), wallZ + 0.31);
+        // fridge at the far end of the side run (tall unit block)
+        if (wantApp('fridge')) addFridge(wallX + 0.4, clampZ(sideCenterFromBack(B) + B / 2 - 0.5));
+        if (wantApp('dishwasher')) addDishwasher(ovenX - 0.65, wallZ);
       },
       galley: () => {
         const L = runX(lp.wallLen);
         // Gap between the two opposing runs, clamped to room width.
         const gapM = clampNum(mmToM(lp.galleyGap, 1400) * 1000, 900, Math.max(900, (roomWidMm - 1200)), 1400) / 1000;
         const halfGap = gapM / 2;
-        buildRun({ axis: 'x', length: L, center: 0, wallPos: -halfGap - BASE_D });
+        const backZ = -halfGap - BASE_D;          // back run wall
+        buildRun({ axis: 'x', length: L, center: 0, wallPos: backZ });
         buildRun({ axis: 'x', length: L, center: 0, wallPos: halfGap, withUpper: false });
-        addAppliance(0.62, 0.85, 0.6, { x: 0, y: 0.95, z: -halfGap - BASE_D + 0.31 });
-        addHood(0, -halfGap - BASE_D);
-        addHob(0, -halfGap - BASE_D + 0.31);
+        if (wantApp('oven')) addOven(clampX(-Math.min(L / 4, 0.8)), backZ + 0.3);
+        if (wantApp('hob')) addHob(0, backZ + 0.31);
+        if (wantApp('hood')) addHood(0, backZ);
+        if (wantApp('fridge')) addFridge(clampX(Math.min(L / 2 - 0.45, ROOM_X / 2 - 0.45)), backZ + 0.31);
+        // sink on the opposite (front) run worktop
+        if (wantApp('sink')) addSink(0, halfGap + BASE_D / 2);
+        if (wantApp('dishwasher')) addDishwasher(clampX(-0.7), halfGap + BASE_D - 0.62);
       },
       'u-shape': () => {
         const A = runX(lp.uA);                    // back
@@ -586,9 +711,13 @@ export default function KitchenScene3D({
         buildRun({ axis: 'x', length: A, center: 0, wallPos: wallZ });
         buildRun({ axis: 'z', length: B, center: sideCenterFromBack(B), wallPos: wallX });
         buildRun({ axis: 'z', length: C, center: sideCenterFromBack(C), wallPos: rightXWall - BASE_D, withUpper: false });
-        addAppliance(0.62, 0.85, 0.6, { x: 0, y: 0.95, z: wallZ + 0.31 });
-        addHood(0, wallZ);
-        addHob(Math.min(A / 4, 0.8), wallZ + 0.31);
+        if (wantApp('oven')) addOven(0, wallZ + 0.3);
+        if (wantApp('hob')) addHob(clampX(Math.min(A / 4, 0.8)), wallZ + 0.31);
+        if (wantApp('hood')) addHood(clampX(Math.min(A / 4, 0.8)), wallZ);
+        // fridge at the end of the left run; sink on the right run
+        if (wantApp('fridge')) addFridge(wallX + 0.4, clampZ(sideCenterFromBack(B) + B / 2 - 0.5));
+        if (wantApp('sink')) addSink(clampX(rightXWall - BASE_D / 2 - 0.05), clampZ(sideCenterFromBack(C)));
+        if (wantApp('dishwasher')) addDishwasher(clampX(-Math.min(A / 4, 0.8)), wallZ);
       },
       island: () => {
         const L = runX(lp.wallLen);
@@ -596,18 +725,25 @@ export default function KitchenScene3D({
         const islWm = mmToM(lp.islandW, 2400);
         const islDm = mmToM(lp.islandD, 1000);
         const islZ = Math.min(ROOM_Z / 2 - islDm / 2 - 0.4, wallZ + BASE_D + 1.0 + islDm / 2);
-        buildIsland(Number.isFinite(islZ) ? islZ : 1.4, islWm, islDm, 0.08);
-        addAppliance(0.62, 0.85, 0.6, { x: -Math.min(L / 2 - 0.4, 1.4), y: 0.95, z: wallZ + 0.31 });
-        addHood(0, wallZ);
-        addHob(0, Number.isFinite(islZ) ? islZ : 1.4); // hob inset into the island
+        const zIsl = Number.isFinite(islZ) ? islZ : 1.4;
+        buildIsland(zIsl, islWm, islDm, 0.08);
+        if (wantApp('oven')) addOven(clampX(-Math.min(L / 2 - 0.45, 1.4)), wallZ + 0.3);
+        if (wantApp('hood')) addHood(0, wallZ);
+        if (wantApp('hob')) addHob(0, clampZ(zIsl)); // hob inset into the island
+        if (wantApp('fridge')) addFridge(clampX(Math.min(L / 2 - 0.45, ROOM_X / 2 - 0.45)), wallZ + 0.31);
+        if (wantApp('sink')) addSink(clampX(Math.min(L / 2 - 0.6, 1.0)), wallZ + 0.31);
+        if (wantApp('dishwasher')) addDishwasher(clampX(-Math.min(L / 4, 0.6)), wallZ);
       },
       peninsula: () => {
         const L = runX(lp.wallLen);
         buildRun({ axis: 'x', length: L, center: 0, wallPos: wallZ });
         buildPeninsula(mmToM(lp.penW, 1800), mmToM(lp.penD, 600));
-        addAppliance(0.62, 0.85, 0.6, { x: Math.min(L / 2 - 0.4, 1.4), y: 0.95, z: wallZ + 0.31 });
-        addHood(0, wallZ);
-        addHob(0, wallZ + 0.31);
+        if (wantApp('oven')) addOven(clampX(Math.min(L / 2 - 0.45, 1.4)), wallZ + 0.3);
+        if (wantApp('hob')) addHob(clampX(0.2), wallZ + 0.31);
+        if (wantApp('hood')) addHood(clampX(0.2), wallZ);
+        if (wantApp('fridge')) addFridge(clampX(-Math.min(L / 2 - 0.45, ROOM_X / 2 - 0.45)), wallZ + 0.31);
+        if (wantApp('sink')) addSink(clampX(-0.4), wallZ + 0.31);
+        if (wantApp('dishwasher')) addDishwasher(clampX(Math.min(L / 4, 0.7)), wallZ);
       },
     };
 
@@ -702,6 +838,8 @@ export default function KitchenScene3D({
         m.dispose();
       });
       surfaceMatsRef.current = {};
+      // dispose per-mesh appliance material variants (dark glass / sink metal)
+      Object.values(applianceMatVariants).forEach((m) => { if (m && m.dispose) m.dispose(); });
       meshesRef.current = [];
       if (envRef.current && envRef.current.dispose) { try { envRef.current.dispose(); } catch (e) {} }
       envRef.current = null;
@@ -712,7 +850,7 @@ export default function KitchenScene3D({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shape, height, dimsSig, lpSig]);
+  }, [shape, height, dimsSig, lpSig, appSig]);
 
   // ---- Live material updates (no scene rebuild) -----------------------------
   useEffect(() => {

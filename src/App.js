@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback, useRef, createContext, useContext, Component, Fragment, createElement } from 'react';
 import KitchenScene3D from './KitchenScene3D';
+import TVUnit3D from './TVUnit3D';
+import Door3D from './Door3D';
+import Office3D from './Office3D';
 import { fitModules, WARDROBE_WIDTHS } from './moduleFit';
 
 // build: services-nav-redeploy 2026-06-25 r2
@@ -3002,7 +3005,8 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
   const [selections, setSelections] = useState({});        // { [surface_key]: materialRow }
   const [activeSurface, setActiveSurface] = useState(null);// open panel surface_key (null = closed)
   const [panelOpen, setPanelOpen] = useState(false);
-  const is3DCapable = (category === 'kitchen' || category === 'wardrobe'); // categories with a real 3D scene
+  const [productRules, setProductRules] = useState([]);    // active public.product_rules rows (soft material guards)
+  const is3DCapable = ['kitchen','wardrobe','tv','door','office'].includes(category); // categories with a real 3D scene
   // Product-aware copy so nothing reads "kitchen" for a wardrobe/door/office/TV design.
   const PRODUCT_NOUNS = { kitchen: 'kitchen', wardrobe: 'wardrobe', tv: 'TV unit', door: 'door', office: 'home office' };
   const productNoun = PRODUCT_NOUNS[category] || 'design';
@@ -3036,15 +3040,18 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
         }
         const sc = all[0] || null;
         if (!sc) { if (alive) { setLoadErr('No room scene is set up for this product yet. Your finishes still apply in the planner.'); setLoading(false); } return; }
-        const [surf, mats] = await Promise.all([
+        const [surf, mats, rules] = await Promise.all([
           api('scene_surfaces?scene_id=eq.' + encodeURIComponent(sc.id) + '&deleted_at=is.null&order=sort.asc'),
           api('design_materials?active=is.true&deleted_at=is.null&order=sort.asc'),
+          // Soft product-rules guard (Part B). Never let a missing table / 400 break the designer.
+          api('product_rules?active=is.true&deleted_at=is.null').catch(() => []),
         ]);
         if (!alive) return;
         setScenes(all);
         setScene(sc);
         setSurfaces(Array.isArray(surf) ? surf : []);
         setMaterials(Array.isArray(mats) ? mats : []);
+        setProductRules(Array.isArray(rules) ? rules : []);
         setLoading(false);
       } catch (e) {
         if (alive) { setLoadErr('Could not load the room designer. Please try again.'); setLoading(false); }
@@ -3068,9 +3075,50 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
   const sceneShape = (scene && scene.shape_key) || sceneShapeFallback || defaultShape;
   const aspect = (scene && scene.img_w && scene.img_h) ? (scene.img_h / scene.img_w) : (602 / 1017);
 
+  // ── Product-rules: soft finish/width availability guard (Part B) ──
+  // Returns a filtered material list for the active surface. A rule applies when:
+  //   • rule_type ∈ ('finish_availability','width_options')
+  //   • product matches this category (or the rule has no product → applies to all)
+  //   • scope.surface === activeSurface
+  // We keep only materials whose name is in effect.allowed_finishes (case-insensitive).
+  // EMPTY-GUARD: if the filter would leave the panel empty, we return the full list
+  // unchanged plus a flag so the UI can show an "all finishes shown" note. Rules must
+  // NEVER crash or empty the picker — every step is defensive.
+  // TODO: deeper if/then enforcement (e.g. worktop-thickness → hide a finish) is out of
+  // scope here; only finish/width availability is wired for now.
+  const applyRuleFilter = useCallback((list, surfaceKey) => {
+    try {
+      if (!Array.isArray(productRules) || !productRules.length || !surfaceKey) return { list, filtered: false, emptied: false };
+      const allowed = new Set();
+      let matched = false;
+      productRules.forEach(r => {
+        if (!r || r.active === false) return;
+        const rt = r.rule_type;
+        if (rt !== 'finish_availability' && rt !== 'width_options') return;
+        // product match: rule's product equals this category, or rule has no product (global).
+        const prod = r.product;
+        if (prod && String(prod).toLowerCase() !== String(category).toLowerCase()) return;
+        const scope = r.scope || {};
+        if (scope.surface && scope.surface !== surfaceKey) return;
+        const eff = r.effect || {};
+        const fins = Array.isArray(eff.allowed_finishes) ? eff.allowed_finishes : [];
+        if (!fins.length) return;
+        matched = true;
+        fins.forEach(f => { if (f != null) allowed.add(String(f).toLowerCase().trim()); });
+      });
+      if (!matched || !allowed.size) return { list, filtered: false, emptied: false };
+      const next = list.filter(m => m && m.name && allowed.has(String(m.name).toLowerCase().trim()));
+      if (!next.length) return { list, filtered: false, emptied: true }; // empty-guard: show all
+      return { list: next, filtered: true, emptied: false };
+    } catch (_) {
+      return { list, filtered: false, emptied: false }; // any error → unchanged
+    }
+  }, [productRules, category]);
+
   // Materials for the currently-open surface, grouped by group_name (ordered).
   const groupedForActive = useCallback(() => {
-    const list = materials.filter(m => m.category === activeSurface);
+    const raw = materials.filter(m => m.category === activeSurface);
+    const { list, filtered, emptied } = applyRuleFilter(raw, activeSurface);
     const groups = [];
     const byName = new Map();
     list.forEach(m => {
@@ -3078,8 +3126,8 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
       if (!byName.has(g)) { const arr = []; byName.set(g, arr); groups.push([g, arr]); }
       byName.get(g).push(m);
     });
-    return { count: list.length, groups };
-  }, [materials, activeSurface]);
+    return { count: list.length, groups, ruleFiltered: filtered, ruleEmptied: emptied };
+  }, [materials, activeSurface, applyRuleFilter]);
 
   const openPanelFor = (key) => { setActiveSurface(key); setPanelOpen(true); };
   const surfaceLabel = (key) => { const s = surfaces.find(x => x.surface_key === key); return (s && s.label) || (key ? key.charAt(0).toUpperCase() + key.slice(1) : ''); };
@@ -3203,6 +3251,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
   const seg = (active) => ({ padding:'7px 16px', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', background: active?'var(--clay)':'transparent', color: active?'#fff':'var(--ink-soft)', borderRadius:8 });
 
   // ── Scene stage (left) ──
+  const scene3DHeight = mobile ? 360 : 560; // shared px height for every 3D scene (matches the stage container)
   const sceneStage = (
     <div style={{ position:'relative', width:'100%', maxWidth:880, margin:'0 auto' }}>
       <div style={ mode === '3d'
@@ -3238,8 +3287,38 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
                 scaleMode="fit"
               />
               );
-            })() : (
-              <KitchenScene3D materials={selectionsAsMaterials} shape={sceneShape} activeSurface={activeSurface} onPickSurface={(key)=>openPanelFor(key)} height={mobile ? 360 : 560} dimensions={dimensions} layoutParams={layoutParams} />
+            })() : category === 'tv' ? (
+              <TVUnit3D
+                materials={selectionsAsMaterials}
+                shape={sceneShape}
+                dimensions={dimensions}
+                layoutParams={layoutParams}
+                activeSurface={activeSurface}
+                onPickSurface={(key)=>openPanelFor(key)}
+                height={scene3DHeight}
+              />
+            ) : category === 'door' ? (
+              <Door3D
+                materials={selectionsAsMaterials}
+                shape={sceneShape}
+                dimensions={dimensions}
+                layoutParams={layoutParams}
+                activeSurface={activeSurface}
+                onPickSurface={(key)=>openPanelFor(key)}
+                height={scene3DHeight}
+              />
+            ) : category === 'office' ? (
+              <Office3D
+                materials={selectionsAsMaterials}
+                shape={sceneShape}
+                dimensions={dimensions}
+                layoutParams={layoutParams}
+                activeSurface={activeSurface}
+                onPickSurface={(key)=>openPanelFor(key)}
+                height={scene3DHeight}
+              />
+            ) : (
+              <KitchenScene3D materials={selectionsAsMaterials} shape={sceneShape} activeSurface={activeSurface} onPickSurface={(key)=>openPanelFor(key)} height={scene3DHeight} dimensions={dimensions} layoutParams={layoutParams} />
             )}
           </div>
         ) : (
@@ -3341,7 +3420,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
   );
 
   // ── Material panel (right / bottom-sheet) ──
-  const { count, groups } = groupedForActive();
+  const { count, groups, ruleFiltered, ruleEmptied } = groupedForActive();
   const materialPanel = panelOpen ? (
     <div style={ mobile
       ? { position:'fixed', left:0, right:0, bottom:0, zIndex:5, maxHeight:'74vh', background:'var(--cream)', borderTopLeftRadius:22, borderTopRightRadius:22, boxShadow:'0 -10px 38px rgba(0,0,0,.26)', display:'flex', flexDirection:'column', animation:'rdSheetUp .32s cubic-bezier(.22,1,.36,1)' }
@@ -3356,6 +3435,8 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
       </div>
       <div style={{ overflowY:'auto', padding:'10px 16px 20px' }}>
         {count === 0 && <div style={{ padding:'30px 6px', color:'var(--muted)', fontSize:13.5, textAlign:'center' }}>No finishes available for this surface yet.</div>}
+        {ruleFiltered && <div style={{ margin:'6px 4px 2px', fontSize:11.5, color:'var(--muted)' }}>Showing finishes available for this surface.</div>}
+        {ruleEmptied && <div style={{ margin:'6px 4px 2px', fontSize:11.5, color:'var(--muted)' }}>All finishes shown.</div>}
         {groups.map(([gname, items]) => (
           <div key={gname} style={{ marginTop:12 }}>
             <div style={{ fontSize:11, letterSpacing:'.13em', textTransform:'uppercase', color:'var(--clay-deep)', fontWeight:800, margin:'6px 4px 12px' }}>{gname}</div>
@@ -3407,11 +3488,8 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
           {/* Live / 3D toggle (Approach C) */}
           <div style={{ display:'flex', gap:2, background:'var(--sand)', border:'1px solid var(--line)', borderRadius:10, padding:3 }}>
-            {is3DCapable ? (
-              <button type="button" onClick={()=>setMode('3d')} style={seg(mode==='3d')} aria-pressed={mode==='3d'}>3D</button>
-            ) : (
-              <button type="button" disabled title="3D preview coming soon for this product" style={{ ...seg(false), cursor:'not-allowed', opacity:.5 }} aria-disabled="true">3D soon</button>
-            )}
+            {/* All product categories now have a real 3D scene — the 3D button is always live. */}
+            <button type="button" onClick={()=>setMode('3d')} style={seg(mode==='3d')} aria-pressed={mode==='3d'}>3D</button>
             <button type="button" onClick={()=>setMode('live')} style={seg(mode==='live')} aria-pressed={mode==='live'}>Photo</button>
           </div>
           <button type="button" onClick={onGoToSummary} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:10, border:'none', cursor:'pointer', background:'#1D9E75', color:'#fff', fontSize:13.5, fontWeight:700 }}>{summaryLabel} →</button>
@@ -6107,6 +6185,35 @@ const K_APPLIANCES = [
   { id:'wine',  name:'Wine cooler',  sub:'Under-counter',             price:380, ic:'M8 3h8v6a4 4 0 01-8 0z M12 13v6 M9 21h6' },
 ];
 
+// Canonical appliance metadata, keyed by the SAME `type` strings KitchenScene3D
+// places in the 3D run. Keeps the BOM / install list and the 3D in sync, and
+// supplies the indicative "Connect / Plumb / Vent" verb for the install list.
+const APPLIANCE_META = {
+  oven:       { label:'Built-in oven',     install:'Connect oven (electrical)' },
+  hob:        { label:'Hob',               install:'Connect hob' },
+  hood:       { label:'Extractor hood',    install:'Vent hood' },
+  fridge:     { label:'Fridge-freezer',    install:'Position & level fridge-freezer' },
+  sink:       { label:'Sink & tap',        install:'Plumb sink & connect mixer tap' },
+  dishwasher: { label:'Dishwasher',        install:'Plumb & connect dishwasher' },
+};
+// Sensible standard set — MUST match KitchenScene3D's DEFAULT_APPLIANCES so the
+// BOM/install list and the 3D scene agree when no planner selection is supplied.
+const DEFAULT_KITCHEN_APPLIANCES = ['oven', 'hob', 'hood', 'fridge', 'sink', 'dishwasher'];
+
+// Normalise an appliances value (array of strings or {type}) into known types.
+function normalizeApplianceTypes(list) {
+  const src = Array.isArray(list) && list.length ? list : DEFAULT_KITCHEN_APPLIANCES;
+  const out = [];
+  const seen = {};
+  src.forEach((a) => {
+    const raw = typeof a === 'string' ? a : (a && a.type);
+    if (typeof raw !== 'string') return;
+    const t = raw.trim().toLowerCase();
+    if (APPLIANCE_META[t] && !seen[t]) { seen[t] = true; out.push(t); }
+  });
+  return out;
+}
+
 // STORAGE & INTERIOR ADD-ONS — per-unit upgrades.
 const K_STORAGE = [
   { id:'larder',   name:'Pull-out larder', sub:'Full-height tandem',  price:340, ic:'M7 3h10v18H7z M7 9h10 M7 15h10' },
@@ -6985,6 +7092,7 @@ function TVUnitPlannerWizard({ setPage, user, openAuth }) {
           mobile={mobile}
           category="tv"
           sceneShapeFallback={layout}
+          dimensions={{ wallWidthMm: dims.wallW, wallHeightMm: dims.wallH, tvInch: tv.size }}
           onClose={()=>setRdOpen(false)}
           onGoToSummary={()=>setRdOpen(false)}
           photorealReq={{ product:'tv', getImage:()=>null }}
@@ -7456,6 +7564,7 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
           mobile={mobile}
           category="office"
           sceneShapeFallback={layout}
+          dimensions={{ wallWidthMm: dims.wallW, wallHeightMm: dims.wallH, deskMm: desk.length }}
           onClose={()=>setRdOpen(false)}
           onGoToSummary={()=>setRdOpen(false)}
           photorealReq={{ product:'office', getImage:()=>null }}
@@ -8724,7 +8833,9 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
         <RoomDesigner
           mobile={mobile}
           category="door"
-          sceneShapeFallback={doorType}
+          sceneShapeFallback={styleId}
+          dimensions={{ widthMm: dims.w, heightMm: dims.h }}
+          layoutParams={{ leaves }}
           onClose={()=>setRdOpen(false)}
           onGoToSummary={()=>setRdOpen(false)}
           photorealReq={{ product:'door', getImage:()=>null }}
@@ -8869,10 +8980,27 @@ function buildProductionDocs(cfg) {
       line_bhd: Number(a.line) || null,
     });
   });
+  // ── Appliances ──
+  // Use the planner-supplied appliance set when present; otherwise fall back to
+  // the SAME default set KitchenScene3D draws, so the BOM and the 3D agree.
+  const applianceTypes = normalizeApplianceTypes(cfg.appliances);
+  applianceTypes.forEach(t => {
+    const meta = APPLIANCE_META[t];
+    bomItems.push({
+      type: 'Appliance',
+      name: meta.label,
+      qty: 1,
+      material: null,
+      finish: null,
+      supply: 'Client-supplied or to-quote',
+      line_bhd: null,
+    });
+  });
   const bomTotals = {
     cabinet_lines: modules.length,
     cabinet_units: modules.reduce((s, m) => s + (Number(m.qty) || 0), 0),
     accessory_lines: accessories.length,
+    appliance_lines: applianceTypes.length,
     worktop_metres: worktop && worktop.metres ? r1(worktop.metres) : 0,
     estimate_bhd: Number(cfg.grandTotal) || null,
   };
@@ -8933,9 +9061,23 @@ function buildProductionDocs(cfg) {
 
   // ── 3) INSTALLATION LIST ──
   const unitCount = modules.reduce((s, m) => s + (Number(m.qty) || 0), 0);
-  const appliances = modules
-    .filter(m => /oven|fridge|hob|dishwash|micro|sink|tower|housing/i.test(m.name || ''))
-    .map(m => ({ name: m.name, qty: Number(m.qty) || 1 }));
+  // Appliances to connect: the explicit appliance set (with an indicative verb,
+  // e.g. "Connect oven", "Plumb sink", "Vent hood"), plus any appliance HOUSING
+  // modules detected by name that aren't already covered — de-duped by label.
+  const appliances = [];
+  const apSeen = {};
+  applianceTypes.forEach(t => {
+    const meta = APPLIANCE_META[t];
+    apSeen[meta.label.toLowerCase()] = true;
+    appliances.push({ name: meta.install, qty: 1 });
+  });
+  modules.forEach(m => {
+    if (!/oven|fridge|hob|dishwash|micro|sink|tower|housing/i.test(m.name || '')) return;
+    const key = String(m.name || '').toLowerCase();
+    if (apSeen[key]) return;
+    apSeen[key] = true;
+    appliances.push({ name: m.name, qty: Number(m.qty) || 1 });
+  });
   const worktopM = worktop && worktop.metres ? r1(worktop.metres) : 0;
   // time estimate (indicative): base 4h + 0.6h/unit + 1h/worktop-metre + 0.4h/appliance
   const hours = r1(4 + unitCount * 0.6 + worktopM * 1 + appliances.length * 0.4);
@@ -9052,6 +9194,10 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
     runs: plannerRuns,
     worktop: { material:ctop.name, metres:counterM, perM:ctop.perM, line:counterTotal },
     accessories: accItems.map(a=>({ name:a.name, qty:a.qty, unit:a.unit, line:a.line })),
+    // Appliance set — this planner has no per-appliance selection UI, so use the
+    // same default set KitchenScene3D draws (DEFAULT_KITCHEN_APPLIANCES) so the
+    // BOM/install list and the 3D scene stay in agreement.
+    appliances: DEFAULT_KITCHEN_APPLIANCES,
     materials: { carcass:carc.name, door:door.name, finish:door.name },
     dims, layoutName:lay.name, grandTotal,
   };
@@ -9262,7 +9408,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
     const esc = s => String(s==null?'':s);
     const D = prodDocs;
     const dim = (i) => [i.width_mm&&i.height_mm&&i.depth_mm ? `${i.width_mm}×${i.height_mm}×${i.depth_mm}` : (i.width_mm?`${i.width_mm}w`:''), i.linear_m?`${i.linear_m}m`:'', i.area_m2?`${i.area_m2}m²`:''].filter(Boolean).join(' · ') || '—';
-    const bomRows = D.bom.items.map(i=>`<tr><td>${esc(i.type)}</td><td>${esc(i.name)}</td><td style="text-align:center">${i.qty||'—'}</td><td>${dim(i)}</td><td>${esc(i.material||'—')}</td><td>${esc(i.finish||'—')}</td><td style="text-align:right">${i.line_bhd!=null?fmt(i.line_bhd):'—'}</td></tr>`).join('');
+    const bomRows = D.bom.items.map(i=>`<tr><td>${esc(i.type)}</td><td>${esc(i.name)}</td><td style="text-align:center">${i.qty||'—'}</td><td>${dim(i)}</td><td>${esc(i.material||i.supply||'—')}</td><td>${esc(i.finish||'—')}</td><td style="text-align:right">${i.line_bhd!=null?fmt(i.line_bhd):'—'}</td></tr>`).join('');
     const mfgRows = D.manufacturing.modules.map(m=>`<tr><td>${esc(m.name)}</td><td style="text-align:center">${m.qty}</td><td style="text-align:center">${m.width_mm}</td><td style="text-align:center">${m.carcass_panels}</td><td style="text-align:center">${m.door_fronts}</td><td style="text-align:center">${m.drawer_fronts}</td></tr>`).join('');
     const cs = D.manufacturing.cut_summary;
     const applRows = (D.installation.appliances_to_connect||[]).map(a=>`<li>${esc(a.name)} ×${a.qty}</li>`).join('') || '<li class="muted">None flagged</li>';
@@ -9487,11 +9633,11 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
                 <div key={ix} style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', gap:8, padding:'7px 12px', fontSize:12, borderTop:ix?'1px solid var(--line)':'none' }}>
                   <div style={{ minWidth:0 }}>
                     <span style={{ fontWeight:600, color:'var(--ink)' }}>{i.name}</span>{i.qty>1&&<span style={{ color:'var(--muted)' }}> ×{i.qty}</span>}
-                    <div style={{ fontSize:10.5, color:'var(--muted)' }}>{[i.type, i.width_mm&&i.height_mm&&i.depth_mm?`${i.width_mm}×${i.height_mm}×${i.depth_mm}mm`:(i.linear_m?`${i.linear_m}m`:null), i.area_m2?`${i.area_m2}m²`:null, i.material].filter(Boolean).join(' · ')}</div>
+                    <div style={{ fontSize:10.5, color:'var(--muted)' }}>{[i.type, i.width_mm&&i.height_mm&&i.depth_mm?`${i.width_mm}×${i.height_mm}×${i.depth_mm}mm`:(i.linear_m?`${i.linear_m}m`:null), i.area_m2?`${i.area_m2}m²`:null, i.material, i.supply].filter(Boolean).join(' · ')}</div>
                   </div>
                   <span style={{ fontWeight:600, color:'var(--ink)', whiteSpace:'nowrap' }}>{i.line_bhd!=null?fmt(i.line_bhd):'—'}</span>
                 </div>))}
-              <div style={{ padding:'7px 12px', borderTop:'2px solid var(--line)', fontSize:11, color:'var(--muted)' }}>{prodDocs.bom.totals.cabinet_units} units · {prodDocs.bom.totals.accessory_lines} accessory lines · worktop {prodDocs.bom.totals.worktop_metres}m. Dimensions indicative.</div>
+              <div style={{ padding:'7px 12px', borderTop:'2px solid var(--line)', fontSize:11, color:'var(--muted)' }}>{prodDocs.bom.totals.cabinet_units} units · {prodDocs.bom.totals.accessory_lines} accessory lines · {prodDocs.bom.totals.appliance_lines||0} appliances · worktop {prodDocs.bom.totals.worktop_metres}m. Dimensions indicative.</div>
             </>)}
             {specTab==='manufacturing' && (<>
               <div style={{ padding:'6px 12px', fontSize:11, color:'var(--ink-soft)' }}>{prodDocs.manufacturing.carcass_material} carcass · {prodDocs.manufacturing.front_material} fronts · {prodDocs.manufacturing.finish} finish</div>
