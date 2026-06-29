@@ -2964,6 +2964,10 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
   const [activeSurface, setActiveSurface] = useState(null);// open panel surface_key (null = closed)
   const [panelOpen, setPanelOpen] = useState(false);
   const is3DCapable = (category === 'kitchen' || category === 'wardrobe'); // categories with a real 3D scene
+  // Product-aware copy so nothing reads "kitchen" for a wardrobe/door/office/TV design.
+  const PRODUCT_NOUNS = { kitchen: 'kitchen', wardrobe: 'wardrobe', tv: 'TV unit', door: 'door', office: 'home office' };
+  const productNoun = PRODUCT_NOUNS[category] || 'design';
+  const summaryLabel = 'Go to ' + (productNoun.charAt(0).toUpperCase() + productNoun.slice(1)) + ' Summary';
   const [mode, setMode] = useState(is3DCapable ? '3d' : 'live'); // 3D hero for kitchen/wardrobe; Photo for others
   const [pulseKey, setPulseKey] = useState(null);          // hotspot pulse for no-mask feedback
   const [hoverKey, setHoverKey] = useState(null);          // hotspot hover label
@@ -2973,15 +2977,26 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
   const [prErr, setPrErr] = useState('');
 
   // ── Defensive data load ──
+  // Load this category's active scenes. The `category` column may not exist yet
+  // (older DB) or may be unseeded for a product — so we try the filtered query
+  // first, and gracefully fall back to all active scenes so the designer is never
+  // left empty/broken just because the data wasn't authored per-category.
   useEffect(() => {
     let alive = true;
     (async () => {
       setLoading(true); setLoadErr('');
       try {
-        const sceneList = await api('design_scenes?active=is.true&deleted_at=is.null&order=sort.asc');
-        const all = Array.isArray(sceneList) ? sceneList : [];
+        let all = [];
+        try {
+          const filtered = await api('design_scenes?active=is.true&deleted_at=is.null&category=eq.' + encodeURIComponent(category) + '&order=sort.asc');
+          all = Array.isArray(filtered) ? filtered : [];
+        } catch (_) { all = []; }   // column missing / 400 → fall through to unfiltered
+        if (!all.length) {
+          const allList = await api('design_scenes?active=is.true&deleted_at=is.null&order=sort.asc');
+          all = Array.isArray(allList) ? allList : [];
+        }
         const sc = all[0] || null;
-        if (!sc) { if (alive) { setLoadErr('No room scene is set up yet.'); setLoading(false); } return; }
+        if (!sc) { if (alive) { setLoadErr('No room scene is set up for this product yet. Your finishes still apply in the planner.'); setLoading(false); } return; }
         const [surf, mats] = await Promise.all([
           api('scene_surfaces?scene_id=eq.' + encodeURIComponent(sc.id) + '&deleted_at=is.null&order=sort.asc'),
           api('design_materials?active=is.true&deleted_at=is.null&order=sort.asc'),
@@ -3009,7 +3024,9 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
     } catch (e) { setSurfaces([]); }
   }, [scene]);
 
-  const sceneShape = (scene && scene.shape_key) || sceneShapeFallback || 'island';
+  // A category-appropriate default shape (kitchen → island; everything else → straight/single run).
+  const defaultShape = category === 'kitchen' ? 'island' : 'straight';
+  const sceneShape = (scene && scene.shape_key) || sceneShapeFallback || defaultShape;
   const aspect = (scene && scene.img_w && scene.img_h) ? (scene.img_h / scene.img_w) : (602 / 1017);
 
   // Materials for the currently-open surface, grouped by group_name (ordered).
@@ -3152,17 +3169,18 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
       <div style={ mode === '3d'
         ? { position:'relative', width:'100%', height: mobile ? 360 : 560, minHeight: mobile ? 360 : 520, borderRadius:16, overflow:'hidden', background:'#f4f1ea', boxShadow:'0 6px 30px rgba(0,0,0,.14)' }
         : { position:'relative', width:'100%', paddingTop:(aspect*100)+'%', borderRadius:16, overflow:'hidden', background:'#e9e4dc', boxShadow:'0 6px 30px rgba(0,0,0,.14)' } }>
-        {mode === '3d' ? (
+        {(mode === '3d' && is3DCapable) ? (
           <div style={{ position:'absolute', inset:0 }}>
             {category === 'wardrobe' ? (
               <Wardrobe3D
-                finishHex={(selections.door_front && selections.door_front.hex) || (selections.body && selections.body.hex) || '#e8e4dc'}
+                finishHex={(selections.door_front && selections.door_front.hex) || (selections.door && selections.door.hex) || (selections.body && selections.body.hex) || (selections.carcass && selections.carcass.hex) || '#e8e4dc'}
                 layout={sceneShape}
-                handles={!!selections.handle}
+                handles={!!(selections.handle || selections.handles)}
                 glass={false}
                 led={false}
                 product="wardrobe"
                 mobile={mobile}
+                tall
                 widthCm={180} heightCm={240} depthCm={60}
                 scaleMode="fit"
               />
@@ -3256,11 +3274,14 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
           </div>
         </div>
       )}
-      {mode === '3d' && (
-        <div style={{ textAlign:'center', fontSize:11.5, color:'var(--muted)', marginTop:9 }}>Drag to orbit · tap a surface or chip to change its finish · switch to Photo for the masked view.</div>
+      {surfaces.length === 0 && (
+        <div style={{ textAlign:'center', fontSize:11.5, color:'var(--muted)', marginTop:9 }}>Finishes for this {productNoun} are being set up. Your planner selections still apply to your quote.</div>
       )}
-      {!anySurfaceHasMask && mode === 'live' && (
-        <div style={{ textAlign:'center', fontSize:11.5, color:'var(--muted)', marginTop:9 }}>Tap a marker or chip to change a finish. Switch to 3D for a live preview.</div>
+      {surfaces.length > 0 && mode === '3d' && (
+        <div style={{ textAlign:'center', fontSize:11.5, color:'var(--muted)', marginTop:9 }}>Drag to orbit · tap a surface or chip to change its finish{is3DCapable ? ' · switch to Photo for the masked view' : ''}.</div>
+      )}
+      {surfaces.length > 0 && !anySurfaceHasMask && mode === 'live' && (
+        <div style={{ textAlign:'center', fontSize:11.5, color:'var(--muted)', marginTop:9 }}>Tap a marker or chip to change a finish{is3DCapable ? ' · switch to 3D for a live preview' : ''}.</div>
       )}
     </div>
   );
@@ -3339,7 +3360,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
             )}
             <button type="button" onClick={()=>setMode('live')} style={seg(mode==='live')} aria-pressed={mode==='live'}>Photo</button>
           </div>
-          <button type="button" onClick={onGoToSummary} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:10, border:'none', cursor:'pointer', background:'#1D9E75', color:'#fff', fontSize:13.5, fontWeight:700 }}>Go to Kitchen Summary →</button>
+          <button type="button" onClick={onGoToSummary} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:10, border:'none', cursor:'pointer', background:'#1D9E75', color:'#fff', fontSize:13.5, fontWeight:700 }}>{summaryLabel} →</button>
         </div>
       </div>
 
@@ -3373,7 +3394,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
                     <span style={{ fontSize:12.5, fontWeight:800, letterSpacing:'.04em', textTransform:'uppercase', color:'var(--clay-deep)' }}>Photoreal render</span>
                     <button type="button" onClick={()=>{ setPrUrl(null); setPrErr(''); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, fontWeight:700, color:'var(--ink-soft)' }}>← Back to design</button>
                   </div>
-                  <img src={prUrl} alt="Photoreal render of your kitchen" style={{ display:'block', width:'100%' }} />
+                  <img src={prUrl} alt={'Photoreal render of your ' + productNoun} style={{ display:'block', width:'100%' }} />
                   <div style={{ padding:'14px 18px 16px', textAlign:'center' }}>
                     <a href={prUrl} download="closets-room.jpg" style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'9px 18px', borderRadius:11, background:'var(--clay)', color:'#fff', fontSize:13, fontWeight:700, textDecoration:'none', boxShadow:'0 3px 12px rgba(242,115,28,.32)' }}>↓ Download render</a>
                     <div style={{ fontSize:10.5, color:'var(--muted)', marginTop:10 }}>Indicative AI impression. Exact finishes confirmed at your free design consultation.</div>
@@ -3386,8 +3407,10 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
               <div style={{ flexShrink:0 }}>
                 {materialPanel || (
                   <div style={{ width:340, background:'#fff', borderRadius:18, border:'1px solid var(--line)', padding:'22px 20px', color:'var(--ink-soft)', fontSize:13.5 }}>
-                    <div style={{ fontSize:15, fontWeight:800, color:'var(--ink)', marginBottom:8 }}>Style your kitchen</div>
-                    Tap a “+” marker on the room (or a surface in 3D) to choose finishes for cabinets, worktops, walls and more.
+                    <div style={{ fontSize:15, fontWeight:800, color:'var(--ink)', marginBottom:8 }}>Style your {productNoun}</div>
+                    {surfaces.length === 0
+                      ? <>Finishes for this {productNoun} are being set up. Your selections in the planner still flow through to your quote.</>
+                      : <>Tap a “{'+'}” marker{is3DCapable ? ' (or a surface in the 3D view)' : ''} to choose finishes for {surfaces.slice(0,3).map(s => (s.label || s.surface_key)).join(', ').toLowerCase() || 'each surface'} and more.</>}
                   </div>
                 )}
               </div>
@@ -3402,7 +3425,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
         <div style={{ position:'fixed', inset:0, zIndex:11050, background:'rgba(15,18,22,.74)', backdropFilter:'blur(2px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
           <div style={{ background:'#fff', borderRadius:20, padding:'38px 48px', textAlign:'center', boxShadow:'0 20px 60px rgba(0,0,0,.4)', maxWidth:340 }}>
             <span aria-hidden="true" style={{ display:'inline-block', width:38, height:38, borderRadius:'50%', border:'3px solid var(--sand)', borderTopColor:'var(--clay)', animation:'rdSpin .8s linear infinite' }} />
-            <div style={{ marginTop:16, fontSize:15.5, fontWeight:800, color:'var(--ink)' }}>Rendering your kitchen…</div>
+            <div style={{ marginTop:16, fontSize:15.5, fontWeight:800, color:'var(--ink)' }}>Rendering your {productNoun}…</div>
             <div style={{ marginTop:6, fontSize:13, color:'var(--muted)' }}>Compositing your finishes into a photoreal scene. This usually takes 15–25 seconds.</div>
           </div>
         </div>
