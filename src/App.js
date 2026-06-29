@@ -3300,7 +3300,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
             ) : category === 'door' ? (
               <Door3D
                 materials={selectionsAsMaterials}
-                shape={sceneShape}
+                shape={(layoutParams && layoutParams.style) || sceneShape}
                 dimensions={dimensions}
                 layoutParams={layoutParams}
                 activeSurface={activeSurface}
@@ -8835,7 +8835,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
           category="door"
           sceneShapeFallback={styleId}
           dimensions={{ widthMm: dims.w, heightMm: dims.h }}
-          layoutParams={{ leaves }}
+          layoutParams={{ leaves, style: ({ flush:'flush', groove:'groove', slat:'groove', panels:'panel', mould:'panel', inlay:'panel', stone:'panel', leather:'flush', shaker:'shaker' }[styleId] || 'flush') }}
           onClose={()=>setRdOpen(false)}
           onGoToSummary={()=>setRdOpen(false)}
           photorealReq={{ product:'door', getImage:()=>null }}
