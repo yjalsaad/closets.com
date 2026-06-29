@@ -2963,7 +2963,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
   const [selections, setSelections] = useState({});        // { [surface_key]: materialRow }
   const [activeSurface, setActiveSurface] = useState(null);// open panel surface_key (null = closed)
   const [panelOpen, setPanelOpen] = useState(false);
-  const [mode, setMode] = useState('live');                // 'live' | '3d'
+  const [mode, setMode] = useState('3d');                  // '3d' (hero) | 'live' (masked photo, secondary)
   const [pulseKey, setPulseKey] = useState(null);          // hotspot pulse for no-mask feedback
   const [hoverKey, setHoverKey] = useState(null);          // hotspot hover label
   // Photoreal render state (Approach B)
@@ -3139,10 +3139,12 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
   // ── Scene stage (left) ──
   const sceneStage = (
     <div style={{ position:'relative', width:'100%', maxWidth:880, margin:'0 auto' }}>
-      <div style={{ position:'relative', width:'100%', paddingTop:(aspect*100)+'%', borderRadius:16, overflow:'hidden', background:'#e9e4dc', boxShadow:'0 6px 30px rgba(0,0,0,.14)' }}>
+      <div style={ mode === '3d'
+        ? { position:'relative', width:'100%', height: mobile ? 360 : 560, minHeight: mobile ? 360 : 520, borderRadius:16, overflow:'hidden', background:'#f4f1ea', boxShadow:'0 6px 30px rgba(0,0,0,.14)' }
+        : { position:'relative', width:'100%', paddingTop:(aspect*100)+'%', borderRadius:16, overflow:'hidden', background:'#e9e4dc', boxShadow:'0 6px 30px rgba(0,0,0,.14)' } }>
         {mode === '3d' ? (
           <div style={{ position:'absolute', inset:0 }}>
-            <KitchenScene3D materials={selectionsAsMaterials} shape={sceneShape} activeSurface={activeSurface} onPickSurface={(key)=>openPanelFor(key)} height={mobile ? 320 : 520} />
+            <KitchenScene3D materials={selectionsAsMaterials} shape={sceneShape} activeSurface={activeSurface} onPickSurface={(key)=>openPanelFor(key)} height={mobile ? 360 : 560} />
           </div>
         ) : (
           <>
@@ -3230,6 +3232,9 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
           </div>
         </div>
       )}
+      {mode === '3d' && (
+        <div style={{ textAlign:'center', fontSize:11.5, color:'var(--muted)', marginTop:9 }}>Drag to orbit · tap a surface or chip to change its finish · switch to Photo for the masked view.</div>
+      )}
       {!anySurfaceHasMask && mode === 'live' && (
         <div style={{ textAlign:'center', fontSize:11.5, color:'var(--muted)', marginTop:9 }}>Tap a marker or chip to change a finish. Switch to 3D for a live preview.</div>
       )}
@@ -3303,8 +3308,8 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
           {/* Live / 3D toggle (Approach C) */}
           <div style={{ display:'flex', gap:2, background:'var(--sand)', border:'1px solid var(--line)', borderRadius:10, padding:3 }}>
-            <button type="button" onClick={()=>setMode('live')} style={seg(mode==='live')}>Live</button>
-            <button type="button" onClick={()=>setMode('3d')} style={seg(mode==='3d')}>3D</button>
+            <button type="button" onClick={()=>setMode('3d')} style={seg(mode==='3d')} aria-pressed={mode==='3d'}>3D</button>
+            <button type="button" onClick={()=>setMode('live')} style={seg(mode==='live')} aria-pressed={mode==='live'}>Photo</button>
           </div>
           <button type="button" onClick={onGoToSummary} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:10, border:'none', cursor:'pointer', background:'#1D9E75', color:'#fff', fontSize:13.5, fontWeight:700 }}>Go to Kitchen Summary →</button>
         </div>

@@ -1,11 +1,40 @@
 import { useEffect, useRef } from 'react';
-import * as THREE from 'three';
+import {
+  Scene,
+  Color,
+  PerspectiveCamera,
+  WebGLRenderer,
+  SRGBColorSpace,
+  ACESFilmicToneMapping,
+  PCFSoftShadowMap,
+  HemisphereLight,
+  DirectionalLight,
+  AmbientLight,
+  MeshStandardMaterial,
+  MeshPhysicalMaterial,
+  Mesh,
+  Group,
+  PlaneGeometry,
+  BoxGeometry,
+  CylinderGeometry,
+  Shape,
+  ExtrudeGeometry,
+  TextureLoader,
+  CanvasTexture,
+  RepeatWrapping,
+  Raycaster,
+  Vector2,
+  Clock,
+  PMREMGenerator,
+  EquirectangularReflectionMapping,
+} from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 /**
- * KitchenScene3D — standalone interactive 3D kitchen.
+ * KitchenScene3D - standalone interactive, premium-looking 3D kitchen.
  *
- * Props:
+ * Props (unchanged API):
  *   materials   : {
  *                   cabinet:    { hex?: string, texture_url?: string },
  *                   worktop:    { hex?, texture_url? },
@@ -13,25 +42,25 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
  *                   wall:       { hex?, texture_url? },
  *                   floor:      { hex?, texture_url? },
  *                   handle:     { hex?, texture_url? },
- *                 } — any subset; hex => material color, texture_url => map (falls back to hex on error).
- *   shape       : 'l-shape' | 'galley' | 'u-shape' | 'island' | 'straight'  (default 'l-shape')
- *   activeSurface : string  — surface key to subtly highlight (emissive pulse).
- *   onPickSurface : fn(surfaceKey) — called on click with the picked mesh's surface key.
+ *                 } - any subset; hex => material color, texture_url => map (falls back to hex on error).
+ *   shape       : 'l-shape' | 'galley' | 'u-shape' | 'island' | 'straight' | 'peninsula' (default 'l-shape')
+ *   activeSurface : string  - surface key to subtly highlight (emissive pulse).
+ *   onPickSurface : fn(surfaceKey) - called on click with the picked mesh's surface key.
  *   height      : number (default 460)
  *
  * Surface keys (used by onPickSurface & materials): one of
  *   'cabinet' | 'worktop' | 'splashback' | 'wall' | 'floor' | 'handle' | 'appliance'
  */
 
-// Neutral PBR defaults per surface key
+// Premium PBR defaults per surface key.
 const DEFAULTS = {
-  cabinet: { hex: '#e8e4dc', rough: 0.55, metal: 0.05 },
-  worktop: { hex: '#3a3a3e', rough: 0.35, metal: 0.1 },
-  splashback: { hex: '#cfd4d6', rough: 0.25, metal: 0.05 },
-  wall: { hex: '#f2efe9', rough: 0.95, metal: 0.0 },
-  floor: { hex: '#9a8472', rough: 0.8, metal: 0.0 },
-  handle: { hex: '#9aa0a6', rough: 0.3, metal: 0.85 },
-  appliance: { hex: '#b9bcc0', rough: 0.4, metal: 0.6 },
+  cabinet: { hex: '#e8e4dc', rough: 0.5, metal: 0.04, clearcoat: 0.0 },
+  worktop: { hex: '#36363b', rough: 0.18, metal: 0.06, clearcoat: 0.7, clearcoatRough: 0.12 },
+  splashback: { hex: '#cfd4d6', rough: 0.22, metal: 0.04, clearcoat: 0.25, clearcoatRough: 0.2 },
+  wall: { hex: '#f2efe9', rough: 0.96, metal: 0.0 },
+  floor: { hex: '#9a8472', rough: 0.72, metal: 0.0, clearcoat: 0.1, clearcoatRough: 0.35 },
+  handle: { hex: '#b8bcc0', rough: 0.28, metal: 0.92 },
+  appliance: { hex: '#b9bcc0', rough: 0.38, metal: 0.6, clearcoat: 0.2, clearcoatRough: 0.25 },
 };
 
 export default function KitchenScene3D({
@@ -50,6 +79,7 @@ export default function KitchenScene3D({
   const surfaceMatsRef = useRef({}); // key -> THREE.Material (one shared per surface key)
   const meshesRef = useRef([]); // all pickable meshes (carry .userData.surfaceKey)
   const disposablesRef = useRef([]); // geometries/textures to dispose
+  const envRef = useRef(null);
   const activeRef = useRef(activeSurface);
   const pickRef = useRef(onPickSurface);
 
@@ -65,48 +95,109 @@ export default function KitchenScene3D({
     const width = mount.clientWidth || 640;
     const h = height;
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#eceae6');
+    // ---- Scene + soft warm off-white background ----------------------------
+    const scene = new Scene();
+    scene.background = new Color('#f4f1ea');
     sceneRef.current = scene;
 
-    const camera = new THREE.PerspectiveCamera(45, width / h, 0.1, 100);
-    camera.position.set(4.2, 3.2, 5.4);
+    const camera = new PerspectiveCamera(42, width / h, 0.1, 100);
+    // Flattering 3/4 angle.
+    camera.position.set(4.6, 3.1, 5.6);
     cameraRef.current = camera;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    // ---- Renderer (physically-based, tone-mapped, soft shadows) ------------
+    const renderer = new WebGLRenderer({ antialias: true, alpha: false });
     renderer.setSize(width, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    // r160: physically-correct lighting is the default; expose color space + tone mapping.
+    renderer.outputColorSpace = SRGBColorSpace;
+    renderer.toneMapping = ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
+    if ('useLegacyLights' in renderer) {
+      // r155+ - false === physically-correct lights.
+      renderer.useLegacyLights = false;
+    }
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = PCFSoftShadowMap;
     rendererRef.current = renderer;
     mount.appendChild(renderer.domElement);
 
-    // ---- Lights -------------------------------------------------------------
-    scene.add(new THREE.AmbientLight(0xffffff, 0.45));
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x9a8472, 0.55);
+    // ---- Procedural environment for realistic PBR reflections --------------
+    // RoomEnvironment gives soft, neutral studio reflections via PMREM.
+    try {
+      const pmrem = new PMREMGenerator(renderer);
+      const roomEnv = new RoomEnvironment();
+      const envTex = pmrem.fromScene(roomEnv, 0.04).texture;
+      scene.environment = envTex;
+      envRef.current = envTex;
+      if (roomEnv.dispose) roomEnv.dispose();
+      pmrem.dispose();
+    } catch (e) {
+      // If PMREM/RoomEnvironment is unavailable, fall back to a faint gradient env.
+      try {
+        const pmrem = new PMREMGenerator(renderer);
+        const grad = makeGradientEnv();
+        grad.mapping = EquirectangularReflectionMapping;
+        const envTex = pmrem.fromEquirectangular(grad).texture;
+        scene.environment = envTex;
+        envRef.current = envTex;
+        grad.dispose();
+        pmrem.dispose();
+      } catch (e2) {
+        /* no env map - PBR still renders, just flatter */
+      }
+    }
+
+    // ---- Lighting: soft 3-point setup --------------------------------------
+    // Faint ambient so shadow cores never go fully black.
+    scene.add(new AmbientLight(0xffffff, 0.18));
+
+    // Hemisphere (sky / ground) for natural ambient gradient.
+    const hemi = new HemisphereLight(0xfdfbf7, 0x8c7a68, 0.65);
     scene.add(hemi);
-    const dir = new THREE.DirectionalLight(0xffffff, 0.9);
-    dir.position.set(5, 8, 4);
-    dir.castShadow = true;
-    dir.shadow.mapSize.set(1024, 1024);
-    dir.shadow.camera.near = 1;
-    dir.shadow.camera.far = 30;
-    dir.shadow.camera.left = -8;
-    dir.shadow.camera.right = 8;
-    dir.shadow.camera.top = 8;
-    dir.shadow.camera.bottom = -8;
-    scene.add(dir);
+
+    // Key light - soft shadows from upper-right.
+    const key = new DirectionalLight(0xfff4e6, 2.4);
+    key.position.set(6, 9, 5);
+    key.castShadow = true;
+    key.shadow.mapSize.set(2048, 2048);
+    key.shadow.camera.near = 1;
+    key.shadow.camera.far = 36;
+    key.shadow.camera.left = -9;
+    key.shadow.camera.right = 9;
+    key.shadow.camera.top = 9;
+    key.shadow.camera.bottom = -9;
+    key.shadow.bias = -0.0004;
+    key.shadow.normalBias = 0.02;
+    key.shadow.radius = 4;
+    scene.add(key);
+
+    // Fill - cool, soft, no shadows, from the opposite side.
+    const fill = new DirectionalLight(0xdfe7f2, 0.55);
+    fill.position.set(-6, 4, 3);
+    scene.add(fill);
 
     // ---- Material factory (one shared material per surface key) -------------
-    const makeMat = (key) => {
-      const d = DEFAULTS[key] || DEFAULTS.cabinet;
-      const m = new THREE.MeshStandardMaterial({
-        color: new THREE.Color(d.hex),
-        roughness: d.rough,
-        metalness: d.metal,
-      });
-      m.userData = { baseEmissive: new THREE.Color(0x000000) };
-      surfaceMatsRef.current[key] = m;
+    const makeMat = (mkey) => {
+      const d = DEFAULTS[mkey] || DEFAULTS.cabinet;
+      const usePhysical = d.clearcoat != null;
+      const m = usePhysical
+        ? new MeshPhysicalMaterial({
+            color: new Color(d.hex),
+            roughness: d.rough,
+            metalness: d.metal,
+            clearcoat: d.clearcoat || 0,
+            clearcoatRoughness: d.clearcoatRough != null ? d.clearcoatRough : 0.2,
+            envMapIntensity: 1.0,
+          })
+        : new MeshStandardMaterial({
+            color: new Color(d.hex),
+            roughness: d.rough,
+            metalness: d.metal,
+            envMapIntensity: 0.9,
+          });
+      m.userData = { baseEmissive: new Color(0x000000) };
+      surfaceMatsRef.current[mkey] = m;
       return m;
     };
     Object.keys(DEFAULTS).forEach(makeMat);
@@ -116,7 +207,7 @@ export default function KitchenScene3D({
       return geo;
     };
     const addMesh = (geo, surfaceKey, opts = {}) => {
-      const mesh = new THREE.Mesh(track(geo), surfaceMatsRef.current[surfaceKey]);
+      const mesh = new Mesh(track(geo), surfaceMatsRef.current[surfaceKey]);
       mesh.userData.surfaceKey = surfaceKey;
       if (opts.cast !== false) mesh.castShadow = true;
       if (opts.receive !== false) mesh.receiveShadow = true;
@@ -125,107 +216,185 @@ export default function KitchenScene3D({
       return mesh;
     };
 
+    // Rounded-box (small bevels) via extrude - so cabinets/worktops don't look
+    // like raw boxes. Falls back to BoxGeometry on failure.
+    const roundedBox = (w, hh, d, r = 0.02) => {
+      try {
+        const rr = Math.min(r, w / 2 - 0.001, hh / 2 - 0.001);
+        const shp = new Shape();
+        const x = -w / 2;
+        const y = -hh / 2;
+        shp.moveTo(x + rr, y);
+        shp.lineTo(x + w - rr, y);
+        shp.quadraticCurveTo(x + w, y, x + w, y + rr);
+        shp.lineTo(x + w, y + hh - rr);
+        shp.quadraticCurveTo(x + w, y + hh, x + w - rr, y + hh);
+        shp.lineTo(x + rr, y + hh);
+        shp.quadraticCurveTo(x, y + hh, x, y + hh - rr);
+        shp.lineTo(x, y + rr);
+        shp.quadraticCurveTo(x, y, x + rr, y);
+        const geo = new ExtrudeGeometry(shp, {
+          depth: d,
+          bevelEnabled: true,
+          bevelThickness: 0.008,
+          bevelSize: 0.008,
+          bevelSegments: 2,
+          steps: 1,
+        });
+        geo.translate(0, 0, -d / 2);
+        geo.computeVertexNormals();
+        return geo;
+      } catch (e) {
+        return new BoxGeometry(w, hh, d);
+      }
+    };
+
     // ---- Room dimensions ----------------------------------------------------
     const ROOM = 7; // floor side length
     const WALL_H = 3.2;
 
-    // Floor
-    const floor = addMesh(new THREE.PlaneGeometry(ROOM, ROOM), 'floor', { cast: false });
+    // Floor (large plane, receives shadows).
+    const floor = addMesh(new PlaneGeometry(ROOM, ROOM), 'floor', { cast: false });
     floor.rotation.x = -Math.PI / 2;
+    // Wood/tile texture should repeat if a map is applied.
+    surfaceMatsRef.current.floor.userData.repeat = [4, 4];
 
     // Back wall (along -Z) and Left wall (along -X)
-    const backWall = addMesh(new THREE.PlaneGeometry(ROOM, WALL_H), 'wall', { cast: false });
+    const backWall = addMesh(new PlaneGeometry(ROOM, WALL_H), 'wall', { cast: false });
     backWall.position.set(0, WALL_H / 2, -ROOM / 2);
 
-    const leftWall = addMesh(new THREE.PlaneGeometry(ROOM, WALL_H), 'wall', { cast: false });
+    const leftWall = addMesh(new PlaneGeometry(ROOM, WALL_H), 'wall', { cast: false });
     leftWall.rotation.y = Math.PI / 2;
     leftWall.position.set(-ROOM / 2, WALL_H / 2, 0);
 
-    // ---- Cabinet run builder ------------------------------------------------
-    const BASE_H = 0.9;
-    const BASE_D = 0.62;
-    const TOP_T = 0.05; // worktop thickness
+    // ---- Cabinet run constants (real-world scale, metres) ------------------
+    const BASE_H = 0.9;     // worktop sits at ~0.9 m
+    const BASE_D = 0.62;    // base depth
+    const TOP_T = 0.04;     // worktop thickness
+    const UPSTAND_H = 0.06; // small upstand behind worktop
     const SPLASH_H = 0.5;
-    const UPPER_H = 0.7;
+    const UPPER_H = 0.72;
     const UPPER_D = 0.34;
-    const UPPER_Y = 1.55; // bottom of upper cabinets
+    const UPPER_Y = 1.42;   // bottom of upper cabinets (~1.4 m)
+    const TOE = 0.09;       // toe-kick recess height
 
-    // hood helper (uses appliance surface) — declared before use in layouts
+    // hood helper (uses appliance surface) - declared before use in layouts
     function addHood(x, zWall) {
-      addAppliance(0.7, 0.35, 0.45, { x, y: UPPER_Y + 0.2, z: zWall + 0.25 });
+      addAppliance(0.72, 0.34, 0.46, { x, y: UPPER_Y + 0.22, z: zWall + 0.27 });
     }
 
-    // Build one straight run of base+worktop+splashback+uppers+handles.
-    // `axis`: 'x' run extends along X at fixed z (wall at -Z); 'z' run extends along Z at fixed x (wall at -X).
+    // Build one straight run of base+worktop+upstand+splashback+uppers+handles.
+    // axis 'x' = run extends along X at fixed z (wall at -Z); 'z' = along Z at fixed x (wall at -X).
     const buildRun = (run) => {
       const { axis, length, center, wallPos, withUpper = true, withSplash = true } = run;
-      // Base cabinet body
+      const grp = new Group();
+      scene.add(grp);
+
+      // Base cabinet body (rounded front edges), lifted to leave a toe-kick.
+      const bodyH = BASE_H - TOE;
       const baseGeo =
         axis === 'x'
-          ? new THREE.BoxGeometry(length, BASE_H, BASE_D)
-          : new THREE.BoxGeometry(BASE_D, BASE_H, length);
+          ? roundedBox(length, bodyH, BASE_D, 0.015)
+          : rotateGeoY(roundedBox(length, bodyH, BASE_D, 0.015));
       const base = addMesh(baseGeo, 'cabinet');
       const baseZ = axis === 'x' ? wallPos + BASE_D / 2 : center;
       const baseX = axis === 'x' ? center : wallPos + BASE_D / 2;
-      base.position.set(baseX, BASE_H / 2, baseZ);
+      base.position.set(baseX, TOE + bodyH / 2, baseZ);
 
-      // Worktop slab (slightly overhangs)
+      // Recessed plinth / toe-kick (dark, matte) using appliance material tone.
+      const plinthGeo =
+        axis === 'x'
+          ? new BoxGeometry(length - 0.04, TOE, BASE_D - 0.12)
+          : new BoxGeometry(BASE_D - 0.12, TOE, length - 0.04);
+      const plinth = addMesh(plinthGeo, 'appliance', { cast: false });
+      plinth.position.set(baseX, TOE / 2, baseZ);
+
+      // Worktop slab (overhangs slightly), polished stone.
       const wGeo =
         axis === 'x'
-          ? new THREE.BoxGeometry(length + 0.04, TOP_T, BASE_D + 0.04)
-          : new THREE.BoxGeometry(BASE_D + 0.04, TOP_T, length + 0.04);
+          ? roundedBox(length + 0.04, TOP_T, BASE_D + 0.04, 0.01)
+          : rotateGeoY(roundedBox(length + 0.04, TOP_T, BASE_D + 0.04, 0.01));
       const wtop = addMesh(wGeo, 'worktop');
       wtop.position.set(baseX, BASE_H + TOP_T / 2, baseZ);
 
-      // Splashback strip on wall
+      // Upstand behind the worktop (same stone) for a built-in feel.
+      const upGeo =
+        axis === 'x'
+          ? new BoxGeometry(length, UPSTAND_H, 0.03)
+          : new BoxGeometry(0.03, UPSTAND_H, length);
+      const upstand = addMesh(upGeo, 'worktop', { cast: false });
+      const upOff = wallPos + 0.02;
+      if (axis === 'x') upstand.position.set(center, BASE_H + TOP_T + UPSTAND_H / 2, upOff);
+      else upstand.position.set(upOff, BASE_H + TOP_T + UPSTAND_H / 2, center);
+
+      // Splashback strip on wall.
       if (withSplash) {
         const sGeo =
           axis === 'x'
-            ? new THREE.BoxGeometry(length, SPLASH_H, 0.02)
-            : new THREE.BoxGeometry(0.02, SPLASH_H, length);
+            ? new BoxGeometry(length, SPLASH_H, 0.015)
+            : new BoxGeometry(0.015, SPLASH_H, length);
         const splash = addMesh(sGeo, 'splashback', { cast: false });
-        const sOff = 0.011;
+        const sOff = 0.009;
         const sX = axis === 'x' ? center : wallPos + sOff;
         const sZ = axis === 'x' ? wallPos + sOff : center;
-        splash.position.set(sX, BASE_H + TOP_T + SPLASH_H / 2, sZ);
+        splash.position.set(sX, BASE_H + TOP_T + UPSTAND_H + SPLASH_H / 2, sZ);
       }
 
-      // Upper cabinets
+      // Upper cabinets with a slight reveal (gap above worktop run).
       if (withUpper) {
         const uGeo =
           axis === 'x'
-            ? new THREE.BoxGeometry(length, UPPER_H, UPPER_D)
-            : new THREE.BoxGeometry(UPPER_D, UPPER_H, length);
+            ? roundedBox(length, UPPER_H, UPPER_D, 0.012)
+            : rotateGeoY(roundedBox(length, UPPER_H, UPPER_D, 0.012));
         const upper = addMesh(uGeo, 'cabinet');
         const uZ = axis === 'x' ? wallPos + UPPER_D / 2 : center;
         const uX = axis === 'x' ? center : wallPos + UPPER_D / 2;
         upper.position.set(uX, UPPER_Y + UPPER_H / 2, uZ);
       }
 
-      // Handles — thin bars along the run, on base + upper fronts.
+      // Handles - thin bars on base + upper fronts.
       const handleCount = Math.max(2, Math.round(length / 0.8));
       for (let i = 0; i < handleCount; i += 1) {
         const t = handleCount === 1 ? 0.5 : i / (handleCount - 1);
-        const along = -length / 2 + 0.2 + t * (length - 0.4);
+        const along = -length / 2 + 0.22 + t * (length - 0.44);
+        const frontOff = BASE_D + 0.012;
         // base handle
-        const hGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.12, 8);
+        const hGeo = new CylinderGeometry(0.01, 0.01, 0.14, 12);
         const handle = addMesh(hGeo, 'handle');
         handle.rotation.z = Math.PI / 2; // lie horizontal
-        const frontOff = BASE_D + 0.02;
         if (axis === 'x') {
-          handle.position.set(center + along, BASE_H - 0.12, wallPos + frontOff);
+          handle.position.set(center + along, BASE_H - 0.16, wallPos + frontOff);
         } else {
           handle.rotation.y = Math.PI / 2;
-          handle.position.set(wallPos + frontOff, BASE_H - 0.12, center + along);
+          handle.position.set(wallPos + frontOff, BASE_H - 0.16, center + along);
+        }
+        // upper handle (only where there are uppers)
+        if (withUpper) {
+          const hGeo2 = new CylinderGeometry(0.009, 0.009, 0.12, 12);
+          const handle2 = addMesh(hGeo2, 'handle');
+          handle2.rotation.z = Math.PI / 2;
+          const upFront = UPPER_D + 0.012;
+          if (axis === 'x') {
+            handle2.position.set(center + along, UPPER_Y + 0.06, wallPos + upFront);
+          } else {
+            handle2.rotation.y = Math.PI / 2;
+            handle2.position.set(wallPos + upFront, UPPER_Y + 0.06, center + along);
+          }
         }
       }
     };
 
     // ---- Appliance block builder -------------------------------------------
     function addAppliance(w, hh, d, pos) {
-      const a = addMesh(new THREE.BoxGeometry(w, hh, d), 'appliance');
+      const a = addMesh(roundedBox(w, hh, d, 0.012), 'appliance');
       a.position.set(pos.x, pos.y, pos.z);
       return a;
+    }
+
+    // Hob inset - a dark glossy slab flush in the worktop.
+    function addHob(x, z) {
+      const hob = addMesh(new BoxGeometry(0.58, 0.012, 0.5), 'appliance', { cast: false });
+      hob.position.set(x, BASE_H + TOP_T + 0.006, z);
     }
 
     // ---- Layout per shape ---------------------------------------------------
@@ -233,17 +402,37 @@ export default function KitchenScene3D({
     const wallX = -ROOM / 2; // left wall plane
     const RUN_LEN = 4.0;
 
+    const buildIsland = (z = 1.4, thick = 0.07) => {
+      const islBase = addMesh(roundedBox(2.2, BASE_H - TOE, 1.0, 0.02), 'cabinet');
+      islBase.position.set(0, TOE + (BASE_H - TOE) / 2, z);
+      const islPlinth = addMesh(new BoxGeometry(2.1, TOE, 0.88), 'appliance', { cast: false });
+      islPlinth.position.set(0, TOE / 2, z);
+      // thicker worktop slab on the island
+      const islTop = addMesh(roundedBox(2.34, thick, 1.12, 0.012), 'worktop');
+      islTop.position.set(0, BASE_H + thick / 2, z);
+      // a couple of island handles
+      for (let i = 0; i < 2; i += 1) {
+        const hx = i === 0 ? -0.6 : 0.6;
+        const hh = new CylinderGeometry(0.01, 0.01, 0.16, 12);
+        const handle = addMesh(hh, 'handle');
+        handle.rotation.z = Math.PI / 2;
+        handle.position.set(hx, BASE_H - 0.16, z + 0.51);
+      }
+    };
+
     const layouts = {
       straight: () => {
         buildRun({ axis: 'x', length: RUN_LEN, center: 0, wallPos: wallZ });
         addAppliance(0.8, 1.85, 0.62, { x: 1.6, y: 0.925, z: wallZ + 0.31 }); // fridge
         addAppliance(0.62, 0.85, 0.6, { x: -1.4, y: 0.95, z: wallZ + 0.31 }); // oven
+        addHob(0.2, wallZ + 0.31);
       },
       'l-shape': () => {
         buildRun({ axis: 'x', length: RUN_LEN, center: 0, wallPos: wallZ });
         buildRun({ axis: 'z', length: 3.0, center: 1.0, wallPos: wallX, withSplash: true });
         addAppliance(0.62, 0.85, 0.6, { x: -0.8, y: 0.95, z: wallZ + 0.31 }); // oven
         addHood(-0.8, wallZ);
+        addHob(0.7, wallZ + 0.31);
         addAppliance(0.8, 1.85, 0.62, { x: wallX + 0.31, y: 0.925, z: 2.2 }); // fridge
       },
       galley: () => {
@@ -251,6 +440,7 @@ export default function KitchenScene3D({
         buildRun({ axis: 'x', length: RUN_LEN, center: 0, wallPos: ROOM / 2 - BASE_D, withUpper: false });
         addAppliance(0.62, 0.85, 0.6, { x: 0, y: 0.95, z: wallZ + 0.31 });
         addHood(0, wallZ);
+        addHob(0, wallZ + 0.31);
       },
       'u-shape': () => {
         buildRun({ axis: 'x', length: RUN_LEN, center: 0, wallPos: wallZ });
@@ -258,16 +448,22 @@ export default function KitchenScene3D({
         buildRun({ axis: 'z', length: 3.0, center: 1.0, wallPos: ROOM / 2 - BASE_D, withUpper: false });
         addAppliance(0.62, 0.85, 0.6, { x: 0, y: 0.95, z: wallZ + 0.31 });
         addHood(0, wallZ);
+        addHob(0.8, wallZ + 0.31);
       },
       island: () => {
         buildRun({ axis: 'x', length: RUN_LEN, center: 0, wallPos: wallZ });
-        // free-standing island (no splash/upper)
-        const islBase = addMesh(new THREE.BoxGeometry(2.2, BASE_H, 1.0), 'cabinet');
-        islBase.position.set(0, BASE_H / 2, 1.4);
-        const islTop = addMesh(new THREE.BoxGeometry(2.3, TOP_T, 1.1), 'worktop');
-        islTop.position.set(0, BASE_H + TOP_T / 2, 1.4);
+        buildIsland(1.4, 0.08);
         addAppliance(0.62, 0.85, 0.6, { x: -1.4, y: 0.95, z: wallZ + 0.31 });
         addHood(0, wallZ);
+        addHob(0, 1.4); // hob inset into the island
+      },
+      peninsula: () => {
+        // back run + an attached peninsula run extending out into the room.
+        buildRun({ axis: 'x', length: RUN_LEN, center: 0, wallPos: wallZ });
+        buildRun({ axis: 'z', length: 2.6, center: 1.3, wallPos: -0.31, withUpper: false, withSplash: false });
+        addAppliance(0.62, 0.85, 0.6, { x: -1.4, y: 0.95, z: wallZ + 0.31 });
+        addHood(0, wallZ);
+        addHob(0, wallZ + 0.31);
       },
     };
 
@@ -280,18 +476,20 @@ export default function KitchenScene3D({
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.minDistance = 3;
-    controls.maxDistance = 11;
-    controls.maxPolarAngle = Math.PI / 2.05; // don't go under floor
-    controls.minPolarAngle = 0.2;
-    controls.enablePan = false; // keep camera centered on room
-    controls.target.set(0, 1, 0);
+    controls.minDistance = 3.4;
+    controls.maxDistance = 12;
+    controls.maxPolarAngle = Math.PI / 2.05; // never under the floor
+    controls.minPolarAngle = 0.25;
+    controls.enablePan = false; // keep camera centred on room
+    controls.autoRotate = false; // gentle auto-rotate optional-off
+    controls.autoRotateSpeed = 0.6;
+    controls.target.set(0, 0.95, 0.4); // around counter height
     controls.update();
     controlsRef.current = controls;
 
-    // ---- Picking ------------------------------------------------------------
-    const raycaster = new THREE.Raycaster();
-    const ndc = new THREE.Vector2();
+    // ---- Picking (click-vs-drag discrimination) ----------------------------
+    const raycaster = new Raycaster();
+    const ndc = new Vector2();
     let downXY = null;
     const onPointerDown = (e) => { downXY = [e.clientX, e.clientY]; };
     const onPointerUp = (e) => {
@@ -305,26 +503,26 @@ export default function KitchenScene3D({
       raycaster.setFromCamera(ndc, camera);
       const hits = raycaster.intersectObjects(meshesRef.current, false);
       if (hits.length) {
-        const key = hits[0].object.userData.surfaceKey;
-        if (key) pickRef.current(key);
+        const k = hits[0].object.userData.surfaceKey;
+        if (k) pickRef.current(k);
       }
     };
     renderer.domElement.addEventListener('pointerdown', onPointerDown);
     renderer.domElement.addEventListener('pointerup', onPointerUp);
 
     // ---- Render loop --------------------------------------------------------
-    const clock = new THREE.Clock();
+    const clock = new Clock();
     function render() {
       renderer.render(scene, camera);
     }
     const animate = () => {
       frameRef.current = requestAnimationFrame(animate);
       controls.update();
-      // subtle emissive pulse on active surface
+      // subtle emissive pulse on the active surface
       const t = clock.getElapsedTime();
-      const pulse = 0.18 + 0.12 * Math.sin(t * 3);
-      Object.entries(surfaceMatsRef.current).forEach(([key, m]) => {
-        if (activeRef.current && key === activeRef.current) {
+      const pulse = 0.16 + 0.1 * Math.sin(t * 3);
+      Object.entries(surfaceMatsRef.current).forEach(([k, m]) => {
+        if (activeRef.current && k === activeRef.current) {
           m.emissive.setHex(0xffffff);
           m.emissiveIntensity = pulse;
         } else if (m.emissiveIntensity) {
@@ -361,6 +559,9 @@ export default function KitchenScene3D({
       });
       surfaceMatsRef.current = {};
       meshesRef.current = [];
+      if (envRef.current && envRef.current.dispose) { try { envRef.current.dispose(); } catch (e) {} }
+      envRef.current = null;
+      if (scene) scene.environment = null;
       renderer.dispose();
       if (renderer.domElement.parentNode === mount) {
         mount.removeChild(renderer.domElement);
@@ -389,7 +590,33 @@ export default function KitchenScene3D({
 
 // ---- Helpers ----------------------------------------------------------------
 
-const _loader = new THREE.TextureLoader();
+// Rotate an extruded geometry 90deg about Y so a run can run along Z.
+function rotateGeoY(geo) {
+  try {
+    geo.rotateY(Math.PI / 2);
+    geo.computeVertexNormals();
+  } catch (e) { /* ignore */ }
+  return geo;
+}
+
+// A very cheap equirectangular gradient used only as an env-map fallback.
+function makeGradientEnv() {
+  const c = document.createElement('canvas');
+  c.width = 64;
+  c.height = 64;
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 0, 64);
+  g.addColorStop(0, '#fbf8f2');
+  g.addColorStop(0.55, '#e9e4db');
+  g.addColorStop(1, '#bdb4a6');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 64, 64);
+  const tex = new CanvasTexture(c);
+  tex.colorSpace = SRGBColorSpace;
+  return tex;
+}
+
+const _loader = new TextureLoader();
 
 /**
  * Apply a materials prop onto the shared per-surface materials.
@@ -406,7 +633,7 @@ function applyMaterials(materials, mats, disposables, onChange) {
       try {
         m.color.set(spec.hex);
       } catch (e) {
-        /* invalid color string — ignore, keep previous */
+        /* invalid color string - ignore, keep previous */
       }
     }
 
@@ -416,16 +643,18 @@ function applyMaterials(materials, mats, disposables, onChange) {
           spec.texture_url,
           (tex) => {
             try {
-              tex.colorSpace = THREE.SRGBColorSpace;
-              tex.wrapS = THREE.RepeatWrapping;
-              tex.wrapT = THREE.RepeatWrapping;
+              tex.colorSpace = SRGBColorSpace;
+              tex.wrapS = RepeatWrapping;
+              tex.wrapT = RepeatWrapping;
+              const rep = m.userData && m.userData.repeat;
+              if (rep) tex.repeat.set(rep[0], rep[1]);
               if (m.map && m.map !== tex) m.map.dispose();
               m.map = tex;
               m.needsUpdate = true;
               if (disposables) disposables.push(tex);
               if (onChange) onChange();
             } catch (inner) {
-              /* assignment failed — keep hex */
+              /* assignment failed - keep hex */
             }
           },
           undefined,
@@ -440,7 +669,7 @@ function applyMaterials(materials, mats, disposables, onChange) {
           }
         );
       } catch (e) {
-        /* loader threw synchronously — keep hex */
+        /* loader threw synchronously - keep hex */
       }
     } else if (m.map) {
       // texture removed from spec => revert to hex
