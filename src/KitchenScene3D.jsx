@@ -30,6 +30,7 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { fitModules } from './moduleFit';
 
 /**
  * KitchenScene3D - standalone interactive, premium-looking 3D kitchen.
@@ -347,26 +348,111 @@ export default function KitchenScene3D({
       const grp = new Group();
       scene.add(grp);
 
-      // Base cabinet body (rounded front edges), lifted to leave a toe-kick.
       const bodyH = BASE_H - TOE;
-      const baseGeo =
-        axis === 'x'
-          ? roundedBox(length, bodyH, BASE_D, 0.015)
-          : rotateGeoY(roundedBox(length, bodyH, BASE_D, 0.015));
-      const base = addMesh(baseGeo, 'cabinet');
+      const REVEAL = 0.003; // ~3mm reveal gap between adjacent modules
+
+      // ── DISCRETE MODULE SNAPPING (shared with the BOM via fitModules) ──
+      // Divide this run into real standard-width modules. The visible cabinet
+      // count == fitModules(runMm).length, the SAME function the BOM uses.
+      const runMm = Math.max(0, length * 1000);
+      const mods = fitModules(runMm); // [{ width(mm), filler }]
+      // Guard: if nothing fits (tiny run), fall back to a single body so we
+      // never render an empty run; widths still sum to the run length.
+      const fitList = mods.length ? mods : [{ width: runMm, filler: false }];
+      // Convert to metres and figure each module's centre offset along the run.
+      // We lay modules out from -length/2, inserting a reveal between bodies so
+      // the run still spans ~`length` overall.
+      const widthsM = fitList.map(m => Math.max(0.001, (Number(m.width) || 0) / 1000));
+      const n = widthsM.length;
+      const totalReveals = REVEAL * Math.max(0, n - 1);
+      const bodySpan = Math.max(0.001, length - totalReveals);
+      const widthsSum = widthsM.reduce((s, w) => s + w, 0) || 1;
+      // Normalise widths so bodies + reveals exactly fill `length` (no drift).
+      const scaledW = widthsM.map(w => (w / widthsSum) * bodySpan);
+
+      // Helper: signed offset of each module centre from the run centre.
+      const offsets = [];
+      let cursor = -length / 2;
+      for (let i = 0; i < n; i += 1) {
+        const w = scaledW[i];
+        offsets.push(cursor + w / 2);
+        cursor += w + REVEAL;
+      }
+
+      // ── Per-module base body + door front + handle ──
+      for (let i = 0; i < n; i += 1) {
+        const w = scaledW[i];
+        const off = offsets[i];
+        // body (slightly inset width so the reveal reads as a gap)
+        const mw = Math.max(0.05, w - REVEAL);
+        const bGeo =
+          axis === 'x'
+            ? roundedBox(mw, bodyH, BASE_D, 0.012)
+            : rotateGeoY(roundedBox(mw, bodyH, BASE_D, 0.012));
+        const body = addMesh(bGeo, 'cabinet');
+        const bZ = axis === 'x' ? wallPos + BASE_D / 2 : center + off;
+        const bX = axis === 'x' ? center + off : wallPos + BASE_D / 2;
+        body.position.set(bX, TOE + bodyH / 2, bZ);
+
+        // door front (thin slab proud of the carcass) — picks as 'cabinet'
+        const frontDepth = 0.02;
+        const fGeo =
+          axis === 'x'
+            ? roundedBox(Math.max(0.04, mw - 0.02), bodyH - 0.04, frontDepth, 0.008)
+            : rotateGeoY(roundedBox(Math.max(0.04, mw - 0.02), bodyH - 0.04, frontDepth, 0.008));
+        const front = addMesh(fGeo, 'cabinet');
+        const fFront = BASE_D / 2 + frontDepth / 2 + 0.002;
+        const fZ = axis === 'x' ? wallPos + BASE_D / 2 + fFront : center + off;
+        const fX = axis === 'x' ? center + off : wallPos + BASE_D / 2 + fFront;
+        front.position.set(fX, TOE + bodyH / 2, fZ);
+
+        // one handle per module front
+        const frontOff = BASE_D + frontDepth + 0.012;
+        const hGeo = new CylinderGeometry(0.01, 0.01, 0.14, 12);
+        const handle = addMesh(hGeo, 'handle');
+        handle.rotation.z = Math.PI / 2;
+        if (axis === 'x') {
+          handle.position.set(center + off, BASE_H - 0.16, wallPos + frontOff);
+        } else {
+          handle.rotation.y = Math.PI / 2;
+          handle.position.set(wallPos + frontOff, BASE_H - 0.16, center + off);
+        }
+
+        // matching upper module + handle (where uppers are present)
+        if (withUpper) {
+          const uGeo =
+            axis === 'x'
+              ? roundedBox(mw, UPPER_H, UPPER_D, 0.012)
+              : rotateGeoY(roundedBox(mw, UPPER_H, UPPER_D, 0.012));
+          const upper = addMesh(uGeo, 'cabinet');
+          const uZ = axis === 'x' ? wallPos + UPPER_D / 2 : center + off;
+          const uX = axis === 'x' ? center + off : wallPos + UPPER_D / 2;
+          upper.position.set(uX, UPPER_Y + UPPER_H / 2, uZ);
+
+          const hGeo2 = new CylinderGeometry(0.009, 0.009, 0.12, 12);
+          const handle2 = addMesh(hGeo2, 'handle');
+          handle2.rotation.z = Math.PI / 2;
+          const upFront = UPPER_D + 0.012;
+          if (axis === 'x') {
+            handle2.position.set(center + off, UPPER_Y + 0.06, wallPos + upFront);
+          } else {
+            handle2.rotation.y = Math.PI / 2;
+            handle2.position.set(wallPos + upFront, UPPER_Y + 0.06, center + off);
+          }
+        }
+      }
+
+      // Recessed plinth / toe-kick stays continuous under the run.
       const baseZ = axis === 'x' ? wallPos + BASE_D / 2 : center;
       const baseX = axis === 'x' ? center : wallPos + BASE_D / 2;
-      base.position.set(baseX, TOE + bodyH / 2, baseZ);
-
-      // Recessed plinth / toe-kick (dark, matte) using appliance material tone.
       const plinthGeo =
         axis === 'x'
-          ? new BoxGeometry(length - 0.04, TOE, BASE_D - 0.12)
-          : new BoxGeometry(BASE_D - 0.12, TOE, length - 0.04);
+          ? new BoxGeometry(Math.max(0.05, length - 0.04), TOE, BASE_D - 0.12)
+          : new BoxGeometry(BASE_D - 0.12, TOE, Math.max(0.05, length - 0.04));
       const plinth = addMesh(plinthGeo, 'appliance', { cast: false });
       plinth.position.set(baseX, TOE / 2, baseZ);
 
-      // Worktop slab (overhangs slightly), polished stone.
+      // Worktop slab stays CONTINUOUS over the whole run (worktops aren't modular).
       const wGeo =
         axis === 'x'
           ? roundedBox(length + 0.04, TOP_T, BASE_D + 0.04, 0.01)
@@ -384,7 +470,7 @@ export default function KitchenScene3D({
       if (axis === 'x') upstand.position.set(center, BASE_H + TOP_T + UPSTAND_H / 2, upOff);
       else upstand.position.set(upOff, BASE_H + TOP_T + UPSTAND_H / 2, center);
 
-      // Splashback strip on wall.
+      // Splashback strip on wall (continuous).
       if (withSplash) {
         const sGeo =
           axis === 'x'
@@ -395,49 +481,6 @@ export default function KitchenScene3D({
         const sX = axis === 'x' ? center : wallPos + sOff;
         const sZ = axis === 'x' ? wallPos + sOff : center;
         splash.position.set(sX, BASE_H + TOP_T + UPSTAND_H + SPLASH_H / 2, sZ);
-      }
-
-      // Upper cabinets with a slight reveal (gap above worktop run).
-      if (withUpper) {
-        const uGeo =
-          axis === 'x'
-            ? roundedBox(length, UPPER_H, UPPER_D, 0.012)
-            : rotateGeoY(roundedBox(length, UPPER_H, UPPER_D, 0.012));
-        const upper = addMesh(uGeo, 'cabinet');
-        const uZ = axis === 'x' ? wallPos + UPPER_D / 2 : center;
-        const uX = axis === 'x' ? center : wallPos + UPPER_D / 2;
-        upper.position.set(uX, UPPER_Y + UPPER_H / 2, uZ);
-      }
-
-      // Handles - thin bars on base + upper fronts.
-      const handleCount = Math.max(2, Math.round(length / 0.8));
-      for (let i = 0; i < handleCount; i += 1) {
-        const t = handleCount === 1 ? 0.5 : i / (handleCount - 1);
-        const along = -length / 2 + 0.22 + t * (length - 0.44);
-        const frontOff = BASE_D + 0.012;
-        // base handle
-        const hGeo = new CylinderGeometry(0.01, 0.01, 0.14, 12);
-        const handle = addMesh(hGeo, 'handle');
-        handle.rotation.z = Math.PI / 2; // lie horizontal
-        if (axis === 'x') {
-          handle.position.set(center + along, BASE_H - 0.16, wallPos + frontOff);
-        } else {
-          handle.rotation.y = Math.PI / 2;
-          handle.position.set(wallPos + frontOff, BASE_H - 0.16, center + along);
-        }
-        // upper handle (only where there are uppers)
-        if (withUpper) {
-          const hGeo2 = new CylinderGeometry(0.009, 0.009, 0.12, 12);
-          const handle2 = addMesh(hGeo2, 'handle');
-          handle2.rotation.z = Math.PI / 2;
-          const upFront = UPPER_D + 0.012;
-          if (axis === 'x') {
-            handle2.position.set(center + along, UPPER_Y + 0.06, wallPos + upFront);
-          } else {
-            handle2.rotation.y = Math.PI / 2;
-            handle2.position.set(wallPos + upFront, UPPER_Y + 0.06, center + along);
-          }
-        }
       }
     };
 

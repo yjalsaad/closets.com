@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, createContext, useContext, Component, Fragment, createElement } from 'react';
 import KitchenScene3D from './KitchenScene3D';
+import { fitModules } from './moduleFit';
 
 // build: services-nav-redeploy 2026-06-25 r2
 const SUPA_URL = 'https://jflmbfxbhpioyniibjsj.supabase.co';
@@ -8731,7 +8732,37 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
    ─────────────────────────────────────────────────────────────────── */
 function buildProductionDocs(cfg) {
   cfg = cfg || {};
-  const modules = Array.isArray(cfg.modules) ? cfg.modules : [];
+  // ── MODULE SNAPPING (shared with the 3D via fitModules) ──
+  // When run lengths (mm) are supplied, derive the cabinet module list from the
+  // SAME fitModules() the 3D scene uses, so the BOM "cabinet units" count equals
+  // the number of discrete cabinets drawn in KitchenScene3D (they can't drift).
+  const runs = Array.isArray(cfg.runs)
+    ? cfg.runs.map(r => Number(r)).filter(r => Number.isFinite(r) && r > 0)
+    : [];
+  let modules = Array.isArray(cfg.modules) ? cfg.modules : [];
+  if (runs.length) {
+    const carcassMatName = (cfg.materials && cfg.materials.carcass) || null;
+    const fitted = [];
+    runs.forEach((runMm, ri) => {
+      fitModules(runMm).forEach((m, mi) => {
+        const w = Number(m.width) || 0;
+        if (w <= 0) return;
+        fitted.push({
+          name: m.filler
+            ? `Filler panel ${w}mm`
+            : `Base unit ${w}mm`,
+          qty: 1,
+          w,
+          kind: 'base',
+          line: null,
+          run: ri + 1,
+          seq: mi + 1,
+          carcass: carcassMatName,
+        });
+      });
+    });
+    if (fitted.length) modules = fitted;
+  }
   const accessories = Array.isArray(cfg.accessories) ? cfg.accessories : [];
   const worktop = cfg.worktop || null;
   const mats = cfg.materials || {};
@@ -8958,9 +8989,29 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
   const accTotal = accItems.reduce((s,a)=>s+a.line,0);
   const grandTotal = cabinetTotal + counterTotal + accTotal;
 
+  // ── Run lengths (mm) per layout — the SAME values KitchenScene3D feeds to
+  //    fitModules() for its buildRun() wall runs. Islands/peninsulas are built
+  //    as single bodies in the 3D (not split), so they are NOT included here so
+  //    the BOM cabinet count matches the discrete cabinets drawn. ──
+  const plannerRuns = (() => {
+    switch (layout) {
+      case 'single':
+      case 'straight':   return [lp.wallLen];
+      case 'l-shape':    return [lp.wallA, lp.wallB];
+      case 'galley':     return [lp.wallLen, lp.wallLen];
+      case 'u-shape':    return [lp.uA, lp.uB, lp.uC];
+      case 'island':     return [lp.wallLen];
+      case 'peninsula':  return [lp.wallLen];
+      default:           return [lp.wallLen];
+    }
+  })().map(v => Number(v)).filter(v => Number.isFinite(v) && v > 0);
+
   // ── Production documents (BOM / manufacturing / installation) ──
+  // Pass `runs` so buildProductionDocs derives cabinet modules via fitModules
+  // (the same fn the 3D uses) → BOM cabinet count == discrete 3D cabinet count.
   const prodCfg = {
     modules: bom.map(b=>({ name:b.name, qty:b.qty, w:b.w, kind:b.kind, line:b.line })),
+    runs: plannerRuns,
     worktop: { material:ctop.name, metres:counterM, perM:ctop.perM, line:counterTotal },
     accessories: accItems.map(a=>({ name:a.name, qty:a.qty, unit:a.unit, line:a.line })),
     materials: { carcass:carc.name, door:door.name, finish:door.name },
