@@ -3171,7 +3171,20 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
         : { position:'relative', width:'100%', paddingTop:(aspect*100)+'%', borderRadius:16, overflow:'hidden', background:'#e9e4dc', boxShadow:'0 6px 30px rgba(0,0,0,.14)' } }>
         {(mode === '3d' && is3DCapable) ? (
           <div style={{ position:'absolute', inset:0 }}>
-            {category === 'wardrobe' ? (
+            {category === 'wardrobe' ? (() => {
+              // Wire the customer's real run dimensions (mm → cm) into the parametric
+              // Wardrobe3D. Guard every value against NaN/Infinity and fall back to the
+              // previous 180/240/60 defaults when no dimensions were passed (backward compat).
+              const cmFrom = (mm, fb) => { const n = Number(mm) / 10; return Number.isFinite(n) && n > 0 ? n : fb; };
+              const wWidthCm  = cmFrom(dimensions && dimensions.widthMm, 180);
+              const wHeightCm = cmFrom(dimensions && dimensions.heightMm, 240);
+              const wDepthCm  = cmFrom(dimensions && dimensions.depthMm, 60);
+              const sideAmm = (layoutParams && (layoutParams.sideA != null ? layoutParams.sideA : layoutParams.wallA));
+              const sideBmm = (layoutParams && (layoutParams.sideB != null ? layoutParams.sideB : layoutParams.wallB));
+              const sideAn = Number(sideAmm) / 10, sideBn = Number(sideBmm) / 10;
+              const wSideACm = Number.isFinite(sideAn) && sideAn > 0 ? sideAn : undefined;
+              const wSideBCm = Number.isFinite(sideBn) && sideBn > 0 ? sideBn : undefined;
+              return (
               <Wardrobe3D
                 finishHex={(selections.door_front && selections.door_front.hex) || (selections.door && selections.door.hex) || (selections.body && selections.body.hex) || (selections.carcass && selections.carcass.hex) || '#e8e4dc'}
                 layout={sceneShape}
@@ -3181,10 +3194,12 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
                 product="wardrobe"
                 mobile={mobile}
                 tall
-                widthCm={180} heightCm={240} depthCm={60}
+                widthCm={wWidthCm} heightCm={wHeightCm} depthCm={wDepthCm}
+                sideACm={wSideACm} sideBCm={wSideBCm}
                 scaleMode="fit"
               />
-            ) : (
+              );
+            })() : (
               <KitchenScene3D materials={selectionsAsMaterials} shape={sceneShape} activeSurface={activeSurface} onPickSurface={(key)=>openPanelFor(key)} height={mobile ? 360 : 560} dimensions={dimensions} layoutParams={layoutParams} />
             )}
           </div>
@@ -8117,6 +8132,8 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
           mobile={mobile}
           category="wardrobe"
           sceneShapeFallback={layout}
+          dimensions={{ widthMm: runMm, heightMm: (lp.ceiling || dims.height), depthMm: (lp.depth || dims.depth) }}
+          layoutParams={lp}
           onClose={()=>setRdOpen(false)}
           onGoToSummary={()=>setRdOpen(false)}
           photorealReq={{ product:'wardrobe', getImage:()=>null }}
