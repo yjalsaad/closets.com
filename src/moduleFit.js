@@ -11,6 +11,11 @@
 // Standard base-cabinet widths (mm), largest first. Greedy fit walks this list.
 export const STD_WIDTHS = [1000, 900, 800, 600, 500, 450, 400, 300];
 
+// Standard wardrobe BAY widths (mm), largest first. Wardrobe bays run wider
+// than kitchen base cabinets, so the greedy fit walks this set instead when a
+// caller passes { widths: WARDROBE_WIDTHS }. Default behaviour is unchanged.
+export const WARDROBE_WIDTHS = [1000, 900, 800, 600, 500, 450];
+
 // Smallest run we bother drawing a cabinet for (mm). Below this -> [].
 const MIN_RUN = 250;
 // Smallest standalone module width (mm). Remainders >= this become a filler

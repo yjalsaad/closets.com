@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, createContext, useContext, Component, Fragment, createElement } from 'react';
 import KitchenScene3D from './KitchenScene3D';
-import { fitModules } from './moduleFit';
+import { fitModules, WARDROBE_WIDTHS } from './moduleFit';
 
 // build: services-nav-redeploy 2026-06-25 r2
 const SUPA_URL = 'https://jflmbfxbhpioyniibjsj.supabase.co';
@@ -1195,7 +1195,13 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
     };
     const box = (bw, bh, bd, m) => new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), m);
 
-    function cabinet(W, H, D, doors, st) {
+    // runMm (optional): the REAL run width in millimetres. When a finite, positive
+    // value is supplied, the wardrobe front is divided into discrete STANDARD-WIDTH
+    // bays via fitModules(runMm, { widths: WARDROBE_WIDTHS }) so the 3D shows real,
+    // standard-width sections (with a thin divider between bays + a handle per bay).
+    // When runMm is omitted/invalid, we fall back to the legacy even `W / doors`
+    // division so existing callers (side runs, etc.) are byte-for-byte unchanged.
+    function cabinet(W, H, D, doors, st, runMm) {
       const fin = st.finishHex || '#c89b5e';
       const carc = mat(new THREE.Color(fin).multiplyScalar(0.7));
       const doorMat = st.glass ? new THREE.MeshStandardMaterial({ color: new THREE.Color(fin), transparent: true, opacity: 0.4, roughness: 0.08, metalness: 0, envMapIntensity: 1.6 }) : mat(fin);
@@ -1204,11 +1210,42 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
       [-1, 1].forEach(s => { const sd = box(0.08, H, D, carc); sd.position.x = s * W / 2; g.add(sd); });
       const t = box(W, 0.08, D, carc); t.position.y = H / 2; g.add(t);
       const b = t.clone(); b.position.y = -H / 2; g.add(b);
-      const dw = W / doors;
-      for (let i = 0; i < doors; i++) {
-        const dx = -W / 2 + dw / 2 + i * dw;
-        const dr = box(dw * 0.92, H * 0.94, 0.06, doorMat); dr.position.set(dx, 0, D / 2); g.add(dr);
-        if (st.handles) { const hd = box(0.05, 0.45, 0.05, mat(0x1a1a1a)); hd.position.set(dx + (i < doors / 2 ? dw * 0.36 : -dw * 0.36), 0, D / 2 + 0.08); g.add(hd); }
+
+      // Build the per-bay width list (scene units) that fills W exactly.
+      const rmm = Number(runMm);
+      let bays = null;
+      if (Number.isFinite(rmm) && rmm > 0 && Number.isFinite(W) && W > 0) {
+        const fit = fitModules(rmm, { widths: WARDROBE_WIDTHS });
+        const sum = fit.reduce((s, m) => s + (Number(m.width) > 0 ? Number(m.width) : 0), 0);
+        if (fit.length && sum > 0) {
+          // Normalise so the fitted bay widths exactly span W (no slivers/overflow).
+          bays = fit.map(m => W * (Number(m.width) / sum));
+        }
+      }
+      if (!bays) {
+        // Legacy even division (also the NaN/0 guard fallback).
+        const n = Math.max(1, Math.round(Number(doors) > 0 ? doors : 1));
+        const dw = W / n;
+        bays = new Array(n).fill(dw);
+      }
+
+      // Lay bays left→right, each as a front panel + (between bays) a thin divider + a handle.
+      let cursor = -W / 2;
+      const dividerMat = carc;
+      for (let i = 0; i < bays.length; i++) {
+        const bw = bays[i] > 0 ? bays[i] : (W / bays.length);
+        const dx = cursor + bw / 2;
+        const dr = box(bw * 0.92, H * 0.94, 0.06, doorMat); dr.position.set(dx, 0, D / 2); g.add(dr);
+        // vertical divider on the trailing edge of every bay except the last
+        if (i < bays.length - 1) {
+          const dv = box(0.04, H * 0.96, D * 0.9, dividerMat); dv.position.set(cursor + bw, 0, 0); g.add(dv);
+        }
+        if (st.handles) {
+          const hd = box(0.05, 0.45, 0.05, mat(0x1a1a1a));
+          // alternate handle side per bay so adjacent doors read as opening apart
+          hd.position.set(dx + (i % 2 === 0 ? bw * 0.36 : -bw * 0.36), 0, D / 2 + 0.08); g.add(hd);
+        }
+        cursor += bw;
       }
       if (st.led) { const l = box(W * 0.9, 0.05, 0.05, new THREE.MeshBasicMaterial({ color: 0xfff3d0 })); l.position.set(0, H / 2 - 0.08, D / 2 - 0.08); g.add(l); }
       return g;
@@ -1454,8 +1491,8 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
         const H = Math.max(3.5, Math.min(6, (st.heightCm || 240) / 50));
         const D = Math.max(0.9, Math.min(1.6, (st.depthCm || 60) / 42));
         const sideW = Math.max(2, W * 0.7);
-        // back run always
-        group.add(cabinet(W, H, D, Math.max(2, Math.round(W / 1.4)), st));
+        // back run always — discrete standard-width bays from the real run width
+        group.add(cabinet(W, H, D, Math.max(2, Math.round(W / 1.4)), st, (Number(st.widthCm) > 0 ? Number(st.widthCm) : 300) * 10));
         const left = () => { const c = cabinet(sideW, H, D, 2, st); c.position.set(-(W/2+D/2), 0, sideW/2 - D/2); c.rotation.y = Math.PI/2; return c; };
         const right = () => { const c = cabinet(sideW, H, D, 2, st); c.position.set(W/2+D/2, 0, sideW/2 - D/2); c.rotation.y = -Math.PI/2; return c; };
         if (st.layout === 'u-shape') { group.add(left()); group.add(right()); }
@@ -1471,7 +1508,8 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
       const H = (st.heightCm || 240) * CM;
       const D = Math.max(0.4, (st.depthCm || 60) * CM);
       const doors = Math.max(2, Math.min(6, Math.round((st.widthCm || 200) / 90)));
-      const main = cabinet(W, H, D, doors, st); group.add(main);
+      // Discrete standard-width bays from the real run width (widthCm → mm).
+      const main = cabinet(W, H, D, doors, st, (Number(st.widthCm) > 0 ? Number(st.widthCm) : 200) * 10); group.add(main);
       const sideW = Math.max(1.2, W * 0.6);
       if (st.layout === 'l-shape') { const w2 = cabinet(sideW, H, D, 2, st); w2.position.set(-(W/2+D/2), 0, sideW/2 - D/2); w2.rotation.y = Math.PI / 2; group.add(w2); }
       if (st.layout === 'walk-in') { const w2 = cabinet(sideW, H, D, 2, st); w2.position.set(-(W/2+D/2), 0, sideW/2 - D/2); w2.rotation.y = Math.PI / 2; group.add(w2); const w3 = cabinet(sideW, H, D, 2, st); w3.position.set(W/2+D/2, 0, sideW/2 - D/2); w3.rotation.y = -Math.PI / 2; group.add(w3); }
