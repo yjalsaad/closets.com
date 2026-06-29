@@ -2996,7 +2996,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
       }
     })();
     return () => { alive = false; };
-  }, []);
+  }, [category]);
 
   // Switch to another room scene: reload its surfaces, reset the panel + selections.
   const selectScene = useCallback(async (sc) => {
@@ -3144,7 +3144,21 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
         : { position:'relative', width:'100%', paddingTop:(aspect*100)+'%', borderRadius:16, overflow:'hidden', background:'#e9e4dc', boxShadow:'0 6px 30px rgba(0,0,0,.14)' } }>
         {mode === '3d' ? (
           <div style={{ position:'absolute', inset:0 }}>
-            <KitchenScene3D materials={selectionsAsMaterials} shape={sceneShape} activeSurface={activeSurface} onPickSurface={(key)=>openPanelFor(key)} height={mobile ? 360 : 560} />
+            {category === 'wardrobe' ? (
+              <Wardrobe3D
+                finishHex={(selections.door_front && selections.door_front.hex) || (selections.body && selections.body.hex) || '#e8e4dc'}
+                layout={sceneShape}
+                handles={!!selections.handle}
+                glass={false}
+                led={false}
+                product="wardrobe"
+                mobile={mobile}
+                widthCm={180} heightCm={240} depthCm={60}
+                scaleMode="fit"
+              />
+            ) : (
+              <KitchenScene3D materials={selectionsAsMaterials} shape={sceneShape} activeSurface={activeSurface} onPickSurface={(key)=>openPanelFor(key)} height={mobile ? 360 : 560} />
+            )}
           </div>
         ) : (
           <>
@@ -3308,7 +3322,11 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
           {/* Live / 3D toggle (Approach C) */}
           <div style={{ display:'flex', gap:2, background:'var(--sand)', border:'1px solid var(--line)', borderRadius:10, padding:3 }}>
-            <button type="button" onClick={()=>setMode('3d')} style={seg(mode==='3d')} aria-pressed={mode==='3d'}>3D</button>
+            {is3DCapable ? (
+              <button type="button" onClick={()=>setMode('3d')} style={seg(mode==='3d')} aria-pressed={mode==='3d'}>3D</button>
+            ) : (
+              <button type="button" disabled title="3D preview coming soon for this product" style={{ ...seg(false), cursor:'not-allowed', opacity:.5 }} aria-disabled="true">3D soon</button>
+            )}
             <button type="button" onClick={()=>setMode('live')} style={seg(mode==='live')} aria-pressed={mode==='live'}>Photo</button>
           </div>
           <button type="button" onClick={onGoToSummary} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:10, border:'none', cursor:'pointer', background:'#1D9E75', color:'#fff', fontSize:13.5, fontWeight:700 }}>Go to Kitchen Summary →</button>
@@ -6182,6 +6200,7 @@ function TVUnitPlannerWizard({ setPage, user, openAuth }) {
   const tvLayoutsView = TV_LAYOUTS.map(l => mergeLayout(l, dbLayouts));
   const [step, setStep] = useState(0);
   // Step 1
+  const [rdOpen, setRdOpen] = useState(false);
   const [roomType, setRoomType] = useState('living');
   // Step 2
   const [dims, setDims] = useState({ wallW:4000, wallH:2700, ceiling:2900 });
@@ -6466,6 +6485,7 @@ function TVUnitPlannerWizard({ setPage, user, openAuth }) {
           <button type="button" onClick={()=>setOpenings(os=>[...os,{ id:uid(), type:'Electrical outlet', pos:1900, width:150 }])} style={{ border:'1px dashed var(--line)', borderRadius:11, padding:'10px', background:'var(--sand)', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--clay-deep)' }}>+ Add opening / constraint</button>
         </div></>);
       case 3: return (<>{sectionH('4','Layout','Pick a configuration — then tune its parameters and modular blocks.')}
+        <button type="button" onClick={()=>setRdOpen(true)} className="btn-clay" style={{ borderRadius:12, marginBottom:16, display:'inline-flex', alignItems:'center', gap:8 }}>🎨 Open Room Designer</button>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?14:18, marginBottom:18 }}>
           {tvLayoutsView.map(l=>{ const on=layout===l.id; return (
             <button key={l.id} type="button" onClick={()=>pickLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:16, boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
@@ -6630,6 +6650,17 @@ function TVUnitPlannerWizard({ setPage, user, openAuth }) {
           : <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:11, minWidth:120 }}>Get quote →</button>}
       </div>
 
+      {rdOpen && (
+        <RoomDesigner
+          mobile={mobile}
+          category="tv"
+          sceneShapeFallback={layout}
+          onClose={()=>setRdOpen(false)}
+          onGoToSummary={()=>setRdOpen(false)}
+          photorealReq={{ product:'tv', getImage:()=>null }}
+          indicativeTotal={null}
+        />
+      )}
       {/* QUOTE modal */}
       {showQuote && (
         <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
@@ -6666,6 +6697,7 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
   const officeLayoutsView = OFFICE_LAYOUTS.map(l => mergeLayout(l, dbLayouts));
   const [step, setStep] = useState(0);
   // Step 1
+  const [rdOpen, setRdOpen] = useState(false);
   const [roomType, setRoomType] = useState('home');
   // Step 2
   const [dims, setDims] = useState({ wallW:3600, wallH:2700, ceiling:2900 });
@@ -6933,6 +6965,7 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
           <button type="button" onClick={()=>setOpenings(os=>[...os,{ id:uid(), type:'Electrical outlet', pos:1900, width:150 }])} style={{ border:'1px dashed var(--line)', borderRadius:11, padding:'10px', background:'var(--sand)', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--clay-deep)' }}>+ Add opening / constraint</button>
         </div></>);
       case 3: return (<>{sectionH('4','Layout','Pick a configuration — then tune its modular blocks below.')}
+        <button type="button" onClick={()=>setRdOpen(true)} className="btn-clay" style={{ borderRadius:12, marginBottom:16, display:'inline-flex', alignItems:'center', gap:8 }}>🎨 Open Room Designer</button>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?14:18, marginBottom:18 }}>
           {officeLayoutsView.map(l=>{ const on=layout===l.id; return (
             <button key={l.id} type="button" onClick={()=>pickLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:16, boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
@@ -7088,6 +7121,17 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
           : <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:11, minWidth:120 }}>Get quote →</button>}
       </div>
 
+      {rdOpen && (
+        <RoomDesigner
+          mobile={mobile}
+          category="office"
+          sceneShapeFallback={layout}
+          onClose={()=>setRdOpen(false)}
+          onGoToSummary={()=>setRdOpen(false)}
+          photorealReq={{ product:'office', getImage:()=>null }}
+          indicativeTotal={null}
+        />
+      )}
       {/* QUOTE modal */}
       {showQuote && (
         <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
@@ -7244,6 +7288,7 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
   const wwLayoutsView = WW_LAYOUTS.map(l => mergeLayout(l, dbLayouts));
   const [step, setStep] = useState(0);
   // Step 1 — room type
+  const [rdOpen, setRdOpen] = useState(false);
   const [roomType, setRoomType] = useState('master');
   // Step 2 — room dimensions (mm)
   const [dims, setDims] = useState({ width:3600, length:3000, height:2700, depth:600 });
@@ -7571,6 +7616,7 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
           <button type="button" onClick={()=>setCons(cs=>[...cs,{ id:uid(), type:'Window', pos:1500, width:1000 }])} style={{ border:'1px dashed var(--line)', borderRadius:11, padding:'10px', background:'var(--sand)', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--clay-deep)' }}>+ Add constraint</button>
         </div></>);
       case 3: return (<>{sectionH('4','Wardrobe layout','Pick a configuration — then set its parameters below.')}
+        <button type="button" onClick={()=>setRdOpen(true)} className="btn-clay" style={{ borderRadius:12, marginBottom:16, display:'inline-flex', alignItems:'center', gap:8 }}>🎨 Open Room Designer</button>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?14:18, marginBottom:18 }}>
           {wwLayoutsView.map(l=>{ const on=layout===l.id; return (
             <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:16, boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
@@ -7790,6 +7836,17 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
           : <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:11, minWidth:120 }}>Get quote →</button>}
       </div>
 
+      {rdOpen && (
+        <RoomDesigner
+          mobile={mobile}
+          category="wardrobe"
+          sceneShapeFallback={layout}
+          onClose={()=>setRdOpen(false)}
+          onGoToSummary={()=>setRdOpen(false)}
+          photorealReq={{ product:'wardrobe', getImage:()=>null }}
+          indicativeTotal={null}
+        />
+      )}
       {/* QUOTE modal */}
       {showQuote && (
         <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
@@ -7821,6 +7878,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
   const doorTypesView = DOOR_TYPES.map(t => mergeLayout(t, dbLayouts));
   const [step, setStep] = useState(0);
   // Step 1
+  const [rdOpen, setRdOpen] = useState(false);
   const [doorType, setDoorType] = useState('single');
   // Step 2
   const [location, setLocation] = useState('bedroom');
@@ -8123,6 +8181,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
   const stepContent = () => {
     switch(step) {
       case 0: return (<>{sectionH('1','Door type','Choose a configuration — or start from a popular preset.')}
+        <button type="button" onClick={()=>setRdOpen(true)} className="btn-clay" style={{ borderRadius:12, marginBottom:16, display:'inline-flex', alignItems:'center', gap:8 }}>🎨 Open Room Designer</button>
         <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>Quick start</div>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr 1fr', gap:8, marginBottom:16 }}>
           {DOOR_PRESETS.map(p=>(
@@ -8329,6 +8388,17 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
           : <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:11, minWidth:120 }}>Get quote →</button>}
       </div>
 
+      {rdOpen && (
+        <RoomDesigner
+          mobile={mobile}
+          category="door"
+          sceneShapeFallback={doorType}
+          onClose={()=>setRdOpen(false)}
+          onGoToSummary={()=>setRdOpen(false)}
+          photorealReq={{ product:'door', getImage:()=>null }}
+          indicativeTotal={null}
+        />
+      )}
       {/* QUOTE modal */}
       {showQuote && (
         <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
