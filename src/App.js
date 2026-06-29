@@ -3122,15 +3122,24 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
     const surfacesPayload = surfaces
       .map(s => { const m = selections[s.surface_key]; return m ? { key: s.surface_key, name: m.name, hex: m.hex } : null; })
       .filter(Boolean);
+    // Fire-and-forget: log render history + decrement the credit counter.
+    const logRender = (ok, url) => { try {
+      fetch(SUPA_URL + '/rest/v1/rpc/log_render', {
+        method: 'POST', headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_product: (photorealReq && photorealReq.product) || category || 'kitchen', p_scene: scene ? scene.id : null, p_config: null, p_customer: null, p_name: null, p_surfaces: surfacesPayload, p_image: ok ? (url || null) : null, p_status: ok ? 'success' : 'failed', p_by: 'website' }),
+      });
+    } catch (_) {} };
     try {
       const r = await fetch(SUPA_URL + '/functions/v1/render_photoreal', {
         method: 'POST', headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image_base64: img, product: (photorealReq && photorealReq.product) || 'kitchen', finish: photorealReq && photorealReq.finish, surfaces: surfacesPayload }),
+        body: JSON.stringify({ image_base64: img, product: (photorealReq && photorealReq.product) || category || 'kitchen', finish: photorealReq && photorealReq.finish, surfaces: surfacesPayload }),
       });
       const d = await r.json().catch(() => ({}));
-      if (d && d.ok && d.url) setPrUrl(d.url);
+      const ok = !!(d && d.ok && d.url);
+      if (ok) setPrUrl(d.url);
       else setPrErr(d && d.error === 'Render not configured' ? 'Photorealistic rendering isn’t switched on yet — your live preview above still reflects every finish.' : 'Render didn’t come through this time. Please try again in a moment.');
-    } catch (e) { setPrErr('Network hiccup — please try again in a moment.'); }
+      logRender(ok, ok ? d.url : null);
+    } catch (e) { setPrErr('Network hiccup — please try again in a moment.'); logRender(false, null); }
     setPrBusy(false);
   };
 
