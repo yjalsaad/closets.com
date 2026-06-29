@@ -8967,20 +8967,57 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
   const view3dLayout = lay.model;
 
   // ── 2D top-down plan (SVG, room-space mm → px) ──
+  // Fit-to-viewport but PROPORTIONAL: every run/worktop/island rectangle is derived
+  // from the entered millimetres (dims.length × dims.width) and the layout params (lp),
+  // and the whole geometry REBUILDS per `layout`. Mirrors the door-elevation scale pattern.
   const planView = (h) => {
-    const L = Math.max(1000, dims.length), W = Math.max(1000, dims.width);
+    const L = Math.max(1000, Math.min(20000, dims.length||4000));   // room length (mm), clamped
+    const W = Math.max(1000, Math.min(20000, dims.width||3000));    // room width  (mm), clamped
     const pad = 26, vw = 320, vh = 232;
-    const sc = Math.min((vw-pad*2)/L, (vh-pad*2)/W);
+    const sc = Math.min((vw-pad*2)/L, (vh-pad*2)/W);                 // mm → px, aspect-preserving
     const ox = pad + ((vw-pad*2)-L*sc)/2, oy = pad + ((vh-pad*2)-W*sc)/2;
     const X = (mm)=>ox+mm*sc, Y = (mm)=>oy+mm*sc;
-    // cabinet runs (rectangles, 600mm deep)
-    const dep = 600*sc;
-    const runs = [];
-    if (layout==='single'){ runs.push([ox,oy,L*sc,dep]); }
-    else if (layout==='galley'){ runs.push([ox,oy,L*sc,dep]); runs.push([ox,oy+W*sc-dep,L*sc,dep]); }
-    else if (layout==='l-shape'||layout==='peninsula'){ runs.push([ox,oy,L*sc,dep]); runs.push([ox,oy,dep,W*sc]); }
-    else if (layout==='u-shape'){ runs.push([ox,oy,L*sc,dep]); runs.push([ox,oy,dep,W*sc]); runs.push([ox+L*sc-dep,oy,dep,W*sc]); }
-    else if (layout==='island'){ runs.push([ox,oy,L*sc,dep]); runs.push([X(L/2-(lp.islandW||2400)/2),Y(W/2-(lp.islandD||1000)/2),(lp.islandW||2400)*sc,(lp.islandD||1000)*sc]); }
+    // cabinet runs (rectangles, 600mm cabinet depth). [x,y,w,h] in px.
+    const depMm = 600;                                              // standard base-cabinet depth
+    const dep = depMm*sc;
+    const wtMm = 40;                                               // worktop lip drawn on the room-facing edge
+    const wt = Math.max(2, wtMm*sc);
+    const runs = [], worktops = [];
+    // each run pushes its cabinet body + a thin worktop strip on the room-facing edge
+    const addH = (x,y,wPx,facing) => { runs.push([x,y,wPx,dep]); worktops.push(facing==='down' ? [x,y+dep-wt,wPx,wt] : [x,y,wPx,wt]); };
+    const addV = (x,y,hPx,facing) => { runs.push([x,y,dep,hPx]); worktops.push(facing==='right' ? [x+dep-wt,y,wt,hPx] : [x,y,wt,hPx]); };
+    if (layout==='single'){
+      addH(ox,oy,L*sc,'down');
+    } else if (layout==='galley'){
+      // two opposing runs; gap between them respects lp.galleyGap when it fits the room
+      const gapMm = Math.max(900, Math.min(W-2*depMm, lp.galleyGap||1400));
+      const runLenMm = Math.min(L, lp.wallLen||L);
+      addH(ox,oy,runLenMm*sc,'down');                              // top run
+      addH(ox,Y(depMm+gapMm),runLenMm*sc,'up');                    // bottom run, offset by depth+gap
+    } else if (layout==='l-shape'){
+      const aMm = Math.min(L, lp.wallA||L), bMm = Math.min(W, lp.wallB||W);
+      addH(ox,oy,aMm*sc,'down');                                   // run A along the top
+      addV(ox,oy,bMm*sc,'right');                                  // run B down the left
+    } else if (layout==='peninsula'){
+      const aMm = Math.min(L, lp.wallA||L), bMm = Math.min(W, lp.wallB||W);
+      addH(ox,oy,aMm*sc,'down');                                   // wall run A
+      addV(ox,oy,bMm*sc,'right');                                  // wall run B
+      // free-standing peninsula projecting into the room from run B's end
+      const penWMm = Math.max(600, lp.penW||1800), penDMm = Math.max(400, lp.penD||600);
+      runs.push([ox+dep, Y(bMm), Math.min(penWMm,L-depMm)*sc, penDMm*sc]);
+      worktops.push([ox+dep, Y(bMm), Math.min(penWMm,L-depMm)*sc, wt]);
+    } else if (layout==='u-shape'){
+      const aMm=Math.min(L,lp.uA||L), bMm=Math.min(W,lp.uB||W), cMm=Math.min(L,lp.uC||L);
+      addH(ox,oy,aMm*sc,'down');                                   // back run
+      addV(ox,oy,bMm*sc,'right');                                  // left run
+      addV(ox+L*sc-dep,oy,cMm*sc,'left');                          // right run
+    } else if (layout==='island'){
+      addH(ox,oy,L*sc,'down');                                     // perimeter run
+      const iwMm=Math.max(800,lp.islandW||2400), idMm=Math.max(600,lp.islandD||1000);
+      const ix=X(L/2-iwMm/2), iy=Y(W/2-idMm/2);                    // centred island block
+      runs.push([ix,iy,iwMm*sc,idMm*sc]);
+      worktops.push([ix,iy,iwMm*sc,idMm*sc]);                      // island gets a full worktop cap
+    }
     const markers = [
       { p:tri.fridge, c:'#2563eb', t:'F' },
       { p:tri.sink,   c:'#0891b2', t:'S' },
@@ -8992,6 +9029,8 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
         <rect x={ox} y={oy} width={L*sc} height={W*sc} fill="#ffffff" stroke="#9a6a3c" strokeWidth="2.5" />
         {/* cabinet runs */}
         {runs.map((r,i)=><rect key={i} x={r[0]} y={r[1]} width={r[2]} height={r[3]} fill={door.hex} fillOpacity="0.55" stroke="#9a6a3c" strokeWidth="1" />)}
+        {/* worktop strips (counter material) on the room-facing edges + island cap */}
+        {worktops.map((w,i)=><rect key={'wt'+i} x={w[0]} y={w[1]} width={w[2]} height={w[3]} fill={ctop.hex||'#d9d4cc'} fillOpacity="0.9" stroke="#7c715f" strokeWidth="0.5" />)}
         {/* openings on the bottom wall */}
         {openings.map((o)=>{ const ow=Math.max(200,o.width||600)*sc; const ox2=X(Math.min(L-(o.width||600), o.pos||0)); const col= o.type==='Door'?'#16a34a':o.type==='Window'?'#0ea5e9':'#b45309';
           return <g key={o.id}><rect x={ox2} y={oy+W*sc-3} width={ow} height={6} fill={col} /><text x={ox2+ow/2} y={oy+W*sc+13} fontSize="8" fill={col} textAnchor="middle">{o.type[0]}</text></g>; })}
@@ -9174,7 +9213,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
       </div>
       <div style={{ background:'var(--sand)', borderRadius:12, overflow:'hidden', flex:1, minHeight:0 }}>
         {view3d
-          ? <div style={{ height:'100%', minHeight:h3d }}><Wardrobe3D product="kitchen" layout={view3dLayout} finishHex={door.hex} handles={(acc.handles||0)>0} led={(acc.lighting||0)>0} glass={false} widthCm={Math.max(120,Math.round((baseRunMm||dims.length)/10))} mobile={mobile} preset="iso" /></div>
+          ? <div style={{ height:'100%', minHeight:h3d }}><Wardrobe3D product="kitchen" layout={view3dLayout} finishHex={door.hex} handles={(acc.handles||0)>0} led={(acc.lighting||0)>0} glass={false} widthCm={Math.max(120,Math.round((baseRunMm||dims.length)/10))} heightCm={Math.max(200,Math.round((dims.ceiling||2700)/10))} depthCm={60} mobile={mobile} preset="iso" /></div>
           : planView(h2d)}
       </div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
