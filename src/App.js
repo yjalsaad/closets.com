@@ -3069,9 +3069,17 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
             {surfaces.map(s => {
               const m = selections[s.surface_key];
               if (!m || !s.mask_url) return null;
+              const maskUrl = `url(${s.mask_url})`;
               return (
-                <img key={'mask-'+s.id} src={s.mask_url} alt="" aria-hidden="true"
-                  style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', backgroundColor: m.hex || 'transparent', mixBlendMode: s.blend_mode || 'multiply', pointerEvents:'none' }} />
+                <div key={'mask-'+s.id} aria-hidden="true"
+                  style={{ position:'absolute', inset:0, pointerEvents:'none',
+                    backgroundColor: m.hex || 'transparent',
+                    backgroundImage: m.texture_url ? `url(${m.texture_url})` : undefined,
+                    backgroundSize: m.texture_url ? 'cover' : undefined,
+                    mixBlendMode: s.blend_mode || 'multiply',
+                    WebkitMaskImage: maskUrl, maskImage: maskUrl,
+                    WebkitMaskSize: '100% 100%', maskSize: '100% 100%',
+                    WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat' }} />
               );
             })}
             {/* "+" hotspots */}
