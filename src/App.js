@@ -1452,6 +1452,8 @@ const I18N = {
   plChipLShapeKitchen:{ en:'Modern L-shape kitchen, white, quartz', ar:'مطبخ عصري على شكل L، أبيض، كوارتز' },
   plAddPhoto:{ en:'Add a photo of your room (optional)', ar:'أضف صورة لغرفتك (اختياري)' },
   plPhotoAdded:{ en:'Photo added — tap to change', ar:'تمت إضافة الصورة — اضغط للتغيير' },
+  imgHintRoomPhoto:{ en:'Recommended: a clear, well-lit landscape photo · ≥1024px wide · JPG/PNG · under 8MB', ar:'يُفضّل: صورة أفقية واضحة جيدة الإضاءة · عرض ١٠٢٤ بكسل على الأقل · JPG/PNG · أقل من ٨ ميغابايت' },
+  imgHintAvatar:{ en:'Recommended: a square photo ~400×400px · under 1MB', ar:'يُفضّل: صورة مربعة بحجم ٤٠٠×٤٠٠ بكسل تقريبًا · أقل من ١ ميغابايت' },
   plGenerateMyDesign:{ en:'Generate my design ✦', ar:'✦ أنشئ تصميمي' },
   plDesigningNow:{ en:'Designing…', ar:'جارٍ التصميم…' },
   plBack:{ en:'‹ Back', ar:'رجوع ›' },
@@ -4805,6 +4807,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           <input type="file" accept="image/*" onChange={e=>onAiPhoto(e.target.files?.[0])} style={{ display:'none' }} />
           {aiImage && <span onClick={e=>{ e.preventDefault(); setAiImage(null); }} style={{ marginLeft:'auto', color:'var(--muted)', fontSize:18 }}>×</span>}
         </label>
+        <div style={{ fontSize:12, color:'var(--muted)', marginTop:-10, marginBottom:16 }}>{t('imgHintRoomPhoto')}</div>
         <div style={{ display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
           <button type="button" className="btn-clay" disabled={aiBusy || (!aiText.trim() && !aiImage)} onClick={runAI} style={{ opacity:(aiBusy||(!aiText.trim()&&!aiImage))?0.6:1 }}>{aiBusy ? t('plDesigningNow') : t('plGenerateMyDesign')}</button>
           <button type="button" onClick={()=>setStage('config')} style={{ background:'none', border:'none', color:'var(--ink-soft)', fontSize:14, cursor:'pointer' }}>{t('sw3PlannerScratch')}</button>
@@ -6296,6 +6299,7 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
                   </div>
                 </div>
                 <input id="cust-photo-input" type="file" accept="image/*" style={{ display:'none' }} onChange={uploadPhoto} />
+                <div style={{ fontSize:12, color:'var(--muted)', marginBottom:10 }}>{t('imgHintAvatar')}</div>
                 <p style={{ fontSize:14, color:'#6e6e73', lineHeight:1.6, marginBottom:18 }}>{t('sw3HubCardLive')}</p>
                 <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
                   <a href={cardUrl} target="_blank" rel="noreferrer" className="btn" style={{ borderRadius:14, textDecoration:'none' }}>Open my card ↗</a>
@@ -8450,6 +8454,7 @@ function YasTextToDesign({ initialPrompt, initialProduct, setPage }) {
 
 // 2) AI Room Redesign — upload photo + style → ai_room_redesign, before/after.
 function YasRoomRedesign({ setPage }) {
+  const { t } = useI18n();
   const [image, setImage] = useState(null);
   const [style, setStyle] = useState('Modern');
   const [busy, setBusy] = useState(false);
@@ -8472,6 +8477,7 @@ function YasRoomRedesign({ setPage }) {
         <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)' }}>{image ? 'Photo added — tap to change' : 'Upload a photo of your room'}</span>
         <input type="file" accept="image/*" onChange={e => yasReadImage(e.target.files && e.target.files[0], img => { if (img) { setImage(img); setUrl(null); setErr(''); } })} style={{ display: 'none' }} />
       </label>
+      <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: -8, marginBottom: 14 }}>{t('imgHintRoomPhoto')}</div>
       <div className="eyebrow" style={{ marginBottom: 10 }}>Pick a style</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
         {YAS_STYLES.map(s => <YasChip key={s} active={style === s} onClick={() => { setStyle(s); if (image && url) run(s); }}>{s}</YasChip>)}
@@ -8914,6 +8920,7 @@ function AIDesignerPage({ setPage, user }) {
             <input type="file" accept="image/*" onChange={e=>onPhoto(e.target.files?.[0])} style={{ display:'none' }} />
             {image && <span onClick={e=>{ e.preventDefault(); setImage(null); setRenderUrl(null); }} style={{ marginLeft:'auto', color:'var(--muted)', fontSize:20 }}>×</span>}
           </label>
+          <div style={{ fontSize:12, color:'var(--muted)', marginTop:-12, marginBottom:18 }}>{t('imgHintRoomPhoto')}</div>
         </>)}
         {/* Step 3 — room + product */}
         <div className="eyebrow" style={{ marginBottom:10 }}>{needsPhoto?'3':'2'} · Room &amp; piece</div>
@@ -15041,6 +15048,7 @@ function DesignBuilderPage({ setPage, user }) {
                 {DB_FEATURES.map(([k,l]) => <Toggle key={k} label={dbFeatureLabels[k]||l} val={!!survey.features[k]} set={v => setSurvey(s => ({ ...s, features: { ...s.features, [k]: v } }))} />)}
               </div>
               <span style={lblS}>{t('sw2DbRoomPhotos')} ({survey.media.photos.length}/8)</span>
+              <div style={{ fontSize:12, color:'var(--muted)', margin:'2px 0 8px' }}>{t('imgHintRoomPhoto')}</div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                 {survey.media.photos.map((src, i) => (
                   <div key={i} style={{ position:'relative', width:78, height:78, borderRadius:12, overflow:'hidden', border:'1px solid var(--line)' }}>
