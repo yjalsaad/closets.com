@@ -2397,6 +2397,47 @@ const CSS = `
   .yas-typing span { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--clay); margin:0 2px; animation:yasBlink 1.2s infinite both; }
   .yas-typing span:nth-child(2){ animation-delay:.2s; } .yas-typing span:nth-child(3){ animation-delay:.4s; }
   @keyframes yasBlink { 0%,80%,100%{ opacity:.25; transform:translateY(0);} 40%{ opacity:1; transform:translateY(-3px);} }
+
+  /* ════════════════════════════════════════════════════════════
+     ── Premium site-wide MOTION layer (additive polish) ──
+     Scroll-reveal · staggered grids · hover micro-interactions · float
+     Same easing (.22,.61,.36,1) / durations everywhere for consistency.
+     ════════════════════════════════════════════════════════════ */
+  .reveal { opacity:0; transform:translateY(18px); transition:opacity .7s cubic-bezier(.22,.61,.36,1), transform .7s cubic-bezier(.22,.61,.36,1); }
+  .reveal.in { opacity:1; transform:none; }
+  /* Staggered cascade: children stay hidden until the parent is .in */
+  .reveal-stagger.in > * { animation:revealUp .6s cubic-bezier(.22,.61,.36,1) both; }
+  @keyframes revealUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+  .reveal-stagger.in > *:nth-child(1){ animation-delay:.04s; }
+  .reveal-stagger.in > *:nth-child(2){ animation-delay:.10s; }
+  .reveal-stagger.in > *:nth-child(3){ animation-delay:.16s; }
+  .reveal-stagger.in > *:nth-child(4){ animation-delay:.22s; }
+  .reveal-stagger.in > *:nth-child(5){ animation-delay:.28s; }
+  .reveal-stagger.in > *:nth-child(6){ animation-delay:.34s; }
+  .reveal-stagger.in > *:nth-child(7){ animation-delay:.40s; }
+  .reveal-stagger.in > *:nth-child(8){ animation-delay:.46s; }
+  .reveal-stagger.in > *:nth-child(n+9){ animation-delay:.52s; }
+  /* Gentle premium lift on cards */
+  .lift { transition:transform .35s cubic-bezier(.22,.61,.36,1), box-shadow .35s; }
+  .lift:hover { transform:translateY(-4px); box-shadow:0 18px 40px rgba(20,16,12,.12); }
+  /* Image zoom inside its own clipping wrapper */
+  .zoomwrap { overflow:hidden; }
+  .zoomwrap img { transition:transform .9s cubic-bezier(.22,.61,.36,1); }
+  .zoomwrap:hover img { transform:scale(1.06); }
+  /* Tactile button feedback (append to existing styles, do not replace) */
+  .btn-clay, .btn-line { transition:transform .2s, box-shadow .2s, filter .2s; }
+  .btn-clay:hover, .btn-line:hover { transform:translateY(-2px); }
+  .btn-clay:active, .btn-line:active { transform:translateY(0) scale(.98); }
+  /* Hero accent float */
+  @keyframes floatY { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-10px); } }
+  .floaty { animation:floatY 6s ease-in-out infinite; }
+  /* Honour reduced-motion: reveal everything, kill all motion */
+  @media (prefers-reduced-motion: reduce) {
+    .reveal, .reveal.in, .reveal-stagger.in > *, .floaty {
+      opacity:1 !important; transform:none !important; animation:none !important; transition:none !important;
+    }
+    .lift:hover { transform:none; }
+  }
 `;
 
 function useReveal() {
@@ -3180,7 +3221,7 @@ function ProductCard({ product: p, setPage, addToCart, setConfigProduct }) {
   const { t, lang } = useI18n();
   return (
     <div className="rv lift" onClick={() => setPage('product-' + p.id)} style={{ cursor: 'pointer', background: '#fff', borderRadius: 18, overflow: 'hidden', border: '1px solid var(--line)' }}>
-      <div className="tile-zoom" style={{ position: 'relative', aspectRatio: '4/5' }}>
+      <div className="tile-zoom zoomwrap" style={{ position: 'relative', aspectRatio: '4/5' }}>
         <Photo src={p.image_url || HOME_IMG.wardrobe} alt={p.name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
         {p.badge && <span style={{ position: 'absolute', top: 12, left: 12, background: 'var(--clay)', color: '#fff', padding: '4px 11px', borderRadius: 980, fontSize: 11, fontWeight: 600, letterSpacing: '.02em' }}>{p.badge === 'Featured' ? t('cardFeatured') : p.badge}</span>}
       </div>
@@ -3229,7 +3270,7 @@ function ProductsPage({ products, setPage, addToCart, setConfigProduct }) {
         </div>
         {filtered.length === 0
           ? <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--muted)' }}><div className="display" style={{ fontSize: 24, color: 'var(--ink)', marginBottom: 8 }}>{t('w4ProdNothing')}</div><div>{t('w4ProdTryDifferent')}</div></div>
-          : <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 12 : 22, paddingBottom: 40 }}>
+          : <div className="reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 12 : 22, paddingBottom: 40 }}>
               {filtered.map(p => <ProductCard key={p.id} product={p} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />)}
             </div>
         }
@@ -3271,7 +3312,7 @@ function ProductDetailPage({ productId, products, setPage, addToCart, setConfigP
         {!mobile && <button type="button" onClick={() => setPage('products')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: '#86868b', marginBottom: 32, display: 'flex', alignItems: 'center', gap: 6 }}>{t('w4PdBack')}</button>}
         {!mobile ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.05fr', gap: 64, marginBottom: 90, alignItems: 'center' }}>
-            <Photo src={product.image_url || HOME_IMG.wardrobe} alt={product.name} className="rv-l tile-zoom" imgClass="tz" style={{ borderRadius: 24, aspectRatio: '1/1' }} />
+            <Photo src={product.image_url || HOME_IMG.wardrobe} alt={product.name} className="rv-l tile-zoom zoomwrap" imgClass="tz" style={{ borderRadius: 24, aspectRatio: '1/1' }} />
             <ProductInfo product={product} qty={qty} setQty={setQty} addToCart={addToCart} setConfigProduct={setConfigProduct} setPage={setPage} mobile={false} />
           </div>
         ) : (
@@ -3279,9 +3320,9 @@ function ProductDetailPage({ productId, products, setPage, addToCart, setConfigP
         )}
         <ProductAR product={product} mobile={mobile} />
         {related.length > 0 && (
-          <div>
+          <div className="reveal">
             <h2 className="display" style={{ fontSize: mobile ? 22 : 30, color: 'var(--ink)', marginBottom: 20 }}>{recLabel}</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 12 : 18 }}>
+            <div className="reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 12 : 18 }}>
               {related.map(p => <ProductCard key={p.id} product={p} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />)}
             </div>
           </div>
@@ -6385,9 +6426,9 @@ function AboutPage() {
   return (
     <div style={{ minHeight:'100dvh', paddingTop: mobile ? 16 : 72, paddingBottom: mobile ? 80 : 0, background:'#fff' }}>
       <div style={{ maxWidth:860, margin:'0 auto', padding: mobile ? '24px 16px 60px' : '60px 40px 100px' }}>
-        <div style={{ fontSize:13, fontWeight:500, color:'var(--clay)', marginBottom:12 }}>{cms('about.hero.eyebrow', t('ourStory'))}</div>
-        <h1 style={{ fontSize: mobile ? 36 : 64, fontWeight:700, letterSpacing:'-.04em', color:'#1d1d1f', lineHeight:1.05, marginBottom:32 }}>{cms('about.hero.title', t('precision')+' '+t('permanence'))}</h1>
-        <div style={{ display:'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? 16 : 40, marginBottom:48 }}>
+        <div className="reveal" style={{ fontSize:13, fontWeight:500, color:'var(--clay)', marginBottom:12 }}>{cms('about.hero.eyebrow', t('ourStory'))}</div>
+        <h1 className="reveal" style={{ fontSize: mobile ? 36 : 64, fontWeight:700, letterSpacing:'-.04em', color:'#1d1d1f', lineHeight:1.05, marginBottom:32 }}>{cms('about.hero.title', t('precision')+' '+t('permanence'))}</h1>
+        <div className="reveal" style={{ display:'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? 16 : 40, marginBottom:48 }}>
           <p style={{ fontSize:16, lineHeight:1.8, color:'#6e6e73' }}>{cms('about.p1', t('aboutP1'))}</p>
           <p style={{ fontSize:16, lineHeight:1.8, color:'#6e6e73' }}>{cms('about.p2', t('aboutP2'))}</p>
         </div>
@@ -6501,7 +6542,7 @@ function PlannerGuidePage({ setPage }) {
               <span style={{ display:'inline-flex', alignItems:'center', gap:7 }}><span style={{ color:'var(--clay)' }}>✦</span>2-year warranty</span>
             </div>
           </div>
-          <div className="rv tile-zoom" style={{ position:'relative', borderRadius:24, overflow:'hidden', minHeight: mobile?260:440, boxShadow:'0 30px 60px -28px rgba(33,28,24,.5)' }}>
+          <div className="rv tile-zoom zoomwrap" style={{ position:'relative', borderRadius:24, overflow:'hidden', minHeight: mobile?260:440, boxShadow:'0 30px 60px -28px rgba(33,28,24,.5)' }}>
             <Photo src={HERO_IMG} alt="Designing a bespoke kitchen with an island" imgClass="tz" style={{ position:'absolute', inset:0 }} />
             <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, rgba(20,16,12,0) 55%, rgba(20,16,12,.45) 100%)' }} />
           </div>
@@ -6573,12 +6614,12 @@ function PlannerGuidePage({ setPage }) {
             <h2 className="display" style={{ fontSize: mobile?32:48, color:'var(--ink)', lineHeight:1.08 }}>{t('swGuidePlanTitle')}</h2>
             <p style={{ fontSize: mobile?16:18, color:'var(--ink-soft)', marginTop:14, lineHeight:1.7 }}>{t('swGuidePlanDesc')}</p>
           </div>
-          <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(auto-fill,minmax(230px,1fr))', gap:20 }}>
+          <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(auto-fill,minmax(230px,1fr))', gap:20 }}>
             {CATEGORIES.map(c => (
               <button type="button" key={c.name} onClick={()=>setPage(c.page)}
                 className="rv lift"
                 style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', cursor:'pointer', textAlign:'left', padding:0, display:'flex', flexDirection:'column' }}>
-                <div className="tile-zoom" style={{ position:'relative', height:180 }}>
+                <div className="tile-zoom zoomwrap" style={{ position:'relative', height:180 }}>
                   <Photo src={c.img} alt={c.name} imgClass="tz" style={{ position:'absolute', inset:0 }} />
                   <span style={{ position:'absolute', top:12, right:12, background:'rgba(255,255,255,.94)', color:'var(--clay-deep)', fontSize:11.5, fontWeight:700, borderRadius:999, padding:'5px 11px' }}>{c.steps} {t('swGuideStepsLabel')}</span>
                 </div>
@@ -6600,9 +6641,9 @@ function PlannerGuidePage({ setPage }) {
             <div className="eyebrow" style={{ marginBottom:14 }}>{t('swGuideTipsEyebrow')}</div>
             <h2 className="display" style={{ fontSize: mobile?32:48, color:'var(--ink)', lineHeight:1.08 }}>{t('swGuideTipsTitle')}</h2>
           </div>
-          <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(auto-fill,minmax(330px,1fr))', gap:18 }}>
+          <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(auto-fill,minmax(330px,1fr))', gap:18 }}>
             {TIPS.map((tip, i) => (
-              <div key={tip.t} className="rv" style={{ display:'flex', gap:16, background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+              <div key={tip.t} className="rv lift" style={{ display:'flex', gap:16, background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
                 <div style={{ flexShrink:0, width:38, height:38, borderRadius:'50%', background:'var(--sand)', color:'var(--clay-deep)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:800 }}>{i+1}</div>
                 <div>
                   <div style={{ fontSize:16.5, fontWeight:700, color:'var(--ink)' }}>{tip.t}</div>
@@ -6774,10 +6815,10 @@ function ContactPage() {
         )}
       </div>
       {team.length > 0 && (
-        <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'48px 24px 20px':'72px 32px 20px' }}>
+        <div className="reveal" style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'48px 24px 20px':'72px 32px 20px' }}>
           <div className="eyebrow" style={{ marginBottom:12 }}>{t('swContactOurTeam')}</div>
           <h2 className="display" style={{ fontSize: mobile?26:34, color:'var(--ink)', marginBottom:24 }}>{t('swContactSaveCard')}</h2>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:14 }}>
+          <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:14 }}>
             {team.map(c => <CardTile key={c.slug} c={c} />)}
           </div>
         </div>
@@ -7354,7 +7395,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
           <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>{cms('home.appt.title', 'Choose a free appointment.')}</h2>
           <p style={{ fontSize: mobile ? 15 : 17, color: 'var(--ink-soft)', lineHeight: 1.7, marginTop: 14 }}>{cms('home.appt.subtitle', 'However you like to plan, there’s no charge and no obligation — just expert ideas for your space.')}</p>
         </div>
-        <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 12 : 18 }}>
+        <div className="rv reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 12 : 18 }}>
           {appointments.map(([title, desc, ic], i) => (
             <button type="button" key={title} className="lift" onClick={() => setPage('booking')} style={{ '--d': (i * 0.06) + 's', background: '#fff', border: '1px solid var(--line)', borderRadius: 18, padding: mobile ? '20px 16px' : '28px 22px', textAlign: 'left', cursor: 'pointer' }}>
               <div style={{ fontSize: 30, marginBottom: 12 }}>{ic}</div>
@@ -7372,7 +7413,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
           <div className="eyebrow" style={{ marginBottom: 14 }}>{cms('home.rooms.eyebrow', 'What are you planning?')}</div>
           <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>{cms('home.rooms.title', 'Choose your room.')}</h2>
         </div>
-        <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: mobile ? 16 : 20 }}>
+        <div className="rv reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: mobile ? 16 : 20 }}>
           {rooms.map(([name, sub, img, route], i) => (
             <button type="button" key={name} className="tile-zoom lift" onClick={() => setPage(route)} style={{ '--d': (i * 0.07) + 's', position: 'relative', border: 'none', padding: 0, borderRadius: 22, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 260 : 360, background: '#15110e' }}>
               <Photo src={img} alt={name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
@@ -7425,12 +7466,12 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
             </div>
             <button type="button" className="btn-line" onClick={() => setPage('products')}>{t('swViewAllArrow')}</button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 12 : 20 }}>
+          <div className="reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 12 : 20 }}>
             {featuredRanges.map((p, i) => {
               const hasSave = p.original_price && Number(p.original_price) > Number(p.price);
               return (
                 <div key={p.id} className="rv lift" onClick={() => setPage('product-' + p.id)} style={{ '--d': (i * 0.05) + 's', cursor: 'pointer', background: '#fff', borderRadius: 18, overflow: 'hidden', border: '1px solid var(--line)' }}>
-                  <div className="tile-zoom" style={{ position: 'relative', aspectRatio: mobile ? '1/1' : '4/3' }}>
+                  <div className="tile-zoom zoomwrap" style={{ position: 'relative', aspectRatio: mobile ? '1/1' : '4/3' }}>
                     <Photo src={p.image_url || HOME_IMG.wardrobe} alt={p.name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
                     {p.badge && <span style={{ position: 'absolute', top: 12, left: 12, background: 'var(--clay)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 980 }}>{p.badge === 'Featured' ? t('cardFeatured') : p.badge}</span>}
                     {hasSave && <span style={{ position: 'absolute', top: 12, right: 12, background: 'var(--ink)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 980 }}>{t('swSave')} {fmt(Number(p.original_price) - Number(p.price))}</span>}
@@ -7505,7 +7546,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
           {mobile && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.55), rgba(20,16,12,.92))', zIndex: 1 }} />}
           <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .06, mixBlendMode: 'overlay', backgroundImage: NOISE, zIndex: 1 }} />
           <div style={{ position: 'relative', zIndex: 2, padding: mobile ? '40px 26px 44px' : '64px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start', background: 'rgba(231,187,160,.14)', border: '1px solid rgba(231,187,160,.3)', color: '#E7BBA0', fontSize: 12, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 980, marginBottom: 18 }}>✦ {t('swAiBadge')}</span>
+            <span className="floaty" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start', background: 'rgba(231,187,160,.14)', border: '1px solid rgba(231,187,160,.3)', color: '#E7BBA0', fontSize: 12, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 980, marginBottom: 18 }}>✦ {t('swAiBadge')}</span>
             <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 30 : 46, lineHeight: 1.05, letterSpacing: '-.02em', marginBottom: 16 }}>{t('swAiTitle1')}<br />{t('swAiTitle2')}</h2>
             <p style={{ color: 'rgba(255,255,255,.78)', fontSize: mobile ? 15 : 17, lineHeight: 1.65, marginBottom: 28, maxWidth: 440 }}>{t('swAiDesc')}</p>
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -7559,7 +7600,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
             </div>
             <button type="button" className="btn-line" onClick={() => setPage('projects')}>{t('swViewGallery')}</button>
           </div>
-          <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 10 : 16 }}>
+          <div className="rv reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 10 : 16 }}>
             {projects.slice(0, 6).map((pr, i) => (
               <button type="button" key={pr.id} className="tile-zoom lift" onClick={() => setPage('projects')} style={{ '--d': (i * 0.05) + 's', position: 'relative', border: 'none', padding: 0, borderRadius: 16, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', aspectRatio: '4/3', background: '#15110e' }}>
                 <Photo src={pr.cover_url || pr.after_url || HOME_IMG.walkin} alt={pr.name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
@@ -7591,7 +7632,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
           <div className="eyebrow" style={{ marginBottom: 14 }}>{t('swHelpEyebrow')}</div>
           <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>{t('swHelpTitle')}</h2>
         </div>
-        <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: mobile ? 14 : 20 }}>
+        <div className="rv reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: mobile ? 14 : 20 }}>
           {[[t('swHelpBrowse'), t('swHelpBrowseDesc'), '🛋️', 'products'], [t('swHelpStudio'), t('swHelpStudioDesc'), '✏️', 'planner'], [t('swHelpOffers'), t('swHelpOffersDesc'), '🏷️', 'offers']].map(([title, desc, ic, route], i) => (
             <button type="button" key={title} className="lift" onClick={() => setPage(route)} style={{ '--d': (i * 0.06) + 's', background: '#fff', border: '1px solid var(--line)', borderRadius: 20, padding: mobile ? '24px 20px' : '32px 26px', textAlign: 'left', cursor: 'pointer' }}>
               <div style={{ fontSize: 34, marginBottom: 14 }}>{ic}</div>
@@ -7672,10 +7713,10 @@ function ShowroomsPage() {
   // Single source of truth: same content the Hub manages & the app shows.
   useEffect(()=>{ api('rpc/content_list',{method:'POST',body:{p_section:'showroom'}}).then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
   return (<PageWrap eyebrow={cms('showrooms.hero.eyebrow','Visit us')} title={cms('showrooms.hero.title','Showrooms across Bahrain.')} sub={cms('showrooms.hero.subtitle','Experience our craftsmanship in person — see the finishes, open the drawers, feel the build.')}>
-    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:22 }}>
+    <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:22 }}>
       {rows.map(s=>{ const m=s.meta||{}; return (
         <div key={s.id} className="rv lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden' }}>
-          <div className="tile-zoom" style={{ position:'relative', height:170 }}>
+          <div className="tile-zoom zoomwrap" style={{ position:'relative', height:170 }}>
             <Photo src={s.image_url || HOME_IMG.living} alt={s.title} imgClass="tz" style={{ position:'absolute', inset:0 }} />
           </div>
           <div style={{ padding:'20px 22px' }}>
@@ -7694,10 +7735,10 @@ function BlogPage() {
   const [rows,setRows]=useState([]);
   useEffect(()=>{ api('rpc/content_list',{method:'POST',body:{p_section:'inspiration'}}).then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
   return (<PageWrap eyebrow={cms('blog.hero.eyebrow','Inspiration')} title={cms('blog.hero.title','Ideas & guides.')} sub={cms('blog.hero.subtitle','Trends, tips and real projects for kitchens, wardrobes and storage.')}>
-    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))', gap:22 }}>
+    <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))', gap:22 }}>
       {rows.map(b=>(
         <div key={b.id} className="rv lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', cursor:'pointer' }}>
-          <div className="tile-zoom" style={{ position:'relative', height:180 }}>
+          <div className="tile-zoom zoomwrap" style={{ position:'relative', height:180 }}>
             <Photo src={b.image_url || HOME_IMG.kitchen} alt={b.title} imgClass="tz" style={{ position:'absolute', inset:0 }} />
           </div>
           <div style={{ padding:'20px 22px' }}>
@@ -7753,8 +7794,8 @@ function OffersPage({ setPage }) {
   const [rows,setRows]=useState([]);
   useEffect(()=>{ api('store_offers?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
   return (<PageWrap title={cms('offers.hero.title','Offers & promotions')} sub={cms('offers.hero.subtitle','Current savings on bespoke kitchens, wardrobes and storage.')}>
-    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
-      {rows.map(o=>(<div key={o.id} style={{ background:'linear-gradient(135deg,var(--sand),#fff)', border:'1px solid var(--clay)33', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+    <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
+      {rows.map(o=>(<div key={o.id} className="lift" style={{ background:'linear-gradient(135deg,var(--sand),#fff)', border:'1px solid var(--clay)33', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
         {o.badge && <span style={{ display:'inline-block', background:'var(--clay)', color:'#fff', fontSize:12, fontWeight:700, padding:'5px 12px', borderRadius:980 }}>{trMap(o.badge, OFFER_BADGE_KEY, lang)}</span>}
         <div style={{ fontSize:19, fontWeight:700, color:'#1d1d1f', marginTop:12 }}>{trMap(o.title, OFFER_TITLE_KEY, lang)}</div>
         <div style={{ fontSize:14, color:'#86868b', marginTop:6, lineHeight:1.6 }}>{trMap(o.subtitle, OFFER_SUB_KEY, lang)}</div>
@@ -7769,7 +7810,7 @@ function FaqPage() {
   const [rows,setRows]=useState([]); const [open,setOpen]=useState(null);
   useEffect(()=>{ api('website_faqs?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
   return (<PageWrap title={cms('faq.hero.title','Frequently asked questions')} sub={cms('faq.hero.subtitle','Everything you need to know about designing with us.')}>
-    <div style={{ maxWidth:760, display:'flex', flexDirection:'column', gap:12 }}>
+    <div className="reveal reveal-stagger" style={{ maxWidth:760, display:'flex', flexDirection:'column', gap:12 }}>
       {rows.map(q=>(<div key={q.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:16, overflow:'hidden' }}>
         <button type="button" onClick={()=>setOpen(open===q.id?null:q.id)} style={{ width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'18px 20px', fontSize:16, fontWeight:600, color:'#1d1d1f', display:'flex', justifyContent:'space-between', gap:12 }}>
           <span>{q.question}</span><span style={{ color:'var(--clay)', flexShrink:0 }}>{open===q.id?'–':'+'}</span>
@@ -8453,15 +8494,15 @@ function AiYasPage({ setPage }) {
       </section>
 
       {/* ── AI TOOLS GRID ── */}
-      <section style={{ maxWidth: 1180, margin: '0 auto', padding: mobile ? '56px 22px' : '88px 32px' }}>
+      <section className="reveal" style={{ maxWidth: 1180, margin: '0 auto', padding: mobile ? '56px 22px' : '88px 32px' }}>
         <div className="rv" style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 44px' }}>
           <div className="eyebrow" style={{ marginBottom: 12 }}>{t('yasHubEyebrow')}</div>
           <h2 className="display" style={{ fontSize: mobile ? 32 : 46, color: 'var(--ink)' }}>{t('yasHubTitle')}</h2>
           <p style={{ fontSize: mobile ? 15 : 17, color: 'var(--ink-soft)', marginTop: 14, lineHeight: 1.6 }}>{t('yasHubSub')}</p>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(auto-fit,minmax(270px,1fr))', gap: 18 }}>
+        <div className="reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(auto-fit,minmax(270px,1fr))', gap: 18 }}>
           {TOOLS.map((tool, i) => (
-            <div key={tool.id} className="yas-glass yas-int rv" style={{ '--d': (i * 0.05) + 's', padding: 24, display: 'flex', flexDirection: 'column' }}>
+            <div key={tool.id} className="yas-glass yas-int rv lift" style={{ '--d': (i * 0.05) + 's', padding: 24, display: 'flex', flexDirection: 'column' }}>
               <div style={{ width: 50, height: 50, borderRadius: 14, background: 'linear-gradient(135deg,var(--sand),#fff)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: 'var(--clay)', marginBottom: 16 }}>{tool.icon}</div>
               <h3 className="display" style={{ fontSize: 20, color: 'var(--ink)', marginBottom: 8 }}>{tool.title}</h3>
               <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55, flex: 1, marginBottom: 18 }}>{tool.value}</p>
@@ -8472,16 +8513,16 @@ function AiYasPage({ setPage }) {
       </section>
 
       {/* ── HOW AI YAS WORKS ── */}
-      <section style={{ background: '#fff', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+      <section className="reveal" style={{ background: '#fff', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
         <div style={{ maxWidth: 1180, margin: '0 auto', padding: mobile ? '56px 22px' : '88px 32px' }}>
           <div className="rv" style={{ textAlign: 'center', marginBottom: 44 }}>
             <div className="eyebrow" style={{ marginBottom: 12 }}>{t('yasHowTitle')}</div>
             <h2 className="display" style={{ fontSize: mobile ? 32 : 46, color: 'var(--ink)' }}>{t('yasHowHeadline')}</h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: 20 }}>
+          <div className="reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: 20 }}>
             {STEPS.map((s, i) => (
               <div key={s.n} className="rv" style={{ '--d': (i * 0.08) + 's' }}>
-                <div style={{ position: 'relative', borderRadius: 18, overflow: 'hidden', aspectRatio: '4 / 3', marginBottom: 16 }}>
+                <div className="zoomwrap" style={{ position: 'relative', borderRadius: 18, overflow: 'hidden', aspectRatio: '4 / 3', marginBottom: 16 }}>
                   <Photo src={s.img} alt={s.t} style={{ position: 'absolute', inset: 0 }} />
                   <div style={{ position: 'absolute', top: 14, left: 14, width: 44, height: 44, borderRadius: '50%', background: 'var(--clay)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 15, boxShadow: '0 8px 20px -8px rgba(176,97,59,.8)' }}>{s.n}</div>
                 </div>
@@ -8494,7 +8535,7 @@ function AiYasPage({ setPage }) {
       </section>
 
       {/* ── CAPABILITIES STRIP ── */}
-      <section style={{ background: 'var(--sand)', position: 'relative', overflow: 'hidden', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+      <section className="reveal" style={{ background: 'var(--sand)', position: 'relative', overflow: 'hidden', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
         <div className="yas-aurora" style={{ opacity: .8 }} />
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 1100, margin: '0 auto', padding: mobile ? '50px 22px' : '70px 32px', textAlign: 'center' }}>
           <div className="eyebrow" style={{ marginBottom: 18 }}>{t('yasCapsTitle')}</div>
@@ -8506,7 +8547,7 @@ function AiYasPage({ setPage }) {
       </section>
 
       {/* ── CTA BAND ── */}
-      <section style={{ maxWidth: 1180, margin: '0 auto', padding: mobile ? '56px 22px' : '88px 32px' }}>
+      <section className="reveal" style={{ maxWidth: 1180, margin: '0 auto', padding: mobile ? '56px 22px' : '88px 32px' }}>
         <div className="rv" style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 28, padding: mobile ? '40px 26px' : '64px 56px', textAlign: 'center', position: 'relative', overflow: 'hidden', boxShadow: '0 30px 70px -40px rgba(33,28,24,.45)' }}>
           <div className="yas-aurora" style={{ opacity: .9 }} />
           <div style={{ position: 'relative', zIndex: 1 }}>
@@ -8825,8 +8866,8 @@ function PortfolioPage({ setPage }) {
   // Category VALUE stays English (used in route 'cat:'+value); label is translated for display.
   const cats=[['Kitchens',t('swPortCatKitchens')],['Wardrobes',t('swPortCatWardrobes')],['Walk-In Closets',t('swPortCatWalkin')],['TV Units',t('swPortCatTv')],['Doors',t('swPortCatDoors')],['Storage Solutions',t('swPortCatStorage')],['Office Furniture',t('swPortCatOffice')]];
   return (<PageWrap title={cms('projects.hero.title','Our projects')} sub={cms('projects.hero.subtitle','Real spaces we have designed, manufactured and installed across Bahrain.')}>
-    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:20, marginBottom:48 }}>
-      {rows.map(p=>(<div key={p.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+    <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:20, marginBottom:48 }}>
+      {rows.map(p=>(<div key={p.id} className="lift" style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
         {p.before_url && p.after_url ? <BeforeAfter before={p.before_url} after={p.after_url} />
           : <div style={{ height:200, background:`url('${p.cover_url}') center/cover, #eee` }} />}
         <div style={{ padding:20 }}>
@@ -8839,8 +8880,8 @@ function PortfolioPage({ setPage }) {
       {rows.length===0 && <div style={{ color:'#aaa' }}>{t('swPortGallerySoon')}</div>}
     </div>
     <div style={{ fontSize:13, color:'#86868b', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:14 }}>{t('swPortExploreByRoom')}</div>
-    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:12 }}>
-      {cats.map(([val,label])=>(<button type="button" key={val} onClick={()=>setPage('cat:'+val)} style={{ background:'#f5f5f7', border:'none', borderRadius:14, padding:'18px 16px', textAlign:'left', cursor:'pointer', fontSize:14, fontWeight:600, color:'#1d1d1f' }}>{lang==='ar' ? <>← {label}</> : <>{label} →</>}</button>))}
+    <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:12 }}>
+      {cats.map(([val,label])=>(<button type="button" key={val} className="lift" onClick={()=>setPage('cat:'+val)} style={{ background:'#f5f5f7', border:'none', borderRadius:14, padding:'18px 16px', textAlign:'left', cursor:'pointer', fontSize:14, fontWeight:600, color:'#1d1d1f' }}>{lang==='ar' ? <>← {label}</> : <>{label} →</>}</button>))}
     </div>
   </PageWrap>);
 }
@@ -8852,8 +8893,9 @@ function CategoryPage({ category, products, setPage, addToCart }) {
       <button type="button" onClick={()=>setPage('booking')} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:980, padding:'11px 22px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{t('bookFreeDesignVisit')}</button>
       <button type="button" onClick={()=>setPage('planner')} style={{ background:'#1d1d1f', color:'#fff', border:'none', borderRadius:980, padding:'11px 22px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{t('designIt3d')}</button>
     </div>
-    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))', gap:20 }}>
-      {list.map(p=>(<div key={p.id} onClick={()=>setPage('product-'+p.id)} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, overflow:'hidden', cursor:'pointer', boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+    <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))', gap:20 }}>
+      {list.map(p=>(<div key={p.id} className="lift" onClick={()=>setPage('product-'+p.id)} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, overflow:'hidden', cursor:'pointer', boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+
         <div style={{ height:170, background: p.image_url?`url('${p.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }} />
         <div style={{ padding:16 }}>
           <div style={{ fontSize:16, fontWeight:600, color:'#1d1d1f' }}>{p.name}</div>
@@ -13072,13 +13114,13 @@ function WardrobesPage({ setPage, products }) {
       </section>
 
       {/* TYPES gallery */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{cms('wardrobe.s1.eyebrow', 'Wardrobe types')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('wardrobe.s1.title', 'Find your fit.')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2WardTypesSub')}</p>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
           {wTypes.map(wt=>(
-            <button key={wt.id} type="button" onClick={()=>setPage('wardrobe-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+            <button key={wt.id} type="button" className="lift" onClick={()=>setPage('wardrobe-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
               <div style={{ height: mobile?170:210, position:'relative', background: wt.img?`url('${wt.img}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }}>
                 <span style={{ position:'absolute', top:12, left:12, background:'rgba(20,16,12,.62)', color:'#fff', fontSize:12, fontWeight:600, borderRadius:999, padding:'5px 12px', backdropFilter:'blur(4px)' }}>From {fmt(wt.from)}</span>
               </div>
@@ -13097,13 +13139,13 @@ function WardrobesPage({ setPage, products }) {
       </section>
 
       {/* INTERIOR fittings strip */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2WardTypesEyebrow')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw2WardOrganised')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2WardInteriorSub')}</p>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
           {W_INTERIOR.map(f=>(
-            <div key={f.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 14px', textAlign:'center' }}>
+            <div key={f.id} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 14px', textAlign:'center' }}>
               <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.4" style={{ margin:'0 auto 8px' }}><path d={f.ic} /></svg>
               <div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{f.name}</div>
               <div style={{ fontSize:11, color:'var(--muted)', marginTop:3, lineHeight:1.35 }}>{f.sub}</div>
@@ -13114,13 +13156,13 @@ function WardrobesPage({ setPage, products }) {
       </section>
 
       {/* FINISHES showcase */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2WardFinishesEyebrow')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw2SurfacesLast')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2WardFinishesSub')}</p>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:14 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:14 }}>
           {W_FINISHES.map(w=>(
-            <div key={w.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'18px 20px' }}>
+            <div key={w.id} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'18px 20px' }}>
               <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:8 }}>
                 <span style={{ width:40, height:40, borderRadius:10, flexShrink:0, background:w.g, border:'1px solid var(--line)' }} />
                 <div style={{ flex:1, display:'flex', justifyContent:'space-between', alignItems:'baseline', gap:8 }}>
@@ -13186,14 +13228,14 @@ function WardrobesPage({ setPage, products }) {
       </section>
 
       {/* FEATURES / why us */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
           {[
             [t('sw2WardF1'),t('sw2WardF1Desc'),'M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
             [t('sw2WardF2'),t('sw2WardF2Desc'),'M4 7h16v10H4z M8 12h8'],
             [t('sw2OneTeam'),t('sw2OneTeamDesc'),'M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
           ].map(([ti,d,ic])=>(
-            <div key={ti} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+            <div key={ti} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5" style={{ marginBottom:12 }}><path d={ic} /></svg>
               <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{ti}</div>
               <p style={{ fontSize:14, color:'var(--ink-soft)', marginTop:6, lineHeight:1.55 }}>{d}</p>
@@ -13204,12 +13246,12 @@ function WardrobesPage({ setPage, products }) {
 
       {/* CATALOG anchors (real products) */}
       {wardrobeProducts.length>0 && (
-        <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
           <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2StartingPoints')}</div>
           <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>{t('sw2WardPopular')}</h2>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
+          <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
             {wardrobeProducts.map(p=>(
-              <button key={p.id} type="button" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+              <button key={p.id} type="button" className="lift" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
                 <div style={{ height:160, background: p.image_url?`url('${p.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }} />
                 <div style={{ padding:'14px 16px' }}>
                   <div style={{ fontSize:16, fontWeight:600, color:'var(--ink)' }}>{p.name}</div>
@@ -13295,13 +13337,13 @@ function KitchenPage({ setPage, products }) {
       </section>
 
       {/* STYLE GALLERY */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{cms('kitchen.s1.eyebrow', 'Kitchen styles')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('kitchen.s1.title', 'Find your look.')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:560, marginBottom:22 }}>{t('sw2KpStylesSub')}</p>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(3,1fr)', gap:16 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(3,1fr)', gap:16 }}>
           {K_CAB_STYLES.map(s=>(
-            <button key={s.id} type="button" onClick={()=>setPage('kitchen-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+            <button key={s.id} type="button" className="lift" onClick={()=>setPage('kitchen-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
               <div style={{ height: mobile?110:150, background:s.g }} />
               <div style={{ padding:'14px 16px' }}>
                 <div style={{ fontSize:17, fontWeight:600, color:'var(--ink)' }}>{s.name}</div>
@@ -13314,12 +13356,12 @@ function KitchenPage({ setPage, products }) {
       </section>
 
       {/* LAYOUTS strip */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2KpEveryLayout')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>{t('sw2KpFitRoom')}</h2>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
           {kLayouts.map(l=>(
-            <div key={l.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, overflow:'hidden', textAlign:'center' }}>
+            <div key={l.id} className="lift zoomwrap" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, overflow:'hidden', textAlign:'center' }}>
               <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?110:130, objectFit:'cover' }} />
               <div style={{ padding:'14px 12px 16px' }}>
                 <div style={{ fontSize:14, fontWeight:600, color:'var(--ink)' }}>{l.name}</div>
@@ -13336,13 +13378,13 @@ function KitchenPage({ setPage, products }) {
       </section>
 
       {/* MATERIALS showcase (worktops) */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2KpWorktopsEyebrow')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw2SurfacesLast')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:560, marginBottom:22 }}>{t('sw2KpWorktopsSub')}</p>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:14 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:14 }}>
           {K_WORKTOPS.map(w=>(
-            <div key={w.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'18px 20px' }}>
+            <div key={w.id} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'18px 20px' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
                 <span style={{ fontSize:17, fontWeight:600, color:'var(--ink)' }}>{w.name}</span>
                 <span style={{ fontSize:14, fontWeight:700, color:'var(--clay)' }}>{fmt(w.perM)}/m</span>
@@ -13359,14 +13401,14 @@ function KitchenPage({ setPage, products }) {
       </section>
 
       {/* FEATURES / why us */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
           {[
             [t('sw2KpF1'),t('sw2KpF1Desc'),'M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
             [t('sw2KpF2'),t('sw2KpF2Desc'),'M4 7h16v10H4z M8 12h8'],
             [t('sw2OneTeam'),t('sw2KpF3Desc'),'M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
           ].map(([ti,d,ic])=>(
-            <div key={ti} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+            <div key={ti} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5" style={{ marginBottom:12 }}><path d={ic} /></svg>
               <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{ti}</div>
               <p style={{ fontSize:14, color:'var(--ink-soft)', marginTop:6, lineHeight:1.55 }}>{d}</p>
@@ -13377,12 +13419,12 @@ function KitchenPage({ setPage, products }) {
 
       {/* CATALOG anchors (real products) */}
       {kitchenProducts.length>0 && (
-        <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
           <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2StartingPoints')}</div>
           <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>{t('sw2KpPopular')}</h2>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
+          <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
             {kitchenProducts.map(p=>(
-              <button key={p.id} type="button" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+              <button key={p.id} type="button" className="lift" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
                 <div style={{ height:160, background: p.image_url?`url('${p.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }} />
                 <div style={{ padding:'14px 16px' }}>
                   <div style={{ fontSize:16, fontWeight:600, color:'var(--ink)' }}>{p.name}</div>
@@ -13471,13 +13513,13 @@ function OfficePage({ setPage, products }) {
       </section>
 
       {/* LAYOUT TYPES gallery — each uses its /layouts/office/<id>.jpg photo */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2OfLayoutsEyebrow')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw2OfFindSetup')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2OfLayoutsSub')}</p>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
           {officeLayouts.map(t=>(
-            <button key={t.id} type="button" onClick={()=>setPage('office-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+            <button key={t.id} type="button" className="lift" onClick={()=>setPage('office-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
               <div style={{ height: mobile?170:210, background:`url('${t.img}') center/cover` }} />
               <div style={{ padding:'18px 20px' }}>
                 <div style={{ fontSize:20, fontWeight:600, color:'var(--ink)' }}>{t.name}</div>
@@ -13494,13 +13536,13 @@ function OfficePage({ setPage, products }) {
       </section>
 
       {/* STORAGE & DESK strip */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2OfDeskEyebrow')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw2WardOrganised')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2OfDeskSub')}</p>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
           {OFFICE_STORAGE.map(f=>(
-            <div key={f.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 14px', textAlign:'center' }}>
+            <div key={f.id} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 14px', textAlign:'center' }}>
               <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.4" style={{ margin:'0 auto 8px' }}><path d="M4 6h16v12H4z M4 12h16" /></svg>
               <div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{f.name}</div>
               <div style={{ fontSize:11, color:'var(--muted)', marginTop:3, lineHeight:1.35 }}>{t('sw2OfPer')} {f.unit}</div>
@@ -13511,13 +13553,13 @@ function OfficePage({ setPage, products }) {
       </section>
 
       {/* MATERIALS note (worktops) */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2OfWorktopsEyebrow')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw2OfWorkHard')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2OfWorktopsSub')}</p>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(4,1fr)', gap:14 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(4,1fr)', gap:14 }}>
           {OFFICE_WORKTOPS.map(w=>(
-            <div key={w.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 16px' }}>
+            <div key={w.id} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 16px' }}>
               <div style={{ height:36, borderRadius:9, background:w.hex, border:'1px solid var(--line)', marginBottom:10 }} />
               <div style={{ fontSize:16, fontWeight:600, color:'var(--ink)' }}>{w.name}</div>
               <div style={{ fontSize:12.5, color:'var(--muted)', marginTop:3 }}>{w.sub}</div>
@@ -13527,14 +13569,14 @@ function OfficePage({ setPage, products }) {
       </section>
 
       {/* FEATURES / why us */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
           {[
             [t('sw2MadeToMeasure'),t('sw2OfF1Desc'),'M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
             [t('sw2OfF2'),t('sw2OfF2Desc'),'M4 7h16v10H4z M8 12h8'],
             [t('sw2OneTeam'),t('sw2OneTeamDesc'),'M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
           ].map(([ti,d,ic])=>(
-            <div key={ti} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+            <div key={ti} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5" style={{ marginBottom:12 }}><path d={ic} /></svg>
               <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{ti}</div>
               <p style={{ fontSize:14, color:'var(--ink-soft)', marginTop:6, lineHeight:1.55 }}>{d}</p>
@@ -13545,12 +13587,12 @@ function OfficePage({ setPage, products }) {
 
       {/* CATALOG anchors (real products) */}
       {officeProducts.length>0 && (
-        <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
           <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2StartingPoints')}</div>
           <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>{t('sw2OfPopular')}</h2>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
+          <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
             {officeProducts.map(p=>(
-              <button key={p.id} type="button" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+              <button key={p.id} type="button" className="lift" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
                 <div style={{ height:160, background: p.image_url?`url('${p.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }} />
                 <div style={{ padding:'14px 16px' }}>
                   <div style={{ fontSize:16, fontWeight:600, color:'var(--ink)' }}>{p.name}</div>
@@ -13634,13 +13676,13 @@ function TVUnitPage({ setPage, products }) {
       </section>
 
       {/* LAYOUT TYPES gallery — each uses its /layouts/TV/<id>.jpg photo */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{cms('tv.layouts.eyebrow','TV & media layouts')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('tv.layouts.title','Find your media wall.')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{cms('tv.layouts.subtitle','Six ways to bring the living room together around the screen — from a minimal floating panel to a full storage wall.')}</p>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
           {tvLayouts.map(t=>(
-            <button key={t.id} type="button" onClick={()=>setPage('tv-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+            <button key={t.id} type="button" className="lift" onClick={()=>setPage('tv-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
               <div style={{ height: mobile?170:210, background:`url('${t.img}') center/cover` }} />
               <div style={{ padding:'18px 20px' }}>
                 <div style={{ fontSize:20, fontWeight:600, color:'var(--ink)' }}>{t.name}</div>
@@ -13657,13 +13699,13 @@ function TVUnitPage({ setPage, products }) {
       </section>
 
       {/* STORAGE & DISPLAY strip */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{cms('tv.storage.eyebrow','Display & storage')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('tv.storage.title','Every box, book and console in its place.')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{cms('tv.storage.subtitle','Mix open shelving, display niches, closed cabinets and ventilated AV bays — every element priced transparently per unit.')}</p>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(6,1fr)', gap:12 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(6,1fr)', gap:12 }}>
           {TV_STORAGE.map(f=>(
-            <div key={f.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 14px', textAlign:'center' }}>
+            <div key={f.id} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 14px', textAlign:'center' }}>
               <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.4" style={{ margin:'0 auto 8px' }}><path d="M4 6h16v12H4z M4 12h16" /></svg>
               <div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{f.name}</div>
               <div style={{ fontSize:11, color:'var(--muted)', marginTop:3, lineHeight:1.35 }}>{perLbl} {f.unit}</div>
@@ -13674,13 +13716,13 @@ function TVUnitPage({ setPage, products }) {
       </section>
 
       {/* MATERIALS note (finishes) */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{cms('tv.materials.eyebrow','Finishes & materials')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('tv.materials.title','Surfaces that set the mood.')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{cms('tv.materials.subtitle','From durable melamine to real-wood veneer and high-gloss lacquer — pick the finish and decorative panel that suit your room.')}</p>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:14 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:14 }}>
           {TV_FINISH.map(w=>(
-            <div key={w.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 16px' }}>
+            <div key={w.id} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 16px' }}>
               <div style={{ height:36, borderRadius:9, background:w.hex, border:'1px solid var(--line)', marginBottom:10 }} />
               <div style={{ fontSize:16, fontWeight:600, color:'var(--ink)' }}>{w.name}</div>
             </div>
@@ -13689,14 +13731,14 @@ function TVUnitPage({ setPage, products }) {
       </section>
 
       {/* FEATURES / why us */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
           {[
             [t('sw2MadeToMeasure'),t('sw2TvF1Desc'),'M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
             [t('sw2TvF2'),t('sw2TvF2Desc'),'M4 7h16v10H4z M8 12h8'],
             [t('sw2OneTeam'),t('sw2OneTeamDesc'),'M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
           ].map(([ti,d,ic])=>(
-            <div key={ti} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+            <div key={ti} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5" style={{ marginBottom:12 }}><path d={ic} /></svg>
               <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{ti}</div>
               <p style={{ fontSize:14, color:'var(--ink-soft)', marginTop:6, lineHeight:1.55 }}>{d}</p>
@@ -13707,12 +13749,12 @@ function TVUnitPage({ setPage, products }) {
 
       {/* CATALOG anchors (real products) */}
       {tvProducts.length>0 && (
-        <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
           <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2StartingPoints')}</div>
           <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>{t('sw2TvPopular')}</h2>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
+          <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
             {tvProducts.map(p=>(
-              <button key={p.id} type="button" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+              <button key={p.id} type="button" className="lift" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
                 <div style={{ height:160, background: p.image_url?`url('${p.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }} />
                 <div style={{ padding:'14px 16px' }}>
                   <div style={{ fontSize:16, fontWeight:600, color:'var(--ink)' }}>{p.name}</div>
@@ -13794,13 +13836,13 @@ function DoorsPage({ setPage, products }) {
       </section>
 
       {/* DOOR TYPES gallery — each uses its /layouts/door/<id>.jpg photo */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{cms('door.layouts.eyebrow','Door types')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('door.layouts.title','Find your door.')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{cms('door.layouts.subtitle','Six ways to open a room — from an everyday swing leaf to a space-saving slider, a statement pivot or a concealed flush door.')}</p>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
           {doorTypes.map(t=>(
-            <button key={t.id} type="button" onClick={()=>setPage('door-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+            <button key={t.id} type="button" className="lift" onClick={()=>setPage('door-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
               <div style={{ height: mobile?170:210, background:`url('${t.img}') center/cover` }} />
               <div style={{ padding:'18px 20px' }}>
                 <div style={{ fontSize:20, fontWeight:600, color:'var(--ink)' }}>{t.name}</div>
@@ -13819,13 +13861,13 @@ function DoorsPage({ setPage, products }) {
       </section>
 
       {/* WOODS & FINISHES strip */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{cms('door.materials.eyebrow','Woods & finishes')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('door.materials.title','The right wood, finished your way.')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{cms('door.materials.subtitle','From warm oak to deep ebony, in veneer, laminate or hand-sprayed PU paint — pick the wood and surface that suit your interior.')}</p>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:14 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:14 }}>
           {DOOR_WOODS.map(w=>(
-            <div key={w.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 16px' }}>
+            <div key={w.id} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 16px' }}>
               <div style={{ height:36, borderRadius:9, background:w.hex, border:'1px solid var(--line)', marginBottom:10 }} />
               <div style={{ fontSize:16, fontWeight:600, color:'var(--ink)' }}>{w.name}</div>
             </div>
@@ -13834,14 +13876,14 @@ function DoorsPage({ setPage, products }) {
       </section>
 
       {/* FEATURES / why us */}
-      <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
+      <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
           {[
             [t('sw2MadeToMeasure'),t('sw2DrF1Desc'),'M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
             [t('sw2DrF2'),t('sw2DrF2Desc'),'M4 7h16v10H4z M8 12h8'],
             [t('sw2OneTeam'),t('sw2OneTeamDesc'),'M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
           ].map(([ti,d,ic])=>(
-            <div key={ti} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+            <div key={ti} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5" style={{ marginBottom:12 }}><path d={ic} /></svg>
               <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{ti}</div>
               <p style={{ fontSize:14, color:'var(--ink-soft)', marginTop:6, lineHeight:1.55 }}>{d}</p>
@@ -13852,12 +13894,12 @@ function DoorsPage({ setPage, products }) {
 
       {/* CATALOG anchors (real products) */}
       {doorProducts.length>0 && (
-        <section style={{ ...wrap, marginTop: mobile?40:64 }}>
+        <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
           <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2StartingPoints')}</div>
           <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>{t('sw2DrPopular')}</h2>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
+          <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
             {doorProducts.map(p=>(
-              <button key={p.id} type="button" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+              <button key={p.id} type="button" className="lift" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
                 <div style={{ height:160, background: p.image_url?`url('${p.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }} />
                 <div style={{ padding:'14px 16px' }}>
                   <div style={{ fontSize:16, fontWeight:600, color:'var(--ink)' }}>{p.name}</div>
@@ -15016,6 +15058,31 @@ function AppInner() {
       document.body.style.fontFamily = lang === 'ar' ? "'Tajawal','Segoe UI',sans-serif" : '';
     }
   }, [lang]);
+  // ── Global scroll-reveal observer (premium motion layer). Re-scans on route change.
+  // Adds `.in` to `.reveal` elements as they enter the viewport; marks already-visible
+  // ones immediately so above-the-fold content is never left hidden. Honours reduced-motion.
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!('IntersectionObserver' in window) || reduce) {
+      const t0 = setTimeout(() => { document.querySelectorAll('.reveal:not(.in)').forEach(el => el.classList.add('in')); }, 60);
+      return () => clearTimeout(t0);
+    }
+    let io = null;
+    const t = setTimeout(() => {
+      io = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) { entry.target.classList.add('in'); io.unobserve(entry.target); }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+      document.querySelectorAll('.reveal:not(.in)').forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.top < window.innerHeight && r.bottom > 0) el.classList.add('in'); // already in view
+        else io.observe(el);
+      });
+    }, 80);
+    return () => { clearTimeout(t); if (io) io.disconnect(); };
+  }, [page]);
   const [products, setProducts] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
   const [cart, setCart] = useState([]);
