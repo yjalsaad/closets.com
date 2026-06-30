@@ -1338,6 +1338,77 @@ const I18N = {
   swOffersTitle:{ en:'Current offers.', ar:'العروض الحالية.' },
   swSeeAllOffers:{ en:'See all offers →', ar:'← شاهد كل العروض' },
   swClaimOffer:{ en:'Claim offer →', ar:'← احصل على العرض' },
+  // ── Offers: common seeded offer cards (DB-driven; display-map on title/subtitle/badge). ──
+  // Unknown/custom offers fall back to the English DB value (edit those in the Hub).
+  offTitleKitchenUpgrade:{ en:'Kitchen Upgrade', ar:'ترقية المطبخ' },
+  offTitleFinance0:{ en:'Finance 0%', ar:'تمويل 0%' },
+  offTitleWalkInSeason:{ en:'Walk-In Closet Season', ar:'موسم غرف الملابس' },
+  offTitleWardrobeSale:{ en:'Wardrobe Sale', ar:'تخفيضات خزائن الملابس' },
+  offTitleFreeDesign:{ en:'Free Design Consultation', ar:'استشارة تصميم مجانية' },
+  offTitleFreeInstall:{ en:'Free Installation', ar:'تركيب مجاني' },
+  offTitleSummerSale:{ en:'Summer Sale', ar:'تخفيضات الصيف' },
+  offSubKitchenUpgrade:{ en:'Complimentary quartz worktop upgrade on full kitchens', ar:'ترقية مجانية لسطح عمل من الكوارتز على المطابخ الكاملة' },
+  offSubFinance0:{ en:'Interest-free over up to 4 years on selected projects', ar:'بدون فوائد حتى 4 سنوات على مشاريع مختارة' },
+  offSubWalkInSeason:{ en:'Save on bespoke walk-in dressing rooms', ar:'وفّر على غرف الملابس المفصّلة حسب الطلب' },
+  offSubWardrobeSale:{ en:'Bespoke fitted wardrobes at special prices', ar:'خزائن ملابس مفصّلة بأسعار خاصة' },
+  offSubFreeDesign:{ en:'Book a free design consultation with our experts', ar:'احجز استشارة تصميم مجانية مع خبرائنا' },
+  offSubFreeInstall:{ en:'Free professional installation on selected projects', ar:'تركيب احترافي مجاني على مشاريع مختارة' },
+  offSubSummerSale:{ en:'Limited-time savings across the collection', ar:'توفير لوقت محدود على كامل التشكيلة' },
+  offBadgeFreeUpgrade:{ en:'Free upgrade', ar:'ترقية مجانية' },
+  offBadgeApr0:{ en:'APR 0%', ar:'فائدة سنوية 0%' },
+  offBadgeUpTo25:{ en:'Up to 25% off', ar:'خصم حتى 25%' },
+  offBadgeUpTo20:{ en:'Up to 20% off', ar:'خصم حتى 20%' },
+  offBadgeUpTo30:{ en:'Up to 30% off', ar:'خصم حتى 30%' },
+  offBadgeFree:{ en:'Free', ar:'مجاناً' },
+  offBadgeLimited:{ en:'Limited time', ar:'لوقت محدود' },
+  offBadgeNew:{ en:'New', ar:'جديد' },
+  offViewOffer:{ en:'View offer', ar:'عرض التفاصيل' },
+  // ── AI YAS: feature/capability chips ──
+  yasCapTextToDesign:{ en:'Text-to-design', ar:'تصميم من النص' },
+  yasCapRoomRedesign:{ en:'Room redesign', ar:'إعادة تصميم الغرفة' },
+  yasCapPhotorealRender:{ en:'Photoreal render', ar:'عرض واقعي' },
+  yasCapStyleMoodboards:{ en:'Style moodboards', ar:'لوحات إلهام الطراز' },
+  yasCapBudgetPlanning:{ en:'Budget planning', ar:'تخطيط الميزانية' },
+  yasCapProductPicks:{ en:'Product picks', ar:'اختيارات المنتجات' },
+  yasCapDesignChat:{ en:'Design chat', ar:'محادثة التصميم' },
+  yasCap3dVisualiser:{ en:'3D visualiser', ar:'مُجسّم ثلاثي الأبعاد' },
+  yasCapSmartRecs:{ en:'Smart recommendations', ar:'توصيات ذكية' },
+  yasCapInstantConcepts:{ en:'Instant concepts', ar:'تصاميم فورية' },
+  // ── AI YAS: how-it-works steps ──
+  yasStep1Title:{ en:'Describe', ar:'صِف' },
+  yasStep1Desc:{ en:'Tell YAS what you want in plain words, or upload a photo of your room.', ar:'أخبر ياس بما تريده بكلمات بسيطة، أو ارفع صورة لغرفتك.' },
+  yasStep2Title:{ en:'Generate', ar:'أنشئ' },
+  yasStep2Desc:{ en:'AI composes a concept — layout, materials, colours and indicative pricing in seconds.', ar:'يبتكر الذكاء الاصطناعي تصميماً — التخطيط والمواد والألوان وتسعير تقريبي خلال ثوانٍ.' },
+  yasStep3Title:{ en:'Refine & quote', ar:'حسّن واحصل على عرض السعر' },
+  yasStep3Desc:{ en:'Open it in the 3D planner or book a free visit for an exact, itemised quote.', ar:'افتحه في المخطّط ثلاثي الأبعاد أو احجز زيارة مجانية للحصول على عرض سعر دقيق ومُفصّل.' },
+  // ── AI YAS: hero/tools micro-copy ──
+  yasCtaDescribeGenerate:{ en:'Describe & generate', ar:'صِف وأنشئ' },
+  yasCtaUploadRestyle:{ en:'Upload & restyle', ar:'ارفع وأعد التصميم' },
+  yasCtaBuildMoodboard:{ en:'Build a moodboard', ar:'أنشئ لوحة إلهام' },
+  yasCtaPlanToBudget:{ en:'Plan to budget', ar:'خطّط حسب الميزانية' },
+  yasCtaGetPicks:{ en:'Get picks', ar:'احصل على الاختيارات' },
+  yasCtaStartChatting:{ en:'Start chatting', ar:'ابدأ المحادثة' },
+  yasCtaOpenInPlanner:{ en:'Open in planner', ar:'افتح في المخطّط' },
+  yasHeroInstantConcepts:{ en:'Instant concepts', ar:'تصاميم فورية' },
+  // ── Planner wizard "Describe your space" step ──
+  plDesigning:{ en:'Designing:', ar:'نُصمّم:' },
+  plDescribeSpace:{ en:'Describe your space', ar:'صِف مساحتك' },
+  plDescribePh:{ en:'e.g. a walk-in closet for a master bedroom, warm oak, lots of shoes and hanging space, with soft lighting', ar:'مثال: غرفة ملابس لغرفة النوم الرئيسية، بلوط دافئ، مساحة وفيرة للأحذية والتعليق، مع إضاءة هادئة' },
+  plChipWalkInOak:{ en:'Walk-in, oak, lots of shoes', ar:'غرفة ملابس، بلوط، مساحة كبيرة للأحذية' },
+  plChipSmallBedroom:{ en:'Small bedroom, sliding doors, white', ar:'غرفة نوم صغيرة، أبواب منزلقة، أبيض' },
+  plChipLShapeKitchen:{ en:'Modern L-shape kitchen, white, quartz', ar:'مطبخ عصري على شكل L، أبيض، كوارتز' },
+  plAddPhoto:{ en:'Add a photo of your room (optional)', ar:'أضف صورة لغرفتك (اختياري)' },
+  plPhotoAdded:{ en:'Photo added — tap to change', ar:'تمت إضافة الصورة — اضغط للتغيير' },
+  plGenerateMyDesign:{ en:'Generate my design ✦', ar:'✦ أنشئ تصميمي' },
+  plDesigningNow:{ en:'Designing…', ar:'جارٍ التصميم…' },
+  plBack:{ en:'‹ Back', ar:'رجوع ›' },
+  // Product display-map for the "Designing: {product}" planner label.
+  plProdWardrobe:{ en:'Wardrobe', ar:'خزانة ملابس' },
+  plProdKitchen:{ en:'Kitchen', ar:'مطبخ' },
+  plProdTvUnit:{ en:'TV Unit', ar:'وحدة تلفاز' },
+  plProdDoors:{ en:'Doors', ar:'أبواب' },
+  plProdWalkInCloset:{ en:'Walk-in Closet', ar:'غرفة ملابس' },
+  plProdStorageOffice:{ en:'Storage / Office', ar:'تخزين / مكتب' },
   // Customer stories
   swStoriesEyebrow:{ en:'#TheClosets makeovers', ar:'#تحوّلات_ذا_كلوزتس' },
   swStoriesTitle:{ en:'Real homes, real transformations.', ar:'منازل حقيقية، تحوّلات حقيقية.' },
@@ -2070,8 +2141,12 @@ function Toasts() {
 }
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Tajawal:wght@400;500;700;800&family=El+Messiri:wght@500;600;700&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  /* ── Arabic typography (Google Fonts): Tajawal for body, El Messiri for display headings ── */
+  html[lang="ar"] body, [dir="rtl"] { font-family: 'Tajawal','Segoe UI',sans-serif; }
+  html[lang="ar"] .display, [dir="rtl"] .display { font-family: 'El Messiri','Tajawal',serif; letter-spacing: 0; }
+  html[lang="ar"] .eyebrow, [dir="rtl"] .eyebrow { font-family: 'Tajawal',sans-serif; }
   html { -webkit-tap-highlight-color: transparent; }
   /* ── Animated background blobs ── */
   .hero-bg {
@@ -2718,6 +2793,37 @@ function trMap(value, map, lang) {
   const k = map[value];
   return (k && I18N[k]) ? (I18N[k][lang] || I18N[k].en) : value;
 }
+
+// ── Offers display-maps (DB-driven store_offers; translate common seeded values only). ──
+// Keyed on the known English title / subtitle / badge strings. Unknown / fully-custom
+// offers fall back to the English DB value (translate those by editing them in the Hub).
+const OFFER_TITLE_KEY = {
+  'Kitchen Upgrade':'offTitleKitchenUpgrade', 'Finance 0%':'offTitleFinance0',
+  'Walk-In Closet Season':'offTitleWalkInSeason', 'Walk-in Closet Season':'offTitleWalkInSeason',
+  'Wardrobe Sale':'offTitleWardrobeSale', 'Free Design Consultation':'offTitleFreeDesign',
+  'Free Installation':'offTitleFreeInstall', 'Summer Sale':'offTitleSummerSale',
+};
+const OFFER_SUB_KEY = {
+  'Complimentary quartz worktop upgrade on full kitchens':'offSubKitchenUpgrade',
+  'Interest-free over up to 4 years on selected projects':'offSubFinance0',
+  'Save on bespoke walk-in dressing rooms':'offSubWalkInSeason',
+  'Bespoke fitted wardrobes at special prices':'offSubWardrobeSale',
+  'Book a free design consultation with our experts':'offSubFreeDesign',
+  'Free professional installation on selected projects':'offSubFreeInstall',
+  'Limited-time savings across the collection':'offSubSummerSale',
+};
+const OFFER_BADGE_KEY = {
+  'Free upgrade':'offBadgeFreeUpgrade', 'APR 0%':'offBadgeApr0',
+  'Up to 25% off':'offBadgeUpTo25', 'Up to 20% off':'offBadgeUpTo20',
+  'Up to 30% off':'offBadgeUpTo30', 'Free':'offBadgeFree',
+  'Limited time':'offBadgeLimited', 'New':'offBadgeNew',
+};
+// Planner "Designing: {product}" label — translate the product noun by its English name.
+const PLANNER_PROD_KEY = {
+  'Wardrobe':'plProdWardrobe', 'Kitchen':'plProdKitchen', 'TV Unit':'plProdTvUnit',
+  'Doors':'plProdDoors', 'Walk-in Closet':'plProdWalkInCloset', 'Walk-In Closet':'plProdWalkInCloset',
+  'Storage / Office':'plProdStorageOffice',
+};
 
 function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang, setLang }) {
   const [scrolled, setScrolled] = useState(false);
@@ -3833,7 +3939,7 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
 /* ── CONFIGURATOR ── */
 function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   const mobile = useMobile();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [settings, setSettings] = useState(null);
   const [loadError, setLoadError] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
@@ -4580,18 +4686,18 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             <span style={{ width:30, height:30, borderRadius:9, background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.6" aria-hidden="true"><path d={pp?.icon || ''}/></svg>
             </span>
-            <span style={{ fontSize:13, color:'var(--ink-soft)' }}>Designing: <strong style={{ color:'var(--ink)' }}>{selProduct?.name || pp?.name || 'Wardrobe'}</strong></span>
+            <span style={{ fontSize:13, color:'var(--ink-soft)' }}>{t('plDesigning')} <strong style={{ color:'var(--ink)' }}>{trMap(selProduct?.name || pp?.name || 'Wardrobe', PLANNER_PROD_KEY, lang)}</strong></span>
           </div>
         ); })()}
         <div style={{ display:'flex', gap:10, alignItems:'center', marginBottom:8 }}>
           <Spark size={22} color="var(--clay)" />
-          <span className="display" style={{ fontSize:20, color:'var(--ink)' }}>Describe your space</span>
+          <span className="display" style={{ fontSize:20, color:'var(--ink)' }}>{t('plDescribeSpace')}</span>
         </div>
         <p style={{ fontSize:14, color:'var(--ink-soft)', marginBottom:16, lineHeight:1.6 }}>{t('sw3PlannerTailored')}</p>
-        <textarea value={aiText} onChange={e=>setAiText(e.target.value)} aria-label="Describe your design" placeholder="e.g. a walk-in closet for a master bedroom, warm oak, lots of shoes and hanging space, with soft lighting" rows={3} style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'var(--cream)', borderRadius:12, fontSize:15, fontFamily:'inherit', resize:'vertical', marginBottom:12 }} />
+        <textarea value={aiText} onChange={e=>setAiText(e.target.value)} aria-label={t('plDescribeSpace')} placeholder={t('plDescribePh')} rows={3} style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'var(--cream)', borderRadius:12, fontSize:15, fontFamily:'inherit', resize:'vertical', marginBottom:12 }} />
         <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:14 }}>
-          {['Small bedroom, sliding doors, white','Walk-in, oak, lots of shoes','Modern L-shape kitchen, white, quartz'].map(chip=>(
-            <button key={chip} type="button" onClick={()=>setAiText(chip)} style={{ fontSize:12, border:'1px solid var(--line)', borderRadius:16, padding:'6px 13px', background:'var(--cream)', color:'var(--ink-soft)', cursor:'pointer' }}>{chip}</button>
+          {[['Small bedroom, sliding doors, white', t('plChipSmallBedroom')],['Walk-in, oak, lots of shoes', t('plChipWalkInOak')],['Modern L-shape kitchen, white, quartz', t('plChipLShapeKitchen')]].map(([val,label])=>(
+            <button key={val} type="button" onClick={()=>setAiText(val)} style={{ fontSize:12, border:'1px solid var(--line)', borderRadius:16, padding:'6px 13px', background:'var(--cream)', color:'var(--ink-soft)', cursor:'pointer' }}>{label}</button>
           ))}
         </div>
         {/* Room photo (vision) */}
@@ -4599,15 +4705,15 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           {aiImage
             ? <img src={aiImage.dataUrl} alt="room" style={{ width:54, height:42, objectFit:'cover', borderRadius:8 }} />
             : <i className="ti ti-camera" style={{ fontSize:22, color:'var(--clay)' }} aria-hidden="true" />}
-          <span style={{ fontSize:14, color:'var(--ink)', fontWeight:500 }}>{aiImage ? 'Photo added — tap to change' : 'Add a photo of your room (optional)'}</span>
+          <span style={{ fontSize:14, color:'var(--ink)', fontWeight:500 }}>{aiImage ? t('plPhotoAdded') : t('plAddPhoto')}</span>
           <input type="file" accept="image/*" onChange={e=>onAiPhoto(e.target.files?.[0])} style={{ display:'none' }} />
           {aiImage && <span onClick={e=>{ e.preventDefault(); setAiImage(null); }} style={{ marginLeft:'auto', color:'var(--muted)', fontSize:18 }}>×</span>}
         </label>
         <div style={{ display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
-          <button type="button" className="btn-clay" disabled={aiBusy || (!aiText.trim() && !aiImage)} onClick={runAI} style={{ opacity:(aiBusy||(!aiText.trim()&&!aiImage))?0.6:1 }}>{aiBusy ? 'Designing…' : 'Generate my design ✦'}</button>
+          <button type="button" className="btn-clay" disabled={aiBusy || (!aiText.trim() && !aiImage)} onClick={runAI} style={{ opacity:(aiBusy||(!aiText.trim()&&!aiImage))?0.6:1 }}>{aiBusy ? t('plDesigningNow') : t('plGenerateMyDesign')}</button>
           <button type="button" onClick={()=>setStage('config')} style={{ background:'none', border:'none', color:'var(--ink-soft)', fontSize:14, cursor:'pointer' }}>{t('sw3PlannerScratch')}</button>
         </div>
-        <div style={{ marginTop:18 }}><span onClick={()=>setStage('product')} style={{ cursor:'pointer', fontSize:13, color:'var(--muted)' }}>‹ Back</span></div>
+        <div style={{ marginTop:18 }}><span onClick={()=>setStage('product')} style={{ cursor:'pointer', fontSize:13, color:'var(--muted)' }}>{lang==='ar'?'رجوع ›':'‹ Back'}</span></div>
       </div>
     </div>
   );
@@ -7412,9 +7518,9 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
               <button type="button" key={o.id} className="lift" onClick={() => setPage('offers')} style={{ position: 'relative', overflow: 'hidden', border: '1px solid var(--line)', borderRadius: 18, cursor: 'pointer', textAlign: 'left', padding: 0, minHeight: 180, background: o.image_url ? '#15110e' : 'linear-gradient(135deg, var(--sand), #fff)' }}>
                 {o.image_url && <><Photo src={o.image_url} alt={o.title} style={{ position: 'absolute', inset: 0 }} /><div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.15), rgba(20,16,12,.82))' }} /></>}
                 <div style={{ position: 'relative', zIndex: 2, padding: 24, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'flex-end', minHeight: 180 }}>
-                  {o.badge && <span style={{ alignSelf: 'flex-start', background: 'var(--clay)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 11px', borderRadius: 980, marginBottom: 10 }}>{o.badge}</span>}
-                  <div className="display" style={{ fontSize: 22, color: o.image_url ? '#fff' : 'var(--ink)' }}>{o.title}</div>
-                  <div style={{ fontSize: 14, color: o.image_url ? 'rgba(255,255,255,.85)' : 'var(--ink-soft)', marginTop: 6, lineHeight: 1.5 }}>{o.subtitle}</div>
+                  {o.badge && <span style={{ alignSelf: 'flex-start', background: 'var(--clay)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 11px', borderRadius: 980, marginBottom: 10 }}>{trMap(o.badge, OFFER_BADGE_KEY, lang)}</span>}
+                  <div className="display" style={{ fontSize: 22, color: o.image_url ? '#fff' : 'var(--ink)' }}>{trMap(o.title, OFFER_TITLE_KEY, lang)}</div>
+                  <div style={{ fontSize: 14, color: o.image_url ? 'rgba(255,255,255,.85)' : 'var(--ink-soft)', marginTop: 6, lineHeight: 1.5 }}>{trMap(o.subtitle, OFFER_SUB_KEY, lang)}</div>
                   <span style={{ fontSize: 13, fontWeight: 600, color: o.image_url ? '#E7BBA0' : 'var(--clay)', marginTop: 14 }}>{t('swClaimOffer')}</span>
                 </div>
               </button>
@@ -7623,15 +7729,15 @@ function CareersPage() {
 const inp = { background:'var(--sand)', border:'1px solid var(--line)', borderRadius:12, padding:'11px 14px', fontSize:14, color:'var(--ink)', width:'100%' };
 
 function OffersPage({ setPage }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [rows,setRows]=useState([]);
   useEffect(()=>{ api('store_offers?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
   return (<PageWrap title={cms('offers.hero.title','Offers & promotions')} sub={cms('offers.hero.subtitle','Current savings on bespoke kitchens, wardrobes and storage.')}>
     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
       {rows.map(o=>(<div key={o.id} style={{ background:'linear-gradient(135deg,var(--sand),#fff)', border:'1px solid var(--clay)33', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
-        {o.badge && <span style={{ display:'inline-block', background:'var(--clay)', color:'#fff', fontSize:12, fontWeight:700, padding:'5px 12px', borderRadius:980 }}>{o.badge}</span>}
-        <div style={{ fontSize:19, fontWeight:700, color:'#1d1d1f', marginTop:12 }}>{o.title}</div>
-        <div style={{ fontSize:14, color:'#86868b', marginTop:6, lineHeight:1.6 }}>{o.subtitle}</div>
+        {o.badge && <span style={{ display:'inline-block', background:'var(--clay)', color:'#fff', fontSize:12, fontWeight:700, padding:'5px 12px', borderRadius:980 }}>{trMap(o.badge, OFFER_BADGE_KEY, lang)}</span>}
+        <div style={{ fontSize:19, fontWeight:700, color:'#1d1d1f', marginTop:12 }}>{trMap(o.title, OFFER_TITLE_KEY, lang)}</div>
+        <div style={{ fontSize:14, color:'#86868b', marginTop:6, lineHeight:1.6 }}>{trMap(o.subtitle, OFFER_SUB_KEY, lang)}</div>
         <button type="button" onClick={()=>setPage('booking')} style={{ marginTop:16, background:'#1d1d1f', color:'#fff', border:'none', borderRadius:980, padding:'10px 18px', fontSize:13, fontWeight:600, cursor:'pointer' }}>{t('w4ClaimOffer')}</button>
       </div>))}
       {rows.length===0 && <div style={{ color:'#aaa' }}>{t('w4NoOffers')}</div>}
@@ -8239,7 +8345,8 @@ function YasChat() {
 // ── The flagship hub page ──
 function AiYasPage({ setPage }) {
   const mobile = useMobile();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const arrow = lang === 'ar' ? '←' : '→';   // RTL-aware trailing arrow
   useReveal();
   const [heroPrompt, setHeroPrompt] = useState('');
   const [heroProduct, setHeroProduct] = useState('');
@@ -8249,20 +8356,20 @@ function AiYasPage({ setPage }) {
     setOpenTool({ id: 'text', prompt: heroPrompt, product: heroProduct });
   };
   const TOOLS = [
-    { id: 'text', icon: '✶', title: t('yasT1t'), value: t('yasT1v'), cta: 'Describe & generate' },
-    { id: 'redesign', icon: '🖼', title: t('yasT2t'), value: t('yasT2v'), cta: 'Upload & restyle' },
-    { id: 'moodboard', icon: '◑', title: t('yasT3t'), value: t('yasT3v'), cta: 'Build a moodboard' },
-    { id: 'budget', icon: '◈', title: t('yasT4t'), value: t('yasT4v'), cta: 'Plan to budget' },
-    { id: 'picks', icon: '❖', title: t('yasT5t'), value: t('yasT5v'), cta: 'Get picks' },
-    { id: 'chat', icon: '✦', title: t('yasT6t'), value: t('yasT6v'), cta: 'Start chatting' },
-    { id: 'render', icon: '◆', title: t('yasT7t'), value: t('yasT7v'), action: () => setPage('planner'), cta: 'Open in planner' },
+    { id: 'text', icon: '✶', title: t('yasT1t'), value: t('yasT1v'), cta: t('yasCtaDescribeGenerate') },
+    { id: 'redesign', icon: '🖼', title: t('yasT2t'), value: t('yasT2v'), cta: t('yasCtaUploadRestyle') },
+    { id: 'moodboard', icon: '◑', title: t('yasT3t'), value: t('yasT3v'), cta: t('yasCtaBuildMoodboard') },
+    { id: 'budget', icon: '◈', title: t('yasT4t'), value: t('yasT4v'), cta: t('yasCtaPlanToBudget') },
+    { id: 'picks', icon: '❖', title: t('yasT5t'), value: t('yasT5v'), cta: t('yasCtaGetPicks') },
+    { id: 'chat', icon: '✦', title: t('yasT6t'), value: t('yasT6v'), cta: t('yasCtaStartChatting') },
+    { id: 'render', icon: '◆', title: t('yasT7t'), value: t('yasT7v'), action: () => setPage('planner'), cta: t('yasCtaOpenInPlanner') },
     { id: 'visualiser', icon: '⬡', title: t('yasT8t'), value: t('yasT8v'), action: () => setPage('planner'), cta: t('openRoomDesigner') },
   ];
-  const CAPS = ['Text-to-design', 'Room redesign', 'Photoreal render', 'Style moodboards', 'Budget planning', 'Product picks', 'Design chat', '3D visualiser', 'Smart recommendations', 'Instant concepts'];
+  const CAPS = [t('yasCapTextToDesign'), t('yasCapRoomRedesign'), t('yasCapPhotorealRender'), t('yasCapStyleMoodboards'), t('yasCapBudgetPlanning'), t('yasCapProductPicks'), t('yasCapDesignChat'), t('yasCap3dVisualiser'), t('yasCapSmartRecs'), t('yasCapInstantConcepts')];
   const STEPS = [
-    { n: '01', t: 'Describe', d: 'Tell YAS what you want in plain words, or upload a photo of your room.', img: '/layouts/wardrobe/wardrobe-walkin.jpg' },
-    { n: '02', t: 'Generate', d: 'AI composes a concept — layout, materials, colours and indicative pricing in seconds.', img: '/layouts/kitchen/island.jpg' },
-    { n: '03', t: 'Refine & quote', d: 'Open it in the 3D planner or book a free visit for an exact, itemised quote.', img: '/layouts/TV/floating.jpg' },
+    { n: '01', t: t('yasStep1Title'), d: t('yasStep1Desc'), img: '/layouts/wardrobe/wardrobe-walkin.jpg' },
+    { n: '02', t: t('yasStep2Title'), d: t('yasStep2Desc'), img: '/layouts/kitchen/island.jpg' },
+    { n: '03', t: t('yasStep3Title'), d: t('yasStep3Desc'), img: '/layouts/TV/floating.jpg' },
   ];
   // Resolve a robust image for the 3 steps (defensive — Photo handles errors anyway).
   const renderToolModal = () => {
@@ -8315,7 +8422,7 @@ function AiYasPage({ setPage }) {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 18, justifyContent: 'center', marginTop: 26, flexWrap: 'wrap', fontSize: 13, color: 'rgba(255,255,255,.6)' }}>
-            <span>{t('sw3YasNoSignup')}</span><span>·</span><span>Instant concepts</span><span>·</span><span>{t('sw3YasVisitConfirm')}</span>
+            <span>{t('sw3YasNoSignup')}</span><span>·</span><span>{t('yasHeroInstantConcepts')}</span><span>·</span><span>{t('sw3YasVisitConfirm')}</span>
           </div>
         </div>
       </section>
@@ -8333,7 +8440,7 @@ function AiYasPage({ setPage }) {
               <div style={{ width: 50, height: 50, borderRadius: 14, background: 'linear-gradient(135deg,var(--sand),#fff)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: 'var(--clay)', marginBottom: 16 }}>{tool.icon}</div>
               <h3 className="display" style={{ fontSize: 20, color: 'var(--ink)', marginBottom: 8 }}>{tool.title}</h3>
               <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55, flex: 1, marginBottom: 18 }}>{tool.value}</p>
-              <button type="button" onClick={() => tool.action ? tool.action() : setOpenTool(tool.id)} style={{ alignSelf: 'flex-start', background: 'var(--sand)', color: 'var(--clay-deep)', border: '1px solid var(--line)', borderRadius: 999, padding: '10px 18px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>{tool.cta} →</button>
+              <button type="button" onClick={() => tool.action ? tool.action() : setOpenTool(tool.id)} style={{ alignSelf: 'flex-start', background: 'var(--sand)', color: 'var(--clay-deep)', border: '1px solid var(--line)', borderRadius: 999, padding: '10px 18px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>{tool.cta} {arrow}</button>
             </div>
           ))}
         </div>
@@ -14816,7 +14923,7 @@ function AppInner() {
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('dir', dir);
       document.documentElement.setAttribute('lang', lang);
-      document.body.style.fontFamily = lang === 'ar' ? "'Tahoma','Segoe UI',sans-serif" : '';
+      document.body.style.fontFamily = lang === 'ar' ? "'Tajawal','Segoe UI',sans-serif" : '';
     }
   }, [lang]);
   const [products, setProducts] = useState([]);
