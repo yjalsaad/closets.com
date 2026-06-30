@@ -146,7 +146,7 @@ const CMS_AR = {
   'footer.col3.title': 'عن الشركة',
   'footer.social.title': 'تابعنا',
   'footer.copyright': '© 2026 ذا كلوزتس ش.ذ.م.م. — المنامة، البحرين',
-  'footer.contact': '+973 1700 1700 · hello@theclosets.co',
+  'footer.contact': '+973 17555095 · Info@the-closets.com',
   // ── Projects ──
   'projects.hero.title': 'مشاريعنا',
   'projects.hero.subtitle': 'مساحات حقيقية صمّمناها وصنّعناها وركّبناها في أنحاء البحرين.',
@@ -451,6 +451,7 @@ const I18N = {
   footWaysShop:{ en:'Ways to shop',  ar:'طرق التسوّق' },
   footAbout:   { en:'About',         ar:'عن الشركة' },
   footFollow:  { en:'Follow us',     ar:'تابعنا' },
+  devBy:       { en:'Developed by',  ar:'تطوير' },
   footBlurb:   { en:'Premium bespoke wardrobes, kitchens and storage — designed, manufactured and installed in the Kingdom of Bahrain.', ar:'خزائن ومطابخ وحلول تخزين فاخرة مصمّمة خصيصاً — تُصمّم وتُصنّع وتُركّب في مملكة البحرين.' },
   footFaq:     { en:'FAQ',           ar:'الأسئلة الشائعة' },
   footDelivery:{ en:'Delivery & install', ar:'التوصيل والتركيب' },
@@ -465,6 +466,17 @@ const I18N = {
   footAboutClosets:{ en:'About The Closets', ar:'عن ذا كلوزتس' },
   footCareers: { en:'Careers',       ar:'وظائف' },
   footSitemap: { en:'Sitemap',       ar:'خريطة الموقع' },
+  footDevBy:   { en:'Developed by',  ar:'تطوير بواسطة' },
+  footStaffLogin:{ en:'Staff login', ar:'دخول الموظفين' },
+  footSupport: { en:'Support',       ar:'الدعم' },
+  footMyClosets:{ en:'My Closets',   ar:'خزائني' },
+  footCustomerHub:{ en:'Open Customer Hub', ar:'افتح مركز العملاء' },
+  footMyAccount:{ en:'My account',   ar:'حسابي' },
+  footMyOrders:{ en:'My orders',     ar:'طلباتي' },
+  footMyDesigns:{ en:'My designs',   ar:'تصاميمي' },
+  footMyRewards:{ en:'My rewards',   ar:'مكافآتي' },
+  footTrackRequest:{ en:'Track a request', ar:'تتبّع طلباً' },
+  footBookVisit:{ en:'Book a visit', ar:'احجز زيارة' },
   // AI YAS page
   yasHeroTag:  { en:'Your AI design partner — describe it, see it, build it. Real renders, tailored concepts and instant pricing for kitchens, wardrobes and every room.', ar:'شريكك في التصميم بالذكاء الاصطناعي — صِفه، شاهده، نفّذه. صور واقعية ومفاهيم مخصّصة وتسعير فوري للمطابخ والخزائن وكل غرفة.' },
   yasPromptPh: { en:'Describe your dream kitchen, wardrobe or room…', ar:'صِف مطبخك أو خزانتك أو غرفتك المثالية…' },
@@ -2602,6 +2614,9 @@ const NAV_LABEL_KEY = {
   'Finance & payment': 'footFinance', 'Find a showroom': 'footFindShowroom',
   'Recommend a friend': 'footRecommend', 'About The Closets': 'footAboutClosets',
   'Careers': 'footCareers', 'Sitemap': 'footSitemap', 'Gallery': 'gallery', 'Contact': 'contact',
+  // My Closets account column
+  'My account': 'footMyAccount', 'My orders': 'footMyOrders', 'My designs': 'footMyDesigns',
+  'My rewards': 'footMyRewards', 'Track a request': 'footTrackRequest', 'Book a visit': 'footBookVisit',
 };
 // trLabel(label, lang): translate a data-driven label by lookup; falls back to the
 // English literal (so unmapped labels render unchanged).
@@ -4071,7 +4086,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           x.fillStyle = '#9aa0a6'; x.font = `400 ${Math.round(foot * 0.19)}px Inter, Arial, sans-serif`;
           x.fillText(footNote, pad, fy + Math.round(foot * 0.66));
           x.textAlign = 'right'; x.fillStyle = '#F2731C'; x.font = `700 ${Math.round(foot * 0.22)}px Inter, Arial, sans-serif`;
-          x.fillText('theclosets.co · +973 1700 1700', cw - pad, fy + Math.round(foot * 0.50));
+          x.fillText('the-closets.com · +973 17555095', cw - pad, fy + Math.round(foot * 0.50));
           x.textAlign = 'left';
           try { resolve(cv.toDataURL('image/jpeg', 0.92)); } catch (e) { resolve(srcUri); }
         };
@@ -4639,7 +4654,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
       + `<tr class="total"><td>TOTAL</td><td class="amt">${money(ld.total)}</td></tr>`
       + `</tbody></table>`
       + `<div class="foot">Indicative — valid 30 days. Free design visit confirms an exact quote.`
-      + `<div class="contact">theclosets.co · +973 1700 1700</div></div>`
+      + `<div class="contact">the-closets.com · +973 17555095</div></div>`
       + `</div>`
       + `<script>window.onload=function(){setTimeout(function(){window.print();},350);};<\/script>`
       + `</body></html>`;
@@ -6781,7 +6796,7 @@ function ContactPage() {
           <div className="eyebrow" style={{ marginBottom:14 }}>{cms('contact.hero.eyebrow', 'Get in touch')}</div>
           <h1 className="display" style={{ fontSize: mobile ? 36 : 56, color:'var(--ink)', marginBottom:16, lineHeight:1.05 }}>{cms('contact.hero.title', 'Let’s start your project.')}</h1>
           <p style={{ fontSize:17, color:'var(--ink-soft)', lineHeight:1.7, marginBottom:30 }}>{cms('contact.hero.subtitle', 'Tell us about your space and we’ll arrange a free home or showroom visit — no obligation.')}</p>
-          {[['📍','Showrooms','Manama · Riffa · Saar · Isa Town', null],['📞','Phone','+973 1700 1700','tel:+97317001700'],['✉️','Email','hello@theclosets.co','mailto:hello@theclosets.co'],['⏰','Hours','Sat–Thu · 9am–8pm', null]].map(([icon,label,val,href])=>(
+          {[['📍','Showrooms','Manama · Riffa · Saar · Isa Town', null],['📞','Phone','+973 17555095','tel:+97317555095'],['✉️','Email','Info@the-closets.com','mailto:Info@the-closets.com'],['⏰','Hours','Sat–Thu · 9am–8pm', null]].map(([icon,label,val,href])=>(
             <div key={label} style={{ display:'flex', gap:14, padding:'15px 0', borderBottom:'1px solid var(--line)' }}>
               <span style={{ fontSize:18 }}>{icon}</span>
               <div><div style={{ fontSize:11, fontWeight:600, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:3 }}>{label}</div>
@@ -7353,14 +7368,24 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
     [t('swApptHome'), t('swApptHomeSub'), '🏡'],
     [t('swApptOnline'), t('swApptOnlineSub'), '💻'],
   ];
-  // d. Room types.
-  const rooms = [
+  // d. Room types — managed from Bonsai Hub (website_room_cards table), with a built-in fallback.
+  const [roomCards, setRoomCards] = useState(null);
+  useEffect(() => { let alive = true;
+    api('website_room_cards?active=eq.true&deleted_at=is.null&order=sort_order.asc')
+      .then(d => { if (alive && Array.isArray(d) && d.length) setRoomCards(d); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+  const roomsFallback = [
     [t('swRoomWardrobes'), t('swRoomWardrobesSub'), '/layouts/wardrobe/wardrobe-walkin.jpg', 'wardrobes'],
     [t('swRoomKitchens'), t('swRoomKitchensSub'), '/layouts/kitchen/island.jpg', 'kitchen'],
     [t('swRoomOffice'), t('swRoomOfficeSub'), '/layouts/office/l-shaped.jpg', 'office'],
     [t('swRoomDoors'), t('swRoomDoorsSub'), '/layouts/door/pivot.jpg', 'doors'],
     [t('swRoomTv'), t('swRoomTvSub'), '/layouts/TV/floating.jpg', 'tv'],
   ];
+  const rooms = (roomCards && roomCards.length)
+    ? roomCards.map(rc => [ (lang === 'ar' ? (rc.title_ar || rc.title_en) : rc.title_en), (lang === 'ar' ? (rc.sub_ar || rc.sub_en) : rc.sub_en), rc.image_url, rc.route ])
+    : roomsFallback;
   // e. Style quick-links.
   const styleLinks = [
     [t('swStyleWalkin'), 'wardrobes'], [t('swStyleSliding'), 'wardrobes'], [t('swStyleShaker'), 'kitchen'],
@@ -8384,7 +8409,7 @@ function YasChat() {
     setMsgs(next); setInput(''); setBusy(true);
     const res = await yasCall('support_chat', { messages: next.filter(m => m.role === 'user' || m.role === 'assistant') });
     if (res.ok && res.data.reply) setMsgs(m => [...m, { role: 'assistant', content: res.data.reply }]);
-    else setMsgs(m => [...m, { role: 'assistant', content: 'I’m having a quick connection hiccup. You can WhatsApp our team on +973 1700 1700 or book a free design visit and we’ll help right away.' }]);
+    else setMsgs(m => [...m, { role: 'assistant', content: 'I’m having a quick connection hiccup. You can WhatsApp our team on +973 17555095 or book a free design visit and we’ll help right away.' }]);
     setBusy(false);
   };
   return (
@@ -8753,18 +8778,32 @@ function SiteFooter({ setPage }) {
   ];
   return (<footer style={{ borderTop:'1px solid var(--line)', background:'var(--sand)', padding: mobile?'48px 18px 28px':'72px 40px 36px' }}>
     <div style={{ maxWidth:1280, margin:'0 auto' }}>
-      <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'2fr 1fr 1fr 1fr', gap: mobile?28:48 }}>
+      <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'2fr 1fr 1fr 1fr 1fr', gap: mobile?28:48 }}>
         <div style={{ gridColumn: mobile?'1 / -1':'auto' }}>
           <div className="display" style={{ fontSize:22, color:'var(--ink)' }}>{cms('footer.brand', 'The Closets Co.')}</div>
           <div style={{ fontSize:14, color:'var(--ink-soft)', marginTop:12, lineHeight:1.65, maxWidth:300 }}>{cms('footer.blurb', t('footBlurb'))}</div>
           <div style={{ display:'flex', gap:14, marginTop:18, flexWrap:'wrap' }}>
             <button type="button" onClick={()=>setPage('booking')} className="btn-clay" style={{ padding:'12px 22px', fontSize:14 }}>{cms('footer.cta.book', t('bookFreeVisit'))}</button>
-            <a href="https://wa.me/97317001700" style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:980, padding:'11px 18px', fontSize:13.5, fontWeight:600, textDecoration:'none' }}>{cms('footer.cta.whatsapp', t('whatsappUs'))}</a>
+            <a href="https://wa.me/97317555095" style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:980, padding:'11px 18px', fontSize:13.5, fontWeight:600, textDecoration:'none' }}>{cms('footer.cta.whatsapp', t('whatsappUs'))}</a>
           </div>
         </div>
         {col(cms('footer.col1.title',t('footHelp')),[['✨ AI YAS','ai-yas'],['How it works','how-it-works'],['FAQ','faq'],['Delivery & install','contact'],['Warranty service','warranty'],['Maintenance','maintenance'],['Reviews','projects'],['Contact us','contact']])}
         {col(cms('footer.col2.title',t('footWaysShop')),[['Book an appointment','booking'],['Request a brochure','contact'],['Finance & payment','booking'],['Find a showroom','showrooms'],['Recommend a friend','contact']])}
         {col(cms('footer.col3.title',t('footAbout')),[['About The Closets','about'],['Why The Closets','about'],['Careers','careers'],['Offers','offers'],['Sitemap','products']])}
+        {/* My Closets — account column (parity with Customer Hub) */}
+        <div>
+          <div style={{ fontSize:12, fontWeight:700, color:'var(--ink)', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:14 }}>{t('footMyClosets')}</div>
+          {[['My account','portal'],['My orders','portal'],['My designs','portal'],['My rewards','portal'],['Track a request','portal'],['Book a visit','booking']].map(([label,go])=>(
+            <button type="button" key={label} onClick={()=>setPage(go)} style={{ display:'block', background:'none', border:'none', cursor:'pointer', color:'var(--ink-soft)', fontSize:14, padding:'6px 0', textAlign:'left' }}>{trLabel(label, lang)}</button>
+          ))}
+          <a href="https://closets-hub.vercel.app/customer.html" target="_blank" rel="noopener" style={{ display:'block', color:'var(--clay)', fontSize:14, fontWeight:600, padding:'8px 0 0', textDecoration:'none' }}>{t('footCustomerHub')} {lang==='ar' ? '←' : '→'}</a>
+        </div>
+      </div>
+
+      {/* Staff login + Support — external links */}
+      <div style={{ display:'flex', gap:18, marginTop:24, flexWrap:'wrap' }}>
+        <a href="https://closets-hub.vercel.app/staff-login.html" target="_blank" rel="noopener" style={{ color:'var(--ink-soft)', fontSize:14, textDecoration:'none' }}>{t('footStaffLogin')}</a>
+        <a href="https://closets-hub.vercel.app/form.html" target="_blank" rel="noopener" style={{ color:'var(--ink-soft)', fontSize:14, textDecoration:'none' }}>{t('footSupport')}</a>
       </div>
 
       {/* Social row */}
@@ -8785,12 +8824,21 @@ function SiteFooter({ setPage }) {
       </div>
 
       <div style={{ borderTop:'1px solid var(--line)', marginTop:32, paddingTop:22, display:'flex', flexDirection: mobile?'column':'row', justifyContent:'space-between', gap:8, fontSize:13, color:'var(--muted)' }}>
-        <span>{cms('footer.copyright', '© 2026 The Closets Co. W.L.L. — Manama, Bahrain')}</span>
+        <span>{cms('footer.copyright', '© 2026 The Closets Co. W.L.L. — Manama, Bahrain')} · <span>{t('devBy')} <a href="https://www.365neo.com" target="_blank" rel="noopener" style={{ color:'var(--clay)', textDecoration:'none', fontWeight:600 }}>365Neo Digital Services</a></span></span>
         <span style={{ display:'flex', alignItems:'center', gap:14, flexWrap:'wrap' }}>
           <a href="https://closets-hub.vercel.app/privacy.html" target="_blank" rel="noopener" style={{ color:'var(--muted)', textDecoration:'none' }}>{t('legalPrivacy')}</a>
           <a href="https://closets-hub.vercel.app/terms.html" target="_blank" rel="noopener" style={{ color:'var(--muted)', textDecoration:'none' }}>{t('legalTerms')}</a>
-          <span>{cms('footer.contact', '+973 1700 1700 · hello@theclosets.co')}</span>
+          <span style={{ display:'inline-flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+            <a href="tel:+97317555095" style={{ color:'var(--muted)', textDecoration:'none' }}>+973 17555095</a>
+            <span>·</span>
+            <a href="mailto:Info@the-closets.com" style={{ color:'var(--muted)', textDecoration:'none' }}>Info@the-closets.com</a>
+          </span>
         </span>
+      </div>
+
+      {/* Developed by 365Neo */}
+      <div style={{ marginTop:14, textAlign:'center', fontSize:13, color:'var(--muted)' }}>
+        {t('footDevBy')} <a href="https://www.365neo.com" target="_blank" rel="noopener" style={{ color:'var(--clay-deep)', fontWeight:600, textDecoration:'none' }}>365Neo Digital Services</a>
       </div>
     </div>
   </footer>);
