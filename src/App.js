@@ -321,6 +321,33 @@ const I18N = {
   readyTransform:{ en:'Ready to transform your space?', ar:'مستعد لتحويل مساحتك؟' },
   bookConsult: { en:'Book Free Consultation', ar:'احجز استشارة مجانية' },
   signInHub:   { en:'Sign In to Your Hub', ar:'سجّل الدخول إلى حسابك' },
+  // HomeHub account bar + invoices
+  hubBackToSite:   { en:'Back to site', ar:'العودة إلى الموقع' },
+  hubSignOut:      { en:'Sign Out', ar:'تسجيل الخروج' },
+  hubInvoice:      { en:'Invoice', ar:'الفاتورة' },
+  hubView:         { en:'View', ar:'عرض' },
+  hubPrint:        { en:'Print', ar:'طباعة' },
+  hubDownload:     { en:'Download', ar:'تنزيل' },
+  hubItems:        { en:'Items', ar:'العناصر' },
+  hubQty:          { en:'Qty', ar:'الكمية' },
+  hubUnitPrice:    { en:'Unit price', ar:'سعر الوحدة' },
+  hubLineTotal:    { en:'Line total', ar:'الإجمالي' },
+  hubNoItems:      { en:'No items', ar:'لا توجد عناصر' },
+  hubSubtotal:     { en:'Subtotal', ar:'المجموع الفرعي' },
+  hubDiscount:     { en:'Discount', ar:'الخصم' },
+  hubShipping:     { en:'Shipping', ar:'الشحن' },
+  hubTax:          { en:'Tax', ar:'الضريبة' },
+  hubTotal:        { en:'Total', ar:'الإجمالي الكلي' },
+  hubViewItems:    { en:'View items', ar:'عرض العناصر' },
+  hubHideItems:    { en:'Hide items', ar:'إخفاء العناصر' },
+  hubBillTo:       { en:'Bill to', ar:'فاتورة إلى' },
+  hubInvoiceNo:    { en:'Invoice', ar:'فاتورة رقم' },
+  hubOrderNo:      { en:'Order', ar:'طلب رقم' },
+  hubDate:         { en:'Date', ar:'التاريخ' },
+  hubStatus:       { en:'Status', ar:'الحالة' },
+  w4PDashboardTab: { en:'Dashboard', ar:'لوحة التحكم' },
+  w4PLedgerTab:    { en:'Ledger', ar:'السجل المالي' },
+  w4POrdersTab:    { en:'Orders', ar:'الطلبات' },
   // about
   ourStory:    { en:'Our Story',    ar:'قصتنا' },
   precision:   { en:'Precision.',   ar:'دقة.' },
@@ -5960,10 +5987,13 @@ function Row({ k, v, sub }) {
 
 /* ── HOME HUB ── */
 function HomeHub({ user, setUser, setPage }) {
-  const { t } = useI18n();
+  const { t, lang, dir } = useI18n();
+  const rtl = dir === 'rtl';
   const [tab, setTab] = useState('dashboard');
   const [orders, setOrders] = useState([]);
   const [invoices, setInvoices] = useState([]);
+  const [orderItems, setOrderItems] = useState({}); // { [orderId]: array | 'loading' }
+  const [expandedOrder, setExpandedOrder] = useState(null);
   const [rewards, setRewards] = useState([]);
   const [designs, setDesigns] = useState([]);
   const [complaints, setComplaints] = useState([]);
@@ -6014,6 +6044,184 @@ function HomeHub({ user, setUser, setPage }) {
     const u = { ...user, ...editForm }; setUser(u); localStorage.setItem('closets_user', JSON.stringify(u)); toast('Saved ✓', 'success');
   };
   const tabs = [['dashboard','Dashboard'],['card','My Card'],['svcbookings','Bookings'],['ledger','Ledger'],['orders','Orders'],['designs','My Designs'],['rewards','Rewards'],['requests','Requests'],['support','Support'],['profile','Profile']];
+  // Lazily fetch line items for a given order (cached in orderItems state).
+  const loadOrderItems = async (orderId) => {
+    if (!orderId || orderItems[orderId] !== undefined) return;
+    setOrderItems(p => ({ ...p, [orderId]: 'loading' }));
+    try {
+      const r = await api(`sales_order_items?order_id=eq.${encodeURIComponent(orderId)}&select=*`);
+      setOrderItems(p => ({ ...p, [orderId]: Array.isArray(r) ? r : [] }));
+    } catch (_) { setOrderItems(p => ({ ...p, [orderId]: [] })); }
+  };
+  // Normalise a raw line-item row into { name, qty, unit, total }.
+  const normItem = (it) => {
+    const name = it.description || it.name || it.product_name || it.product || it.product_id || t('hubItems');
+    const qty = Number(it.quantity != null ? it.quantity : (it.qty != null ? it.qty : 1)) || 1;
+    const unit = Number(it.unit_price != null ? it.unit_price : (it.price != null ? it.price : (it.unit_cost || 0))) || 0;
+    const total = it.line_total != null ? Number(it.line_total) : (it.total != null ? Number(it.total) : qty * unit);
+    return { name, qty, unit, total };
+  };
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+  const bd = (n) => 'BD ' + (parseFloat(n || 0)).toLocaleString('en-GB', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+  const logoSrc = cms('header.logo', '') || '';
+  const brandTxt = cms('header.brand', 'THE CLOSETS CO.');
+  // Build a branded, print-clean A4 invoice HTML document for an order (or invoice row).
+  const buildInvoiceHtml = (doc, items) => {
+    const num = doc.order_number || doc.order_num || doc.invoice_number || doc.id || '';
+    const dateStr = doc.created_at ? new Date(doc.created_at).toLocaleDateString('en-GB') : '';
+    const subtotal = doc.subtotal != null ? Number(doc.subtotal) : null;
+    const discount = doc.discount != null ? Number(doc.discount) : (doc.discount_amount != null ? Number(doc.discount_amount) : null);
+    const shipping = doc.shipping != null ? Number(doc.shipping) : (doc.shipping_amount != null ? Number(doc.shipping_amount) : null);
+    const tax = doc.tax != null ? Number(doc.tax) : (doc.tax_amount != null ? Number(doc.tax_amount) : null);
+    const total = Number(doc.total != null ? doc.total : (doc.total_amount != null ? doc.total_amount : (doc.amount || 0)));
+    const payStatus = doc.payment_status || doc.status || '';
+    const rows = (items || []).map(normItem);
+    const rowsHtml = rows.length
+      ? rows.map(r => `<tr><td>${esc(r.name)}</td><td class="c">${r.qty}</td><td class="r">${esc(bd(r.unit))}</td><td class="r">${esc(bd(r.total))}</td></tr>`).join('')
+      : `<tr><td colspan="4" class="muted c">${esc(t('hubNoItems'))}</td></tr>`;
+    const totalsRow = (label, val) => (val != null ? `<tr><td class="tl">${esc(label)}</td><td class="r">${esc(bd(val))}</td></tr>` : '');
+    const logoHtml = logoSrc ? `<img src="${esc(logoSrc)}" alt="" style="height:46px"/>` : `<div class="brand">${esc(brandTxt)}</div>`;
+    return `<!doctype html><html dir="${rtl ? 'rtl' : 'ltr'}" lang="${lang}"><head><meta charset="utf-8"/>
+<title>Invoice ${esc(num)}</title>
+<style>
+*{box-sizing:border-box} body{font-family:${lang==='ar'?"'Tajawal',":''}Arial,Helvetica,sans-serif;color:#211c18;margin:0;background:#fff}
+.page{max-width:780px;margin:0 auto;padding:40px 44px}
+.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #f2731c;padding-bottom:20px;margin-bottom:26px}
+.brand{font-size:22px;font-weight:800;letter-spacing:.04em;color:#211c18}
+.co{font-size:12px;color:#6e6e73;margin-top:6px;line-height:1.6}
+.title{text-align:${rtl ? 'left' : 'right'}}
+.title h1{font-size:26px;margin:0 0 6px;color:#211c18;letter-spacing:-.01em}
+.meta{font-size:12.5px;color:#6e6e73;line-height:1.8}
+.meta b{color:#211c18}
+.billto{margin:22px 0 18px}
+.lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#9a948d;margin-bottom:5px}
+.billto .nm{font-size:14px;font-weight:700}
+.billto .sub{font-size:12.5px;color:#6e6e73}
+table.items{width:100%;border-collapse:collapse;margin-top:8px}
+table.items th{background:#faf6f1;text-align:${rtl ? 'right' : 'left'};font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:#6e6e73;padding:10px 12px;border-bottom:1px solid #ece6df}
+table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
+.c{text-align:center}.r{text-align:${rtl ? 'left' : 'right'}}.muted{color:#9a948d}
+.totals{width:300px;margin-${rtl ? 'right' : 'left'}:auto;margin-top:18px}
+.totals table{width:100%;border-collapse:collapse}
+.totals td{padding:7px 12px;font-size:13px}
+.totals td.tl{color:#6e6e73}
+.totals tr.grand td{font-size:16px;font-weight:800;border-top:2px solid #211c18;padding-top:11px}
+.pay{display:inline-block;margin-top:10px;padding:5px 12px;border-radius:980px;font-size:12px;font-weight:700;background:#f2731c18;color:#a3520f}
+.foot{margin-top:36px;border-top:1px solid #ece6df;padding-top:16px;font-size:11.5px;color:#9a948d;text-align:center}
+@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{padding:24px}}
+</style></head><body><div class="page">
+<div class="head">
+  <div>${logoHtml}<div class="co">${esc(brandTxt)}<br/>Kingdom of Bahrain</div></div>
+  <div class="title"><h1>${esc(t('hubInvoice'))}</h1>
+    <div class="meta">${esc(num ? (doc.invoice_number ? t('hubInvoiceNo') : t('hubOrderNo')) + ' #' : '')} <b>${esc(num)}</b><br/>
+    ${dateStr ? esc(t('hubDate')) + ': <b>' + esc(dateStr) + '</b><br/>' : ''}
+    ${payStatus ? esc(t('hubStatus')) + ': <b>' + esc(payStatus) + '</b>' : ''}</div>
+  </div>
+</div>
+<div class="billto"><div class="lbl">${esc(t('hubBillTo'))}</div>
+  <div class="nm">${esc(doc.customer_name || user.name || '')}</div>
+  <div class="sub">${esc(doc.customer_email || user.email || '')}</div>
+</div>
+<table class="items"><thead><tr>
+  <th>${esc(t('hubItems'))}</th><th class="c">${esc(t('hubQty'))}</th>
+  <th class="r">${esc(t('hubUnitPrice'))}</th><th class="r">${esc(t('hubLineTotal'))}</th>
+</tr></thead><tbody>${rowsHtml}</tbody></table>
+<div class="totals"><table>
+  ${totalsRow(t('hubSubtotal'), subtotal)}
+  ${totalsRow(t('hubDiscount'), discount)}
+  ${totalsRow(t('hubShipping'), shipping)}
+  ${totalsRow(t('hubTax'), tax)}
+  <tr class="grand"><td class="tl">${esc(t('hubTotal'))}</td><td class="r">${esc(bd(total))}</td></tr>
+</table>${payStatus ? `<div style="text-align:${rtl ? 'left' : 'right'}"><span class="pay">${esc(payStatus)}</span></div>` : ''}</div>
+<div class="foot">${esc(brandTxt)} — ${esc(t('hubInvoice'))} ${esc(num)}</div>
+</div></body></html>`;
+  };
+  // Ensure items are loaded (await) then run a callback with them.
+  // Invoices (key starts with 'inv-') try invoice_items; orders use sales_order_items.
+  const withItems = async (doc, key, fn) => {
+    let items = orderItems[key];
+    if (items === undefined && doc.id) {
+      const isInvoice = typeof key === 'string' && key.startsWith('inv-');
+      try {
+        const path = isInvoice
+          ? `invoice_items?invoice_id=eq.${encodeURIComponent(doc.id)}&select=*`
+          : `sales_order_items?order_id=eq.${encodeURIComponent(doc.id)}&select=*`;
+        const r = await api(path);
+        items = Array.isArray(r) ? r : [];
+      } catch (_) { items = []; }
+      // Fallback: invoice may store line data inline (items / line_items column).
+      if (isInvoice && (!items || !items.length)) {
+        try {
+          const inline = doc.items || doc.line_items;
+          const parsed = typeof inline === 'string' ? JSON.parse(inline) : inline;
+          if (Array.isArray(parsed)) items = parsed;
+        } catch (_) {}
+      }
+      setOrderItems(p => ({ ...p, [key]: Array.isArray(items) ? items : [] }));
+    }
+    fn(Array.isArray(items) ? items : []);
+  };
+  const invoiceView = async (doc, key) => {
+    await withItems(doc, key, (items) => {
+      const w = window.open('', '_blank');
+      if (!w) { toast('Please allow pop-ups to view the invoice', 'error'); return; }
+      w.document.write(buildInvoiceHtml(doc, items));
+      w.document.close();
+      setTimeout(() => { try { w.focus(); w.print(); } catch (_) {} }, 350);
+    });
+  };
+  const invoiceDownload = async (doc, key) => {
+    await withItems(doc, key, (items) => {
+      const num = doc.order_number || doc.order_num || doc.invoice_number || doc.id || 'invoice';
+      const blob = new Blob([buildInvoiceHtml(doc, items)], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `Invoice-${String(num).replace(/[^a-zA-Z0-9_-]/g, '_')}.html`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+    });
+  };
+  // Reusable itemized table + invoice actions block.
+  const ItemsBlock = ({ doc, withInvoice }) => {
+    const key = doc.id;
+    const items = orderItems[key];
+    const rows = Array.isArray(items) ? items.map(normItem) : [];
+    return (
+      <div style={{ marginTop:12 }}>
+        {items === 'loading'
+          ? <div style={{ fontSize:13, color:'#86868b', padding:'8px 0' }}>…</div>
+          : rows.length === 0
+            ? <div style={{ fontSize:13, color:'#86868b', padding:'8px 0' }}>{t('hubNoItems')}</div>
+            : (
+              <div style={{ border:'1px solid #ececec', borderRadius:12, overflow:'hidden' }}>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr auto auto auto', gap:0, fontSize:11.5, textTransform:'uppercase', letterSpacing:'.04em', color:'#9a948d', background:'#faf6f1', padding:'8px 12px' }}>
+                  <span>{t('hubItems')}</span>
+                  <span style={{ textAlign:'center', minWidth:42 }}>{t('hubQty')}</span>
+                  <span style={{ textAlign: rtl ? 'left' : 'right', minWidth:80 }}>{t('hubUnitPrice')}</span>
+                  <span style={{ textAlign: rtl ? 'left' : 'right', minWidth:90 }}>{t('hubLineTotal')}</span>
+                </div>
+                {rows.map((row, ri) => (
+                  <div key={ri} style={{ display:'grid', gridTemplateColumns:'1fr auto auto auto', gap:0, fontSize:13, padding:'10px 12px', borderTop:'1px solid #f2efe9', alignItems:'center' }}>
+                    <span style={{ color:'#1d1d1f' }}>{row.name}</span>
+                    <span style={{ textAlign:'center', minWidth:42, color:'#6e6e73' }}>{row.qty}</span>
+                    <span style={{ textAlign: rtl ? 'left' : 'right', minWidth:80, color:'#6e6e73' }}>{bd(row.unit)}</span>
+                    <span style={{ textAlign: rtl ? 'left' : 'right', minWidth:90, fontWeight:600, color:'#1d1d1f' }}>{bd(row.total)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+        {withInvoice && (
+          <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginTop:12, alignItems:'center' }}>
+            <span style={{ fontSize:12.5, fontWeight:600, color:'#86868b' }}>{t('hubInvoice')}:</span>
+            <button type="button" onClick={()=>invoiceView(doc, key)} style={invBtn}>{t('hubView')}</button>
+            <button type="button" onClick={()=>invoiceView(doc, key)} style={invBtn}>{t('hubPrint')}</button>
+            <button type="button" onClick={()=>invoiceDownload(doc, key)} style={invBtn}>{t('hubDownload')}</button>
+          </div>
+        )}
+      </div>
+    );
+  };
+  const invBtn = { background:'#fff', border:'1px solid var(--line, #e6e6e6)', borderRadius:980, padding:'6px 14px', fontSize:13, fontWeight:600, color:'var(--clay)', cursor:'pointer' };
   const cardUrl = cardSlug ? `${HUB_ORIGIN}/card.html?c=${encodeURIComponent(cardSlug)}` : null;
   const shareCard = async () => {
     if (!cardUrl) return;
@@ -6042,45 +6250,42 @@ function HomeHub({ user, setUser, setPage }) {
     e.target.value = '';
   };
   const Pill = ({ label, color, bg }) => <span style={{ display: 'inline-flex', padding: '4px 10px', borderRadius: 980, background: bg, color, fontSize: 12, fontWeight: 500 }}>{label}</span>;
+  const tabLabel = (key, fallback) => {
+    const map = { dashboard:'w4PDashboardTab', ledger:'w4PLedgerTab', orders:'w4POrdersTab', rewards:'w4PRewards', requests:'w4PServiceRequests', support:'w4PSupport', profile:'w4PProfile', designs:'w4PMyDesigns' };
+    return map[key] && I18N[map[key]] ? t(map[key]) : fallback;
+  };
   return (
-    <div style={{ minHeight: '100dvh', paddingTop: mobile ? 0 : 56, paddingBottom: mobile ? 80 : 0, background: '#f5f5f7' }}>
-      {/* Mobile header */}
-      {mobile && (
-        <div style={{ background: '#fff', padding: '16px 16px 0', borderBottom: '1px solid #f5f5f7' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(249,115,22,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: 'var(--clay)' }}>{user.name?.[0]||'?'}</div>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#1d1d1f' }}>{user.name}</div>
-              <div style={{ fontSize: 12, color: '#86868b' }}>{user.tier||'Bronze'} · {(user.points||0).toLocaleString()} pts</div>
+    <div dir={dir} style={{ minHeight: '100dvh', paddingBottom: mobile ? 80 : 0, background: '#f5f5f7' }}>
+      {/* ── Single cohesive account bar (logo + account + back/sign-out, with tab row) ── */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 50, background: 'var(--cream, #f7f2ec)', borderBottom: '1px solid var(--line, #ece6df)' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: mobile ? '12px 16px 0' : '12px 32px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <button type="button" onClick={() => setPage('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, padding: 0 }}>
+              {logoSrc
+                ? <img src={logoSrc} alt={brandTxt} style={{ height: 30, width: 'auto', maxWidth: 120, objectFit: 'contain', borderRadius: 6 }} />
+                : <span style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 16, fontWeight: 600, color: 'var(--ink, #211c18)', letterSpacing: '.02em' }}>{brandTxt}</span>}
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: mobile ? 8 : 12 }}>
+              {!mobile && (
+                <div style={{ textAlign: rtl ? 'left' : 'right', lineHeight: 1.25 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink, #1d1d1f)' }}>{user.name}</div>
+                  <div style={{ fontSize: 11.5, color: 'var(--muted, #86868b)' }}>{user.tier||'Bronze'} · {(user.points||0).toLocaleString()} pts</div>
+                </div>
+              )}
+              <button type="button" onClick={() => setPage('home')} style={{ background: '#fff', border: '1px solid var(--line, #ece6df)', borderRadius: 980, padding: '7px 13px', fontSize: 13, fontWeight: 500, color: 'var(--ink, #211c18)', cursor: 'pointer', whiteSpace: 'nowrap' }}>{rtl ? '→ ' : '← '}{t('hubBackToSite')}</button>
+              <button type="button" onClick={() => { setUser(null); localStorage.removeItem('closets_user'); setPage('home'); }} style={{ background: 'rgba(217,48,37,.08)', border: 'none', borderRadius: 980, padding: '7px 13px', fontSize: 13, fontWeight: 500, color: '#d93025', cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('hubSignOut')}</button>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 12, scrollbarWidth: 'none' }}>
+          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', padding: '12px 0 0', scrollbarWidth: 'none' }}>
             {tabs.map(([key, label]) => (
-              <button type="button" key={key} onClick={() => setTab(key)} style={{ padding: '7px 14px', borderRadius: 980, border: 'none', background: tab === key ? '#1d1d1f' : '#f5f5f7', color: tab === key ? '#fff' : '#6e6e73', fontSize: 13, fontWeight: tab === key ? 500 : 400, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>{label}</button>
+              <button type="button" key={key} onClick={() => setTab(key)} style={{ padding: '8px 14px', borderRadius: '12px 12px 0 0', border: 'none', borderBottom: tab === key ? '2px solid var(--clay)' : '2px solid transparent', background: 'transparent', color: tab === key ? 'var(--clay-deep, var(--clay))' : 'var(--ink-soft, #6e6e73)', fontSize: 13.5, fontWeight: tab === key ? 600 : 500, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>{tabLabel(key, label)}</button>
             ))}
           </div>
         </div>
-      )}
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: mobile ? '16px 16px' : '32px 40px', display: mobile ? 'block' : 'grid', gridTemplateColumns: '220px 1fr', gap: 24 }}>
-        {/* Desktop sidebar */}
-        {!mobile && (
-          <div>
-            <div style={{ background: '#fff', borderRadius: 20, padding: 20, marginBottom: 12, border: '1px solid #e6e6e6' }}>
-              <div style={{ width: 46, height: 46, borderRadius: 14, background: 'rgba(249,115,22,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: 'var(--clay)', marginBottom: 12 }}>{user.name?.[0]||'?'}</div>
-              <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f', marginBottom: 2 }}>{user.name}</div>
-              <div style={{ fontSize: 12, color: '#86868b', marginBottom: 10 }}>{user.email}</div>
-              <Pill label={`${user.tier||'Bronze'} · ${(user.points||0).toLocaleString()} pts`} color={tierC[user.tier||'Bronze']} bg={`${tierC[user.tier||'Bronze']}18`} />
-            </div>
-            <div style={{ background: '#fff', borderRadius: 20, overflow: 'hidden', border: '1px solid #e6e6e6' }}>
-              {tabs.map(([key, label]) => (
-                <button type="button" key={key} onClick={() => setTab(key)} style={{ width: '100%', padding: '12px 18px', background: tab === key ? 'rgba(249,115,22,.08)' : 'transparent', border: 'none', borderBottom: '1px solid #f5f5f7', cursor: 'pointer', fontSize: 14, fontWeight: tab === key ? 500 : 400, color: tab === key ? 'var(--clay)' : '#6e6e73', textAlign: 'left', transition: 'all .15s' }}>{label}</button>
-              ))}
-              <button type="button" onClick={() => { setUser(null); localStorage.removeItem('closets_user'); setPage('home'); }} style={{ width: '100%', padding: '12px 18px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 14, color: '#d93025', textAlign: 'left' }}>Sign Out</button>
-            </div>
-          </div>
-        )}
+      </div>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: mobile ? '16px 16px' : '32px 40px', display: 'block' }}>
         {/* Content */}
-        <div>
+        <div style={{ maxWidth: 980, margin: '0 auto' }}>
           {tab === 'card' && <>
             {!mobile && <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.02em', color: '#1d1d1f', marginBottom: 20 }}>My Digital Card</h2>}
             <div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:28, maxWidth:560 }}>
@@ -6137,28 +6342,57 @@ function HomeHub({ user, setUser, setPage }) {
                 <div style={{ fontSize:12, color:'#86868b', marginTop:6 }}>{order.status||'In Progress'}</div>
               </div>;
             })}
-            {mobile && <button type="button" onClick={() => { setUser(null); localStorage.removeItem('closets_user'); setPage('home'); }} style={{ width: '100%', background: 'transparent', border: '1.5px solid #fecaca', borderRadius: 14, padding: '13px', color: '#d93025', fontSize: 15, cursor: 'pointer', marginTop: 12 }}>Sign Out</button>}
           </>}
 
           {tab === 'ledger' && <>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
-              <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em' }}>Ledger</h2>
+              <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em' }}>{t('w4PLedgerTab')}</h2>
               <span style={{ fontSize:18, fontWeight:700, color:'var(--clay)' }}>{fmt(totalSpent)}</span>
             </div>
-            {invoices.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'#86868b', background:'#fff', borderRadius:16, fontSize:14 }}>No invoices yet</div> : (
-              <div style={{ background:'#fff', borderRadius:16, overflow:'hidden', border:'1px solid #e6e6e6' }}>
-                {invoices.map((inv,i)=>(
-                  <div key={inv.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 18px', borderBottom:i<invoices.length-1?'1px solid #f5f5f7':'none' }}>
+            {orders.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'#86868b', background:'#fff', borderRadius:16, fontSize:14 }}>{t('hubNoItems')}</div> : orders.map(order=>{
+              const open = expandedOrder === ('ledger-'+order.id);
+              return (
+                <div key={order.id} style={{ background:'#fff', borderRadius:16, padding:'16px 18px', border:'1px solid #e6e6e6', marginBottom:10 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
                     <div>
-                      <div style={{ fontSize:14, fontWeight:500, color:'var(--clay)', marginBottom:2 }}>{inv.invoice_number||inv.id}</div>
-                      <div style={{ fontSize:12, color:'#86868b' }}>{inv.description||'Order'} · {inv.created_at?new Date(inv.created_at).toLocaleDateString('en-GB'):'—'}</div>
+                      <div style={{ fontSize:14, fontWeight:600, color:'var(--clay)', marginBottom:2 }}>{order.order_number||order.order_num||order.id}</div>
+                      <div style={{ fontSize:12, color:'#86868b' }}>{order.notes||order.description||'Order'} · {order.created_at?new Date(order.created_at).toLocaleDateString('en-GB'):'—'}</div>
                     </div>
-                    <div style={{ textAlign:'right' }}>
-                      <div style={{ fontSize:15, fontWeight:700, color:'#1d1d1f', marginBottom:4 }}>{fmt(inv.total_amount||inv.amount)}</div>
-                      <Pill label={inv.status||'Pending'} color={inv.status==='Paid'?'#1a7a40':'#b8860b'} bg={inv.status==='Paid'?'rgba(26,122,64,.1)':'rgba(184,134,11,.1)'} />
+                    <div style={{ textAlign: rtl ? 'left' : 'right' }}>
+                      <div style={{ fontSize:15, fontWeight:700, color:'#1d1d1f', marginBottom:4 }}>{fmt(order.total||order.total_amount||order.amount)}</div>
+                      <Pill label={order.status||'Processing'} color="var(--clay)" bg="rgba(249,115,22,.1)" />
                     </div>
                   </div>
-                ))}
+                  <button type="button" onClick={()=>{ const k='ledger-'+order.id; if(open){setExpandedOrder(null);} else {setExpandedOrder(k); loadOrderItems(order.id);} }} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--clay)', fontSize:13, fontWeight:600, padding:'8px 0 0', display:'inline-flex', gap:5 }}>{open ? t('hubHideItems') : t('hubViewItems')} {open ? '▴' : '▾'}</button>
+                  {open && <ItemsBlock doc={order} withInvoice={false} />}
+                </div>
+              );
+            })}
+            {invoices.length>0 && (
+              <div style={{ marginTop:24 }}>
+                <h3 style={{ fontSize:15, fontWeight:700, color:'#1d1d1f', marginBottom:10 }}>{t('hubInvoice')}</h3>
+                <div style={{ background:'#fff', borderRadius:16, overflow:'hidden', border:'1px solid #e6e6e6' }}>
+                  {invoices.map((inv,i)=>(
+                    <div key={inv.id} style={{ padding:'14px 18px', borderBottom:i<invoices.length-1?'1px solid #f5f5f7':'none' }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
+                        <div>
+                          <div style={{ fontSize:14, fontWeight:500, color:'var(--clay)', marginBottom:2 }}>{inv.invoice_number||inv.id}</div>
+                          <div style={{ fontSize:12, color:'#86868b' }}>{inv.description||'Order'} · {inv.created_at?new Date(inv.created_at).toLocaleDateString('en-GB'):'—'}</div>
+                        </div>
+                        <div style={{ textAlign: rtl ? 'left' : 'right' }}>
+                          <div style={{ fontSize:15, fontWeight:700, color:'#1d1d1f', marginBottom:4 }}>{fmt(inv.total_amount||inv.amount)}</div>
+                          <Pill label={inv.status||'Pending'} color={inv.status==='Paid'?'#1a7a40':'#b8860b'} bg={inv.status==='Paid'?'rgba(26,122,64,.1)':'rgba(184,134,11,.1)'} />
+                        </div>
+                      </div>
+                      <div style={{ display:'flex', gap:6, alignItems:'center', marginTop:10, flexWrap:'wrap' }}>
+                        <span style={{ fontSize:12.5, fontWeight:600, color:'#86868b' }}>{t('hubInvoice')}:</span>
+                        <button type="button" onClick={()=>invoiceView(inv, 'inv-'+inv.id)} style={invBtn}>{t('hubView')}</button>
+                        <button type="button" onClick={()=>invoiceView(inv, 'inv-'+inv.id)} style={invBtn}>{t('hubPrint')}</button>
+                        <button type="button" onClick={()=>invoiceDownload(inv, 'inv-'+inv.id)} style={invBtn}>{t('hubDownload')}</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </>}
@@ -6188,13 +6422,28 @@ function HomeHub({ user, setUser, setPage }) {
           </>}
 
           {tab === 'orders' && <>
-            <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>Orders</h2>
-            {orders.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'#86868b', background:'#fff', borderRadius:16, fontSize:14 }}>No orders yet</div> : orders.map(o=>(
-              <div key={o.id} style={{ background:'#fff', borderRadius:16, padding:'16px 18px', border:'1px solid #e6e6e6', marginBottom:10, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <div><div style={{ fontSize:14, fontWeight:600, color:'#1d1d1f', marginBottom:3 }}>{o.order_number||o.id}</div><div style={{ fontSize:12, color:'#86868b' }}>{o.created_at?new Date(o.created_at).toLocaleDateString('en-GB'):'—'}</div></div>
-                <div style={{ textAlign:'right' }}><div style={{ fontSize:15, fontWeight:700, color:'#1d1d1f', marginBottom:6 }}>{fmt(o.total_amount||o.amount)}</div><Pill label={o.status||'Processing'} color="var(--clay)" bg="rgba(249,115,22,.1)" /></div>
-              </div>
-            ))}
+            <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>{t('w4POrdersTab')}</h2>
+            {orders.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'#86868b', background:'#fff', borderRadius:16, fontSize:14 }}>{t('hubNoItems')}</div> : orders.map(o=>{
+              const open = expandedOrder === ('orders-'+o.id);
+              return (
+                <div key={o.id} style={{ background:'#fff', borderRadius:16, padding:'16px 18px', border:'1px solid #e6e6e6', marginBottom:10 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
+                    <div><div style={{ fontSize:14, fontWeight:600, color:'#1d1d1f', marginBottom:3 }}>{o.order_number||o.order_num||o.id}</div><div style={{ fontSize:12, color:'#86868b' }}>{o.created_at?new Date(o.created_at).toLocaleDateString('en-GB'):'—'}</div></div>
+                    <div style={{ textAlign: rtl ? 'left' : 'right' }}><div style={{ fontSize:15, fontWeight:700, color:'#1d1d1f', marginBottom:6 }}>{fmt(o.total||o.total_amount||o.amount)}</div><Pill label={o.status||'Processing'} color="var(--clay)" bg="rgba(249,115,22,.1)" /></div>
+                  </div>
+                  <div style={{ display:'flex', gap:12, alignItems:'center', marginTop:8, flexWrap:'wrap' }}>
+                    <button type="button" onClick={()=>{ const k='orders-'+o.id; if(open){setExpandedOrder(null);} else {setExpandedOrder(k); loadOrderItems(o.id);} }} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--clay)', fontSize:13, fontWeight:600, padding:0, display:'inline-flex', gap:5 }}>{open ? t('hubHideItems') : t('hubViewItems')} {open ? '▴' : '▾'}</button>
+                    <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+                      <span style={{ fontSize:12.5, fontWeight:600, color:'#86868b' }}>{t('hubInvoice')}:</span>
+                      <button type="button" onClick={()=>invoiceView(o, o.id)} style={invBtn}>{t('hubView')}</button>
+                      <button type="button" onClick={()=>invoiceView(o, o.id)} style={invBtn}>{t('hubPrint')}</button>
+                      <button type="button" onClick={()=>invoiceDownload(o, o.id)} style={invBtn}>{t('hubDownload')}</button>
+                    </div>
+                  </div>
+                  {open && <ItemsBlock doc={o} withInvoice={false} />}
+                </div>
+              );
+            })}
           </>}
 
           {tab === 'designs' && <>
@@ -15158,7 +15407,7 @@ function AppInner() {
   return (
     <AppCtx.Provider value={{ user, setUser, cart, setCart, addToCart, setPage, lang, setLang }}>
       <style>{CSS}</style>
-      <Nav page={page} setPage={setPage} cart={cart} setCartOpen={setCartOpen} user={user} openAuth={openAuth} siteLogo={siteLogo} lang={lang} setLang={setLang} />
+      {page!=='portal' && <Nav page={page} setPage={setPage} cart={cart} setCartOpen={setCartOpen} user={user} openAuth={openAuth} siteLogo={siteLogo} lang={lang} setLang={setLang} />}
       {page==='home' && <HomePage user={user} banners={banners} siteLogo={siteLogo} products={products} testimonials={testimonials} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
       {page==='products' && <ProductsPage products={products} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
       {productId && <ProductDetailPage productId={productId} products={products} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
