@@ -2956,13 +2956,42 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
 
   return (<>
     {/* Slim top bar — logo + actions */}
-    <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:900, height:56, display:'flex', alignItems:'center', justifyContent:'space-between', padding: mobile?'0 16px':'0 32px', background: scrolled?'rgba(247,242,236,.92)':'rgba(247,242,236,.72)', backdropFilter:'blur(18px) saturate(180%)', borderBottom: scrolled?'1px solid var(--line)':'1px solid transparent', transition:'all .3s' }}>
+    <nav onMouseLeave={()=>setOpenMega(null)} style={{ position:'fixed', top:0, left:0, right:0, zIndex:900, height:58, display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, padding: mobile?'0 16px':'0 24px', background: scrolled?'rgba(247,242,236,.92)':'rgba(247,242,236,.72)', backdropFilter:'blur(18px) saturate(180%)', borderBottom: scrolled?'1px solid var(--line)':'1px solid transparent', transition:'all .3s' }}>
       <button type="button" onClick={()=>{ setPage('home'); setMenuOpen(false); }} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>
         {(cms('header.logo', '') || siteLogo)
           ? <img src={cms('header.logo', '') || siteLogo} alt="The Closets" style={{ height:32, width:'auto', maxWidth:120, objectFit:'contain', borderRadius:6 }} />
           : <span style={{ fontFamily:'Fraunces, Georgia, serif', fontSize:16, fontWeight:600, color:'var(--ink)', letterSpacing:'.02em' }}>{cms('header.brand', 'THE CLOSETS')}</span>}
       </button>
-      <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+      {!mobile && (
+        <div onMouseLeave={()=>setOpenMega(null)} style={{ flex:1, minWidth:0, display:'flex', alignItems:'center', justifyContent:'center', gap:2, flexWrap:'nowrap', overflow:'visible' }}>
+          {NAV_GROUPS.map(g => {
+            const on = openMega===g.key;
+            const active = (g.feature && page===g.feature);
+            return (
+              <div key={g.key} onMouseEnter={()=>setOpenMega(g.key)} style={{ position:'static', flexShrink:1, minWidth:0 }}>
+                <button type="button"
+                  onClick={()=> g.feature ? navTo(g.feature) : setOpenMega(on?null:g.key)}
+                  aria-expanded={on}
+                  style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:4, padding:'8px 10px', fontSize:14, fontWeight: (on||active)?600:500, color:(on||active)?'var(--clay-deep)':'var(--ink)', borderRadius:10, whiteSpace:'nowrap' }}>
+                  {trLabel(g.label, lang)}
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: on?'rotate(180deg)':'none', transition:'transform .2s', opacity:.6 }}><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+              </div>
+            );
+          })}
+          <button type="button" onMouseEnter={()=>setOpenMega(null)} onClick={()=>navTo('ai-yas')}
+            style={{ cursor:'pointer', padding:'6px 12px', fontSize:14, fontWeight:700, color: page==='ai-yas'?'#fff':'var(--clay-deep)', background: page==='ai-yas'?'var(--clay)':'var(--sand)', border:'1px solid '+(page==='ai-yas'?'var(--clay)':'rgba(242,115,28,.35)'), borderRadius:999, display:'inline-flex', alignItems:'center', gap:6, whiteSpace:'nowrap', flexShrink:0 }}>✨ AI YAS</button>
+          {NAV_FLAT.map(([flatLabel,flatId]) => (
+            <button type="button" key={flatId} onMouseEnter={()=>setOpenMega(null)} onClick={()=>navTo(flatId)}
+              style={{ background:'none', border:'none', cursor:'pointer', padding:'8px 10px', fontSize:14, fontWeight: page===flatId?600:500, color: page===flatId?'var(--clay-deep)':'var(--ink)', borderRadius:10, whiteSpace:'nowrap' }}>{trLabel(flatLabel, lang)}</button>
+          ))}
+        </div>
+      )}
+      <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
+        {!mobile && <button type="button" onClick={()=>navTo('planner')} style={{ background:'none', border:'1px solid rgba(242,115,28,.35)', borderRadius:980, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, padding:'7px 14px', fontSize:13, fontWeight:600, color:'var(--clay)', whiteSpace:'nowrap' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+          {cms('header.cta.design', tr('startDesigning'))}
+        </button>}
         {!mobile && <button type="button" onClick={()=>setPage('booking')} style={{ background:'var(--clay)', border:'none', borderRadius:980, padding:'8px 16px', fontSize:13, fontWeight:600, color:'#fff', cursor:'pointer' }}>{cms('header.cta.book', tr('bookVisit'))}</button>}
         <button type="button" onClick={()=>setLang(lang==='ar'?'en':'ar')} title="Language" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'7px 13px', fontSize:13, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{lang==='ar'?'EN':'ع'}</button>
         {user ? <button type="button" onClick={()=>setPage('portal')} style={{ background:'rgba(242,115,28,.12)', border:'none', borderRadius:980, padding:'7px 14px', fontSize:13, fontWeight:500, color:'var(--clay-deep)', cursor:'pointer' }}>{user.name?.split(' ')[0]}</button>
@@ -2974,73 +3003,37 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
       </div>
     </nav>
 
-    {/* Desktop mega-nav — secondary row under the slim bar, with hover/click dropdowns */}
-    {!mobile && (
-      <div
-        onMouseLeave={()=>setOpenMega(null)}
-        style={{ position:'fixed', top:56, left:0, right:0, zIndex:899, background: scrolled?'rgba(247,242,236,.96)':'rgba(247,242,236,.86)', backdropFilter:'blur(18px) saturate(180%)', borderBottom:'1px solid var(--line)', transition:'all .3s' }}>
-        <div style={{ maxWidth:1280, margin:'0 auto', display:'flex', alignItems:'center', gap:4, padding:'0 24px', height: scrolled?44:48, transition:'height .25s' }}>
-          {NAV_GROUPS.map(g => {
-            const on = openMega===g.key;
-            const active = (g.feature && page===g.feature);
-            return (
-              <div key={g.key} onMouseEnter={()=>setOpenMega(g.key)} style={{ position:'static' }}>
-                <button type="button"
-                  onClick={()=> g.feature ? navTo(g.feature) : setOpenMega(on?null:g.key)}
-                  aria-expanded={on}
-                  style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:5, padding:'10px 14px', fontSize:14, fontWeight: (on||active)?600:500, color:(on||active)?'var(--clay-deep)':'var(--ink)', borderRadius:10 }}>
-                  {trLabel(g.label, lang)}
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: on?'rotate(180deg)':'none', transition:'transform .2s', opacity:.6 }}><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
+    {/* Desktop mega dropdown panel — fixed under the single bar */}
+    {!mobile && openMega && (() => {
+      const g = NAV_GROUPS.find(x=>x.key===openMega); if (!g) return null;
+      return (
+        <div onMouseLeave={()=>setOpenMega(null)} style={{ position:'fixed', top:58, left:0, right:0, zIndex:899, background:'var(--cream)', borderBottom:'1px solid var(--line)', boxShadow:'0 26px 48px -28px rgba(33,28,24,.4)', animation:'fadeUp .22s both' }}>
+          <div style={{ maxWidth:1280, margin:'0 auto', padding:'30px 24px 34px', display:'grid', gridTemplateColumns: g.feature ? '1.3fr repeat('+g.columns.length+',1fr)' : 'repeat('+g.columns.length+',1fr)', gap:36 }}>
+            {g.feature && (
+              <button type="button" onClick={()=>navTo(g.feature)} className="tile-zoom lift" style={{ position:'relative', border:'none', padding:0, borderRadius:16, overflow:'hidden', cursor:'pointer', textAlign:'left', minHeight:200, background:'#15110e' }}>
+                <Photo src={g.feature==='kitchen'?HOME_IMG.kitchen:HOME_IMG.walkin} alt={g.label} imgClass="tz" style={{ position:'absolute', inset:0 }} />
+                <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, rgba(20,16,12,0) 40%, rgba(20,16,12,.86) 100%)' }} />
+                <div style={{ position:'absolute', left:0, right:0, bottom:0, padding:18, zIndex:2 }}>
+                  <div className="display" style={{ color:'#fff', fontSize:22 }}>{trLabel(g.label, lang)}</div>
+                  <div style={{ color:'#E7BBA0', fontSize:12.5, fontWeight:600, marginTop:6, letterSpacing:'.04em' }}>{tr('navExploreRange')}</div>
+                </div>
+              </button>
+            )}
+            {g.columns.map((col,ci) => (
+              <div key={ci}>
+                <div className="eyebrow" style={{ fontSize:11, letterSpacing:'.16em', marginBottom:14, color: col.accent?'var(--clay)':'var(--muted)' }}>{trLabel(col.title, lang)}</div>
+                <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
+                  {col.items.map(([colLabel,target]) => (
+                    <button type="button" key={colLabel} onClick={()=>navTo(target)} style={{ background:'none', border:'none', cursor:'pointer', textAlign:'left', padding:'7px 0', fontSize:14, fontWeight: col.accent?600:500, color: col.accent?'var(--clay-deep)':'var(--ink-soft)', transition:'color .15s' }}
+                      onMouseEnter={e=>e.currentTarget.style.color='var(--clay)'} onMouseLeave={e=>e.currentTarget.style.color=col.accent?'var(--clay-deep)':'var(--ink-soft)'}>{trLabel(colLabel, lang)}</button>
+                  ))}
+                </div>
               </div>
-            );
-          })}
-          <button type="button" onMouseEnter={()=>setOpenMega(null)} onClick={()=>navTo('ai-yas')}
-            style={{ cursor:'pointer', padding:'8px 14px', fontSize:14, fontWeight:700, color: page==='ai-yas'?'#fff':'var(--clay-deep)', background: page==='ai-yas'?'var(--clay)':'var(--sand)', border:'1px solid '+(page==='ai-yas'?'var(--clay)':'rgba(242,115,28,.35)'), borderRadius:999, display:'inline-flex', alignItems:'center', gap:6 }}>✨ AI YAS</button>
-          {NAV_FLAT.map(([label,id]) => (
-            <button type="button" key={id} onMouseEnter={()=>setOpenMega(null)} onClick={()=>navTo(id)}
-              style={{ background:'none', border:'none', cursor:'pointer', padding:'10px 14px', fontSize:14, fontWeight: page===id?600:500, color: page===id?'var(--clay-deep)':'var(--ink)', borderRadius:10 }}>{trLabel(label, lang)}</button>
-          ))}
-          <div style={{ flex:1 }} />
-          <button type="button" onClick={()=>navTo('planner')} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:6, padding:'10px 14px', fontSize:14, fontWeight:600, color:'var(--clay)' }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-            {cms('header.cta.design', tr('startDesigning'))}
-          </button>
+            ))}
+          </div>
         </div>
-
-        {/* Mega dropdown panel */}
-        {openMega && (() => {
-          const g = NAV_GROUPS.find(x=>x.key===openMega); if (!g) return null;
-          return (
-            <div style={{ position:'absolute', left:0, right:0, top:'100%', background:'var(--cream)', borderBottom:'1px solid var(--line)', boxShadow:'0 26px 48px -28px rgba(33,28,24,.4)', animation:'fadeUp .22s both' }}>
-              <div style={{ maxWidth:1280, margin:'0 auto', padding:'30px 24px 34px', display:'grid', gridTemplateColumns: g.feature ? '1.3fr repeat('+g.columns.length+',1fr)' : 'repeat('+g.columns.length+',1fr)', gap:36 }}>
-                {g.feature && (
-                  <button type="button" onClick={()=>navTo(g.feature)} className="tile-zoom lift" style={{ position:'relative', border:'none', padding:0, borderRadius:16, overflow:'hidden', cursor:'pointer', textAlign:'left', minHeight:200, background:'#15110e' }}>
-                    <Photo src={g.feature==='kitchen'?HOME_IMG.kitchen:HOME_IMG.walkin} alt={g.label} imgClass="tz" style={{ position:'absolute', inset:0 }} />
-                    <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, rgba(20,16,12,0) 40%, rgba(20,16,12,.86) 100%)' }} />
-                    <div style={{ position:'absolute', left:0, right:0, bottom:0, padding:18, zIndex:2 }}>
-                      <div className="display" style={{ color:'#fff', fontSize:22 }}>{trLabel(g.label, lang)}</div>
-                      <div style={{ color:'#E7BBA0', fontSize:12.5, fontWeight:600, marginTop:6, letterSpacing:'.04em' }}>{tr('navExploreRange')}</div>
-                    </div>
-                  </button>
-                )}
-                {g.columns.map((col,ci) => (
-                  <div key={ci}>
-                    <div className="eyebrow" style={{ fontSize:11, letterSpacing:'.16em', marginBottom:14, color: col.accent?'var(--clay)':'var(--muted)' }}>{trLabel(col.title, lang)}</div>
-                    <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
-                      {col.items.map(([label,target]) => (
-                        <button type="button" key={label} onClick={()=>navTo(target)} style={{ background:'none', border:'none', cursor:'pointer', textAlign:'left', padding:'7px 0', fontSize:14, fontWeight: col.accent?600:500, color: col.accent?'var(--clay-deep)':'var(--ink-soft)', transition:'color .15s' }}
-                          onMouseEnter={e=>e.currentTarget.style.color='var(--clay)'} onMouseLeave={e=>e.currentTarget.style.color=col.accent?'var(--clay-deep)':'var(--ink-soft)'}>{trLabel(label, lang)}</button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
-      </div>
-    )}
+      );
+    })()}
 
     {/* Spacer so fixed mega-nav doesn't overlap page content on desktop home/landing */}
     {!mobile && <div style={{ height: 0 }} aria-hidden="true" />}
@@ -4732,7 +4725,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
 
   // ── STAGE 1: PRODUCT PICKER ──
   if (stage === 'product') return (
-    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop:104, paddingBottom:80 }}>
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop:64, paddingBottom:80 }}>
       <div style={{ maxWidth:960, margin:'0 auto', padding:'0 24px' }}>
         {planSteps('product')}
         <div style={{ textAlign:'center', marginBottom:36 }}>
@@ -6788,7 +6781,7 @@ function PlannerGuidePage({ setPage }) {
   return (
     <div style={{ minHeight:'100dvh', background:'var(--cream)' }}>
       {/* HERO */}
-      <section style={{ position:'relative', overflow:'hidden', paddingTop: mobile?96:120 }}>
+      <section style={{ position:'relative', overflow:'hidden', paddingTop: mobile?96:64 }}>
         <div style={{ maxWidth:1280, margin:'0 auto', padding: mobile?'0 22px':'0 40px', display:'grid', gridTemplateColumns: mobile?'1fr':'1.05fr 1fr', gap: mobile?28:56, alignItems:'center', paddingBottom: mobile?44:72 }}>
           <div className="rv">
             <div className="eyebrow" style={{ marginBottom:16 }}>{t('guideEyebrow')}</div>
@@ -7970,7 +7963,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
 function PageWrap({ title, sub, eyebrow, children }) {
   const mobile = useMobile();
   useReveal();
-  return (<div style={{ minHeight:'100dvh', paddingTop: mobile?88:112, paddingBottom:90, background:'var(--cream)' }}>
+  return (<div style={{ minHeight:'100dvh', paddingTop: mobile?88:64, paddingBottom:90, background:'var(--cream)' }}>
     <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'0 24px':'0 32px' }}>
       <div className="rv" style={{ maxWidth:700, marginBottom:40 }}>
         {eyebrow && <div className="eyebrow" style={{ marginBottom:14 }}>{eyebrow}</div>}
@@ -8128,7 +8121,7 @@ function ServicesPage({ user, setPage, openAuth }) {
   };
   const price = (c) => c.pricing_model === 'fixed' ? ('From BD ' + c.base_price) : c.pricing_model === 'hourly' ? ('BD ' + c.base_price + '/hr') : 'Free quote';
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--cream)', paddingTop: 104, paddingBottom: 90 }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--cream)', paddingTop: 64, paddingBottom: 90 }}>
       <div style={{ maxWidth: 1180, margin: '0 auto', padding: '0 24px' }}>
         <div className="rv" style={{ maxWidth: 680, marginBottom: 36 }}>
           <div className="eyebrow" style={{ marginBottom: 14 }}>{cms('services.hero.eyebrow', 'Home services')}</div>
@@ -13150,7 +13143,7 @@ function KitchenStudio({ setPage, user, openAuth }) {
   const back = () => setStep(s=>Math.max(0, s-1));
 
   return (
-    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?80:100, paddingBottom: mobile?120:90 }}>
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?80:64, paddingBottom: mobile?120:90 }}>
       <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'0 14px':'0 28px' }}>
         <div style={{ textAlign:'center', marginBottom:16 }}>
           <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2KsEyebrow')}</div>
@@ -14300,7 +14293,7 @@ function WrenPlannerPage({ setPage, user }) {
   const back = () => setStep(s=>Math.max(1,s-1));
 
   return (
-    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?86:104, paddingBottom:90 }}>
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?86:64, paddingBottom:90 }}>
       <div style={{ maxWidth:1080, margin:'0 auto', padding: mobile?'0 18px':'0 28px' }}>
         <div style={{ textAlign:'center', marginBottom:22 }}>
           <div className="eyebrow" style={{ marginBottom:12 }}>{t('sw2WrEyebrow')}</div>
@@ -14503,7 +14496,7 @@ function KitchenStudioPage({ setPage, user }) {
   const TABS=[['units',t('sw2StTabUnits')],['room',t('sw2StTabRoom')],['style',t('sw2StTabStyle')],['finish',t('sw2StTabFinish')]];
 
   return (
-    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?86:104, paddingBottom:90 }}>
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?86:64, paddingBottom:90 }}>
       <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' }}>
         <div style={{ textAlign:'center', marginBottom:20 }}>
           <div className="eyebrow" style={{ marginBottom:12 }}>{t('sw2WrEyebrow')}</div>
@@ -14888,7 +14881,7 @@ function DesignBuilderPage({ setPage, user }) {
   const dbFeatureLabels = { windows:t('sw2DbFeatWindows'), doors:t('sw2DbFeatDoors'), outlets:t('sw2DbFeatOutlets'), ac:t('sw2DbFeatAc'), columns:t('sw2DbFeatColumns'), beams:t('sw2DbFeatBeams'), plumbing:t('sw2DbFeatPlumbing'), lighting:t('sw2DbFeatLighting') };
 
   return (
-    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?86:104, paddingBottom:90 }}>
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?86:64, paddingBottom:90 }}>
       <div style={{ maxWidth:1200, margin:'0 auto', padding: mobile?'0 16px':'0 28px' }}>
         <div style={{ textAlign:'center', marginBottom:18 }}>
           <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2DbEyebrow')}</div>
