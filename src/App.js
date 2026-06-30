@@ -1244,6 +1244,57 @@ const I18N = {
   swFrom:{ en:'from', ar:'من' },
   swViewArrow:{ en:'View →', ar:'← عرض' },
   swCatBespoke:{ en:'Bespoke', ar:'حسب الطلب' },
+  // Featured / product card badge + category eyebrow (displayed only; data stays English)
+  cardFeatured:{ en:'Featured', ar:'مميّز' },
+  // CAT_KEY: product card category eyebrow (display translation; product NAME stays English)
+  catWardrobes:{ en:'Wardrobes', ar:'خزائن الملابس' },
+  catSlidingWardrobes:{ en:'Sliding Wardrobes', ar:'خزائن بأبواب منزلقة' },
+  catWalkInClosets:{ en:'Walk-in Closets', ar:'غرف ملابس' },
+  catKitchens:{ en:'Kitchens', ar:'مطابخ' },
+  catTvUnits:{ en:'TV Units', ar:'وحدات تلفزيون' },
+  catDoors:{ en:'Doors', ar:'أبواب' },
+  catHomeOffice:{ en:'Home Office', ar:'مكتب منزلي' },
+  catStorage:{ en:'Storage', ar:'حلول تخزين' },
+  catVanities:{ en:'Vanities', ar:'وحدات تجميل' },
+  catShelving:{ en:'Shelving', ar:'أرفف' },
+  // Booking / appointment form (displayed labels; saved/posted values stay English)
+  bkApptType:{ en:'Appointment type', ar:'نوع الموعد' },
+  bkKindDesignConsult:{ en:'Design Consultation', ar:'استشارة تصميم' },
+  bkKindFreeSiteVisit:{ en:'Free Site Visit', ar:'زيارة موقع مجانية' },
+  bkKindShowroomVisit:{ en:'Showroom Visit', ar:'زيارة المعرض' },
+  bkKindOnlineConsult:{ en:'Online Consultation', ar:'استشارة عبر الإنترنت' },
+  bkFullName:{ en:'Full name *', ar:'الاسم الكامل *' },
+  bkPhone:{ en:'Phone *', ar:'رقم الهاتف *' },
+  bkEmail:{ en:'Email', ar:'البريد الإلكتروني' },
+  bkAddress:{ en:'Address (for home/site visit)', ar:'العنوان (لزيارة المنزل أو الموقع)' },
+  bkNotes:{ en:'Notes (optional)', ar:'ملاحظات (اختياري)' },
+  bkSubmit:{ en:'Request my free visit', ar:'اطلب زيارتي المجانية' },
+  bkSubmitting:{ en:'Submitting…', ar:'جارٍ الإرسال…' },
+  bkNamePhoneReq:{ en:'Name and phone are required', ar:'الاسم ورقم الهاتف مطلوبان' },
+  bkRequested:{ en:'Booking requested — we’ll confirm by phone', ar:'تم استلام طلب الحجز — سنؤكد عبر الهاتف' },
+  bkSubmitErr:{ en:'Could not submit, please try again', ar:'تعذّر الإرسال، يرجى المحاولة مرة أخرى' },
+  bkBooked:{ en:'Booked', ar:'تم الحجز' },
+  bkThankYou:{ en:'Thank you.', ar:'شكراً لك.' },
+  bkRequestedPrefix:{ en:'Your', ar:'تم استلام طلب' },
+  bkRequestedSuffix:{ en:'is requested.', ar:'الخاص بك.' },
+  bkBackHome:{ en:'Back to home', ar:'العودة إلى الرئيسية' },
+  // Booking appointment-type as a display label (used in success line)
+  bkApptDesignConsultLc:{ en:'design consultation', ar:'استشارة التصميم' },
+  bkApptFreeSiteVisitLc:{ en:'free site visit', ar:'زيارة الموقع المجانية' },
+  bkApptShowroomVisitLc:{ en:'showroom visit', ar:'زيارة المعرض' },
+  bkApptOnlineConsultLc:{ en:'online consultation', ar:'الاستشارة عبر الإنترنت' },
+  // Booking interest / product select (display only; posted value stays English)
+  bkIntKitchen:{ en:'Kitchen', ar:'مطبخ' },
+  bkIntWardrobe:{ en:'Wardrobe', ar:'خزانة ملابس' },
+  bkIntWalkIn:{ en:'Walk-In Closet', ar:'غرفة ملابس' },
+  bkIntTvUnit:{ en:'TV Unit', ar:'وحدة تلفزيون' },
+  bkIntDoors:{ en:'Doors', ar:'أبواب' },
+  bkIntStorage:{ en:'Storage', ar:'حلول تخزين' },
+  bkIntOther:{ en:'Other', ar:'أخرى' },
+  // Booking time-slot select (display only; posted value stays English)
+  bkSlotMorning:{ en:'Morning (9–12)', ar:'صباحاً (9–12)' },
+  bkSlotAfternoon:{ en:'Afternoon (12–4)', ar:'بعد الظهر (12–4)' },
+  bkSlotEvening:{ en:'Evening (4–7)', ar:'مساءً (4–7)' },
   // Why band stats + badges
   swStatProjects:{ en:'Projects delivered', ar:'مشروع منجز' },
   swStatCraft:{ en:'Of craftsmanship', ar:'من الحرفية' },
@@ -2622,6 +2673,52 @@ function trRd(value, lang) {
   return (k && I18N[k]) ? (I18N[k][lang] || I18N[k].en) : value;
 }
 
+// CAT_KEY: product-card category eyebrow → I18N key (display only; product NAME data stays English).
+// Unknown categories fall back to the English value unchanged.
+const CAT_KEY = {
+  'Wardrobes':'catWardrobes', 'Wardrobe':'catWardrobes',
+  'Sliding Wardrobes':'catSlidingWardrobes', 'Sliding Wardrobe':'catSlidingWardrobes',
+  'Walk-in Closets':'catWalkInClosets', 'Walk-in Closet':'catWalkInClosets',
+  'Walk-In Closets':'catWalkInClosets', 'Walk-In Closet':'catWalkInClosets',
+  'Kitchens':'catKitchens', 'Kitchen':'catKitchens',
+  'TV Units':'catTvUnits', 'TV Unit':'catTvUnits',
+  'Doors':'catDoors', 'Door':'catDoors',
+  'Home Office':'catHomeOffice', 'Office':'catHomeOffice',
+  'Storage':'catStorage', 'Vanities':'catVanities', 'Vanity':'catVanities',
+  'Shelving':'catShelving',
+};
+// trCat(value, lang): translate a displayed category eyebrow; English fallback for unknowns.
+function trCat(value, lang) {
+  if (!value) return value;
+  const k = CAT_KEY[value];
+  return (k && I18N[k]) ? (I18N[k][lang] || I18N[k].en) : value;
+}
+
+// Booking form display maps. Keys map the saved/posted English value → an I18N key
+// for the DISPLAYED text only. The posted value (APPT_KINDS / APPT_SLOTS / interest)
+// stays English. Unknown values fall back to the English literal.
+const APPT_KIND_KEY = {
+  'Design Consultation':'bkKindDesignConsult', 'Free Site Visit':'bkKindFreeSiteVisit',
+  'Showroom Visit':'bkKindShowroomVisit', 'Online Consultation':'bkKindOnlineConsult',
+};
+const APPT_KIND_LC_KEY = {
+  'Design Consultation':'bkApptDesignConsultLc', 'Free Site Visit':'bkApptFreeSiteVisitLc',
+  'Showroom Visit':'bkApptShowroomVisitLc', 'Online Consultation':'bkApptOnlineConsultLc',
+};
+const APPT_SLOT_KEY = {
+  'Morning (9–12)':'bkSlotMorning', 'Afternoon (12–4)':'bkSlotAfternoon', 'Evening (4–7)':'bkSlotEvening',
+};
+const BK_INT_KEY = {
+  'Kitchen':'bkIntKitchen', 'Wardrobe':'bkIntWardrobe', 'Walk-In Closet':'bkIntWalkIn',
+  'TV Unit':'bkIntTvUnit', 'Doors':'bkIntDoors', 'Storage':'bkIntStorage', 'Other':'bkIntOther',
+};
+// trMap(value, map, lang): generic display translator over one of the booking maps above.
+function trMap(value, map, lang) {
+  if (!value) return value;
+  const k = map[value];
+  return (k && I18N[k]) ? (I18N[k][lang] || I18N[k].en) : value;
+}
+
 function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang, setLang }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -2954,15 +3051,15 @@ function Hero({ setPage, banners }) {
 }
 
 function ProductCard({ product: p, setPage, addToCart, setConfigProduct }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   return (
     <div className="rv lift" onClick={() => setPage('product-' + p.id)} style={{ cursor: 'pointer', background: '#fff', borderRadius: 18, overflow: 'hidden', border: '1px solid var(--line)' }}>
       <div className="tile-zoom" style={{ position: 'relative', aspectRatio: '4/5' }}>
         <Photo src={p.image_url || HOME_IMG.wardrobe} alt={p.name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
-        {p.badge && <span style={{ position: 'absolute', top: 12, left: 12, background: 'var(--clay)', color: '#fff', padding: '4px 11px', borderRadius: 980, fontSize: 11, fontWeight: 600, letterSpacing: '.02em' }}>{p.badge}</span>}
+        {p.badge && <span style={{ position: 'absolute', top: 12, left: 12, background: 'var(--clay)', color: '#fff', padding: '4px 11px', borderRadius: 980, fontSize: 11, fontWeight: 600, letterSpacing: '.02em' }}>{p.badge === 'Featured' ? t('cardFeatured') : p.badge}</span>}
       </div>
       <div style={{ padding: '16px' }}>
-        <div style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 6 }}>{p.category || t('w4PdBespoke')}</div>
+        <div style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 6 }}>{p.category ? trCat(p.category, lang) : t('w4PdBespoke')}</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 14 }}>
           <div className="display" style={{ fontSize: 18, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.2 }}>{p.name}</div>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--clay)', whiteSpace: 'nowrap' }}>{fmt(p.price)}</div>
@@ -2978,7 +3075,7 @@ function ProductCard({ product: p, setPage, addToCart, setConfigProduct }) {
 
 /* ── GALLERY ── */
 function ProductsPage({ products, setPage, addToCart, setConfigProduct }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [cat, setCat] = useState('All');
   const [search, setSearch] = useState('');
   const mobile = useMobile();
@@ -2999,7 +3096,7 @@ function ProductsPage({ products, setPage, addToCart, setConfigProduct }) {
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 2 }}>
             {cats.map(c => (
-              <button type="button" key={c} onClick={() => setCat(c)} style={{ padding: '9px 18px', borderRadius: 980, border: '1px solid ' + (cat === c ? 'var(--clay)' : 'var(--line)'), background: cat === c ? 'var(--clay)' : 'transparent', color: cat === c ? '#fff' : 'var(--ink-soft)', fontSize: 13.5, fontWeight: cat === c ? 600 : 500, cursor: 'pointer', whiteSpace: 'nowrap', minHeight: 38, flexShrink: 0, transition: 'all .2s' }}>{c==='All'?t('w4ProdAll'):c}</button>
+              <button type="button" key={c} onClick={() => setCat(c)} style={{ padding: '9px 18px', borderRadius: 980, border: '1px solid ' + (cat === c ? 'var(--clay)' : 'var(--line)'), background: cat === c ? 'var(--clay)' : 'transparent', color: cat === c ? '#fff' : 'var(--ink-soft)', fontSize: 13.5, fontWeight: cat === c ? 600 : 500, cursor: 'pointer', whiteSpace: 'nowrap', minHeight: 38, flexShrink: 0, transition: 'all .2s' }}>{c==='All'?t('w4ProdAll'):trCat(c, lang)}</button>
             ))}
           </div>
           <div className="hide-mobile" style={{ marginLeft: 'auto', fontSize: 13, color: 'var(--muted)' }}>{filtered.length} {filtered.length === 1 ? t('w4ProdPiece') : t('w4ProdPieces')}</div>
@@ -7209,11 +7306,11 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
                 <div key={p.id} className="rv lift" onClick={() => setPage('product-' + p.id)} style={{ '--d': (i * 0.05) + 's', cursor: 'pointer', background: '#fff', borderRadius: 18, overflow: 'hidden', border: '1px solid var(--line)' }}>
                   <div className="tile-zoom" style={{ position: 'relative', aspectRatio: mobile ? '1/1' : '4/3' }}>
                     <Photo src={p.image_url || HOME_IMG.wardrobe} alt={p.name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
-                    {p.badge && <span style={{ position: 'absolute', top: 12, left: 12, background: 'var(--clay)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 980 }}>{p.badge}</span>}
+                    {p.badge && <span style={{ position: 'absolute', top: 12, left: 12, background: 'var(--clay)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 980 }}>{p.badge === 'Featured' ? t('cardFeatured') : p.badge}</span>}
                     {hasSave && <span style={{ position: 'absolute', top: 12, right: 12, background: 'var(--ink)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 980 }}>{t('swSave')} {fmt(Number(p.original_price) - Number(p.price))}</span>}
                   </div>
                   <div style={{ padding: mobile ? 14 : 18 }}>
-                    <div style={{ fontSize: 11.5, color: 'var(--muted)', letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 5 }}>{p.category || t('swCatBespoke')}</div>
+                    <div style={{ fontSize: 11.5, color: 'var(--muted)', letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 5 }}>{p.category ? trCat(p.category, lang) : t('swCatBespoke')}</div>
                     <div className="display" style={{ fontSize: mobile ? 15.5 : 18, color: 'var(--ink)', marginBottom: 8, lineHeight: 1.2 }}>{p.name}</div>
                     <div style={{ display: 'flex', gap: 5, marginBottom: 10 }}>
                       {finishDots.map((c, j) => <span key={j} style={{ width: 14, height: 14, borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,.1)' }} />)}
@@ -7660,38 +7757,38 @@ function ServicesPage({ user, setPage, openAuth }) {
 }
 
 function BookingPage({ setPage }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const mobile = useMobile();
   const [f,setF]=useState({ type:'Design Consultation', name:'', phone:'', email:'', date:'', slot:APPT_SLOTS[0], address:'', interest:'Kitchen', notes:'' });
   const [sent,setSent]=useState(false); const [busy,setBusy]=useState(false);
   const set=(k,v)=>setF(s=>({...s,[k]:v}));
   const submit=async()=>{
-    if(!f.name||!f.phone){ toast('Name and phone are required','error'); return; }
+    if(!f.name||!f.phone){ toast(t('bkNamePhoneReq'),'error'); return; }
     setBusy(true);
     try{
       await api('rpc/book_appointment',{method:'POST',body:{ p_name:f.name, p_phone:f.phone, p_email:f.email||null, p_type:f.type, p_date:f.date||null, p_slot:f.slot, p_address:f.address||null, p_interest:f.interest, p_notes:f.notes||null }});
-      setSent(true); toast('Booking requested — we&#39;ll confirm by phone','success');
-    }catch(e){ toast('Could not submit, please try again','error'); }
+      setSent(true); toast(t('bkRequested'),'success');
+    }catch(e){ toast(t('bkSubmitErr'),'error'); }
     finally{ setBusy(false); }
   };
-  if(sent) return (<PageWrap eyebrow="Booked" title="Thank you."><div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding:36, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div className="display" style={{ fontSize:24, color:'var(--ink)', marginTop:14 }}>Your {f.type.toLowerCase()} is requested.</div><div style={{ fontSize:15, color:'var(--ink-soft)', marginTop:10, lineHeight:1.6 }}>{t('sw3BookCallConfirm')}</div><button type="button" className="btn-clay" onClick={()=>setPage('home')} style={{ marginTop:22 }}>Back to home</button></div></PageWrap>);
+  if(sent) return (<PageWrap eyebrow={t('bkBooked')} title={t('bkThankYou')}><div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding:36, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div className="display" style={{ fontSize:24, color:'var(--ink)', marginTop:14 }}>{t('bkRequestedPrefix')} {trMap(f.type, APPT_KIND_LC_KEY, lang)} {t('bkRequestedSuffix')}</div><div style={{ fontSize:15, color:'var(--ink-soft)', marginTop:10, lineHeight:1.6 }}>{t('sw3BookCallConfirm')}</div><button type="button" className="btn-clay" onClick={()=>setPage('home')} style={{ marginTop:22 }}>{t('bkBackHome')}</button></div></PageWrap>);
   return (<PageWrap eyebrow={cms('booking.hero.eyebrow','Free design visit')} title={cms('booking.hero.title','Book your free visit.')} sub={cms('booking.hero.subtitle','A designer measures your space and creates a bespoke 2D & 3D concept — free, with no obligation.')}>
     <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding: mobile?22:30, maxWidth:720 }}>
-      <div className="eyebrow" style={{ fontSize:11, marginBottom:10 }}>Appointment type</div>
+      <div className="eyebrow" style={{ fontSize:11, marginBottom:10 }}>{t('bkApptType')}</div>
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:18 }}>
-        {APPT_KINDS.map(k=>(<button type="button" key={k} onClick={()=>set('type',k)} style={{ padding:'9px 16px', borderRadius:980, cursor:'pointer', fontSize:13, fontWeight:600, background:f.type===k?'var(--clay)':'var(--sand)', color:f.type===k?'#fff':'var(--ink)', border:'1px solid '+(f.type===k?'var(--clay)':'var(--line)') }}>{k}</button>))}
+        {APPT_KINDS.map(k=>(<button type="button" key={k} onClick={()=>set('type',k)} style={{ padding:'9px 16px', borderRadius:980, cursor:'pointer', fontSize:13, fontWeight:600, background:f.type===k?'var(--clay)':'var(--sand)', color:f.type===k?'#fff':'var(--ink)', border:'1px solid '+(f.type===k?'var(--clay)':'var(--line)') }}>{trMap(k, APPT_KIND_KEY, lang)}</button>))}
       </div>
       <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:12 }}>
-        <input placeholder="Full name *" aria-label="Full name" value={f.name} onChange={e=>set('name',e.target.value)} style={inp} />
-        <input placeholder="Phone *" aria-label="Phone" value={f.phone} onChange={e=>set('phone',e.target.value)} style={inp} />
-        <input placeholder="Email" aria-label="Email" value={f.email} onChange={e=>set('email',e.target.value)} style={inp} />
-        <select value={f.interest} onChange={e=>set('interest',e.target.value)} style={inp}>{['Kitchen','Wardrobe','Walk-In Closet','TV Unit','Doors','Storage','Other'].map(x=><option key={x}>{x}</option>)}</select>
+        <input placeholder={t('bkFullName')} aria-label={t('bkFullName')} value={f.name} onChange={e=>set('name',e.target.value)} style={inp} />
+        <input placeholder={t('bkPhone')} aria-label={t('bkPhone')} value={f.phone} onChange={e=>set('phone',e.target.value)} style={inp} />
+        <input placeholder={t('bkEmail')} aria-label={t('bkEmail')} value={f.email} onChange={e=>set('email',e.target.value)} style={inp} />
+        <select value={f.interest} onChange={e=>set('interest',e.target.value)} style={inp}>{['Kitchen','Wardrobe','Walk-In Closet','TV Unit','Doors','Storage','Other'].map(x=><option key={x} value={x}>{trMap(x, BK_INT_KEY, lang)}</option>)}</select>
         <input type="date" value={f.date} onChange={e=>set('date',e.target.value)} style={inp} />
-        <select value={f.slot} onChange={e=>set('slot',e.target.value)} style={inp}>{APPT_SLOTS.map(x=><option key={x}>{x}</option>)}</select>
-        <input placeholder="Address (for home/site visit)" aria-label="Address (for home/site visit)" value={f.address} onChange={e=>set('address',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1'}} />
-        <textarea placeholder="Notes (optional)" aria-label="Notes (optional)" rows={3} value={f.notes} onChange={e=>set('notes',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1', resize:'vertical'}} />
+        <select value={f.slot} onChange={e=>set('slot',e.target.value)} style={inp}>{APPT_SLOTS.map(x=><option key={x} value={x}>{trMap(x, APPT_SLOT_KEY, lang)}</option>)}</select>
+        <input placeholder={t('bkAddress')} aria-label={t('bkAddress')} value={f.address} onChange={e=>set('address',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1'}} />
+        <textarea placeholder={t('bkNotes')} aria-label={t('bkNotes')} rows={3} value={f.notes} onChange={e=>set('notes',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1', resize:'vertical'}} />
       </div>
-      <button type="button" className="btn-clay" disabled={busy} onClick={submit} style={{ marginTop:18, width:'100%', opacity:busy?.6:1 }}>{busy?'Submitting…':'Request my free visit'}</button>
+      <button type="button" className="btn-clay" disabled={busy} onClick={submit} style={{ marginTop:18, width:'100%', opacity:busy?.6:1 }}>{busy?t('bkSubmitting'):t('bkSubmit')}</button>
     </div>
   </PageWrap>);
 }
