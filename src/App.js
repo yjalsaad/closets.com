@@ -1403,6 +1403,7 @@ const I18N = {
   yasCtaStartChatting:{ en:'Start chatting', ar:'ابدأ المحادثة' },
   yasCtaOpenInPlanner:{ en:'Open in planner', ar:'افتح في المخطّط' },
   yasHeroInstantConcepts:{ en:'Instant concepts', ar:'تصاميم فورية' },
+  yasByClosets:{ en:'by The Closets', ar:'من ذا كلوزتس' },
   // ── Planner wizard "Describe your space" step ──
   plDesigning:{ en:'Designing:', ar:'نُصمّم:' },
   plDescribeSpace:{ en:'Describe your space', ar:'صِف مساحتك' },
@@ -2351,32 +2352,32 @@ const CSS = `
     .rv, .rv-l, .rv-r, .rv-sc, .rv-words .w { opacity: 1 !important; transform: none !important; }
     .yas-aurora, .yas-orb, .yas-spark, .yas-shimmer-box { animation: none !important; }
   }
-  /* ── AI YAS flagship page ── */
-  .yas-hero { position:relative; overflow:hidden; background:#0e0c14; color:#fff; }
+  /* ── AI YAS flagship page (warm Closets palette) ── */
+  .yas-hero { position:relative; overflow:hidden; background:var(--cream); color:var(--ink); }
   .yas-aurora { position:absolute; inset:-30% -10%; z-index:0; pointer-events:none;
     background:
-      radial-gradient(40% 50% at 20% 30%, rgba(242,115,28,.55), transparent 60%),
-      radial-gradient(45% 55% at 80% 20%, rgba(139,92,246,.45), transparent 60%),
-      radial-gradient(50% 50% at 60% 80%, rgba(6,182,212,.40), transparent 60%),
-      radial-gradient(40% 40% at 15% 85%, rgba(242,115,28,.30), transparent 60%);
-    filter:blur(40px); animation:yasAurora 22s ease-in-out infinite; }
+      radial-gradient(40% 50% at 20% 30%, rgba(242,115,28,.16), transparent 60%),
+      radial-gradient(45% 55% at 80% 20%, rgba(242,115,28,.10), transparent 60%),
+      radial-gradient(50% 50% at 60% 80%, rgba(194,65,12,.10), transparent 60%),
+      radial-gradient(40% 40% at 15% 85%, rgba(242,115,28,.12), transparent 60%);
+    filter:blur(46px); animation:yasAurora 22s ease-in-out infinite; }
   @keyframes yasAurora {
     0%,100% { transform:translate3d(0,0,0) scale(1); }
     33%     { transform:translate3d(3%,-2%,0) scale(1.08); }
     66%     { transform:translate3d(-3%,2%,0) scale(0.96); }
   }
   .yas-gridlines { position:absolute; inset:0; z-index:0; pointer-events:none;
-    background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+    background-image:linear-gradient(rgba(33,28,24,.04) 1px, transparent 1px),linear-gradient(90deg, rgba(33,28,24,.04) 1px, transparent 1px);
     background-size:54px 54px; mask-image:radial-gradient(ellipse 90% 70% at 50% 40%, black, transparent); -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 40%, black, transparent); }
-  .yas-orb { position:absolute; border-radius:50%; filter:blur(2px); pointer-events:none; z-index:0;
-    background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.9), rgba(242,115,28,.2)); animation:yasFloat 9s ease-in-out infinite; }
-  @keyframes yasFloat { 0%,100% { transform:translateY(0); opacity:.5; } 50% { transform:translateY(-22px); opacity:1; } }
-  .yas-noise { position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.5;
-    background:radial-gradient(circle at 50% 0%, rgba(255,255,255,.06), transparent 55%); }
-  .yas-promptbar { background:rgba(255,255,255,.07); border:1.5px solid rgba(255,255,255,.18); border-radius:20px;
-    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); box-shadow:0 30px 80px -30px rgba(0,0,0,.7); }
-  .yas-prompt-input { background:transparent; border:none; outline:none; color:#fff; font-size:17px; width:100%; font-family:inherit; }
-  .yas-prompt-input::placeholder { color:rgba(255,255,255,.55); }
+  .yas-orb { position:absolute; border-radius:50%; filter:blur(3px); pointer-events:none; z-index:0;
+    background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(242,115,28,.28)); animation:yasFloat 9s ease-in-out infinite; }
+  @keyframes yasFloat { 0%,100% { transform:translateY(0); opacity:.35; } 50% { transform:translateY(-22px); opacity:.7; } }
+  .yas-noise { position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.6;
+    background:radial-gradient(circle at 50% 0%, rgba(242,115,28,.06), transparent 55%); }
+  .yas-promptbar { background:#fff; border:1px solid var(--line); border-radius:20px;
+    box-shadow:0 24px 60px -34px rgba(33,28,24,.4); }
+  .yas-prompt-input { background:transparent; border:none; outline:none; color:var(--ink); font-size:17px; width:100%; font-family:inherit; }
+  .yas-prompt-input::placeholder { color:var(--muted); }
   .yas-glass { background:#fff; border:1px solid var(--line); border-radius:20px; transition:transform .4s cubic-bezier(.22,1,.36,1), box-shadow .4s, border-color .25s; }
   @media (min-width:768px){ .yas-glass.yas-int:hover { transform:translateY(-5px); box-shadow:0 30px 60px -30px rgba(33,28,24,.4); border-color:rgba(242,115,28,.55); } }
   .yas-chip { border-radius:999px; padding:8px 15px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .18s; border-width:1.5px; border-style:solid; }
@@ -2384,7 +2385,13 @@ const CSS = `
   @keyframes yasSpin { from { transform:rotate(0); } to { transform:rotate(360deg); } }
   .yas-shimmer-box { position:relative; overflow:hidden; background:linear-gradient(100deg,#efe7dc 30%,#f7f2ec 50%,#efe7dc 70%); background-size:200% 100%; animation:yasShimmer 1.4s ease-in-out infinite; border-radius:12px; }
   @keyframes yasShimmer { from { background-position:200% 0; } to { background-position:-200% 0; } }
-  .yas-cap { display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); color:rgba(255,255,255,.92); border-radius:999px; padding:9px 15px; font-size:13px; font-weight:600; }
+  .yas-cap { display:inline-flex; align-items:center; gap:7px; background:var(--sand); border:1px solid var(--line); color:var(--clay-deep); border-radius:999px; padding:9px 15px; font-size:13px; font-weight:600; }
+  /* AI YAS sub-brand lockup */
+  .yas-lockup { display:inline-flex; align-items:center; gap:14px; }
+  .yas-lockup .yas-lockup-spark { display:inline-flex; align-items:center; justify-content:center; width:56px; height:56px; border-radius:16px; background:var(--sand); border:1px solid var(--line); color:var(--clay); flex-shrink:0; }
+  .yas-lockup .yas-lockup-spark svg { animation:yasSpin 6s linear infinite; }
+  .yas-lockup-word { line-height:1; }
+  .yas-lockup-kicker { font-size:13px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-top:6px; }
   .yas-modal-back { position:fixed; inset:0; z-index:1200; background:rgba(14,12,20,.62); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); display:flex; align-items:flex-start; justify-content:center; padding:24px 16px; overflow-y:auto; animation:fadeIn .2s ease; }
   .yas-modal { background:var(--cream); border-radius:24px; width:100%; max-width:880px; margin:auto; box-shadow:0 40px 100px -30px rgba(0,0,0,.6); animation:fadeUp .3s cubic-bezier(.22,1,.36,1); overflow:hidden; }
   .yas-typing span { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--clay); margin:0 2px; animation:yasBlink 1.2s infinite both; }
@@ -8409,15 +8416,20 @@ function AiYasPage({ setPage }) {
         <div className="yas-orb" style={{ width: 50, height: 50, top: '60%', right: '12%', animationDelay: '1.5s' }} />
         <div className="yas-orb" style={{ width: 30, height: 30, top: '30%', right: '24%', animationDelay: '3s' }} />
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 980, margin: '0 auto', padding: mobile ? '0 22px' : '0 32px', textAlign: 'center' }}>
-          <div className="yas-cap" style={{ marginBottom: 22 }}><span className="yas-spark">✦</span> {t('sw3YasPoweredBy')}</div>
-          <h1 className="display" style={{ fontSize: mobile ? 52 : 92, lineHeight: .98, letterSpacing: '-.03em', color: '#fff', marginBottom: 18 }}>
-            AI&nbsp;<span style={{ background: 'linear-gradient(100deg,#F2731C,#f0a05a,#8b5cf6)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent' }}>YAS</span>
-          </h1>
-          <p style={{ fontSize: mobile ? 17 : 21, color: 'rgba(255,255,255,.82)', lineHeight: 1.55, maxWidth: 640, margin: '0 auto 34px' }}>{t('yasHeroTag')}</p>
+          <div className="yas-cap" style={{ marginBottom: 26 }}><span className="yas-spark" style={{ color: 'var(--clay)' }}><Spark size={14} /></span> {t('sw3YasPoweredBy')}</div>
+          {/* AI YAS — Closets sub-brand lockup */}
+          <div className="yas-lockup" style={{ justifyContent: 'center', marginBottom: 18 }}>
+            <span className="yas-lockup-spark" style={{ width: mobile ? 48 : 64, height: mobile ? 48 : 64, borderRadius: mobile ? 14 : 18 }}><Spark size={mobile ? 26 : 36} color="var(--clay)" /></span>
+            <span className="yas-lockup-word" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+              <h1 className="display" style={{ fontSize: mobile ? 52 : 92, lineHeight: .9, letterSpacing: '-.03em', color: 'var(--ink)', margin: 0 }}>AI&nbsp;YAS</h1>
+              <div className="yas-lockup-kicker">{t('yasByClosets')}</div>
+            </span>
+          </div>
+          <p style={{ fontSize: mobile ? 17 : 21, color: 'var(--ink-soft)', lineHeight: 1.55, maxWidth: 640, margin: '0 auto 34px' }}>{t('yasHeroTag')}</p>
           {/* Flagship prompt bar */}
           <div className="yas-promptbar" style={{ padding: mobile ? 14 : 18, textAlign: 'left', maxWidth: 760, margin: '0 auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span className="yas-spark" style={{ fontSize: 20, color: 'var(--clay)' }}>✦</span>
+              <span className="yas-spark" style={{ color: 'var(--clay)', display: 'inline-flex' }}><Spark size={20} /></span>
               <input
                 className="yas-prompt-input"
                 value={heroPrompt}
@@ -8429,12 +8441,12 @@ function AiYasPage({ setPage }) {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 14, flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-                {YAS_PRODUCTS.filter(p => p.id).map(p => <YasChip key={p.id} dark active={heroProduct === p.id} onClick={() => setHeroProduct(heroProduct === p.id ? '' : p.id)}>{p.label}</YasChip>)}
+                {YAS_PRODUCTS.filter(p => p.id).map(p => <YasChip key={p.id} active={heroProduct === p.id} onClick={() => setHeroProduct(heroProduct === p.id ? '' : p.id)}>{p.label}</YasChip>)}
               </div>
               <button type="button" className="btn-clay" onClick={launchHero} style={{ borderRadius: 14, padding: '12px 22px', fontSize: 15, flexShrink: 0 }}>{t('yasGenerate')}</button>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 18, justifyContent: 'center', marginTop: 26, flexWrap: 'wrap', fontSize: 13, color: 'rgba(255,255,255,.6)' }}>
+          <div style={{ display: 'flex', gap: 18, justifyContent: 'center', marginTop: 26, flexWrap: 'wrap', fontSize: 13, color: 'var(--muted)' }}>
             <span>{t('sw3YasNoSignup')}</span><span>·</span><span>{t('yasHeroInstantConcepts')}</span><span>·</span><span>{t('sw3YasVisitConfirm')}</span>
           </div>
         </div>
@@ -8471,7 +8483,7 @@ function AiYasPage({ setPage }) {
               <div key={s.n} className="rv" style={{ '--d': (i * 0.08) + 's' }}>
                 <div style={{ position: 'relative', borderRadius: 18, overflow: 'hidden', aspectRatio: '4 / 3', marginBottom: 16 }}>
                   <Photo src={s.img} alt={s.t} style={{ position: 'absolute', inset: 0 }} />
-                  <div style={{ position: 'absolute', top: 14, left: 14, width: 44, height: 44, borderRadius: '50%', background: 'rgba(14,12,20,.55)', backdropFilter: 'blur(6px)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 15 }}>{s.n}</div>
+                  <div style={{ position: 'absolute', top: 14, left: 14, width: 44, height: 44, borderRadius: '50%', background: 'var(--clay)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 15, boxShadow: '0 8px 20px -8px rgba(176,97,59,.8)' }}>{s.n}</div>
                 </div>
                 <h3 className="display" style={{ fontSize: 22, color: 'var(--ink)', marginBottom: 8 }}>{s.t}</h3>
                 <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.6 }}>{s.d}</p>
@@ -8482,27 +8494,28 @@ function AiYasPage({ setPage }) {
       </section>
 
       {/* ── CAPABILITIES STRIP ── */}
-      <section style={{ background: '#0e0c14', position: 'relative', overflow: 'hidden' }}>
-        <div className="yas-aurora" style={{ opacity: .5 }} />
+      <section style={{ background: 'var(--sand)', position: 'relative', overflow: 'hidden', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+        <div className="yas-aurora" style={{ opacity: .8 }} />
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 1100, margin: '0 auto', padding: mobile ? '50px 22px' : '70px 32px', textAlign: 'center' }}>
-          <div className="eyebrow" style={{ color: '#f0a05a', marginBottom: 18 }}>{t('yasCapsTitle')}</div>
-          <h2 className="display" style={{ fontSize: mobile ? 28 : 40, color: '#fff', marginBottom: 26 }}>{t('yasCapsHeadline')}</h2>
+          <div className="eyebrow" style={{ marginBottom: 18 }}>{t('yasCapsTitle')}</div>
+          <h2 className="display" style={{ fontSize: mobile ? 28 : 40, color: 'var(--ink)', marginBottom: 26 }}>{t('yasCapsHeadline')}</h2>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
-            {CAPS.map(c => <span key={c} className="yas-cap">✦ {c}</span>)}
+            {CAPS.map(c => <span key={c} className="yas-cap" style={{ background: '#fff' }}><Spark size={13} color="var(--clay)" /> {c}</span>)}
           </div>
         </div>
       </section>
 
       {/* ── CTA BAND ── */}
       <section style={{ maxWidth: 1180, margin: '0 auto', padding: mobile ? '56px 22px' : '88px 32px' }}>
-        <div className="rv" style={{ background: 'linear-gradient(135deg,#1d1611,#2a2018)', borderRadius: 28, padding: mobile ? '40px 26px' : '64px 56px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-          <div className="yas-aurora" style={{ opacity: .45 }} />
+        <div className="rv" style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 28, padding: mobile ? '40px 26px' : '64px 56px', textAlign: 'center', position: 'relative', overflow: 'hidden', boxShadow: '0 30px 70px -40px rgba(33,28,24,.45)' }}>
+          <div className="yas-aurora" style={{ opacity: .9 }} />
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <h2 className="display" style={{ fontSize: mobile ? 32 : 52, color: '#fff', lineHeight: 1.05, marginBottom: 16 }}>{t('yasCtaTitle')}</h2>
-            <p style={{ fontSize: mobile ? 16 : 19, color: 'rgba(255,255,255,.8)', maxWidth: 540, margin: '0 auto 30px', lineHeight: 1.6 }}>{t('yasCtaSub')}</p>
+            <div className="yas-cap" style={{ marginBottom: 18 }}><Spark size={14} color="var(--clay)" /> {t('yasByClosets')}</div>
+            <h2 className="display" style={{ fontSize: mobile ? 32 : 52, color: 'var(--ink)', lineHeight: 1.05, marginBottom: 16 }}>{t('yasCtaTitle')}</h2>
+            <p style={{ fontSize: mobile ? 16 : 19, color: 'var(--ink-soft)', maxWidth: 540, margin: '0 auto 30px', lineHeight: 1.6 }}>{t('yasCtaSub')}</p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
               <button type="button" className="btn-clay" onClick={() => setPage('planner')} style={{ fontSize: 16, padding: '16px 30px' }}>{t('openRoomDesignerArrow')}</button>
-              <button type="button" onClick={() => setPage('booking')} style={{ background: 'rgba(255,255,255,.1)', color: '#fff', border: '1px solid rgba(255,255,255,.4)', borderRadius: 14, padding: '15px 28px', fontSize: 16, fontWeight: 500, cursor: 'pointer', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', minHeight: 50 }}>{t('bookFreeDesignVisit')}</button>
+              <button type="button" className="btn-line" onClick={() => setPage('booking')} style={{ fontSize: 16, padding: '15px 28px' }}>{t('bookFreeDesignVisit')}</button>
             </div>
           </div>
         </div>
@@ -13064,17 +13077,17 @@ function WardrobesPage({ setPage, products }) {
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('wardrobe.s1.title', 'Find your fit.')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2WardTypesSub')}</p>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
-          {wTypes.map(t=>(
-            <button key={t.id} type="button" onClick={()=>setPage('wardrobe-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
-              <div style={{ height: mobile?170:210, position:'relative', background: t.img?`url('${t.img}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }}>
-                <span style={{ position:'absolute', top:12, left:12, background:'rgba(20,16,12,.62)', color:'#fff', fontSize:12, fontWeight:600, borderRadius:999, padding:'5px 12px', backdropFilter:'blur(4px)' }}>From {fmt(t.from)}</span>
+          {wTypes.map(wt=>(
+            <button key={wt.id} type="button" onClick={()=>setPage('wardrobe-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+              <div style={{ height: mobile?170:210, position:'relative', background: wt.img?`url('${wt.img}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }}>
+                <span style={{ position:'absolute', top:12, left:12, background:'rgba(20,16,12,.62)', color:'#fff', fontSize:12, fontWeight:600, borderRadius:999, padding:'5px 12px', backdropFilter:'blur(4px)' }}>From {fmt(wt.from)}</span>
               </div>
               <div style={{ padding:'18px 20px' }}>
-                <div style={{ fontSize:20, fontWeight:600, color:'var(--ink)' }}>{t.name}</div>
-                <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{t.sub}</div>
-                <p style={{ fontSize:13.5, color:'var(--ink-soft)', margin:'10px 0', lineHeight:1.55 }}>{t.desc}</p>
+                <div style={{ fontSize:20, fontWeight:600, color:'var(--ink)' }}>{wt.name}</div>
+                <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{wt.sub}</div>
+                <p style={{ fontSize:13.5, color:'var(--ink-soft)', margin:'10px 0', lineHeight:1.55 }}>{wt.desc}</p>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:12 }}>
-                  {(Array.isArray(t.bullets)&&t.bullets.length?t.bullets:t.chips).map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{c}</span>))}
+                  {(Array.isArray(wt.bullets)&&wt.bullets.length?wt.bullets:wt.chips).map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{c}</span>))}
                 </div>
                 <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600 }}>{t('sw2DesignThis3d')}</div>
               </div>
