@@ -7571,11 +7571,11 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
           {mobile && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.55), rgba(20,16,12,.92))', zIndex: 1 }} />}
           <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .06, mixBlendMode: 'overlay', backgroundImage: NOISE, zIndex: 1 }} />
           <div style={{ position: 'relative', zIndex: 2, padding: mobile ? '40px 26px 44px' : '64px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <span className="floaty" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start', background: 'rgba(231,187,160,.14)', border: '1px solid rgba(231,187,160,.3)', color: '#E7BBA0', fontSize: 12, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 980, marginBottom: 18 }}>✦ {cms('home.ai.badge', t('swAiBadge'))}</span>
-            <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 30 : 46, lineHeight: 1.05, letterSpacing: '-.02em', marginBottom: 16 }}>{cms('home.ai.title1', t('swAiTitle1'))}<br />{cms('home.ai.title2', t('swAiTitle2'))}</h2>
-            <p style={{ color: 'rgba(255,255,255,.78)', fontSize: mobile ? 15 : 17, lineHeight: 1.65, marginBottom: 28, maxWidth: 440 }}>{cms('home.ai.desc', t('swAiDesc'))}</p>
+            <span className="floaty" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start', background: 'rgba(231,187,160,.14)', border: '1px solid rgba(231,187,160,.3)', color: '#E7BBA0', fontSize: 12, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 980, marginBottom: 18 }}>✦ {t('swAiBadge')}</span>
+            <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 30 : 46, lineHeight: 1.05, letterSpacing: '-.02em', marginBottom: 16 }}>{t('swAiTitle1')}<br />{t('swAiTitle2')}</h2>
+            <p style={{ color: 'rgba(255,255,255,.78)', fontSize: mobile ? 15 : 17, lineHeight: 1.65, marginBottom: 28, maxWidth: 440 }}>{t('swAiDesc')}</p>
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
-              <button type="button" className="btn-clay" onClick={() => setPage('ai')} style={{ fontSize: 15, padding: '14px 26px' }}>{cms('home.ai.cta', t('swAiTry'))}</button>
+              <button type="button" className="btn-clay" onClick={() => setPage('ai')} style={{ fontSize: 15, padding: '14px 26px' }}>{t('swAiTry')}</button>
               <span style={{ color: 'rgba(255,255,255,.6)', fontSize: 13 }}>{t('swAiFree')}</span>
             </div>
           </div>
