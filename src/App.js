@@ -38,11 +38,195 @@ const AppCtx = createContext(null);
 // paint uses fallbacks and silently upgrades to managed copy when loaded.
 const CMS_MAP = {};                 // module-level cache: { 'home.hero.title': 'value', ... }
 const SiteContentCtx = createContext(0);
-// cms('home.hero.title', 'Made to fit your life.') → managed value if present & non-empty, else fallback.
+// ── Language-aware CMS layer ──────────────────────────────────────────
+// cms() is read during render. CMS_LANG is a module-global mirror of the
+// app language (kept in sync by setCmsLang from the lang React state), so
+// when the language toggle re-renders the tree, cms() re-reads in the new
+// language. Arabic resolution order: optional DB override ('<key>::ar'),
+// then the static CMS_AR dictionary below, then the English DB value /
+// fallback. Static Arabic for EVERY cms key used in this file lives in
+// CMS_AR (see definition immediately after this block).
+let CMS_LANG = (typeof localStorage !== 'undefined' && localStorage.getItem('closets_lang')) || 'en';
+function setCmsLang(l) { CMS_LANG = l; }
+// cms('home.hero.title', 'Made to fit your life.') → managed value if present & non-empty, else fallback (Arabic-aware).
 function cms(key, fallback = '') {
+  if (CMS_LANG === 'ar') {
+    const arDb = CMS_MAP[key + '::ar'];                       // optional Arabic DB override
+    if (arDb !== undefined && arDb !== null && String(arDb).trim() !== '') return arDb;
+    const arStatic = CMS_AR[key];                             // static Arabic dictionary (below)
+    if (arStatic !== undefined && arStatic !== null && String(arStatic).trim() !== '') return arStatic;
+  }
   const v = CMS_MAP[key];
   return (v !== undefined && v !== null && String(v).trim() !== '') ? v : fallback;
 }
+// Static Modern-Standard-Arabic for every cms(...) key used in this file.
+// Brand rendered as 'ذا كلوزتس' to match the app's existing Arabic (I18N).
+// Directional arrows flipped for RTL (← / ‹). Keep numbers, units, em-dashes.
+const CMS_AR = {
+  // ── Home: hero ──
+  'home.hero.title': 'مصنوعة لتناسب حياتك.',
+  'home.hero.eyebrow': 'أثاث مفصّل · مملكة البحرين',
+  'home.hero.subtitle': 'غرف ملابس ومطابخ وحلول تخزين — مصنوعة يدوياً في ورشتنا الخاصة بالبحرين ومصمّمة حول أسلوب حياتك.',
+  'home.hero.cta': 'صمّم خزانتك ←',
+  'home.hero.cta2': 'تصفّح المجموعة',
+  'home.hero.image': '',
+  // ── Header ──
+  'header.logo': '',
+  'header.brand': 'ذا كلوزتس',
+  'header.cta.book': 'احجز زيارة',
+  'header.cta.design': 'ابدأ التصميم',
+  // ── Home: appointment band ──
+  'home.appt.eyebrow': 'يبدأ كل شيء بمحادثة',
+  'home.appt.title': 'اختر موعداً مجانياً.',
+  'home.appt.subtitle': 'مهما كانت طريقتك في التخطيط، فلا رسوم ولا التزام — مجرّد أفكار من خبراء لمساحتك.',
+  // ── Home: rooms ──
+  'home.rooms.eyebrow': 'ماذا تخطّط؟',
+  'home.rooms.title': 'اختر غرفتك.',
+  // ── Home: designs ──
+  'home.designs.eyebrow': 'من أين تبدأ',
+  'home.designs.title': 'تصاميم ستحبّها.',
+  // ── Home: why ──
+  'home.why.eyebrow': 'لماذا ذا كلوزتس',
+  'home.why.title': 'ورشة، لا مستودع.',
+  'home.why.subtitle': 'كل ما نصنعه يُصمَّم ويُبنى ويُركَّب بأيدي فريقنا في البحرين — لتكون القطعة التي تتخيّلها هي القطعة التي تعيش معها.',
+  // ── Home: CTA band ──
+  'home.cta.eyebrow': 'ابدأ مشروعك',
+  'home.cta.title': 'لنصمّم مساحتك.',
+  'home.cta.subtitle': 'احجز استشارة منزلية مجانية — دون التزام، مجرّد أفكار، تُقاس وتُسعّر بأيدي فريقنا.',
+  'home.cta.button': 'احجز استشارة ←',
+  // ── About ──
+  'about.hero.eyebrow': 'قصتنا',
+  'about.hero.title': 'دقة. متانة.',
+  'about.p1': 'تأسّسنا على قناعة واحدة: أن تكون خزائن التخزين بجمال الغرفة التي توضع فيها. كل قطعة مصمّمة خصيصاً لك.',
+  'about.p2': 'دقة إسكندنافية تلتقي بالحرفية البحرينية. نهتم بكل مليمتر وكل تشطيب — حتى لا تحتاج أنت لذلك.',
+  // ── Directory ──
+  'directory.hero.title': 'الدليل',
+  'directory.hero.subtitle': 'موردون وشركاء وأعضاء موثوقون في ذا كلوزتس إنترناشيونال',
+  // ── Contact ──
+  'contact.hero.eyebrow': 'تواصل معنا',
+  'contact.hero.title': 'لنبدأ مشروعك.',
+  'contact.hero.subtitle': 'أخبرنا عن مساحتك وسنرتّب لك زيارة منزلية أو لصالة العرض مجاناً — دون أي التزام.',
+  // ── Showrooms ──
+  'showrooms.hero.eyebrow': 'زُرنا',
+  'showrooms.hero.title': 'صالات عرض في أنحاء البحرين.',
+  'showrooms.hero.subtitle': 'اختبر حرفيتنا بنفسك — شاهد التشطيبات، وافتح الأدراج، وتحسّس جودة الصنع.',
+  // ── Blog ──
+  'blog.hero.eyebrow': 'إلهام',
+  'blog.hero.title': 'أفكار وإرشادات.',
+  'blog.hero.subtitle': 'اتجاهات ونصائح ومشاريع حقيقية للمطابخ والخزائن والتخزين.',
+  // ── Careers ──
+  'careers.hero.title': 'الوظائف',
+  'careers.hero.subtitle': 'انضم إلى فريق يبني مساحات جميلة وباقية.',
+  // ── Offers ──
+  'offers.hero.title': 'العروض والترويجات',
+  'offers.hero.subtitle': 'توفيرات حالية على المطابخ والخزائن وحلول التخزين المفصّلة.',
+  // ── FAQ ──
+  'faq.hero.title': 'الأسئلة الشائعة',
+  'faq.hero.subtitle': 'كل ما تحتاج معرفته عن التصميم معنا.',
+  // ── Services ──
+  'services.hero.eyebrow': 'خدمات منزلية',
+  'services.hero.title': 'مساعدة منزلية عند الطلب.',
+  'services.hero.subtitle': 'نجارة وإصلاحات وتنظيف وتكييف وأكثر — بموعد أو فوراً، عبر مزوّدين موثوقين.',
+  // ── Booking ──
+  'booking.hero.eyebrow': 'زيارة تصميم مجانية',
+  'booking.hero.title': 'احجز زيارتك المجانية.',
+  'booking.hero.subtitle': 'يقيس مصمّم مساحتك ويبتكر مفهوماً مفصّلاً ثنائي وثلاثي الأبعاد — مجاناً، دون أي التزام.',
+  // ── Footer ──
+  'footer.brand': 'ذا كلوزتس',
+  'footer.blurb': 'خزائن ومطابخ وحلول تخزين فاخرة مصمّمة خصيصاً — تُصمّم وتُصنّع وتُركّب في مملكة البحرين.',
+  'footer.cta.book': 'احجز زيارة مجانية',
+  'footer.cta.whatsapp': 'راسلنا عبر واتساب',
+  'footer.col1.title': 'نحن هنا للمساعدة',
+  'footer.col2.title': 'طرق التسوّق',
+  'footer.col3.title': 'عن الشركة',
+  'footer.social.title': 'تابعنا',
+  'footer.copyright': '© 2026 ذا كلوزتس ش.ذ.م.م. — المنامة، البحرين',
+  'footer.contact': '+973 1700 1700 · hello@theclosets.co',
+  // ── Projects ──
+  'projects.hero.title': 'مشاريعنا',
+  'projects.hero.subtitle': 'مساحات حقيقية صمّمناها وصنّعناها وركّبناها في أنحاء البحرين.',
+  // ── Wardrobe page ──
+  'wardrobe.hero.image': '',
+  'wardrobe.hero.eyebrow': 'خزائن وغرف ملابس مفصّلة · البحرين',
+  'wardrobe.hero.title': 'تخزين يندمج بانسيابية مع تصميم المكان.',
+  'wardrobe.hero.subtitle': 'حِرفتنا الرائدة — غرف ملابس كاملة وخزائن منزلقة ومدمجة، مصمّمة بدقة السنتيمتر. اختر النوع والتجهيز الداخلي والتشطيب، ثم شاهده ثلاثي الأبعاد مع عرض سعر فوري.',
+  'wardrobe.hero.cta': 'افتح استوديو التصميم ←',
+  'wardrobe.s1.eyebrow': 'أنواع الخزائن',
+  'wardrobe.s1.title': 'اعثر على ما يناسبك.',
+  // ── Kitchen page ──
+  'kitchen.hero.image': '',
+  'kitchen.hero.eyebrow': 'مطابخ مفصّلة · البحرين',
+  'kitchen.hero.title': 'خزائن بدقة عالية، مصمّمة لحياتك اليومية.',
+  'kitchen.hero.subtitle': 'يُصمَّم ويُصنَّع ويُركَّب بأيدي فريقنا. اختر التصميم والخزائن وسطح العمل — ثم شاهده ثلاثي الأبعاد مع عرض سعر فوري.',
+  'kitchen.hero.cta': 'افتح استوديو التصميم ←',
+  'kitchen.s1.eyebrow': 'أنماط المطابخ',
+  'kitchen.s1.title': 'اعثر على إطلالتك.',
+  // ── Office page ──
+  'office.hero.image': '',
+  'office.hero.eyebrow': 'مكاتب منزلية ومساحات دراسة مفصّلة · البحرين',
+  'office.hero.title': 'مساحة عمل مصمّمة حول أسلوب عملك.',
+  'office.hero.subtitle': 'من مكتب عائم في غرفة النوم إلى جدار تخزين كامل بسطح عمل مدمج — مصمّم بدقة السنتيمتر. اختر التصميم والمكتب والتشطيب، ثم خطّط له مع عرض سعر فوري.',
+  'office.hero.cta': 'افتح مخطّط المكاتب ←',
+  // ── TV / media wall page ──
+  'tv.faq.q1': 'كم تبلغ تكلفة جدار التلفاز / الوسائط المفصّل؟',
+  'tv.faq.a1': 'يبدأ تصميم اللوح والرفوف البسيط من نحو 480 ديناراً، ووحدة وسائط عائمة من 900 دينار، وجدار وسائط كامل من الأرض إلى السقف مع شاشة وتخزين وإضاءة من 2,200 دينار فأكثر. يتحدّد السعر بشفافية بحسب أمتار الخزائن والتشطيب والإضافات — أنشئ تقديراً فورياً في مخطّط وحدة التلفاز.',
+  'tv.faq.q2': 'كم يستغرق الأمر؟',
+  'tv.faq.a2': 'تُصمَّم معظم جدران الوسائط وتُصنَّع وتُركَّب خلال 4–7 أسابيع من اعتماد التصميم. ويقع قشرة الخشب الطبيعي وكسوة الحجر والمدافئ المدمجة في الطرف الأطول.',
+  'tv.faq.q3': 'هل يمكنكم إخفاء الكابلات وأجهزة الصوت والصورة؟',
+  'tv.faq.a3': 'نعم — نبني مجاري ومسارات للكابلات وحجيرات مهوّاة للمستقبِل وجهاز الألعاب والراوتر، مع مسار كهرباء مخصّص حتى لا يظهر أي شيء.',
+  'tv.faq.q4': 'هل يمكنكم البناء حول مدفأة أو جدار غير منتظم؟',
+  'tv.faq.a4': 'بالتأكيد. تُصنع كل وحدة على المقاس — نُحدّد ونقصّ حول المدافئ والأعمدة والنوافذ ووحدات التكييف لتبدو الجدارية قطعة واحدة متناسقة.',
+  'tv.faq.q5': 'ما الأجهزة والإضاءة التي تستخدمونها؟',
+  'tv.faq.a5': 'مفصّلات بلوم ناعمة الإغلاق ومجاري كاملة السحب كمعيار، إضافة إلى إضاءة LED دافئة 3000K للرفوف والكوّات والألواح الخلفية — وكلّها مدعومة بضمان الخزائن لعشر سنوات.',
+  'tv.faq.q6': 'ما الضمان الذي أحصل عليه؟',
+  'tv.faq.a6': '10 سنوات على الخزائن وأجهزة الإغلاق الناعم، إضافة إلى 5–10 سنوات على التشطيبات بحسب الخامة التي تختارها.',
+  'tv.hero.image': '',
+  'tv.hero.eyebrow': 'جدران تلفاز ووسائط مفصّلة · البحرين',
+  'tv.hero.title': 'جدار وسائط مصمّم حول صالة معيشتك.',
+  'tv.hero.subtitle': 'من لوح عائم بسيط إلى جدار كامل من الأرض إلى السقف مع عرض وتخزين وإضاءة ومدفأة — مصمّم بدقة السنتيمتر. اختر التصميم والتشطيب، ثم خطّط له مع عرض سعر فوري.',
+  'tv.hero.cta': 'افتح مخطّط وحدات التلفاز ←',
+  'tv.layouts.eyebrow': 'تخطيطات التلفاز والوسائط',
+  'tv.layouts.title': 'اعثر على جدار الوسائط الخاص بك.',
+  'tv.layouts.subtitle': 'ست طرق لتجميع غرفة المعيشة حول الشاشة — من لوح عائم بسيط إلى جدار تخزين كامل.',
+  'tv.storage.eyebrow': 'العرض والتخزين',
+  'tv.storage.title': 'كل صندوق وكتاب وجهاز في مكانه.',
+  'tv.storage.subtitle': 'امزج بين الرفوف المفتوحة وكوّات العرض والخزائن المغلقة وحجيرات الصوت والصورة المهوّاة — كل عنصر مسعّر بشفافية لكل وحدة.',
+  'tv.materials.eyebrow': 'التشطيبات والخامات',
+  'tv.materials.title': 'أسطح تصنع الأجواء.',
+  'tv.materials.subtitle': 'من الميلامين المتين إلى قشرة الخشب الطبيعي واللاكيه عالي اللمعان — اختر التشطيب واللوح الزخرفي الذي يناسب غرفتك.',
+  'tv.faq.title': 'أسئلة جدار الوسائط، مُجاب عنها.',
+  'tv.cta.title': 'جدار وسائط أحلامك يبدأ هنا.',
+  'tv.cta.subtitle': 'خطّط له بعرض سعر فوري، أو احجز زيارة منزلية مجانية — دون أي التزام.',
+  'tv.cta.button': 'افتح مخطّط وحدة التلفاز ←',
+  // ── Door page ──
+  'door.faq.q1': 'كم تبلغ تكلفة الباب الخشبي المفصّل؟',
+  'door.faq.a1': 'يبدأ الباب الداخلي المستوي مجوّف القلب من نحو 120 ديناراً، وباب القشرة صلب القلب من 280 ديناراً، وباب محوري مميّز أو باب مجلس مزدوج من 700 دينار فأكثر. يتحدّد السعر بشفافية بحسب المقاس والقلب والتشطيب والأجهزة — أنشئ تقديراً فورياً في مخطّط الأبواب الخشبية.',
+  'door.faq.q2': 'كم يستغرق الأمر؟',
+  'door.faq.a2': 'تُصنَّع معظم الأبواب وتُركَّب خلال 3–6 أسابيع من اعتماد التصميم. ويقع الخشب الصلب والأقلاب المقاومة للحريق والتطعيمات الزخرفية في الطرف الأطول.',
+  'door.faq.q3': 'هل يمكنكم مطابقة باب أو إطار قائم؟',
+  'door.faq.a3': 'نعم — كل باب يُصنع على المقاس. نعاين الفتحة ونطابق الخشب والتشطيب والأجهزة، ونقصّ الإطار ليستوي تماماً ويعمل بكفاءة.',
+  'door.faq.q4': 'هل توفّرون أبواباً خفية / مستوية؟',
+  'door.faq.a4': 'نفعل — قوائم ألمنيوم مخفية مع درفة مستوية تبدو جزءاً من الجدار، مثالية لتصميم داخلي نظيف وبسيط.',
+  'door.faq.q5': 'ما الأجهزة التي تستخدمونها؟',
+  'door.faq.a5': 'مفصّلات مخفية وعادية وأنظمة إغلاق ناعم، ومجموعة كاملة من الأقفال والمقابض الأوروبية — وكلّها مدعومة بضمان بجودة الخزائن.',
+  'door.faq.q6': 'هل تصنعون أبواباً مقاومة للحريق؟',
+  'door.faq.a6': 'نعم — أقلاب معتمدة مقاومة للحريق لمدة 60 دقيقة مع الموانع والإطارات الصحيحة المنتفخة بالحرارة، بتشطيب يطابق بقية تصميمك الداخلي.',
+  'door.hero.image': '',
+  'door.hero.eyebrow': 'أبواب خشبية مفصّلة · البحرين',
+  'door.hero.title': 'أبواب مصنوعة على المقاس، بتشطيب متناسق.',
+  'door.hero.subtitle': 'من باب داخلي مستوٍ إلى باب محوري مميّز أو باب مجلس مزدوج فخم — مصمّم بدقة المليمتر. اختر النوع والخشب والتشطيب، ثم خطّط له مع عرض سعر فوري.',
+  'door.hero.cta': 'افتح مخطّط الأبواب الخشبية ←',
+  'door.layouts.eyebrow': 'أنواع الأبواب',
+  'door.layouts.title': 'اعثر على بابك.',
+  'door.layouts.subtitle': 'ست طرق لفتح غرفة — من درفة عادية مفصلية إلى باب منزلق موفّر للمساحة، أو باب محوري مميّز، أو باب مستوٍ خفي.',
+  'door.materials.eyebrow': 'الأخشاب والتشطيبات',
+  'door.materials.title': 'الخشب المناسب، بتشطيب يناسبك.',
+  'door.materials.subtitle': 'من البلوط الدافئ إلى الأبنوس الداكن، بالقشرة أو اللامينيت أو طلاء البولي يوريثان المرشوش يدوياً — اختر الخشب والسطح الذي يناسب تصميمك الداخلي.',
+  'door.faq.title': 'أسئلة الأبواب، مُجاب عنها.',
+  'door.cta.title': 'بابك المثالي يبدأ هنا.',
+  'door.cta.subtitle': 'خطّط له بعرض سعر فوري، أو احجز زيارة منزلية مجانية — دون أي التزام.',
+  'door.cta.button': 'افتح مخطّط الأبواب الخشبية ←',
+};
 function useSiteContent() { return useContext(SiteContentCtx); }
 function SiteContentProvider({ children }) {
   const [version, setVersion] = useState(0);
@@ -1016,6 +1200,742 @@ const I18N = {
   w4ArticlesSoon:{ en:'Articles coming soon.', ar:'المقالات قريباً.' },
   w4ClaimOffer:{ en:'Claim this offer', ar:'احصل على هذا العرض' },
   w4NoOffers:{ en:'No active offers right now.', ar:'لا توجد عروض فعّالة حالياً.' },
+
+  // ── Final sweep: home / marketing / footer / banners ──
+  // Hero
+  swHeroAlt:{ en:'Bespoke walk-in closet interior by The Closets', ar:'تصميم داخلي لغرفة ملابس مفصّلة من ذا كلوزتس' },
+  swShowAnnouncement:{ en:'Show announcement', ar:'عرض الإعلان' },
+  // Appointment band
+  swApptOnline:{ en:'Online design', ar:'تصميم عبر الإنترنت' },
+  swApptOnlineSub:{ en:'Plan from anywhere with a video design consultation.', ar:'صمّم من أي مكان عبر استشارة تصميم بالفيديو.' },
+  swApptHome:{ en:'Home design', ar:'تصميم منزلي' },
+  swApptHomeSub:{ en:'A designer visits with samples and a tailored 3D concept.', ar:'يزورك مصمّم بعيّنات وتصوّر ثلاثي الأبعاد مُصمّم خصيصاً لك.' },
+  swApptShowroom:{ en:'Showroom visit', ar:'زيارة المعرض' },
+  swApptShowroomSub:{ en:'See real finishes and hardware in one of our 4 showrooms.', ar:'شاهد التشطيبات والمقابض الحقيقية في أحد معارضنا الأربعة.' },
+  swApptMeasure:{ en:'Home measure', ar:'قياس منزلي' },
+  swApptMeasureSub:{ en:'We come to you, measure up and talk through ideas — free.', ar:'نأتي إليك ونأخذ القياسات ونناقش الأفكار — مجاناً.' },
+  swBookFree:{ en:'Book free →', ar:'← احجز مجاناً' },
+  // Rooms band
+  swRoomWardrobes:{ en:'Wardrobes', ar:'الخزائن' },
+  swRoomWardrobesSub:{ en:'Walk-in, sliding & fitted', ar:'بمساحة كاملة ومنزلقة ومدمجة' },
+  swRoomKitchens:{ en:'Kitchens', ar:'المطابخ' },
+  swRoomKitchensSub:{ en:'Modern, shaker & handleless', ar:'عصري وشيكر وبلا مقابض' },
+  swRoomOffice:{ en:'Home office', ar:'مكتب منزلي' },
+  swRoomOfficeSub:{ en:'Desks, storage & built-ins', ar:'مكاتب وتخزين ووحدات مدمجة' },
+  swRoomDoors:{ en:'Doors', ar:'الأبواب' },
+  swRoomDoorsSub:{ en:'Swing, sliding, pivot & hidden', ar:'مفصلية ومنزلقة ومحورية ومخفية' },
+  swRoomTv:{ en:'TV & media units', ar:'وحدات التلفزيون والوسائط' },
+  swRoomTvSub:{ en:'Floating, full-wall & storage', ar:'معلّقة وبعرض الجدار وبتخزين' },
+  swExplore:{ en:'Explore →', ar:'← استكشف' },
+  // Designs band
+  swDesignWardrobesDesc:{ en:'Fitted, sliding & walk-in storage built around your life.', ar:'خزائن مدمجة ومنزلقة وبمساحة كاملة مصمّمة حول أسلوب حياتك.' },
+  swDesignKitchensDesc:{ en:'Precision cabinetry, worktops and finishes for daily living.', ar:'خزائن وأسطح عمل وتشطيبات بدقة عالية لحياتك اليومية.' },
+  swView:{ en:'View', ar:'عرض' },
+  // Style quick-links
+  swStyleWalkin:{ en:'Walk-in closets', ar:'غرف ملابس بمساحة كاملة' },
+  swStyleSliding:{ en:'Sliding wardrobes', ar:'خزائن بأبواب منزلقة' },
+  swStyleShaker:{ en:'Shaker kitchens', ar:'مطابخ شيكر' },
+  swStyleHandleless:{ en:'Handleless kitchens', ar:'مطابخ بلا مقابض' },
+  // Featured ranges
+  swFeaturedEyebrow:{ en:'Featured ranges', ar:'المجموعات المميّزة' },
+  swFeaturedTitle:{ en:'Popular right now.', ar:'الأكثر رواجاً الآن.' },
+  swViewAllArrow:{ en:'View all →', ar:'← عرض الكل' },
+  swSave:{ en:'Save', ar:'وفّر' },
+  swFrom:{ en:'from', ar:'من' },
+  swViewArrow:{ en:'View →', ar:'← عرض' },
+  swCatBespoke:{ en:'Bespoke', ar:'حسب الطلب' },
+  // Why band stats + badges
+  swStatProjects:{ en:'Projects delivered', ar:'مشروع منجز' },
+  swStatCraft:{ en:'Of craftsmanship', ar:'من الحرفية' },
+  swStatYrs:{ en:' yrs', ar:' سنة' },
+  swStatShowrooms:{ en:'Showrooms', ar:'معارض' },
+  swStatBespoke:{ en:'Bespoke & fitted', ar:'حسب الطلب ومركّب' },
+  swBadgeWorkshop:{ en:'Our own workshop', ar:'ورشتنا الخاصة' },
+  swBadge15:{ en:'15 years of craft', ar:'15 عاماً من الحرفية' },
+  swBadge2yr:{ en:'2-year warranty', ar:'ضمان سنتين' },
+  swBadgeFreeDesign:{ en:'Free design service', ar:'خدمة تصميم مجانية' },
+  // Process timeline
+  swHowEyebrow:{ en:'How it works', ar:'كيف تعمل' },
+  swHowTitle:{ en:'From first sketch to final fit.', ar:'من أوّل رسم إلى آخر تركيب.' },
+  swStep1Title:{ en:'Consultation', ar:'الاستشارة' },
+  swStep1Desc:{ en:'A free home or showroom visit to understand your space, style and budget.', ar:'زيارة مجانية للمنزل أو المعرض لفهم مساحتك وذوقك وميزانيتك.' },
+  swStep2Title:{ en:'Design', ar:'التصميم' },
+  swStep2Desc:{ en:'3D layouts, materials and finishes — refined with you until it’s right.', ar:'تصاميم ثلاثية الأبعاد ومواد وتشطيبات — نصقلها معك حتى تصبح مثالية.' },
+  swStep3Title:{ en:'Craft', ar:'التصنيع' },
+  swStep3Desc:{ en:'Built in our own Bahrain workshop with premium hardware and joinery.', ar:'تُصنع في ورشتنا الخاصة في البحرين بمقابض ونجارة فاخرة.' },
+  swStep4Title:{ en:'Install', ar:'التركيب' },
+  swStep4Desc:{ en:'Fitted by our own team, finished and cleaned, ready to use.', ar:'يركّبه فريقنا الخاص، منتهٍ ونظيف، جاهز للاستخدام.' },
+  // Marquee items
+  swMarqWorkshop:{ en:'Own Bahrain workshop', ar:'ورشة خاصة في البحرين' },
+  swMarqConsult:{ en:'Free design consultation', ar:'استشارة تصميم مجانية' },
+  swMarqHardware:{ en:'Premium European hardware', ar:'مقابض أوروبية فاخرة' },
+  swMarq15:{ en:'15 years of craft', ar:'15 عاماً من الحرفية' },
+  swMarq4:{ en:'4 showrooms', ar:'4 معارض' },
+  swMarq2yr:{ en:'2-year warranty', ar:'ضمان سنتين' },
+  swMarqInstall:{ en:'Installed by our own team', ar:'يركّبه فريقنا الخاص' },
+  // AI designer band
+  swAiBadge:{ en:'New · AI Interior Designer', ar:'جديد · مصمّم داخلي بالذكاء الاصطناعي' },
+  swAiTitle1:{ en:'See your room,', ar:'شاهد غرفتك،' },
+  swAiTitle2:{ en:'reimagined in seconds.', ar:'بتصوّر جديد في ثوانٍ.' },
+  swAiDesc:{ en:'Upload a photo or describe your space — our AI returns a tailored layout, materials and a photorealistic render you can refine with our designers.', ar:'ارفع صورة أو صف مساحتك — يقدّم لك الذكاء الاصطناعي تصميماً ومواد ومعاينة واقعية يمكنك صقلها مع مصمّمينا.' },
+  swAiTry:{ en:'Try the AI Designer →', ar:'← جرّب المصمّم بالذكاء الاصطناعي' },
+  swAiFree:{ en:'Free · no signup', ar:'مجاناً · بلا تسجيل' },
+  swAiAfter:{ en:'After ✦', ar:'بعد ✦' },
+  swAiLivingAlt:{ en:'A living room reimagined by The Closets AI designer', ar:'غرفة معيشة بتصوّر جديد من مصمّم ذا كلوزتس بالذكاء الاصطناعي' },
+  // Offers strip
+  swOffersEyebrow:{ en:'Limited time', ar:'لوقت محدود' },
+  swOffersTitle:{ en:'Current offers.', ar:'العروض الحالية.' },
+  swSeeAllOffers:{ en:'See all offers →', ar:'← شاهد كل العروض' },
+  swClaimOffer:{ en:'Claim offer →', ar:'← احصل على العرض' },
+  // Customer stories
+  swStoriesEyebrow:{ en:'#TheClosets makeovers', ar:'#تحوّلات_ذا_كلوزتس' },
+  swStoriesTitle:{ en:'Real homes, real transformations.', ar:'منازل حقيقية، تحوّلات حقيقية.' },
+  swViewGallery:{ en:'View the gallery →', ar:'← شاهد المعرض' },
+  // Testimonials
+  swTestiEyebrow:{ en:'Our clients', ar:'عملاؤنا' },
+  swTestiTitle:{ en:'Loved across Bahrain.', ar:'محبوبة في جميع أنحاء البحرين.' },
+  // How can we help
+  swHelpEyebrow:{ en:'Next steps', ar:'الخطوات التالية' },
+  swHelpTitle:{ en:'How can we help?', ar:'كيف يمكننا مساعدتك؟' },
+  swHelpBrowse:{ en:'Browse our products', ar:'تصفّح منتجاتنا' },
+  swHelpBrowseDesc:{ en:'Explore every range across kitchens, wardrobes, doors and storage.', ar:'استكشف كل المجموعات عبر المطابخ والخزائن والأبواب والتخزين.' },
+  swHelpStudio:{ en:'Use the Design Studio', ar:'استخدم استوديو التصميم' },
+  swHelpStudioDesc:{ en:'Plan your space in 3D and get a live price estimate.', ar:'صمّم مساحتك ثلاثية الأبعاد واحصل على تقدير سعر فوري.' },
+  swHelpOffers:{ en:'View current offers', ar:'شاهد العروض الحالية' },
+  swHelpOffersDesc:{ en:'Save on bespoke pieces with our latest promotions.', ar:'وفّر على القطع المصمّمة خصيصاً مع أحدث عروضنا.' },
+  swGo:{ en:'Go →', ar:'← اذهب' },
+  // Newsletter
+  swNlEyebrow:{ en:'Stay inspired', ar:'ابقَ ملهماً' },
+  swNlTitle:{ en:'Ideas, offers & new ranges — straight to your inbox.', ar:'أفكار وعروض ومجموعات جديدة — مباشرة إلى بريدك.' },
+  swNlDesc:{ en:'Join our mailing list for design inspiration and exclusive savings. Unsubscribe any time.', ar:'انضم إلى قائمتنا البريدية للحصول على إلهام التصميم وعروض حصرية. يمكنك إلغاء الاشتراك في أي وقت.' },
+  swNlOnList:{ en:'You’re on the list.', ar:'أنت الآن في القائمة.' },
+  swNlThanks:{ en:'Thanks for subscribing to The Closets.', ar:'شكراً لاشتراكك في ذا كلوزتس.' },
+  swNlPlaceholder:{ en:'Your email address', ar:'عنوان بريدك الإلكتروني' },
+  swNlAria:{ en:'Email address', ar:'البريد الإلكتروني' },
+  swNlSubscribe:{ en:'Subscribe', ar:'اشترك' },
+  swNlInvalid:{ en:'Please enter a valid email.', ar:'يرجى إدخال بريد إلكتروني صحيح.' },
+  swNlWelcome:{ en:'You’re subscribed — welcome to The Closets.', ar:'تم اشتراكك — مرحباً بك في ذا كلوزتس.' },
+  // Cinematic CTA
+  swCtaDesignOnline:{ en:'Design online', ar:'صمّم عبر الإنترنت' },
+  swCtaTrust:{ en:'Own Bahrain workshop · 2-year warranty · Installed by our team', ar:'ورشة خاصة في البحرين · ضمان سنتين · يركّبه فريقنا' },
+  // Footer trust badges
+  swFootBadgeWorkshop:{ en:'Own Bahrain workshop', ar:'ورشة خاصة في البحرين' },
+  swFootBadge2yr:{ en:'2-year warranty', ar:'ضمان سنتين' },
+  swFootBadgeFreeDesign:{ en:'Free design service', ar:'خدمة تصميم مجانية' },
+  swFootBadgeInstall:{ en:'Installed by our team', ar:'يركّبه فريقنا' },
+  swFootBadge15:{ en:'15 years of craft', ar:'15 عاماً من الحرفية' },
+  // Footer link labels (rendered via trLabel)
+  swFlHowItWorks:{ en:'How it works', ar:'كيف تعمل' },
+  swFlFaq:{ en:'FAQ', ar:'الأسئلة الشائعة' },
+  swFlDelivery:{ en:'Delivery & install', ar:'التوصيل والتركيب' },
+  swFlWarranty:{ en:'Warranty service', ar:'خدمة الضمان' },
+  swFlMaintenance:{ en:'Maintenance', ar:'الصيانة' },
+  swFlReviews:{ en:'Reviews', ar:'التقييمات' },
+  swFlContactUs:{ en:'Contact us', ar:'تواصل معنا' },
+  swFlBookAppt:{ en:'Book an appointment', ar:'احجز موعداً' },
+  swFlBrochure:{ en:'Request a brochure', ar:'اطلب كتيّباً' },
+  swFlFinance:{ en:'Finance & payment', ar:'التمويل والدفع' },
+  swFlFindShowroom:{ en:'Find a showroom', ar:'اعثر على معرض' },
+  swFlRecommend:{ en:'Recommend a friend', ar:'أوصِ بصديق' },
+  swFlAbout:{ en:'About The Closets', ar:'عن ذا كلوزتس' },
+  swFlWhy:{ en:'Why The Closets', ar:'لماذا ذا كلوزتس' },
+  swFlCareers:{ en:'Careers', ar:'الوظائف' },
+  swFlOffers:{ en:'Offers', ar:'العروض' },
+  swFlSitemap:{ en:'Sitemap', ar:'خريطة الموقع' },
+  // Chat widget
+  swChatHello:{ en:'Hi! 👋 I can help with kitchens, wardrobes, pricing, showrooms and booking a free design visit. What are you planning?', ar:'مرحباً! 👋 يمكنني المساعدة في المطابخ والخزائن والأسعار والمعارض وحجز زيارة تصميم مجانية. ماذا تخطّط؟' },
+  swChatError:{ en:'Sorry, I had trouble there. You can reach our team on WhatsApp or book a free visit.', ar:'عذراً، واجهت مشكلة. يمكنك التواصل مع فريقنا عبر واتساب أو حجز زيارة مجانية.' },
+  swChatOffline:{ en:'I’m offline for a moment — please try again or book a free visit.', ar:'أنا غير متصل للحظة — يرجى المحاولة مجدداً أو حجز زيارة مجانية.' },
+  swChatChipKitchen:{ en:'Design a kitchen', ar:'صمّم مطبخاً' },
+  swChatChipPricing:{ en:'Wardrobe pricing', ar:'أسعار الخزائن' },
+  swChatChipBook:{ en:'Book a free visit', ar:'احجز زيارة مجانية' },
+  swChatChipShowrooms:{ en:'Where are your showrooms?', ar:'أين تقع معارضكم؟' },
+  swChatTitle:{ en:'Closets Assistant', ar:'مساعد كلوزتس' },
+  swChatSubtitle:{ en:'AI-powered · replies in seconds', ar:'مدعوم بالذكاء الاصطناعي · يردّ في ثوانٍ' },
+  swChatTyping:{ en:'typing…', ar:'يكتب…' },
+  swChatAria:{ en:'Chat with us', ar:'تحدّث معنا' },
+  swChatPlaceholder:{ en:'Ask anything…', ar:'اسأل أي شيء…' },
+  // Maintenance / Warranty pages
+  swMaintTitle:{ en:'Maintenance request', ar:'طلب صيانة' },
+  swMaintSub:{ en:'Need an adjustment or repair? Log a request and our team will arrange a visit.', ar:'تحتاج إلى تعديل أو إصلاح؟ سجّل طلباً وسيرتّب فريقنا زيارة.' },
+  swMaintRef:{ en:'Order / reference no.', ar:'رقم الطلب / المرجع' },
+  swWarrTitle:{ en:'Warranty service', ar:'خدمة الضمان' },
+  swWarrSub:{ en:'Register a warranty claim — we stand behind every installation.', ar:'سجّل مطالبة ضمان — نحن نضمن كل عملية تركيب.' },
+  swWarrRef:{ en:'Order / warranty no.', ar:'رقم الطلب / الضمان' },
+  // Portfolio page
+  swPortGallerySoon:{ en:'Project gallery coming soon.', ar:'معرض المشاريع قريباً.' },
+  swPortExploreByRoom:{ en:'Explore by room', ar:'استكشف حسب الغرفة' },
+  swPortCatKitchens:{ en:'Kitchens', ar:'المطابخ' },
+  swPortCatWardrobes:{ en:'Wardrobes', ar:'الخزائن' },
+  swPortCatWalkin:{ en:'Walk-In Closets', ar:'غرف الملابس' },
+  swPortCatTv:{ en:'TV Units', ar:'وحدات التلفزيون' },
+  swPortCatDoors:{ en:'Doors', ar:'الأبواب' },
+  swPortCatStorage:{ en:'Storage Solutions', ar:'حلول التخزين' },
+  swPortCatOffice:{ en:'Office Furniture', ar:'أثاث المكاتب' },
+  // Request page (maintenance / warranty form)
+  swReqNamePhoneReq:{ en:'Name and phone are required', ar:'الاسم والهاتف مطلوبان' },
+  swReqReceived:{ en:'Request received ✓', ar:'تم استلام الطلب ✓' },
+  swReqFailed:{ en:'Could not submit, please try again', ar:'تعذّر الإرسال، يرجى المحاولة مجدداً' },
+  swReqThankYou:{ en:'Thank you', ar:'شكراً لك' },
+  swReqLoggedPrefix:{ en:'Your', ar:'تم تسجيل طلب' },
+  swReqLoggedSuffix:{ en:'request is logged.', ar:'الخاص بك.' },
+  swReqLoggedSub:{ en:'Our team will contact you to arrange the next step.', ar:'سيتواصل معك فريقنا لترتيب الخطوة التالية.' },
+  swReqFullName:{ en:'Full name *', ar:'الاسم الكامل *' },
+  swReqFullNameAria:{ en:'Full name', ar:'الاسم الكامل' },
+  swReqPhone:{ en:'Phone *', ar:'الهاتف *' },
+  swReqPhoneAria:{ en:'Phone', ar:'الهاتف' },
+  swReqEmail:{ en:'Email', ar:'البريد الإلكتروني' },
+  swReqOptional:{ en:'(optional)', ar:'(اختياري)' },
+  swReqDescribe:{ en:'Describe the issue / request', ar:'صف المشكلة / الطلب' },
+  swReqSubmitting:{ en:'Submitting…', ar:'جارٍ الإرسال…' },
+  swReqSubmit:{ en:'Submit request', ar:'إرسال الطلب' },
+  swMaintKind:{ en:'maintenance', ar:'الصيانة' },
+  swWarrKind:{ en:'warranty', ar:'الضمان' },
+  // FAQ empty
+  swFaqSoon:{ en:'FAQs coming soon.', ar:'الأسئلة الشائعة قريباً.' },
+  // Services / Careers empty
+  swServicesSoon:{ en:'Services coming soon.', ar:'الخدمات قريباً.' },
+  swCareersNoRoles:{ en:'No open roles right now — check back soon.', ar:'لا توجد وظائف شاغرة حالياً — تفقّدنا قريباً.' },
+  // Careers
+  swCarNamePhoneReq:{ en:'Name and phone are required', ar:'الاسم والهاتف مطلوبان' },
+  swCarReceived:{ en:'Application received ✓', ar:'تم استلام الطلب ✓' },
+  swCarClose:{ en:'Close', ar:'إغلاق' },
+  swCarApply:{ en:'Apply', ar:'تقديم' },
+  swCarRequirements:{ en:'Requirements:', ar:'المتطلبات:' },
+  swCarThankYou:{ en:'Thank you — we’ll be in touch.', ar:'شكراً لك — سنتواصل معك.' },
+  swCarFullName:{ en:'Full name *', ar:'الاسم الكامل *' },
+  swCarFullNameAria:{ en:'Full name', ar:'الاسم الكامل' },
+  swCarPhone:{ en:'Phone *', ar:'الهاتف *' },
+  swCarPhoneAria:{ en:'Phone', ar:'الهاتف' },
+  swCarEmail:{ en:'Email', ar:'البريد الإلكتروني' },
+  swCarNote:{ en:'Note (optional)', ar:'ملاحظة (اختياري)' },
+  swCarSubmit:{ en:'Submit application', ar:'إرسال الطلب' },
+  // Services empty + booking modal
+  swSvcRequestSent:{ en:'Request sent', ar:'تم إرسال الطلب' },
+  swSvcSentBody:{ en:"We've sent it to available providers. Track it in your account.", ar:'أرسلناه إلى مزوّدي الخدمة المتاحين. تابعه من حسابك.' },
+  swSvcGoAccount:{ en:'Go to my account', ar:'الذهاب إلى حسابي' },
+  swSvcSchedule:{ en:'Schedule', ar:'جدولة' },
+  swSvcAsap:{ en:'ASAP', ar:'في أقرب وقت' },
+  swSvcSignInToBook:{ en:' Sign in to book.', ar:' سجّل الدخول للحجز.' },
+  // Category page (category name is dynamic English; {x} = lowercased category)
+  swCatSubPre:{ en:'Bespoke', ar:'حسب الطلب' },
+  swCatSubPost:{ en:', designed, made and installed in Bahrain.', ar:'، مصمّمة ومصنّعة ومركّبة في البحرين.' },
+  swCatEmptyPre:{ en:'New', ar:'تصاميم' },
+  swCatEmptyPost:{ en:'designs coming soon — book a visit to start yours.', ar:'الجديدة قريباً — احجز زيارة لتبدأ تصميمك.' },
+  // Planner guide page (residual section copy)
+  swGuideHowDesc:{ en:'The same easy flow whatever you are planning — from first layout to a price you can act on.', ar:'نفس التدفق السهل مهما كان ما تخطّط له — من أول تصميم إلى سعر يمكنك التصرّف بناءً عليه.' },
+  swGuideRdEyebrow:{ en:'The Room Designer', ar:'مصمّم الغرفة' },
+  swGuideRdTitle:{ en:'See it before you build it', ar:'شاهده قبل أن تبنيه' },
+  swGuideRdDesc:{ en:'Our interactive visualiser turns your choices into a real room you can play with. Click any surface to change its finish, flip between a live photo and 3D, then render a photoreal image. It works for kitchens, wardrobes, TV units, doors and offices.', ar:'يحوّل أداة العرض التفاعلية لدينا اختياراتك إلى غرفة حقيقية يمكنك التفاعل معها. انقر على أي سطح لتغيير تشطيبه، وبدّل بين صورة حيّة وعرض ثلاثي الأبعاد، ثم أنشئ صورة واقعية. يعمل مع المطابخ والخزائن ووحدات التلفزيون والأبواب والمكاتب.' },
+  swGuideRdBadge:{ en:'🎨 Room Designer', ar:'🎨 مصمّم الغرفة' },
+  swGuideRdAlt:{ en:'Interactive Room Designer with clickable surfaces', ar:'مصمّم الغرفة التفاعلي بأسطح قابلة للنقر' },
+  swGuidePlanEyebrow:{ en:'Plan any product', ar:'صمّم أي منتج' },
+  swGuidePlanTitle:{ en:'One planner for every room', ar:'مخطّط واحد لكل غرفة' },
+  swGuidePlanDesc:{ en:'Each planner is tuned to its product, with the right layouts, finishes and accessories built in.', ar:'كل مخطّط مُهيّأ لمنتجه، مع التصاميم والتشطيبات والإكسسوارات المناسبة المدمجة.' },
+  swGuideStepsLabel:{ en:'steps', ar:'خطوات' },
+  swGuideStartPlannerPre:{ en:'Start', ar:'ابدأ مخطّط' },
+  swGuideStartPlannerPost:{ en:'planner →', ar:'←' },
+  swGuideTipsEyebrow:{ en:'Tips for a great design', ar:'نصائح لتصميم رائع' },
+  swGuideTipsTitle:{ en:'Get it right, first time', ar:'أصِبه من المرة الأولى' },
+  // PageBoundary error
+  swErrTitle:{ en:'Something went wrong on this page', ar:'حدث خطأ ما في هذه الصفحة' },
+  swErrBody:{ en:'Please try again — your work elsewhere is safe.', ar:'يرجى المحاولة مجدداً — عملك في الأماكن الأخرى آمن.' },
+  swErrTryAgain:{ en:'Try again', ar:'حاول مجدداً' },
+  // Contact page confirmations
+  swContactWithin24:{ en:'We’ll be in touch within 24 hours.', ar:'سنتواصل معك خلال 24 ساعة.' },
+  swContactConfirm24:{ en:'We’ll confirm within 24 hours.', ar:'سنؤكّد خلال 24 ساعة.' },
+  swContactSaveCard:{ en:'Save a specialist’s card', ar:'احفظ بطاقة أحد المختصّين' },
+  swContactEmail:{ en:'Email', ar:'البريد الإلكتروني' },
+  swContactInterested:{ en:'Interested in…', ar:'مهتم بـ…' },
+  swContactInterestedAria:{ en:'Interested in', ar:'مهتم بـ' },
+  swContactSending:{ en:'Sending…', ar:'جارٍ الإرسال…' },
+  swContactOurTeam:{ en:'Our team', ar:'فريقنا' },
+  swCheckoutSplit:{ en:'Or split into monthly installments', ar:'أو قسّمه إلى أقساط شهرية' },
+  // Checkout page (residual)
+  swCoLoyaltyPts:{ en:'loyalty points', ar:'نقطة ولاء' },
+  swCoStep1:{ en:'01 / Contact', ar:'01 / التواصل' },
+  swCoStep2:{ en:'02 / Payment', ar:'02 / الدفع' },
+  swCoFullName:{ en:'Full name', ar:'الاسم الكامل' },
+  swCoEmail:{ en:'Email', ar:'البريد الإلكتروني' },
+  swCoPhone:{ en:'Phone', ar:'الهاتف' },
+  swCoCity:{ en:'City', ar:'المدينة' },
+  swCoAddress:{ en:'Address', ar:'العنوان' },
+  swCoContinue:{ en:'Continue →', ar:'← متابعة' },
+  swCoNameEmailReq:{ en:'Name and email required', ar:'الاسم والبريد الإلكتروني مطلوبان' },
+  swCoBankTransfer:{ en:'Bank Transfer', ar:'تحويل بنكي' },
+  swCoCash:{ en:'Cash', ar:'نقداً' },
+  swCoCheque:{ en:'Cheque', ar:'شيك' },
+  swCoMonths:{ en:'months', ar:'أشهر' },
+  swCoInstConfirmPre:{ en:'payments of BHD', ar:'دفعات بقيمة' },
+  swCoInstConfirmPost:{ en:'— our team will confirm the plan with you.', ar:'دينار — سيؤكّد فريقنا الخطة معك.' },
+  swCoNotes:{ en:'Notes…', ar:'ملاحظات…' },
+  swCoNotesAria:{ en:'Notes', ar:'ملاحظات' },
+  swCoBack:{ en:'← Back', ar:'رجوع →' },
+  swCoPlaceOrder:{ en:'Place Order', ar:'تأكيد الطلب' },
+
+  /* ── sw2: landing-page + studio sweep ── */
+  // KitchenStudio
+  sw2KsEyebrow:{ en:'Kitchen Design Studio', ar:'استوديو تصميم المطابخ' },
+  sw2KsTitle:{ en:'Design your kitchen, step by step.', ar:'صمّم مطبخك خطوة بخطوة.' },
+  sw2KsSub:{ en:'Pick a layout, choose your cabinets, worktop and finishes — see it in 3D and watch your quote build live.', ar:'اختر التصميم والخزائن وسطح العمل والتشطيبات — شاهده ثلاثي الأبعاد وتابع بناء عرض السعر مباشرةً.' },
+  sw2Ks3dView:{ en:'3D view', ar:'عرض ثلاثي الأبعاد' },
+  sw2Ks2dPlan:{ en:'2D plan', ar:'مخطط ثنائي الأبعاد' },
+  sw2KsIndicEst:{ en:'Indicative estimate', ar:'تقدير استرشادي' },
+  sw2KsRun:{ en:'run', ar:'امتداد' },
+  sw2KsCabinets:{ en:'Cabinets', ar:'الخزائن' },
+  sw2KsWorktop:{ en:'Worktop', ar:'سطح العمل' },
+  sw2KsHandles:{ en:'Handles', ar:'المقابض' },
+  sw2KsAppliances:{ en:'Appliances', ar:'الأجهزة' },
+  sw2KsStorageAddons:{ en:'Storage add-ons', ar:'إضافات التخزين' },
+  sw2KsStorage:{ en:'Storage', ar:'التخزين' },
+  sw2KsGuideNote:{ en:'A transparent guide price — your free design visit confirms exact dimensions, units and an itemised quote.', ar:'سعر استرشادي شفّاف — تؤكّد زيارة التصميم المجانية الأبعاد والوحدات الدقيقة وعرض سعر مفصّل.' },
+  sw2KsViewSpec:{ en:'View full spec & pricing detail', ar:'عرض المواصفات الكاملة وتفاصيل التسعير' },
+  sw2KsGetQuote:{ en:'Get my quote →', ar:'← احصل على عرض السعر' },
+  sw2KsSignInQuote:{ en:'Sign in & get quote →', ar:'← سجّل الدخول واحصل على عرض السعر' },
+  sw2KsGetQuoteShort:{ en:'Get quote', ar:'احصل على عرض السعر' },
+  sw2KsSignInQuoteShort:{ en:'Sign in & quote', ar:'سجّل الدخول واحصل على السعر' },
+  sw2KsStep1:{ en:'1 · Choose your layout', ar:'١ · اختر تصميمك' },
+  sw2KsWrapQ:{ en:'How does your kitchen wrap around the room?', ar:'كيف يلتفّ مطبخك حول الغرفة؟' },
+  sw2KsStep2:{ en:'2 · Cabinet style', ar:'٢ · نمط الخزائن' },
+  sw2KsStep2Sub:{ en:'The door design sets the tone — and the cabinetry rate.', ar:'تصميم الأبواب يحدّد الطابع — وسعر الخزائن.' },
+  sw2KsStep3:{ en:'3 · Worktop / countertop', ar:'٣ · سطح العمل' },
+  sw2KsStep3Sub:{ en:'Priced per linear metre of base run.', ar:'يُسعَّر لكل متر طولي من الامتداد السفلي.' },
+  sw2KsStep4:{ en:'4 · Cabinet finish & colour', ar:'٤ · تشطيب الخزائن واللون' },
+  sw2KsStep4Sub:{ en:'Recolours your 3D preview instantly.', ar:'يعيد تلوين معاينتك ثلاثية الأبعاد فوراً.' },
+  sw2KsStep5:{ en:'5 · Appliance package', ar:'٥ · باقة الأجهزة' },
+  sw2KsStep5Sub:{ en:'Tap to add — each appliance is priced per unit.', ar:'انقر للإضافة — يُسعَّر كل جهاز لكل وحدة.' },
+  sw2KsStep6:{ en:'6 · Hardware / handles', ar:'٦ · الإكسسوارات / المقابض' },
+  sw2KsStep6Sub:{ en:'The finishing detail on every door and drawer.', ar:'لمسة التشطيب على كل باب ودرج.' },
+  sw2KsStep7:{ en:'7 · Storage & interiors', ar:'٧ · التخزين والتجهيزات الداخلية' },
+  sw2KsStep7Sub:{ en:'Clever add-ons that make the kitchen work harder.', ar:'إضافات ذكية تجعل المطبخ أكثر فاعلية.' },
+  sw2KsYourKitchen:{ en:'Your kitchen', ar:'مطبخك' },
+  sw2KsReviewSub:{ en:'Review your design, then book a free visit for an exact quote.', ar:'راجع تصميمك، ثم احجز زيارة مجانية للحصول على عرض سعر دقيق.' },
+  sw2KsLayout:{ en:'Layout', ar:'التصميم' },
+  sw2KsNoneSelected:{ en:'None selected', ar:'لم يُختر شيء' },
+  sw2KsEstimate:{ en:'Estimate', ar:'التقدير' },
+  sw2KsFreeVisitNote:{ en:'Free design visit · no obligation · exact itemised quote on the day', ar:'زيارة تصميم مجانية · دون التزام · عرض سعر مفصّل دقيق في اليوم نفسه' },
+  sw2KsBackKitchens:{ en:'‹ Back to Kitchens', ar:'العودة إلى المطابخ ›' },
+  sw2KsSpecPricing:{ en:'Spec & pricing', ar:'المواصفات والتسعير' },
+  sw2KsYourName:{ en:'Your name', ar:'اسمك' },
+  sw2KsPhone:{ en:'Phone', ar:'الهاتف' },
+  sw2KsPhonePh:{ en:'Phone (+973…)', ar:'الهاتف (+973…)' },
+  sw2KsEmail:{ en:'Email', ar:'البريد الإلكتروني' },
+  sw2KsEmailOpt:{ en:'Email (optional)', ar:'البريد الإلكتروني (اختياري)' },
+  sw2Cancel:{ en:'Cancel', ar:'إلغاء' },
+  sw2Sending:{ en:'Sending…', ar:'جارٍ الإرسال…' },
+  sw2KsSendQuoteReq:{ en:'Send quote request', ar:'إرسال طلب عرض السعر' },
+  sw2KsSignInSend:{ en:'Sign in & send', ar:'سجّل الدخول وأرسل' },
+
+  // Shared landing-page strings
+  sw2BookFreeVisit:{ en:'Book a free visit', ar:'احجز زيارة مجانية' },
+  sw2SeeProjects:{ en:'See real projects →', ar:'← شاهد مشاريع حقيقية' },
+  sw2StartingPoints:{ en:'Starting points', ar:'نقاط البداية' },
+  sw2DesignThis3d:{ en:'Design this in 3D →', ar:'← صمّم هذا ثلاثي الأبعاد' },
+  sw2DesignYours:{ en:'Design yours →', ar:'← صمّم خاصتك' },
+  sw2SurfacesLast:{ en:'Surfaces that last.', ar:'أسطح تدوم.' },
+  sw2GoodToKnow:{ en:'Good to know', ar:'معلومات مفيدة' },
+  sw2OneTeam:{ en:'One team, end to end', ar:'فريق واحد من البداية للنهاية' },
+  sw2OneTeamDesc:{ en:'Design, manufacture, deliver and install — handled by our own team, never sub-let.', ar:'التصميم والتصنيع والتوصيل والتركيب — يتولاها فريقنا بالكامل دون مقاولين خارجيين.' },
+  sw2MadeToMeasure:{ en:'Made to measure', ar:'مُصنّع على المقاس' },
+  sw2Transformations:{ en:'Transformations', ar:'تحوّلات' },
+
+  // WardrobesPage
+  sw2WardTypesEyebrow:{ en:'Interior & storage', ar:'التجهيزات الداخلية والتخزين' },
+  sw2WardOrganised:{ en:'Organised to the centimetre.', ar:'منظّم حتى آخر سنتيمتر.' },
+  sw2WardTypesSub:{ en:'From a full walk-in dressing room to a flush reach-in run — four ways to bring order to your bedroom.', ar:'من غرفة ملابس متكاملة إلى امتداد مدمج بالحائط — أربع طرق لإضفاء النظام على غرفة نومك.' },
+  sw2WardInteriorSub:{ en:'Mix hanging, drawers, shelving and accessories — every fitting priced transparently per unit.', ar:'امزج التعليق والأدراج والرفوف والإكسسوارات — كل تجهيز يُسعَّر بشفافية لكل وحدة.' },
+  sw2WardFinishesEyebrow:{ en:'Finishes & materials', ar:'التشطيبات والمواد' },
+  sw2WardFinishesSub:{ en:'Transparent per-metre pricing on every finish, with full specs so you can compare like for like.', ar:'تسعير شفّاف لكل متر على كل تشطيب، مع مواصفات كاملة تتيح لك المقارنة بإنصاف.' },
+  sw2WardSpecEyebrow:{ en:'Specification & pricing', ar:'المواصفات والتسعير' },
+  sw2WardSpecTitle:{ en:'How it is built & priced.', ar:'كيف يُصنع ويُسعَّر.' },
+  sw2WardPriceDrivers:{ en:'Price drivers', ar:'محرّكات السعر' },
+  sw2WardTypicalSizes:{ en:'Typical sizes', ar:'المقاسات النموذجية' },
+  sw2WardInteriorConstr:{ en:'Interior construction', ar:'التركيب الداخلي' },
+  sw2WardHardwareBrands:{ en:'Hardware brands', ar:'علامات الإكسسوارات' },
+  sw2WardBuild3d:{ en:'Build a live quote in 3D →', ar:'← ابنِ عرض سعر مباشر ثلاثي الأبعاد' },
+  sw2WardF1:{ en:'Made to measure', ar:'مُصنّع على المقاس' },
+  sw2WardF1Desc:{ en:'Surveyed, scribed and fitted to your exact walls — no gaps, no filler panels.', ar:'يُقاس ويُحدّد ويُركّب على جدرانك بدقة — دون فراغات أو ألواح حشو.' },
+  sw2WardF2:{ en:'Blum soft-close', ar:'إغلاق ناعم من بلوم' },
+  sw2WardF2Desc:{ en:'Blum soft-close hinges and full-extension runners on every door and drawer, backed for 10 years.', ar:'مفصّلات بلوم ناعمة الإغلاق ومجاري كاملة السحب على كل باب ودرج، بضمان ١٠ سنوات.' },
+  sw2WardPopular:{ en:'Popular wardrobes.', ar:'خزائن ملابس رائجة.' },
+  sw2WardCluttered:{ en:'From cluttered to curated.', ar:'من الفوضى إلى التنسيق.' },
+  sw2WardTransDesc:{ en:'We have transformed bedrooms and dressing rooms across Bahrain — from compact apartments to villa master suites. Start with a free design visit and we will show you what is possible in your space.', ar:'حوّلنا غرف نوم وغرف ملابس في أنحاء البحرين — من الشقق الصغيرة إلى أجنحة الفلل الرئيسية. ابدأ بزيارة تصميم مجانية ونريك ما يمكن تحقيقه في مساحتك.' },
+  sw2After:{ en:'After', ar:'بعد' },
+  sw2Detail:{ en:'Detail', ar:'تفصيل' },
+  sw2WardFaqTitle:{ en:'Wardrobe questions, answered.', ar:'أسئلة خزائن الملابس، مُجابة.' },
+  sw2WardDreamCta:{ en:'Your dream wardrobe starts here.', ar:'خزانة أحلامك تبدأ من هنا.' },
+  sw2WardDreamSub:{ en:'Design it in 3D with a live quote, or book a free home visit — no obligation.', ar:'صمّمها ثلاثية الأبعاد مع عرض سعر مباشر، أو احجز زيارة منزلية مجانية — دون التزام.' },
+  sw2OpenDesignStudioArrow:{ en:'Open Design Studio →', ar:'← افتح استوديو التصميم' },
+  sw2WardFaq:{ en:[
+    ['How much does a fitted wardrobe cost?', 'Reach-in and kids wardrobes start from around BD 540, fitted hinged wardrobes from BD 720, sliding wardrobes from BD 1,000, and a full walk-in dressing room from BD 5,200. Price is driven transparently by the metres of run, your finish and the interior fittings you choose — build a live estimate in the Design Studio.'],
+    ['How long does it take?', 'Most wardrobes are designed, manufactured and installed within 4–7 weeks of sign-off. Real-wood veneer and hand-sprayed lacquer finishes sit at the longer end.'],
+    ['Do you measure and fit everything?', 'Yes — survey, design, manufacture, delivery and installation are all handled by our own team across Bahrain. Every wardrobe is scribed and fitted to your exact walls.'],
+    ['Can you fit around sloped ceilings or awkward walls?', 'Absolutely. Our fitted and walk-in wardrobes are made to measure — we build into eaves, alcoves and sloped ceilings so every centimetre is used.'],
+    ['What hardware do you use?', 'Blum soft-close hinges and full-extension drawer runners as standard, Hettich lift systems, and anodised aluminium rails — all backed by our 10-year cabinetry warranty.'],
+    ['What warranty do I get?', '10 years on cabinetry and soft-close hardware, plus 5–10 years on finishes depending on the material you choose.'],
+  ], ar:[
+    ['كم تكلفة خزانة الملابس المُجهّزة؟', 'تبدأ الخزائن المدمجة وخزائن الأطفال من نحو ٥٤٠ د.ب، والخزائن المفصلية المُجهّزة من ٧٢٠ د.ب، والخزائن المنزلقة من ١٠٠٠ د.ب، وغرفة الملابس المتكاملة من ٥٢٠٠ د.ب. يُحدَّد السعر بشفافية بأمتار الامتداد والتشطيب والتجهيزات الداخلية التي تختارها — ابنِ تقديراً مباشراً في استوديو التصميم.'],
+    ['كم يستغرق الأمر؟', 'تُصمَّم معظم الخزائن وتُصنَّع وتُركَّب خلال ٤–٧ أسابيع من الاعتماد. تشطيبات قشرة الخشب الطبيعي والطلاء اليدوي تقع في الطرف الأطول.'],
+    ['هل تقومون بالقياس والتركيب بالكامل؟', 'نعم — المسح والتصميم والتصنيع والتوصيل والتركيب يتولاها فريقنا بالكامل في أنحاء البحرين. تُحدَّد وتُركَّب كل خزانة على جدرانك بدقة.'],
+    ['هل يمكنكم التركيب حول الأسقف المائلة أو الجدران الصعبة؟', 'بالتأكيد. خزائننا المُجهّزة والمتكاملة مُصنّعة على المقاس — نبني داخل الأفاريز والتجاويف والأسقف المائلة لاستغلال كل سنتيمتر.'],
+    ['ما الإكسسوارات التي تستخدمونها؟', 'مفصّلات بلوم ناعمة الإغلاق ومجاري أدراج كاملة السحب كمعيار، وأنظمة رفع هيتش، وقضبان ألمنيوم مؤكسد — جميعها بضمان خزائننا لمدة ١٠ سنوات.'],
+    ['ما الضمان الذي أحصل عليه؟', '١٠ سنوات على الخزائن والإكسسوارات ناعمة الإغلاق، بالإضافة إلى ٥–١٠ سنوات على التشطيبات حسب المادة التي تختارها.'],
+  ] },
+
+  // KitchenPage
+  sw2KpFindLook:{ en:'Find your look.', ar:'اعثر على مظهرك.' },
+  sw2KpStylesEyebrow:{ en:'Kitchen styles', ar:'أنماط المطابخ' },
+  sw2KpStylesSub:{ en:'From timeless shaker to seamless handleless — six door styles, endless finishes.', ar:'من الشيكر الخالد إلى الأبواب الانسيابية دون مقابض — ستة أنماط أبواب، وتشطيبات لا تنتهي.' },
+  sw2KpDesignStyle:{ en:'Design this style →', ar:'← صمّم بهذا النمط' },
+  sw2KpEveryLayout:{ en:'Every layout', ar:'كل تصميم' },
+  sw2KpFitRoom:{ en:'Made to fit your room.', ar:'مُصنّع ليناسب غرفتك.' },
+  sw2KpWorktopsEyebrow:{ en:'Worktops & materials', ar:'أسطح العمل والمواد' },
+  sw2KpWorktopsSub:{ en:'Transparent per-metre pricing on every worktop, with full specs so you can compare like for like.', ar:'تسعير شفّاف لكل متر على كل سطح عمل، مع مواصفات كاملة تتيح لك المقارنة بإنصاف.' },
+  sw2KpF1:{ en:'Made in Bahrain', ar:'صُنع في البحرين' },
+  sw2KpF1Desc:{ en:'Manufactured in our own workshop — full control over quality and lead time.', ar:'يُصنّع في ورشتنا الخاصة — تحكّم كامل في الجودة ومدة التنفيذ.' },
+  sw2KpF2:{ en:'Soft-close as standard', ar:'إغلاق ناعم كمعيار' },
+  sw2KpF2Desc:{ en:'Blum soft-close hinges and runners on every door and drawer, backed for 10 years.', ar:'مفصّلات ومجاري بلوم ناعمة الإغلاق على كل باب ودرج، بضمان ١٠ سنوات.' },
+  sw2KpF3Desc:{ en:'Design, build, deliver, fit and template — handled by us, never sub-let.', ar:'التصميم والبناء والتوصيل والتركيب والقياس — نتولاها بأنفسنا دون مقاولين خارجيين.' },
+  sw2KpPopular:{ en:'Popular kitchens.', ar:'مطابخ رائجة.' },
+  sw2KpTiredTimeless:{ en:'From tired to timeless.', ar:'من القديم إلى الخالد.' },
+  sw2KpTransDesc:{ en:'We have transformed kitchens across Bahrain — from compact apartments to villa open-plan spaces. Start with a free design visit and we will show you what is possible in your room.', ar:'حوّلنا مطابخ في أنحاء البحرين — من الشقق الصغيرة إلى مساحات الفلل المفتوحة. ابدأ بزيارة تصميم مجانية ونريك ما يمكن تحقيقه في غرفتك.' },
+  sw2KpFaqTitle:{ en:'Kitchen questions, answered.', ar:'أسئلة المطابخ، مُجابة.' },
+  sw2KpDreamCta:{ en:'Your dream kitchen starts here.', ar:'مطبخ أحلامك يبدأ من هنا.' },
+  sw2KpDreamSub:{ en:'Design it in 3D with a live quote, or book a free home visit — no obligation.', ar:'صمّمه ثلاثي الأبعاد مع عرض سعر مباشر، أو احجز زيارة منزلية مجانية — دون التزام.' },
+  sw2KpFaq:{ en:[
+    ['How much does a bespoke kitchen cost?', 'Our kitchens start from around BD 2,200 for a compact modular L-shape and BD 4,200+ for a fully bespoke design. Price is driven transparently by the metres of cabinetry, your door style, worktop choice and appliances — build a live estimate in the Design Studio.'],
+    ['How long does it take?', 'Most kitchens are designed, manufactured and installed within 6–9 weeks of sign-off, depending on door style and worktop. In-frame and veneer doors sit at the longer end.'],
+    ['Do you handle the full project?', 'Yes — design, manufacture, delivery, fitting, worktop templating and appliance installation are all handled by our own team across Bahrain.'],
+    ['Can I keep my existing appliances?', 'Absolutely. Choose only the appliance housings you need in the Design Studio and we will build around your existing units.'],
+    ['What warranty do I get?', '10 years on cabinetry and soft-close hardware, plus 2–15 years on worktops depending on the material you choose.'],
+  ], ar:[
+    ['كم تكلفة المطبخ المُفصّل؟', 'تبدأ مطابخنا من نحو ٢٢٠٠ د.ب لمطبخ مكوّن على شكل L مدمج، و٤٢٠٠ د.ب وما فوق لتصميم مُفصّل بالكامل. يُحدَّد السعر بشفافية بأمتار الخزائن ونمط الأبواب وخيار سطح العمل والأجهزة — ابنِ تقديراً مباشراً في استوديو التصميم.'],
+    ['كم يستغرق الأمر؟', 'تُصمَّم معظم المطابخ وتُصنَّع وتُركَّب خلال ٦–٩ أسابيع من الاعتماد، حسب نمط الأبواب وسطح العمل. الأبواب ذات الإطار والقشرة تقع في الطرف الأطول.'],
+    ['هل تتولون المشروع بالكامل؟', 'نعم — التصميم والتصنيع والتوصيل والتركيب وقياس سطح العمل وتركيب الأجهزة يتولاها فريقنا بالكامل في أنحاء البحرين.'],
+    ['هل يمكنني الاحتفاظ بأجهزتي الحالية؟', 'بالتأكيد. اختر فقط حاويات الأجهزة التي تحتاجها في استوديو التصميم وسنبني حول وحداتك الحالية.'],
+    ['ما الضمان الذي أحصل عليه؟', '١٠ سنوات على الخزائن والإكسسوارات ناعمة الإغلاق، بالإضافة إلى ٢–١٥ سنة على أسطح العمل حسب المادة التي تختارها.'],
+  ] },
+
+  // OfficePage
+  sw2OfLayoutsEyebrow:{ en:'Office layouts', ar:'تصاميم المكاتب' },
+  sw2OfFindSetup:{ en:'Find your setup.', ar:'اعثر على إعدادك.' },
+  sw2OfLayoutsSub:{ en:'Six ways to bring a proper, productive workspace into your home — from minimal to a full storage wall.', ar:'ست طرق لإدخال مساحة عمل لائقة ومنتجة إلى منزلك — من البسيط إلى جدار تخزين متكامل.' },
+  sw2OfDeskEyebrow:{ en:'Desk & storage', ar:'المكتب والتخزين' },
+  sw2OfDeskSub:{ en:'Mix open shelving, closed cabinets, drawers, tall units and file storage — every element priced transparently per unit.', ar:'امزج الرفوف المفتوحة والخزائن المغلقة والأدراج والوحدات الطويلة وتخزين الملفات — كل عنصر يُسعَّر بشفافية لكل وحدة.' },
+  sw2OfPer:{ en:'per', ar:'لكل' },
+  sw2OfWorktopsEyebrow:{ en:'Worktops & materials', ar:'أسطح العمل والمواد' },
+  sw2OfWorkHard:{ en:'Surfaces that work hard.', ar:'أسطح تعمل بكدّ.' },
+  sw2OfWorktopsSub:{ en:'From durable laminate to engineered quartz — pick the worktop and finish that suit your work and your room.', ar:'من اللامينيت المتين إلى الكوارتز المُصنّع — اختر سطح العمل والتشطيب المناسبين لعملك وغرفتك.' },
+  sw2OfF2:{ en:'Cable management built in', ar:'إدارة الكابلات مدمجة' },
+  sw2OfF2Desc:{ en:'Trays, grommets and a dedicated power route keep the desk tidy and the wiring hidden.', ar:'الصواني والفتحات ومسار طاقة مخصّص تبقي المكتب مرتباً والأسلاك مخفية.' },
+  sw2OfF1Desc:{ en:'Surveyed, scribed and fitted to your exact walls and alcoves — no gaps, no filler panels.', ar:'يُقاس ويُحدّد ويُركّب على جدرانك وتجاويفك بدقة — دون فراغات أو ألواح حشو.' },
+  sw2OfPopular:{ en:'Popular home offices.', ar:'مكاتب منزلية رائجة.' },
+  sw2OfFaqTitle:{ en:'Home office questions, answered.', ar:'أسئلة المكتب المنزلي، مُجابة.' },
+  sw2OfDreamCta:{ en:'Your dream home office starts here.', ar:'مكتبك المنزلي المثالي يبدأ من هنا.' },
+  sw2OfDreamSub:{ en:'Plan it with a live quote, or book a free home visit — no obligation.', ar:'خطّط له مع عرض سعر مباشر، أو احجز زيارة منزلية مجانية — دون التزام.' },
+  sw2OfOpenPlanner:{ en:'Open the office planner →', ar:'← افتح مخطّط المكتب' },
+  sw2OfFaq:{ en:[
+    ['How much does a fitted home office cost?', 'A minimal floating desk setup starts from around BD 540, a corner or built-in office from BD 1,100, and a full floor-to-ceiling storage wall with integrated desk from BD 2,400+. Price is driven transparently by the metres of cabinetry, your worktop and storage — build a live estimate in the office planner.'],
+    ['How long does it take?', 'Most home offices are designed, manufactured and installed within 4–7 weeks of sign-off. Real-wood veneer and quartz worktops sit at the longer end.'],
+    ['Can you build into an alcove or awkward corner?', 'Absolutely. Every office is made to measure — we scribe desks and storage into alcoves, corners and sloped ceilings so every centimetre works.'],
+    ['Do you handle cable management?', 'Yes — we build in cable trays, grommets and a dedicated power route behind the desk so the setup stays tidy and the wiring stays hidden.'],
+    ['What hardware do you use?', 'Blum soft-close hinges and full-extension drawer runners as standard, plus warm 3000K LED for shelves and under-cabinet task light — all backed by our 10-year cabinetry warranty.'],
+    ['What warranty do I get?', '10 years on cabinetry and soft-close hardware, plus 5–10 years on finishes depending on the material you choose.'],
+  ], ar:[
+    ['كم تكلفة المكتب المنزلي المُجهّز؟', 'يبدأ إعداد المكتب العائم البسيط من نحو ٥٤٠ د.ب، والمكتب الزاوي أو المدمج من ١١٠٠ د.ب، وجدار التخزين الكامل من الأرض إلى السقف مع مكتب مدمج من ٢٤٠٠ د.ب وما فوق. يُحدَّد السعر بشفافية بأمتار الخزائن وسطح العمل والتخزين — ابنِ تقديراً مباشراً في مخطّط المكتب.'],
+    ['كم يستغرق الأمر؟', 'تُصمَّم معظم المكاتب المنزلية وتُصنَّع وتُركَّب خلال ٤–٧ أسابيع من الاعتماد. قشرة الخشب الطبيعي وأسطح الكوارتز تقع في الطرف الأطول.'],
+    ['هل يمكنكم البناء داخل تجويف أو زاوية صعبة؟', 'بالتأكيد. كل مكتب مُصنّع على المقاس — نُحدّد المكاتب والتخزين داخل التجاويف والزوايا والأسقف المائلة لاستغلال كل سنتيمتر.'],
+    ['هل تتولون إدارة الكابلات؟', 'نعم — نبني صواني كابلات وفتحات ومسار طاقة مخصّص خلف المكتب لإبقاء الإعداد مرتباً والأسلاك مخفية.'],
+    ['ما الإكسسوارات التي تستخدمونها؟', 'مفصّلات بلوم ناعمة الإغلاق ومجاري أدراج كاملة السحب كمعيار، بالإضافة إلى إضاءة LED دافئة ٣٠٠٠ كلفن للرفوف وإضاءة المهام أسفل الخزائن — جميعها بضمان خزائننا لمدة ١٠ سنوات.'],
+    ['ما الضمان الذي أحصل عليه؟', '١٠ سنوات على الخزائن والإكسسوارات ناعمة الإغلاق، بالإضافة إلى ٥–١٠ سنوات على التشطيبات حسب المادة التي تختارها.'],
+  ] },
+
+  // TVUnitPage
+  sw2TvPopular:{ en:'Popular media walls.', ar:'جدران وسائط رائجة.' },
+  sw2TvF2:{ en:'Cable & AV management built in', ar:'إدارة الكابلات والصوتيات والمرئيات مدمجة' },
+  sw2TvF2Desc:{ en:'Trays, conduits and ventilated bays for your console, receiver and router keep the wall tidy and the wiring hidden.', ar:'الصواني والقنوات والتجاويف المهوّاة لجهاز الألعاب والمستقبِل والراوتر تبقي الجدار مرتباً والأسلاك مخفية.' },
+  sw2TvF1Desc:{ en:'Surveyed, scribed and fitted to your exact wall — around fireplaces, columns and AC units, with no gaps or filler panels.', ar:'يُقاس ويُحدّد ويُركّب على جدارك بدقة — حول المواقد والأعمدة ووحدات التكييف، دون فراغات أو ألواح حشو.' },
+
+  // DoorsPage
+  sw2DrPopular:{ en:'Popular doors.', ar:'أبواب رائجة.' },
+  sw2DrF1Desc:{ en:'Surveyed and built to your exact opening — the leaf, frame and hardware all scribed so the door sits flush and swings true.', ar:'يُقاس ويُبنى على فتحتك بدقة — تُحدَّد الدفّة والإطار والإكسسوارات بحيث يستقرّ الباب مستوياً ويفتح بانسيابية.' },
+  sw2DrF2:{ en:'Solid cores & quiet hardware', ar:'أنوية صلبة وإكسسوارات هادئة' },
+  sw2DrF2Desc:{ en:'Hollow, semi-solid, solid or fire-rated cores with soft-close hinges and European locks for a reassuring, silent close.', ar:'أنوية مجوّفة أو شبه صلبة أو صلبة أو مقاومة للحريق مع مفصّلات ناعمة الإغلاق وأقفال أوروبية لإغلاق صامت ومطمئن.' },
+
+  // WrenPlannerPage
+  sw2WrEyebrow:{ en:'Kitchen design · online planner', ar:'تصميم المطابخ · مخطّط عبر الإنترنت' },
+  sw2WrTitle:{ en:'Plan your dream kitchen.', ar:'خطّط لمطبخ أحلامك.' },
+  sw2WrSub:{ en:'Five quick steps to a layout, a look and a free design appointment.', ar:'خمس خطوات سريعة نحو تصميم ومظهر وموعد تصميم مجاني.' },
+  sw2WrIndicStd:{ en:'Indicative estimate · Standard', ar:'تقدير استرشادي · قياسي' },
+  sw2WrWorktop:{ en:'worktop', ar:'سطح العمل' },
+  sw2WrGuideNote:{ en:'A guide price — your free design appointment confirms an exact, itemised quote.', ar:'سعر استرشادي — يؤكّد موعد التصميم المجاني عرض سعر دقيق ومفصّل.' },
+  sw2WrStep1:{ en:'1 · Choose your shape', ar:'١ · اختر شكلك' },
+  sw2WrWrapQ:{ en:'How does your kitchen wrap around the room?', ar:'كيف يلتفّ مطبخك حول الغرفة؟' },
+  sw2WrStep2:{ en:'2 · Measure your runs', ar:'٢ · قِس امتداداتك' },
+  sw2WrStep2Sub:{ en:'Approximate wall lengths — we confirm exact sizes on the home visit.', ar:'أطوال جدران تقريبية — نؤكّد المقاسات الدقيقة في الزيارة المنزلية.' },
+  sw2WrRunA:{ en:'Run A', ar:'الامتداد أ' },
+  sw2WrRunB:{ en:'Run B', ar:'الامتداد ب' },
+  sw2WrRunC:{ en:'Run C', ar:'الامتداد ج' },
+  sw2WrIsland:{ en:'Island', ar:'الجزيرة' },
+  sw2WrStep3:{ en:'3 · Pick a door style', ar:'٣ · اختر نمط الأبواب' },
+  sw2WrStep3Sub:{ en:'The look that sets the tone for the whole room.', ar:'المظهر الذي يحدّد طابع الغرفة بأكملها.' },
+  sw2WrStep4:{ en:'4 · Worktop & handles', ar:'٤ · سطح العمل والمقابض' },
+  sw2WrStep4Sub:{ en:'The finishing touches that make it yours.', ar:'لمسات التشطيب التي تجعله ملكك.' },
+  sw2WrWorktopHead:{ en:'WORKTOP', ar:'سطح العمل' },
+  sw2WrHandlesHead:{ en:'HANDLES', ar:'المقابض' },
+  sw2WrStep5:{ en:'5 · Your kitchen & appointment', ar:'٥ · مطبخك والموعد' },
+  sw2WrStep5Sub:{ en:'Book a free design visit — no obligation, exact quote on the day.', ar:'احجز زيارة تصميم مجانية — دون التزام، عرض سعر دقيق في اليوم نفسه.' },
+  sw2WrShape:{ en:'Shape', ar:'الشكل' },
+  sw2WrStyle:{ en:'Style', ar:'النمط' },
+  sw2WrWorktopLbl:{ en:'Worktop', ar:'سطح العمل' },
+  sw2WrHandlesLbl:{ en:'Handles', ar:'المقابض' },
+  sw2WrEstimate:{ en:'Estimate', ar:'التقدير' },
+  sw2WrBookBtn:{ en:'Book my free design appointment', ar:'احجز موعد التصميم المجاني' },
+
+  // KitchenStudioPage (room planner)
+  sw2StTitle:{ en:'Design your kitchen, unit by unit.', ar:'صمّم مطبخك وحدة بوحدة.' },
+  sw2StSub:{ en:'Set your room, drop in cabinets along each wall, choose your look — watch the plan and price update live.', ar:'حدّد غرفتك، أضف الخزائن على طول كل جدار، اختر مظهرك — تابع تحديث المخطط والسعر مباشرةً.' },
+  sw2StIndic:{ en:'Indicative estimate', ar:'تقدير استرشادي' },
+  sw2StUnits:{ en:'units', ar:'وحدات' },
+  sw2StGuideNote:{ en:'worktop · {h} handles. A guide price — your free design visit confirms an exact quote.', ar:'سطح العمل · مقابض {h}. سعر استرشادي — تؤكّد زيارة التصميم المجانية عرض سعر دقيق.' },
+  sw2StBookBtn:{ en:'Book a free design appointment', ar:'احجز موعد تصميم مجاني' },
+  sw2StTabUnits:{ en:'Units', ar:'الوحدات' },
+  sw2StTabRoom:{ en:'Room', ar:'الغرفة' },
+  sw2StTabStyle:{ en:'Style', ar:'النمط' },
+  sw2StTabFinish:{ en:'Finishes', ar:'التشطيبات' },
+  sw2StChooseWall:{ en:'1 · Choose a wall, then add units to it.', ar:'١ · اختر جداراً، ثم أضف الوحدات إليه.' },
+  sw2StTop:{ en:'Top', ar:'علوي' },
+  sw2StBottom:{ en:'Bottom', ar:'سفلي' },
+  sw2StLeft:{ en:'Left', ar:'يسار' },
+  sw2StRight:{ en:'Right', ar:'يمين' },
+  sw2StUnitsLower:{ en:'units', ar:'وحدات' },
+  sw2StClearWall:{ en:'Clear wall', ar:'مسح الجدار' },
+  sw2StNoUnits:{ en:'No units yet — tap one above to add it here.', ar:'لا وحدات بعد — انقر إحداها أعلاه لإضافتها هنا.' },
+  sw2StRemove:{ en:'Remove', ar:'إزالة' },
+  sw2StRoomSize:{ en:'Set the approximate size of your room.', ar:'حدّد المقاس التقريبي لغرفتك.' },
+  sw2StWidth:{ en:'Width', ar:'العرض' },
+  sw2StLength:{ en:'Length', ar:'الطول' },
+  sw2StWorktopHead:{ en:'WORKTOP', ar:'سطح العمل' },
+  sw2StHandlesHead:{ en:'HANDLES', ar:'المقابض' },
+  sw2StBookTitle:{ en:'Book your free design visit', ar:'احجز زيارة التصميم المجانية' },
+  sw2StWorktopWord:{ en:'worktop', ar:'سطح العمل' },
+  sw2StRequestAppt:{ en:'Request appointment', ar:'طلب موعد' },
+  sw2StOnWall:{ en:'On {wall} wall', ar:'على جدار {wall}' },
+
+  // DesignBuilderPage
+  sw2DbStepReq:{ en:'Requirements', ar:'المتطلبات' },
+  sw2DbStepSurvey:{ en:'Site Survey', ar:'مسح الموقع' },
+  sw2DbStepBuild:{ en:'Design Builder', ar:'منشئ التصميم' },
+  sw2DbStepStyle:{ en:'Style', ar:'النمط' },
+  sw2DbStepMaterials:{ en:'Materials', ar:'المواد' },
+  sw2DbStepMood:{ en:'Moodboard', ar:'لوحة الإلهام' },
+  sw2DbStepCost:{ en:'Cost', ar:'التكلفة' },
+  sw2DbStepAi:{ en:'AI Assistant', ar:'المساعد الذكي' },
+  sw2DbEyebrow:{ en:'Design Builder · guided end-to-end', ar:'منشئ التصميم · موجَّه من البداية للنهاية' },
+  sw2DbTitle:{ en:'Design your space, step by step.', ar:'صمّم مساحتك خطوة بخطوة.' },
+  sw2DbSub:{ en:'Tell us what you need, lay out the parts, choose your look — and watch the price update live.', ar:'أخبرنا بما تحتاجه، رتّب الأجزاء، اختر مظهرك — وتابع تحديث السعر مباشرةً.' },
+  sw2DbCatErr:{ en:'Our design catalogue is taking a moment to load. You can still build a layout — pricing and styles will appear shortly.', ar:'يستغرق كتالوج التصميم لحظة للتحميل. لا يزال بإمكانك بناء تصميم — ستظهر الأسعار والأنماط قريباً.' },
+  sw2DbSelected:{ en:'Selected', ar:'محدّد' },
+  sw2DbOverlapping:{ en:'· overlapping', ar:'· متداخل' },
+  sw2DbRemove:{ en:'Remove', ar:'إزالة' },
+  sw2DbLiveEst:{ en:'Live estimate', ar:'تقدير مباشر' },
+  sw2DbUpdating:{ en:'updating…', ar:'جارٍ التحديث…' },
+  sw2DbCurrentPrice:{ en:'Current price', ar:'السعر الحالي' },
+  sw2DbVariation:{ en:'Variation vs previous', ar:'الفرق عن السابق' },
+  sw2DbMargin:{ en:'Margin', ar:'الهامش' },
+  sw2DbEstDelivery:{ en:'Estimated delivery', ar:'التسليم المقدّر' },
+  sw2DbMaterials:{ en:'Materials', ar:'المواد' },
+  sw2DbLabour:{ en:'Labour', ar:'العمالة' },
+  sw2DbDelivery:{ en:'Delivery', ar:'التوصيل' },
+  sw2DbInstall:{ en:'Install', ar:'التركيب' },
+  sw2DbIndicConf:{ en:'Indicative — confirmed at your free design visit.', ar:'استرشادي — يُؤكَّد في زيارة التصميم المجانية.' },
+  sw2DbWhatDesign:{ en:'What are you designing?', ar:'ماذا تصمّم؟' },
+  sw2DbPickType:{ en:'Pick a project type, then fill in your needs.', ar:'اختر نوع المشروع، ثم املأ احتياجاتك.' },
+  sw2DbHangStorage:{ en:'Hanging & storage', ar:'التعليق والتخزين' },
+  sw2DbLongHang:{ en:'Long hanging sections', ar:'أقسام تعليق طويلة' },
+  sw2DbShortHang:{ en:'Short hanging sections', ar:'أقسام تعليق قصيرة' },
+  sw2DbDrawerBanks:{ en:'Drawer banks', ar:'مجموعات أدراج' },
+  sw2DbShoeStorage:{ en:'Shoe storage units', ar:'وحدات تخزين الأحذية' },
+  sw2DbAccessories:{ en:'Accessories', ar:'الإكسسوارات' },
+  sw2DbSafeBox:{ en:'Safe box', ar:'خزنة' },
+  sw2DbJewelry:{ en:'Jewelry drawer', ar:'درج المجوهرات' },
+  sw2DbIroning:{ en:'Pull-out ironing board', ar:'لوح كي قابل للسحب' },
+  sw2DbLaundry:{ en:'Laundry basket', ar:'سلة الغسيل' },
+  sw2DbTvSize:{ en:'TV size', ar:'حجم التلفاز' },
+  sw2DbConsole:{ en:'Floating console', ar:'كونسول معلّق' },
+  sw2DbDisplayShelves:{ en:'Display shelves', ar:'رفوف عرض' },
+  sw2DbGaming:{ en:'Gaming storage', ar:'تخزين الألعاب' },
+  sw2DbSound:{ en:'Sound system / soundbar', ar:'نظام صوتي / مكبّر صوت' },
+  sw2DbAppliances:{ en:'Appliances', ar:'الأجهزة' },
+  sw2DbOven:{ en:'Built-in oven', ar:'فرن مدمج' },
+  sw2DbHob:{ en:'Hob & extractor', ar:'موقد وشفّاط' },
+  sw2DbDishwasher:{ en:'Dishwasher', ar:'غسالة صحون' },
+  sw2DbFridge:{ en:'Integrated fridge', ar:'ثلاجة مدمجة' },
+  sw2DbMicrowave:{ en:'Microwave', ar:'ميكروويف' },
+  sw2DbCooking:{ en:'Cooking habits', ar:'عادات الطهي' },
+  sw2DbCookLight:{ en:'Light', ar:'خفيف' },
+  sw2DbCookEveryday:{ en:'Everyday', ar:'يومي' },
+  sw2DbCookAvid:{ en:'Avid cook', ar:'طاهٍ شغوف' },
+  sw2DbCookEntertainer:{ en:'Entertainer', ar:'مُضيف' },
+  sw2DbStoragePantry:{ en:'Storage & pantry', ar:'التخزين والمؤن' },
+  sw2DbPantry:{ en:'Tall pantry unit', ar:'وحدة مؤن طويلة' },
+  sw2DbExtraStorage:{ en:'Extra deep storage', ar:'تخزين عميق إضافي' },
+  sw2DbIslandStorage:{ en:'Island with storage', ar:'جزيرة بتخزين' },
+  sw2DbMainFeatures:{ en:'Main features', ar:'الميزات الرئيسية' },
+  sw2DbHanging:{ en:'Hanging sections', ar:'أقسام التعليق' },
+  sw2DbShelving:{ en:'Open shelving units', ar:'وحدات رفوف مفتوحة' },
+  sw2DbIslandDresser:{ en:'Central island / dresser', ar:'جزيرة مركزية / تسريحة' },
+  sw2DbMirror:{ en:'Full-length mirror', ar:'مرآة بطول كامل' },
+  sw2DbLighting:{ en:'Sensor LED lighting', ar:'إضاءة LED بمستشعر' },
+  sw2DbRoomType:{ en:'Room type', ar:'نوع الغرفة' },
+  sw2DbFamilyMembers:{ en:'Family members', ar:'أفراد الأسرة' },
+  sw2DbLifestyle:{ en:'Lifestyle', ar:'نمط الحياة' },
+  sw2DbLifeMinimal:{ en:'Minimal', ar:'بسيط' },
+  sw2DbLifeFamily:{ en:'Family', ar:'عائلي' },
+  sw2DbLifeCollector:{ en:'Collector', ar:'جامع' },
+  sw2DbLifeBusy:{ en:'Busy professional', ar:'محترف مشغول' },
+  sw2DbLifeLuxury:{ en:'Luxury', ar:'فاخر' },
+  sw2DbBudgetRange:{ en:'Budget range', ar:'نطاق الميزانية' },
+  sw2DbBudgetTo:{ en:'to', ar:'إلى' },
+  sw2DbTimeline:{ en:'Timeline', ar:'الجدول الزمني' },
+  sw2DbTl1:{ en:'2-3 weeks', ar:'٢-٣ أسابيع' },
+  sw2DbTl2:{ en:'4-6 weeks', ar:'٤-٦ أسابيع' },
+  sw2DbTl3:{ en:'2-3 months', ar:'٢-٣ أشهر' },
+  sw2DbTlFlexible:{ en:'Flexible', ar:'مرن' },
+  sw2DbSpecialReq:{ en:'Special requirements & style/colour notes', ar:'متطلبات خاصة وملاحظات النمط/اللون' },
+  sw2DbSpecialAria:{ en:'Special requests', ar:'طلبات خاصة' },
+  sw2DbSpecialPh:{ en:'e.g. warm oak tones, soft-close everywhere, allergy-safe finishes…', ar:'مثال: درجات بلوط دافئة، إغلاق ناعم في كل مكان، تشطيبات آمنة للحساسية…' },
+  sw2DbSiteSurvey:{ en:'Site survey', ar:'مسح الموقع' },
+  sw2DbSurveySub:{ en:'Set your room size and flag anything we should design around.', ar:'حدّد مقاس غرفتك وأشِر إلى أي شيء يجب أن نصمّم حوله.' },
+  sw2DbRoomWidth:{ en:'Room width', ar:'عرض الغرفة' },
+  sw2DbRoomLength:{ en:'Room length', ar:'طول الغرفة' },
+  sw2DbCeilingHeight:{ en:'Ceiling height', ar:'ارتفاع السقف' },
+  sw2DbExistingFeatures:{ en:'Existing features in the room', ar:'الميزات الموجودة في الغرفة' },
+  sw2DbFeatWindows:{ en:'Windows', ar:'نوافذ' },
+  sw2DbFeatDoors:{ en:'Doors', ar:'أبواب' },
+  sw2DbFeatOutlets:{ en:'Electrical outlets', ar:'منافذ كهربائية' },
+  sw2DbFeatAc:{ en:'AC unit', ar:'وحدة تكييف' },
+  sw2DbFeatColumns:{ en:'Columns', ar:'أعمدة' },
+  sw2DbFeatBeams:{ en:'Beams', ar:'عوارض' },
+  sw2DbFeatPlumbing:{ en:'Plumbing', ar:'سباكة' },
+  sw2DbFeatLighting:{ en:'Existing lighting', ar:'إضاءة موجودة' },
+  sw2DbRoomPhotos:{ en:'Room photos', ar:'صور الغرفة' },
+  sw2DbDesignBuilder:{ en:'Design builder', ar:'منشئ التصميم' },
+  sw2DbBuilderSub:{ en:'Tap a part to drop it on the canvas, then drag it to reposition. Parts snap to the grid; overlaps are highlighted in red.', ar:'انقر جزءاً لإسقاطه على اللوحة، ثم اسحبه لإعادة التموضع. تلتصق الأجزاء بالشبكة؛ والتداخلات مميّزة بالأحمر.' },
+  sw2DbPlaceWall:{ en:'Place on wall', ar:'ضع على الجدار' },
+  sw2DbWallBack:{ en:'Back', ar:'خلفي' },
+  sw2DbWallLeft:{ en:'Left', ar:'يسار' },
+  sw2DbWallRight:{ en:'Right', ar:'يمين' },
+  sw2DbWallFront:{ en:'Front', ar:'أمامي' },
+  sw2DbAddPart:{ en:'Add a part', ar:'أضف جزءاً' },
+  sw2DbPlacedParts:{ en:'Placed parts', ar:'الأجزاء الموضوعة' },
+  sw2DbClearAll:{ en:'Clear all', ar:'مسح الكل' },
+  sw2DbNoParts:{ en:'No parts yet — tap one above to add it to the canvas.', ar:'لا أجزاء بعد — انقر أحدها أعلاه لإضافته إلى اللوحة.' },
+  sw2DbChooseStyle:{ en:'Choose a style', ar:'اختر نمطاً' },
+  sw2DbStyleSub:{ en:'Selecting a style shows its suggested palette and can auto-apply matching materials.', ar:'يُظهر اختيار النمط لوحة ألوانه المقترحة وقد يطبّق المواد المطابقة تلقائياً.' },
+  sw2DbStylesLoading:{ en:'Styles are loading…', ar:'جارٍ تحميل الأنماط…' },
+  sw2DbStyleSelected:{ en:'· selected', ar:'· محدّد' },
+  sw2DbMaterialsLbl:{ en:'Materials', ar:'المواد' },
+  sw2DbHandlesLbl:{ en:'Handles', ar:'المقابض' },
+  sw2DbLightingLbl:{ en:'Lighting', ar:'الإضاءة' },
+  sw2DbAccessoriesLbl:{ en:'Accessories', ar:'الإكسسوارات' },
+  sw2DbProfilesLbl:{ en:'Profiles', ar:'البروفايلات' },
+  sw2DbMaterialsShowroom:{ en:'Materials showroom', ar:'معرض المواد' },
+  sw2DbMaterialsShowroomSub:{ en:'Pick a board and finish, and compare the spec of every option.', ar:'اختر لوحاً وتشطيباً، وقارن مواصفات كل خيار.' },
+  sw2DbBoards:{ en:'Boards', ar:'الألواح' },
+  sw2DbFinishes:{ en:'Finishes', ar:'التشطيبات' },
+  sw2DbLoading:{ en:'Loading…', ar:'جارٍ التحميل…' },
+  sw2DbHardwareAccessories:{ en:'Hardware & accessories', ar:'الإكسسوارات والملحقات' },
+  sw2DbThMaterial:{ en:'Material', ar:'المادة' },
+  sw2DbThCost:{ en:'Cost', ar:'التكلفة' },
+  sw2DbThWarranty:{ en:'Warranty', ar:'الضمان' },
+  sw2DbThDurability:{ en:'Durability', ar:'المتانة' },
+  sw2DbThScratch:{ en:'Scratch', ar:'الخدش' },
+  sw2DbThWater:{ en:'Water', ar:'الماء' },
+  sw2DbThLead:{ en:'Lead', ar:'مدة التنفيذ' },
+  sw2DbThSupplier:{ en:'Supplier', ar:'المورّد' },
+  sw2DbThMaint:{ en:'Maint.', ar:'الصيانة' },
+  sw2DbMoodboard:{ en:'Moodboard', ar:'لوحة الإلهام' },
+  sw2DbMoodSub:{ en:'Add inspiration links, colour swatches and notes for our designers.', ar:'أضف روابط إلهام وعيّنات ألوان وملاحظات لمصمّمينا.' },
+  sw2DbInspoUrl:{ en:'Inspiration image URL', ar:'رابط صورة الإلهام' },
+  sw2DbAdd:{ en:'Add', ar:'إضافة' },
+  sw2DbColourPalette:{ en:'Colour palette', ar:'لوحة الألوان' },
+  sw2DbAddSwatch:{ en:'Add swatch', ar:'إضافة عيّنة' },
+  sw2DbSampleNote:{ en:'Sample note', ar:'ملاحظة عيّنة' },
+  sw2DbMoodNotePh:{ en:'e.g. matte brass handles like the showroom', ar:'مثال: مقابض نحاسية مطفية كما في المعرض' },
+  sw2DbInspoNoteAria:{ en:'Inspiration note', ar:'ملاحظة إلهام' },
+  sw2DbNothingPinned:{ en:'Nothing pinned yet.', ar:'لم يُثبَّت شيء بعد.' },
+  sw2DbRealtimeCost:{ en:'Real-time cost', ar:'التكلفة الفورية' },
+  sw2DbCostSub:{ en:'Your live estimate, broken down. It updates automatically as you change the design.', ar:'تقديرك المباشر، مفصّلاً. يتحدّث تلقائياً عند تغيير التصميم.' },
+  sw2DbAddPartsHint:{ en:'Add parts or pick a board in the previous steps to generate a price.', ar:'أضف أجزاء أو اختر لوحاً في الخطوات السابقة لتوليد سعر.' },
+  sw2DbMaterialCost:{ en:'Material cost', ar:'تكلفة المواد' },
+  sw2DbInstallation:{ en:'Installation', ar:'التركيب' },
+  sw2DbSubtotal:{ en:'Subtotal', ar:'المجموع الفرعي' },
+  sw2DbTotalMargin:{ en:'Total ({m}% margin)', ar:'الإجمالي (هامش {m}٪)' },
+  sw2DbAiAssistant:{ en:'AI assistant', ar:'المساعد الذكي' },
+  sw2DbAiSub:{ en:'Smart suggestions based on your current design. Apply any with one tap.', ar:'اقتراحات ذكية بناءً على تصميمك الحالي. طبّق أياً منها بنقرة واحدة.' },
+  sw2DbAiNone:{ en:'Looking good — no changes recommended right now.', ar:'يبدو رائعاً — لا تغييرات موصى بها الآن.' },
+  sw2DbApply:{ en:'Apply', ar:'تطبيق' },
+  sw2DbYourDetails:{ en:'Your details (so we can reach you)', ar:'بياناتك (حتى نتمكّن من التواصل معك)' },
+  sw2DbBack:{ en:'← Back', ar:'رجوع →' },
+  sw2DbNext:{ en:'Next →', ar:'← التالي' },
+  sw2DbSaving:{ en:'Saving…', ar:'جارٍ الحفظ…' },
+  sw2DbUpdateDraft:{ en:'Update draft', ar:'تحديث المسودة' },
+  sw2DbSaveDraft:{ en:'Save draft', ar:'حفظ المسودة' },
+  sw2DbSubmitting:{ en:'Submitting…', ar:'جارٍ الإرسال…' },
+  sw2DbSubmitApproval:{ en:'Submit for approval', ar:'إرسال للاعتماد' },
+  sw2DbStyleApplied:{ en:'Style applied', ar:'تم تطبيق النمط' },
+  sw2DbStyleAppliedMat:{ en:'Style applied — suggested materials selected', ar:'تم تطبيق النمط — تم اختيار المواد المقترحة' },
+  sw2DbAiSwitchFin:{ en:'Switch {a} → {b} to save ~{s}', ar:'بدّل {a} ← {b} لتوفير ~{s}' },
+  sw2DbAiFinSwitched:{ en:'Finish switched to {n}', ar:'تم تبديل التشطيب إلى {n}' },
+  sw2DbAiAddLed:{ en:'Add sensor LED lighting (+{c}) to lift perceived value', ar:'أضف إضاءة LED بمستشعر (+{c}) لرفع القيمة المُدرَكة' },
+  sw2DbAiLedAdded:{ en:'LED lighting added', ar:'تمت إضافة إضاءة LED' },
+  sw2DbAiAddDrawer:{ en:'Add a drawer bank for folded clothing & accessories', ar:'أضف مجموعة أدراج للملابس المطوية والإكسسوارات' },
+  sw2DbAiDrawerAdded:{ en:'Drawer added', ar:'تمت إضافة درج' },
+  sw2DbAiUseBoard:{ en:'Use {n} board to save ~{s} (lower durability)', ar:'استخدم لوح {n} لتوفير ~{s} (متانة أقل)' },
+  sw2DbAiBoardSwitched:{ en:'Board switched to {n}', ar:'تم تبديل اللوح إلى {n}' },
+  sw2DbAiStart:{ en:'Open the Design Builder and add at least one cabinet to begin pricing', ar:'افتح منشئ التصميم وأضف خزانة واحدة على الأقل لبدء التسعير' },
+  sw3ArSeeIn3D:{ en:'See it in 3D & your room', ar:'شاهدها بتقنية ثلاثية الأبعاد وفي غرفتك' },
+  sw3ArHint:{ en:'Drag to rotate · on a phone tap “View in your room” for AR. Representative model — your exact unit is finalised at your free design visit.', ar:'اسحب للتدوير · على الهاتف اضغط "اعرضها في غرفتك" للواقع المعزز. نموذج توضيحي — تُعتمد وحدتك الدقيقة في زيارة التصميم المجانية.' },
+  sw3CartEmpty:{ en:'Your cart is empty', ar:'سلتك فارغة' },
+  sw3FreeDelivery:{ en:'Free delivery across Bahrain', ar:'توصيل مجاني في جميع أنحاء البحرين' },
+  sw3DragRotateZoom:{ en:'Drag to rotate · scroll to zoom', ar:'اسحب للتدوير · مرّر للتكبير' },
+  sw3PlannerLoadErr:{ en:"Couldn't load the planner", ar:'تعذّر تحميل المخطّط' },
+  sw3PlannerLoadErrSub:{ en:"We're having trouble reaching our design service. Please try again in a moment.", ar:'نواجه صعوبة في الوصول إلى خدمة التصميم لدينا. يُرجى المحاولة مرة أخرى بعد لحظات.' },
+  sw3PlannerTailored:{ en:"We'll design a tailored starting point in seconds.", ar:'سنصمّم لك نقطة انطلاق مخصّصة خلال ثوانٍ.' },
+  sw3PlannerScratch:{ en:'or start from scratch →', ar:'← أو ابدأ من الصفر' },
+  sw3PlannerIndic30:{ en:'Indicative — valid 30 days. Your free design visit confirms an exact, itemised quote.', ar:'تقديري — صالح لمدة 30 يومًا. تؤكّد زيارة التصميم المجانية عرض سعر دقيق ومفصّل.' },
+  sw3PlannerRendering:{ en:'Creating your photorealistic render… ~15–25 seconds.', ar:'جارٍ إنشاء صورة واقعية لتصميمك… نحو 15–25 ثانية.' },
+  sw3PlannerCreateAcct:{ en:'Create a free account to track your quote, save this design and follow your order.', ar:'أنشئ حسابًا مجانيًا لتتبّع عرض سعرك وحفظ هذا التصميم ومتابعة طلبك.' },
+  sw3PlannerCustomSize:{ en:'Use Custom size for an exact measurement.', ar:'استخدم المقاس المخصّص للحصول على قياس دقيق.' },
+  sw3PlannerLShape:{ en:'L-shape — set each run, then the height & depth.', ar:'الشكل حرف L — حدّد كل امتداد، ثم الارتفاع والعمق.' },
+  sw3PlannerSnap:{ en:'Exact sizes snap to the nearest buildable measurement.', ar:'تُضبط المقاسات الدقيقة إلى أقرب قياس قابل للتصنيع.' },
+  sw3PlannerIndic:{ en:'Indicative — your free design visit confirms an exact, itemised quote.', ar:'تقديري — تؤكّد زيارة التصميم المجانية عرض سعر دقيق ومفصّل.' },
+  sw3PlannerSendQuote:{ en:'Where shall we send your quote?', ar:'إلى أين نرسل عرض سعرك؟' },
+  sw3HubCardLive:{ en:'Your personal digital card is live. Share it to let people save your contact, view your membership and book with us.', ar:'بطاقتك الرقمية الشخصية مفعّلة. شاركها ليتمكّن الآخرون من حفظ بيانات تواصلك والاطّلاع على عضويتك والحجز معنا.' },
+  sw3HubNoCard:{ en:'No digital card yet', ar:'لا توجد بطاقة رقمية بعد' },
+  sw3HubNoCardSub:{ en:'Ask our team to activate your free digital membership card — it carries your tier, points and rewards.', ar:'اطلب من فريقنا تفعيل بطاقة عضويتك الرقمية المجانية — تحمل فئتك ونقاطك ومكافآتك.' },
+  sw3HubNoBookings:{ en:'No service bookings yet.', ar:'لا توجد حجوزات خدمة بعد.' },
+  sw3AiOffersBadge:{ en:'New · AI Interior Designer', ar:'جديد · مصمّم داخلي بالذكاء الاصطناعي' },
+  sw3AiOffersTitle:{ en:'Describe your room or upload a photo — get a tailored design in seconds.', ar:'صف غرفتك أو ارفع صورة — واحصل على تصميم مخصّص خلال ثوانٍ.' },
+  sw3AiOffersSub:{ en:'Layout, materials, colours, storage ideas and indicative pricing, composed by AI.', ar:'التخطيط والخامات والألوان وأفكار التخزين والتسعير التقديري، من تأليف الذكاء الاصطناعي.' },
+  sw3AiOffersTry:{ en:'Try the AI Designer ✦', ar:'جرّب المصمّم بالذكاء الاصطناعي ✦' },
+  sw3DigCardTitle:{ en:'Your digital membership card', ar:'بطاقة عضويتك الرقمية' },
+  sw3DigCardSub:{ en:'Set it up in your account to share your details instantly.', ar:'فعّلها في حسابك لمشاركة بياناتك فورًا.' },
+  sw3BookCallConfirm:{ en:'Our design team will call you to confirm the time. No obligation, completely free.', ar:'سيتّصل بك فريق التصميم لدينا لتأكيد الموعد. دون أي التزام، ومجانًا تمامًا.' },
+  sw3YasRefine3D:{ en:'Refine in 3D planner', ar:'حسّنها في المخطّط ثلاثي الأبعاد' },
+  sw3YasWarming:{ en:"Our live AI is warming up — here's a starter concept.", ar:'الذكاء الاصطناعي المباشر لدينا قيد التحضير — إليك مفهومًا مبدئيًا.' },
+  sw3YasForTailored:{ en:'for a tailored design.', ar:'للحصول على تصميم مخصّص.' },
+  sw3YasPickVibes:{ en:'Pick up to 3 vibes', ar:'اختر حتى 3 أجواء' },
+  sw3YasUse3D:{ en:'Use in 3D planner', ar:'استخدمها في المخطّط ثلاثي الأبعاد' },
+  sw3YasRecWarming:{ en:'Our recommender is warming up.', ar:'نظام التوصيات لدينا قيد التحضير.' },
+  sw3YasBrowseAll:{ en:'Browse the full collection', ar:'تصفّح المجموعة الكاملة' },
+  sw3YasPoweredBy:{ en:'Powered by The Closets AI · Bahrain', ar:'مدعوم بذكاء ذا كلوزتس · البحرين' },
+  sw3YasNoSignup:{ en:'No sign-up to try', ar:'لا حاجة للتسجيل للتجربة' },
+  sw3YasVisitConfirm:{ en:'Free design visit to confirm', ar:'زيارة تصميم مجانية للتأكيد' },
+  sw3AiRedesigning:{ en:'Redesigning your room… ~15–25 seconds.', ar:'جارٍ إعادة تصميم غرفتك… نحو 15–25 ثانية.' },
+  sw3AiSliderCompare:{ en:'Drag the slider to compare. AI impression — finishes confirmed at your visit.', ar:'اسحب الشريط للمقارنة. تصوّر بالذكاء الاصطناعي — تُعتمد التشطيبات في زيارتك.' },
+  sw3AiIndicOnly:{ en:'Indicative only — your free design visit confirms an exact, itemised quote.', ar:'تقديري فقط — تؤكّد زيارة التصميم المجانية عرض سعر دقيق ومفصّل.' },
 };
 function useI18n() {
   const ctx = useContext(AppCtx);
@@ -1968,6 +2888,7 @@ function TestiCarousel({ items }) {
 }
 
 function Hero({ setPage, banners }) {
+  const { t } = useI18n();
   const mobile = useMobile();
   const [bannerIdx, setBannerIdx] = useState(0);
   const heroRef = useRef(null);
@@ -2000,7 +2921,7 @@ function Hero({ setPage, banners }) {
           {banners.length > 1 && (
             <div style={{ display: 'flex', gap: 5, marginLeft: 12 }}>
               {banners.map((_, i) => (
-                <button key={i} type="button" onClick={() => setBannerIdx(i)} aria-label={'Show announcement ' + (i + 1)}
+                <button key={i} type="button" onClick={() => setBannerIdx(i)} aria-label={t('swShowAnnouncement') + ' ' + (i + 1)}
                   style={{ width: i === bannerIdx ? 16 : 5, height: 5, borderRadius: 10, background: i === bannerIdx ? 'var(--clay)' : 'rgba(255,255,255,.3)', border: 'none', cursor: 'pointer', transition: 'all .3s', padding: 0 }} />
               ))}
             </div>
@@ -2010,7 +2931,7 @@ function Hero({ setPage, banners }) {
 
       {/* ── Cinematic hero ── */}
       <section ref={heroRef} onMouseMove={onHeroMove} style={{ position: 'relative', minHeight: '100svh', display: 'flex', alignItems: 'flex-end', overflow: 'hidden', background: '#15110e' }}>
-        <Photo src={cms('home.hero.image', HOME_IMG.hero)} alt="Bespoke walk-in closet interior by The Closets" imgClass="hero-img kenburns" style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
+        <Photo src={cms('home.hero.image', HOME_IMG.hero)} alt={t('swHeroAlt')} imgClass="hero-img kenburns" style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
         <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(180deg, rgba(20,16,12,.34) 0%, rgba(20,16,12,.12) 38%, rgba(20,16,12,.82) 100%)' }} />
         <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', mixBlendMode: 'overlay', opacity: .07, backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
         <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: 1280, margin: '0 auto', padding: mobile ? '120px 24px 72px' : '0 48px 88px' }}>
@@ -2148,10 +3069,11 @@ function ProductDetailPage({ productId, products, setPage, addToCart, setConfigP
 }
 
 function ProductAR({ product, mobile }) {
+  const { t } = useI18n();
   if (!product || !product.model_url) return null;
   return (
     <div style={{ marginBottom: mobile ? 56 : 80 }}>
-      <h2 className="display" style={{ fontSize: mobile ? 24 : 32, color: 'var(--ink)', marginBottom: 16 }}>See it in 3D &amp; your room</h2>
+      <h2 className="display" style={{ fontSize: mobile ? 24 : 32, color: 'var(--ink)', marginBottom: 16 }}>{t('sw3ArSeeIn3D')}</h2>
       {createElement('model-viewer', {
         src: product.model_url,
         'ios-src': product.ar_ios_url || undefined,
@@ -2162,7 +3084,7 @@ function ProductAR({ product, mobile }) {
       },
         createElement('button', { slot: 'ar-button', key: 'arbtn', style: { position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', background: 'var(--clay)', color: '#fff', border: 'none', borderRadius: 980, padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' } }, '📱 View in your room')
       )}
-      <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 10 }}>Drag to rotate · on a phone tap “View in your room” for AR. Representative model — your exact unit is finalised at your free design visit.</div>
+      <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 10 }}>{t('sw3ArHint')}</div>
     </div>
   );
 }
@@ -2215,7 +3137,7 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
           {cart.length === 0
             ? <div style={{ textAlign: 'center', padding: '48px 0' }}>
                 <div style={{ fontSize: 48, opacity: .15, marginBottom: 12 }}>◻</div>
-                <div style={{ fontSize: 15, color: '#86868b', marginBottom: 18 }}>Your cart is empty</div>
+                <div style={{ fontSize: 15, color: '#86868b', marginBottom: 18 }}>{t('sw3CartEmpty')}</div>
                 <button type="button" className="btn-secondary" style={{ borderRadius: 980 }} onClick={() => { setOpen(false); setPage('products'); }}>Browse Collection</button>
               </div>
             : cart.map((item, idx) => (
@@ -2240,7 +3162,7 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
               <span style={{ fontSize: 22, fontWeight: 700, color: '#1d1d1f' }}>{fmt(total)}</span>
             </div>
             <button type="button" className="btn" style={{ width: '100%', borderRadius: 16 }} onClick={() => { setOpen(false); setPage('checkout'); }}>Checkout</button>
-            <div style={{ fontSize: 12, color: '#86868b', textAlign: 'center', marginTop: 10 }}>Free delivery across Bahrain</div>
+            <div style={{ fontSize: 12, color: '#86868b', textAlign: 'center', marginTop: 10 }}>{t('sw3FreeDelivery')}</div>
           </div>
         )}
       </div>
@@ -2291,6 +3213,7 @@ function useThreeLoaded() {
 // Live 3D wardrobe preview. Recolours/reshapes from props; drag to rotate.
 function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, tall, widthCm, heightCm, depthCm, sideACm, sideBCm, product, apiRef, unit = 'cm', preset = 'iso', scaleMode = 'fit' }) {
   const { ready, failed } = useThreeLoaded();
+  const { t } = useI18n();
   const mountRef = useRef(null);
   const stateRef = useRef({ finishHex, layout, glass, handles, led, widthCm, heightCm, depthCm, sideACm, sideBCm, product, unit, scaleMode });
   const sceneRef = useRef(null);
@@ -2803,7 +3726,7 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
             <button type="button" aria-label="Zoom out" style={ctrlBtn} onClick={() => sceneRef.current && sceneRef.current.zoomBy(1.2)}>−</button>
             <button type="button" aria-label="Reset view" style={{ ...ctrlBtn, fontSize: 14 }} onClick={() => sceneRef.current && sceneRef.current.reset()}>⟲</button>
           </div>
-          <div style={{ position: 'absolute', left: 12, bottom: 12, fontSize: 11, color: '#8a8a8e', background: 'rgba(255,255,255,.7)', padding: '4px 9px', borderRadius: 20, pointerEvents: 'none' }}>Drag to rotate · scroll to zoom</div>
+          <div style={{ position: 'absolute', left: 12, bottom: 12, fontSize: 11, color: '#8a8a8e', background: 'rgba(255,255,255,.7)', padding: '4px 9px', borderRadius: 20, pointerEvents: 'none' }}>{t('sw3DragRotateZoom')}</div>
         </>
       )}
     </div>
@@ -3491,8 +4414,8 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   if (!settings) return (
     <div style={{ minHeight:'70vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'140px 24px', textAlign:'center', color:'#86868b' }}>
       {loadError ? (<>
-        <div style={{ fontSize:17, fontWeight:600, color:'#1d1d1f', marginBottom:8 }}>Couldn't load the planner</div>
-        <div style={{ fontSize:14, marginBottom:20, maxWidth:360 }}>We're having trouble reaching our design service. Please try again in a moment.</div>
+        <div style={{ fontSize:17, fontWeight:600, color:'#1d1d1f', marginBottom:8 }}>{t('sw3PlannerLoadErr')}</div>
+        <div style={{ fontSize:14, marginBottom:20, maxWidth:360 }}>{t('sw3PlannerLoadErrSub')}</div>
         <div style={{ display:'flex', gap:10 }}>
           <button type="button" className="btn" onClick={()=>{ setLoadError(false); setLoadAttempt(a=>a+1); }} style={{ borderRadius:14 }}>Try again</button>
           <button type="button" className="btn-secondary" onClick={()=>setPage('contact')} style={{ borderRadius:14 }}>Contact us</button>
@@ -3567,7 +4490,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           <Spark size={22} color="var(--clay)" />
           <span className="display" style={{ fontSize:20, color:'var(--ink)' }}>Describe your space</span>
         </div>
-        <p style={{ fontSize:14, color:'var(--ink-soft)', marginBottom:16, lineHeight:1.6 }}>We'll design a tailored starting point in seconds.</p>
+        <p style={{ fontSize:14, color:'var(--ink-soft)', marginBottom:16, lineHeight:1.6 }}>{t('sw3PlannerTailored')}</p>
         <textarea value={aiText} onChange={e=>setAiText(e.target.value)} aria-label="Describe your design" placeholder="e.g. a walk-in closet for a master bedroom, warm oak, lots of shoes and hanging space, with soft lighting" rows={3} style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'var(--cream)', borderRadius:12, fontSize:15, fontFamily:'inherit', resize:'vertical', marginBottom:12 }} />
         <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:14 }}>
           {['Small bedroom, sliding doors, white','Walk-in, oak, lots of shoes','Modern L-shape kitchen, white, quartz'].map(chip=>(
@@ -3585,7 +4508,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
         </label>
         <div style={{ display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
           <button type="button" className="btn-clay" disabled={aiBusy || (!aiText.trim() && !aiImage)} onClick={runAI} style={{ opacity:(aiBusy||(!aiText.trim()&&!aiImage))?0.6:1 }}>{aiBusy ? 'Designing…' : 'Generate my design ✦'}</button>
-          <button type="button" onClick={()=>setStage('config')} style={{ background:'none', border:'none', color:'var(--ink-soft)', fontSize:14, cursor:'pointer' }}>or start from scratch →</button>
+          <button type="button" onClick={()=>setStage('config')} style={{ background:'none', border:'none', color:'var(--ink-soft)', fontSize:14, cursor:'pointer' }}>{t('sw3PlannerScratch')}</button>
         </div>
         <div style={{ marginTop:18 }}><span onClick={()=>setStage('product')} style={{ cursor:'pointer', fontSize:13, color:'var(--muted)' }}>‹ Back</span></div>
       </div>
@@ -3693,7 +4616,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                     </div>
                   </div>
                 )}
-                <div style={{ fontSize:10.5, color:'var(--muted)', marginTop:10 }}>Indicative — valid 30 days. Your free design visit confirms an exact, itemised quote.</div>
+                <div style={{ fontSize:10.5, color:'var(--muted)', marginTop:10 }}>{t('sw3PlannerIndic30')}</div>
               </div>
               {quoteErr && <div role="alert" style={{ background:'#fdecea', border:'1px solid #f5c6c0', color:'#b3261e', borderRadius:12, padding:'10px 14px', fontSize:13 }}>{quoteErr}</div>}
               {/* CTAs — primary (quote) + secondary (download PDF). Edit + PDF on one row, primary below. */}
@@ -3725,7 +4648,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
         )}
         {rendering && (
           <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(15,18,22,.72)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
-            <div style={{ background:'#fff', borderRadius:18, padding:'40px 50px', textAlign:'center', color:'#6e6e73', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>Creating your photorealistic render… ~15–25 seconds.</div></div>
+            <div style={{ background:'#fff', borderRadius:18, padding:'40px 50px', textAlign:'center', color:'#6e6e73', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>{t('sw3PlannerRendering')}</div></div>
           </div>
         )}
         {roomDesignerOverlay}
@@ -3735,7 +4658,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             <div style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:28, textAlign:'center' }}>
               <div style={{ width:54, height:54, borderRadius:'50%', background:'#1D9E7522', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px' }}><i className="ti ti-check" style={{ color:'#1D9E75', fontSize:28 }} aria-hidden="true" /></div>
               <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 8px' }}>Quote sent!</h3>
-              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 20px', lineHeight:1.6 }}>Create a free account to track your quote, save this design and follow your order.</p>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 20px', lineHeight:1.6 }}>{t('sw3PlannerCreateAcct')}</p>
               <button type="button" className="btn-clay" onClick={()=>{ const c = quoteSent; if (openAuth) openAuth('register', c && typeof c==='object' ? c : undefined); else setPage('portal'); }} style={{ width:'100%', borderRadius:12, marginBottom:10 }}>Create my account</button>
               <button type="button" onClick={()=>{ setQuoteSent(false); setPage('home'); }} style={{ background:'none', border:'none', fontSize:13.5, color:'var(--muted)', cursor:'pointer' }}>Maybe later</button>
             </div>
@@ -3812,7 +4735,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                   <button type="button" aria-label="Close" onClick={()=>{ if(!rendering){ setRenderUrl(null); setRenderErr(''); } }} style={{ background:'none', border:'none', cursor:'pointer', color:'#999', fontSize:18 }}>✕</button>
                 </div>
                 <div style={{ padding:18, textAlign:'center' }}>
-                  {rendering && <div style={{ padding:'50px 0', color:'#6e6e73', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>Creating your photorealistic render… ~15–25 seconds.</div></div>}
+                  {rendering && <div style={{ padding:'50px 0', color:'#6e6e73', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>{t('sw3PlannerRendering')}</div></div>}
                   {!rendering && renderErr && <div style={{ padding:'40px 10px', color:'#c0392b', fontSize:14 }}>{renderErr}</div>}
                   {!rendering && renderUrl && (<>
                     <img src={renderUrl} alt="Photorealistic render of your design" style={{ width:'100%', borderRadius:12, display:'block' }} />
@@ -3856,7 +4779,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                       ); })}
                     </div>
                   ) : (
-                    <div style={{ fontSize:12, color:'var(--muted)' }}>Use Custom size for an exact measurement.</div>
+                    <div style={{ fontSize:12, color:'var(--muted)' }}>{t('sw3PlannerCustomSize')}</div>
                   )}
                 </div>
               );
@@ -3880,13 +4803,13 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                     <button type="button" onClick={()=>setCustomSize(false)} style={{ flex:1, padding:'8px 10px', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', borderRadius:8, background: !customSize?'var(--clay)':'transparent', color: !customSize?'#fff':'var(--ink-soft)' }}>Standard sizes</button>
                     <button type="button" onClick={()=>setCustomSize(true)} style={{ flex:1, padding:'8px 10px', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', borderRadius:8, background: customSize?'var(--clay)':'transparent', color: customSize?'#fff':'var(--ink-soft)' }}>Custom size</button>
                   </div>
-                  {useAB && <div style={{ fontSize:11.5, color:'var(--muted)', marginBottom:10 }}>L-shape — set each run, then the height & depth.</div>}
+                  {useAB && <div style={{ fontSize:11.5, color:'var(--muted)', marginBottom:10 }}>{t('sw3PlannerLShape')}</div>}
                   {!useAB && isKitchen && KITCHEN_RUN_LAYOUTS.includes(layout) && <div style={{ fontSize:11.5, color:'var(--muted)', marginBottom:10 }}>Total run length across all sides of your {layout} kitchen.</div>}
                   {customSize ? (<>
                     {useAB ? (<>{numInput('Side A','sideA',widthSpec)}{numInput('Side B','sideB',widthSpec)}</>) : numInput(widthLabel,'width',widthSpec)}
                     {numInput('Height','height',heightSpec)}
                     {numInput(depthLabel,'depth',depthSpec)}
-                    <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>Exact sizes snap to the nearest buildable measurement.</div>
+                    <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>{t('sw3PlannerSnap')}</div>
                   </>) : (<>
                     {useAB ? (<>{stdChips('Side A','sideA',widthSpec)}{stdChips('Side B','sideB',widthSpec)}</>) : stdChips(widthLabel,'width',widthSpec)}
                     {stdChips('Height','height',heightSpec)}
@@ -4092,7 +5015,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                     ); })()}
                   </div>
                 )}
-                <div style={{ fontSize:11.5, color:'var(--muted)', marginBottom:12 }}>Indicative — your free design visit confirms an exact, itemised quote.</div>
+                <div style={{ fontSize:11.5, color:'var(--muted)', marginBottom:12 }}>{t('sw3PlannerIndic')}</div>
                 {/* Secondary: save the design (quote/visualise handled by guided steps + sticky bar) */}
                 <button type="button" className="btn-secondary" disabled={busy} onClick={save} style={{ width:'100%', borderRadius:12, color: saved?'var(--good)':'var(--ink-soft)' }}>{saved?'✓ Saved':'Save my design'}</button>
               </div>
@@ -4127,7 +5050,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
         <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10000, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
           <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:26 }}>
             <div className="eyebrow" style={{ marginBottom:8 }}>{t('pAlmostThere')}</div>
-            <h3 className="display" style={{ fontSize:24, color:'var(--ink)', margin:'0 0 6px' }}>Where shall we send your quote?</h3>
+            <h3 className="display" style={{ fontSize:24, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw3PlannerSendQuote')}</h3>
             <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 18px', lineHeight:1.6 }}>Our design team will review your {selProduct?.name?.toLowerCase()||'design'} and get back with an exact, itemised quote.</p>
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
               <input value={qForm.name} onChange={e=>setQForm(s=>({...s,name:e.target.value}))} aria-label="Your name" placeholder="Your name" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
@@ -4150,7 +5073,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           <div style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:28, textAlign:'center' }}>
             <div style={{ width:54, height:54, borderRadius:'50%', background:'#1D9E7522', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px' }}><i className="ti ti-check" style={{ color:'#1D9E75', fontSize:28 }} aria-hidden="true" /></div>
             <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 8px' }}>Quote sent!</h3>
-            <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 20px', lineHeight:1.6 }}>Create a free account to track your quote, save this design and follow your order.</p>
+            <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 20px', lineHeight:1.6 }}>{t('sw3PlannerCreateAcct')}</p>
             <button type="button" className="btn-clay" onClick={()=>{ const c = quoteSent; if (openAuth) openAuth('register', c && typeof c==='object' ? c : undefined); else setPage('portal'); }} style={{ width:'100%', borderRadius:12, marginBottom:10 }}>Create my account</button>
             <button type="button" onClick={()=>{ setQuoteSent(false); setPage('home'); }} style={{ background:'none', border:'none', fontSize:13.5, color:'var(--muted)', cursor:'pointer' }}>Maybe later</button>
           </div>
@@ -4896,7 +5819,7 @@ function HomeHub({ user, setUser, setPage }) {
                   </div>
                 </div>
                 <input id="cust-photo-input" type="file" accept="image/*" style={{ display:'none' }} onChange={uploadPhoto} />
-                <p style={{ fontSize:14, color:'#6e6e73', lineHeight:1.6, marginBottom:18 }}>Your personal digital card is live. Share it to let people save your contact, view your membership and book with us.</p>
+                <p style={{ fontSize:14, color:'#6e6e73', lineHeight:1.6, marginBottom:18 }}>{t('sw3HubCardLive')}</p>
                 <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
                   <a href={cardUrl} target="_blank" rel="noreferrer" className="btn" style={{ borderRadius:14, textDecoration:'none' }}>Open my card ↗</a>
                   <button type="button" className="btn-secondary" onClick={shareCard} style={{ borderRadius:14 }}>Share</button>
@@ -4904,8 +5827,8 @@ function HomeHub({ user, setUser, setPage }) {
                 </div>
               </> : <>
                 <div style={{ fontSize:40, marginBottom:10 }}>🪪</div>
-                <div style={{ fontSize:17, fontWeight:600, color:'#1d1d1f' }}>No digital card yet</div>
-                <p style={{ fontSize:14, color:'#86868b', marginTop:8 }}>Ask our team to activate your free digital membership card — it carries your tier, points and rewards.</p>
+                <div style={{ fontSize:17, fontWeight:600, color:'#1d1d1f' }}>{t('sw3HubNoCard')}</div>
+                <p style={{ fontSize:14, color:'#86868b', marginTop:8 }}>{t('sw3HubNoCardSub')}</p>
                 <button type="button" className="btn" onClick={()=>setPage('contact')} style={{ borderRadius:14, marginTop:14 }}>Contact us</button>
               </>}
             </div>
@@ -4966,7 +5889,7 @@ function HomeHub({ user, setUser, setPage }) {
               <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', margin:0 }}>Service bookings</h2>
               <button type="button" className="btn" onClick={()=>setPage('services')} style={{ borderRadius:12, padding:'8px 16px', fontSize:14 }}>+ Book a service</button>
             </div>
-            {svcBookings.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'#86868b', background:'#fff', borderRadius:16, fontSize:14 }}>No service bookings yet.</div> : svcBookings.map(b=>{
+            {svcBookings.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'#86868b', background:'#fff', borderRadius:16, fontSize:14 }}>{t('sw3HubNoBookings')}</div> : svcBookings.map(b=>{
               const s=(b.status||'').toLowerCase();
               const col = /complet/.test(s)?'#16a34a' : /cancel|disput/.test(s)?'#dc2626' : /request/.test(s)?'var(--clay)' : '#3b82f6';
               return (
@@ -5368,7 +6291,7 @@ function PlannerGuidePage({ setPage }) {
           <div className="rv" style={{ maxWidth:680, marginBottom: mobile?40:64 }}>
             <div className="eyebrow" style={{ marginBottom:14 }}>{t('guideHowEyebrow')}</div>
             <h2 className="display" style={{ fontSize: mobile?32:48, color:'var(--ink)', lineHeight:1.08 }}>{t('guideHowTitle')}</h2>
-            <p style={{ fontSize: mobile?16:18, color:'var(--ink-soft)', marginTop:14, lineHeight:1.7 }}>The same easy flow whatever you are planning — from first layout to a price you can act on.</p>
+            <p style={{ fontSize: mobile?16:18, color:'var(--ink-soft)', marginTop:14, lineHeight:1.7 }}>{t('swGuideHowDesc')}</p>
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap: mobile?40:72 }}>
             {STEPS.map((s, i) => {
@@ -5395,14 +6318,14 @@ function PlannerGuidePage({ setPage }) {
         <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'56px 22px':'88px 40px' }}>
           <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?28:56, alignItems:'center' }}>
             <div className="rv tile-zoom" style={{ position:'relative', borderRadius:24, overflow:'hidden', minHeight: mobile?260:420, boxShadow:'0 30px 60px -30px rgba(33,28,24,.5)' }}>
-              <Photo src="/layouts/kitchen/island.jpg" alt="Interactive Room Designer with clickable surfaces" imgClass="tz" style={{ position:'absolute', inset:0 }} />
-              <span style={{ position:'absolute', top:16, left:16, background:'rgba(255,255,255,.95)', color:'var(--clay-deep)', fontSize:12.5, fontWeight:800, borderRadius:999, padding:'7px 14px', boxShadow:'0 4px 14px rgba(0,0,0,.16)' }}>🎨 Room Designer</span>
+              <Photo src="/layouts/kitchen/island.jpg" alt={t('swGuideRdAlt')} imgClass="tz" style={{ position:'absolute', inset:0 }} />
+              <span style={{ position:'absolute', top:16, left:16, background:'rgba(255,255,255,.95)', color:'var(--clay-deep)', fontSize:12.5, fontWeight:800, borderRadius:999, padding:'7px 14px', boxShadow:'0 4px 14px rgba(0,0,0,.16)' }}>{t('swGuideRdBadge')}</span>
             </div>
             <div className="rv">
-              <div className="eyebrow" style={{ marginBottom:14 }}>The Room Designer</div>
-              <h2 className="display" style={{ fontSize: mobile?32:46, color:'var(--ink)', lineHeight:1.08 }}>See it before you build it</h2>
+              <div className="eyebrow" style={{ marginBottom:14 }}>{t('swGuideRdEyebrow')}</div>
+              <h2 className="display" style={{ fontSize: mobile?32:46, color:'var(--ink)', lineHeight:1.08 }}>{t('swGuideRdTitle')}</h2>
               <p style={{ fontSize: mobile?16:18, color:'var(--ink-soft)', marginTop:14, lineHeight:1.75, maxWidth:520 }}>
-                Our interactive visualiser turns your choices into a real room you can play with. Click any surface to change its finish, flip between a live photo and 3D, then render a photoreal image. It works for kitchens, wardrobes, TV units, doors and offices.
+                {t('swGuideRdDesc')}
               </p>
               <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:14, marginTop:26 }}>
                 {DESIGNER_FEATURES.map(f => (
@@ -5423,9 +6346,9 @@ function PlannerGuidePage({ setPage }) {
       <section style={{ background:'#fff', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
         <div style={{ maxWidth:1280, margin:'0 auto', padding: mobile?'56px 22px':'88px 40px' }}>
           <div className="rv" style={{ maxWidth:680, marginBottom: mobile?32:48 }}>
-            <div className="eyebrow" style={{ marginBottom:14 }}>Plan any product</div>
-            <h2 className="display" style={{ fontSize: mobile?32:48, color:'var(--ink)', lineHeight:1.08 }}>One planner for every room</h2>
-            <p style={{ fontSize: mobile?16:18, color:'var(--ink-soft)', marginTop:14, lineHeight:1.7 }}>Each planner is tuned to its product, with the right layouts, finishes and accessories built in.</p>
+            <div className="eyebrow" style={{ marginBottom:14 }}>{t('swGuidePlanEyebrow')}</div>
+            <h2 className="display" style={{ fontSize: mobile?32:48, color:'var(--ink)', lineHeight:1.08 }}>{t('swGuidePlanTitle')}</h2>
+            <p style={{ fontSize: mobile?16:18, color:'var(--ink-soft)', marginTop:14, lineHeight:1.7 }}>{t('swGuidePlanDesc')}</p>
           </div>
           <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(auto-fill,minmax(230px,1fr))', gap:20 }}>
             {CATEGORIES.map(c => (
@@ -5434,12 +6357,12 @@ function PlannerGuidePage({ setPage }) {
                 style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', cursor:'pointer', textAlign:'left', padding:0, display:'flex', flexDirection:'column' }}>
                 <div className="tile-zoom" style={{ position:'relative', height:180 }}>
                   <Photo src={c.img} alt={c.name} imgClass="tz" style={{ position:'absolute', inset:0 }} />
-                  <span style={{ position:'absolute', top:12, right:12, background:'rgba(255,255,255,.94)', color:'var(--clay-deep)', fontSize:11.5, fontWeight:700, borderRadius:999, padding:'5px 11px' }}>{c.steps} steps</span>
+                  <span style={{ position:'absolute', top:12, right:12, background:'rgba(255,255,255,.94)', color:'var(--clay-deep)', fontSize:11.5, fontWeight:700, borderRadius:999, padding:'5px 11px' }}>{c.steps} {t('swGuideStepsLabel')}</span>
                 </div>
                 <div style={{ padding:'20px 20px 22px', flex:1, display:'flex', flexDirection:'column' }}>
                   <div className="display" style={{ fontSize:21, color:'var(--ink)' }}>{c.name}</div>
                   <div style={{ fontSize:14, color:'var(--ink-soft)', marginTop:8, lineHeight:1.6, flex:1 }}>{c.desc}</div>
-                  <span style={{ marginTop:16, color:'var(--clay)', fontSize:14, fontWeight:700 }}>Start {c.name.toLowerCase()} planner →</span>
+                  <span style={{ marginTop:16, color:'var(--clay)', fontSize:14, fontWeight:700 }}>{t('swGuideStartPlannerPre')} {c.name.toLowerCase()} {t('swGuideStartPlannerPost')}</span>
                 </div>
               </button>
             ))}
@@ -5451,8 +6374,8 @@ function PlannerGuidePage({ setPage }) {
       <section>
         <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'56px 22px':'88px 40px' }}>
           <div className="rv" style={{ maxWidth:680, marginBottom: mobile?32:48 }}>
-            <div className="eyebrow" style={{ marginBottom:14 }}>Tips for a great design</div>
-            <h2 className="display" style={{ fontSize: mobile?32:48, color:'var(--ink)', lineHeight:1.08 }}>Get it right, first time</h2>
+            <div className="eyebrow" style={{ marginBottom:14 }}>{t('swGuideTipsEyebrow')}</div>
+            <h2 className="display" style={{ fontSize: mobile?32:48, color:'var(--ink)', lineHeight:1.08 }}>{t('swGuideTipsTitle')}</h2>
           </div>
           <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(auto-fill,minmax(330px,1fr))', gap:18 }}>
             {TIPS.map((tip, i) => (
@@ -5607,15 +6530,15 @@ function ContactPage() {
           <div className="rv-r" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:22, padding:'56px 32px', textAlign:'center' }}>
             <div style={{ width:64, height:64, borderRadius:'50%', background:'rgba(176,97,59,.12)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px', fontSize:28, color:'var(--clay)' }}>✓</div>
             <h3 className="display" style={{ fontSize:26, color:'var(--ink)', marginBottom:10 }}>{t('msgReceived')}</h3>
-            <p style={{ color:'var(--ink-soft)', fontSize:15 }}>We’ll be in touch within 24 hours.</p>
+            <p style={{ color:'var(--ink-soft)', fontSize:15 }}>{t('swContactWithin24')}</p>
           </div>
         ) : (
           <div className="rv-r" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:22, padding: mobile?22:30, display:'flex', flexDirection:'column', gap:12 }}>
             <input className="inp" placeholder={t("yourName")} aria-label={t("yourName")} value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
-            <input className="inp" placeholder="Email" aria-label="Email" type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
+            <input className="inp" placeholder={t('swContactEmail')} aria-label={t('swContactEmail')} type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
             <input className="inp" placeholder={t("phone")} aria-label={t("phone")} value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
-            <select className="inp" value={form.product} onChange={e=>setForm(p=>({...p,product:e.target.value}))} aria-label="Interested in" style={{ background:'var(--cream)', border:'1px solid var(--line)' }}>
-              <option value="">Interested in…</option>
+            <select className="inp" value={form.product} onChange={e=>setForm(p=>({...p,product:e.target.value}))} aria-label={t('swContactInterestedAria')} style={{ background:'var(--cream)', border:'1px solid var(--line)' }}>
+              <option value="">{t('swContactInterested')}</option>
               {['Walk-In Wardrobe','Sliding Door','Hinged Door','Kitchen','Office','Kids Room'].map(o=><option key={o}>{o}</option>)}
             </select>
             <select className="inp" value={form.budget} onChange={e=>setForm(p=>({...p,budget:e.target.value}))} aria-label={t('budgetRange')} style={{ background:'var(--cream)', border:'1px solid var(--line)' }}>
@@ -5623,14 +6546,14 @@ function ContactPage() {
               {['BD 200–500','BD 500–1,000','BD 1,000–2,500','BD 2,500–5,000','BD 5,000+'].map(o=><option key={o}>{o}</option>)}
             </select>
             <textarea className="inp" rows={4} placeholder={t("tellProject")} aria-label={t("tellProject")} value={form.message} onChange={e=>setForm(p=>({...p,message:e.target.value}))} style={{ resize:'vertical', background:'var(--cream)', border:'1px solid var(--line)' }} />
-            <button type="button" className="btn-clay" disabled={busy} onClick={submit} style={{ marginTop:4, opacity:busy?.6:1 }}>{busy ? 'Sending…' : t('sendMessage')}</button>
+            <button type="button" className="btn-clay" disabled={busy} onClick={submit} style={{ marginTop:4, opacity:busy?.6:1 }}>{busy ? t('swContactSending') : t('sendMessage')}</button>
           </div>
         )}
       </div>
       {team.length > 0 && (
         <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'48px 24px 20px':'72px 32px 20px' }}>
-          <div className="eyebrow" style={{ marginBottom:12 }}>Our team</div>
-          <h2 className="display" style={{ fontSize: mobile?26:34, color:'var(--ink)', marginBottom:24 }}>Save a specialist’s card</h2>
+          <div className="eyebrow" style={{ marginBottom:12 }}>{t('swContactOurTeam')}</div>
+          <h2 className="display" style={{ fontSize: mobile?26:34, color:'var(--ink)', marginBottom:24 }}>{t('swContactSaveCard')}</h2>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:14 }}>
             {team.map(c => <CardTile key={c.slug} c={c} />)}
           </div>
@@ -5686,7 +6609,7 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
           <div style={{ textAlign:'center', padding:'60px 0' }}>
             <div style={{ width:72, height:72, borderRadius:'50%', background:'rgba(26,122,64,.1)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 24px', fontSize:32 }}>✓</div>
             <h2 style={{ fontSize:26, fontWeight:700, color:'#1d1d1f', marginBottom:10 }}>{t('orderPlaced')}</h2>
-            <p style={{ color:'#86868b', fontSize:15, marginBottom:32 }}>We'll confirm within 24 hours.</p>
+            <p style={{ color:'#86868b', fontSize:15, marginBottom:32 }}>{t('swContactConfirm24')}</p>
             <button type="button" className="btn" onClick={()=>setPage('home')} style={{ borderRadius:14 }}>{t('backHome')}</button>
           </div>
         ) : (
@@ -5701,47 +6624,47 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
                 </div>
               ))}
               <div style={{ display:'flex', justifyContent:'space-between', paddingTop:4 }}>
-                <span style={{ fontSize:16, fontWeight:700 }}>Total</span>
+                <span style={{ fontSize:16, fontWeight:700 }}>{t('total')}</span>
                 <span style={{ fontSize:20, fontWeight:700, color:'var(--clay)' }}>{fmt(total)}</span>
               </div>
-              {user && <div style={{ fontSize:12, color:'#86868b', marginTop:8 }}>+{Math.floor(total*10)} loyalty points</div>}
+              {user && <div style={{ fontSize:12, color:'#86868b', marginTop:8 }}>+{Math.floor(total*10)} {t('swCoLoyaltyPts')}</div>}
             </div>
             <div style={{ background:'#fff', borderRadius:20, padding: mobile ? 20 : 28, border:'1px solid #e6e6e6' }}>
               {step===1&&<>
-                <div style={{ fontSize:13, fontWeight:600, color:'#86868b', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:20 }}>01 / Contact</div>
+                <div style={{ fontSize:13, fontWeight:600, color:'#86868b', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:20 }}>{t('swCoStep1')}</div>
                 <div style={{ display:'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap:12, marginBottom:12 }}>
-                  {[['Full name','name','text'],['Email','email','email'],['Phone','phone','tel'],['City','city','text']].map(([label,key,type])=>(
+                  {[[t('swCoFullName'),'name','text'],[t('swCoEmail'),'email','email'],[t('swCoPhone'),'phone','tel'],[t('swCoCity'),'city','text']].map(([label,key,type])=>(
                     <div key={key}><label style={{ fontSize:13, fontWeight:500, color:'#86868b', display:'block', marginBottom:6 }}>{label}</label><input className="inp" type={type} value={form[key]} onChange={e=>setForm(p=>({...p,[key]:e.target.value}))} /></div>
                   ))}
-                  <div style={{ gridColumn: mobile ? '1' : 'span 2' }}><label style={{ fontSize:13, fontWeight:500, color:'#86868b', display:'block', marginBottom:6 }}>Address</label><input className="inp" value={form.address} onChange={e=>setForm(p=>({...p,address:e.target.value}))} /></div>
+                  <div style={{ gridColumn: mobile ? '1' : 'span 2' }}><label style={{ fontSize:13, fontWeight:500, color:'#86868b', display:'block', marginBottom:6 }}>{t('swCoAddress')}</label><input className="inp" value={form.address} onChange={e=>setForm(p=>({...p,address:e.target.value}))} /></div>
                 </div>
-                <button type="button" className="btn" onClick={()=>{ if(!form.name||!form.email){toast('Name and email required','error');return;} setStep(2); }} style={{ borderRadius:12 }}>Continue →</button>
+                <button type="button" className="btn" onClick={()=>{ if(!form.name||!form.email){toast(t('swCoNameEmailReq'),'error');return;} setStep(2); }} style={{ borderRadius:12 }}>{t('swCoContinue')}</button>
               </>}
               {step===2&&<>
-                <div style={{ fontSize:13, fontWeight:600, color:'#86868b', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:20 }}>02 / Payment</div>
+                <div style={{ fontSize:13, fontWeight:600, color:'#86868b', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:20 }}>{t('swCoStep2')}</div>
                 <div style={{ display:'flex', gap:8, marginBottom:16 }}>
-                  {['Bank Transfer','Cash','Cheque'].map(p=>(
-                    <button type="button" key={p} onClick={()=>{ setForm(f=>({...f,payment:p})); setMonths(0); }} style={{ flex:1, padding:'12px 8px', borderRadius:12, border:`1.5px solid ${form.payment===p&&months===0?'var(--clay)':'#e6e6e6'}`, background:form.payment===p&&months===0?'rgba(249,115,22,.08)':'#fff', color:form.payment===p&&months===0?'var(--clay)':'#6e6e73', fontSize:13, cursor:'pointer', fontWeight:form.payment===p&&months===0?500:400, transition:'all .15s' }}>{p}</button>
+                  {[['Bank Transfer',t('swCoBankTransfer')],['Cash',t('swCoCash')],['Cheque',t('swCoCheque')]].map(([p,plabel])=>(
+                    <button type="button" key={p} onClick={()=>{ setForm(f=>({...f,payment:p})); setMonths(0); }} style={{ flex:1, padding:'12px 8px', borderRadius:12, border:`1.5px solid ${form.payment===p&&months===0?'var(--clay)':'#e6e6e6'}`, background:form.payment===p&&months===0?'rgba(249,115,22,.08)':'#fff', color:form.payment===p&&months===0?'var(--clay)':'#6e6e73', fontSize:13, cursor:'pointer', fontWeight:form.payment===p&&months===0?500:400, transition:'all .15s' }}>{plabel}</button>
                   ))}
                 </div>
                 {instEnabled && (
                   <div style={{ marginBottom:16 }}>
-                    <div style={{ fontSize:13, fontWeight:600, color:'#1d1d1f', marginBottom:8 }}>Or split into monthly installments</div>
+                    <div style={{ fontSize:13, fontWeight:600, color:'#1d1d1f', marginBottom:8 }}>{t('swCheckoutSplit')}</div>
                     <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                       {plans.map(m=>(
                         <button type="button" key={m} onClick={()=>setMonths(months===m?0:m)} style={{ padding:'10px 14px', borderRadius:12, border:`1.5px solid ${months===m?'var(--clay)':'#e6e6e6'}`, background:months===m?'rgba(249,115,22,.08)':'#fff', cursor:'pointer', textAlign:'left' }}>
-                          <div style={{ fontSize:14, fontWeight:700, color:months===m?'var(--clay)':'#1d1d1f' }}>{m} months</div>
+                          <div style={{ fontSize:14, fontWeight:700, color:months===m?'var(--clay)':'#1d1d1f' }}>{m} {t('swCoMonths')}</div>
                           <div style={{ fontSize:12, color:'#86868b' }}>BHD {(total/m).toFixed(2)}/mo</div>
                         </button>
                       ))}
                     </div>
-                    {months>0 && <div style={{ marginTop:10, fontSize:13, color:'#16a34a', fontWeight:600 }}>✓ {months} payments of BHD {monthly.toFixed(2)} — our team will confirm the plan with you.</div>}
+                    {months>0 && <div style={{ marginTop:10, fontSize:13, color:'#16a34a', fontWeight:600 }}>✓ {months} {t('swCoInstConfirmPre')} {monthly.toFixed(2)} {t('swCoInstConfirmPost')}</div>}
                   </div>
                 )}
-                <textarea className="inp" rows={3} placeholder="Notes…" aria-label="Notes" value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))} style={{ resize:'vertical', marginBottom:16 }} />
+                <textarea className="inp" rows={3} placeholder={t('swCoNotes')} aria-label={t('swCoNotesAria')} value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))} style={{ resize:'vertical', marginBottom:16 }} />
                 <div style={{ display:'flex', gap:10 }}>
-                  <button type="button" className="btn-secondary" onClick={()=>setStep(1)} style={{ borderRadius:12 }}>← Back</button>
-                  <button type="button" className="btn" onClick={place} style={{ flex:1, borderRadius:12 }}>Place Order</button>
+                  <button type="button" className="btn-secondary" onClick={()=>setStep(1)} style={{ borderRadius:12 }}>{t('swCoBack')}</button>
+                  <button type="button" className="btn" onClick={place} style={{ flex:1, borderRadius:12 }}>{t('swCoPlaceOrder')}</button>
                 </div>
               </>}
             </div>
@@ -5754,17 +6677,18 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
 
 /* ── HOME PAGE ── */
 function HomeAIOffers({ setPage, mobile, P }) {
+  const { t } = useI18n();
   const [offers, setOffers] = useState([]);
   useEffect(() => { api('store_offers?active=eq.true&order=sort_order.asc&limit=3').then(d => { if (Array.isArray(d)) setOffers(d); }).catch(()=>{}); }, []);
   return (<>
     <section style={{ padding:`0 ${P}`, maxWidth:1200, margin:'28px auto 0' }}>
       <div className="reveal" style={{ background:'linear-gradient(135deg,#1d1d1f,#3a3530)', borderRadius:20, padding: mobile?24:36, color:'#fff', display:'flex', flexWrap:'wrap', gap:16, alignItems:'center', justifyContent:'space-between' }}>
         <div style={{ maxWidth:580 }}>
-          <div style={{ fontSize:12, letterSpacing:'.15em', textTransform:'uppercase', color:'#F9A35C' }}>New · AI Interior Designer</div>
-          <div style={{ fontSize: mobile?22:30, fontWeight:700, margin:'8px 0', lineHeight:1.15 }}>Describe your room or upload a photo — get a tailored design in seconds.</div>
-          <div style={{ fontSize:14, color:'#c9c7c3' }}>Layout, materials, colours, storage ideas and indicative pricing, composed by AI.</div>
+          <div style={{ fontSize:12, letterSpacing:'.15em', textTransform:'uppercase', color:'#F9A35C' }}>{t('sw3AiOffersBadge')}</div>
+          <div style={{ fontSize: mobile?22:30, fontWeight:700, margin:'8px 0', lineHeight:1.15 }}>{t('sw3AiOffersTitle')}</div>
+          <div style={{ fontSize:14, color:'#c9c7c3' }}>{t('sw3AiOffersSub')}</div>
         </div>
-        <button type="button" onClick={()=>setPage('ai')} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:980, padding:'13px 26px', fontSize:15, fontWeight:600, cursor:'pointer' }}>Try the AI Designer ✦</button>
+        <button type="button" onClick={()=>setPage('ai')} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:980, padding:'13px 26px', fontSize:15, fontWeight:600, cursor:'pointer' }}>{t('sw3AiOffersTry')}</button>
       </div>
     </section>
     {offers.length>0 && (
@@ -5803,6 +6727,7 @@ const CARD_DETAILS = [
   { name: 'RILEY STONE', number: '4127 6630 8845 1192', cvv: '751' },
 ];
 function DigitalCardCarousel({ user, setPage }) {
+  const { t } = useI18n();
   const containerRef = useRef(null);
   const progressRef = useRef(0);
   const mouseRef = useRef({ x: 0, y: 0, tx: 0, ty: 0 });
@@ -5977,8 +6902,8 @@ function DigitalCardCarousel({ user, setPage }) {
     return (
       <div ref={containerRef} style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px', overflow: 'hidden' }}>
         <div style={{ maxWidth: 460, textAlign: 'center', color: '#fff' }}>
-          <div style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.4, marginBottom: 8 }}>Your digital membership card</div>
-          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', marginBottom: 20 }}>Set it up in your account to share your details instantly.</div>
+          <div style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.4, marginBottom: 8 }}>{t('sw3DigCardTitle')}</div>
+          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', marginBottom: 20 }}>{t('sw3DigCardSub')}</div>
           <button
             type="button"
             onClick={() => setPage && setPage('portal')}
@@ -6126,6 +7051,7 @@ function DigitalCardCarousel({ user, setPage }) {
 }
 
 function HomePage({ user, products, testimonials, banners, siteLogo, setPage, addToCart, setConfigProduct }) {
+  const { t, lang } = useI18n();
   const mobile = useMobile();
   useReveal();
   useHomeFx();
@@ -6150,40 +7076,40 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
   }, []);
   const subscribe = () => {
     const e = email.trim();
-    if (!e || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) { toast('Please enter a valid email.', 'error'); return; }
+    if (!e || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) { toast(t('swNlInvalid'), 'error'); return; }
     // Best-effort lead capture; success regardless so the user always gets confirmation.
     api('leads', { method:'POST', body: { id: uid(), name:'Newsletter subscriber', email:e, source:'Website newsletter', interest:'Newsletter', status:'New' } }).catch(()=>{});
-    setSubscribed(true); setEmail(''); toast('You’re subscribed — welcome to The Closets.', 'success');
+    setSubscribed(true); setEmail(''); toast(t('swNlWelcome'), 'success');
   };
 
   // c. Free appointment options.
   const appointments = [
-    ['Home measure', 'We come to you, measure up and talk through ideas — free.', '📏'],
-    ['Showroom visit', 'See real finishes and hardware in one of our 4 showrooms.', '🏬'],
-    ['Home design', 'A designer visits with samples and a tailored 3D concept.', '🏡'],
-    ['Online design', 'Plan from anywhere with a video design consultation.', '💻'],
+    [t('swApptMeasure'), t('swApptMeasureSub'), '📏'],
+    [t('swApptShowroom'), t('swApptShowroomSub'), '🏬'],
+    [t('swApptHome'), t('swApptHomeSub'), '🏡'],
+    [t('swApptOnline'), t('swApptOnlineSub'), '💻'],
   ];
   // d. Room types.
   const rooms = [
-    ['Wardrobes', 'Walk-in, sliding & fitted', '/layouts/wardrobe/wardrobe-walkin.jpg', 'wardrobes'],
-    ['Kitchens', 'Modern, shaker & handleless', '/layouts/kitchen/island.jpg', 'kitchen'],
-    ['Home office', 'Desks, storage & built-ins', '/layouts/office/l-shaped.jpg', 'office'],
-    ['Doors', 'Swing, sliding, pivot & hidden', '/layouts/door/pivot.jpg', 'doors'],
-    ['TV & media units', 'Floating, full-wall & storage', '/layouts/TV/floating.jpg', 'tv'],
+    [t('swRoomWardrobes'), t('swRoomWardrobesSub'), '/layouts/wardrobe/wardrobe-walkin.jpg', 'wardrobes'],
+    [t('swRoomKitchens'), t('swRoomKitchensSub'), '/layouts/kitchen/island.jpg', 'kitchen'],
+    [t('swRoomOffice'), t('swRoomOfficeSub'), '/layouts/office/l-shaped.jpg', 'office'],
+    [t('swRoomDoors'), t('swRoomDoorsSub'), '/layouts/door/pivot.jpg', 'doors'],
+    [t('swRoomTv'), t('swRoomTvSub'), '/layouts/TV/floating.jpg', 'tv'],
   ];
   // e. Style quick-links.
   const styleLinks = [
-    ['Walk-in closets', 'wardrobes'], ['Sliding wardrobes', 'wardrobes'], ['Shaker kitchens', 'kitchen'],
-    ['Handleless kitchens', 'kitchen'], ['TV & media units', 'tv'], ['Home office', 'office'],
+    [t('swStyleWalkin'), 'wardrobes'], [t('swStyleSliding'), 'wardrobes'], [t('swStyleShaker'), 'kitchen'],
+    [t('swStyleHandleless'), 'kitchen'], [t('swRoomTv'), 'tv'], [t('swRoomOffice'), 'office'],
   ];
   const steps = [
-    ['01', 'Consultation', 'A free home or showroom visit to understand your space, style and budget.'],
-    ['02', 'Design', '3D layouts, materials and finishes — refined with you until it’s right.'],
-    ['03', 'Craft', 'Built in our own Bahrain workshop with premium hardware and joinery.'],
-    ['04', 'Install', 'Fitted by our own team, finished and cleaned, ready to use.'],
+    ['01', t('swStep1Title'), t('swStep1Desc')],
+    ['02', t('swStep2Title'), t('swStep2Desc')],
+    ['03', t('swStep3Title'), t('swStep3Desc')],
+    ['04', t('swStep4Title'), t('swStep4Desc')],
   ];
   const finishDots = ['#5a3b26', '#caa472', '#e9e3d8', '#2b2b2b'];
-  const marqueeItems = ['Own Bahrain workshop', 'Free design consultation', 'Premium European hardware', '15 years of craft', '4 showrooms', '2-year warranty', 'Installed by our own team'];
+  const marqueeItems = [t('swMarqWorkshop'), t('swMarqConsult'), t('swMarqHardware'), t('swMarq15'), t('swMarq4'), t('swMarq2yr'), t('swMarqInstall')];
   return (
     <div style={{ background: 'var(--cream)' }}>
       <div id="scrollProgress" />
@@ -6211,7 +7137,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
               <div style={{ fontSize: 30, marginBottom: 12 }}>{ic}</div>
               <div className="display" style={{ fontSize: mobile ? 17 : 20, color: 'var(--ink)', marginBottom: 6 }}>{title}</div>
               <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, marginBottom: 12 }}>{desc}</div>
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--clay)' }}>Book free →</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--clay)' }}>{t('swBookFree')}</span>
             </button>
           ))}
         </div>
@@ -6231,7 +7157,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
               <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: 24, zIndex: 2 }}>
                 <div className="display" style={{ color: '#fff', fontSize: mobile ? 24 : 28 }}>{name}</div>
                 <div style={{ color: 'rgba(255,255,255,.82)', fontSize: 14, marginTop: 5 }}>{sub}</div>
-                <div style={{ color: '#E7BBA0', fontSize: 13, fontWeight: 600, marginTop: 14, letterSpacing: '.04em' }}>Explore →</div>
+                <div style={{ color: '#E7BBA0', fontSize: 13, fontWeight: 600, marginTop: 14, letterSpacing: '.04em' }}>{t('swExplore')}</div>
               </div>
             </button>
           ))}
@@ -6246,14 +7172,14 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
             <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>{cms('home.designs.title', 'Designs you’ll love.')}</h2>
           </div>
           <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? 16 : 22, marginBottom: 28 }}>
-            {[['Wardrobes', 'Fitted, sliding & walk-in storage built around your life.', '/layouts/wardrobe/wardrobe-walkin.jpg', 'wardrobes'], ['Kitchens', 'Precision cabinetry, worktops and finishes for daily living.', '/layouts/kitchen/island.jpg', 'kitchen']].map(([name, desc, img, route]) => (
+            {[[t('swRoomWardrobes'), t('swDesignWardrobesDesc'), '/layouts/wardrobe/wardrobe-walkin.jpg', 'wardrobes'], [t('swRoomKitchens'), t('swDesignKitchensDesc'), '/layouts/kitchen/island.jpg', 'kitchen']].map(([name, desc, img, route]) => (
               <button type="button" key={name} className="tile-zoom lift" onClick={() => setPage(route)} style={{ position: 'relative', border: 'none', padding: 0, borderRadius: 24, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 300 : 420, background: '#15110e' }}>
                 <Photo src={img} alt={name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.05) 30%, rgba(20,16,12,.85) 100%)' }} />
                 <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: mobile ? 26 : 34, zIndex: 2 }}>
                   <div className="display" style={{ color: '#fff', fontSize: mobile ? 28 : 36 }}>{name}</div>
                   <div style={{ color: 'rgba(255,255,255,.85)', fontSize: mobile ? 14.5 : 16, marginTop: 8, lineHeight: 1.55, maxWidth: 380 }}>{desc}</div>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 18, background: 'var(--clay)', color: '#fff', borderRadius: 980, padding: '10px 20px', fontSize: 14, fontWeight: 600 }}>View {name.toLowerCase()} →</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 18, background: 'var(--clay)', color: '#fff', borderRadius: 980, padding: '10px 20px', fontSize: 14, fontWeight: 600 }}>{lang==='ar' ? <>← {t('swView')} {name.toLowerCase()}</> : <>{t('swView')} {name.toLowerCase()} →</>}</span>
                 </div>
               </button>
             ))}
@@ -6271,10 +7197,10 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 96}px ${P}` }}>
           <div className="rv" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 36 }}>
             <div>
-              <div className="eyebrow" style={{ marginBottom: 14 }}>Featured ranges</div>
-              <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>Popular right now.</h2>
+              <div className="eyebrow" style={{ marginBottom: 14 }}>{t('swFeaturedEyebrow')}</div>
+              <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>{t('swFeaturedTitle')}</h2>
             </div>
-            <button type="button" className="btn-line" onClick={() => setPage('products')}>View all →</button>
+            <button type="button" className="btn-line" onClick={() => setPage('products')}>{t('swViewAllArrow')}</button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 12 : 20 }}>
             {featuredRanges.map((p, i) => {
@@ -6284,20 +7210,20 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
                   <div className="tile-zoom" style={{ position: 'relative', aspectRatio: mobile ? '1/1' : '4/3' }}>
                     <Photo src={p.image_url || HOME_IMG.wardrobe} alt={p.name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
                     {p.badge && <span style={{ position: 'absolute', top: 12, left: 12, background: 'var(--clay)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 980 }}>{p.badge}</span>}
-                    {hasSave && <span style={{ position: 'absolute', top: 12, right: 12, background: 'var(--ink)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 980 }}>Save {fmt(Number(p.original_price) - Number(p.price))}</span>}
+                    {hasSave && <span style={{ position: 'absolute', top: 12, right: 12, background: 'var(--ink)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 980 }}>{t('swSave')} {fmt(Number(p.original_price) - Number(p.price))}</span>}
                   </div>
                   <div style={{ padding: mobile ? 14 : 18 }}>
-                    <div style={{ fontSize: 11.5, color: 'var(--muted)', letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 5 }}>{p.category || 'Bespoke'}</div>
+                    <div style={{ fontSize: 11.5, color: 'var(--muted)', letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 5 }}>{p.category || t('swCatBespoke')}</div>
                     <div className="display" style={{ fontSize: mobile ? 15.5 : 18, color: 'var(--ink)', marginBottom: 8, lineHeight: 1.2 }}>{p.name}</div>
                     <div style={{ display: 'flex', gap: 5, marginBottom: 10 }}>
                       {finishDots.map((c, j) => <span key={j} style={{ width: 14, height: 14, borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,.1)' }} />)}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                      <span style={{ fontSize: 11, color: 'var(--muted)' }}>from</span>
+                      <span style={{ fontSize: 11, color: 'var(--muted)' }}>{t('swFrom')}</span>
                       <span style={{ fontSize: mobile ? 16 : 18, fontWeight: 700, color: 'var(--ink)' }}>{fmt(p.price)}</span>
                       {hasSave && <span style={{ fontSize: 13, color: 'var(--muted)', textDecoration: 'line-through' }}>{fmt(p.original_price)}</span>}
                     </div>
-                    <span style={{ display: 'inline-block', marginTop: 12, fontSize: 13, fontWeight: 600, color: 'var(--clay)' }}>View →</span>
+                    <span style={{ display: 'inline-block', marginTop: 12, fontSize: 13, fontWeight: 600, color: 'var(--clay)' }}>{t('swViewArrow')}</span>
                   </div>
                 </div>
               );
@@ -6314,13 +7240,13 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
           <p style={{ fontSize: mobile ? 16 : 18, color: 'var(--ink-soft)', lineHeight: 1.7, marginTop: 18 }}>{cms('home.why.subtitle', 'Everything we make is designed, built and installed by our own people in Bahrain — so the piece you imagine is the piece you live with.')}</p>
         </div>
         <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 28 : 20 }}>
-          <Stat to={500} suffix="+" label="Projects delivered" />
-          <Stat to={15} suffix=" yrs" label="Of craftsmanship" />
-          <Stat to={4} label="Showrooms" />
-          <Stat to={100} suffix="%" label="Bespoke & fitted" />
+          <Stat to={500} suffix="+" label={t('swStatProjects')} />
+          <Stat to={15} suffix={t('swStatYrs')} label={t('swStatCraft')} />
+          <Stat to={4} label={t('swStatShowrooms')} />
+          <Stat to={100} suffix="%" label={t('swStatBespoke')} />
         </div>
         <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: 12, marginTop: 44 }}>
-          {[['🏭', 'Our own workshop'], ['🛠️', '15 years of craft'], ['🛡️', '2-year warranty'], ['🎁', 'Free design service']].map(([ic, label]) => (
+          {[['🏭', t('swBadgeWorkshop')], ['🛠️', t('swBadge15')], ['🛡️', t('swBadge2yr')], ['🎁', t('swBadgeFreeDesign')]].map(([ic, label]) => (
             <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--sand)', border: '1px solid var(--line)', borderRadius: 14, padding: '14px 16px' }}>
               <span style={{ fontSize: 20 }}>{ic}</span>
               <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{label}</span>
@@ -6334,8 +7260,8 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .05, mixBlendMode: 'overlay', backgroundImage: NOISE }} />
         <div style={{ position: 'relative', maxWidth: 1180, margin: '0 auto' }}>
           <div className="rv" style={{ maxWidth: 560, marginBottom: 56 }}>
-            <div className="eyebrow" style={{ color: '#E7BBA0', marginBottom: 14 }}>How it works</div>
-            <h2 className="display" style={{ fontSize: mobile ? 30 : 48 }}>From first sketch to final fit.</h2>
+            <div className="eyebrow" style={{ color: '#E7BBA0', marginBottom: 14 }}>{t('swHowEyebrow')}</div>
+            <h2 className="display" style={{ fontSize: mobile ? 30 : 48 }}>{t('swHowTitle')}</h2>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(4,1fr)', gap: mobile ? 28 : 24 }}>
             {steps.map(([n, title, desc], i) => (
@@ -6356,19 +7282,19 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
           {mobile && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.55), rgba(20,16,12,.92))', zIndex: 1 }} />}
           <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .06, mixBlendMode: 'overlay', backgroundImage: NOISE, zIndex: 1 }} />
           <div style={{ position: 'relative', zIndex: 2, padding: mobile ? '40px 26px 44px' : '64px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start', background: 'rgba(231,187,160,.14)', border: '1px solid rgba(231,187,160,.3)', color: '#E7BBA0', fontSize: 12, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 980, marginBottom: 18 }}>✦ New · AI Interior Designer</span>
-            <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 30 : 46, lineHeight: 1.05, letterSpacing: '-.02em', marginBottom: 16 }}>See your room,<br />reimagined in seconds.</h2>
-            <p style={{ color: 'rgba(255,255,255,.78)', fontSize: mobile ? 15 : 17, lineHeight: 1.65, marginBottom: 28, maxWidth: 440 }}>Upload a photo or describe your space — our AI returns a tailored layout, materials and a photorealistic render you can refine with our designers.</p>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start', background: 'rgba(231,187,160,.14)', border: '1px solid rgba(231,187,160,.3)', color: '#E7BBA0', fontSize: 12, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 980, marginBottom: 18 }}>✦ {t('swAiBadge')}</span>
+            <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 30 : 46, lineHeight: 1.05, letterSpacing: '-.02em', marginBottom: 16 }}>{t('swAiTitle1')}<br />{t('swAiTitle2')}</h2>
+            <p style={{ color: 'rgba(255,255,255,.78)', fontSize: mobile ? 15 : 17, lineHeight: 1.65, marginBottom: 28, maxWidth: 440 }}>{t('swAiDesc')}</p>
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
-              <button type="button" className="btn-clay" onClick={() => setPage('ai')} style={{ fontSize: 15, padding: '14px 26px' }}>Try the AI Designer →</button>
-              <span style={{ color: 'rgba(255,255,255,.6)', fontSize: 13 }}>Free · no signup</span>
+              <button type="button" className="btn-clay" onClick={() => setPage('ai')} style={{ fontSize: 15, padding: '14px 26px' }}>{t('swAiTry')}</button>
+              <span style={{ color: 'rgba(255,255,255,.6)', fontSize: 13 }}>{t('swAiFree')}</span>
             </div>
           </div>
           {!mobile && (
             <div style={{ position: 'relative', minHeight: 440 }}>
-              <Photo src={HOME_IMG.living} alt="A living room reimagined by The Closets AI designer" style={{ position: 'absolute', inset: 0 }} />
+              <Photo src={HOME_IMG.living} alt={t('swAiLivingAlt')} style={{ position: 'absolute', inset: 0 }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, #15110e 0%, rgba(21,17,14,.25) 24%, rgba(21,17,14,0) 52%)' }} />
-              <span style={{ position: 'absolute', top: 18, right: 18, background: 'rgba(20,16,12,.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', color: '#fff', fontSize: 11, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', padding: '5px 11px', borderRadius: 980, border: '1px solid rgba(255,255,255,.2)' }}>After ✦</span>
+              <span style={{ position: 'absolute', top: 18, right: 18, background: 'rgba(20,16,12,.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', color: '#fff', fontSize: 11, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', padding: '5px 11px', borderRadius: 980, border: '1px solid rgba(255,255,255,.2)' }}>{t('swAiAfter')}</span>
             </div>
           )}
         </div>
@@ -6379,10 +7305,10 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 48 : 80}px ${P}` }}>
           <div className="rv" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
             <div>
-              <div className="eyebrow" style={{ marginBottom: 14 }}>Limited time</div>
-              <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>Current offers.</h2>
+              <div className="eyebrow" style={{ marginBottom: 14 }}>{t('swOffersEyebrow')}</div>
+              <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>{t('swOffersTitle')}</h2>
             </div>
-            <button type="button" className="btn-line" onClick={() => setPage('offers')}>See all offers →</button>
+            <button type="button" className="btn-line" onClick={() => setPage('offers')}>{t('swSeeAllOffers')}</button>
           </div>
           <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(' + Math.min(offers.length, 3) + ',1fr)', gap: mobile ? 14 : 20 }}>
             {offers.slice(0, 3).map(o => (
@@ -6392,7 +7318,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
                   {o.badge && <span style={{ alignSelf: 'flex-start', background: 'var(--clay)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 11px', borderRadius: 980, marginBottom: 10 }}>{o.badge}</span>}
                   <div className="display" style={{ fontSize: 22, color: o.image_url ? '#fff' : 'var(--ink)' }}>{o.title}</div>
                   <div style={{ fontSize: 14, color: o.image_url ? 'rgba(255,255,255,.85)' : 'var(--ink-soft)', marginTop: 6, lineHeight: 1.5 }}>{o.subtitle}</div>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: o.image_url ? '#E7BBA0' : 'var(--clay)', marginTop: 14 }}>Claim offer →</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: o.image_url ? '#E7BBA0' : 'var(--clay)', marginTop: 14 }}>{t('swClaimOffer')}</span>
                 </div>
               </button>
             ))}
@@ -6405,10 +7331,10 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 48 : 80}px ${P}` }}>
           <div className="rv" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
             <div>
-              <div className="eyebrow" style={{ marginBottom: 14 }}>#TheClosets makeovers</div>
-              <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>Real homes, real transformations.</h2>
+              <div className="eyebrow" style={{ marginBottom: 14 }}>{t('swStoriesEyebrow')}</div>
+              <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>{t('swStoriesTitle')}</h2>
             </div>
-            <button type="button" className="btn-line" onClick={() => setPage('projects')}>View the gallery →</button>
+            <button type="button" className="btn-line" onClick={() => setPage('projects')}>{t('swViewGallery')}</button>
           </div>
           <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 10 : 16 }}>
             {projects.slice(0, 6).map((pr, i) => (
@@ -6429,8 +7355,8 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
       {testimonials.length > 0 && (
         <section style={{ background: 'var(--sand)', padding: `${mobile ? 64 : 104}px ${P}` }}>
           <div className="rv" style={{ textAlign: 'center', marginBottom: 48 }}>
-            <div className="eyebrow" style={{ marginBottom: 14 }}>Our clients</div>
-            <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>Loved across Bahrain.</h2>
+            <div className="eyebrow" style={{ marginBottom: 14 }}>{t('swTestiEyebrow')}</div>
+            <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>{t('swTestiTitle')}</h2>
           </div>
           <div className="rv"><TestiCarousel items={testimonials} /></div>
         </section>
@@ -6439,16 +7365,16 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
       {/* j. How can we help — 3 cards */}
       <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 88}px ${P} ${mobile ? 24 : 40}px` }}>
         <div className="rv" style={{ textAlign: 'center', maxWidth: 600, margin: '0 auto 36px' }}>
-          <div className="eyebrow" style={{ marginBottom: 14 }}>Next steps</div>
-          <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>How can we help?</h2>
+          <div className="eyebrow" style={{ marginBottom: 14 }}>{t('swHelpEyebrow')}</div>
+          <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>{t('swHelpTitle')}</h2>
         </div>
         <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: mobile ? 14 : 20 }}>
-          {[['Browse our products', 'Explore every range across kitchens, wardrobes, doors and storage.', '🛋️', 'products'], ['Use the Design Studio', 'Plan your space in 3D and get a live price estimate.', '✏️', 'planner'], ['View current offers', 'Save on bespoke pieces with our latest promotions.', '🏷️', 'offers']].map(([title, desc, ic, route], i) => (
+          {[[t('swHelpBrowse'), t('swHelpBrowseDesc'), '🛋️', 'products'], [t('swHelpStudio'), t('swHelpStudioDesc'), '✏️', 'planner'], [t('swHelpOffers'), t('swHelpOffersDesc'), '🏷️', 'offers']].map(([title, desc, ic, route], i) => (
             <button type="button" key={title} className="lift" onClick={() => setPage(route)} style={{ '--d': (i * 0.06) + 's', background: '#fff', border: '1px solid var(--line)', borderRadius: 20, padding: mobile ? '24px 20px' : '32px 26px', textAlign: 'left', cursor: 'pointer' }}>
               <div style={{ fontSize: 34, marginBottom: 14 }}>{ic}</div>
               <div className="display" style={{ fontSize: mobile ? 19 : 22, color: 'var(--ink)', marginBottom: 8 }}>{title}</div>
               <div style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 14 }}>{desc}</div>
-              <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--clay)' }}>Go →</span>
+              <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--clay)' }}>{t('swGo')}</span>
             </button>
           ))}
         </div>
@@ -6458,21 +7384,21 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
       <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 24 : 40}px ${P} ${mobile ? 48 : 80}px` }}>
         <div className="rv-sc" style={{ background: 'var(--ink)', borderRadius: 26, padding: mobile ? '36px 24px' : '56px 64px', display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1.1fr 1fr', gap: mobile ? 24 : 48, alignItems: 'center' }}>
           <div>
-            <div className="eyebrow" style={{ color: '#E7BBA0', marginBottom: 14 }}>Stay inspired</div>
-            <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 26 : 38, lineHeight: 1.1 }}>Ideas, offers & new ranges — straight to your inbox.</h2>
-            <p style={{ color: 'rgba(255,255,255,.7)', fontSize: mobile ? 14.5 : 16, lineHeight: 1.6, marginTop: 14 }}>Join our mailing list for design inspiration and exclusive savings. Unsubscribe any time.</p>
+            <div className="eyebrow" style={{ color: '#E7BBA0', marginBottom: 14 }}>{t('swNlEyebrow')}</div>
+            <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 26 : 38, lineHeight: 1.1 }}>{t('swNlTitle')}</h2>
+            <p style={{ color: 'rgba(255,255,255,.7)', fontSize: mobile ? 14.5 : 16, lineHeight: 1.6, marginTop: 14 }}>{t('swNlDesc')}</p>
           </div>
           <div>
             {subscribed ? (
               <div style={{ background: 'rgba(231,187,160,.14)', border: '1px solid rgba(231,187,160,.3)', borderRadius: 16, padding: '22px 24px', textAlign: 'center' }}>
                 <div style={{ fontSize: 28, marginBottom: 8 }}>✦</div>
-                <div className="display" style={{ color: '#fff', fontSize: 20 }}>You’re on the list.</div>
-                <div style={{ color: 'rgba(255,255,255,.7)', fontSize: 14, marginTop: 6 }}>Thanks for subscribing to The Closets.</div>
+                <div className="display" style={{ color: '#fff', fontSize: 20 }}>{t('swNlOnList')}</div>
+                <div style={{ color: 'rgba(255,255,255,.7)', fontSize: 14, marginTop: 6 }}>{t('swNlThanks')}</div>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', gap: 10 }}>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') subscribe(); }} placeholder="Your email address" aria-label="Email address" style={{ flex: 1, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.22)', borderRadius: 14, padding: '15px 18px', fontSize: 15, color: '#fff', outline: 'none' }} />
-                <button type="button" className="btn-clay" onClick={subscribe} style={{ flexShrink: 0 }}>Subscribe</button>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') subscribe(); }} placeholder={t('swNlPlaceholder')} aria-label={t('swNlAria')} style={{ flex: 1, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.22)', borderRadius: 14, padding: '15px 18px', fontSize: 15, color: '#fff', outline: 'none' }} />
+                <button type="button" className="btn-clay" onClick={subscribe} style={{ flexShrink: 0 }}>{t('swNlSubscribe')}</button>
               </div>
             )}
           </div>
@@ -6490,9 +7416,9 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
           <p style={{ color: 'rgba(255,255,255,.82)', fontSize: mobile ? 16 : 19, lineHeight: 1.6, marginBottom: 34, maxWidth: 520, marginLeft: 'auto', marginRight: 'auto' }}>{cms('home.cta.subtitle', 'Book a free home consultation — no obligation, just ideas, measured and quoted by our own team.')}</p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button type="button" className="btn-clay" onClick={() => setPage('contact')} style={{ fontSize: 16, padding: '16px 32px' }}>{cms('home.cta.button', 'Book a consultation →')}</button>
-            <button type="button" onClick={() => setPage('planner')} style={{ background: 'rgba(255,255,255,.1)', color: '#fff', border: '1px solid rgba(255,255,255,.45)', borderRadius: 14, padding: '15px 30px', fontSize: 16, fontWeight: 500, cursor: 'pointer', minHeight: 50, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>Design online</button>
+            <button type="button" onClick={() => setPage('planner')} style={{ background: 'rgba(255,255,255,.1)', color: '#fff', border: '1px solid rgba(255,255,255,.45)', borderRadius: 14, padding: '15px 30px', fontSize: 16, fontWeight: 500, cursor: 'pointer', minHeight: 50, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>{t('swCtaDesignOnline')}</button>
           </div>
-          <div style={{ marginTop: 26, color: 'rgba(255,255,255,.55)', fontSize: 13, letterSpacing: '.03em' }}>Own Bahrain workshop · 2-year warranty · Installed by our team</div>
+          <div style={{ marginTop: 26, color: 'rgba(255,255,255,.55)', fontSize: 13, letterSpacing: '.03em' }}>{t('swCtaTrust')}</div>
         </div>
       </section>
 
@@ -6562,13 +7488,14 @@ function BlogPage() {
   </PageWrap>);
 }
 function CareersPage() {
+  const { t } = useI18n();
   const [rows,setRows]=useState([]); const [openId,setOpenId]=useState(null);
   const [f,setF]=useState({name:'',email:'',phone:'',note:''}); const [sentFor,setSentFor]=useState(null);
   useEffect(()=>{ api('website_jobs?active=eq.true').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
   const apply=async(job)=>{
-    if(!f.name||!f.phone){ toast('Name and phone are required','error'); return; }
+    if(!f.name||!f.phone){ toast(t('swCarNamePhoneReq'),'error'); return; }
     await api('rpc/public_lead_submit',{method:'POST',body:{ p_name:f.name, p_phone:f.phone, p_email:f.email||null, p_source:'Website - Careers', p_interest:job.job_title, p_message:'Career application — '+job.job_title+(f.note?(' — '+f.note):''), p_meta:{ job_id:job.id, type:'career' } }});
-    setSentFor(job.id); toast('Application received ✓','success');
+    setSentFor(job.id); toast(t('swCarReceived'),'success');
   };
   return (<PageWrap title={cms('careers.hero.title','Careers')} sub={cms('careers.hero.subtitle','Join a team that builds beautiful, lasting spaces.')}>
     <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
@@ -6578,21 +7505,21 @@ function CareersPage() {
             <div style={{ fontSize:18, fontWeight:600, color:'#1d1d1f' }}>{j.job_title}</div>
             <div style={{ fontSize:13, color:'#86868b', marginTop:4 }}>{[j.department,j.employment_type,j.location].filter(Boolean).join(' · ')}</div>
           </div>
-          <button type="button" onClick={()=>setOpenId(openId===j.id?null:j.id)} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:980, padding:'10px 20px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{openId===j.id?'Close':'Apply'}</button>
+          <button type="button" onClick={()=>setOpenId(openId===j.id?null:j.id)} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:980, padding:'10px 20px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{openId===j.id?t('swCarClose'):t('swCarApply')}</button>
         </div>
         {j.description && <div style={{ fontSize:14, color:'#555', marginTop:12, lineHeight:1.6 }}>{j.description}</div>}
-        {j.requirements && <div style={{ fontSize:13, color:'#86868b', marginTop:8, lineHeight:1.6 }}><strong>Requirements:</strong> {j.requirements}</div>}
+        {j.requirements && <div style={{ fontSize:13, color:'#86868b', marginTop:8, lineHeight:1.6 }}><strong>{t('swCarRequirements')}</strong> {j.requirements}</div>}
         {openId===j.id && (sentFor===j.id
-          ? <div style={{ marginTop:16, color:'#1D7A4D', fontWeight:600 }}>Thank you — we&#39;ll be in touch.</div>
+          ? <div style={{ marginTop:16, color:'#1D7A4D', fontWeight:600 }}>{t('swCarThankYou')}</div>
           : <div style={{ marginTop:16, display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-              <input placeholder="Full name *" aria-label="Full name" value={f.name} onChange={e=>setF({...f,name:e.target.value})} style={inp} />
-              <input placeholder="Phone *" aria-label="Phone" value={f.phone} onChange={e=>setF({...f,phone:e.target.value})} style={inp} />
-              <input placeholder="Email" aria-label="Email" value={f.email} onChange={e=>setF({...f,email:e.target.value})} style={inp} />
-              <input placeholder="Note (optional)" aria-label="Note (optional)" value={f.note} onChange={e=>setF({...f,note:e.target.value})} style={inp} />
-              <button type="button" onClick={()=>apply(j)} style={{ gridColumn:'1 / -1', background:'#1d1d1f', color:'#fff', border:'none', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, cursor:'pointer' }}>Submit application</button>
+              <input placeholder={t('swCarFullName')} aria-label={t('swCarFullNameAria')} value={f.name} onChange={e=>setF({...f,name:e.target.value})} style={inp} />
+              <input placeholder={t('swCarPhone')} aria-label={t('swCarPhoneAria')} value={f.phone} onChange={e=>setF({...f,phone:e.target.value})} style={inp} />
+              <input placeholder={t('swCarEmail')} aria-label={t('swCarEmail')} value={f.email} onChange={e=>setF({...f,email:e.target.value})} style={inp} />
+              <input placeholder={t('swCarNote')} aria-label={t('swCarNote')} value={f.note} onChange={e=>setF({...f,note:e.target.value})} style={inp} />
+              <button type="button" onClick={()=>apply(j)} style={{ gridColumn:'1 / -1', background:'#1d1d1f', color:'#fff', border:'none', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{t('swCarSubmit')}</button>
             </div>)}
       </div>))}
-      {rows.length===0 && <div style={{ color:'#aaa' }}>No open roles right now — check back soon.</div>}
+      {rows.length===0 && <div style={{ color:'#aaa' }}>{t('swCareersNoRoles')}</div>}
     </div>
   </PageWrap>);
 }
@@ -6615,6 +7542,7 @@ function OffersPage({ setPage }) {
   </PageWrap>);
 }
 function FaqPage() {
+  const { t } = useI18n();
   const [rows,setRows]=useState([]); const [open,setOpen]=useState(null);
   useEffect(()=>{ api('website_faqs?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
   return (<PageWrap title={cms('faq.hero.title','Frequently asked questions')} sub={cms('faq.hero.subtitle','Everything you need to know about designing with us.')}>
@@ -6625,13 +7553,14 @@ function FaqPage() {
         </button>
         {open===q.id && <div style={{ padding:'0 20px 18px', fontSize:15, color:'#555', lineHeight:1.65 }}>{q.answer}</div>}
       </div>))}
-      {rows.length===0 && <div style={{ color:'#aaa' }}>FAQs coming soon.</div>}
+      {rows.length===0 && <div style={{ color:'#aaa' }}>{t('swFaqSoon')}</div>}
     </div>
   </PageWrap>);
 }
 const APPT_KINDS = ['Design Consultation','Free Site Visit','Showroom Visit','Online Consultation'];
 const APPT_SLOTS = ['Morning (9–12)','Afternoon (12–4)','Evening (4–7)'];
 function ServicesPage({ user, setPage, openAuth }) {
+  const { t } = useI18n();
   const [cats, setCats] = useState([]);
   const [sel, setSel] = useState(null);
   const [mode, setMode] = useState('scheduled');
@@ -6666,7 +7595,7 @@ function ServicesPage({ user, setPage, openAuth }) {
         <div className="rv" style={{ maxWidth: 680, marginBottom: 36 }}>
           <div className="eyebrow" style={{ marginBottom: 14 }}>{cms('services.hero.eyebrow', 'Home services')}</div>
           <h1 className="display" style={{ fontSize: 'clamp(36px,5vw,56px)', color: 'var(--ink)', marginBottom: 14 }}>{cms('services.hero.title', 'Help around the home, on demand.')}</h1>
-          <p style={{ fontSize: 17, color: 'var(--ink-soft)', lineHeight: 1.7 }}>{cms('services.hero.subtitle', 'Carpentry, repairs, cleaning, AC and more — scheduled or ASAP, by vetted providers.')}{user ? '' : ' Sign in to book.'}</p>
+          <p style={{ fontSize: 17, color: 'var(--ink-soft)', lineHeight: 1.7 }}>{cms('services.hero.subtitle', 'Carpentry, repairs, cleaning, AC and more — scheduled or ASAP, by vetted providers.')}{user ? '' : t('swSvcSignInToBook')}</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(250px,1fr))', gap: 18 }}>
           {cats.map(c => (
@@ -6684,7 +7613,7 @@ function ServicesPage({ user, setPage, openAuth }) {
               </div>
             </div>
           ))}
-          {cats.length === 0 && <div style={{ color: 'var(--muted)' }}>Services coming soon.</div>}
+          {cats.length === 0 && <div style={{ color: 'var(--muted)' }}>{t('swServicesSoon')}</div>}
         </div>
       </div>
 
@@ -6698,14 +7627,14 @@ function ServicesPage({ user, setPage, openAuth }) {
             {done ? (
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
                 <div style={{ fontSize: 44 }}>✅</div>
-                <p className="display" style={{ fontSize: 20, color: 'var(--ink)', marginTop: 8 }}>Request sent</p>
-                <p style={{ color: 'var(--ink-soft)', fontSize: 14 }}>We've sent it to available providers. Track it in your account.</p>
-                <button className="btn-clay" onClick={() => { setSel(null); setPage('portal'); }} style={{ marginTop: 16 }}>Go to my account</button>
+                <p className="display" style={{ fontSize: 20, color: 'var(--ink)', marginTop: 8 }}>{t('swSvcRequestSent')}</p>
+                <p style={{ color: 'var(--ink-soft)', fontSize: 14 }}>{t('swSvcSentBody')}</p>
+                <button className="btn-clay" onClick={() => { setSel(null); setPage('portal'); }} style={{ marginTop: 16 }}>{t('swSvcGoAccount')}</button>
               </div>
             ) : (
               <>
                 <div style={{ display: 'flex', background: 'var(--sand)', borderRadius: 12, padding: 4, marginBottom: 16 }}>
-                  {[['scheduled', 'Schedule'], ['on_demand', 'ASAP']].map(([m, l]) => (
+                  {[['scheduled', t('swSvcSchedule')], ['on_demand', t('swSvcAsap')]].map(([m, l]) => (
                     <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: 10, borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 600, background: mode === m ? '#fff' : 'transparent', color: mode === m ? 'var(--clay)' : 'var(--muted)' }}>{l}</button>
                   ))}
                 </div>
@@ -6731,6 +7660,7 @@ function ServicesPage({ user, setPage, openAuth }) {
 }
 
 function BookingPage({ setPage }) {
+  const { t } = useI18n();
   const mobile = useMobile();
   const [f,setF]=useState({ type:'Design Consultation', name:'', phone:'', email:'', date:'', slot:APPT_SLOTS[0], address:'', interest:'Kitchen', notes:'' });
   const [sent,setSent]=useState(false); const [busy,setBusy]=useState(false);
@@ -6744,7 +7674,7 @@ function BookingPage({ setPage }) {
     }catch(e){ toast('Could not submit, please try again','error'); }
     finally{ setBusy(false); }
   };
-  if(sent) return (<PageWrap eyebrow="Booked" title="Thank you."><div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding:36, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div className="display" style={{ fontSize:24, color:'var(--ink)', marginTop:14 }}>Your {f.type.toLowerCase()} is requested.</div><div style={{ fontSize:15, color:'var(--ink-soft)', marginTop:10, lineHeight:1.6 }}>Our design team will call you to confirm the time. No obligation, completely free.</div><button type="button" className="btn-clay" onClick={()=>setPage('home')} style={{ marginTop:22 }}>Back to home</button></div></PageWrap>);
+  if(sent) return (<PageWrap eyebrow="Booked" title="Thank you."><div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding:36, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div className="display" style={{ fontSize:24, color:'var(--ink)', marginTop:14 }}>Your {f.type.toLowerCase()} is requested.</div><div style={{ fontSize:15, color:'var(--ink-soft)', marginTop:10, lineHeight:1.6 }}>{t('sw3BookCallConfirm')}</div><button type="button" className="btn-clay" onClick={()=>setPage('home')} style={{ marginTop:22 }}>Back to home</button></div></PageWrap>);
   return (<PageWrap eyebrow={cms('booking.hero.eyebrow','Free design visit')} title={cms('booking.hero.title','Book your free visit.')} sub={cms('booking.hero.subtitle','A designer measures your space and creates a bespoke 2D & 3D concept — free, with no obligation.')}>
     <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding: mobile?22:30, maxWidth:720 }}>
       <div className="eyebrow" style={{ fontSize:11, marginBottom:10 }}>Appointment type</div>
@@ -6766,28 +7696,29 @@ function BookingPage({ setPage }) {
   </PageWrap>);
 }
 
-function RequestPage({ kind, title, sub, refLabel }) {
+function RequestPage({ kind, title, sub, refLabel, kindLabel }) {
+  const { t } = useI18n();
   const mobile=useMobile();
   const [f,setF]=useState({name:'',phone:'',email:'',ref:'',message:''}); const [sent,setSent]=useState(false); const [busy,setBusy]=useState(false);
   const set=(k,v)=>setF(s=>({...s,[k]:v}));
   const submit=async()=>{
-    if(!f.name||!f.phone){ toast('Name and phone are required','error'); return; }
+    if(!f.name||!f.phone){ toast(t('swReqNamePhoneReq'),'error'); return; }
     setBusy(true);
     try{ await api('rpc/public_lead_submit',{method:'POST',body:{ p_name:f.name, p_phone:f.phone, p_email:f.email||null, p_source:'Website - '+kind, p_interest:kind, p_message:(f.ref?(refLabel+': '+f.ref+' — '):'')+(f.message||''), p_meta:{ type:kind.toLowerCase() } }});
-      setSent(true); toast('Request received ✓','success'); }
-    catch{ toast('Could not submit, please try again','error'); } finally{ setBusy(false); }
+      setSent(true); toast(t('swReqReceived'),'success'); }
+    catch{ toast(t('swReqFailed'),'error'); } finally{ setBusy(false); }
   };
-  if(sent) return (<PageWrap title="Thank you"><div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:32, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div style={{ fontSize:19, fontWeight:600, color:'#1d1d1f', marginTop:12 }}>Your {kind.toLowerCase()} request is logged.</div><div style={{ fontSize:15, color:'#86868b', marginTop:8 }}>Our team will contact you to arrange the next step.</div></div></PageWrap>);
+  if(sent) return (<PageWrap title={t('swReqThankYou')}><div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:32, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div style={{ fontSize:19, fontWeight:600, color:'#1d1d1f', marginTop:12 }}>{t('swReqLoggedPrefix')} {kindLabel} {t('swReqLoggedSuffix')}</div><div style={{ fontSize:15, color:'#86868b', marginTop:8 }}>{t('swReqLoggedSub')}</div></div></PageWrap>);
   return (<PageWrap title={title} sub={sub}>
     <div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding: mobile?20:28, maxWidth:640, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
       <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:12 }}>
-        <input placeholder="Full name *" aria-label="Full name" value={f.name} onChange={e=>set('name',e.target.value)} style={inp} />
-        <input placeholder="Phone *" aria-label="Phone" value={f.phone} onChange={e=>set('phone',e.target.value)} style={inp} />
-        <input placeholder="Email" aria-label="Email" value={f.email} onChange={e=>set('email',e.target.value)} style={inp} />
-        <input placeholder={refLabel+' (optional)'} aria-label={refLabel+' (optional)'} value={f.ref} onChange={e=>set('ref',e.target.value)} style={inp} />
-        <textarea placeholder="Describe the issue / request" aria-label="Describe the issue / request" rows={4} value={f.message} onChange={e=>set('message',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1', resize:'vertical'}} />
+        <input placeholder={t('swReqFullName')} aria-label={t('swReqFullNameAria')} value={f.name} onChange={e=>set('name',e.target.value)} style={inp} />
+        <input placeholder={t('swReqPhone')} aria-label={t('swReqPhoneAria')} value={f.phone} onChange={e=>set('phone',e.target.value)} style={inp} />
+        <input placeholder={t('swReqEmail')} aria-label={t('swReqEmail')} value={f.email} onChange={e=>set('email',e.target.value)} style={inp} />
+        <input placeholder={refLabel+' '+t('swReqOptional')} aria-label={refLabel+' '+t('swReqOptional')} value={f.ref} onChange={e=>set('ref',e.target.value)} style={inp} />
+        <textarea placeholder={t('swReqDescribe')} aria-label={t('swReqDescribe')} rows={4} value={f.message} onChange={e=>set('message',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1', resize:'vertical'}} />
       </div>
-      <button type="button" disabled={busy} onClick={submit} style={{ marginTop:18, width:'100%', background:'var(--clay)', color:'#fff', border:'none', borderRadius:14, padding:'14px', fontSize:15, fontWeight:600, cursor:'pointer', opacity:busy?.6:1 }}>{busy?'Submitting…':'Submit request'}</button>
+      <button type="button" disabled={busy} onClick={submit} style={{ marginTop:18, width:'100%', background:'var(--clay)', color:'#fff', border:'none', borderRadius:14, padding:'14px', fontSize:15, fontWeight:600, cursor:'pointer', opacity:busy?.6:1 }}>{busy?t('swReqSubmitting'):t('swReqSubmit')}</button>
     </div>
   </PageWrap>);
 }
@@ -6886,7 +7817,8 @@ function YasNote({ children }) {
 
 // ── Reusable concept-result card (shared by hero + Text-to-Design tool) ──
 function YasConceptCard({ concept, setPage }) {
-  const chip = (t, i) => <span key={i} style={{ background: 'var(--sand)', color: 'var(--clay-deep)', borderRadius: 999, padding: '6px 12px', fontSize: 13, fontWeight: 500 }}>{t}</span>;
+  const { t } = useI18n();
+  const chip = (val, i) => <span key={i} style={{ background: 'var(--sand)', color: 'var(--clay-deep)', borderRadius: 999, padding: '6px 12px', fontSize: 13, fontWeight: 500 }}>{val}</span>;
   return (
     <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 18, padding: 22, marginTop: 16 }}>
       <div className="eyebrow">AI concept</div>
@@ -6918,8 +7850,8 @@ function YasConceptCard({ concept, setPage }) {
           </div></>
       )}
       <div style={{ display: 'flex', gap: 10, marginTop: 18, flexWrap: 'wrap' }}>
-        <button type="button" className="btn-clay" onClick={() => setPage('planner')} style={{ borderRadius: 999, padding: '11px 20px', fontSize: 14 }}>Refine in 3D planner</button>
-        <button type="button" onClick={() => setPage('booking')} style={{ background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 999, padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Book a free visit</button>
+        <button type="button" className="btn-clay" onClick={() => setPage('planner')} style={{ borderRadius: 999, padding: '11px 20px', fontSize: 14 }}>{t('sw3YasRefine3D')}</button>
+        <button type="button" onClick={() => setPage('booking')} style={{ background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 999, padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>{t('bookFreeVisit')}</button>
       </div>
       <YasNote />
     </div>
@@ -6953,6 +7885,7 @@ function yasFallbackConcept(prompt, product) {
 
 // 1) Text-to-Design (also powers the hero) — ai_design_concept w/ fallback.
 function YasTextToDesign({ initialPrompt, initialProduct, setPage }) {
+  const { t } = useI18n();
   const [prompt, setPrompt] = useState(initialPrompt || '');
   const [product, setProduct] = useState(initialProduct || '');
   const [budget, setBudget] = useState('');
@@ -6978,7 +7911,7 @@ function YasTextToDesign({ initialPrompt, initialProduct, setPage }) {
         <button type="button" className="btn-clay" disabled={busy} onClick={run} style={{ opacity: busy ? .6 : 1 }}>{busy ? 'Designing…' : '✨ Generate concept'}</button>
       </div>
       {busy && <div className="yas-shimmer-box" style={{ height: 120, marginTop: 16 }} />}
-      {warm && concept && <div style={{ fontSize: 12.5, color: 'var(--clay-deep)', marginTop: 14, background: 'var(--sand)', padding: '9px 12px', borderRadius: 10 }}>Our live AI is warming up — here's a starter concept. <button type="button" onClick={() => setPage('booking')} style={{ background: 'none', border: 'none', color: 'var(--clay-deep)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Book a free design consultation</button> for a tailored design.</div>}
+      {warm && concept && <div style={{ fontSize: 12.5, color: 'var(--clay-deep)', marginTop: 14, background: 'var(--sand)', padding: '9px 12px', borderRadius: 10 }}>{t('sw3YasWarming')} <button type="button" onClick={() => setPage('booking')} style={{ background: 'none', border: 'none', color: 'var(--clay-deep)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>{t('bookFreeDesignConsult')}</button> {t('sw3YasForTailored')}</div>}
       {concept && <YasConceptCard concept={concept} setPage={setPage} />}
     </div>
   );
@@ -7045,6 +7978,7 @@ const YAS_PALETTES = {
   Luxe: { style: 'Modern Luxe', colors: [['Matte Black', '#1d1d1f'], ['Marble White', '#f3f1ec'], ['Champagne Gold', '#cbab73'], ['Slate', '#54585c']], materials: ['Marble surfaces', 'Brushed gold', 'High-gloss lacquer', 'Smoked mirror'] },
 };
 function YasStyleFinder({ setPage }) {
+  const { t } = useI18n();
   const [vibes, setVibes] = useState([]);
   const [busy, setBusy] = useState(false);
   const [board, setBoard] = useState(null);
@@ -7067,7 +8001,7 @@ function YasStyleFinder({ setPage }) {
   };
   return (
     <div>
-      <div className="eyebrow" style={{ marginBottom: 10 }}>Pick up to 3 vibes</div>
+      <div className="eyebrow" style={{ marginBottom: 10 }}>{t('sw3YasPickVibes')}</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
         {YAS_VIBES.map(v => <YasChip key={v} active={vibes.includes(v)} onClick={() => toggle(v)}>{v}</YasChip>)}
       </div>
@@ -7090,8 +8024,8 @@ function YasStyleFinder({ setPage }) {
             {board.materials.map((m, i) => <span key={i} style={{ background: 'var(--sand)', color: 'var(--clay-deep)', borderRadius: 999, padding: '6px 12px', fontSize: 13, fontWeight: 500 }}>{m}</span>)}
           </div>
           <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
-            <button type="button" className="btn-clay" onClick={() => setPage('planner')} style={{ borderRadius: 999, padding: '10px 18px', fontSize: 13.5 }}>Use in 3D planner</button>
-            <button type="button" onClick={() => setPage('booking')} style={{ background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 999, padding: '10px 18px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>Book a free visit</button>
+            <button type="button" className="btn-clay" onClick={() => setPage('planner')} style={{ borderRadius: 999, padding: '10px 18px', fontSize: 13.5 }}>{t('sw3YasUse3D')}</button>
+            <button type="button" onClick={() => setPage('booking')} style={{ background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 999, padding: '10px 18px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>{t('bookFreeVisit')}</button>
           </div>
           <YasNote />
         </div>
@@ -7135,6 +8069,7 @@ function YasBudgetAssistant({ setPage }) {
 
 // 5) Material & Product Picks — recommend_products (always returns ok with fallback).
 function YasProductPicks({ setPage }) {
+  const { t } = useI18n();
   const [interest, setInterest] = useState('kitchen');
   const [busy, setBusy] = useState(false);
   const [items, setItems] = useState(null);
@@ -7165,7 +8100,7 @@ function YasProductPicks({ setPage }) {
         </div>
       )}
       {items && items.length === 0 && warm && (
-        <div style={{ marginTop: 16, padding: 16, background: 'var(--sand)', borderRadius: 12, color: 'var(--clay-deep)', fontSize: 14 }}>Our recommender is warming up. <button type="button" onClick={() => setPage('products')} style={{ background: 'none', border: 'none', color: 'var(--clay-deep)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Browse the full collection</button>.</div>
+        <div style={{ marginTop: 16, padding: 16, background: 'var(--sand)', borderRadius: 12, color: 'var(--clay-deep)', fontSize: 14 }}>{t('sw3YasRecWarming')} <button type="button" onClick={() => setPage('products')} style={{ background: 'none', border: 'none', color: 'var(--clay-deep)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>{t('sw3YasBrowseAll')}</button>.</div>
       )}
     </div>
   );
@@ -7257,7 +8192,7 @@ function AiYasPage({ setPage }) {
         <div className="yas-orb" style={{ width: 50, height: 50, top: '60%', right: '12%', animationDelay: '1.5s' }} />
         <div className="yas-orb" style={{ width: 30, height: 30, top: '30%', right: '24%', animationDelay: '3s' }} />
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 980, margin: '0 auto', padding: mobile ? '0 22px' : '0 32px', textAlign: 'center' }}>
-          <div className="yas-cap" style={{ marginBottom: 22 }}><span className="yas-spark">✦</span> Powered by The Closets AI · Bahrain</div>
+          <div className="yas-cap" style={{ marginBottom: 22 }}><span className="yas-spark">✦</span> {t('sw3YasPoweredBy')}</div>
           <h1 className="display" style={{ fontSize: mobile ? 52 : 92, lineHeight: .98, letterSpacing: '-.03em', color: '#fff', marginBottom: 18 }}>
             AI&nbsp;<span style={{ background: 'linear-gradient(100deg,#F2731C,#f0a05a,#8b5cf6)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent' }}>YAS</span>
           </h1>
@@ -7283,7 +8218,7 @@ function AiYasPage({ setPage }) {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 18, justifyContent: 'center', marginTop: 26, flexWrap: 'wrap', fontSize: 13, color: 'rgba(255,255,255,.6)' }}>
-            <span>No sign-up to try</span><span>·</span><span>Instant concepts</span><span>·</span><span>Free design visit to confirm</span>
+            <span>{t('sw3YasNoSignup')}</span><span>·</span><span>Instant concepts</span><span>·</span><span>{t('sw3YasVisitConfirm')}</span>
           </div>
         </div>
       </section>
@@ -7480,7 +8415,7 @@ function AIDesignerPage({ setPage, user }) {
         {/* Visual before/after */}
         {needsPhoto && (renderBusy || renderUrl || renderErr) && (
           <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding:16, boxShadow:'var(--shadow)', marginBottom:16 }}>
-            {renderBusy && <div style={{ padding:'60px 0', textAlign:'center', color:'var(--ink-soft)', fontSize:14 }}><i className="ti ti-loader-2" style={{ fontSize:26, color:'var(--clay)' }} aria-hidden="true" /><div style={{ marginTop:10 }}>Redesigning your room… ~15–25 seconds.</div></div>}
+            {renderBusy && <div style={{ padding:'60px 0', textAlign:'center', color:'var(--ink-soft)', fontSize:14 }}><i className="ti ti-loader-2" style={{ fontSize:26, color:'var(--clay)' }} aria-hidden="true" /><div style={{ marginTop:10 }}>{t('sw3AiRedesigning')}</div></div>}
             {!renderBusy && renderErr && <div style={{ padding:'40px 12px', textAlign:'center', color:'var(--clay-deep)', fontSize:14 }}>{renderErr}</div>}
             {!renderBusy && renderUrl && (<>
               <div style={{ position:'relative', borderRadius:14, overflow:'hidden', aspectRatio:'4 / 3', background:'#000' }}>
@@ -7492,7 +8427,7 @@ function AIDesignerPage({ setPage, user }) {
                 <input type="range" min={0} max={100} value={baPos} onChange={e=>setBaPos(Number(e.target.value))} style={{ position:'absolute', left:'6%', right:'6%', bottom:12, width:'88%', accentColor:'var(--clay)' }} />
               </div>
               <div style={{ display:'flex', gap:8, justifyContent:'space-between', alignItems:'center', marginTop:12, flexWrap:'wrap' }}>
-                <span style={{ fontSize:12, color:'var(--muted)' }}>Drag the slider to compare. AI impression — finishes confirmed at your visit.</span>
+                <span style={{ fontSize:12, color:'var(--muted)' }}>{t('sw3AiSliderCompare')}</span>
                 <div style={{ display:'flex', gap:8 }}>
                   <a href={renderUrl} download="closets-redesign.jpg" target="_blank" rel="noreferrer" style={{ padding:'8px 14px', borderRadius:99, background:'var(--ink)', color:'#fff', textDecoration:'none', fontSize:13, fontWeight:600 }}>Download</a>
                   <button type="button" onClick={()=>renderVisual()} style={{ padding:'8px 14px', borderRadius:99, border:'1px solid var(--line)', background:'#fff', color:'var(--ink)', cursor:'pointer', fontSize:13, fontWeight:600 }}>Regenerate</button>
@@ -7524,10 +8459,10 @@ function AIDesignerPage({ setPage, user }) {
               <div style={{ fontSize:11, color:'var(--muted)', marginTop:4, lineHeight:1.4 }}>{p.includes}</div>
             </div>))}
           </div>
-          <div style={{ fontSize:11, color:'var(--muted)', marginTop:8 }}>Indicative only — your free design visit confirms an exact, itemised quote.</div>
+          <div style={{ fontSize:11, color:'var(--muted)', marginTop:8 }}>{t('sw3AiIndicOnly')}</div>
           <div style={{ display:'flex', gap:10, marginTop:18, flexWrap:'wrap' }}>
-            <button type="button" className="btn-clay" onClick={()=>setPage('booking')} style={{ borderRadius:980, padding:'11px 20px', fontSize:14 }}>Book a free visit</button>
-            <button type="button" onClick={()=>setPage('planner')} style={{ background:'var(--ink)', color:'#fff', border:'none', borderRadius:980, padding:'11px 20px', fontSize:14, fontWeight:600, cursor:'pointer' }}>Refine in 3D planner</button>
+            <button type="button" className="btn-clay" onClick={()=>setPage('booking')} style={{ borderRadius:980, padding:'11px 20px', fontSize:14 }}>{t('bookFreeVisit')}</button>
+            <button type="button" onClick={()=>setPage('planner')} style={{ background:'var(--ink)', color:'#fff', border:'none', borderRadius:980, padding:'11px 20px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{t('sw3YasRefine3D')}</button>
             <button type="button" disabled={saved} onClick={saveConcept} style={{ background:'#fff', color: saved?'var(--good)':'var(--ink)', border:'1px solid '+(saved?'var(--good)':'var(--line)'), borderRadius:980, padding:'11px 20px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{saved?'✓ Saved to account':(user?'Save to my account':'Sign in to save')}</button>
           </div>
         </div>)}
@@ -7573,7 +8508,7 @@ function SiteFooter({ setPage }) {
 
       {/* Trust / accreditation badges */}
       <div style={{ display:'flex', gap:10, marginTop:24, flexWrap:'wrap' }}>
-        {['Own Bahrain workshop','2-year warranty','Free design service','Installed by our team','15 years of craft'].map(b=>(
+        {[t('swFootBadgeWorkshop'),t('swFootBadge2yr'),t('swFootBadgeFreeDesign'),t('swFootBadgeInstall'),t('swFootBadge15')].map(b=>(
           <span key={b} style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'8px 14px', fontSize:12.5, fontWeight:600, color:'var(--ink-soft)' }}><span style={{ color:'var(--clay)' }}>✦</span>{b}</span>
         ))}
       </div>
@@ -7586,11 +8521,12 @@ function SiteFooter({ setPage }) {
   </footer>);
 }
 function ChatWidget({ setPage }) {
+  const { t } = useI18n();
   const mobile = useMobile();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [input, setInput] = useState('');
-  const [msgs, setMsgs] = useState([{ role:'assistant', content:'Hi! 👋 I can help with kitchens, wardrobes, pricing, showrooms and booking a free design visit. What are you planning?' }]);
+  const [msgs, setMsgs] = useState([{ role:'assistant', content:t('swChatHello') }]);
   const listRef = useRef(null);
   useEffect(() => { if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight; }, [msgs, open, busy]);
   const send = async (text) => {
@@ -7600,13 +8536,18 @@ function ChatWidget({ setPage }) {
     try {
       const r = await fetch(SUPA_URL + '/functions/v1/support_chat', { method:'POST', headers:{ apikey:SUPA_KEY, Authorization:'Bearer '+SUPA_KEY, 'Content-Type':'application/json' }, body: JSON.stringify({ messages: next.map(m=>({ role:m.role, content:m.content })) }) });
       const d = await r.json();
-      setMsgs(m => [...m, { role:'assistant', content: (d && d.ok && d.reply) ? d.reply : 'Sorry, I had trouble there. You can reach our team on WhatsApp or book a free visit.' }]);
-    } catch { setMsgs(m => [...m, { role:'assistant', content:'I’m offline for a moment — please try again or book a free visit.' }]); }
+      setMsgs(m => [...m, { role:'assistant', content: (d && d.ok && d.reply) ? d.reply : t('swChatError') }]);
+    } catch { setMsgs(m => [...m, { role:'assistant', content:t('swChatOffline') }]); }
     finally { setBusy(false); }
   };
-  const chips = ['Design a kitchen','Wardrobe pricing','Book a free visit','Where are your showrooms?'];
+  const chips = [
+    { key:'kitchen', label:t('swChatChipKitchen') },
+    { key:'pricing', label:t('swChatChipPricing') },
+    { key:'book', label:t('swChatChipBook') },
+    { key:'showrooms', label:t('swChatChipShowrooms') },
+  ];
   return (<>
-    <button type="button" onClick={()=>setOpen(o=>!o)} aria-label="Chat with us" style={{ position:'fixed', right: mobile?16:24, bottom: mobile?88:24, zIndex:1400, width:56, height:56, borderRadius:'50%', background:'var(--clay)', border:'none', boxShadow:'0 6px 20px rgba(249,115,22,.4)', cursor:'pointer', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center' }}>
+    <button type="button" onClick={()=>setOpen(o=>!o)} aria-label={t('swChatAria')} style={{ position:'fixed', right: mobile?16:24, bottom: mobile?88:24, zIndex:1400, width:56, height:56, borderRadius:'50%', background:'var(--clay)', border:'none', boxShadow:'0 6px 20px rgba(249,115,22,.4)', cursor:'pointer', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center' }}>
       {open
         ? <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
         : <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5z"/></svg>}
@@ -7615,24 +8556,24 @@ function ChatWidget({ setPage }) {
     {open && (
       <div style={{ position:'fixed', right: mobile?10:24, bottom: mobile?150:92, zIndex:1400, width: mobile?'calc(100vw - 20px)':380, maxWidth:'calc(100vw - 20px)', height:520, maxHeight:'70vh', background:'#fff', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,.22)', border:'1px solid #ececec', display:'flex', flexDirection:'column', overflow:'hidden' }}>
         <div style={{ background:'#1d1d1f', color:'#fff', padding:'14px 18px' }}>
-          <div style={{ fontWeight:600, fontSize:15, display:'flex', alignItems:'center', gap:8 }}><Spark size={16} color="#F9A35C" /> Closets Assistant</div>
-          <div style={{ fontSize:12, color:'#bdbdbd', marginTop:2 }}>AI-powered · replies in seconds</div>
+          <div style={{ fontWeight:600, fontSize:15, display:'flex', alignItems:'center', gap:8 }}><Spark size={16} color="#F9A35C" /> {t('swChatTitle')}</div>
+          <div style={{ fontSize:12, color:'#bdbdbd', marginTop:2 }}>{t('swChatSubtitle')}</div>
         </div>
         <div ref={listRef} style={{ flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:10, background:'#fafafa' }}>
           {msgs.map((m,i)=>(<div key={i} style={{ alignSelf: m.role==='user'?'flex-end':'flex-start', maxWidth:'85%', background: m.role==='user'?'var(--clay)':'#fff', color: m.role==='user'?'#fff':'#1d1d1f', border: m.role==='user'?'none':'1px solid #ececec', borderRadius:14, padding:'10px 13px', fontSize:14, lineHeight:1.5, whiteSpace:'pre-wrap' }}>{m.content}</div>))}
-          {busy && <div style={{ alignSelf:'flex-start', color:'#aaa', fontSize:13, padding:'4px 6px' }}>typing…</div>}
-          {msgs.length<=1 && <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>{chips.map(c=>(<button key={c} type="button" onClick={()=>{ if(c==='Book a free visit'){ setOpen(false); setPage('booking'); } else send(c); }} style={{ fontSize:12, border:'1px solid #e0e0e0', borderRadius:16, padding:'6px 12px', background:'#fff', cursor:'pointer', color:'#1d1d1f' }}>{c}</button>))}</div>}
+          {busy && <div style={{ alignSelf:'flex-start', color:'#aaa', fontSize:13, padding:'4px 6px' }}>{t('swChatTyping')}</div>}
+          {msgs.length<=1 && <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>{chips.map(c=>(<button key={c.key} type="button" onClick={()=>{ if(c.key==='book'){ setOpen(false); setPage('booking'); } else send(c.label); }} style={{ fontSize:12, border:'1px solid #e0e0e0', borderRadius:16, padding:'6px 12px', background:'#fff', cursor:'pointer', color:'#1d1d1f' }}>{c.label}</button>))}</div>}
         </div>
         <div style={{ display:'flex', gap:8, padding:'12px', borderTop:'1px solid #ececec' }}>
-          <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter') send(); }} aria-label="Ask anything" placeholder="Ask anything…" style={{ flex:1, border:'1px solid #e0e0e0', borderRadius:980, padding:'10px 16px', fontSize:14, outline:'none' }} />
+          <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter') send(); }} aria-label={t('swChatPlaceholder')} placeholder={t('swChatPlaceholder')} style={{ flex:1, border:'1px solid #e0e0e0', borderRadius:980, padding:'10px 16px', fontSize:14, outline:'none' }} />
           <button type="button" onClick={()=>send()} disabled={busy||!input.trim()} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:'50%', width:40, height:40, cursor:'pointer', flexShrink:0, opacity:(busy||!input.trim())?0.5:1 }}><SendIcon size={18} color="#fff" /></button>
         </div>
       </div>
     )}
   </>);
 }
-const MaintenancePage = () => <RequestPage kind="Maintenance" title="Maintenance request" sub="Need an adjustment or repair? Log a request and our team will arrange a visit." refLabel="Order / reference no." />;
-const WarrantyPage = () => <RequestPage kind="Warranty" title="Warranty service" sub="Register a warranty claim — we stand behind every installation." refLabel="Order / warranty no." />;
+function MaintenancePage() { const { t } = useI18n(); return <RequestPage kind="Maintenance" kindLabel={t('swMaintKind')} title={t('swMaintTitle')} sub={t('swMaintSub')} refLabel={t('swMaintRef')} />; }
+function WarrantyPage() { const { t } = useI18n(); return <RequestPage kind="Warranty" kindLabel={t('swWarrKind')} title={t('swWarrTitle')} sub={t('swWarrSub')} refLabel={t('swWarrRef')} />; }
 
 function BeforeAfter({ before, after }) {
   const [show,setShow]=useState('after');
@@ -7644,9 +8585,11 @@ function BeforeAfter({ before, after }) {
   </div>);
 }
 function PortfolioPage({ setPage }) {
+  const { t, lang } = useI18n();
   const [rows,setRows]=useState([]);
   useEffect(()=>{ api('website_projects?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
-  const cats=['Kitchens','Wardrobes','Walk-In Closets','TV Units','Doors','Storage Solutions','Office Furniture'];
+  // Category VALUE stays English (used in route 'cat:'+value); label is translated for display.
+  const cats=[['Kitchens',t('swPortCatKitchens')],['Wardrobes',t('swPortCatWardrobes')],['Walk-In Closets',t('swPortCatWalkin')],['TV Units',t('swPortCatTv')],['Doors',t('swPortCatDoors')],['Storage Solutions',t('swPortCatStorage')],['Office Furniture',t('swPortCatOffice')]];
   return (<PageWrap title={cms('projects.hero.title','Our projects')} sub={cms('projects.hero.subtitle','Real spaces we have designed, manufactured and installed across Bahrain.')}>
     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:20, marginBottom:48 }}>
       {rows.map(p=>(<div key={p.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
@@ -7659,18 +8602,18 @@ function PortfolioPage({ setPage }) {
           <div style={{ fontSize:14, color:'#86868b', marginTop:8, lineHeight:1.6 }}>{p.description}</div>
         </div>
       </div>))}
-      {rows.length===0 && <div style={{ color:'#aaa' }}>Project gallery coming soon.</div>}
+      {rows.length===0 && <div style={{ color:'#aaa' }}>{t('swPortGallerySoon')}</div>}
     </div>
-    <div style={{ fontSize:13, color:'#86868b', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:14 }}>Explore by room</div>
+    <div style={{ fontSize:13, color:'#86868b', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:14 }}>{t('swPortExploreByRoom')}</div>
     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:12 }}>
-      {cats.map(c=>(<button type="button" key={c} onClick={()=>setPage('cat:'+c)} style={{ background:'#f5f5f7', border:'none', borderRadius:14, padding:'18px 16px', textAlign:'left', cursor:'pointer', fontSize:14, fontWeight:600, color:'#1d1d1f' }}>{c} →</button>))}
+      {cats.map(([val,label])=>(<button type="button" key={val} onClick={()=>setPage('cat:'+val)} style={{ background:'#f5f5f7', border:'none', borderRadius:14, padding:'18px 16px', textAlign:'left', cursor:'pointer', fontSize:14, fontWeight:600, color:'#1d1d1f' }}>{lang==='ar' ? <>← {label}</> : <>{label} →</>}</button>))}
     </div>
   </PageWrap>);
 }
 function CategoryPage({ category, products, setPage, addToCart }) {
   const { t } = useI18n();
   const list=(products||[]).filter(p=> (p.category||'').toLowerCase()===category.toLowerCase());
-  return (<PageWrap title={category} sub={`Bespoke ${category.toLowerCase()}, designed, made and installed in Bahrain.`}>
+  return (<PageWrap title={category} sub={`${t('swCatSubPre')} ${category.toLowerCase()}${t('swCatSubPost')}`}>
     <div style={{ display:'flex', gap:10, marginBottom:24, flexWrap:'wrap' }}>
       <button type="button" onClick={()=>setPage('booking')} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:980, padding:'11px 22px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{t('bookFreeDesignVisit')}</button>
       <button type="button" onClick={()=>setPage('planner')} style={{ background:'#1d1d1f', color:'#fff', border:'none', borderRadius:980, padding:'11px 22px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{t('designIt3d')}</button>
@@ -7687,7 +8630,7 @@ function CategoryPage({ category, products, setPage, addToCart }) {
           </div>
         </div>
       </div>))}
-      {list.length===0 && <div style={{ color:'#aaa' }}>New {category.toLowerCase()} designs coming soon — book a visit to start yours.</div>}
+      {list.length===0 && <div style={{ color:'#aaa' }}>{t('swCatEmptyPre')} {category.toLowerCase()} {t('swCatEmptyPost')}</div>}
     </div>
   </PageWrap>);
 }
@@ -7695,14 +8638,17 @@ function CategoryPage({ category, products, setPage, addToCart }) {
 /* ── Robustness: a render error in one page must never blank the whole site ── */
 class PageBoundary extends Component {
   constructor(p){ super(p); this.state={ err:null }; }
+  static contextType = AppCtx;
   static getDerivedStateFromError(err){ return { err }; }
   componentDidCatch(err,info){ try{ console.error('Page render error:', err, info); }catch(e){} }
   render(){
+    const lang = (this.context && this.context.lang) || 'en';
+    const tr = (k) => (I18N[k] ? (I18N[k][lang] || I18N[k].en) : k);
     if(this.state.err) return (
       <div style={{ minHeight:'60vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'120px 24px', textAlign:'center' }}>
-        <div style={{ fontSize:18, fontWeight:700, color:'var(--ink)', marginBottom:8 }}>Something went wrong on this page</div>
-        <div style={{ fontSize:14, color:'var(--ink-soft)', maxWidth:420, marginBottom:18 }}>Please try again — your work elsewhere is safe.</div>
-        <button type="button" className="btn-clay" onClick={()=>this.setState({ err:null })} style={{ borderRadius:12 }}>Try again</button>
+        <div style={{ fontSize:18, fontWeight:700, color:'var(--ink)', marginBottom:8 }}>{tr('swErrTitle')}</div>
+        <div style={{ fontSize:14, color:'var(--ink-soft)', maxWidth:420, marginBottom:18 }}>{tr('swErrBody')}</div>
+        <button type="button" className="btn-clay" onClick={()=>this.setState({ err:null })} style={{ borderRadius:12 }}>{tr('swErrTryAgain')}</button>
         <div style={{ marginTop:14, fontSize:11, color:'var(--muted)', maxWidth:520, wordBreak:'break-word' }}>{String((this.state.err&&(this.state.err.message||this.state.err))||'').slice(0,200)}</div>
       </div>
     );
@@ -11634,9 +12580,9 @@ function KitchenStudio({ setPage, user, openAuth }) {
     <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?80:100, paddingBottom: mobile?120:90 }}>
       <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'0 14px':'0 28px' }}>
         <div style={{ textAlign:'center', marginBottom:16 }}>
-          <div className="eyebrow" style={{ marginBottom:10 }}>Kitchen Design Studio</div>
-          <h1 className="display" style={{ fontSize: mobile?28:44, color:'var(--ink)' }}>Design your kitchen, step by step.</h1>
-          <p style={{ color:'var(--ink-soft)', fontSize: mobile?14:16, marginTop:8, maxWidth:560, margin:'8px auto 0' }}>Pick a layout, choose your cabinets, worktop and finishes — see it in 3D and watch your quote build live.</p>
+          <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2KsEyebrow')}</div>
+          <h1 className="display" style={{ fontSize: mobile?28:44, color:'var(--ink)' }}>{t('sw2KsTitle')}</h1>
+          <p style={{ color:'var(--ink-soft)', fontSize: mobile?14:16, marginTop:8, maxWidth:560, margin:'8px auto 0' }}>{t('sw2KsSub')}</p>
         </div>
 
         {/* Stepper */}
@@ -11653,8 +12599,8 @@ function KitchenStudio({ setPage, user, openAuth }) {
           {/* ── PREVIEW + live quote ── */}
           <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding:16, boxShadow:'var(--shadow)', position: mobile?'static':'sticky', top:90 }}>
             <div style={{ display:'flex', gap:6, marginBottom:10 }}>
-              <button type="button" onClick={()=>setView3d(true)} style={{ flex:1, padding:'7px', borderRadius:10, fontSize:12.5, fontWeight:600, cursor:'pointer', border:'none', background: view3d?'var(--clay)':'var(--sand)', color: view3d?'#fff':'var(--ink-soft)' }}>3D view</button>
-              <button type="button" onClick={()=>setView3d(false)} style={{ flex:1, padding:'7px', borderRadius:10, fontSize:12.5, fontWeight:600, cursor:'pointer', border:'none', background:!view3d?'var(--clay)':'var(--sand)', color:!view3d?'#fff':'var(--ink-soft)' }}>2D plan</button>
+              <button type="button" onClick={()=>setView3d(true)} style={{ flex:1, padding:'7px', borderRadius:10, fontSize:12.5, fontWeight:600, cursor:'pointer', border:'none', background: view3d?'var(--clay)':'var(--sand)', color: view3d?'#fff':'var(--ink-soft)' }}>{t('sw2Ks3dView')}</button>
+              <button type="button" onClick={()=>setView3d(false)} style={{ flex:1, padding:'7px', borderRadius:10, fontSize:12.5, fontWeight:600, cursor:'pointer', border:'none', background:!view3d?'var(--clay)':'var(--sand)', color:!view3d?'#fff':'var(--ink-soft)' }}>{t('sw2Ks2dPlan')}</button>
             </div>
             <div style={{ background:'var(--sand)', borderRadius:14, padding: view3d?0:14, overflow:'hidden', minHeight: mobile?220:320 }}>
               {view3d
@@ -11662,25 +12608,25 @@ function KitchenStudio({ setPage, user, openAuth }) {
                 : planSvg()}
             </div>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginTop:14 }}>
-              <span style={{ fontSize:12, color:'var(--muted)' }}>Indicative estimate · {runM.toFixed(1)}m run</span>
+              <span style={{ fontSize:12, color:'var(--muted)' }}>{t('sw2KsIndicEst')} · {runM.toFixed(1)}m {t('sw2KsRun')}</span>
               <span className="display" style={{ fontSize: mobile?24:28, color:'var(--clay)' }}>{fmt(est)}</span>
             </div>
             {/* live price drivers */}
             <div style={{ marginTop:10, fontSize:12, color:'var(--ink-soft)', display:'grid', gap:4 }}>
-              {[['Cabinets ('+cab.name+', '+runM.toFixed(1)+'m)',cabinetCost],['Worktop ('+wt.name+')',worktopCost],['Handles',handleCost],['Appliances ('+appsList.length+')',applianceCost],['Storage add-ons ('+storeList.length+')',storageCost]].map(([l,v])=>(
+              {[[t('sw2KsCabinets')+' ('+cab.name+', '+runM.toFixed(1)+'m)',cabinetCost],[t('sw2KsWorktop')+' ('+wt.name+')',worktopCost],[t('sw2KsHandles'),handleCost],[t('sw2KsAppliances')+' ('+appsList.length+')',applianceCost],[t('sw2KsStorageAddons')+' ('+storeList.length+')',storageCost]].map(([l,v])=>(
                 <div key={l} style={{ display:'flex', justifyContent:'space-between' }}><span>{l}</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(v)}</span></div>
               ))}
             </div>
-            <div style={{ fontSize:11, color:'var(--muted)', marginTop:8, lineHeight:1.5 }}>A transparent guide price — your free design visit confirms exact dimensions, units and an itemised quote.</div>
-            <button type="button" onClick={()=>setSpecOpen(true)} style={{ marginTop:10, width:'100%', background:'var(--sand)', border:'1px solid var(--line)', borderRadius:12, padding:'10px', fontSize:13, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>View full spec & pricing detail</button>
-            {!mobile && <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ width:'100%', marginTop:10, borderRadius:12 }}>{user?'Get my quote →':'Sign in & get quote →'}</button>}
+            <div style={{ fontSize:11, color:'var(--muted)', marginTop:8, lineHeight:1.5 }}>{t('sw2KsGuideNote')}</div>
+            <button type="button" onClick={()=>setSpecOpen(true)} style={{ marginTop:10, width:'100%', background:'var(--sand)', border:'1px solid var(--line)', borderRadius:12, padding:'10px', fontSize:13, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{t('sw2KsViewSpec')}</button>
+            {!mobile && <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ width:'100%', marginTop:10, borderRadius:12 }}>{user?t('sw2KsGetQuote'):t('sw2KsSignInQuote')}</button>}
           </div>
 
           {/* ── STEP PANEL ── */}
           <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding: mobile?16:24, boxShadow:'var(--shadow)' }}>
             {cur.key==='layout' && (<>
-              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>1 · Choose your layout</h3>
-              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>How does your kitchen wrap around the room?</p>
+              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2KsStep1')}</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>{t('sw2KsWrapQ')}</p>
               <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:10 }}>
                 {kLayoutsView.map(l=>{ const on=layout===l.id; return (
                   <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={card(on)}>
@@ -11694,8 +12640,8 @@ function KitchenStudio({ setPage, user, openAuth }) {
             </>)}
 
             {cur.key==='cabinets' && (<>
-              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>2 · Cabinet style</h3>
-              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>The door design sets the tone — and the cabinetry rate.</p>
+              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2KsStep2')}</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>{t('sw2KsStep2Sub')}</p>
               <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr 1fr', gap:10 }}>
                 {K_CAB_STYLES.map(s=>{ const on=styleId===s.id; return (
                   <button key={s.id} type="button" onClick={()=>setStyleId(s.id)} style={{ ...card(on), padding:0, overflow:'hidden' }}>
@@ -11710,8 +12656,8 @@ function KitchenStudio({ setPage, user, openAuth }) {
             </>)}
 
             {cur.key==='worktop' && (<>
-              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>3 · Worktop / countertop</h3>
-              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>Priced per linear metre of base run.</p>
+              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2KsStep3')}</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>{t('sw2KsStep3Sub')}</p>
               <div style={{ display:'grid', gap:9 }}>
                 {K_WORKTOPS.map(w=>{ const on=worktop===w.id; return (
                   <button key={w.id} type="button" onClick={()=>setWorktop(w.id)} style={card(on)}>
@@ -11725,8 +12671,8 @@ function KitchenStudio({ setPage, user, openAuth }) {
             </>)}
 
             {cur.key==='finish' && (<>
-              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>4 · Cabinet finish &amp; colour</h3>
-              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>Recolours your 3D preview instantly.</p>
+              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2KsStep4')}</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>{t('sw2KsStep4Sub')}</p>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(92px,1fr))', gap:10 }}>
                 {K_FINISHES.map(f=>{ const on=finishId===f.id; return (
                   <button key={f.id} type="button" onClick={()=>setFinishId(f.id)} style={{ border: on?'2px solid var(--clay)':'1px solid var(--line)', borderRadius:12, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0 }}>
@@ -11737,8 +12683,8 @@ function KitchenStudio({ setPage, user, openAuth }) {
             </>)}
 
             {cur.key==='appliances' && (<>
-              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>5 · Appliance package</h3>
-              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>Tap to add — each appliance is priced per unit.</p>
+              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2KsStep5')}</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>{t('sw2KsStep5Sub')}</p>
               <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr', gap:9 }}>
                 {K_APPLIANCES.map(a=>{ const on=appliances.includes(a.id); return (
                   <button key={a.id} type="button" onClick={()=>toggle(appliances,setAppliances,a.id)} style={{ ...card(on), display:'flex', alignItems:'center', gap:10 }}>
@@ -11750,8 +12696,8 @@ function KitchenStudio({ setPage, user, openAuth }) {
             </>)}
 
             {cur.key==='hardware' && (<>
-              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>6 · Hardware / handles</h3>
-              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>The finishing detail on every door and drawer.</p>
+              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2KsStep6')}</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>{t('sw2KsStep6Sub')}</p>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:9 }}>
                 {KITCHEN_HANDLES.map(([id,name,sub,add])=>{ const on=handle===id; return (
                   <button key={id} type="button" onClick={()=>setHandle(id)} style={card(on)}>
@@ -11762,8 +12708,8 @@ function KitchenStudio({ setPage, user, openAuth }) {
             </>)}
 
             {cur.key==='storage' && (<>
-              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>7 · Storage &amp; interiors</h3>
-              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>Clever add-ons that make the kitchen work harder.</p>
+              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2KsStep7')}</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>{t('sw2KsStep7Sub')}</p>
               <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr', gap:9 }}>
                 {K_STORAGE.map(a=>{ const on=storage.includes(a.id); return (
                   <button key={a.id} type="button" onClick={()=>toggle(storage,setStorage,a.id)} style={{ ...card(on), display:'flex', alignItems:'center', gap:10 }}>
@@ -11775,25 +12721,25 @@ function KitchenStudio({ setPage, user, openAuth }) {
             </>)}
 
             {cur.key==='summary' && (<>
-              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>Your kitchen</h3>
-              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 14px' }}>Review your design, then book a free visit for an exact quote.</p>
+              <h3 className="display" style={{ fontSize:21, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2KsYourKitchen')}</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 14px' }}>{t('sw2KsReviewSub')}</p>
               <div style={{ background:'var(--sand)', borderRadius:12, padding:'14px 16px', fontSize:13.5, color:'var(--ink-soft)', lineHeight:1.85 }}>
-                <div><b style={{ color:'var(--ink)' }}>Layout</b> · {lay.name} (~{runM.toFixed(1)}m)</div>
-                <div><b style={{ color:'var(--ink)' }}>Cabinets</b> · {cab.name} in {fin.name}</div>
-                <div><b style={{ color:'var(--ink)' }}>Worktop</b> · {wt.name}</div>
-                <div><b style={{ color:'var(--ink)' }}>Handles</b> · {hd[1]}</div>
-                <div><b style={{ color:'var(--ink)' }}>Appliances</b> · {appsList.map(a=>a.name).join(', ')||'None selected'}</div>
-                <div><b style={{ color:'var(--ink)' }}>Storage</b> · {storeList.map(s=>s.name).join(', ')||'None selected'}</div>
-                <div style={{ marginTop:8, paddingTop:8, borderTop:'1px solid var(--line)' }}><b style={{ color:'var(--clay-deep)', fontSize:16 }}>Estimate · {fmt(est)}</b></div>
+                <div><b style={{ color:'var(--ink)' }}>{t('sw2KsLayout')}</b> · {lay.name} (~{runM.toFixed(1)}m)</div>
+                <div><b style={{ color:'var(--ink)' }}>{t('sw2KsCabinets')}</b> · {cab.name} in {fin.name}</div>
+                <div><b style={{ color:'var(--ink)' }}>{t('sw2KsWorktop')}</b> · {wt.name}</div>
+                <div><b style={{ color:'var(--ink)' }}>{t('sw2KsHandles')}</b> · {hd[1]}</div>
+                <div><b style={{ color:'var(--ink)' }}>{t('sw2KsAppliances')}</b> · {appsList.map(a=>a.name).join(', ')||t('sw2KsNoneSelected')}</div>
+                <div><b style={{ color:'var(--ink)' }}>{t('sw2KsStorage')}</b> · {storeList.map(s=>s.name).join(', ')||t('sw2KsNoneSelected')}</div>
+                <div style={{ marginTop:8, paddingTop:8, borderTop:'1px solid var(--line)' }}><b style={{ color:'var(--clay-deep)', fontSize:16 }}>{t('sw2KsEstimate')} · {fmt(est)}</b></div>
               </div>
-              <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ width:'100%', marginTop:16, borderRadius:14 }}>{user?'Get my quote →':'Sign in & get quote →'}</button>
-              <div style={{ fontSize:11.5, color:'var(--muted)', textAlign:'center', marginTop:8 }}>Free design visit · no obligation · exact itemised quote on the day</div>
+              <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ width:'100%', marginTop:16, borderRadius:14 }}>{user?t('sw2KsGetQuote'):t('sw2KsSignInQuote')}</button>
+              <div style={{ fontSize:11.5, color:'var(--muted)', textAlign:'center', marginTop:8 }}>{t('sw2KsFreeVisitNote')}</div>
             </>)}
 
             {/* nav */}
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:20, gap:10 }}>
               {step>0 ? <button type="button" onClick={back} style={{ background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'11px 18px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pBack')}</button>
-                : <button type="button" onClick={()=>setPage('kitchen')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>‹ Back to Kitchens</button>}
+                : <button type="button" onClick={()=>setPage('kitchen')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>{t('sw2KsBackKitchens')}</button>}
               {step<STEPS.length-1 && <button type="button" className="btn-clay" onClick={next} style={{ borderRadius:12, minWidth:140 }}>{t('pContinueArrow')}</button>}
             </div>
           </div>
@@ -11803,8 +12749,8 @@ function KitchenStudio({ setPage, user, openAuth }) {
       {/* mobile sticky quote bar */}
       {mobile && (
         <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:920, background:'rgba(255,255,255,.96)', backdropFilter:'blur(12px)', borderTop:'1px solid var(--line)', padding:'10px 14px calc(10px + env(safe-area-inset-bottom))', display:'flex', alignItems:'center', gap:12 }}>
-          <div style={{ flex:1 }}><div style={{ fontSize:10.5, color:'var(--muted)' }}>Estimate · {runM.toFixed(1)}m</div><div className="display" style={{ fontSize:20, color:'var(--clay)' }}>{fmt(est)}</div></div>
-          <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:12, padding:'12px 18px', fontSize:14, whiteSpace:'nowrap' }}>{user?'Get quote':'Sign in & quote'}</button>
+          <div style={{ flex:1 }}><div style={{ fontSize:10.5, color:'var(--muted)' }}>{t('sw2KsEstimate')} · {runM.toFixed(1)}m</div><div className="display" style={{ fontSize:20, color:'var(--clay)' }}>{fmt(est)}</div></div>
+          <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:12, padding:'12px 18px', fontSize:14, whiteSpace:'nowrap' }}>{user?t('sw2KsGetQuoteShort'):t('sw2KsSignInQuoteShort')}</button>
         </div>
       )}
 
@@ -11813,7 +12759,7 @@ function KitchenStudio({ setPage, user, openAuth }) {
         <div onClick={()=>setSpecOpen(false)} style={{ position:'fixed', inset:0, zIndex:10000, background:'rgba(20,16,12,.55)', backdropFilter:'blur(3px)', display:'flex', justifyContent:'flex-end' }}>
           <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', width: mobile?'100%':440, maxWidth:'100%', height:'100%', overflowY:'auto', padding:'24px 22px', boxShadow:'-12px 0 40px rgba(0,0,0,.2)' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
-              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:0 }}>Spec &amp; pricing</h3>
+              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:0 }}>{t('sw2KsSpecPricing')}</h3>
               <button type="button" onClick={()=>setSpecOpen(false)} style={{ background:'none', border:'none', fontSize:20, color:'var(--muted)', cursor:'pointer' }}>✕</button>
             </div>
             {[
@@ -11842,14 +12788,14 @@ function KitchenStudio({ setPage, user, openAuth }) {
             <h3 className="display" style={{ fontSize:24, color:'var(--ink)', margin:'0 0 6px' }}>{t('pQuoteTitleKitchen')}</h3>
             <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)', lineHeight:1.6 }}>{lay.name} · {cab.name} · {wt.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(est)}</b></div>
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-              <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} aria-label="Your name" placeholder="Your name" style={inS} />
-              <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} aria-label="Phone" placeholder="Phone (+973…)" inputMode="tel" style={inS} />
-              <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} aria-label="Email" placeholder="Email (optional)" inputMode="email" style={inS} />
+              <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} aria-label={t('sw2KsYourName')} placeholder={t('sw2KsYourName')} style={inS} />
+              <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} aria-label={t('sw2KsPhone')} placeholder={t('sw2KsPhonePh')} inputMode="tel" style={inS} />
+              <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} aria-label={t('sw2KsEmail')} placeholder={t('sw2KsEmailOpt')} inputMode="email" style={inS} />
               <input type="date" value={contact.date} onChange={e=>setContact(c=>({...c,date:e.target.value}))} style={inS} />
             </div>
             <div style={{ display:'flex', gap:10, marginTop:16 }}>
-              <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>Cancel</button>
-              <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submit(contact)} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?'Sending…':(user?'Send quote request':'Sign in & send')}</button>
+              <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('sw2Cancel')}</button>
+              <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submit(contact)} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?t('sw2Sending'):(user?t('sw2KsSendQuoteReq'):t('sw2KsSignInSend'))}</button>
             </div>
           </div>
         </div>
@@ -11874,14 +12820,7 @@ function WardrobesPage({ setPage, products }) {
     /wardrobe|closet|walk\-?in|dress/i.test(p.name||''));
   const heroImg = (dbLayouts.walkin && dbLayouts.walkin.hero_url) || HOME_IMG.walkin || HOME_IMG.wardrobe || HOME_IMG.hero;
   const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
-  const FAQS = [
-    ['How much does a fitted wardrobe cost?', 'Reach-in and kids wardrobes start from around BD 540, fitted hinged wardrobes from BD 720, sliding wardrobes from BD 1,000, and a full walk-in dressing room from BD 5,200. Price is driven transparently by the metres of run, your finish and the interior fittings you choose — build a live estimate in the Design Studio.'],
-    ['How long does it take?', 'Most wardrobes are designed, manufactured and installed within 4–7 weeks of sign-off. Real-wood veneer and hand-sprayed lacquer finishes sit at the longer end.'],
-    ['Do you measure and fit everything?', 'Yes — survey, design, manufacture, delivery and installation are all handled by our own team across Bahrain. Every wardrobe is scribed and fitted to your exact walls.'],
-    ['Can you fit around sloped ceilings or awkward walls?', 'Absolutely. Our fitted and walk-in wardrobes are made to measure — we build into eaves, alcoves and sloped ceilings so every centimetre is used.'],
-    ['What hardware do you use?', 'Blum soft-close hinges and full-extension drawer runners as standard, Hettich lift systems, and anodised aluminium rails — all backed by our 10-year cabinetry warranty.'],
-    ['What warranty do I get?', '10 years on cabinetry and soft-close hardware, plus 5–10 years on finishes depending on the material you choose.'],
-  ];
+  const FAQS = t('sw2WardFaq');
 
   return (
     <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?56:64, paddingBottom:90 }}>
@@ -11902,7 +12841,7 @@ function WardrobesPage({ setPage, products }) {
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{cms('wardrobe.s1.eyebrow', 'Wardrobe types')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('wardrobe.s1.title', 'Find your fit.')}</h2>
-        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>From a full walk-in dressing room to a flush reach-in run — four ways to bring order to your bedroom.</p>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2WardTypesSub')}</p>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
           {wTypes.map(t=>(
             <button key={t.id} type="button" onClick={()=>setPage('wardrobe-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
@@ -11916,7 +12855,7 @@ function WardrobesPage({ setPage, products }) {
                 <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:12 }}>
                   {(Array.isArray(t.bullets)&&t.bullets.length?t.bullets:t.chips).map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{c}</span>))}
                 </div>
-                <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600 }}>Design this in 3D →</div>
+                <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600 }}>{t('sw2DesignThis3d')}</div>
               </div>
             </button>
           ))}
@@ -11925,9 +12864,9 @@ function WardrobesPage({ setPage, products }) {
 
       {/* INTERIOR fittings strip */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div className="eyebrow" style={{ marginBottom:10 }}>Interior &amp; storage</div>
-        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>Organised to the centimetre.</h2>
-        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>Mix hanging, drawers, shelving and accessories — every fitting priced transparently per unit.</p>
+        <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2WardTypesEyebrow')}</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw2WardOrganised')}</h2>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2WardInteriorSub')}</p>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
           {W_INTERIOR.map(f=>(
             <div key={f.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 14px', textAlign:'center' }}>
@@ -11942,9 +12881,9 @@ function WardrobesPage({ setPage, products }) {
 
       {/* FINISHES showcase */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div className="eyebrow" style={{ marginBottom:10 }}>Finishes &amp; materials</div>
-        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>Surfaces that last.</h2>
-        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>Transparent per-metre pricing on every finish, with full specs so you can compare like for like.</p>
+        <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2WardFinishesEyebrow')}</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw2SurfacesLast')}</h2>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2WardFinishesSub')}</p>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:14 }}>
           {W_FINISHES.map(w=>(
             <div key={w.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'18px 20px' }}>
@@ -11974,8 +12913,8 @@ function WardrobesPage({ setPage, products }) {
         <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', boxShadow:'var(--shadow)' }}>
           <button type="button" onClick={()=>setSpecOpen(o=>!o)} style={{ width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding: mobile?'20px 20px':'24px 28px', display:'flex', justifyContent:'space-between', alignItems:'center', gap:12 }}>
             <div>
-              <div className="eyebrow" style={{ marginBottom:6 }}>Specification &amp; pricing</div>
-              <div className="display" style={{ fontSize: mobile?22:30, color:'var(--ink)' }}>How it is built &amp; priced.</div>
+              <div className="eyebrow" style={{ marginBottom:6 }}>{t('sw2WardSpecEyebrow')}</div>
+              <div className="display" style={{ fontSize: mobile?22:30, color:'var(--ink)' }}>{t('sw2WardSpecTitle')}</div>
             </div>
             <span style={{ width:40, height:40, borderRadius:'50%', background:'var(--sand)', color:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>{specOpen?'–':'+'}</span>
           </button>
@@ -11983,10 +12922,10 @@ function WardrobesPage({ setPage, products }) {
             <div style={{ padding: mobile?'0 20px 22px':'0 28px 28px' }}>
               <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?18:26 }}>
                 {[
-                  ['Price drivers', WARDROBE_SPEC.priceDrivers],
-                  ['Typical sizes', WARDROBE_SPEC.typicalSizes],
-                  ['Interior construction', WARDROBE_SPEC.interior],
-                  ['Hardware brands', WARDROBE_SPEC.hardware],
+                  [t('sw2WardPriceDrivers'), WARDROBE_SPEC.priceDrivers],
+                  [t('sw2WardTypicalSizes'), WARDROBE_SPEC.typicalSizes],
+                  [t('sw2WardInteriorConstr'), WARDROBE_SPEC.interior],
+                  [t('sw2WardHardwareBrands'), WARDROBE_SPEC.hardware],
                 ].map(([title, rows])=>(
                   <div key={title}>
                     <div style={{ fontSize:12, fontWeight:700, color:'var(--clay-deep)', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>{title}</div>
@@ -12006,7 +12945,7 @@ function WardrobesPage({ setPage, products }) {
                   <span key={t} style={{ fontSize:12.5, background:'var(--sand)', color:'var(--ink)', fontWeight:600, borderRadius:999, padding:'7px 14px' }}>{t}</span>
                 ))}
               </div>
-              <button type="button" className="btn-clay" onClick={()=>setPage('wardrobe-planner')} style={{ marginTop:18, borderRadius:14 }}>Build a live quote in 3D →</button>
+              <button type="button" className="btn-clay" onClick={()=>setPage('wardrobe-planner')} style={{ marginTop:18, borderRadius:14 }}>{t('sw2WardBuild3d')}</button>
             </div>
           )}
         </div>
@@ -12016,13 +12955,13 @@ function WardrobesPage({ setPage, products }) {
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
           {[
-            ['Made to measure','Surveyed, scribed and fitted to your exact walls — no gaps, no filler panels.','M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
-            ['Blum soft-close','Blum soft-close hinges and full-extension runners on every door and drawer, backed for 10 years.','M4 7h16v10H4z M8 12h8'],
-            ['One team, end to end','Design, manufacture, deliver and install — handled by our own team, never sub-let.','M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
-          ].map(([t,d,ic])=>(
-            <div key={t} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+            [t('sw2WardF1'),t('sw2WardF1Desc'),'M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
+            [t('sw2WardF2'),t('sw2WardF2Desc'),'M4 7h16v10H4z M8 12h8'],
+            [t('sw2OneTeam'),t('sw2OneTeamDesc'),'M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
+          ].map(([ti,d,ic])=>(
+            <div key={ti} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5" style={{ marginBottom:12 }}><path d={ic} /></svg>
-              <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{t}</div>
+              <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{ti}</div>
               <p style={{ fontSize:14, color:'var(--ink-soft)', marginTop:6, lineHeight:1.55 }}>{d}</p>
             </div>
           ))}
@@ -12032,8 +12971,8 @@ function WardrobesPage({ setPage, products }) {
       {/* CATALOG anchors (real products) */}
       {wardrobeProducts.length>0 && (
         <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-          <div className="eyebrow" style={{ marginBottom:10 }}>Starting points</div>
-          <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>Popular wardrobes.</h2>
+          <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2StartingPoints')}</div>
+          <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>{t('sw2WardPopular')}</h2>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
             {wardrobeProducts.map(p=>(
               <button key={p.id} type="button" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
@@ -12052,22 +12991,22 @@ function WardrobesPage({ setPage, products }) {
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div style={{ background:'var(--ink)', borderRadius:22, padding: mobile?'28px 22px':'44px 48px', color:'#fff', display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:28, alignItems:'center' }}>
           <div>
-            <div style={{ fontSize:12, letterSpacing:'.16em', textTransform:'uppercase', opacity:.7, marginBottom:10 }}>Transformations</div>
-            <h2 className="display" style={{ fontSize: mobile?26:36, margin:'0 0 12px' }}>From cluttered to curated.</h2>
-            <p style={{ fontSize:15, opacity:.85, lineHeight:1.6, marginBottom:20 }}>We have transformed bedrooms and dressing rooms across Bahrain — from compact apartments to villa master suites. Start with a free design visit and we will show you what is possible in your space.</p>
-            <button type="button" className="btn-clay" onClick={()=>setPage('projects')} style={{ borderRadius:14 }}>See real projects →</button>
+            <div style={{ fontSize:12, letterSpacing:'.16em', textTransform:'uppercase', opacity:.7, marginBottom:10 }}>{t('sw2Transformations')}</div>
+            <h2 className="display" style={{ fontSize: mobile?26:36, margin:'0 0 12px' }}>{t('sw2WardCluttered')}</h2>
+            <p style={{ fontSize:15, opacity:.85, lineHeight:1.6, marginBottom:20 }}>{t('sw2WardTransDesc')}</p>
+            <button type="button" className="btn-clay" onClick={()=>setPage('projects')} style={{ borderRadius:14 }}>{t('sw2SeeProjects')}</button>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-            <div style={{ height: mobile?120:170, borderRadius:14, background:`url('${HOME_IMG.walkin}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:999, padding:'3px 10px' }}>After</span></div>
-            <div style={{ height: mobile?120:170, borderRadius:14, background:`url('${HOME_IMG.detail}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:999, padding:'3px 10px' }}>Detail</span></div>
+            <div style={{ height: mobile?120:170, borderRadius:14, background:`url('${HOME_IMG.walkin}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:999, padding:'3px 10px' }}>{t('sw2After')}</span></div>
+            <div style={{ height: mobile?120:170, borderRadius:14, background:`url('${HOME_IMG.detail}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:999, padding:'3px 10px' }}>{t('sw2Detail')}</span></div>
           </div>
         </div>
       </section>
 
       {/* FAQ */}
       <section style={{ ...wrap, marginTop: mobile?40:64, maxWidth:820 }}>
-        <div className="eyebrow" style={{ marginBottom:10, textAlign:'center' }}>Good to know</div>
-        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px', textAlign:'center' }}>Wardrobe questions, answered.</h2>
+        <div className="eyebrow" style={{ marginBottom:10, textAlign:'center' }}>{t('sw2GoodToKnow')}</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px', textAlign:'center' }}>{t('sw2WardFaqTitle')}</h2>
         <div style={{ display:'grid', gap:10 }}>
           {FAQS.map(([q,a],i)=>{ const on=faq===i; return (
             <div key={i} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:14, overflow:'hidden' }}>
@@ -12083,11 +13022,11 @@ function WardrobesPage({ setPage, products }) {
       {/* CTA */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div style={{ background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', borderRadius:22, padding: mobile?'32px 24px':'52px 48px', textAlign:'center', color:'#fff' }}>
-          <h2 className="display" style={{ fontSize: mobile?28:42, margin:'0 0 10px' }}>Your dream wardrobe starts here.</h2>
-          <p style={{ fontSize: mobile?15:18, opacity:.92, maxWidth:520, margin:'0 auto 22px' }}>Design it in 3D with a live quote, or book a free home visit — no obligation.</p>
+          <h2 className="display" style={{ fontSize: mobile?28:42, margin:'0 0 10px' }}>{t('sw2WardDreamCta')}</h2>
+          <p style={{ fontSize: mobile?15:18, opacity:.92, maxWidth:520, margin:'0 auto 22px' }}>{t('sw2WardDreamSub')}</p>
           <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-            <button type="button" onClick={()=>setPage('wardrobe-planner')} style={{ background:'#fff', color:'var(--clay-deep)', border:'none', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:700, cursor:'pointer' }}>Open Design Studio →</button>
-            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>Book a free visit</button>
+            <button type="button" onClick={()=>setPage('wardrobe-planner')} style={{ background:'#fff', color:'var(--clay-deep)', border:'none', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:700, cursor:'pointer' }}>{t('sw2OpenDesignStudioArrow')}</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>{t('sw2BookFreeVisit')}</button>
           </div>
         </div>
       </section>
@@ -12104,13 +13043,7 @@ function KitchenPage({ setPage, products }) {
   const kitchenProducts = (products||[]).filter(p => /kitchen/i.test(p.category||'') || /kitchen/i.test(p.name||''));
   const heroImg = HOME_IMG.kitchen;
   const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
-  const FAQS = [
-    ['How much does a bespoke kitchen cost?', 'Our kitchens start from around BD 2,200 for a compact modular L-shape and BD 4,200+ for a fully bespoke design. Price is driven transparently by the metres of cabinetry, your door style, worktop choice and appliances — build a live estimate in the Design Studio.'],
-    ['How long does it take?', 'Most kitchens are designed, manufactured and installed within 6–9 weeks of sign-off, depending on door style and worktop. In-frame and veneer doors sit at the longer end.'],
-    ['Do you handle the full project?', 'Yes — design, manufacture, delivery, fitting, worktop templating and appliance installation are all handled by our own team across Bahrain.'],
-    ['Can I keep my existing appliances?', 'Absolutely. Choose only the appliance housings you need in the Design Studio and we will build around your existing units.'],
-    ['What warranty do I get?', '10 years on cabinetry and soft-close hardware, plus 2–15 years on worktops depending on the material you choose.'],
-  ];
+  const FAQS = t('sw2KpFaq');
 
   return (
     <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?56:64, paddingBottom:90 }}>
@@ -12131,7 +13064,7 @@ function KitchenPage({ setPage, products }) {
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{cms('kitchen.s1.eyebrow', 'Kitchen styles')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('kitchen.s1.title', 'Find your look.')}</h2>
-        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:560, marginBottom:22 }}>From timeless shaker to seamless handleless — six door styles, endless finishes.</p>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:560, marginBottom:22 }}>{t('sw2KpStylesSub')}</p>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(3,1fr)', gap:16 }}>
           {K_CAB_STYLES.map(s=>(
             <button key={s.id} type="button" onClick={()=>setPage('kitchen-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
@@ -12139,7 +13072,7 @@ function KitchenPage({ setPage, products }) {
               <div style={{ padding:'14px 16px' }}>
                 <div style={{ fontSize:17, fontWeight:600, color:'var(--ink)' }}>{s.name}</div>
                 <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{s.sub}</div>
-                <div style={{ fontSize:12.5, color:'var(--clay)', marginTop:10, fontWeight:600 }}>Design this style →</div>
+                <div style={{ fontSize:12.5, color:'var(--clay)', marginTop:10, fontWeight:600 }}>{t('sw2KpDesignStyle')}</div>
               </div>
             </button>
           ))}
@@ -12148,8 +13081,8 @@ function KitchenPage({ setPage, products }) {
 
       {/* LAYOUTS strip */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div className="eyebrow" style={{ marginBottom:10 }}>Every layout</div>
-        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>Made to fit your room.</h2>
+        <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2KpEveryLayout')}</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>{t('sw2KpFitRoom')}</h2>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
           {kLayouts.map(l=>(
             <div key={l.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, overflow:'hidden', textAlign:'center' }}>
@@ -12170,9 +13103,9 @@ function KitchenPage({ setPage, products }) {
 
       {/* MATERIALS showcase (worktops) */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div className="eyebrow" style={{ marginBottom:10 }}>Worktops &amp; materials</div>
-        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>Surfaces that last.</h2>
-        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:560, marginBottom:22 }}>Transparent per-metre pricing on every worktop, with full specs so you can compare like for like.</p>
+        <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2KpWorktopsEyebrow')}</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw2SurfacesLast')}</h2>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:560, marginBottom:22 }}>{t('sw2KpWorktopsSub')}</p>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:14 }}>
           {K_WORKTOPS.map(w=>(
             <div key={w.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'18px 20px' }}>
@@ -12195,13 +13128,13 @@ function KitchenPage({ setPage, products }) {
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
           {[
-            ['Made in Bahrain','Manufactured in our own workshop — full control over quality and lead time.','M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
-            ['Soft-close as standard','Blum soft-close hinges and runners on every door and drawer, backed for 10 years.','M4 7h16v10H4z M8 12h8'],
-            ['One team, end to end','Design, build, deliver, fit and template — handled by us, never sub-let.','M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
-          ].map(([t,d,ic])=>(
-            <div key={t} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+            [t('sw2KpF1'),t('sw2KpF1Desc'),'M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
+            [t('sw2KpF2'),t('sw2KpF2Desc'),'M4 7h16v10H4z M8 12h8'],
+            [t('sw2OneTeam'),t('sw2KpF3Desc'),'M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
+          ].map(([ti,d,ic])=>(
+            <div key={ti} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5" style={{ marginBottom:12 }}><path d={ic} /></svg>
-              <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{t}</div>
+              <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{ti}</div>
               <p style={{ fontSize:14, color:'var(--ink-soft)', marginTop:6, lineHeight:1.55 }}>{d}</p>
             </div>
           ))}
@@ -12211,8 +13144,8 @@ function KitchenPage({ setPage, products }) {
       {/* CATALOG anchors (real products) */}
       {kitchenProducts.length>0 && (
         <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-          <div className="eyebrow" style={{ marginBottom:10 }}>Starting points</div>
-          <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>Popular kitchens.</h2>
+          <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2StartingPoints')}</div>
+          <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>{t('sw2KpPopular')}</h2>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
             {kitchenProducts.map(p=>(
               <button key={p.id} type="button" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
@@ -12231,22 +13164,22 @@ function KitchenPage({ setPage, products }) {
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div style={{ background:'var(--ink)', borderRadius:22, padding: mobile?'28px 22px':'44px 48px', color:'#fff', display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:28, alignItems:'center' }}>
           <div>
-            <div style={{ fontSize:12, letterSpacing:'.16em', textTransform:'uppercase', opacity:.7, marginBottom:10 }}>Transformations</div>
-            <h2 className="display" style={{ fontSize: mobile?26:36, margin:'0 0 12px' }}>From tired to timeless.</h2>
-            <p style={{ fontSize:15, opacity:.85, lineHeight:1.6, marginBottom:20 }}>We have transformed kitchens across Bahrain — from compact apartments to villa open-plan spaces. Start with a free design visit and we will show you what is possible in your room.</p>
-            <button type="button" className="btn-clay" onClick={()=>setPage('projects')} style={{ borderRadius:14 }}>See real projects →</button>
+            <div style={{ fontSize:12, letterSpacing:'.16em', textTransform:'uppercase', opacity:.7, marginBottom:10 }}>{t('sw2Transformations')}</div>
+            <h2 className="display" style={{ fontSize: mobile?26:36, margin:'0 0 12px' }}>{t('sw2KpTiredTimeless')}</h2>
+            <p style={{ fontSize:15, opacity:.85, lineHeight:1.6, marginBottom:20 }}>{t('sw2KpTransDesc')}</p>
+            <button type="button" className="btn-clay" onClick={()=>setPage('projects')} style={{ borderRadius:14 }}>{t('sw2SeeProjects')}</button>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-            <div style={{ height: mobile?120:170, borderRadius:14, background:`url('${HOME_IMG.kitchen}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:999, padding:'3px 10px' }}>After</span></div>
-            <div style={{ height: mobile?120:170, borderRadius:14, background:`url('${HOME_IMG.living}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:999, padding:'3px 10px' }}>Detail</span></div>
+            <div style={{ height: mobile?120:170, borderRadius:14, background:`url('${HOME_IMG.kitchen}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:999, padding:'3px 10px' }}>{t('sw2After')}</span></div>
+            <div style={{ height: mobile?120:170, borderRadius:14, background:`url('${HOME_IMG.living}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:999, padding:'3px 10px' }}>{t('sw2Detail')}</span></div>
           </div>
         </div>
       </section>
 
       {/* FAQ */}
       <section style={{ ...wrap, marginTop: mobile?40:64, maxWidth:820 }}>
-        <div className="eyebrow" style={{ marginBottom:10, textAlign:'center' }}>Good to know</div>
-        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px', textAlign:'center' }}>Kitchen questions, answered.</h2>
+        <div className="eyebrow" style={{ marginBottom:10, textAlign:'center' }}>{t('sw2GoodToKnow')}</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px', textAlign:'center' }}>{t('sw2KpFaqTitle')}</h2>
         <div style={{ display:'grid', gap:10 }}>
           {FAQS.map(([q,a],i)=>{ const on=faq===i; return (
             <div key={i} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:14, overflow:'hidden' }}>
@@ -12262,11 +13195,11 @@ function KitchenPage({ setPage, products }) {
       {/* CTA */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div style={{ background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', borderRadius:22, padding: mobile?'32px 24px':'52px 48px', textAlign:'center', color:'#fff' }}>
-          <h2 className="display" style={{ fontSize: mobile?28:42, margin:'0 0 10px' }}>Your dream kitchen starts here.</h2>
-          <p style={{ fontSize: mobile?15:18, opacity:.92, maxWidth:520, margin:'0 auto 22px' }}>Design it in 3D with a live quote, or book a free home visit — no obligation.</p>
+          <h2 className="display" style={{ fontSize: mobile?28:42, margin:'0 0 10px' }}>{t('sw2KpDreamCta')}</h2>
+          <p style={{ fontSize: mobile?15:18, opacity:.92, maxWidth:520, margin:'0 auto 22px' }}>{t('sw2KpDreamSub')}</p>
           <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-            <button type="button" onClick={()=>setPage('kitchen-planner')} style={{ background:'#fff', color:'var(--clay-deep)', border:'none', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:700, cursor:'pointer' }}>Open Design Studio →</button>
-            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>Book a free visit</button>
+            <button type="button" onClick={()=>setPage('kitchen-planner')} style={{ background:'#fff', color:'var(--clay-deep)', border:'none', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:700, cursor:'pointer' }}>{t('sw2OpenDesignStudioArrow')}</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>{t('sw2BookFreeVisit')}</button>
           </div>
         </div>
       </section>
@@ -12285,14 +13218,8 @@ function OfficePage({ setPage, products }) {
     /office|study|desk/i.test(p.name||''));
   const heroImg = (dbLayouts['l-shaped'] && dbLayouts['l-shaped'].hero_url) || '/layouts/office/l-shaped.jpg';
   const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
-  const FAQS = [
-    ['How much does a fitted home office cost?', 'A minimal floating desk setup starts from around BD 540, a corner or built-in office from BD 1,100, and a full floor-to-ceiling storage wall with integrated desk from BD 2,400+. Price is driven transparently by the metres of cabinetry, your worktop and storage — build a live estimate in the office planner.'],
-    ['How long does it take?', 'Most home offices are designed, manufactured and installed within 4–7 weeks of sign-off. Real-wood veneer and quartz worktops sit at the longer end.'],
-    ['Can you build into an alcove or awkward corner?', 'Absolutely. Every office is made to measure — we scribe desks and storage into alcoves, corners and sloped ceilings so every centimetre works.'],
-    ['Do you handle cable management?', 'Yes — we build in cable trays, grommets and a dedicated power route behind the desk so the setup stays tidy and the wiring stays hidden.'],
-    ['What hardware do you use?', 'Blum soft-close hinges and full-extension drawer runners as standard, plus warm 3000K LED for shelves and under-cabinet task light — all backed by our 10-year cabinetry warranty.'],
-    ['What warranty do I get?', '10 years on cabinetry and soft-close hardware, plus 5–10 years on finishes depending on the material you choose.'],
-  ];
+  const FAQS = t('sw2OfFaq');
+  const designYoursLbl = t('sw2DesignYours');
 
   return (
     <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?56:64, paddingBottom:90 }}>
@@ -12311,9 +13238,9 @@ function OfficePage({ setPage, products }) {
 
       {/* LAYOUT TYPES gallery — each uses its /layouts/office/<id>.jpg photo */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div className="eyebrow" style={{ marginBottom:10 }}>Office layouts</div>
-        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>Find your setup.</h2>
-        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>Six ways to bring a proper, productive workspace into your home — from minimal to a full storage wall.</p>
+        <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2OfLayoutsEyebrow')}</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw2OfFindSetup')}</h2>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2OfLayoutsSub')}</p>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
           {officeLayouts.map(t=>(
             <button key={t.id} type="button" onClick={()=>setPage('office-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
@@ -12325,7 +13252,7 @@ function OfficePage({ setPage, products }) {
                 <div style={{ display:'flex', flexWrap:'wrap', gap:6, margin:'12px 0' }}>
                   {(Array.isArray(t.bullets)&&t.bullets.length?t.bullets:t.feats).map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{c}</span>))}
                 </div>
-                <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600 }}>Design yours →</div>
+                <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600 }}>{designYoursLbl}</div>
               </div>
             </button>
           ))}
@@ -12334,15 +13261,15 @@ function OfficePage({ setPage, products }) {
 
       {/* STORAGE & DESK strip */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div className="eyebrow" style={{ marginBottom:10 }}>Desk &amp; storage</div>
-        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>Organised to the centimetre.</h2>
-        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>Mix open shelving, closed cabinets, drawers, tall units and file storage — every element priced transparently per unit.</p>
+        <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2OfDeskEyebrow')}</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw2WardOrganised')}</h2>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2OfDeskSub')}</p>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
           {OFFICE_STORAGE.map(f=>(
             <div key={f.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 14px', textAlign:'center' }}>
               <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.4" style={{ margin:'0 auto 8px' }}><path d="M4 6h16v12H4z M4 12h16" /></svg>
               <div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{f.name}</div>
-              <div style={{ fontSize:11, color:'var(--muted)', marginTop:3, lineHeight:1.35 }}>per {f.unit}</div>
+              <div style={{ fontSize:11, color:'var(--muted)', marginTop:3, lineHeight:1.35 }}>{t('sw2OfPer')} {f.unit}</div>
               <div style={{ fontSize:12, color:'var(--clay)', fontWeight:700, marginTop:6 }}>+{fmt(f.price)}</div>
             </div>
           ))}
@@ -12351,9 +13278,9 @@ function OfficePage({ setPage, products }) {
 
       {/* MATERIALS note (worktops) */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div className="eyebrow" style={{ marginBottom:10 }}>Worktops &amp; materials</div>
-        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>Surfaces that work hard.</h2>
-        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>From durable laminate to engineered quartz — pick the worktop and finish that suit your work and your room.</p>
+        <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2OfWorktopsEyebrow')}</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw2OfWorkHard')}</h2>
+        <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2OfWorktopsSub')}</p>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(4,1fr)', gap:14 }}>
           {OFFICE_WORKTOPS.map(w=>(
             <div key={w.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 16px' }}>
@@ -12369,13 +13296,13 @@ function OfficePage({ setPage, products }) {
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
           {[
-            ['Made to measure','Surveyed, scribed and fitted to your exact walls and alcoves — no gaps, no filler panels.','M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
-            ['Cable management built in','Trays, grommets and a dedicated power route keep the desk tidy and the wiring hidden.','M4 7h16v10H4z M8 12h8'],
-            ['One team, end to end','Design, manufacture, deliver and install — handled by our own team, never sub-let.','M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
-          ].map(([t,d,ic])=>(
-            <div key={t} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+            [t('sw2MadeToMeasure'),t('sw2OfF1Desc'),'M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
+            [t('sw2OfF2'),t('sw2OfF2Desc'),'M4 7h16v10H4z M8 12h8'],
+            [t('sw2OneTeam'),t('sw2OneTeamDesc'),'M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
+          ].map(([ti,d,ic])=>(
+            <div key={ti} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5" style={{ marginBottom:12 }}><path d={ic} /></svg>
-              <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{t}</div>
+              <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{ti}</div>
               <p style={{ fontSize:14, color:'var(--ink-soft)', marginTop:6, lineHeight:1.55 }}>{d}</p>
             </div>
           ))}
@@ -12385,8 +13312,8 @@ function OfficePage({ setPage, products }) {
       {/* CATALOG anchors (real products) */}
       {officeProducts.length>0 && (
         <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-          <div className="eyebrow" style={{ marginBottom:10 }}>Starting points</div>
-          <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>Popular home offices.</h2>
+          <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2StartingPoints')}</div>
+          <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>{t('sw2OfPopular')}</h2>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
             {officeProducts.map(p=>(
               <button key={p.id} type="button" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
@@ -12403,8 +13330,8 @@ function OfficePage({ setPage, products }) {
 
       {/* FAQ */}
       <section style={{ ...wrap, marginTop: mobile?40:64, maxWidth:820 }}>
-        <div className="eyebrow" style={{ marginBottom:10, textAlign:'center' }}>Good to know</div>
-        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px', textAlign:'center' }}>Home office questions, answered.</h2>
+        <div className="eyebrow" style={{ marginBottom:10, textAlign:'center' }}>{t('sw2GoodToKnow')}</div>
+        <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px', textAlign:'center' }}>{t('sw2OfFaqTitle')}</h2>
         <div style={{ display:'grid', gap:10 }}>
           {FAQS.map(([q,a],i)=>{ const on=faq===i; return (
             <div key={i} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:14, overflow:'hidden' }}>
@@ -12420,11 +13347,11 @@ function OfficePage({ setPage, products }) {
       {/* CTA */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div style={{ background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', borderRadius:22, padding: mobile?'32px 24px':'52px 48px', textAlign:'center', color:'#fff' }}>
-          <h2 className="display" style={{ fontSize: mobile?28:42, margin:'0 0 10px' }}>Your dream home office starts here.</h2>
-          <p style={{ fontSize: mobile?15:18, opacity:.92, maxWidth:520, margin:'0 auto 22px' }}>Plan it with a live quote, or book a free home visit — no obligation.</p>
+          <h2 className="display" style={{ fontSize: mobile?28:42, margin:'0 0 10px' }}>{t('sw2OfDreamCta')}</h2>
+          <p style={{ fontSize: mobile?15:18, opacity:.92, maxWidth:520, margin:'0 auto 22px' }}>{t('sw2OfDreamSub')}</p>
           <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-            <button type="button" onClick={()=>setPage('office-planner')} style={{ background:'#fff', color:'var(--clay-deep)', border:'none', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:700, cursor:'pointer' }}>Open the office planner →</button>
-            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>Book a free visit</button>
+            <button type="button" onClick={()=>setPage('office-planner')} style={{ background:'#fff', color:'var(--clay-deep)', border:'none', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:700, cursor:'pointer' }}>{t('sw2OfOpenPlanner')}</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>{t('sw2BookFreeVisit')}</button>
           </div>
         </div>
       </section>
@@ -12454,6 +13381,8 @@ function TVUnitPage({ setPage, products }) {
     [cms('tv.faq.q5','What hardware and lighting do you use?'), cms('tv.faq.a5','Blum soft-close hinges and full-extension runners as standard, plus warm 3000K LED for shelves, niches and back panels — all backed by our 10-year cabinetry warranty.')],
     [cms('tv.faq.q6','What warranty do I get?'), cms('tv.faq.a6','10 years on cabinetry and soft-close hardware, plus 5–10 years on finishes depending on the material you choose.')],
   ];
+  const designYoursLbl = t('sw2DesignYours');
+  const perLbl = t('sw2OfPer');
 
   return (
     <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?56:64, paddingBottom:90 }}>
@@ -12486,7 +13415,7 @@ function TVUnitPage({ setPage, products }) {
                 <div style={{ display:'flex', flexWrap:'wrap', gap:6, margin:'12px 0' }}>
                   {(Array.isArray(t.bullets)&&t.bullets.length?t.bullets:t.feats).map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{c}</span>))}
                 </div>
-                <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600 }}>Design yours →</div>
+                <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600 }}>{designYoursLbl}</div>
               </div>
             </button>
           ))}
@@ -12503,7 +13432,7 @@ function TVUnitPage({ setPage, products }) {
             <div key={f.id} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 14px', textAlign:'center' }}>
               <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.4" style={{ margin:'0 auto 8px' }}><path d="M4 6h16v12H4z M4 12h16" /></svg>
               <div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{f.name}</div>
-              <div style={{ fontSize:11, color:'var(--muted)', marginTop:3, lineHeight:1.35 }}>per {f.unit}</div>
+              <div style={{ fontSize:11, color:'var(--muted)', marginTop:3, lineHeight:1.35 }}>{perLbl} {f.unit}</div>
               <div style={{ fontSize:12, color:'var(--clay)', fontWeight:700, marginTop:6 }}>+{fmt(f.price)}</div>
             </div>
           ))}
@@ -12529,13 +13458,13 @@ function TVUnitPage({ setPage, products }) {
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
           {[
-            ['Made to measure','Surveyed, scribed and fitted to your exact wall — around fireplaces, columns and AC units, with no gaps or filler panels.','M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
-            ['Cable & AV management built in','Trays, conduits and ventilated bays for your console, receiver and router keep the wall tidy and the wiring hidden.','M4 7h16v10H4z M8 12h8'],
-            ['One team, end to end','Design, manufacture, deliver and install — handled by our own team, never sub-let.','M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
-          ].map(([t,d,ic])=>(
-            <div key={t} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+            [t('sw2MadeToMeasure'),t('sw2TvF1Desc'),'M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
+            [t('sw2TvF2'),t('sw2TvF2Desc'),'M4 7h16v10H4z M8 12h8'],
+            [t('sw2OneTeam'),t('sw2OneTeamDesc'),'M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
+          ].map(([ti,d,ic])=>(
+            <div key={ti} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5" style={{ marginBottom:12 }}><path d={ic} /></svg>
-              <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{t}</div>
+              <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{ti}</div>
               <p style={{ fontSize:14, color:'var(--ink-soft)', marginTop:6, lineHeight:1.55 }}>{d}</p>
             </div>
           ))}
@@ -12545,8 +13474,8 @@ function TVUnitPage({ setPage, products }) {
       {/* CATALOG anchors (real products) */}
       {tvProducts.length>0 && (
         <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-          <div className="eyebrow" style={{ marginBottom:10 }}>Starting points</div>
-          <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>Popular media walls.</h2>
+          <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2StartingPoints')}</div>
+          <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>{t('sw2TvPopular')}</h2>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
             {tvProducts.map(p=>(
               <button key={p.id} type="button" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
@@ -12563,7 +13492,7 @@ function TVUnitPage({ setPage, products }) {
 
       {/* FAQ */}
       <section style={{ ...wrap, marginTop: mobile?40:64, maxWidth:820 }}>
-        <div className="eyebrow" style={{ marginBottom:10, textAlign:'center' }}>Good to know</div>
+        <div className="eyebrow" style={{ marginBottom:10, textAlign:'center' }}>{t('sw2GoodToKnow')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px', textAlign:'center' }}>{cms('tv.faq.title','Media wall questions, answered.')}</h2>
         <div style={{ display:'grid', gap:10 }}>
           {FAQS.map(([q,a],i)=>{ const on=faq===i; return (
@@ -12584,7 +13513,7 @@ function TVUnitPage({ setPage, products }) {
           <p style={{ fontSize: mobile?15:18, opacity:.92, maxWidth:520, margin:'0 auto 22px' }}>{cms('tv.cta.subtitle','Plan it with a live quote, or book a free home visit — no obligation.')}</p>
           <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
             <button type="button" onClick={()=>setPage('tv-planner')} style={{ background:'#fff', color:'var(--clay-deep)', border:'none', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:700, cursor:'pointer' }}>{cms('tv.cta.button','Open the TV unit planner →')}</button>
-            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>Book a free visit</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>{t('sw2BookFreeVisit')}</button>
           </div>
         </div>
       </section>
@@ -12613,6 +13542,7 @@ function DoorsPage({ setPage, products }) {
     [cms('door.faq.q5','What hardware do you use?'), cms('door.faq.a5','Concealed and standard hinges, soft-close systems, and a full range of European locks and handles — all backed by our cabinetry-grade warranty.')],
     [cms('door.faq.q6','Do you do fire-rated doors?'), cms('door.faq.a6','Yes — 60-minute certified fire-rated cores with the correct intumescent seals and frames, finished to match the rest of your interior.')],
   ];
+  const designYoursLbl = t('sw2DesignYours');
 
   return (
     <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?56:64, paddingBottom:90 }}>
@@ -12647,7 +13577,7 @@ function DoorsPage({ setPage, products }) {
                     {t.bullets.map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{c}</span>))}
                   </div>
                 )}
-                <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600, marginTop:12 }}>Design yours →</div>
+                <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600, marginTop:12 }}>{designYoursLbl}</div>
               </div>
             </button>
           ))}
@@ -12673,13 +13603,13 @@ function DoorsPage({ setPage, products }) {
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:16 }}>
           {[
-            ['Made to measure','Surveyed and built to your exact opening — the leaf, frame and hardware all scribed so the door sits flush and swings true.','M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
-            ['Solid cores & quiet hardware','Hollow, semi-solid, solid or fire-rated cores with soft-close hinges and European locks for a reassuring, silent close.','M4 7h16v10H4z M8 12h8'],
-            ['One team, end to end','Design, manufacture, deliver and install — handled by our own team, never sub-let.','M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
-          ].map(([t,d,ic])=>(
-            <div key={t} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+            [t('sw2MadeToMeasure'),t('sw2DrF1Desc'),'M3 21h18 M5 21V8l7-5 7 5v13 M9 21v-6h6v6'],
+            [t('sw2DrF2'),t('sw2DrF2Desc'),'M4 7h16v10H4z M8 12h8'],
+            [t('sw2OneTeam'),t('sw2OneTeamDesc'),'M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
+          ].map(([ti,d,ic])=>(
+            <div key={ti} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5" style={{ marginBottom:12 }}><path d={ic} /></svg>
-              <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{t}</div>
+              <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{ti}</div>
               <p style={{ fontSize:14, color:'var(--ink-soft)', marginTop:6, lineHeight:1.55 }}>{d}</p>
             </div>
           ))}
@@ -12689,8 +13619,8 @@ function DoorsPage({ setPage, products }) {
       {/* CATALOG anchors (real products) */}
       {doorProducts.length>0 && (
         <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-          <div className="eyebrow" style={{ marginBottom:10 }}>Starting points</div>
-          <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>Popular doors.</h2>
+          <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2StartingPoints')}</div>
+          <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>{t('sw2DrPopular')}</h2>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
             {doorProducts.map(p=>(
               <button key={p.id} type="button" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
@@ -12707,7 +13637,7 @@ function DoorsPage({ setPage, products }) {
 
       {/* FAQ */}
       <section style={{ ...wrap, marginTop: mobile?40:64, maxWidth:820 }}>
-        <div className="eyebrow" style={{ marginBottom:10, textAlign:'center' }}>Good to know</div>
+        <div className="eyebrow" style={{ marginBottom:10, textAlign:'center' }}>{t('sw2GoodToKnow')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px', textAlign:'center' }}>{cms('door.faq.title','Door questions, answered.')}</h2>
         <div style={{ display:'grid', gap:10 }}>
           {FAQS.map(([q,a],i)=>{ const on=faq===i; return (
@@ -12728,7 +13658,7 @@ function DoorsPage({ setPage, products }) {
           <p style={{ fontSize: mobile?15:18, opacity:.92, maxWidth:520, margin:'0 auto 22px' }}>{cms('door.cta.subtitle','Plan it with a live quote, or book a free home visit — no obligation.')}</p>
           <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
             <button type="button" onClick={()=>setPage('door-planner')} style={{ background:'#fff', color:'var(--clay-deep)', border:'none', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:700, cursor:'pointer' }}>{cms('door.cta.button','Open the wood door planner →')}</button>
-            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>Book a free visit</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>{t('sw2BookFreeVisit')}</button>
           </div>
         </div>
       </section>
@@ -12800,9 +13730,9 @@ function WrenPlannerPage({ setPage, user }) {
     <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?86:104, paddingBottom:90 }}>
       <div style={{ maxWidth:1080, margin:'0 auto', padding: mobile?'0 18px':'0 28px' }}>
         <div style={{ textAlign:'center', marginBottom:22 }}>
-          <div className="eyebrow" style={{ marginBottom:12 }}>Kitchen design · online planner</div>
-          <h1 className="display" style={{ fontSize: mobile?30:46, color:'var(--ink)' }}>Plan your dream kitchen.</h1>
-          <p style={{ color:'var(--ink-soft)', fontSize:16, marginTop:10 }}>Five quick steps to a layout, a look and a free design appointment.</p>
+          <div className="eyebrow" style={{ marginBottom:12 }}>{t('sw2WrEyebrow')}</div>
+          <h1 className="display" style={{ fontSize: mobile?30:46, color:'var(--ink)' }}>{t('sw2WrTitle')}</h1>
+          <p style={{ color:'var(--ink-soft)', fontSize:16, marginTop:10 }}>{t('sw2WrSub')}</p>
         </div>
 
         {/* Stepper */}
@@ -12823,18 +13753,18 @@ function WrenPlannerPage({ setPage, user }) {
           <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding:20, boxShadow:'var(--shadow)', position: mobile?'static':'sticky', top:96 }}>
             <div style={{ background:'var(--sand)', borderRadius:14, padding:16, marginBottom:16 }}>{plan()}</div>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
-              <span style={{ fontSize:12, color:'var(--muted)' }}>Indicative estimate · Standard</span>
+              <span style={{ fontSize:12, color:'var(--muted)' }}>{t('sw2WrIndicStd')}</span>
               <span className="display" style={{ fontSize:26, color:'var(--clay)' }}>{fmt(est)}</span>
             </div>
-            <div style={{ fontSize:12, color:'var(--muted)', marginTop:6 }}>{sh.name} · {runM.toFixed(1)}m run · {st.name} · {wt[1]} worktop</div>
-            <div style={{ fontSize:11, color:'var(--muted)', marginTop:8 }}>A guide price — your free design appointment confirms an exact, itemised quote.</div>
+            <div style={{ fontSize:12, color:'var(--muted)', marginTop:6 }}>{sh.name} · {runM.toFixed(1)}m {t('sw2KsRun')} · {st.name} · {wt[1]} {t('sw2WrWorktop')}</div>
+            <div style={{ fontSize:11, color:'var(--muted)', marginTop:8 }}>{t('sw2WrGuideNote')}</div>
           </div>
 
           {/* Step panel */}
           <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding: mobile?18:24, boxShadow:'var(--shadow)' }}>
             {step===1 && (<>
-              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>1 · Choose your shape</h3>
-              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>How does your kitchen wrap around the room?</p>
+              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2WrStep1')}</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>{t('sw2WrWrapQ')}</p>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
                 {KITCHEN_SHAPES.map(s=>{ const on=shape===s.id; return (
                   <button key={s.id} type="button" onClick={()=>setShape(s.id)} style={{ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:14, padding:'13px 14px', cursor:'pointer' }}>
@@ -12844,17 +13774,17 @@ function WrenPlannerPage({ setPage, user }) {
               </div>
             </>)}
             {step===2 && (<>
-              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>2 · Measure your runs</h3>
-              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>Approximate wall lengths — we confirm exact sizes on the home visit.</p>
-              {sh.runs.map((k)=>{ const labels={a:'Run A',b:'Run B',c:'Run C',island:'Island'}; return (
+              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2WrStep2')}</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>{t('sw2WrStep2Sub')}</p>
+              {sh.runs.map((k)=>{ const labels={a:t('sw2WrRunA'),b:t('sw2WrRunB'),c:t('sw2WrRunC'),island:t('sw2WrIsland')}; return (
                 <div key={k} style={{ marginBottom:16 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}><span style={{ fontSize:13, color:'var(--ink-soft)' }}>{labels[k]}</span><span style={{ fontSize:14, fontWeight:700, color:'var(--clay)' }}>{dims[k]}cm</span></div>
                   <input type="range" min={120} max={600} step={10} value={dims[k]} onChange={e=>setDims(d=>({...d,[k]:parseInt(e.target.value)}))} style={{ width:'100%', accentColor:'var(--clay)' }} />
                 </div>); })}
             </>)}
             {step===3 && (<>
-              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>3 · Pick a door style</h3>
-              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>The look that sets the tone for the whole room.</p>
+              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2WrStep3')}</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 16px' }}>{t('sw2WrStep3Sub')}</p>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10 }}>
                 {KITCHEN_STYLES.map(s=>{ const on=styleId===s.id; return (
                   <button key={s.id} type="button" onClick={()=>setStyleId(s.id)} style={{ border: on?'2px solid var(--clay)':'1px solid var(--line)', borderRadius:14, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, textAlign:'left' }}>
@@ -12867,9 +13797,9 @@ function WrenPlannerPage({ setPage, user }) {
               </div>
             </>)}
             {step===4 && (<>
-              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>4 · Worktop &amp; handles</h3>
-              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 14px' }}>The finishing touches that make it yours.</p>
-              <div style={{ fontSize:12, fontWeight:700, color:'var(--ink)', margin:'4px 0 8px' }}>WORKTOP</div>
+              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2WrStep4')}</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 14px' }}>{t('sw2WrStep4Sub')}</p>
+              <div style={{ fontSize:12, fontWeight:700, color:'var(--ink)', margin:'4px 0 8px' }}>{t('sw2WrWorktopHead')}</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:16 }}>
                 {KITCHEN_WORKTOPS.map(([id,name,sub,add])=>{ const on=worktop===id; return (
                   <button key={id} type="button" onClick={()=>setWorktop(id)} style={{ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'10px 12px', cursor:'pointer' }}>
@@ -12877,7 +13807,7 @@ function WrenPlannerPage({ setPage, user }) {
                     <div style={{ fontSize:11, color:'var(--muted)' }}>{sub}{add>0?` · +${fmt(add)}`:''}</div>
                   </button>); })}
               </div>
-              <div style={{ fontSize:12, fontWeight:700, color:'var(--ink)', margin:'4px 0 8px' }}>HANDLES</div>
+              <div style={{ fontSize:12, fontWeight:700, color:'var(--ink)', margin:'4px 0 8px' }}>{t('sw2WrHandlesHead')}</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                 {KITCHEN_HANDLES.map(([id,name,sub,add])=>{ const on=handle===id; return (
                   <button key={id} type="button" onClick={()=>setHandle(id)} style={{ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'10px 12px', cursor:'pointer' }}>
@@ -12887,26 +13817,26 @@ function WrenPlannerPage({ setPage, user }) {
               </div>
             </>)}
             {step===5 && (<>
-              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>5 · Your kitchen &amp; appointment</h3>
-              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 14px' }}>Book a free design visit — no obligation, exact quote on the day.</p>
+              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2WrStep5')}</h3>
+              <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 14px' }}>{t('sw2WrStep5Sub')}</p>
               <div style={{ background:'var(--sand)', borderRadius:12, padding:'12px 14px', marginBottom:14, fontSize:13.5, color:'var(--ink-soft)', lineHeight:1.7 }}>
-                <div><b style={{ color:'var(--ink)' }}>Shape</b> · {sh.name} ({runM.toFixed(1)}m run)</div>
-                <div><b style={{ color:'var(--ink)' }}>Style</b> · {st.name}</div>
-                <div><b style={{ color:'var(--ink)' }}>Worktop</b> · {wt[1]} &nbsp; <b style={{ color:'var(--ink)' }}>Handles</b> · {hd[1]}</div>
-                <div style={{ marginTop:4 }}><b style={{ color:'var(--clay-deep)' }}>Estimate · {fmt(est)}</b></div>
+                <div><b style={{ color:'var(--ink)' }}>{t('sw2WrShape')}</b> · {sh.name} ({runM.toFixed(1)}m {t('sw2KsRun')})</div>
+                <div><b style={{ color:'var(--ink)' }}>{t('sw2WrStyle')}</b> · {st.name}</div>
+                <div><b style={{ color:'var(--ink)' }}>{t('sw2WrWorktopLbl')}</b> · {wt[1]} &nbsp; <b style={{ color:'var(--ink)' }}>{t('sw2WrHandlesLbl')}</b> · {hd[1]}</div>
+                <div style={{ marginTop:4 }}><b style={{ color:'var(--clay-deep)' }}>{t('sw2WrEstimate')} · {fmt(est)}</b></div>
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} aria-label="Your name" placeholder="Your name" style={inS} />
-                <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} aria-label="Phone (+973…)" placeholder="Phone (+973…)" inputMode="tel" style={inS} />
-                <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} aria-label="Email (optional)" placeholder="Email (optional)" inputMode="email" style={inS} />
+                <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} aria-label={t('sw2KsYourName')} placeholder={t('sw2KsYourName')} style={inS} />
+                <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} aria-label={t('sw2KsPhonePh')} placeholder={t('sw2KsPhonePh')} inputMode="tel" style={inS} />
+                <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} aria-label={t('sw2KsEmailOpt')} placeholder={t('sw2KsEmailOpt')} inputMode="email" style={inS} />
                 <input type="date" value={contact.date} onChange={e=>setContact(c=>({...c,date:e.target.value}))} style={inS} />
               </div>
-              <button type="button" className="btn-clay" disabled={busy} onClick={book} style={{ width:'100%', marginTop:14, borderRadius:14, opacity:busy?.6:1 }}>{busy?'Sending…':'Book my free design appointment'}</button>
+              <button type="button" className="btn-clay" disabled={busy} onClick={book} style={{ width:'100%', marginTop:14, borderRadius:14, opacity:busy?.6:1 }}>{busy?t('sw2Sending'):t('sw2WrBookBtn')}</button>
             </>)}
 
             {/* Nav */}
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:20, gap:10 }}>
-              {step>1 ? <button type="button" onClick={back} style={{ background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'11px 18px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pBack')}</button> : <button type="button" aria-label="Close" onClick={()=>setPage('home')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>{t('pgClose')}</button>}
+              {step>1 ? <button type="button" onClick={back} style={{ background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'11px 18px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pBack')}</button> : <button type="button" aria-label={t('pgClose')} onClick={()=>setPage('home')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>{t('pgClose')}</button>}
               {step<5 && <button type="button" className="btn-clay" onClick={next} style={{ borderRadius:12, minWidth:140 }}>{t('pContinueArrow')}</button>}
             </div>
           </div>
@@ -12996,16 +13926,16 @@ function KitchenStudioPage({ setPage, user }) {
   };
 
   const inS = { width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' };
-  const wallBtn = (id,label) => { const on=wall===id; return <button type="button" onClick={()=>setWall(id)} style={{ flex:1, padding:'8px 6px', fontSize:12.5, fontWeight:on?700:500, border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', color: on?'var(--clay-deep)':'var(--ink-soft)', borderRadius:10, cursor:'pointer' }}>{label}<div style={{ fontSize:10, color:'var(--muted)', fontWeight:500 }}>{units[id].length} units</div></button>; };
-  const TABS=[['units','Units'],['room','Room'],['style','Style'],['finish','Finishes']];
+  const wallBtn = (id,label) => { const on=wall===id; return <button type="button" onClick={()=>setWall(id)} style={{ flex:1, padding:'8px 6px', fontSize:12.5, fontWeight:on?700:500, border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', color: on?'var(--clay-deep)':'var(--ink-soft)', borderRadius:10, cursor:'pointer' }}>{label}<div style={{ fontSize:10, color:'var(--muted)', fontWeight:500 }}>{units[id].length} {t('sw2StUnitsLower')}</div></button>; };
+  const TABS=[['units',t('sw2StTabUnits')],['room',t('sw2StTabRoom')],['style',t('sw2StTabStyle')],['finish',t('sw2StTabFinish')]];
 
   return (
     <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?86:104, paddingBottom:90 }}>
       <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' }}>
         <div style={{ textAlign:'center', marginBottom:20 }}>
-          <div className="eyebrow" style={{ marginBottom:12 }}>Kitchen design · online planner</div>
-          <h1 className="display" style={{ fontSize: mobile?30:46, color:'var(--ink)' }}>Design your kitchen, unit by unit.</h1>
-          <p style={{ color:'var(--ink-soft)', fontSize:16, marginTop:10 }}>Set your room, drop in cabinets along each wall, choose your look — watch the plan and price update live.</p>
+          <div className="eyebrow" style={{ marginBottom:12 }}>{t('sw2WrEyebrow')}</div>
+          <h1 className="display" style={{ fontSize: mobile?30:46, color:'var(--ink)' }}>{t('sw2StTitle')}</h1>
+          <p style={{ color:'var(--ink-soft)', fontSize:16, marginTop:10 }}>{t('sw2StSub')}</p>
         </div>
 
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1.25fr 1fr', gap:20, alignItems:'start' }}>
@@ -13020,11 +13950,11 @@ function KitchenStudioPage({ setPage, user }) {
               </svg>
             </div>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginTop:14 }}>
-              <span style={{ fontSize:12, color:'var(--muted)' }}>Indicative estimate · {all.length} units · {baseRunM.toFixed(1)}m</span>
+              <span style={{ fontSize:12, color:'var(--muted)' }}>{t('sw2StIndic')} · {all.length} {t('sw2StUnits')} · {baseRunM.toFixed(1)}m</span>
               <span className="display" style={{ fontSize:26, color:'var(--clay)' }}>{fmt(est)}</span>
             </div>
-            <div style={{ fontSize:11, color:'var(--muted)', marginTop:6 }}>{st.name} · {wt[1]} worktop · {hd[1]} handles. A guide price — your free design visit confirms an exact quote.</div>
-            <button type="button" className="btn-clay" disabled={all.length===0} onClick={()=>setShowBook(true)} style={{ width:'100%', marginTop:14, borderRadius:12, opacity:all.length===0?.5:1 }}>Book a free design appointment</button>
+            <div style={{ fontSize:11, color:'var(--muted)', marginTop:6 }}>{st.name} · {wt[1]} {t('sw2StGuideNote').replace('{h}', hd[1])}</div>
+            <button type="button" className="btn-clay" disabled={all.length===0} onClick={()=>setShowBook(true)} style={{ width:'100%', marginTop:14, borderRadius:12, opacity:all.length===0?.5:1 }}>{t('sw2StBookBtn')}</button>
           </div>
 
           {/* TOOLS */}
@@ -13034,8 +13964,8 @@ function KitchenStudioPage({ setPage, user }) {
             </div>
 
             {tab==='units' && (<>
-              <div style={{ fontSize:12.5, color:'var(--ink-soft)', marginBottom:8 }}>1 · Choose a wall, then add units to it.</div>
-              <div style={{ display:'flex', gap:6, marginBottom:14 }}>{wallBtn('top','Top')}{wallBtn('bottom','Bottom')}{wallBtn('left','Left')}{wallBtn('right','Right')}</div>
+              <div style={{ fontSize:12.5, color:'var(--ink-soft)', marginBottom:8 }}>{t('sw2StChooseWall')}</div>
+              <div style={{ display:'flex', gap:6, marginBottom:14 }}>{wallBtn('top',t('sw2StTop'))}{wallBtn('bottom',t('sw2StBottom'))}{wallBtn('left',t('sw2StLeft'))}{wallBtn('right',t('sw2StRight'))}</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:14 }}>
                 {KU_UNITS.map(u=>(
                   <button key={u.key} type="button" onClick={()=>add(u)} style={{ display:'flex', alignItems:'center', gap:9, textAlign:'left', border:'1px solid var(--line)', background:'var(--cream)', borderRadius:12, padding:'9px 11px', cursor:'pointer' }}>
@@ -13045,20 +13975,20 @@ function KitchenStudioPage({ setPage, user }) {
                 ))}
               </div>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-                <span style={{ fontSize:12.5, fontWeight:600, color:'var(--ink)' }}>On {wall} wall ({units[wall].length})</span>
-                {units[wall].length>0 && <button type="button" onClick={clearWall} style={{ fontSize:12, color:'var(--clay)', background:'none', border:'none', cursor:'pointer' }}>Clear wall</button>}
+                <span style={{ fontSize:12.5, fontWeight:600, color:'var(--ink)' }}>{t('sw2StOnWall').replace('{wall}', wall)} ({units[wall].length})</span>
+                {units[wall].length>0 && <button type="button" onClick={clearWall} style={{ fontSize:12, color:'var(--clay)', background:'none', border:'none', cursor:'pointer' }}>{t('sw2StClearWall')}</button>}
               </div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                {units[wall].length===0 && <span style={{ fontSize:13, color:'var(--muted)' }}>No units yet — tap one above to add it here.</span>}
+                {units[wall].length===0 && <span style={{ fontSize:13, color:'var(--muted)' }}>{t('sw2StNoUnits')}</span>}
                 {units[wall].map(u=>(
-                  <button key={u.id} type="button" onClick={()=>remove(wall,u.id)} title="Remove" style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, border:'1px solid var(--line)', background:'#fff', borderRadius:99, padding:'5px 10px', cursor:'pointer', color:'var(--ink)' }}>{u.name} <span style={{ color:'var(--muted)' }}>×</span></button>
+                  <button key={u.id} type="button" onClick={()=>remove(wall,u.id)} title={t('sw2StRemove')} style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, border:'1px solid var(--line)', background:'#fff', borderRadius:99, padding:'5px 10px', cursor:'pointer', color:'var(--ink)' }}>{u.name} <span style={{ color:'var(--muted)' }}>×</span></button>
                 ))}
               </div>
             </>)}
 
             {tab==='room' && (<>
-              <div style={{ fontSize:12.5, color:'var(--ink-soft)', marginBottom:14 }}>Set the approximate size of your room.</div>
-              {[['Width','w'],['Length','l']].map(([lbl,k])=>(
+              <div style={{ fontSize:12.5, color:'var(--ink-soft)', marginBottom:14 }}>{t('sw2StRoomSize')}</div>
+              {[[t('sw2StWidth'),'w'],[t('sw2StLength'),'l']].map(([lbl,k])=>(
                 <div key={k} style={{ marginBottom:18 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}><span style={{ fontSize:13, color:'var(--ink-soft)' }}>{lbl}</span><span style={{ fontSize:14, fontWeight:700, color:'var(--clay)' }}>{room[k]}cm</span></div>
                   <input type="range" min={180} max={700} step={10} value={room[k]} onChange={e=>setRoom(r=>({...r,[k]:parseInt(e.target.value)}))} style={{ width:'100%', accentColor:'var(--clay)' }} />
@@ -13077,19 +14007,19 @@ function KitchenStudioPage({ setPage, user }) {
             )}
 
             {tab==='finish' && (<>
-              <div style={{ fontSize:12, fontWeight:700, color:'var(--ink)', margin:'0 0 8px' }}>WORKTOP</div>
+              <div style={{ fontSize:12, fontWeight:700, color:'var(--ink)', margin:'0 0 8px' }}>{t('sw2StWorktopHead')}</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:16 }}>
                 {KITCHEN_WORKTOPS.map(([id,name,sub])=>{ const on=worktop===id; return (
                   <button key={id} type="button" onClick={()=>setWorktop(id)} style={{ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'10px 12px', cursor:'pointer' }}><div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{name}</div><div style={{ fontSize:11, color:'var(--muted)' }}>{sub} · {fmt(KU_WT[id]||0)}/m</div></button>); })}
               </div>
-              <div style={{ fontSize:12, fontWeight:700, color:'var(--ink)', margin:'0 0 8px' }}>HANDLES</div>
+              <div style={{ fontSize:12, fontWeight:700, color:'var(--ink)', margin:'0 0 8px' }}>{t('sw2StHandlesHead')}</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                 {KITCHEN_HANDLES.map(([id,name,sub])=>{ const on=handle===id; return (
                   <button key={id} type="button" onClick={()=>setHandle(id)} style={{ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'10px 12px', cursor:'pointer' }}><div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{name}</div><div style={{ fontSize:11, color:'var(--muted)' }}>{sub}</div></button>); })}
               </div>
             </>)}
 
-            <div style={{ marginTop:18, textAlign:'center' }}><button type="button" aria-label="Close" onClick={()=>setPage('home')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>{t('pgClose')}</button></div>
+            <div style={{ marginTop:18, textAlign:'center' }}><button type="button" aria-label={t('pgClose')} onClick={()=>setPage('home')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>{t('pgClose')}</button></div>
           </div>
         </div>
       </div>
@@ -13099,17 +14029,17 @@ function KitchenStudioPage({ setPage, user }) {
         <div onClick={()=>!busy&&setShowBook(false)} style={{ position:'fixed', inset:0, zIndex:10000, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
           <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:26 }}>
             <div className="eyebrow" style={{ marginBottom:8 }}>{t('pAlmostThere')}</div>
-            <h3 className="display" style={{ fontSize:24, color:'var(--ink)', margin:'0 0 6px' }}>Book your free design visit</h3>
-            <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)', lineHeight:1.6 }}>{all.length} units · {st.name} · {wt[1]} worktop · <b style={{ color:'var(--clay-deep)' }}>{fmt(est)}</b></div>
+            <h3 className="display" style={{ fontSize:24, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw2StBookTitle')}</h3>
+            <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)', lineHeight:1.6 }}>{all.length} {t('sw2StUnits')} · {st.name} · {wt[1]} {t('sw2StWorktopWord')} · <b style={{ color:'var(--clay-deep)' }}>{fmt(est)}</b></div>
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-              <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} aria-label="Your name" placeholder="Your name" style={inS} />
-              <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} aria-label="Phone (+973…)" placeholder="Phone (+973…)" inputMode="tel" style={inS} />
-              <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} aria-label="Email (optional)" placeholder="Email (optional)" inputMode="email" style={inS} />
+              <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} aria-label={t('sw2KsYourName')} placeholder={t('sw2KsYourName')} style={inS} />
+              <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} aria-label={t('sw2KsPhonePh')} placeholder={t('sw2KsPhonePh')} inputMode="tel" style={inS} />
+              <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} aria-label={t('sw2KsEmailOpt')} placeholder={t('sw2KsEmailOpt')} inputMode="email" style={inS} />
               <input type="date" value={contact.date} onChange={e=>setContact(c=>({...c,date:e.target.value}))} style={inS} />
             </div>
             <div style={{ display:'flex', gap:10, marginTop:16 }}>
-              <button type="button" onClick={()=>setShowBook(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>Cancel</button>
-              <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={book} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?'Sending…':'Request appointment'}</button>
+              <button type="button" onClick={()=>setShowBook(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('sw2Cancel')}</button>
+              <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={book} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?t('sw2Sending'):t('sw2StRequestAppt')}</button>
             </div>
           </div>
         </div>
@@ -13281,7 +14211,7 @@ function DesignBuilderPage({ setPage, user }) {
     const mf = finishes.find(f => sm.some(n => (f.name || '').toLowerCase().includes(n) || n.includes((f.name || '').toLowerCase())));
     if (mb) setBoardId(mb.id);
     if (mf) setFinishId(mf.id);
-    toast('Style applied' + (mb || mf ? ' — suggested materials selected' : ''), 'success');
+    toast((mb || mf ? t('sw2DbStyleAppliedMat') : t('sw2DbStyleApplied')), 'success');
   };
 
   // ── AI heuristic suggestions ──
@@ -13289,14 +14219,14 @@ function DesignBuilderPage({ setPage, user }) {
     const out = [];
     if (finish && /acrylic|gloss/i.test(finish.name || '')) {
       const mel = finishes.find(f => /melamine|matte|laminate/i.test(f.name || ''));
-      if (mel) { const delta = Math.max(0, (Number(finish.cost) || 0) - (Number(mel.cost) || 0)) * areaSqm; out.push({ id:'fin', label:'Switch ' + finish.name + ' → ' + mel.name + ' to save ~' + fmt(delta), apply:() => { setFinishId(mel.id); toast('Finish switched to ' + mel.name, 'success'); } }); }
+      if (mel) { const delta = Math.max(0, (Number(finish.cost) || 0) - (Number(mel.cost) || 0)) * areaSqm; out.push({ id:'fin', label:t('sw2DbAiSwitchFin').replace('{a}', finish.name).replace('{b}', mel.name).replace('{s}', fmt(delta)), apply:() => { setFinishId(mel.id); toast(t('sw2DbAiFinSwitched').replace('{n}', mel.name), 'success'); } }); }
     }
     const hasLed = parts.some(p => p.kind === 'lighting');
-    if (!hasLed) { const def = DB_PART_KINDS.find(d => d.kind === 'lighting'); out.push({ id:'led', label:'Add sensor LED lighting (+' + fmt(def.cost) + ') to lift perceived value', apply:() => { addPart(def); toast('LED lighting added', 'success'); } }); }
+    if (!hasLed) { const def = DB_PART_KINDS.find(d => d.kind === 'lighting'); out.push({ id:'led', label:t('sw2DbAiAddLed').replace('{c}', fmt(def.cost)), apply:() => { addPart(def); toast(t('sw2DbAiLedAdded'), 'success'); } }); }
     const drawers = parts.filter(p => p.kind === 'drawer').length;
-    if (parts.length >= 2 && drawers === 0) { const def = DB_PART_KINDS.find(d => d.kind === 'drawer'); out.push({ id:'drw', label:'Add a drawer bank for folded clothing & accessories', apply:() => { addPart(def); toast('Drawer added', 'success'); } }); }
-    if (board) { const cheapest = boards.slice().sort((a, b) => (a.cost || 0) - (b.cost || 0))[0]; if (cheapest && cheapest.id !== board.id && (board.cost || 0) > (cheapest.cost || 0)) { const save = ((board.cost || 0) - (cheapest.cost || 0)) * areaSqm; out.push({ id:'brd', label:'Use ' + cheapest.name + ' board to save ~' + fmt(save) + ' (lower durability)', apply:() => { setBoardId(cheapest.id); toast('Board switched to ' + cheapest.name, 'success'); } }); } }
-    if (parts.length === 0) out.push({ id:'start', label:'Open the Design Builder and add at least one cabinet to begin pricing', apply:() => setStep('build') });
+    if (parts.length >= 2 && drawers === 0) { const def = DB_PART_KINDS.find(d => d.kind === 'drawer'); out.push({ id:'drw', label:t('sw2DbAiAddDrawer'), apply:() => { addPart(def); toast(t('sw2DbAiDrawerAdded'), 'success'); } }); }
+    if (board) { const cheapest = boards.slice().sort((a, b) => (a.cost || 0) - (b.cost || 0))[0]; if (cheapest && cheapest.id !== board.id && (board.cost || 0) > (cheapest.cost || 0)) { const save = ((board.cost || 0) - (cheapest.cost || 0)) * areaSqm; out.push({ id:'brd', label:t('sw2DbAiUseBoard').replace('{n}', cheapest.name).replace('{s}', fmt(save)), apply:() => { setBoardId(cheapest.id); toast(t('sw2DbAiBoardSwitched').replace('{n}', cheapest.name), 'success'); } }); } }
+    if (parts.length === 0) out.push({ id:'start', label:t('sw2DbAiStart'), apply:() => setStep('build') });
     return out;
   })();
 
@@ -13381,23 +14311,25 @@ function DesignBuilderPage({ setPage, user }) {
 
   const total = price?.total_price || 0;
   const variation = prevTotal != null ? total - prevTotal : 0;
+  const dbStepLabels = { req:t('sw2DbStepReq'), survey:t('sw2DbStepSurvey'), build:t('sw2DbStepBuild'), style:t('sw2DbStepStyle'), materials:t('sw2DbStepMaterials'), mood:t('sw2DbStepMood'), cost:t('sw2DbStepCost'), ai:t('sw2DbStepAi') };
+  const dbFeatureLabels = { windows:t('sw2DbFeatWindows'), doors:t('sw2DbFeatDoors'), outlets:t('sw2DbFeatOutlets'), ac:t('sw2DbFeatAc'), columns:t('sw2DbFeatColumns'), beams:t('sw2DbFeatBeams'), plumbing:t('sw2DbFeatPlumbing'), lighting:t('sw2DbFeatLighting') };
 
   return (
     <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?86:104, paddingBottom:90 }}>
       <div style={{ maxWidth:1200, margin:'0 auto', padding: mobile?'0 16px':'0 28px' }}>
         <div style={{ textAlign:'center', marginBottom:18 }}>
-          <div className="eyebrow" style={{ marginBottom:10 }}>Design Builder · guided end-to-end</div>
-          <h1 className="display" style={{ fontSize: mobile?28:44, color:'var(--ink)' }}>Design your space, step by step.</h1>
-          <p style={{ color:'var(--ink-soft)', fontSize:15.5, marginTop:8 }}>Tell us what you need, lay out the parts, choose your look — and watch the price update live.</p>
+          <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2DbEyebrow')}</div>
+          <h1 className="display" style={{ fontSize: mobile?28:44, color:'var(--ink)' }}>{t('sw2DbTitle')}</h1>
+          <p style={{ color:'var(--ink-soft)', fontSize:15.5, marginTop:8 }}>{t('sw2DbSub')}</p>
         </div>
 
-        {catErr && <div style={{ ...card, marginBottom:16, borderColor:'var(--clay)', color:'var(--clay-deep)', textAlign:'center' }}>Our design catalogue is taking a moment to load. You can still build a layout — pricing and styles will appear shortly.</div>}
+        {catErr && <div style={{ ...card, marginBottom:16, borderColor:'var(--clay)', color:'var(--clay-deep)', textAlign:'center' }}>{t('sw2DbCatErr')}</div>}
 
         {/* step tabs */}
         <div style={{ display:'flex', gap:6, overflowX:'auto', marginBottom:18, paddingBottom:4 }}>
           {DB_STEPS.map(([id, label], i) => { const on = step === id; return (
             <button key={id} type="button" onClick={() => setStep(id)} style={{ flexShrink:0, display:'flex', alignItems:'center', gap:7, padding:'8px 14px', borderRadius:99, border:'none', cursor:'pointer', fontSize:13, fontWeight:600, background: on?'var(--clay)':'var(--sand)', color: on?'#fff':'var(--ink-soft)' }}>
-              <span style={{ width:18, height:18, borderRadius:99, fontSize:11, display:'flex', alignItems:'center', justifyContent:'center', background: on?'rgba(255,255,255,.25)':'var(--line)', color: on?'#fff':'var(--muted)' }}>{i+1}</span>{label}
+              <span style={{ width:18, height:18, borderRadius:99, fontSize:11, display:'flex', alignItems:'center', justifyContent:'center', background: on?'rgba(255,255,255,.25)':'var(--line)', color: on?'#fff':'var(--muted)' }}>{i+1}</span>{dbStepLabels[id]||label}
             </button>); })}
         </div>
 
@@ -13423,30 +14355,30 @@ function DesignBuilderPage({ setPage, user }) {
               </div>
               {selId && (() => { const p = parts.find(x => x.id === selId); if (!p) return null; return (
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:10, fontSize:12.5, color:'var(--ink-soft)' }}>
-                  <span>Selected: <b style={{ color:'var(--ink)' }}>{p.name}</b> · {fmt(p.unit_cost)}{overlapSet.has(p.id) && <span style={{ color:'#d93025', marginLeft:8 }}>· overlapping</span>}</span>
-                  <button type="button" onClick={() => removePart(p.id)} style={{ background:'none', border:'1px solid var(--line)', borderRadius:99, padding:'4px 12px', fontSize:12, cursor:'pointer', color:'var(--clay)' }}>Remove</button>
+                  <span>{t('sw2DbSelected')}: <b style={{ color:'var(--ink)' }}>{p.name}</b> · {fmt(p.unit_cost)}{overlapSet.has(p.id) && <span style={{ color:'#d93025', marginLeft:8 }}>{t('sw2DbOverlapping')}</span>}</span>
+                  <button type="button" onClick={() => removePart(p.id)} style={{ background:'none', border:'1px solid var(--line)', borderRadius:99, padding:'4px 12px', fontSize:12, cursor:'pointer', color:'var(--clay)' }}>{t('sw2DbRemove')}</button>
                 </div>); })()}
             </div>
 
             {/* real-time cost panel */}
             <div style={card}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
-                <span className="eyebrow" style={{ margin:0 }}>Live estimate</span>
-                {pricing && <span style={{ fontSize:11, color:'var(--muted)' }}>updating…</span>}
+                <span className="eyebrow" style={{ margin:0 }}>{t('sw2DbLiveEst')}</span>
+                {pricing && <span style={{ fontSize:11, color:'var(--muted)' }}>{t('sw2DbUpdating')}</span>}
               </div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-                <div><div style={{ fontSize:11, color:'var(--muted)' }}>Current price</div><div className="display" style={{ fontSize:26, color:'var(--clay)' }}>{price?fmt(total):'—'}</div></div>
-                <div><div style={{ fontSize:11, color:'var(--muted)' }}>Variation vs previous</div><div style={{ fontSize:18, fontWeight:700, color: variation>0?'var(--clay-deep)':variation<0?'var(--clay)':'var(--muted)' }}>{prevTotal!=null?(variation>=0?'+':'')+fmt(Math.abs(variation)).replace('BD ', variation<0?'−BD ':'BD '):'—'}</div></div>
-                <div><div style={{ fontSize:11, color:'var(--muted)' }}>Margin</div><div style={{ fontSize:18, fontWeight:700, color:'var(--ink)' }}>{price?Math.round(price.margin_pct||0)+'%':'—'}</div></div>
-                <div><div style={{ fontSize:11, color:'var(--muted)' }}>Estimated delivery</div><div style={{ fontSize:14.5, fontWeight:700, color:'var(--ink)' }}>{price?.estimated_delivery?new Date(price.estimated_delivery).toLocaleDateString('en-GB',{ day:'numeric', month:'short' }):'—'}</div></div>
+                <div><div style={{ fontSize:11, color:'var(--muted)' }}>{t('sw2DbCurrentPrice')}</div><div className="display" style={{ fontSize:26, color:'var(--clay)' }}>{price?fmt(total):'—'}</div></div>
+                <div><div style={{ fontSize:11, color:'var(--muted)' }}>{t('sw2DbVariation')}</div><div style={{ fontSize:18, fontWeight:700, color: variation>0?'var(--clay-deep)':variation<0?'var(--clay)':'var(--muted)' }}>{prevTotal!=null?(variation>=0?'+':'')+fmt(Math.abs(variation)).replace('BD ', variation<0?'−BD ':'BD '):'—'}</div></div>
+                <div><div style={{ fontSize:11, color:'var(--muted)' }}>{t('sw2DbMargin')}</div><div style={{ fontSize:18, fontWeight:700, color:'var(--ink)' }}>{price?Math.round(price.margin_pct||0)+'%':'—'}</div></div>
+                <div><div style={{ fontSize:11, color:'var(--muted)' }}>{t('sw2DbEstDelivery')}</div><div style={{ fontSize:14.5, fontWeight:700, color:'var(--ink)' }}>{price?.estimated_delivery?new Date(price.estimated_delivery).toLocaleDateString(lang==='ar'?'ar':'en-GB',{ day:'numeric', month:'short' }):'—'}</div></div>
               </div>
               {price && <div style={{ marginTop:12, paddingTop:12, borderTop:'1px solid var(--line)', display:'grid', gridTemplateColumns:'1fr 1fr', gap:6, fontSize:12, color:'var(--ink-soft)' }}>
-                <span>Materials</span><span style={{ textAlign:'right' }}>{fmt(price.material_cost)}</span>
-                <span>Labour</span><span style={{ textAlign:'right' }}>{fmt(price.labor_cost)}</span>
-                <span>Delivery</span><span style={{ textAlign:'right' }}>{fmt(price.delivery_cost)}</span>
-                <span>Install</span><span style={{ textAlign:'right' }}>{fmt(price.install_cost)}</span>
+                <span>{t('sw2DbMaterials')}</span><span style={{ textAlign:'right' }}>{fmt(price.material_cost)}</span>
+                <span>{t('sw2DbLabour')}</span><span style={{ textAlign:'right' }}>{fmt(price.labor_cost)}</span>
+                <span>{t('sw2DbDelivery')}</span><span style={{ textAlign:'right' }}>{fmt(price.delivery_cost)}</span>
+                <span>{t('sw2DbInstall')}</span><span style={{ textAlign:'right' }}>{fmt(price.install_cost)}</span>
               </div>}
-              <div style={{ fontSize:11, color:'var(--muted)', marginTop:10 }}>Indicative — confirmed at your free design visit.</div>
+              <div style={{ fontSize:11, color:'var(--muted)', marginTop:10 }}>{t('sw2DbIndicConf')}</div>
             </div>
           </div>
 
@@ -13454,8 +14386,8 @@ function DesignBuilderPage({ setPage, user }) {
           <div style={card}>
             {/* STEP 1 — REQUIREMENTS */}
             {step === 'req' && (<Fragment>
-              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>What are you designing?</h3>
-              <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 14px' }}>Pick a project type, then fill in your needs.</p>
+              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2DbWhatDesign')}</h3>
+              <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 14px' }}>{t('sw2DbPickType')}</p>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:18 }}>
                 {DB_PROJECT_TYPES.map(t => { const on = ptype === t.id; return (
                   <button key={t.id} type="button" onClick={() => { setPtype(t.id); setReq({}); }} style={{ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:14, padding:'11px 12px', cursor:'pointer' }}>
@@ -13467,82 +14399,82 @@ function DesignBuilderPage({ setPage, user }) {
 
               {/* type-aware fields */}
               {ptype === 'wardrobe' && (<div style={{ marginBottom:16 }}>
-                <span style={lblS}>Hanging & storage</span>
-                <Counter label="Long hanging sections" k="long_hanging" />
-                <Counter label="Short hanging sections" k="short_hanging" />
-                <Counter label="Drawer banks" k="drawers" />
-                <Counter label="Shoe storage units" k="shoe_storage" />
-                <span style={{ ...lblS, marginTop:12 }}>Accessories</span>
+                <span style={lblS}>{t('sw2DbHangStorage')}</span>
+                <Counter label={t('sw2DbLongHang')} k="long_hanging" />
+                <Counter label={t('sw2DbShortHang')} k="short_hanging" />
+                <Counter label={t('sw2DbDrawerBanks')} k="drawers" />
+                <Counter label={t('sw2DbShoeStorage')} k="shoe_storage" />
+                <span style={{ ...lblS, marginTop:12 }}>{t('sw2DbAccessories')}</span>
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                  {[['safe_box','Safe box'],['jewelry_drawer','Jewelry drawer'],['ironing_board','Pull-out ironing board'],['laundry_basket','Laundry basket']].map(([k,l]) => <Toggle key={k} label={l} val={!!req[k]} set={v => setReq(r => ({ ...r, [k]: v }))} />)}
+                  {[['safe_box',t('sw2DbSafeBox')],['jewelry_drawer',t('sw2DbJewelry')],['ironing_board',t('sw2DbIroning')],['laundry_basket',t('sw2DbLaundry')]].map(([k,l]) => <Toggle key={k} label={l} val={!!req[k]} set={v => setReq(r => ({ ...r, [k]: v }))} />)}
                 </div>
               </div>)}
               {ptype === 'tv' && (<div style={{ marginBottom:16 }}>
-                <span style={lblS}>TV size</span>
+                <span style={lblS}>{t('sw2DbTvSize')}</span>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:12 }}>{['43"','55"','65"','75"','85"+'].map(s => <button key={s} type="button" onClick={() => setReq(r => ({ ...r, tv_size: s }))} style={chip(req.tv_size === s)}>{s}</button>)}</div>
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                  {[['console','Floating console'],['display_shelves','Display shelves'],['gaming','Gaming storage'],['sound_system','Sound system / soundbar']].map(([k,l]) => <Toggle key={k} label={l} val={!!req[k]} set={v => setReq(r => ({ ...r, [k]: v }))} />)}
+                  {[['console',t('sw2DbConsole')],['display_shelves',t('sw2DbDisplayShelves')],['gaming',t('sw2DbGaming')],['sound_system',t('sw2DbSound')]].map(([k,l]) => <Toggle key={k} label={l} val={!!req[k]} set={v => setReq(r => ({ ...r, [k]: v }))} />)}
                 </div>
               </div>)}
               {ptype === 'kitchen' && (<div style={{ marginBottom:16 }}>
-                <span style={lblS}>Appliances</span>
+                <span style={lblS}>{t('sw2DbAppliances')}</span>
                 <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:12 }}>
-                  {[['oven','Built-in oven'],['hob','Hob & extractor'],['dishwasher','Dishwasher'],['fridge','Integrated fridge'],['microwave','Microwave']].map(([k,l]) => <Toggle key={k} label={l} val={!!req[k]} set={v => setReq(r => ({ ...r, [k]: v }))} />)}
+                  {[['oven',t('sw2DbOven')],['hob',t('sw2DbHob')],['dishwasher',t('sw2DbDishwasher')],['fridge',t('sw2DbFridge')],['microwave',t('sw2DbMicrowave')]].map(([k,l]) => <Toggle key={k} label={l} val={!!req[k]} set={v => setReq(r => ({ ...r, [k]: v }))} />)}
                 </div>
-                <span style={lblS}>Cooking habits</span>
-                <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:12 }}>{['Light','Everyday','Avid cook','Entertainer'].map(s => <button key={s} type="button" onClick={() => setReq(r => ({ ...r, cooking: s }))} style={chip(req.cooking === s)}>{s}</button>)}</div>
-                <span style={lblS}>Storage & pantry</span>
+                <span style={lblS}>{t('sw2DbCooking')}</span>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:12 }}>{[['Light',t('sw2DbCookLight')],['Everyday',t('sw2DbCookEveryday')],['Avid cook',t('sw2DbCookAvid')],['Entertainer',t('sw2DbCookEntertainer')]].map(([v,lbl]) => <button key={v} type="button" onClick={() => setReq(r => ({ ...r, cooking: v }))} style={chip(req.cooking === v)}>{lbl}</button>)}</div>
+                <span style={lblS}>{t('sw2DbStoragePantry')}</span>
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                  {[['pantry','Tall pantry unit'],['extra_storage','Extra deep storage'],['island','Island with storage']].map(([k,l]) => <Toggle key={k} label={l} val={!!req[k]} set={v => setReq(r => ({ ...r, [k]: v }))} />)}
+                  {[['pantry',t('sw2DbPantry')],['extra_storage',t('sw2DbExtraStorage')],['island',t('sw2DbIslandStorage')]].map(([k,l]) => <Toggle key={k} label={l} val={!!req[k]} set={v => setReq(r => ({ ...r, [k]: v }))} />)}
                 </div>
               </div>)}
               {(ptype === 'walkin' || ptype === 'storage' || ptype === 'doors') && (<div style={{ marginBottom:16 }}>
-                <span style={lblS}>Main features</span>
-                <Counter label="Hanging sections" k="hanging" />
-                <Counter label="Drawer banks" k="drawers" />
-                <Counter label="Open shelving units" k="shelving" />
+                <span style={lblS}>{t('sw2DbMainFeatures')}</span>
+                <Counter label={t('sw2DbHanging')} k="hanging" />
+                <Counter label={t('sw2DbDrawerBanks')} k="drawers" />
+                <Counter label={t('sw2DbShelving')} k="shelving" />
                 <div style={{ display:'flex', flexDirection:'column', gap:8, marginTop:10 }}>
-                  {[['island','Central island / dresser'],['mirror','Full-length mirror'],['lighting','Sensor LED lighting']].map(([k,l]) => <Toggle key={k} label={l} val={!!req[k]} set={v => setReq(r => ({ ...r, [k]: v }))} />)}
+                  {[['island',t('sw2DbIslandDresser')],['mirror',t('sw2DbMirror')],['lighting',t('sw2DbLighting')]].map(([k,l]) => <Toggle key={k} label={l} val={!!req[k]} set={v => setReq(r => ({ ...r, [k]: v }))} />)}
                 </div>
               </div>)}
 
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
-                <div><span style={lblS}>Room type</span>
+                <div><span style={lblS}>{t('sw2DbRoomType')}</span>
                   <select value={roomType} onChange={e => setRoomType(e.target.value)} style={inS}>{['bedroom','master bedroom','living room','dressing room','hallway','kitchen','office','kids room','utility'].map(r => <option key={r} value={r}>{r}</option>)}</select></div>
-                <div><span style={lblS}>Family members</span>
+                <div><span style={lblS}>{t('sw2DbFamilyMembers')}</span>
                   <input type="number" min={1} max={12} value={family} onChange={e => setFamily(parseInt(e.target.value) || 1)} style={inS} /></div>
               </div>
-              <div style={{ marginBottom:14 }}><span style={lblS}>Lifestyle</span>
-                <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>{['Minimal','Family','Collector','Busy professional','Luxury'].map(s => <button key={s} type="button" onClick={() => setLifestyle(s)} style={chip(lifestyle === s)}>{s}</button>)}</div>
+              <div style={{ marginBottom:14 }}><span style={lblS}>{t('sw2DbLifestyle')}</span>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>{[['Minimal',t('sw2DbLifeMinimal')],['Family',t('sw2DbLifeFamily')],['Collector',t('sw2DbLifeCollector')],['Busy professional',t('sw2DbLifeBusy')],['Luxury',t('sw2DbLifeLuxury')]].map(([v,lbl]) => <button key={v} type="button" onClick={() => setLifestyle(v)} style={chip(lifestyle === v)}>{lbl}</button>)}</div>
               </div>
-              <div style={{ marginBottom:14 }}><span style={lblS}>Budget range — {fmt(budget.min)} to {fmt(budget.max)}</span>
+              <div style={{ marginBottom:14 }}><span style={lblS}>{t('sw2DbBudgetRange')} — {fmt(budget.min)} {t('sw2DbBudgetTo')} {fmt(budget.max)}</span>
                 <div style={{ display:'flex', gap:10 }}>
                   <input type="range" min={200} max={10000} step={100} value={budget.min} onChange={e => setBudget(b => ({ ...b, min: Math.min(parseInt(e.target.value), b.max - 100) }))} style={{ flex:1, accentColor:'var(--clay)' }} />
                   <input type="range" min={300} max={20000} step={100} value={budget.max} onChange={e => setBudget(b => ({ ...b, max: Math.max(parseInt(e.target.value), b.min + 100) }))} style={{ flex:1, accentColor:'var(--clay)' }} />
                 </div>
               </div>
-              <div style={{ marginBottom:14 }}><span style={lblS}>Timeline</span>
-                <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>{['2-3 weeks','4-6 weeks','2-3 months','Flexible'].map(s => <button key={s} type="button" onClick={() => setTimeline(s)} style={chip(timeline === s)}>{s}</button>)}</div>
+              <div style={{ marginBottom:14 }}><span style={lblS}>{t('sw2DbTimeline')}</span>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>{[['2-3 weeks',t('sw2DbTl1')],['4-6 weeks',t('sw2DbTl2')],['2-3 months',t('sw2DbTl3')],['Flexible',t('sw2DbTlFlexible')]].map(([v,lbl]) => <button key={v} type="button" onClick={() => setTimeline(v)} style={chip(timeline === v)}>{lbl}</button>)}</div>
               </div>
-              <div style={{ marginBottom:4 }}><span style={lblS}>Special requirements & style/colour notes</span>
-                <textarea value={special} onChange={e => setSpecial(e.target.value)} rows={3} aria-label="Special requests" placeholder="e.g. warm oak tones, soft-close everywhere, allergy-safe finishes…" style={{ ...inS, resize:'vertical' }} /></div>
+              <div style={{ marginBottom:4 }}><span style={lblS}>{t('sw2DbSpecialReq')}</span>
+                <textarea value={special} onChange={e => setSpecial(e.target.value)} rows={3} aria-label={t('sw2DbSpecialAria')} placeholder={t('sw2DbSpecialPh')} style={{ ...inS, resize:'vertical' }} /></div>
             </Fragment>)}
 
             {/* STEP 2 — SITE SURVEY */}
             {step === 'survey' && (<Fragment>
-              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>Site survey</h3>
-              <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 14px' }}>Set your room size and flag anything we should design around.</p>
-              {[['Room width','room_w',150,800],['Room length','room_l',150,800],['Ceiling height','ceiling_h',200,400]].map(([lbl,k,mn,mx]) => (
+              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2DbSiteSurvey')}</h3>
+              <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 14px' }}>{t('sw2DbSurveySub')}</p>
+              {[[t('sw2DbRoomWidth'),'room_w',150,800],[t('sw2DbRoomLength'),'room_l',150,800],[t('sw2DbCeilingHeight'),'ceiling_h',200,400]].map(([lbl,k,mn,mx]) => (
                 <div key={k} style={{ marginBottom:16 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}><span style={{ fontSize:13, color:'var(--ink-soft)' }}>{lbl}</span><span style={{ fontSize:14, fontWeight:700, color:'var(--clay)' }}>{survey[k]}cm</span></div>
                   <input type="range" min={mn} max={mx} step={5} value={survey[k]} onChange={e => setSurvey(s => ({ ...s, [k]: parseInt(e.target.value) }))} style={{ width:'100%', accentColor:'var(--clay)' }} />
                 </div>
               ))}
-              <span style={{ ...lblS, marginTop:6 }}>Existing features in the room</span>
+              <span style={{ ...lblS, marginTop:6 }}>{t('sw2DbExistingFeatures')}</span>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:16 }}>
-                {DB_FEATURES.map(([k,l]) => <Toggle key={k} label={l} val={!!survey.features[k]} set={v => setSurvey(s => ({ ...s, features: { ...s.features, [k]: v } }))} />)}
+                {DB_FEATURES.map(([k,l]) => <Toggle key={k} label={dbFeatureLabels[k]||l} val={!!survey.features[k]} set={v => setSurvey(s => ({ ...s, features: { ...s.features, [k]: v } }))} />)}
               </div>
-              <span style={lblS}>Room photos ({survey.media.photos.length}/8)</span>
+              <span style={lblS}>{t('sw2DbRoomPhotos')} ({survey.media.photos.length}/8)</span>
               <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                 {survey.media.photos.map((src, i) => (
                   <div key={i} style={{ position:'relative', width:78, height:78, borderRadius:12, overflow:'hidden', border:'1px solid var(--line)' }}>
@@ -13560,11 +14492,11 @@ function DesignBuilderPage({ setPage, user }) {
 
             {/* STEP 3 — DESIGN BUILDER */}
             {step === 'build' && (<Fragment>
-              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>Design builder</h3>
-              <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 12px' }}>Tap a part to drop it on the canvas, then drag it to reposition. Parts snap to the grid; overlaps are highlighted in red.</p>
-              <span style={lblS}>Place on wall</span>
-              <div style={{ display:'flex', gap:6, marginBottom:12 }}>{['back','left','right','front'].map(w => <button key={w} type="button" onClick={() => setWall(w)} style={{ ...chip(wall === w), flex:1, textTransform:'capitalize' }}>{w}</button>)}</div>
-              <span style={lblS}>Add a part</span>
+              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2DbDesignBuilder')}</h3>
+              <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 12px' }}>{t('sw2DbBuilderSub')}</p>
+              <span style={lblS}>{t('sw2DbPlaceWall')}</span>
+              <div style={{ display:'flex', gap:6, marginBottom:12 }}>{[['back',t('sw2DbWallBack')],['left',t('sw2DbWallLeft')],['right',t('sw2DbWallRight')],['front',t('sw2DbWallFront')]].map(([w,lbl]) => <button key={w} type="button" onClick={() => setWall(w)} style={{ ...chip(wall === w), flex:1 }}>{lbl}</button>)}</div>
+              <span style={lblS}>{t('sw2DbAddPart')}</span>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:14 }}>
                 {DB_PART_KINDS.map(d => (
                   <button key={d.kind} type="button" onClick={() => { setActiveKind(d.kind); addPart(d); }} style={{ display:'flex', alignItems:'center', gap:9, textAlign:'left', border: activeKind===d.kind?'1.5px solid var(--clay)':'1px solid var(--line)', background:'var(--cream)', borderRadius:12, padding:'9px 11px', cursor:'pointer' }}>
@@ -13574,33 +14506,33 @@ function DesignBuilderPage({ setPage, user }) {
                 ))}
               </div>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-                <span style={{ fontSize:12.5, fontWeight:600, color:'var(--ink)' }}>Placed parts ({parts.length})</span>
-                {parts.length > 0 && <button type="button" onClick={clearParts} style={{ fontSize:12, color:'var(--clay)', background:'none', border:'none', cursor:'pointer' }}>Clear all</button>}
+                <span style={{ fontSize:12.5, fontWeight:600, color:'var(--ink)' }}>{t('sw2DbPlacedParts')} ({parts.length})</span>
+                {parts.length > 0 && <button type="button" onClick={clearParts} style={{ fontSize:12, color:'var(--clay)', background:'none', border:'none', cursor:'pointer' }}>{t('sw2DbClearAll')}</button>}
               </div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                {parts.length === 0 && <span style={{ fontSize:13, color:'var(--muted)' }}>No parts yet — tap one above to add it to the canvas.</span>}
+                {parts.length === 0 && <span style={{ fontSize:13, color:'var(--muted)' }}>{t('sw2DbNoParts')}</span>}
                 {parts.map(p => <button key={p.id} type="button" onClick={() => setSelId(p.id)} style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, border: selId===p.id?'1.5px solid var(--clay)':'1px solid var(--line)', background:'#fff', borderRadius:99, padding:'5px 10px', cursor:'pointer', color:'var(--ink)' }}>{p.name} <span onClick={e => { e.stopPropagation(); removePart(p.id); }} style={{ color:'var(--muted)' }}>×</span></button>)}
               </div>
             </Fragment>)}
 
             {/* STEP 4 — STYLE */}
             {step === 'style' && (<Fragment>
-              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>Choose a style</h3>
-              <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 14px' }}>Selecting a style shows its suggested palette and can auto-apply matching materials.</p>
-              {catalog.styles.length === 0 && <div style={{ fontSize:13, color:'var(--muted)' }}>Styles are loading…</div>}
+              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2DbChooseStyle')}</h3>
+              <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 14px' }}>{t('sw2DbStyleSub')}</p>
+              {catalog.styles.length === 0 && <div style={{ fontSize:13, color:'var(--muted)' }}>{t('sw2DbStylesLoading')}</div>}
               <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:12 }}>
                 {catalog.styles.map(s => { const on = styleId === s.id; return (
                   <div key={s.id} style={{ border: on?'2px solid var(--clay)':'1px solid var(--line)', borderRadius:14, overflow:'hidden', background:'#fff' }}>
                     <button type="button" onClick={() => applyStyle(s)} style={{ width:'100%', textAlign:'left', border:'none', background:'none', cursor:'pointer', padding:0 }}>
                       <div style={{ display:'flex', height:46 }}>{(s.colors && s.colors.length ? s.colors : ['#b0613b','#efe7dc','#211c18']).slice(0,5).map((c, i) => <div key={i} style={{ flex:1, background: c }} />)}</div>
                       <div style={{ padding:'10px 12px' }}>
-                        <div style={{ fontSize:14, fontWeight:700, color: on?'var(--clay-deep)':'var(--ink)' }}>{trOpt(s.name, lang)}{on?' · selected':''}</div>
+                        <div style={{ fontSize:14, fontWeight:700, color: on?'var(--clay-deep)':'var(--ink)' }}>{trOpt(s.name, lang)}{on?(' '+t('sw2DbStyleSelected')):''}</div>
                         <div style={{ fontSize:11.5, color:'var(--muted)' }}>{trOpt(s.sub, lang)}</div>
                       </div>
                     </button>
                     {on && (
                       <div style={{ padding:'0 12px 12px', fontSize:11.5, color:'var(--ink-soft)' }}>
-                        {[['Materials', s.materials],['Handles', s.handles],['Lighting', s.lighting],['Accessories', s.accessories],['Profiles', s.profiles]].filter(([, v]) => v && v.length).map(([lbl, v]) => (
+                        {[[t('sw2DbMaterialsLbl'), s.materials],[t('sw2DbHandlesLbl'), s.handles],[t('sw2DbLightingLbl'), s.lighting],[t('sw2DbAccessoriesLbl'), s.accessories],[t('sw2DbProfilesLbl'), s.profiles]].filter(([, v]) => v && v.length).map(([lbl, v]) => (
                           <div key={lbl} style={{ marginTop:6 }}><b style={{ color:'var(--ink)' }}>{lbl}:</b> {v.join(', ')}</div>
                         ))}
                       </div>
@@ -13611,13 +14543,13 @@ function DesignBuilderPage({ setPage, user }) {
 
             {/* STEP 5 — MATERIALS */}
             {step === 'materials' && (<Fragment>
-              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>Materials showroom</h3>
-              <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 14px' }}>Pick a board and finish, and compare the spec of every option.</p>
-              {[['Boards', boards, boardId, setBoardId],['Finishes', finishes, finishId, setFinishId]].map(([title, list, sel, setSel]) => (
+              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2DbMaterialsShowroom')}</h3>
+              <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 14px' }}>{t('sw2DbMaterialsShowroomSub')}</p>
+              {[[t('sw2DbBoards'), boards, boardId, setBoardId],[t('sw2DbFinishes'), finishes, finishId, setFinishId]].map(([title, list, sel, setSel]) => (
                 <div key={title} style={{ marginBottom:14 }}>
                   <span style={lblS}>{title}</span>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                    {list.length === 0 && <span style={{ fontSize:12.5, color:'var(--muted)' }}>Loading…</span>}
+                    {list.length === 0 && <span style={{ fontSize:12.5, color:'var(--muted)' }}>{t('sw2DbLoading')}</span>}
                     {list.map(m => { const on = sel === m.id; return (
                       <button key={m.id} type="button" onClick={() => setSel(m.id)} style={{ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'10px 12px', cursor:'pointer' }}>
                         <div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{m.name}</div>
@@ -13628,7 +14560,7 @@ function DesignBuilderPage({ setPage, user }) {
               ))}
               {(hardwares.length > 0 || accessories.length > 0) && (
                 <div style={{ marginBottom:14 }}>
-                  <span style={lblS}>Hardware & accessories</span>
+                  <span style={lblS}>{t('sw2DbHardwareAccessories')}</span>
                   <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
                     {[...hardwares, ...accessories].map(m => <span key={m.id} style={{ fontSize:11.5, border:'1px solid var(--line)', borderRadius:99, padding:'5px 11px', color:'var(--ink-soft)', background:'#fff' }}>{m.name} · {fmt(m.cost)}</span>)}
                   </div>
@@ -13637,7 +14569,7 @@ function DesignBuilderPage({ setPage, user }) {
               {(boards.length + finishes.length) > 0 && (
                 <div style={{ marginTop:8, border:'1px solid var(--line)', borderRadius:12, overflowX:'auto' }}>
                   <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11.5, minWidth:560 }}>
-                    <thead><tr style={{ background:'var(--sand)' }}>{['Material','Cost','Warranty','Durability','Scratch','Water','Lead','Supplier','Maint.'].map(h => <th key={h} style={{ textAlign:'left', padding:'8px 10px', color:'var(--ink-soft)', fontWeight:700, whiteSpace:'nowrap' }}>{h}</th>)}</tr></thead>
+                    <thead><tr style={{ background:'var(--sand)' }}>{[t('sw2DbThMaterial'),t('sw2DbThCost'),t('sw2DbThWarranty'),t('sw2DbThDurability'),t('sw2DbThScratch'),t('sw2DbThWater'),t('sw2DbThLead'),t('sw2DbThSupplier'),t('sw2DbThMaint')].map(h => <th key={h} style={{ textAlign:'left', padding:'8px 10px', color:'var(--ink-soft)', fontWeight:700, whiteSpace:'nowrap' }}>{h}</th>)}</tr></thead>
                     <tbody>
                       {[...boards, ...finishes].map(m => (
                         <tr key={m.id} style={{ borderTop:'1px solid var(--line)', background:(m.id===boardId||m.id===finishId)?'var(--cream)':'#fff' }}>
@@ -13660,25 +14592,25 @@ function DesignBuilderPage({ setPage, user }) {
 
             {/* STEP 6 — MOODBOARD */}
             {step === 'mood' && (<Fragment>
-              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>Moodboard</h3>
-              <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 14px' }}>Add inspiration links, colour swatches and notes for our designers.</p>
-              <span style={lblS}>Inspiration image URL</span>
+              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2DbMoodboard')}</h3>
+              <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 14px' }}>{t('sw2DbMoodSub')}</p>
+              <span style={lblS}>{t('sw2DbInspoUrl')}</span>
               <div style={{ display:'flex', gap:8, marginBottom:14 }}>
-                <input value={moodUrl} onChange={e => setMoodUrl(e.target.value)} aria-label="Inspiration image URL" placeholder="https://…" style={inS} />
-                <button type="button" onClick={() => { if (!moodUrl.trim()) return; setMood(m => [...m, { id:uid(), kind:'image', url:moodUrl.trim() }]); setMoodUrl(''); }} className="btn-clay" style={{ borderRadius:12, padding:'0 16px', whiteSpace:'nowrap' }}>Add</button>
+                <input value={moodUrl} onChange={e => setMoodUrl(e.target.value)} aria-label={t('sw2DbInspoUrl')} placeholder="https://…" style={inS} />
+                <button type="button" onClick={() => { if (!moodUrl.trim()) return; setMood(m => [...m, { id:uid(), kind:'image', url:moodUrl.trim() }]); setMoodUrl(''); }} className="btn-clay" style={{ borderRadius:12, padding:'0 16px', whiteSpace:'nowrap' }}>{t('sw2DbAdd')}</button>
               </div>
-              <span style={lblS}>Colour palette</span>
+              <span style={lblS}>{t('sw2DbColourPalette')}</span>
               <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:14 }}>
                 <input type="color" value={swatch} onChange={e => setSwatch(e.target.value)} style={{ width:44, height:40, border:'1px solid var(--line)', borderRadius:10, background:'#fff', cursor:'pointer' }} />
-                <button type="button" onClick={() => setMood(m => [...m, { id:uid(), kind:'color', note:swatch }])} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:12, padding:'10px 16px', fontSize:13, fontWeight:600, cursor:'pointer', color:'var(--ink)' }}>Add swatch</button>
+                <button type="button" onClick={() => setMood(m => [...m, { id:uid(), kind:'color', note:swatch }])} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:12, padding:'10px 16px', fontSize:13, fontWeight:600, cursor:'pointer', color:'var(--ink)' }}>{t('sw2DbAddSwatch')}</button>
               </div>
-              <span style={lblS}>Sample note</span>
+              <span style={lblS}>{t('sw2DbSampleNote')}</span>
               <div style={{ display:'flex', gap:8, marginBottom:16 }}>
-                <input value={moodNote} onChange={e => setMoodNote(e.target.value)} aria-label="Inspiration note" placeholder="e.g. matte brass handles like the showroom" style={inS} />
-                <button type="button" onClick={() => { if (!moodNote.trim()) return; setMood(m => [...m, { id:uid(), kind:'note', note:moodNote.trim() }]); setMoodNote(''); }} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:12, padding:'0 16px', fontSize:13, fontWeight:600, cursor:'pointer', color:'var(--ink)', whiteSpace:'nowrap' }}>Add</button>
+                <input value={moodNote} onChange={e => setMoodNote(e.target.value)} aria-label={t('sw2DbInspoNoteAria')} placeholder={t('sw2DbMoodNotePh')} style={inS} />
+                <button type="button" onClick={() => { if (!moodNote.trim()) return; setMood(m => [...m, { id:uid(), kind:'note', note:moodNote.trim() }]); setMoodNote(''); }} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:12, padding:'0 16px', fontSize:13, fontWeight:600, cursor:'pointer', color:'var(--ink)', whiteSpace:'nowrap' }}>{t('sw2DbAdd')}</button>
               </div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:10 }}>
-                {mood.length === 0 && <span style={{ fontSize:13, color:'var(--muted)' }}>Nothing pinned yet.</span>}
+                {mood.length === 0 && <span style={{ fontSize:13, color:'var(--muted)' }}>{t('sw2DbNothingPinned')}</span>}
                 {mood.map(m => (
                   <div key={m.id} style={{ position:'relative', borderRadius:12, overflow:'hidden', border:'1px solid var(--line)' }}>
                     {m.kind === 'image' && <img src={m.url} alt="inspiration" style={{ width:96, height:96, objectFit:'cover', display:'block' }} onError={e => { e.target.style.display='none'; }} />}
@@ -13692,37 +14624,37 @@ function DesignBuilderPage({ setPage, user }) {
 
             {/* STEP 7 — COST */}
             {step === 'cost' && (<Fragment>
-              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>Real-time cost</h3>
-              <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 14px' }}>Your live estimate, broken down. It updates automatically as you change the design.</p>
-              {!price && <div style={{ fontSize:13.5, color:'var(--muted)' }}>Add parts or pick a board in the previous steps to generate a price.</div>}
+              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2DbRealtimeCost')}</h3>
+              <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 14px' }}>{t('sw2DbCostSub')}</p>
+              {!price && <div style={{ fontSize:13.5, color:'var(--muted)' }}>{t('sw2DbAddPartsHint')}</div>}
               {price && (<Fragment>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
-                  {[['Current price', fmt(total), 'var(--clay)'],['Variation vs previous', prevTotal!=null?((variation>=0?'+':'−')+fmt(Math.abs(variation))):'—', variation<0?'var(--clay)':'var(--clay-deep)'],['Margin', Math.round(price.margin_pct||0)+'%', 'var(--ink)'],['Estimated delivery', price.estimated_delivery?new Date(price.estimated_delivery).toLocaleDateString('en-GB',{ day:'numeric', month:'short', year:'numeric' }):'—', 'var(--ink)']].map(([l, v, c]) => (
+                  {[[t('sw2DbCurrentPrice'), fmt(total), 'var(--clay)'],[t('sw2DbVariation'), prevTotal!=null?((variation>=0?'+':'−')+fmt(Math.abs(variation))):'—', variation<0?'var(--clay)':'var(--clay-deep)'],[t('sw2DbMargin'), Math.round(price.margin_pct||0)+'%', 'var(--ink)'],[t('sw2DbEstDelivery'), price.estimated_delivery?new Date(price.estimated_delivery).toLocaleDateString(lang==='ar'?'ar':'en-GB',{ day:'numeric', month:'short', year:'numeric' }):'—', 'var(--ink)']].map(([l, v, c]) => (
                     <div key={l} style={{ border:'1px solid var(--line)', borderRadius:12, padding:'12px 14px', background:'var(--cream)' }}><div style={{ fontSize:11, color:'var(--muted)' }}>{l}</div><div className="display" style={{ fontSize:20, color:c, marginTop:2 }}>{v}</div></div>
                   ))}
                 </div>
                 <div style={{ border:'1px solid var(--line)', borderRadius:12, overflow:'hidden' }}>
-                  {[['Material cost', price.material_cost],['Labour', price.labor_cost],['Delivery', price.delivery_cost],['Installation', price.install_cost],['Subtotal', price.subtotal]].map(([l, v], i, a) => (
-                    <div key={l} style={{ display:'flex', justifyContent:'space-between', padding:'11px 14px', fontSize:13.5, borderBottom: i<a.length-1?'1px solid var(--line)':'none', fontWeight: l==='Subtotal'?700:500, color: l==='Subtotal'?'var(--ink)':'var(--ink-soft)', background: l==='Subtotal'?'var(--sand)':'#fff' }}><span>{l}</span><span>{fmt(v)}</span></div>
+                  {[[t('sw2DbMaterialCost'), price.material_cost,'mat'],[t('sw2DbLabour'), price.labor_cost,'lab'],[t('sw2DbDelivery'), price.delivery_cost,'del'],[t('sw2DbInstallation'), price.install_cost,'ins'],[t('sw2DbSubtotal'), price.subtotal,'sub']].map(([l, v, kk], i, a) => (
+                    <div key={kk} style={{ display:'flex', justifyContent:'space-between', padding:'11px 14px', fontSize:13.5, borderBottom: i<a.length-1?'1px solid var(--line)':'none', fontWeight: kk==='sub'?700:500, color: kk==='sub'?'var(--ink)':'var(--ink-soft)', background: kk==='sub'?'var(--sand)':'#fff' }}><span>{l}</span><span>{fmt(v)}</span></div>
                   ))}
-                  <div style={{ display:'flex', justifyContent:'space-between', padding:'13px 14px', fontSize:15, fontWeight:700, color:'var(--clay-deep)', background:'var(--sand)', borderTop:'1px solid var(--line)' }}><span>Total ({Math.round(price.margin_pct||0)}% margin)</span><span>{fmt(total)}</span></div>
+                  <div style={{ display:'flex', justifyContent:'space-between', padding:'13px 14px', fontSize:15, fontWeight:700, color:'var(--clay-deep)', background:'var(--sand)', borderTop:'1px solid var(--line)' }}><span>{t('sw2DbTotalMargin').replace('{m}', Math.round(price.margin_pct||0))}</span><span>{fmt(total)}</span></div>
                 </div>
               </Fragment>)}
             </Fragment>)}
 
             {/* STEP 8 — AI ASSISTANT */}
             {step === 'ai' && (<Fragment>
-              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>AI assistant</h3>
-              <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 14px' }}>Smart suggestions based on your current design. Apply any with one tap.</p>
+              <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:'0 0 4px' }}>{t('sw2DbAiAssistant')}</h3>
+              <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 14px' }}>{t('sw2DbAiSub')}</p>
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                {aiSuggestions.length === 0 && <div style={{ fontSize:13.5, color:'var(--muted)' }}>Looking good — no changes recommended right now.</div>}
+                {aiSuggestions.length === 0 && <div style={{ fontSize:13.5, color:'var(--muted)' }}>{t('sw2DbAiNone')}</div>}
                 {aiSuggestions.map(s => (
                   <div key={s.id} style={{ display:'flex', alignItems:'center', gap:12, justifyContent:'space-between', border:'1px solid var(--line)', borderRadius:14, padding:'12px 14px', background:'var(--cream)' }}>
                     <div style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
                       <span style={{ fontSize:18 }}>✨</span>
                       <span style={{ fontSize:13.5, color:'var(--ink)', lineHeight:1.45 }}>{s.label}</span>
                     </div>
-                    <button type="button" onClick={s.apply} className="btn-clay" style={{ borderRadius:99, padding:'8px 16px', flexShrink:0 }}>Apply</button>
+                    <button type="button" onClick={s.apply} className="btn-clay" style={{ borderRadius:99, padding:'8px 16px', flexShrink:0 }}>{t('sw2DbApply')}</button>
                   </div>
                 ))}
               </div>
@@ -13731,11 +14663,11 @@ function DesignBuilderPage({ setPage, user }) {
             {/* contact (guest) */}
             {!user && (
               <div style={{ marginTop:18, paddingTop:16, borderTop:'1px solid var(--line)' }}>
-                <span style={lblS}>Your details (so we can reach you)</span>
+                <span style={lblS}>{t('sw2DbYourDetails')}</span>
                 <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:8 }}>
-                  <input value={contact.name} onChange={e => setContact(c => ({ ...c, name:e.target.value }))} aria-label="Your name" placeholder="Your name" style={inS} />
-                  <input value={contact.phone} onChange={e => setContact(c => ({ ...c, phone:e.target.value }))} aria-label="Phone (+973…)" placeholder="Phone (+973…)" inputMode="tel" style={inS} />
-                  <input value={contact.email} onChange={e => setContact(c => ({ ...c, email:e.target.value }))} aria-label="Email (optional)" placeholder="Email (optional)" inputMode="email" style={{ ...inS, gridColumn: mobile?'auto':'1 / -1' }} />
+                  <input value={contact.name} onChange={e => setContact(c => ({ ...c, name:e.target.value }))} aria-label={t('sw2KsYourName')} placeholder={t('sw2KsYourName')} style={inS} />
+                  <input value={contact.phone} onChange={e => setContact(c => ({ ...c, phone:e.target.value }))} aria-label={t('sw2KsPhonePh')} placeholder={t('sw2KsPhonePh')} inputMode="tel" style={inS} />
+                  <input value={contact.email} onChange={e => setContact(c => ({ ...c, email:e.target.value }))} aria-label={t('sw2KsEmailOpt')} placeholder={t('sw2KsEmailOpt')} inputMode="email" style={{ ...inS, gridColumn: mobile?'auto':'1 / -1' }} />
                 </div>
               </div>
             )}
@@ -13743,15 +14675,15 @@ function DesignBuilderPage({ setPage, user }) {
             {/* step nav + footer actions */}
             <div style={{ display:'flex', gap:10, marginTop:18 }}>
               {(() => { const i = DB_STEPS.findIndex(s => s[0] === step); return (<Fragment>
-                <button type="button" disabled={i===0} onClick={() => setStep(DB_STEPS[Math.max(0, i-1)][0])} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor: i===0?'default':'pointer', opacity:i===0?.5:1 }}>← Back</button>
-                <button type="button" disabled={i===DB_STEPS.length-1} onClick={() => setStep(DB_STEPS[Math.min(DB_STEPS.length-1, i+1)][0])} className="btn-clay" style={{ flex:1, borderRadius:12, opacity:i===DB_STEPS.length-1?.5:1 }}>Next →</button>
+                <button type="button" disabled={i===0} onClick={() => setStep(DB_STEPS[Math.max(0, i-1)][0])} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor: i===0?'default':'pointer', opacity:i===0?.5:1 }}>{t('sw2DbBack')}</button>
+                <button type="button" disabled={i===DB_STEPS.length-1} onClick={() => setStep(DB_STEPS[Math.min(DB_STEPS.length-1, i+1)][0])} className="btn-clay" style={{ flex:1, borderRadius:12, opacity:i===DB_STEPS.length-1?.5:1 }}>{t('sw2DbNext')}</button>
               </Fragment>); })()}
             </div>
             <div style={{ display:'flex', gap:10, marginTop:10 }}>
-              <button type="button" disabled={busy} onClick={saveDraft} style={{ flex:1, background:'#fff', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink)', cursor:'pointer', opacity:busy?.6:1 }}>{busy?'Saving…':(savedId?'Update draft':'Save draft')}</button>
-              <button type="button" disabled={busy} onClick={submitApproval} className="btn-clay" style={{ flex:1.4, borderRadius:12, opacity:busy?.6:1 }}>{busy?'Submitting…':'Submit for approval'}</button>
+              <button type="button" disabled={busy} onClick={saveDraft} style={{ flex:1, background:'#fff', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink)', cursor:'pointer', opacity:busy?.6:1 }}>{busy?t('sw2DbSaving'):(savedId?t('sw2DbUpdateDraft'):t('sw2DbSaveDraft'))}</button>
+              <button type="button" disabled={busy} onClick={submitApproval} className="btn-clay" style={{ flex:1.4, borderRadius:12, opacity:busy?.6:1 }}>{busy?t('sw2DbSubmitting'):t('sw2DbSubmitApproval')}</button>
             </div>
-            <div style={{ marginTop:14, textAlign:'center' }}><button type="button" aria-label="Close" onClick={() => setPage('home')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>{t('pgClose')}</button></div>
+            <div style={{ marginTop:14, textAlign:'center' }}><button type="button" aria-label={t('pgClose')} onClick={() => setPage('home')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>{t('pgClose')}</button></div>
           </div>
         </div>
       </div>
@@ -13779,7 +14711,9 @@ function AppInner() {
   useSiteContent();   // subscribe: re-render the whole tree once managed content loads
   const [page, setPage] = useState(initialPage);
   const [lang, setLang] = useState(() => { try { return localStorage.getItem('closets_lang') || 'en'; } catch { return 'en'; } });
+  setCmsLang(lang);   // sync DURING render (before children render) so cms() resolves the current language without lagging a toggle
   useEffect(() => {
+    setCmsLang(lang);   // keep module-global CMS language in sync so cms() resolves Arabic on re-render
     try { localStorage.setItem('closets_lang', lang); } catch {}
     const dir = lang === 'ar' ? 'rtl' : 'ltr';
     if (typeof document !== 'undefined') {
