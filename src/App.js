@@ -6,6 +6,11 @@ import Office3D from './Office3D';
 import { fitModules, WARDROBE_WIDTHS } from './moduleFit';
 
 // build: services-nav-redeploy 2026-06-25 r2
+// ── Analytics (consent-gated GA4) ──
+// Set GA_MEASUREMENT_ID to a real 'G-XXXXXXXXXX' id to enable Google Analytics.
+// While it stays the placeholder below, GA never loads (no-op) — but the
+// cookie-consent banner / consent flow still works exactly the same.
+const GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
 const SUPA_URL = 'https://jflmbfxbhpioyniibjsj.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmbG1iZnhiaHBpb3luaWlianNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NjkyNjQsImV4cCI6MjA5MDQ0NTI2NH0.XnQHF1Ivzhv6Zj12qe1Gh2x6ZyLdFfmUBweE_5SZnu0';
 const H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' };
@@ -262,6 +267,14 @@ const SendIcon = ({ size = 18, color = 'currentColor', style }) => (
 
 // ── i18n: interface translation (EN / AR) ──
 const I18N = {
+  // consent / legal (Phase-1 go-live polish)
+  consentTitle:   { en:'We value your privacy', ar:'نحن نحترم خصوصيتك' },
+  consentBody:    { en:'We use essential cookies to run this site. With your consent we also use analytics cookies to understand how the site is used and improve it.', ar:'نستخدم ملفات تعريف الارتباط الأساسية لتشغيل الموقع. وبموافقتك نستخدم أيضاً ملفات تحليلية لفهم كيفية استخدام الموقع وتحسينه.' },
+  consentAccept:  { en:'Accept', ar:'موافق' },
+  consentDecline: { en:'Decline', ar:'رفض' },
+  consentPrivacy: { en:'Privacy Policy', ar:'سياسة الخصوصية' },
+  legalPrivacy:   { en:'Privacy Policy', ar:'سياسة الخصوصية' },
+  legalTerms:     { en:'Terms', ar:'الشروط والأحكام' },
   // nav
   home:        { en:'Home',        ar:'الرئيسية' },
   gallery:     { en:'Gallery',     ar:'المعرض' },
@@ -8719,7 +8732,11 @@ function SiteFooter({ setPage }) {
 
       <div style={{ borderTop:'1px solid var(--line)', marginTop:32, paddingTop:22, display:'flex', flexDirection: mobile?'column':'row', justifyContent:'space-between', gap:8, fontSize:13, color:'var(--muted)' }}>
         <span>{cms('footer.copyright', '© 2026 The Closets Co. W.L.L. — Manama, Bahrain')}</span>
-        <span>{cms('footer.contact', '+973 1700 1700 · hello@theclosets.co')}</span>
+        <span style={{ display:'flex', alignItems:'center', gap:14, flexWrap:'wrap' }}>
+          <a href="https://closets-hub.vercel.app/privacy.html" target="_blank" rel="noopener" style={{ color:'var(--muted)', textDecoration:'none' }}>{t('legalPrivacy')}</a>
+          <a href="https://closets-hub.vercel.app/terms.html" target="_blank" rel="noopener" style={{ color:'var(--muted)', textDecoration:'none' }}>{t('legalTerms')}</a>
+          <span>{cms('footer.contact', '+973 1700 1700 · hello@theclosets.co')}</span>
+        </span>
       </div>
     </div>
   </footer>);
@@ -14895,6 +14912,66 @@ function DesignBuilderPage({ setPage, user }) {
   );
 }
 
+// ── loadGA4(): inject gtag.js exactly once, only after consent + a real id ──
+function loadGA4() {
+  if (typeof window === 'undefined') return;
+  if (!GA_MEASUREMENT_ID || GA_MEASUREMENT_ID === 'G-XXXXXXXXXX') return; // placeholder => no-op
+  if (window.__closetsGaLoaded) return;
+  window.__closetsGaLoaded = true;
+  const s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_MEASUREMENT_ID;
+  document.head.appendChild(s);
+  window.dataLayer = window.dataLayer || [];
+  function gtag() { window.dataLayer.push(arguments); }
+  window.gtag = gtag;
+  gtag('js', new Date());
+  gtag('config', GA_MEASUREMENT_ID, { anonymize_ip: true });
+}
+
+// ── CookieConsent: privacy-first, consent-gated analytics banner ──
+// Default = NO non-essential cookies. GA4 loads ONLY after an explicit Accept.
+// Choice persisted in localStorage('closets_consent') = 'accepted' | 'declined'.
+function CookieConsent() {
+  const { t, lang } = useI18n();
+  const rtl = lang === 'ar';
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    let choice = null;
+    try { choice = localStorage.getItem('closets_consent'); } catch (e) {}
+    if (choice === 'accepted') { loadGA4(); setShow(false); }
+    else if (choice === 'declined') { setShow(false); }
+    else { setShow(true); }
+  }, []);
+  if (!show) return null;
+  const decide = (val) => {
+    try { localStorage.setItem('closets_consent', val); } catch (e) {}
+    if (val === 'accepted') loadGA4();
+    setShow(false);
+  };
+  return (
+    <div role="dialog" aria-live="polite" aria-label={t('consentTitle')} dir={rtl ? 'rtl' : 'ltr'}
+      style={{ position:'fixed', left:16, right:16, bottom:16, zIndex:9999, maxWidth:560, margin:'0 auto',
+        background:'#fff', border:'1px solid var(--line)', borderRadius:'var(--radius-lg, 16px)',
+        boxShadow:'0 12px 40px rgba(0,0,0,.18)', padding:'18px 20px',
+        textAlign: rtl ? 'right' : 'left' }}>
+      <div style={{ fontSize:15, fontWeight:700, color:'var(--ink)', marginBottom:6 }}>{t('consentTitle')}</div>
+      <div style={{ fontSize:13.5, color:'var(--ink-soft)', lineHeight:1.6, marginBottom:14 }}>
+        {t('consentBody')}{' '}
+        <a href="https://closets-hub.vercel.app/privacy.html" target="_blank" rel="noopener"
+          style={{ color:'var(--clay, var(--brand))', textDecoration:'underline', fontWeight:600 }}>{t('consentPrivacy')}</a>
+      </div>
+      <div style={{ display:'flex', gap:10, flexWrap:'wrap', justifyContent: rtl ? 'flex-start' : 'flex-end' }}>
+        <button type="button" onClick={() => decide('declined')}
+          style={{ background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:980,
+            padding:'10px 20px', fontSize:13.5, fontWeight:600, cursor:'pointer' }}>{t('consentDecline')}</button>
+        <button type="button" onClick={() => decide('accepted')} className="btn-clay"
+          style={{ padding:'10px 22px', fontSize:13.5, borderRadius:980 }}>{t('consentAccept')}</button>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   return <SiteContentProvider><AppInner /></SiteContentProvider>;
 }
@@ -14993,6 +15070,7 @@ function AppInner() {
       {!['kitchen-planner','tv-planner','door-planner','wardrobe-planner','office-planner','planner'].includes(page) && <ChatWidget setPage={setPage} />}
       <CartDrawer cart={cart} setCart={setCart} open={cartOpen} setOpen={setCartOpen} setPage={setPage} />
       {authOpen && <AuthModal mode={authMode} setMode={setAuthMode} setUser={setUser} prefill={authPrefill} onClose={()=>{ setAuthOpen(false); setAuthPrefill(null); }} />}
+      <CookieConsent />
       <Toasts />
     </AppCtx.Provider>
   );
