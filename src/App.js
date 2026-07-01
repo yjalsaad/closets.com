@@ -3040,6 +3040,10 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
   const tr = (k) => (I18N[k] ? (I18N[k][lang] || I18N[k].en) : k);
   useEffect(() => { const h = () => setScrolled(window.scrollY > 20); window.addEventListener('scroll', h); return () => window.removeEventListener('scroll', h); }, []);
   useEffect(() => { const h = () => setOpenMega(null); window.addEventListener('scroll', h, { passive:true }); return () => window.removeEventListener('scroll', h); }, []);
+  const closeTimer = useRef(null);
+  const openMenu = (k) => { if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; } setOpenMega(k); };
+  const scheduleClose = () => { if (closeTimer.current) clearTimeout(closeTimer.current); closeTimer.current = setTimeout(() => setOpenMega(null), 220); };
+  useEffect(() => () => { if (closeTimer.current) clearTimeout(closeTimer.current); }, []);
   // Navigate from any mega/drawer leaf — supports both plain page ids and `cat:` deep links.
   const navTo = (target) => {
     setOpenMega(null); setMenuOpen(false);
@@ -3059,20 +3063,20 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
 
   return (<>
     {/* Slim top bar — logo + actions */}
-    <nav onMouseLeave={()=>setOpenMega(null)} style={{ position:'fixed', top:0, left:0, right:0, zIndex:900, height:58, display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, padding: mobile?'0 16px':'0 24px', background: scrolled?'rgba(247,242,236,.92)':'rgba(247,242,236,.72)', backdropFilter:'blur(18px) saturate(180%)', borderBottom: scrolled?'1px solid var(--line)':'1px solid transparent', transition:'all .3s' }}>
+    <nav onMouseLeave={scheduleClose} style={{ position:'fixed', top:0, left:0, right:0, zIndex:900, height:58, display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, padding: mobile?'0 16px':'0 24px', background: scrolled?'rgba(247,242,236,.92)':'rgba(247,242,236,.72)', backdropFilter:'blur(18px) saturate(180%)', borderBottom: scrolled?'1px solid var(--line)':'1px solid transparent', transition:'all .3s' }}>
       <button type="button" onClick={()=>{ setPage('home'); setMenuOpen(false); }} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>
         {(cms('header.logo', '') || siteLogo)
           ? <img src={cms('header.logo', '') || siteLogo} alt="The Closets" style={{ height:32, width:'auto', maxWidth:120, objectFit:'contain', borderRadius:6 }} />
           : <span style={{ fontFamily:'Fraunces, Georgia, serif', fontSize:16, fontWeight:600, color:'var(--ink)', letterSpacing:'.02em' }}>{cms('header.brand', 'THE CLOSETS')}</span>}
       </button>
       {!mobile && (
-        <div onMouseLeave={()=>setOpenMega(null)} style={{ flex:1, minWidth:0, display:'flex', alignItems:'center', justifyContent:'center', gap:2, flexWrap:'nowrap', overflow:'visible' }}>
+        <div onMouseLeave={scheduleClose} style={{ flex:1, minWidth:0, display:'flex', alignItems:'center', justifyContent:'center', gap:2, flexWrap:'nowrap', overflow:'visible' }}>
           {NAV_PRIMARY_KEYS.map(key => {
             const g = NAV_GROUPS.find(x=>x.key===key); if (!g) return null;
             const on = openMega===g.key;
             const active = (g.feature && page===g.feature);
             return (
-              <div key={g.key} onMouseEnter={()=>setOpenMega(g.key)} style={{ position:'static', flexShrink:1, minWidth:0 }}>
+              <div key={g.key} onMouseEnter={()=>openMenu(g.key)} style={{ position:'static', flexShrink:1, minWidth:0 }}>
                 <button type="button"
                   onClick={()=> g.feature ? navTo(g.feature) : setOpenMega(on?null:g.key)}
                   aria-expanded={on}
@@ -3087,7 +3091,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
           <button type="button" onMouseEnter={()=>setOpenMega(null)} onClick={()=>navTo('offers')}
             style={{ background:'none', border:'none', cursor:'pointer', padding:'8px 10px', fontSize:14, fontWeight: page==='offers'?600:500, color: page==='offers'?'var(--clay-deep)':'var(--ink)', borderRadius:10, whiteSpace:'nowrap' }}>{trLabel('Offers', lang)}</button>
           {/* More ▾ — demoted groups + utility pages */}
-          <div onMouseEnter={()=>setOpenMega('more')} style={{ position:'static', flexShrink:0 }}>
+          <div onMouseEnter={()=>openMenu('more')} style={{ position:'static', flexShrink:0 }}>
             <button type="button" onClick={()=>setOpenMega(openMega==='more'?null:'more')} aria-expanded={openMega==='more'}
               style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:4, padding:'8px 10px', fontSize:14, fontWeight: openMega==='more'?600:500, color: openMega==='more'?'var(--clay-deep)':'var(--ink)', borderRadius:10, whiteSpace:'nowrap' }}>
               {tr('navMore')}
@@ -3095,7 +3099,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
             </button>
           </div>
           {/* One accent pill — ✨ AI + Design Lab, opens a small dropdown */}
-          <div onMouseEnter={()=>setOpenMega('ai')} style={{ position:'static', flexShrink:0 }}>
+          <div onMouseEnter={()=>openMenu('ai')} style={{ position:'static', flexShrink:0 }}>
             <button type="button" onClick={()=>setOpenMega(openMega==='ai'?null:'ai')} aria-expanded={openMega==='ai'}
               style={{ cursor:'pointer', padding:'6px 12px', fontSize:14, fontWeight:700, color:(page==='ai-yas'||page==='design-lab')?'#fff':'var(--clay-deep)', background:(page==='ai-yas'||page==='design-lab')?'var(--clay)':'var(--sand)', border:'1px solid '+((page==='ai-yas'||page==='design-lab')?'var(--clay)':'rgba(242,115,28,.35)'), borderRadius:999, display:'inline-flex', alignItems:'center', gap:6, whiteSpace:'nowrap', flexShrink:0 }}>
               {'✨ ' + tr('navAiDesignLab')}
@@ -3119,7 +3123,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
     {/* Desktop AI + Design Lab pill dropdown — small two-row menu */}
     {!mobile && openMega==='ai' && (
       <div onMouseEnter={()=>setOpenMega('ai')} onMouseLeave={()=>setOpenMega(null)} style={{ position:'fixed', top:58, left:0, right:0, zIndex:899, display:'flex', justifyContent:'flex-end', pointerEvents:'none' }}>
-        <div style={{ pointerEvents:'auto', margin: lang==='ar' ? '10px auto 0 24px' : '10px 24px 0 auto', width:280, background:'var(--cream)', border:'1px solid var(--line)', borderRadius:14, boxShadow:'0 26px 48px -28px rgba(33,28,24,.4)', padding:8, animation:'fadeUp .2s both' }}>
+        <div onMouseEnter={()=>openMenu('ai')} onMouseLeave={scheduleClose} style={{ pointerEvents:'auto', margin: lang==='ar' ? '10px auto 0 24px' : '10px 24px 0 auto', width:280, background:'var(--cream)', border:'1px solid var(--line)', borderRadius:14, boxShadow:'0 26px 48px -28px rgba(33,28,24,.4)', padding:8, animation:'fadeUp .2s both' }}>
           {AI_PILL_ITEMS.map(it => {
             const on = page===it.target;
             const lbl = (lang==='ar' && it.labelAr) ? it.labelAr : it.label;
@@ -3139,7 +3143,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
     {!mobile && openMega && openMega!=='ai' && (() => {
       const g = openMega==='more' ? MORE_GROUP : NAV_GROUPS.find(x=>x.key===openMega); if (!g) return null;
       return (
-        <div onMouseLeave={()=>setOpenMega(null)} style={{ position:'fixed', top:58, left:0, right:0, zIndex:899, background:'var(--cream)', borderBottom:'1px solid var(--line)', boxShadow:'0 26px 48px -28px rgba(33,28,24,.4)', animation:'fadeUp .22s both' }}>
+        <div onMouseEnter={()=>openMenu(openMega)} onMouseLeave={scheduleClose} style={{ position:'fixed', top:58, left:0, right:0, zIndex:899, background:'var(--cream)', borderBottom:'1px solid var(--line)', boxShadow:'0 26px 48px -28px rgba(33,28,24,.4)', animation:'fadeUp .22s both' }}>
           <div style={{ maxWidth:1280, margin:'0 auto', padding:'30px 24px 34px', display:'grid', gridTemplateColumns: g.feature ? '1.3fr repeat('+g.columns.length+',1fr)' : 'repeat('+g.columns.length+',1fr)', gap:36 }}>
             {g.feature && (
               <button type="button" onClick={()=>navTo(g.feature)} className="tile-zoom lift" style={{ position:'relative', border:'none', padding:0, borderRadius:16, overflow:'hidden', cursor:'pointer', textAlign:'left', minHeight:200, background:'#15110e' }}>
