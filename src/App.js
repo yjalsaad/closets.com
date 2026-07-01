@@ -383,6 +383,13 @@ const I18N = {
   navInspiration:{ en:'Inspiration', ar:'إلهام' },
   navOffers:   { en:'Offers',        ar:'العروض' },
   navShowrooms:{ en:'Showrooms',     ar:'المعارض' },
+  navMore:     { en:'More',          ar:'المزيد' },
+  navAiDesignLab:{ en:'AI + Design Lab', ar:'الذكاء الاصطناعي + مختبر التصميم' },
+  navAiYasSub: { en:'AI interior designer', ar:'مصمم داخلي بالذكاء الاصطناعي' },
+  navDesignLabSub:{ en:'Glow-ups, quiz, gallery', ar:'تحسينات، اختبار، معرض' },
+  navGalleryTop:{ en:'Gallery',      ar:'المعرض' },
+  navHowItWorksTop:{ en:'How it works', ar:'كيف تعمل' },
+  navContactTop:{ en:'Contact',      ar:'تواصل معنا' },
   // mega-menu column headers
   navByStyle:  { en:'By style',      ar:'حسب الطراز' },
   navByFinish: { en:'By finish',     ar:'حسب التشطيب' },
@@ -2659,6 +2666,31 @@ const NAV_GROUPS = [
 ];
 // Flat top-level links that have no dropdown.
 const NAV_FLAT = [['Offers', 'offers'], ['Showrooms', 'showrooms']];
+// Priority + More layout: only these 4 mega groups render as top-level buttons, in order.
+const NAV_PRIMARY_KEYS = ['kitchens', 'wardrobes', 'doors', 'studio'];
+// "More ▾" dropdown — a simple 3-column mega grouping the demoted groups + utility pages.
+// Column labels reuse existing NAV_LABEL_KEY entries; leaf labels reuse existing keys where possible.
+const MORE_GROUP = {
+  key: 'more', label: 'More',
+  columns: [
+    { title: 'See & save ideas', items: [
+      ['Inspiration', 'blog'], ['Project gallery', 'projects'], ['Design journal', 'blog'],
+    ] },
+    { title: 'Pricing & finance', items: [
+      ['Get a free quote', 'booking'], ['Try the price estimator', 'planner'],
+      ['Flexible payment options', 'booking'], ['What it costs', 'faq'],
+    ] },
+    { title: 'Explore', items: [
+      ['Showrooms', 'showrooms'], ['Gallery', 'products'],
+      ['How it works', 'how-it-works'], ['Contact', 'contact'],
+    ], accent: true },
+  ],
+};
+// Accent pill dropdown — one "✨ AI + Design Lab" pill opening two rows.
+const AI_PILL_ITEMS = [
+  { emoji: '✨', label: '✨ AI YAS', subKey: 'navAiYasSub', target: 'ai-yas' },
+  { emoji: '✨', label: '✨ Design Lab', labelAr: '✨ مختبر التصميم', subKey: 'navDesignLabSub', target: 'design-lab' },
+];
 
 // i18n: map the English nav/footer labels (used as data keys) → I18N keys.
 // Wave-1 surfaces translate at render time via trLabel() so the data arrays
@@ -3035,7 +3067,8 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
       </button>
       {!mobile && (
         <div onMouseLeave={()=>setOpenMega(null)} style={{ flex:1, minWidth:0, display:'flex', alignItems:'center', justifyContent:'center', gap:2, flexWrap:'nowrap', overflow:'visible' }}>
-          {NAV_GROUPS.map(g => {
+          {NAV_PRIMARY_KEYS.map(key => {
+            const g = NAV_GROUPS.find(x=>x.key===key); if (!g) return null;
             const on = openMega===g.key;
             const active = (g.feature && page===g.feature);
             return (
@@ -3050,21 +3083,28 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
               </div>
             );
           })}
-          <button type="button" onMouseEnter={()=>setOpenMega(null)} onClick={()=>navTo('ai-yas')}
-            style={{ cursor:'pointer', padding:'6px 12px', fontSize:14, fontWeight:700, color: page==='ai-yas'?'#fff':'var(--clay-deep)', background: page==='ai-yas'?'var(--clay)':'var(--sand)', border:'1px solid '+(page==='ai-yas'?'var(--clay)':'rgba(242,115,28,.35)'), borderRadius:999, display:'inline-flex', alignItems:'center', gap:6, whiteSpace:'nowrap', flexShrink:0 }}>✨ AI YAS</button>
-          <button type="button" onMouseEnter={()=>setOpenMega(null)} onClick={()=>navTo('design-lab')}
-            style={{ cursor:'pointer', padding:'6px 12px', fontSize:14, fontWeight:700, color: page==='design-lab'?'#fff':'var(--clay-deep)', background: page==='design-lab'?'var(--clay)':'var(--sand)', border:'1px solid '+(page==='design-lab'?'var(--clay)':'rgba(242,115,28,.35)'), borderRadius:999, display:'inline-flex', alignItems:'center', gap:6, whiteSpace:'nowrap', flexShrink:0 }}>{lang==='ar'?'✨ مختبر التصميم':'✨ Design Lab'}</button>
-          {NAV_FLAT.map(([flatLabel,flatId]) => (
-            <button type="button" key={flatId} onMouseEnter={()=>setOpenMega(null)} onClick={()=>navTo(flatId)}
-              style={{ background:'none', border:'none', cursor:'pointer', padding:'8px 10px', fontSize:14, fontWeight: page===flatId?600:500, color: page===flatId?'var(--clay-deep)':'var(--ink)', borderRadius:10, whiteSpace:'nowrap' }}>{trLabel(flatLabel, lang)}</button>
-          ))}
+          {/* Offers — direct visible link after Design studio */}
+          <button type="button" onMouseEnter={()=>setOpenMega(null)} onClick={()=>navTo('offers')}
+            style={{ background:'none', border:'none', cursor:'pointer', padding:'8px 10px', fontSize:14, fontWeight: page==='offers'?600:500, color: page==='offers'?'var(--clay-deep)':'var(--ink)', borderRadius:10, whiteSpace:'nowrap' }}>{trLabel('Offers', lang)}</button>
+          {/* More ▾ — demoted groups + utility pages */}
+          <div onMouseEnter={()=>setOpenMega('more')} style={{ position:'static', flexShrink:0 }}>
+            <button type="button" onClick={()=>setOpenMega(openMega==='more'?null:'more')} aria-expanded={openMega==='more'}
+              style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:4, padding:'8px 10px', fontSize:14, fontWeight: openMega==='more'?600:500, color: openMega==='more'?'var(--clay-deep)':'var(--ink)', borderRadius:10, whiteSpace:'nowrap' }}>
+              {tr('navMore')}
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: openMega==='more'?'rotate(180deg)':'none', transition:'transform .2s', opacity:.6 }}><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+          </div>
+          {/* One accent pill — ✨ AI + Design Lab, opens a small dropdown */}
+          <div onMouseEnter={()=>setOpenMega('ai')} style={{ position:'static', flexShrink:0 }}>
+            <button type="button" onClick={()=>setOpenMega(openMega==='ai'?null:'ai')} aria-expanded={openMega==='ai'}
+              style={{ cursor:'pointer', padding:'6px 12px', fontSize:14, fontWeight:700, color:(page==='ai-yas'||page==='design-lab')?'#fff':'var(--clay-deep)', background:(page==='ai-yas'||page==='design-lab')?'var(--clay)':'var(--sand)', border:'1px solid '+((page==='ai-yas'||page==='design-lab')?'var(--clay)':'rgba(242,115,28,.35)'), borderRadius:999, display:'inline-flex', alignItems:'center', gap:6, whiteSpace:'nowrap', flexShrink:0 }}>
+              {'✨ ' + tr('navAiDesignLab')}
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: openMega==='ai'?'rotate(180deg)':'none', transition:'transform .2s', opacity:.7 }}><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+          </div>
         </div>
       )}
       <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
-        {!mobile && <button type="button" onClick={()=>navTo('planner')} style={{ background:'none', border:'1px solid rgba(242,115,28,.35)', borderRadius:980, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, padding:'7px 14px', fontSize:13, fontWeight:600, color:'var(--clay)', whiteSpace:'nowrap' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-          {cms('header.cta.design', tr('startDesigning'))}
-        </button>}
         {!mobile && <button type="button" onClick={()=>setPage('booking')} style={{ background:'var(--clay)', border:'none', borderRadius:980, padding:'8px 16px', fontSize:13, fontWeight:600, color:'#fff', cursor:'pointer' }}>{cms('header.cta.book', tr('bookVisit'))}</button>}
         <button type="button" onClick={()=>setLang(lang==='ar'?'en':'ar')} title="Language" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'7px 13px', fontSize:13, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{lang==='ar'?'EN':'ع'}</button>
         {user ? <button type="button" onClick={()=>setPage('portal')} style={{ background:'rgba(242,115,28,.12)', border:'none', borderRadius:980, padding:'7px 14px', fontSize:13, fontWeight:500, color:'var(--clay-deep)', cursor:'pointer' }}>{user.name?.split(' ')[0]}</button>
@@ -3076,9 +3116,28 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
       </div>
     </nav>
 
+    {/* Desktop AI + Design Lab pill dropdown — small two-row menu */}
+    {!mobile && openMega==='ai' && (
+      <div onMouseEnter={()=>setOpenMega('ai')} onMouseLeave={()=>setOpenMega(null)} style={{ position:'fixed', top:58, left:0, right:0, zIndex:899, display:'flex', justifyContent:'flex-end', pointerEvents:'none' }}>
+        <div style={{ pointerEvents:'auto', margin: lang==='ar' ? '10px auto 0 24px' : '10px 24px 0 auto', width:280, background:'var(--cream)', border:'1px solid var(--line)', borderRadius:14, boxShadow:'0 26px 48px -28px rgba(33,28,24,.4)', padding:8, animation:'fadeUp .2s both' }}>
+          {AI_PILL_ITEMS.map(it => {
+            const on = page===it.target;
+            const lbl = (lang==='ar' && it.labelAr) ? it.labelAr : it.label;
+            return (
+              <button type="button" key={it.target} onClick={()=>navTo(it.target)} style={{ display:'block', width:'100%', textAlign: lang==='ar'?'right':'left', background: on?'var(--sand)':'none', border:'none', cursor:'pointer', borderRadius:10, padding:'10px 12px', transition:'background .15s' }}
+                onMouseEnter={e=>e.currentTarget.style.background='var(--sand)'} onMouseLeave={e=>e.currentTarget.style.background=on?'var(--sand)':'transparent'}>
+                <div style={{ fontSize:14.5, fontWeight:700, color:'var(--clay-deep)' }}>{lbl}</div>
+                <div style={{ fontSize:12, color:'var(--muted)', marginTop:2 }}>{tr(it.subKey)}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    )}
+
     {/* Desktop mega dropdown panel — fixed under the single bar */}
-    {!mobile && openMega && (() => {
-      const g = NAV_GROUPS.find(x=>x.key===openMega); if (!g) return null;
+    {!mobile && openMega && openMega!=='ai' && (() => {
+      const g = openMega==='more' ? MORE_GROUP : NAV_GROUPS.find(x=>x.key===openMega); if (!g) return null;
       return (
         <div onMouseLeave={()=>setOpenMega(null)} style={{ position:'fixed', top:58, left:0, right:0, zIndex:899, background:'var(--cream)', borderBottom:'1px solid var(--line)', boxShadow:'0 26px 48px -28px rgba(33,28,24,.4)', animation:'fadeUp .22s both' }}>
           <div style={{ maxWidth:1280, margin:'0 auto', padding:'30px 24px 34px', display:'grid', gridTemplateColumns: g.feature ? '1.3fr repeat('+g.columns.length+',1fr)' : 'repeat('+g.columns.length+',1fr)', gap:36 }}>
@@ -3144,7 +3203,8 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
           <button type="button" onClick={()=>go('home')} style={{ width:'100%', textAlign:'left', background: page==='home'?'var(--sand)':'#fff', border:'1px solid var(--line)', borderRadius:12, padding:'13px 15px', fontSize:15, fontWeight:600, color: page==='home'?'var(--clay-deep)':'var(--ink)', cursor:'pointer', marginBottom:8 }}>{tr('home')}</button>
           {/* Grouped accordions */}
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-            {NAV_GROUPS.map(g => {
+            {NAV_PRIMARY_KEYS.map(key => {
+              const g = NAV_GROUPS.find(x=>x.key===key); if (!g) return null;
               const open = openAcc===g.key;
               return (
                 <div key={g.key} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:12, overflow:'hidden' }}>
@@ -3168,16 +3228,58 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
                 </div>
               );
             })}
-            {/* AI YAS — headline feature */}
-            <button type="button" onClick={()=>go('ai-yas')} style={{ width:'100%', textAlign:'left', background: page==='ai-yas'?'var(--clay)':'var(--sand)', border:'1px solid '+(page==='ai-yas'?'var(--clay)':'rgba(242,115,28,.35)'), borderRadius:12, padding:'13px 15px', fontSize:15, fontWeight:700, color: page==='ai-yas'?'#fff':'var(--clay-deep)', cursor:'pointer', marginBottom:8 }}>{lang==='ar'?'✨ AI ياس — شريكك في التصميم':'✨ AI YAS — your AI design partner'}</button>
-            {/* Design Lab — viral growth hub */}
-            <button type="button" onClick={()=>go('design-lab')} style={{ width:'100%', textAlign:'left', background: page==='design-lab'?'var(--clay)':'var(--sand)', border:'1px solid '+(page==='design-lab'?'var(--clay)':'rgba(242,115,28,.35)'), borderRadius:12, padding:'13px 15px', fontSize:15, fontWeight:700, color: page==='design-lab'?'#fff':'var(--clay-deep)', cursor:'pointer', marginBottom:8 }}>{lang==='ar'?'✨ مختبر التصميم':'✨ Design Lab'}</button>
-            {/* Flat links */}
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-              {NAV_FLAT.concat([['Gallery','products'],['Contact','contact']]).map(([label,id])=>(
-                <button type="button" key={id} onClick={()=>go(id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:12, padding:'12px 14px', fontSize:14.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{trLabel(label, lang)}</button>
-              ))}
-            </div>
+            {/* Offers — direct link */}
+            <button type="button" onClick={()=>go('offers')} style={{ width:'100%', textAlign:'left', background: page==='offers'?'var(--sand)':'#fff', border:'1px solid var(--line)', borderRadius:12, padding:'13px 15px', fontSize:15, fontWeight:600, color: page==='offers'?'var(--clay-deep)':'var(--ink)', cursor:'pointer' }}>{trLabel('Offers', lang)}</button>
+            {/* More — demoted groups + utility pages, as an accordion */}
+            {(() => {
+              const open = openAcc==='more';
+              return (
+                <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:12, overflow:'hidden' }}>
+                  <button type="button" onClick={()=>setOpenAcc(open?null:'more')} aria-expanded={open} style={{ width:'100%', display:'flex', justifyContent:'space-between', alignItems:'center', background:'none', border:'none', cursor:'pointer', padding:'14px 15px', fontSize:15.5, fontWeight:600, color:'var(--ink)' }}>
+                    {tr('navMore')}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open?'rotate(180deg)':'none', transition:'transform .2s' }}><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  {open && (
+                    <div style={{ padding:'0 15px 14px' }}>
+                      {MORE_GROUP.columns.map((col,ci)=>(
+                        <div key={ci} style={{ marginBottom: ci<MORE_GROUP.columns.length-1?10:0 }}>
+                          <div className="eyebrow" style={{ fontSize:10.5, letterSpacing:'.14em', margin:'4px 0 6px', color:'var(--muted)' }}>{trLabel(col.title, lang)}</div>
+                          {col.items.map(([label,target])=>(
+                            <button type="button" key={label+target} onClick={()=>go(target)} style={{ display:'block', width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'7px 0', fontSize:14, color: col.accent?'var(--clay-deep)':'var(--ink-soft)', fontWeight: col.accent?600:400 }}>{trLabel(label, lang)}</button>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+            {/* ✨ AI + Design Lab — accent section */}
+            {(() => {
+              const open = openAcc==='ai';
+              const activeAi = page==='ai-yas' || page==='design-lab';
+              return (
+                <div style={{ background: activeAi?'var(--clay)':'var(--sand)', border:'1px solid '+(activeAi?'var(--clay)':'rgba(242,115,28,.35)'), borderRadius:12, overflow:'hidden' }}>
+                  <button type="button" onClick={()=>setOpenAcc(open?null:'ai')} aria-expanded={open} style={{ width:'100%', display:'flex', justifyContent:'space-between', alignItems:'center', background:'none', border:'none', cursor:'pointer', padding:'14px 15px', fontSize:15, fontWeight:700, color: activeAi?'#fff':'var(--clay-deep)' }}>
+                    {'✨ ' + tr('navAiDesignLab')}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open?'rotate(180deg)':'none', transition:'transform .2s', opacity:.85 }}><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  {open && (
+                    <div style={{ padding:'0 12px 12px', background:'var(--cream)' }}>
+                      {AI_PILL_ITEMS.map(it => {
+                        const lbl = (lang==='ar' && it.labelAr) ? it.labelAr : it.label;
+                        return (
+                          <button type="button" key={it.target} onClick={()=>go(it.target)} style={{ display:'block', width:'100%', textAlign:'left', background: page===it.target?'var(--sand)':'none', border:'none', cursor:'pointer', borderRadius:10, padding:'10px 10px', marginTop:8 }}>
+                            <div style={{ fontSize:14.5, fontWeight:700, color:'var(--clay-deep)' }}>{lbl}</div>
+                            <div style={{ fontSize:12, color:'var(--muted)', marginTop:2 }}>{tr(it.subKey)}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
           <button type="button" onClick={()=>{ setPage('booking'); setMenuOpen(false); }} className="btn-clay" style={{ width:'100%', borderRadius:12, marginTop:14 }}>{tr('bookFreeVisit')}</button>
         </div>
