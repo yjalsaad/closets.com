@@ -2,4 +2,8 @@
 User-agent: *
 Allow: /
 
+# Non-content app routes (no SEO value)
+Disallow: /cart
+Disallow: /signin
+
 Sitemap: https://closets-website.vercel.app/sitemap.xml
