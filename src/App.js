@@ -2289,13 +2289,21 @@ function Toasts() {
 }
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Tajawal:wght@400;500;700;800&family=El+Messiri:wght@500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=El+Messiri:wght@500;600;700&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  /* ── Arabic typography (Google Fonts): Tajawal for body, El Messiri for display headings ── */
-  html[lang="ar"] body, [dir="rtl"] { font-family: 'Tajawal','Segoe UI',sans-serif; }
-  html[lang="ar"] .display, [dir="rtl"] .display { font-family: 'El Messiri','Tajawal',serif; letter-spacing: 0; }
-  html[lang="ar"] .eyebrow, [dir="rtl"] .eyebrow { font-family: 'Tajawal',sans-serif; }
+  /* ── Arabic typography: IBM Plex Sans Arabic for body/UI (parallels Inter), El Messiri for display headings ── */
+  html[lang="ar"] body, [dir="rtl"] { font-family: 'IBM Plex Sans Arabic','Segoe UI',sans-serif; }
+  html[lang="ar"] .display, [dir="rtl"] .display { font-family: 'El Messiri','IBM Plex Sans Arabic',serif; letter-spacing: 0; }
+  html[lang="ar"] .eyebrow, [dir="rtl"] .eyebrow { font-family: 'IBM Plex Sans Arabic',sans-serif; }
   html { -webkit-tap-highlight-color: transparent; }
+  /* ── RTL logical fixes (reach what inline styles don't) ── */
+  [dir="rtl"] input, [dir="rtl"] textarea, [dir="rtl"] select { text-align: right; }
+  [dir="rtl"] ul, [dir="rtl"] ol { padding-right: 20px; padding-left: 0; }
+  /* Opt-in mirror for inline directional arrows (→ ← ‹ › » «) inside RTL */
+  [dir="rtl"] .diri { display: inline-block; transform: scaleX(-1); }
+  /* Flip hard-coded inline text-align under RTL (reaches inline styles that CSS otherwise can't) */
+  [dir="rtl"] [style*="text-align: left"]  { text-align: right !important; }
+  [dir="rtl"] [style*="text-align: right"] { text-align: left  !important; }
   /* ── Animated background blobs ── */
   .hero-bg {
     position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0;
@@ -16162,7 +16170,7 @@ function AppInner() {
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('dir', dir);
       document.documentElement.setAttribute('lang', lang);
-      document.body.style.fontFamily = lang === 'ar' ? "'Tajawal','Segoe UI',sans-serif" : '';
+      document.body.style.fontFamily = lang === 'ar' ? "'IBM Plex Sans Arabic','Segoe UI',sans-serif" : '';
     }
   }, [lang]);
   // Per-route <title> + meta description, bilingual. Keeps deep links / prerender / share previews correct.
