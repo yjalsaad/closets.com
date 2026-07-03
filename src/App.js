@@ -163,7 +163,7 @@ const CMS_AR = {
   'footer.col3.title': 'عن الشركة',
   'footer.social.title': 'تابعنا',
   'footer.copyright': '© 2026 ذا كلوزتس ش.ذ.م.م. — المنامة، البحرين',
-  'footer.contact': '+973 17555095 · Info@the-closets.com',
+  'footer.contact': '+973 17555095 · info@the-closets.com',
   // ── Projects ──
   'projects.hero.title': 'مشاريعنا',
   'projects.hero.subtitle': 'مساحات حقيقية صمّمناها وصنّعناها وركّبناها في أنحاء البحرين.',
@@ -7235,7 +7235,7 @@ function ContactPage() {
           <div className="eyebrow" style={{ marginBottom:14 }}>{cms('contact.hero.eyebrow', 'Get in touch')}</div>
           <h1 className="display" style={{ fontSize: mobile ? 36 : 56, color:'var(--ink)', marginBottom:16, lineHeight:1.05 }}>{cms('contact.hero.title', 'Let’s start your project.')}</h1>
           <p style={{ fontSize:17, color:'var(--ink-soft)', lineHeight:1.7, marginBottom:30 }}>{cms('contact.hero.subtitle', 'Tell us about your space and we’ll arrange a free home or showroom visit — no obligation.')}</p>
-          {[['📍','Showrooms','Manama · Riffa · Saar · Isa Town', null],['📞','Phone','+973 17555095','tel:+97317555095'],['✉️','Email','Info@the-closets.com','mailto:Info@the-closets.com'],['⏰','Hours','Sat–Thu · 9am–8pm', null]].map(([icon,label,val,href])=>(
+          {[['📍','Showrooms','Manama · Riffa · Saar · Isa Town', null],['📞','Phone','+973 17555095','tel:+97317555095'],['✉️','Email','info@the-closets.com','mailto:info@the-closets.com'],['⏰','Hours','Sat–Thu · 9am–8pm', null]].map(([icon,label,val,href])=>(
             <div key={label} style={{ display:'flex', gap:14, padding:'15px 0', borderBottom:'1px solid var(--line)' }}>
               <span style={{ fontSize:18 }}>{icon}</span>
               <div><div style={{ fontSize:11, fontWeight:600, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:3 }}>{label}</div>
@@ -9212,11 +9212,11 @@ function SiteFooter({ setPage }) {
   const mobile=useMobile();
   const { t, lang } = useI18n();
   const col=(title,items)=>(<div><div style={{ fontSize:12, fontWeight:700, color:'var(--ink)', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:14 }}>{title}</div>{items.map(([label,go])=>(<Link to={pageToPath(go)} key={label} style={{ display:'block', color:'var(--ink-soft)', fontSize:14, padding:'6px 0', textAlign:'left', textDecoration:'none' }}>{trLabel(label, lang)}</Link>))}</div>);
+  // Only verified profiles are linked. Instagram handle confirmed as @theclosets
+  // (business phone 17555095 matches this site). Facebook/Pinterest/YouTube were
+  // placeholder links to bare domains — removed until real profile URLs exist.
   const social=[
-    ['Instagram','https://instagram.com','M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm5-2.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2z'],
-    ['Facebook','https://facebook.com','M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H7v3h3v7h3v-7h3l1-3h-4v-2c0-.6.4-1 1-1z'],
-    ['Pinterest','https://pinterest.com','M12 2a10 10 0 0 0-3.6 19.3c-.1-.8-.2-2 0-2.9l1.2-5s-.3-.6-.3-1.5c0-1.4.8-2.4 1.8-2.4.9 0 1.3.6 1.3 1.4 0 .9-.5 2.2-.8 3.4-.2.9.5 1.7 1.4 1.7 1.7 0 2.9-2.2 2.9-4.7 0-1.9-1.3-3.4-3.7-3.4a4.3 4.3 0 0 0-4.5 4.3c0 .8.3 1.4.6 1.8.1.2.2.3.1.5l-.2.9c0 .3-.2.4-.5.2-1.2-.5-1.8-2-1.8-3.6 0-2.7 2.3-5.9 6.8-5.9 3.6 0 6 2.6 6 5.4 0 3.7-2 6.4-5 6.4-1 0-2-.5-2.3-1.2l-.6 2.4c-.2.8-.7 1.7-1 2.3A10 10 0 1 0 12 2z'],
-    ['YouTube','https://youtube.com','M23 12s0-3.4-.4-5a2.6 2.6 0 0 0-1.8-1.8C19 4.7 12 4.7 12 4.7s-7 0-8.8.5A2.6 2.6 0 0 0 1.4 7C1 8.6 1 12 1 12s0 3.4.4 5a2.6 2.6 0 0 0 1.8 1.8c1.8.5 8.8.5 8.8.5s7 0 8.8-.5A2.6 2.6 0 0 0 22.6 17c.4-1.6.4-5 .4-5zM10 15.5v-7l6 3.5-6 3.5z'],
+    ['Instagram','https://www.instagram.com/theclosets/','M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm5-2.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2z'],
   ];
   return (<footer style={{ borderTop:'1px solid var(--line)', background:'var(--sand)', padding: mobile?'48px 18px 28px':'72px 40px 36px' }}>
     <div style={{ maxWidth:1280, margin:'0 auto' }}>
@@ -9242,9 +9242,8 @@ function SiteFooter({ setPage }) {
         </div>
       </div>
 
-      {/* Staff login + Support — external links */}
+      {/* Support — external link (Staff login removed from public footer) */}
       <div style={{ display:'flex', gap:18, marginTop:24, flexWrap:'wrap' }}>
-        <a href="https://closets-hub.vercel.app/staff-login.html" target="_blank" rel="noopener" style={{ color:'var(--ink-soft)', fontSize:14, textDecoration:'none' }}>{t('footStaffLogin')}</a>
         <a href="https://closets-hub.vercel.app/form.html" target="_blank" rel="noopener" style={{ color:'var(--ink-soft)', fontSize:14, textDecoration:'none' }}>{t('footSupport')}</a>
       </div>
 
@@ -9273,7 +9272,7 @@ function SiteFooter({ setPage }) {
           <span style={{ display:'inline-flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
             <a href="tel:+97317555095" style={{ color:'var(--muted)', textDecoration:'none' }}>+973 17555095</a>
             <span>·</span>
-            <a href="mailto:Info@the-closets.com" style={{ color:'var(--muted)', textDecoration:'none' }}>Info@the-closets.com</a>
+            <a href="mailto:info@the-closets.com" style={{ color:'var(--muted)', textDecoration:'none' }}>info@the-closets.com</a>
           </span>
         </span>
       </div>
