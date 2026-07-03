@@ -16029,14 +16029,83 @@ function DesignLabPage({ user, setPage, openAuth }) {
 export default function App() {
   return <BrowserRouter><SiteContentProvider><AppInner /></SiteContentProvider></BrowserRouter>;
 }
-const PATH_TO_PAGE = { '':'home','/':'home','/home':'home','/kitchen':'kitchen','/kitchens':'kitchen','/wardrobes':'wardrobes','/wardrobe':'wardrobes','/tv':'tv','/tv-units':'tv','/doors':'doors','/door':'doors','/office':'office','/about':'about','/contact':'contact','/services':'services','/showrooms':'showrooms','/blog':'blog','/faq':'faq','/offers':'offers','/projects':'projects','/booking':'booking','/directory':'directory','/portal':'portal','/how-it-works':'how-it-works','/guide':'how-it-works','/ai-yas':'ai-yas','/ai':'ai-yas','/ai-designer':'ai','/design-lab':'design-lab' };
+const PATH_TO_PAGE = { '':'home','/':'home','/home':'home','/kitchen':'kitchen','/kitchens':'kitchen','/wardrobes':'wardrobes','/wardrobe':'wardrobes','/tv':'tv','/tv-units':'tv','/doors':'doors','/door':'doors','/office':'office','/about':'about','/contact':'contact','/services':'services','/showrooms':'showrooms','/blog':'blog','/faq':'faq','/offers':'offers','/projects':'projects','/booking':'booking','/directory':'directory','/portal':'portal','/how-it-works':'how-it-works','/guide':'how-it-works','/ai-yas':'ai-yas','/ai':'ai-yas','/ai-designer':'ai','/design-lab':'design-lab',
+  // Task 2 route table — canonical + back-compat aliases
+  '/gallery':'products','/products':'products','/signin':'portal','/portal':'portal',
+  '/design-studio':'planner','/planner':'planner',
+  '/design-studio/kitchen-planner':'kitchen-planner','/kitchen-planner':'kitchen-planner',
+  '/design-studio/wardrobe-planner':'wardrobe-planner','/wardrobe-planner':'wardrobe-planner',
+  '/design-studio/tv-planner':'tv-planner','/tv-planner':'tv-planner',
+  '/design-studio/door-planner':'door-planner','/door-planner':'door-planner',
+  '/design-studio/office-planner':'office-planner','/office-planner':'office-planner',
+  '/design-studio/builder':'design-builder','/design-builder':'design-builder',
+  '/ai-lab':'design-lab','/ai-lab/yas':'ai-yas',
+  '/warranty':'warranty','/maintenance':'maintenance','/careers':'careers','/checkout':'checkout','/cart':'home' };
 // Canonical page → URL path (reverse of PATH_TO_PAGE). Non-listed keys fall back to '/'+key.
 const PAGE_TO_PATH = {
   home:'/', kitchen:'/kitchen', wardrobes:'/wardrobes', tv:'/tv', doors:'/doors', office:'/office',
   about:'/about', contact:'/contact', services:'/services', showrooms:'/showrooms', blog:'/blog',
   faq:'/faq', offers:'/offers', projects:'/projects', booking:'/booking', directory:'/directory',
-  portal:'/portal', 'how-it-works':'/how-it-works', 'ai-yas':'/ai-yas', ai:'/ai-designer',
-  'design-lab':'/design-lab', products:'/products', checkout:'/checkout', planner:'/planner',
+  'how-it-works':'/how-it-works', ai:'/ai-designer',
+  products:'/gallery', portal:'/signin',
+  // Design Studio group
+  planner:'/design-studio',
+  'kitchen-planner':'/design-studio/kitchen-planner', 'wardrobe-planner':'/design-studio/wardrobe-planner',
+  'tv-planner':'/design-studio/tv-planner', 'door-planner':'/design-studio/door-planner',
+  'office-planner':'/design-studio/office-planner', 'design-builder':'/design-studio/builder',
+  // AI Lab group
+  'design-lab':'/ai-lab', 'ai-yas':'/ai-lab/yas',
+  // Utility
+  checkout:'/checkout', cart:'/cart', warranty:'/warranty', maintenance:'/maintenance', careers:'/careers',
+};
+// The full route table (canonical paths) — used by sitemap/prerender.
+const ROUTE_TABLE = [
+  '/', '/kitchen', '/wardrobes', '/tv', '/doors', '/office', '/gallery',
+  '/design-studio', '/design-studio/kitchen-planner', '/design-studio/wardrobe-planner',
+  '/design-studio/tv-planner', '/design-studio/door-planner', '/design-studio/office-planner',
+  '/ai-lab', '/ai-lab/yas', '/offers', '/booking', '/projects', '/services', '/showrooms',
+  '/how-it-works', '/faq', '/about', '/contact', '/blog', '/careers', '/warranty', '/maintenance',
+];
+// Per-route <title> + meta description, bilingual. [title, description] per lang. Falls back to a generic bilingual pair.
+const ROUTE_META = {
+  home:{ en:['The Closets Co. — Bespoke Kitchens, Wardrobes & Storage in Bahrain','Premium bespoke kitchens, wardrobes, walk-in closets and storage — designed, made and installed in the Kingdom of Bahrain.'],
+         ar:['ذا كلوزتس — مطابخ وخزائن وحلول تخزين مصمّمة خصيصاً في البحرين','مطابخ وخزائن وغرف ملابس وحلول تخزين فاخرة تُصمّم وتُصنّع وتُركّب في مملكة البحرين.'] },
+  kitchen:{ en:['Bespoke Kitchens — The Closets Co.','Handcrafted bespoke kitchens designed around how you cook — cabinetry, stone worktops and integrated appliances, made in Bahrain.'],
+            ar:['مطابخ مصمّمة خصيصاً — ذا كلوزتس','مطابخ فاخرة تُصمّم حسب أسلوب حياتك — خزائن وأسطح حجرية وأجهزة مدمجة، صناعة بحرينية.'] },
+  wardrobes:{ en:['Fitted Wardrobes — The Closets Co.','Sliding, hinged and handleless fitted wardrobes, floor to ceiling — bespoke storage handcrafted in Bahrain.'],
+              ar:['خزائن ملابس مدمجة — ذا كلوزتس','خزائن ملابس منزلقة ومفصّلية وبدون مقابض، من الأرض إلى السقف — تخزين مصمّم خصيصاً في البحرين.'] },
+  tv:{ en:['TV Units & Media Walls — The Closets Co.','Bespoke TV units, media walls and living-room storage that disappear into the architecture. Made in Bahrain.'],
+       ar:['وحدات تلفاز وجدران وسائط — ذا كلوزتس','وحدات تلفاز وجدران وسائط وحلول تخزين للمعيشة مصمّمة بإتقان. صناعة بحرينية.'] },
+  doors:{ en:['Wood Doors — The Closets Co.','Bespoke wooden doors and joinery, crafted to your home. Made in Bahrain.'],
+          ar:['أبواب خشبية — ذا كلوزتس','أبواب خشبية ونجارة مصمّمة خصيصاً لمنزلك. صناعة بحرينية.'] },
+  office:{ en:['Home Office & Study — The Closets Co.','Bespoke home-office joinery, desks and storage designed around the way you work. Made in Bahrain.'],
+           ar:['مكتب منزلي — ذا كلوزتس','أثاث ومكاتب وحلول تخزين للمكتب المنزلي مصمّمة حسب طريقة عملك. صناعة بحرينية.'] },
+  products:{ en:['Gallery — The Closets Co.','Browse our full collection of bespoke kitchens, wardrobes, closets and storage.'],
+             ar:['المعرض — ذا كلوزتس','تصفّح مجموعتنا الكاملة من المطابخ والخزائن وغرف الملابس وحلول التخزين المصمّمة خصيصاً.'] },
+  offers:{ en:['Offers — The Closets Co.','Current offers on bespoke kitchens, wardrobes and storage. Book a free design consultation.'],
+           ar:['العروض — ذا كلوزتس','عروضنا الحالية على المطابخ والخزائن وحلول التخزين. احجز استشارة تصميم مجانية.'] },
+  booking:{ en:['Book a Free Consultation — The Closets Co.','Book a free home design visit. We measure, design in 3D and install — one team, start to finish.'],
+            ar:['احجز استشارة مجانية — ذا كلوزتس','احجز زيارة تصميم منزلية مجانية. نقيس ونصمّم ثلاثي الأبعاد ونركّب — فريق واحد من البداية للنهاية.'] },
+  projects:{ en:['Our Work — The Closets Co.','Recent bespoke kitchen, wardrobe and closet projects delivered across Bahrain.'],
+             ar:['أعمالنا — ذا كلوزتس','أحدث مشاريع المطابخ والخزائن وغرف الملابس المصمّمة خصيصاً في مملكة البحرين.'] },
+  services:{ en:['Services — The Closets Co.','Design, manufacture, installation, maintenance and warranty — the full bespoke service, in-house.'],
+             ar:['خدماتنا — ذا كلوزتس','التصميم والتصنيع والتركيب والصيانة والضمان — خدمة متكاملة من فريقنا.'] },
+  showrooms:{ en:['Showrooms — The Closets Co.','Visit our showrooms in Bahrain to see the craftsmanship and materials up close.'],
+              ar:['صالات العرض — ذا كلوزتس','قم بزيارة صالات العرض في البحرين لترى الحرفية والخامات عن قرب.'] },
+  about:{ en:['About — The Closets Co.','Bespoke storage and kitchens, designed, manufactured and installed in the Kingdom of Bahrain.'],
+          ar:['من نحن — ذا كلوزتس','حلول تخزين ومطابخ مصمّمة ومصنّعة ومركّبة في مملكة البحرين.'] },
+  contact:{ en:['Contact — The Closets Co.','Get in touch with The Closets Co. in Bahrain — call, WhatsApp or book a free consultation.'],
+            ar:['اتصل بنا — ذا كلوزتس','تواصل مع ذا كلوزتس في البحرين — اتصال أو واتساب أو احجز استشارة مجانية.'] },
+  faq:{ en:['FAQ — The Closets Co.','Answers on pricing, timelines, materials and the bespoke process.'],
+        ar:['الأسئلة الشائعة — ذا كلوزتس','إجابات حول الأسعار والمدد والخامات وعملية التصميم المخصّص.'] },
+  'how-it-works':{ en:['How It Works — The Closets Co.','From consultation to installation in four considered steps — design, visualise, craft, install.'],
+                   ar:['كيف نعمل — ذا كلوزتس','من الاستشارة إلى التركيب في أربع خطوات — التصميم والتصوّر والصناعة والتركيب.'] },
+  planner:{ en:['Design Studio — The Closets Co.','Plan your room in 3D and get a live price estimate, then book a designer to make it real.'],
+            ar:['استوديو التصميم — ذا كلوزتس','صمّم غرفتك ثلاثية الأبعاد واحصل على تقدير سعر فوري، ثم احجز مصمّماً لتنفيذها.'] },
+  'ai-yas':{ en:['YAS — AI Interior Designer — The Closets Co.','Describe your space and let YAS, our AI designer, suggest a bespoke layout and finishes.'],
+             ar:['ياس — مصمّم داخلي بالذكاء الاصطناعي — ذا كلوزتس','صف مساحتك ودع ياس، مصمّمنا الذكي، يقترح تصميماً وتشطيبات مخصّصة.'] },
+  'design-lab':{ en:['AI Lab — The Closets Co.','Explore AI design tools to imagine and price your bespoke room.'],
+                 ar:['مختبر الذكاء الاصطناعي — ذا كلوزتس','استكشف أدوات التصميم بالذكاء الاصطناعي لتخيّل غرفتك المخصّصة وتسعيرها.'] },
 };
 function pageToPath(p) {
   if (p == null || p === '' || p === 'home') return '/';
@@ -16097,6 +16166,32 @@ function AppInner() {
       document.body.style.fontFamily = lang === 'ar' ? "'Tajawal','Segoe UI',sans-serif" : '';
     }
   }, [lang]);
+  // Per-route <title> + meta description, bilingual. Keeps deep links / prerender / share previews correct.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const brand = lang === 'ar' ? 'ذا كلوزتس' : 'The Closets Co.';
+    const entry = ROUTE_META[page];
+    let title, desc;
+    if (entry) { [title, desc] = entry[lang] || entry.en; }
+    else {
+      const name = String(page || 'home').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      title = page === 'home' ? brand : `${name} — ${brand}`;
+      desc = lang === 'ar'
+        ? 'مطابخ وخزائن وحلول تخزين فاخرة مصمّمة خصيصاً في مملكة البحرين.'
+        : 'Premium bespoke kitchens, wardrobes and storage, handcrafted in the Kingdom of Bahrain.';
+    }
+    try {
+      document.title = title;
+      const set = (sel, attr, val, create) => {
+        let m = document.head.querySelector(sel);
+        if (!m && create) { m = document.createElement('meta'); create(m); document.head.appendChild(m); }
+        if (m) m.setAttribute(attr, val);
+      };
+      set('meta[name="description"]', 'content', desc, (m) => m.setAttribute('name', 'description'));
+      set('meta[property="og:title"]', 'content', title, (m) => m.setAttribute('property', 'og:title'));
+      set('meta[property="og:description"]', 'content', desc, (m) => m.setAttribute('property', 'og:description'));
+    } catch (e) { /* non-DOM env — ignore */ }
+  }, [page, lang]);
   // ── Global scroll-reveal observer (premium motion layer). Re-scans on route change.
   // Adds `.in` to `.reveal` elements as they enter the viewport; marks already-visible
   // ones immediately so above-the-fold content is never left hidden. Honours reduced-motion.
@@ -16125,7 +16220,18 @@ function AppInner() {
   const [products, setProducts] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
   const [cart, setCart] = useState([]);
-  const [cartOpen, setCartOpen] = useState(false);
+  // Cart is a drawer backed by history (?cart=1) so refresh/back/deep-link work and Back closes it (never exits the site).
+  const cartOpen = new URLSearchParams(location.search).get('cart') === '1' || location.pathname === '/cart';
+  const setCartOpen = useCallback((open) => {
+    if (open) {
+      if (new URLSearchParams(location.search).get('cart') === '1') return;
+      navigate({ pathname: location.pathname === '/cart' ? '/' : location.pathname, search: '?cart=1' });
+    } else if (typeof window !== 'undefined' && window.history.length > 1) {
+      navigate(-1);   // pop the ?cart=1 entry — same as pressing Back
+    } else {
+      navigate({ pathname: location.pathname === '/cart' ? '/' : location.pathname, search: '' }, { replace: true });
+    }
+  }, [navigate, location.pathname, location.search]);
   const [configProduct, setConfigProduct] = useState(null);
   const [user, setUser] = useState(() => { try { const u = localStorage.getItem('closets_user'); return u ? JSON.parse(u) : null; } catch { return null; } });
   const [authOpen, setAuthOpen] = useState(false);
