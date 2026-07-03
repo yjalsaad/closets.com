@@ -16031,6 +16031,11 @@ function initialPage() {
 function AppInner() {
   useSiteContent();   // subscribe: re-render the whole tree once managed content loads
   const [page, setPage] = useState(initialPage);
+  // Scroll to top on every page change (footer/nav links land at the top of the new page, not wherever you clicked)
+  useEffect(() => {
+    try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); }
+    catch { window.scrollTo(0, 0); }
+  }, [page]);
   const [lang, setLang] = useState(() => { try { return localStorage.getItem('closets_lang') || 'en'; } catch { return 'en'; } });
   setCmsLang(lang);   // sync DURING render (before children render) so cms() resolves the current language without lagging a toggle
   useEffect(() => {

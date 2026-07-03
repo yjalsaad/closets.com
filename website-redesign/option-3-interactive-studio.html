@@ -1,0 +1,184 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Closets — Option 3 · Interactive Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#F7F2EC; --card:#FFFFFF; --ink:#211C18; --soft:#5B534B; --line:#E7DCCD;
+  --clay:#F2731C; --clay-d:#D65E10; --walnut:#6B4A2E; --sage:#5A6B52; --brass:#B08D4C;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:Inter,system-ui,sans-serif;background:var(--cream);color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.serif{font-family:Fraunces,Georgia,serif}
+.wrap{max-width:1240px;margin:0 auto;padding:0 30px}
+a{color:inherit;text-decoration:none}
+nav{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:28px;
+  background:rgba(255,255,255,.75);backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:100px;padding:9px 9px 9px 24px;transition:.4s var(--ease);box-shadow:0 10px 30px -18px rgba(33,28,24,.4)}
+.logo{font-family:Fraunces,serif;font-weight:600;font-size:19px;display:flex;gap:8px;align-items:center}
+.logo .ar{color:var(--clay);font-size:15px}
+.navlinks{display:flex;gap:24px;font-size:13.5px;font-weight:500}
+.navlinks a{color:var(--soft);transition:.3s}.navlinks a:hover{color:var(--ink)}
+.navcta{background:var(--ink);color:var(--cream);padding:9px 18px;border-radius:100px;font-size:13px;font-weight:600;transition:.3s var(--ease)}
+.navcta:hover{background:var(--clay)}
+@media(max-width:900px){.navlinks{display:none}}
+/* hero */
+.hero{padding:150px 0 70px}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:50px;align-items:center}
+.hbadge{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--clay-d);background:#F2731C18;border:1px solid #F2731C33;border-radius:100px;padding:7px 15px}
+.hbadge .p{width:7px;height:7px;border-radius:50%;background:var(--clay);animation:ping 1.8s infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(242,115,28,.5)}70%{box-shadow:0 0 0 8px rgba(242,115,28,0)}100%{box-shadow:0 0 0 0 rgba(242,115,28,0)}}
+.hero h1{font-family:Fraunces,serif;font-weight:400;font-size:clamp(42px,6vw,82px);line-height:1;letter-spacing:-.025em;margin:22px 0 0}
+.hero h1 em{font-style:italic;color:var(--clay)}
+.hero .lead{font-size:18px;line-height:1.6;color:var(--soft);margin-top:22px;max-width:42ch}
+.hero .row{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:15px 26px;border-radius:100px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:.3s var(--ease)}
+.btn-p{background:var(--clay);color:#fff}.btn-p:hover{background:var(--clay-d);transform:translateY(-2px);box-shadow:0 14px 34px -12px rgba(242,115,28,.55)}
+.btn-t{color:var(--ink);font-weight:600}.btn-t:hover{color:var(--clay)}
+.trust{display:flex;gap:26px;margin-top:34px;flex-wrap:wrap}
+.trust .t .n{font-family:Fraunces,serif;font-size:26px;font-weight:600;font-variant-numeric:tabular-nums}
+.trust .t .n em{color:var(--clay);font-style:normal}
+.trust .t small{display:block;font-size:12px;color:var(--soft);margin-top:2px;letter-spacing:.02em}
+/* interactive configurator card */
+.config{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:14px;box-shadow:0 40px 80px -40px rgba(33,28,24,.35);position:relative}
+.stage{border-radius:18px;overflow:hidden;aspect-ratio:5/4;position:relative;background:#2a231c}
+.stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .7s var(--ease);transform:scale(1.04)}
+.stage img.on{opacity:1;transform:scale(1)}
+.stage .tagline{position:absolute;left:18px;bottom:16px;z-index:2;color:#fff;font-family:Fraunces,serif;font-size:22px;text-shadow:0 2px 12px rgba(0,0,0,.5)}
+.stage::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.45),transparent 55%)}
+.picker{display:flex;gap:10px;padding:16px 8px 8px;align-items:center;flex-wrap:wrap}
+.picker .lbl{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:600;margin-right:2px}
+.chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--cream);border-radius:100px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:.25s var(--ease)}
+.chip .sw{width:14px;height:14px;border-radius:50%}
+.chip.active{border-color:var(--ink);background:var(--ink);color:var(--cream)}
+.chip:hover{transform:translateY(-2px)}
+/* bento */
+section.pad{padding:100px 0}
+.head{text-align:center;max-width:640px;margin:0 auto 50px}
+.tag{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--clay);font-weight:600}
+.head h2{font-family:Fraunces,serif;font-weight:400;font-size:clamp(30px,4.4vw,54px);line-height:1.04;letter-spacing:-.02em;margin-top:12px}
+.head h2 em{font-style:italic;color:var(--clay)}
+.reveal{opacity:0;transform:translateY(36px);transition:.85s var(--ease)}.reveal.in{opacity:1;transform:none}
+.bento{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:200px;gap:18px}
+.b{position:relative;border-radius:20px;overflow:hidden;color:#fff;display:flex;align-items:flex-end;cursor:pointer;isolation:isolate}
+.b img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;transition:transform .9s var(--ease)}
+.b::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(to top,rgba(33,28,24,.82),rgba(33,28,24,.05) 65%)}
+.b:hover img{transform:scale(1.07)}
+.b .bb{padding:22px}
+.b h3{font-family:Fraunces,serif;font-weight:500;font-size:23px}
+.b p{font-size:13px;opacity:.85;margin-top:4px}
+.b .plus{position:absolute;top:18px;right:18px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);display:grid;place-items:center;font-size:18px;transition:.35s var(--ease)}
+.b:hover .plus{background:var(--clay);border-color:var(--clay);transform:rotate(90deg)}
+.b1{grid-column:span 2;grid-row:span 2}.b2{grid-column:span 2}.b3{grid-column:span 1;grid-row:span 2}.b4{grid-column:span 1}.b5{grid-column:span 2}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr;gap:36px}.bento{grid-template-columns:1fr 1fr}.b1,.b2,.b3,.b4,.b5{grid-column:span 1;grid-row:span 1;min-height:220px}}
+/* process ribbon */
+.ribbon{background:var(--ink);color:var(--cream);border-radius:24px;padding:56px 44px}
+.ribbon-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+.rstep .rn{font-family:Fraunces,serif;font-size:34px;color:var(--clay);font-weight:600}
+.rstep b{display:block;font-size:17px;margin:10px 0 6px}
+.rstep p{font-size:13.5px;color:rgba(247,242,236,.65);line-height:1.6}
+@media(max-width:900px){.ribbon-grid{grid-template-columns:1fr 1fr;gap:30px}}
+/* cta */
+.cta{text-align:center;max-width:720px;margin:0 auto}
+.cta h2{font-family:Fraunces,serif;font-weight:400;font-size:clamp(32px,5vw,60px);line-height:1.02;letter-spacing:-.02em}
+.cta h2 em{font-style:italic;color:var(--clay)}
+.cta p{color:var(--soft);font-size:16px;margin:18px 0 30px}
+footer{padding:56px 0 34px;border-top:1px solid var(--line);margin-top:80px}
+.fg{display:flex;justify-content:space-between;flex-wrap:wrap;gap:34px}
+.fg h4{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);margin-bottom:13px}
+.fg a{display:block;font-size:14px;padding:5px 0;opacity:.85}.fg a:hover{color:var(--clay);opacity:1}
+.fb{display:flex;justify-content:space-between;margin-top:36px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--soft);flex-wrap:wrap;gap:10px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}.stage img.on{opacity:1}}
+</style></head>
+<body>
+<nav>
+  <div class="logo">The Closets <span class="ar">الخزائن</span></div>
+  <div class="navlinks"><a href="#">Kitchens</a><a href="#">Wardrobes</a><a href="#">Closets</a><a href="#">Our Work</a></div>
+  <a class="navcta" href="#">Book now</a>
+</nav>
+
+<header class="hero wrap"><div class="hero-grid">
+  <div>
+    <span class="hbadge"><span class="p"></span>Design your room online — free, in minutes</span>
+    <h1 class="serif">Build your <em>dream room,</em><br>material by material.</h1>
+    <p class="lead">Pick a room, choose your finishes, and watch it come to life — then book a designer to make it real. Bespoke kitchens, wardrobes and closets, crafted in Bahrain.</p>
+    <div class="row">
+      <a class="btn btn-p" href="#">Start designing →</a>
+      <a class="btn btn-t" href="#">▶ See real projects</a>
+    </div>
+    <div class="trust">
+      <div class="t"><div class="n serif" data-c="1200">0</div><small>Rooms delivered</small></div>
+      <div class="t"><div class="n serif"><em>4.9</em>★</div><small>Client rating</small></div>
+      <div class="t"><div class="n serif" data-c="10">0</div><small>Year guarantee</small></div>
+    </div>
+  </div>
+  <div class="config reveal">
+    <div class="stage" id="stage">
+      <img data-k="walnut" class="on" src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1200&auto=format&fit=crop" alt="Walnut kitchen">
+      <img data-k="oak" src="https://images.unsplash.com/photo-1556909212-d5b604d0c90d?q=80&w=1200&auto=format&fit=crop" alt="Oak kitchen">
+      <img data-k="matte" src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop" alt="Matte kitchen">
+      <div class="tagline serif" id="tagline">Walnut · Warm</div>
+    </div>
+    <div class="picker">
+      <span class="lbl">Finish</span>
+      <button class="chip active" data-k="walnut" data-name="Walnut · Warm"><span class="sw" style="background:#6B4A2E"></span>Walnut</button>
+      <button class="chip" data-k="oak" data-name="Smoked Oak · Light"><span class="sw" style="background:#C9A876"></span>Oak</button>
+      <button class="chip" data-k="matte" data-name="Matte Ink · Modern"><span class="sw" style="background:#222"></span>Matte</button>
+    </div>
+  </div>
+</div></header>
+
+<section class="pad wrap">
+  <div class="head reveal"><span class="tag">Every room</span><h2 class="serif">Pick your <em>starting point</em></h2></div>
+  <div class="bento">
+    <a class="b b1 reveal"><img src="https://images.unsplash.com/photo-1556909212-d5b604d0c90d?q=80&w=1400&auto=format&fit=crop" alt="Kitchen"><span class="plus">+</span><div class="bb"><h3 class="serif">Bespoke Kitchens</h3><p>The heart of the home, made to measure</p></div></a>
+    <a class="b b2 reveal" style="transition-delay:.06s"><img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=1400&auto=format&fit=crop" alt="Closet"><span class="plus">+</span><div class="bb"><h3 class="serif">Walk-in Closets</h3></div></a>
+    <a class="b b3 reveal" style="transition-delay:.12s"><img src="https://images.unsplash.com/photo-1558997519-83ea9252edf8?q=80&w=1200&auto=format&fit=crop" alt="Wardrobe"><span class="plus">+</span><div class="bb"><h3 class="serif">Wardrobes</h3></div></a>
+    <a class="b b4 reveal"><img src="https://images.unsplash.com/photo-1616137466211-f939a420be84?q=80&w=1000&auto=format&fit=crop" alt="Doors"><span class="plus">+</span><div class="bb"><h3 class="serif">Doors</h3></div></a>
+    <a class="b b5 reveal" style="transition-delay:.06s"><img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1400&auto=format&fit=crop" alt="TV unit"><span class="plus">+</span><div class="bb"><h3 class="serif">TV Units & Living Storage</h3></div></a>
+  </div>
+</section>
+
+<section class="pad wrap"><div class="ribbon reveal">
+  <div class="head" style="margin-bottom:36px;text-align:left;max-width:none"><span class="tag" style="color:var(--clay)">How it works</span><h2 class="serif" style="color:var(--cream);font-size:clamp(26px,3.6vw,42px)">From idea to installed — <em>we handle everything.</em></h2></div>
+  <div class="ribbon-grid">
+    <div class="rstep"><div class="rn serif">01</div><b>Design online</b><p>Pick a room and finishes right here — no appointment needed.</p></div>
+    <div class="rstep"><div class="rn serif">02</div><b>Free home visit</b><p>A designer measures up and refines your 3D design.</p></div>
+    <div class="rstep"><div class="rn serif">03</div><b>We handcraft</b><p>Built in our Bahrain workshop to the millimetre.</p></div>
+    <div class="rstep"><div class="rn serif">04</div><b>We install</b><p>Precise fitting by our own team. Then it's yours.</p></div>
+  </div>
+</div></section>
+
+<section class="pad wrap"><div class="cta reveal">
+  <span class="tag">Ready?</span>
+  <h2 class="serif" style="margin-top:14px">Start with a room. <em>Finish with a home you love.</em></h2>
+  <p>Design online in minutes, or book a free consultation with our studio.</p>
+  <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap"><a class="btn btn-p" href="#" style="padding:16px 32px;font-size:15px">Start designing →</a><a class="btn btn-t" href="#">Book a consultation</a></div>
+</div></section>
+
+<footer class="wrap">
+  <div class="fg">
+    <div style="max-width:270px"><div class="logo" style="margin-bottom:12px">The Closets <span class="ar">الخزائن</span></div><p style="font-size:14px;color:var(--soft);line-height:1.7">Premium bespoke storage & kitchens, handcrafted in the Kingdom of Bahrain.</p></div>
+    <div><h4>Rooms</h4><a href="#">Kitchens</a><a href="#">Wardrobes</a><a href="#">Closets</a><a href="#">TV Units</a></div>
+    <div><h4>Studio</h4><a href="#">Our Work</a><a href="#">Process</a><a href="#">About</a></div>
+    <div><h4>Visit</h4><a href="#">+973 1755 5095</a><a href="#">Info@the-closets.com</a></div>
+  </div>
+  <div class="fb"><span>© 2026 The Closets International W.L.L.</span><span>Bahrain · الخزائن</span></div>
+</footer>
+
+<script>
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+// configurator
+const imgs=[...document.querySelectorAll('#stage img')],tagline=document.getElementById('tagline');
+document.querySelectorAll('.picker .chip').forEach(ch=>ch.addEventListener('click',()=>{
+  document.querySelectorAll('.picker .chip').forEach(c=>c.classList.remove('active'));ch.classList.add('active');
+  const k=ch.dataset.k;imgs.forEach(im=>im.classList.toggle('on',im.dataset.k===k));tagline.textContent=ch.dataset.name;
+}));
+// count up
+const cio=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){const el=e.target,t=+el.dataset.c;let n=0,s=Math.ceil(t/38);const iv=setInterval(()=>{n+=s;if(n>=t){n=t;clearInterval(iv);}el.textContent=n.toLocaleString()+(t>=1000?'+':'');},26);cio.unobserve(el);}}),{threshold:.6});
+document.querySelectorAll('.n[data-c]').forEach(el=>cio.observe(el));
+document.querySelectorAll('.btn').forEach(b=>{b.addEventListener('mousemove',e=>{const r=b.getBoundingClientRect();b.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.15}px,${(e.clientY-r.top-r.height/2)*.25}px)`;});b.addEventListener('mouseleave',()=>b.style.transform='');});
+</script>
+</body></html>
