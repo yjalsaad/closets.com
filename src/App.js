@@ -16036,6 +16036,21 @@ function AppInner() {
     try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); }
     catch { window.scrollTo(0, 0); }
   }, [page]);
+  // ── Browser history sync — makes the Back/Forward buttons work + shareable URLs ──
+  const _fromPop = useRef(false);
+  useEffect(() => {
+    try { if (!window.history.state || !window.history.state.page) window.history.replaceState({ page: initialPage() }, ''); } catch (e) {}
+    const onPop = (e) => { _fromPop.current = true; setPage((e.state && e.state.page) || initialPage()); };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+  useEffect(() => {
+    if (_fromPop.current) { _fromPop.current = false; return; }   // change came from Back/Forward — don't push again
+    try {
+      if (window.history.state && window.history.state.page === page) return;   // no duplicate entries
+      window.history.pushState({ page }, '', '/' + (page === 'home' ? '' : page));
+    } catch (e) {}
+  }, [page]);
   const [lang, setLang] = useState(() => { try { return localStorage.getItem('closets_lang') || 'en'; } catch { return 'en'; } });
   setCmsLang(lang);   // sync DURING render (before children render) so cms() resolves the current language without lagging a toggle
   useEffect(() => {
