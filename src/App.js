@@ -6225,14 +6225,14 @@ function HomeHub({ user, setUser, setPage }) {
   const submitComplaint = async () => {
     if (!cmpForm.description) { toast('Please describe your issue', 'error'); return; }
     const id = 'CMP-' + Date.now().toString(36).toUpperCase();
-    await api('complaints', { method: 'POST', body: [{ id, ...cmpForm, customer_name: user.name, customer_email: user.email, customer_id: user.id, status: 'Open', source: 'Hub', created_at: new Date().toISOString() }] });
+    await api('complaints', { method: 'POST', body: [{ id, category: cmpForm.category, description: cmpForm.description, customer: user.name, customer_email: user.email, customer_id: user.id, status: 'Open', channel: 'website', created_at: new Date().toISOString() }] });
     setComplaints(p => [{ id, ...cmpForm, status: 'Open', created_at: new Date().toISOString() }, ...p]);
     setCmpForm({ category: 'Quality Issue', description: '' }); toast('Request submitted ✓', 'success');
   };
   const submitTicket = async () => {
     if (!tktForm.subject) { toast('Please add a subject', 'error'); return; }
     const id = 'TKT-' + Date.now().toString(36).toUpperCase();
-    await api('it_tickets', { method: 'POST', body: [{ id, ...tktForm, requester: user.name, requester_email: user.email, customer_id: user.id, status: 'Open', source: 'Hub', created_at: new Date().toISOString() }] });
+    await api('it_tickets', { method: 'POST', body: [{ id, title: tktForm.subject, description: tktForm.description, priority: tktForm.priority, requester: user.name, requester_email: user.email, customer_id: user.id, status: 'Open', created_at: new Date().toISOString() }] });
     setTickets(p => [{ id, ...tktForm, status: 'Open', created_at: new Date().toISOString() }, ...p]);
     setTktForm({ subject: '', description: '', priority: 'Medium' }); toast('Ticket submitted ✓', 'success');
   };
