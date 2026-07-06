@@ -6207,8 +6207,9 @@ function HomeHub({ user, setUser, setPage }) {
   const tierC = { Bronze: '#9c6f2e', Silver: '#6e6e73', Gold: '#b8860b', Platinum: '#6e3fa3' };
   useEffect(() => {
     if (!user?.email) return;
-    api(`sales_orders?customer_email=eq.${encodeURIComponent(user.email)}&order=created_at.desc&limit=20`).then(r => setOrders(Array.isArray(r)?r:[])).catch(()=>{});
-    api(`invoices?customer_email=eq.${encodeURIComponent(user.email)}&order=created_at.desc&limit=20`).then(r => setInvoices(Array.isArray(r)?r:[])).catch(()=>{});
+    // Scoped SECURITY DEFINER RPCs — direct anon reads on sales_orders/invoices are 403 (RLS)
+    api('rpc/my_orders', { method:'POST', body:{ p_email: user.email, p_customer_id: user.id || null } }).then(r => setOrders(Array.isArray(r)?r:[])).catch(()=>{});
+    api('rpc/my_invoices', { method:'POST', body:{ p_email: user.email } }).then(r => setInvoices(Array.isArray(r)?r:[])).catch(()=>{});
     api(`website_rewards?customer_id=eq.${user.id}&order=created_at.desc&limit=50`).then(r => setRewards(Array.isArray(r)?r:[])).catch(()=>{});
     api(`product_configurations?customer_id=eq.${user.id}&order=created_at.desc&limit=20`).then(r => setDesigns(p => mergeDesigns(p, Array.isArray(r)?r:[]))).catch(()=>{});
     fetch(SUPA_URL + '/rest/v1/rpc/my_saved_designs', {
@@ -6237,7 +6238,8 @@ function HomeHub({ user, setUser, setPage }) {
     setTktForm({ subject: '', description: '', priority: 'Medium' }); toast('Ticket submitted ✓', 'success');
   };
   const saveProfile = async () => {
-    await api(`customers?id=eq.${user.id}`, { method: 'PATCH', body: { name: editForm.name, phone: editForm.phone, updated_at: new Date().toISOString() } });
+    // SECURITY DEFINER RPC — direct anon PATCH on customers is 403 (RLS)
+    await api('rpc/customer_update_profile', { method: 'POST', body: { p_id: String(user.id), p_display_name: editForm.name, p_phone: editForm.phone, p_email: null, p_company: null, p_avatar: null, p_notif: null } });
     const u = { ...user, ...editForm }; setUser(u); localStorage.setItem('closets_user', JSON.stringify(u)); toast('Saved ✓', 'success');
   };
   const tabs = [['dashboard','Dashboard'],['card','My Card'],['svcbookings','Bookings'],['ledger','Ledger'],['orders','Orders'],['designs','My Designs'],['rewards','Rewards'],['requests','Requests'],['support','Support'],['profile','Profile']];
@@ -7322,8 +7324,9 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
     }}); } catch(e) {}
     if (user) {
       const pts = Math.floor(total*10);
-      await api('website_rewards', { method:'POST', body:[{ id:uid(), customer_id:user.id, type:'earned', points:pts, description:'Website order', created_at:new Date().toISOString() }] });
-      await api(`website_customers?id=eq.${user.id}`, { method:'PATCH', body:{ points:(user.points||0)+pts, updated_at:new Date().toISOString() } });
+      // SECURITY DEFINER RPC — writes the reward row AND increments points server-side
+      // (direct anon POST/PATCH on website_rewards/website_customers is 403)
+      try { await api('rpc/customer_points_award', { method:'POST', body:{ p_customer_id: String(user.id), p_points: pts, p_reason: 'Website order' } }); } catch(e) {}
     }
     setCart([]); setStep(3);
   };
@@ -15841,24 +15844,15 @@ function DlRefer({ user, openAuth }) {
     if (!user) return;
     let alive = true;
     (async () => {
-      // Best-effort: count this user's referrals + build a small leaderboard.
+      // Scoped SECURITY DEFINER RPCs — direct anon reads on customer_referrals are 403 (RLS).
+      // (Old direct read also selected referrer_name, a column that doesn't exist.)
       try {
-        const mine = await api('customer_referrals?select=id&referrer_id=eq.' + encodeURIComponent(user.id));
-        if (alive && Array.isArray(mine)) setCount(mine.length);
-      } catch (_) {
-        try {
-          const mine2 = await api('customer_referrals?select=id&referrer=eq.' + encodeURIComponent(user.id));
-          if (alive && Array.isArray(mine2)) setCount(mine2.length);
-        } catch (_) {}
-      }
+        const n = await api('rpc/my_referral_count', { method:'POST', body:{ p_customer_id: String(user.id) } });
+        if (alive && typeof n === 'number') setCount(n);
+      } catch (_) {}
       try {
-        const rows = await api('customer_referrals?select=referrer_name,referrer_id&limit=200');
-        if (alive && Array.isArray(rows) && rows.length) {
-          const tally = {};
-          rows.forEach(r => { const k = (r && (r.referrer_name || r.referrer_id)) || 'Friend'; tally[k] = (tally[k] || 0) + 1; });
-          const top = Object.keys(tally).map(k => ({ name: k, n: tally[k] })).sort((a, b) => b.n - a.n).slice(0, 5);
-          setBoard(top);
-        }
+        const top = await api('rpc/referral_leaderboard', { method:'POST', body:{} });
+        if (alive && Array.isArray(top) && top.length) setBoard(top);
       } catch (_) {}
     })();
     return () => { alive = false; };
