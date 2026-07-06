@@ -4,6 +4,7 @@ import TVUnit3D from './TVUnit3D';
 import Door3D from './Door3D';
 import Office3D from './Office3D';
 import { fitModules, WARDROBE_WIDTHS } from './moduleFit';
+import { handleError } from './errors';
 import { BrowserRouter, useLocation, useNavigate, Link } from 'react-router-dom';
 
 // Guarded polyfills for browser APIs absent in non-browser/test (jsdom) environments.
@@ -32,11 +33,19 @@ const SUPA_URL = 'https://jflmbfxbhpioyniibjsj.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmbG1iZnhiaHBpb3luaWlianNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NjkyNjQsImV4cCI6MjA5MDQ0NTI2NH0.XnQHF1Ivzhv6Zj12qe1Gh2x6ZyLdFfmUBweE_5SZnu0';
 const H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' };
 const api = async (path, opts = {}) => {
-  const r = await fetch(SUPA_URL + '/rest/v1/' + path, { headers: H, ...opts, body: opts.body ? JSON.stringify(opts.body) : undefined });
+  let r;
+  try {
+    r = await fetch(SUPA_URL + '/rest/v1/' + path, { headers: H, ...opts, body: opts.body ? JSON.stringify(opts.body) : undefined });
+  } catch (netErr) {
+    // No connection / DNS / CORS — classify as network so callers show the right message.
+    netErr.__kind = 'network';
+    throw netErr;
+  }
   if (!r.ok) {
     let msg = 'request failed (' + r.status + ')';
     try { const e = await r.json(); msg = e.message || e.hint || e.details || msg; } catch (_) {}
-    throw new Error(msg);
+    const err = new Error(msg); err.status = r.status;
+    throw err;
   }
   if (r.status === 204) return true;
   try { return await r.json(); } catch (_) { return true; }
@@ -6238,9 +6247,13 @@ function HomeHub({ user, setUser, setPage }) {
     setTktForm({ subject: '', description: '', priority: 'Medium' }); toast('Ticket submitted ✓', 'success');
   };
   const saveProfile = async () => {
-    // SECURITY DEFINER RPC — direct anon PATCH on customers is 403 (RLS)
-    await api('rpc/customer_update_profile', { method: 'POST', body: { p_id: String(user.id), p_display_name: editForm.name, p_phone: editForm.phone, p_email: null, p_company: null, p_avatar: null, p_notif: null } });
-    const u = { ...user, ...editForm }; setUser(u); localStorage.setItem('closets_user', JSON.stringify(u)); toast('Saved ✓', 'success');
+    try {
+      // SECURITY DEFINER RPC — direct anon PATCH on customers is 403 (RLS)
+      await api('rpc/customer_update_profile', { method: 'POST', body: { p_id: String(user.id), p_display_name: editForm.name, p_phone: editForm.phone, p_email: null, p_company: null, p_avatar: null, p_notif: null } });
+      const u = { ...user, ...editForm }; setUser(u); localStorage.setItem('closets_user', JSON.stringify(u)); toast('Saved ✓', 'success');
+    } catch (e) {
+      handleError(e, { toast, ctx: { action: 'saveProfile' } }); // classified bilingual toast + log
+    }
   };
   const tabs = [['dashboard','Dashboard'],['card','My Card'],['svcbookings','Bookings'],['ledger','Ledger'],['orders','Orders'],['designs','My Designs'],['rewards','Rewards'],['requests','Requests'],['support','Support'],['profile','Profile']];
   // Lazily fetch line items for a given order (cached in orderItems state).
