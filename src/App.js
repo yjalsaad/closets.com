@@ -1388,7 +1388,7 @@ const I18N = {
   swStatBespoke:{ en:'Bespoke & fitted', ar:'حسب الطلب ومركّب' },
   swBadgeWorkshop:{ en:'Our own workshop', ar:'ورشتنا الخاصة' },
   swBadge15:{ en:'15 years of craft', ar:'15 عاماً من الحرفية' },
-  swBadge2yr:{ en:'2-year warranty', ar:'ضمان سنتين' },
+  swBadge2yr:{ en:'10-year warranty', ar:'ضمان 10 سنوات' },
   swBadgeFreeDesign:{ en:'Free design service', ar:'خدمة تصميم مجانية' },
   // Process timeline
   swHowEyebrow:{ en:'How it works', ar:'كيف تعمل' },
@@ -1407,7 +1407,7 @@ const I18N = {
   swMarqHardware:{ en:'Premium European hardware', ar:'مقابض أوروبية فاخرة' },
   swMarq15:{ en:'15 years of craft', ar:'15 عاماً من الحرفية' },
   swMarq4:{ en:'4 showrooms', ar:'4 معارض' },
-  swMarq2yr:{ en:'2-year warranty', ar:'ضمان سنتين' },
+  swMarq2yr:{ en:'10-year warranty', ar:'ضمان 10 سنوات' },
   swMarqInstall:{ en:'Installed by our own team', ar:'يركّبه فريقنا الخاص' },
   // AI designer band
   swAiBadge:{ en:'New · AI Interior Designer', ar:'جديد · مصمّم داخلي بالذكاء الاصطناعي' },
@@ -1596,10 +1596,10 @@ const I18N = {
   swNlWelcome:{ en:'You’re subscribed — welcome to The Closets.', ar:'تم اشتراكك — مرحباً بك في ذا كلوزتس.' },
   // Cinematic CTA
   swCtaDesignOnline:{ en:'Design online', ar:'صمّم عبر الإنترنت' },
-  swCtaTrust:{ en:'Own Bahrain workshop · 2-year warranty · Installed by our team', ar:'ورشة خاصة في البحرين · ضمان سنتين · يركّبه فريقنا' },
+  swCtaTrust:{ en:'Own Bahrain workshop · 10-year warranty · Installed by our team', ar:'ورشة خاصة في البحرين · ضمان 10 سنوات · يركّبه فريقنا' },
   // Footer trust badges
   swFootBadgeWorkshop:{ en:'Own Bahrain workshop', ar:'ورشة خاصة في البحرين' },
-  swFootBadge2yr:{ en:'2-year warranty', ar:'ضمان سنتين' },
+  swFootBadge2yr:{ en:'10-year warranty', ar:'ضمان 10 سنوات' },
   swFootBadgeFreeDesign:{ en:'Free design service', ar:'خدمة تصميم مجانية' },
   swFootBadgeInstall:{ en:'Installed by our team', ar:'يركّبه فريقنا' },
   swFootBadge15:{ en:'15 years of craft', ar:'15 عاماً من الحرفية' },
@@ -7014,7 +7014,7 @@ function PlannerGuidePage({ setPage }) {
     { q: t('guideQ3'), a: 'Yes. Create a free account to save any design, come back to it later, and share it. Your saved designs appear in your account portal.' },
     { q: t('guideQ4'), a: 'The planner gives an accurate indicative price in BHD based on your choices. Your final quote is confirmed after a site visit and any custom details are agreed.' },
     { q: t('guideQ5'), a: 'Absolutely. You can revisit your saved design and swap finishes, worktops or accessories any time before you confirm your order.' },
-    { q: t('guideQ6'), a: 'Yes. Everything is bespoke — designed, manufactured and installed by our own team in the Kingdom of Bahrain, with a 2-year warranty.' },
+    { q: t('guideQ6'), a: 'Yes. Everything is bespoke — designed, manufactured and installed by our own team in the Kingdom of Bahrain, with a 10-year warranty.' },
   ];
 
   const HERO_IMG = '/layouts/kitchen/island.jpg';
@@ -7037,7 +7037,7 @@ function PlannerGuidePage({ setPage }) {
             <div style={{ display:'flex', flexWrap:'wrap', gap:18, marginTop:30, fontSize:13.5, color:'var(--muted)', fontWeight:600 }}>
               <span style={{ display:'inline-flex', alignItems:'center', gap:7 }}><span style={{ color:'var(--clay)' }}>✦</span>Free to use</span>
               <span style={{ display:'inline-flex', alignItems:'center', gap:7 }}><span style={{ color:'var(--clay)' }}>✦</span>No obligation</span>
-              <span style={{ display:'inline-flex', alignItems:'center', gap:7 }}><span style={{ color:'var(--clay)' }}>✦</span>2-year warranty</span>
+              <span style={{ display:'inline-flex', alignItems:'center', gap:7 }}><span style={{ color:'var(--clay)' }}>✦</span>10-year warranty</span>
             </div>
           </div>
           <div className="rv tile-zoom zoomwrap" style={{ position:'relative', borderRadius:24, overflow:'hidden', minHeight: mobile?260:440, boxShadow:'0 30px 60px -28px rgba(33,28,24,.5)' }}>
@@ -8013,8 +8013,8 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
           <p style={{ fontSize: mobile ? 16 : 18, color: 'var(--ink-soft)', lineHeight: 1.7, marginTop: 18 }}>{cms('home.why.subtitle', 'Everything we make is designed, built and installed by our own people in Bahrain — so the piece you imagine is the piece you live with.')}</p>
         </div>
         <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 28 : 20 }}>
-          <Stat to={500} suffix="+" label={t('swStatProjects')} />
-          <Stat to={15} suffix={t('swStatYrs')} label={t('swStatCraft')} />
+          <Stat to={10} suffix="K+" label={t('swStatProjects')} />
+          <Stat to={19} suffix={t('swStatYrs')} label={t('swStatCraft')} />
           <Stat to={4} label={t('swStatShowrooms')} />
           <Stat to={100} suffix="%" label={t('swStatBespoke')} />
         </div>
