@@ -1214,7 +1214,7 @@ const I18N = {
   w4AuthTextCode:{ en:'📱 Text me a code', ar:'📱 أرسل لي رمزاً برسالة نصية' },
   w4AuthCheckEmail:{ en:'Check your email for a reset link — it opens your account to set a new password.', ar:'تحقّق من بريدك للحصول على رابط إعادة التعيين — يفتح حسابك لتعيين كلمة مرور جديدة.' },
   w4AuthCode6:{ en:'6-digit code', ar:'رمز من 6 أرقام' },
-  w4AuthNewPassword:{ en:'New password (6+ characters)', ar:'كلمة مرور جديدة (6 أحرف أو أكثر)' },
+  w4AuthNewPassword:{ en:'New password', ar:'كلمة مرور جديدة' },
   w4AuthSetNew:{ en:'Set new password', ar:'تعيين كلمة مرور جديدة' },
   w4AuthRegisterLink:{ en:'New here? Register →', ar:'جديد هنا؟ سجّل ←' },
   w4AuthLoginLink:{ en:'Already have an account? Sign in →', ar:'لديك حساب بالفعل؟ سجّل الدخول ←' },
@@ -1229,7 +1229,7 @@ const I18N = {
   w4AuthCodeSent:{ en:'Code sent (if the account exists)', ar:'تم إرسال الرمز (إن كان الحساب موجوداً)' },
   w4AuthLinkSent:{ en:'Reset link sent (if the account exists)', ar:'تم إرسال رابط إعادة التعيين (إن كان الحساب موجوداً)' },
   w4AuthCouldNotReset:{ en:'Could not start reset', ar:'تعذّر بدء إعادة التعيين' },
-  w4AuthPwMin:{ en:'Password must be at least 6 characters', ar:'يجب ألا تقل كلمة المرور عن 6 أحرف' },
+  w4AuthPwMin:{ en:'Password must meet all requirements (8+ chars, upper & lower, number, special)', ar:'يجب أن تستوفي كلمة المرور جميع المتطلبات (٨ أحرف على الأقل، حروف كبيرة وصغيرة، رقم، رمز خاص)' },
   w4AuthPwUpdated:{ en:'Password updated ✓', ar:'تم تحديث كلمة المرور ✓' },
   w4AuthBadCode:{ en:'Incorrect or expired code', ar:'رمز غير صحيح أو منتهي الصلاحية' },
   w4Optional:{ en:'optional', ar:'اختياري' },
@@ -3333,6 +3333,15 @@ const HOME_IMG = {
   wardrobe:'https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=1400&q=80',
   living:  'https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20260627_155945_016fe59a-81d0-465d-9f96-1a674fd99b99.png',
   detail:  'https://images.unsplash.com/photo-1600121848594-d8644e57abab?auto=format&fit=crop&w=1200&q=80',
+};
+// Modern category hero photography (curated free-license stock — Pexels).
+const HERO_IMG = {
+  kitchen: 'https://images.pexels.com/photos/35189706/pexels-photo-35189706.jpeg?auto=compress&cs=tinysrgb&w=1920',
+  tv:      'https://images.pexels.com/photos/34153693/pexels-photo-34153693.jpeg?auto=compress&cs=tinysrgb&w=1920',
+  door:    'https://images.pexels.com/photos/19227221/pexels-photo-19227221.jpeg?auto=compress&cs=tinysrgb&w=1920',
+  door2:   'https://images.pexels.com/photos/6035346/pexels-photo-6035346.jpeg?auto=compress&cs=tinysrgb&w=1600',
+  wardrobe:'https://images.pexels.com/photos/6670657/pexels-photo-6670657.jpeg?auto=compress&cs=tinysrgb&w=1920',
+  office:  'https://images.pexels.com/photos/7014764/pexels-photo-7014764.jpeg?auto=compress&cs=tinysrgb&w=1920',
 };
 // Image with graceful warm-gradient fallback (so a missing/blocked photo never looks broken).
 function Photo({ src, alt = '', style, className = '', imgClass = '', par }) {
@@ -6845,7 +6854,7 @@ function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
     } catch (e) { toast(e.message || t('w4AuthCouldNotReset'), 'error'); } finally { setLoading(false); }
   };
   const doResetOtp = async () => {
-    if ((rnew||'').length < 6) { toast(t('w4AuthPwMin'), 'error'); return; }
+    if (!(/[a-z]/.test(rnew)&&/[A-Z]/.test(rnew)&&/[0-9]/.test(rnew)&&/[^A-Za-z0-9]/.test(rnew)&&(rnew||'').length>=8)) { toast(t('w4AuthPwMin'), 'error'); return; }
     setLoading(true);
     try {
       const r = await api('rpc/customer_reset_with_otp', { method:'POST', headers:{ ...H, Prefer:'return=representation' }, body:{ p_email: form.email, p_otp: rotp, p_new_password: rnew } });
@@ -6881,6 +6890,18 @@ function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
           {rstep==='otp' && (<>
             <input className="inp" placeholder={t('w4AuthCode6')} aria-label={t('w4AuthCode6')} inputMode="numeric" value={rotp} onChange={e=>setRotp(e.target.value)} />
             <input className="inp" placeholder={t('w4AuthNewPassword')} aria-label={t('w4AuthNewPassword')} type="password" value={rnew} onChange={e=>setRnew(e.target.value)} />
+            {rnew.length>0 && (()=>{
+              const c={ case:/[a-z]/.test(rnew)&&/[A-Z]/.test(rnew), number:/[0-9]/.test(rnew), special:/[^A-Za-z0-9]/.test(rnew), length:rnew.length>=8 };
+              const met=[c.case,c.number,c.special,c.length].filter(Boolean).length;
+              const label=met>=4?'Strong':met===3?'Good':met===2?'Fair':'Weak';
+              const color=met>=4?'#22c55e':met===3?'#84cc16':met===2?'#f59e0b':'#ef4444';
+              const R=[['case','Lowercase & uppercase letters'],['number','At least one number (0–9)'],['special','One special character (!@#$%^&*)'],['length','At least 8 characters']];
+              return (<div style={{ marginTop:8, padding:'10px 12px', borderRadius:12, background:'rgba(0,0,0,.04)', border:'1px solid rgba(0,0,0,.08)' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:12, marginBottom:6 }}><span style={{ color:'#6b7280' }}>Password strength</span><span style={{ fontWeight:700, color }}>{label}</span></div>
+                <div style={{ height:6, borderRadius:6, background:'#e5e7eb', overflow:'hidden', marginBottom:8 }}><div style={{ height:'100%', width:(met*25)+'%', background:color, transition:'width .2s' }}/></div>
+                {R.map(([k,l])=>(<div key={k} style={{ display:'flex', alignItems:'center', gap:8, fontSize:12.5, marginTop:4 }}><span style={{ width:18, height:18, borderRadius:'50%', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, background:c[k]?'#22c55e':'#e5e7eb', color:c[k]?'#fff':'#9ca3af' }}>{c[k]?'✓':''}</span><span style={{ color:c[k]?'#111827':'#6b7280' }}>{l}</span></div>))}
+              </div>);
+            })()}
             <button type="button" className="btn" onClick={doResetOtp} disabled={loading} style={{ borderRadius:14 }}>{t('w4AuthSetNew')}</button>
           </>)}
         </div>)}
@@ -7840,11 +7861,11 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
     return () => { alive = false; };
   }, []);
   const roomsFallback = [
-    [t('swRoomWardrobes'), t('swRoomWardrobesSub'), '/layouts/wardrobe/wardrobe-walkin.jpg', 'wardrobes'],
-    [t('swRoomKitchens'), t('swRoomKitchensSub'), '/layouts/kitchen/island.jpg', 'kitchen'],
-    [t('swRoomOffice'), t('swRoomOfficeSub'), '/layouts/office/l-shaped.jpg', 'office'],
-    [t('swRoomDoors'), t('swRoomDoorsSub'), '/layouts/door/pivot.jpg', 'doors'],
-    [t('swRoomTv'), t('swRoomTvSub'), '/layouts/TV/floating.jpg', 'tv'],
+    [t('swRoomWardrobes'), t('swRoomWardrobesSub'), HERO_IMG.wardrobe, 'wardrobes'],
+    [t('swRoomKitchens'), t('swRoomKitchensSub'), HERO_IMG.kitchen, 'kitchen'],
+    [t('swRoomOffice'), t('swRoomOfficeSub'), HERO_IMG.office, 'office'],
+    [t('swRoomDoors'), t('swRoomDoorsSub'), HERO_IMG.door2, 'doors'],
+    [t('swRoomTv'), t('swRoomTvSub'), HERO_IMG.tv, 'tv'],
   ];
   const rooms = (roomCards && roomCards.length)
     ? roomCards.map(rc => [ (lang === 'ar' ? (rc.title_ar || rc.title_en) : rc.title_en), (lang === 'ar' ? (rc.sub_ar || rc.sub_en) : rc.sub_en), rc.image_url, rc.route ])
@@ -9251,6 +9272,7 @@ function SiteFooter({ setPage }) {
           <div style={{ display:'flex', gap:14, marginTop:18, flexWrap:'wrap' }}>
             <button type="button" onClick={()=>setPage('booking')} className="btn-clay" style={{ padding:'12px 22px', fontSize:14 }}>{cms('footer.cta.book', t('bookFreeVisit'))}</button>
             <a href="https://wa.me/97317555095" style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:980, padding:'11px 18px', fontSize:13.5, fontWeight:600, textDecoration:'none' }}>{cms('footer.cta.whatsapp', t('whatsappUs'))}</a>
+            <a href="https://closets-hub.vercel.app/team.html" target="_blank" rel="noreferrer" style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:980, padding:'11px 18px', fontSize:13.5, fontWeight:600, textDecoration:'none' }}>{cms('footer.cta.team', t('meetTeam') || 'Meet our team')}</a>
           </div>
         </div>
         {col(cms('footer.col1.title',t('footHelp')),[['✨ AI YAS','ai-yas'],['How it works','how-it-works'],['FAQ','faq'],['Delivery & install','contact'],['Warranty service','warranty'],['Maintenance','maintenance'],['Reviews','projects'],['Contact us','contact']])}
@@ -13607,7 +13629,7 @@ function WardrobesPage({ setPage, products }) {
   const wardrobeProducts = (products||[]).filter(p =>
     /wardrobe|closet|walk\-?in|dress|storage/i.test(p.category||'') ||
     /wardrobe|closet|walk\-?in|dress/i.test(p.name||''));
-  const heroImg = (dbLayouts.walkin && dbLayouts.walkin.hero_url) || HOME_IMG.walkin || HOME_IMG.wardrobe || HOME_IMG.hero;
+  const heroImg = (dbLayouts.walkin && dbLayouts.walkin.hero_url) || HERO_IMG.wardrobe;
   const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
   const FAQS = t('sw2WardFaq');
 
@@ -13830,7 +13852,7 @@ function KitchenPage({ setPage, products }) {
   const { map: dbLayouts } = useLayouts('kitchen');
   const kLayouts = K_LAYOUTS.map(l => mergeLayout(l, dbLayouts));
   const kitchenProducts = (products||[]).filter(p => /kitchen/i.test(p.category||'') || /kitchen/i.test(p.name||''));
-  const heroImg = HOME_IMG.kitchen;
+  const heroImg = HERO_IMG.kitchen;
   const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
   const FAQS = t('sw2KpFaq');
 
@@ -14005,7 +14027,7 @@ function OfficePage({ setPage, products }) {
   const officeProducts = (products||[]).filter(p =>
     /office|study|desk|workspace|home\s*office/i.test(p.category||'') ||
     /office|study|desk/i.test(p.name||''));
-  const heroImg = (dbLayouts['l-shaped'] && dbLayouts['l-shaped'].hero_url) || '/layouts/office/l-shaped.jpg';
+  const heroImg = (dbLayouts['l-shaped'] && dbLayouts['l-shaped'].hero_url) || HERO_IMG.office;
   const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
   const FAQS = t('sw2OfFaq');
   const designYoursLbl = t('sw2DesignYours');
@@ -14160,7 +14182,7 @@ function TVUnitPage({ setPage, products }) {
   const tvProducts = (products||[]).filter(p =>
     /tv|media|entertainment|living/i.test(p.category||'') ||
     /tv|media|entertainment/i.test(p.name||''));
-  const heroImg = (dbLayouts['fullwall'] && dbLayouts['fullwall'].hero_url) || '/layouts/TV/full-wall.jpg';
+  const heroImg = (dbLayouts['fullwall'] && dbLayouts['fullwall'].hero_url) || HERO_IMG.tv;
   const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
   const FAQS = [
     [cms('tv.faq.q1','How much does a bespoke TV / media wall cost?'), cms('tv.faq.a1','A minimal panel-and-shelf setup starts from around BD 480, a floating media unit from BD 900, and a full floor-to-ceiling media wall with display, storage and lighting from BD 2,200+. Price is driven transparently by the metres of cabinetry, your finish and the extras — build a live estimate in the TV unit planner.')],
@@ -14321,7 +14343,7 @@ function DoorsPage({ setPage, products }) {
   const doorTypes = DOOR_TYPES.map(l => mergeLayout(l, dbLayouts));
   const doorProducts = (products||[]).filter(p =>
     /door/i.test(p.category||'') || /door/i.test(p.name||''));
-  const heroImg = (dbLayouts['pivot'] && dbLayouts['pivot'].hero_url) || '/layouts/door/pivot.jpg';
+  const heroImg = (dbLayouts['pivot'] && dbLayouts['pivot'].hero_url) || HERO_IMG.door;
   const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
   const FAQS = [
     [cms('door.faq.q1','How much does a bespoke wood door cost?'), cms('door.faq.a1','A flush hollow-core interior door starts from around BD 120, a solid-core veneer door from BD 280, and a statement pivot or double majlis door from BD 700+. Price is driven transparently by the size, core, finish and hardware — build a live estimate in the wood door planner.')],

@@ -73,7 +73,7 @@ export function reportError(kind, message, detail, ctx) {
       body: JSON.stringify({
         p_app: "website", p_kind: kind || "unknown", p_message: String(message || "").slice(0, 500),
         p_detail: detail == null ? null : String(detail).slice(0, 3500),
-        p_context: Object.assign({ url: typeof location !== "undefined" ? location.pathname : "" }, ctx || {}),
+        p_context: Object.assign({ url: typeof window !== "undefined" ? window.location.pathname : "" }, ctx || {}),
         p_user_id: user_id, p_user_role: user_role,
       }),
     }).catch(() => {});
