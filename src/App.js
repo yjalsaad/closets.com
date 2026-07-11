@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, createContext, useContext, Co
 import KitchenScene3D from './KitchenScene3D';
 import TVUnit3D from './TVUnit3D';
 import Door3D from './Door3D';
+import CustomConfigurator from './CustomConfigurator';
 import Office3D from './Office3D';
 import { fitModules, WARDROBE_WIDTHS } from './moduleFit';
 import { handleError } from './errors';
@@ -16063,7 +16064,7 @@ function DesignLabPage({ user, setPage, openAuth }) {
 }
 
 export default function App() {
-  return <BrowserRouter><SiteContentProvider><AppInner /></SiteContentProvider></BrowserRouter>;
+  return <BrowserRouter><SiteContentProvider><AppInner /><CustomConfigurator /></SiteContentProvider></BrowserRouter>;
 }
 const PATH_TO_PAGE = { '':'home','/':'home','/home':'home','/kitchen':'kitchen','/kitchens':'kitchen','/wardrobes':'wardrobes','/wardrobe':'wardrobes','/tv':'tv','/tv-units':'tv','/doors':'doors','/door':'doors','/office':'office','/about':'about','/contact':'contact','/services':'services','/showrooms':'showrooms','/blog':'blog','/faq':'faq','/offers':'offers','/projects':'projects','/booking':'booking','/directory':'directory','/portal':'portal','/how-it-works':'how-it-works','/guide':'how-it-works','/ai-yas':'ai-yas','/ai':'ai-yas','/ai-designer':'ai','/design-lab':'design-lab',
   // Task 2 route table — canonical + back-compat aliases
