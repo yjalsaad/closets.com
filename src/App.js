@@ -1741,6 +1741,8 @@ const I18N = {
   swCoAddress:{ en:'Address', ar:'العنوان' },
   swCoContinue:{ en:'Continue →', ar:'← متابعة' },
   swCoNameEmailReq:{ en:'Name and email required', ar:'الاسم والبريد الإلكتروني مطلوبان' },
+  swCoCard:{ en:'Card', ar:'بطاقة' },
+  swCoCardNote:{ en:'Pay securely by card on the next step — Visa, Mastercard, Benefit or Apple Pay. We never see your card details.', ar:'ادفع بأمان بالبطاقة في الخطوة التالية — فيزا أو ماستركارد أو بنفت‌بِي أو Apple Pay. لا نطّلع أبداً على تفاصيل بطاقتك.' },
   swCoBankTransfer:{ en:'Bank Transfer', ar:'تحويل بنكي' },
   swCoCash:{ en:'Cash', ar:'نقداً' },
   swCoCheque:{ en:'Cheque', ar:'شيك' },
@@ -7345,8 +7347,9 @@ function ContactPage() {
 function CheckoutPage({ cart, setCart, user, setPage }) {
   const [step, setStep] = useState(1);
   useReveal();
-  const { t } = useI18n();
-  const [form, setForm] = useState({ name:user?.name||'', email:user?.email||'', phone:user?.phone||'', address:'', city:'Manama', payment:'Bank Transfer', notes:'' });
+  const { t, lang } = useI18n();
+  // Card is the default — it is the only method that gets the money in today.
+  const [form, setForm] = useState({ name:user?.name||'', email:user?.email||'', phone:user?.phone||'', address:'', city:'Manama', payment:'Card', notes:'' });
   const [settings, setSettings] = useState({});
   const [months, setMonths] = useState(0); // 0 = pay in full
   useEffect(() => { api('rpc/marketplace_settings_get', { method:'POST', body:{} }).then(d => setSettings(d && typeof d==='object' ? d : {})).catch(()=>{}); }, []);
@@ -7365,20 +7368,39 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
       p_items: cart, p_total: total, p_payment: payLabel, p_notes: planNote + (form.notes || ''),
       p_customer_id: user?.id || null
     }});
-    // also record a store order with the installment plan (no card capture)
-    try { await api('rpc/store_checkout', { method:'POST', body:{
-      p_customer_id: user?.id || null, p_customer_name: form.name, p_customer_email: form.email || null,
-      p_customer_phone: form.phone || null, p_items: cart, p_total: total,
-      p_installment_months: months > 0 ? months : null,
-      p_address: { line: form.address, city: form.city }, p_notes: form.notes || null,
-    }}); } catch(e) {}
+    // Record the store order. This returns the order id, which is what the payment
+    // page needs — the customer pays against the ORDER, and the server reads the
+    // amount from that row. Nothing in the browser can change what is charged.
+    let orderId = null;
+    try {
+      const so = await api('rpc/store_checkout', { method:'POST', body:{
+        p_customer_id: user?.id || null, p_customer_name: form.name, p_customer_email: form.email || null,
+        p_customer_phone: form.phone || null, p_items: cart, p_total: total,
+        p_installment_months: months > 0 ? months : null,
+        p_address: { line: form.address, city: form.city }, p_notes: form.notes || null,
+      }});
+      if (so && so.ok && so.id) orderId = so.id;
+    } catch(e) {}
+
     if (user) {
       const pts = Math.floor(total*10);
       // SECURITY DEFINER RPC — writes the reward row AND increments points server-side
       // (direct anon POST/PATCH on website_rewards/website_customers is 403)
       try { await api('rpc/customer_points_award', { method:'POST', body:{ p_customer_id: String(user.id), p_points: pts, p_reason: 'Website order' } }); } catch(e) {}
     }
-    setCart([]); setStep(3);
+
+    setCart([]);
+
+    // Paying by card → straight to the secure payment page. The order already exists
+    // and is marked unpaid, so if they abandon the payment we still have the order and
+    // can chase it. Nothing is lost either way.
+    if (form.payment === 'Card' && months === 0 && orderId) {
+      window.location.href = '/pay.html?kind=store_order&ref=' + encodeURIComponent(orderId)
+        + '&lang=' + (lang === 'ar' ? 'ar' : 'en');
+      return;
+    }
+
+    setStep(3);
   };
   return (
     <div style={{ minHeight:'100dvh', paddingTop: mobile ? 0 : 56, paddingBottom: mobile ? 80 : 0, background:'#f5f5f7' }}>
@@ -7422,10 +7444,15 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
               {step===2&&<>
                 <div style={{ fontSize:13, fontWeight:600, color:'#86868b', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:20 }}>{t('swCoStep2')}</div>
                 <div style={{ display:'flex', gap:8, marginBottom:16 }}>
-                  {[['Bank Transfer',t('swCoBankTransfer')],['Cash',t('swCoCash')],['Cheque',t('swCoCheque')]].map(([p,plabel])=>(
+                  {[['Card',t('swCoCard')],['Bank Transfer',t('swCoBankTransfer')],['Cash',t('swCoCash')],['Cheque',t('swCoCheque')]].map(([p,plabel])=>(
                     <button type="button" key={p} onClick={()=>{ setForm(f=>({...f,payment:p})); setMonths(0); }} style={{ flex:1, padding:'12px 8px', borderRadius:12, border:`1.5px solid ${form.payment===p&&months===0?'var(--clay)':'#e6e6e6'}`, background:form.payment===p&&months===0?'rgba(249,115,22,.08)':'#fff', color:form.payment===p&&months===0?'var(--clay)':'#6e6e73', fontSize:13, cursor:'pointer', fontWeight:form.payment===p&&months===0?500:400, transition:'all .15s' }}>{plabel}</button>
                   ))}
                 </div>
+                {form.payment==='Card' && months===0 && (
+                  <div style={{ marginBottom:16, background:'rgba(249,115,22,.06)', border:'1px solid rgba(249,115,22,.22)', borderRadius:12, padding:'11px 13px', fontSize:12.5, color:'#6e6e73', lineHeight:1.6 }}>
+                    {t('swCoCardNote')}
+                  </div>
+                )}
                 {instEnabled && (
                   <div style={{ marginBottom:16 }}>
                     <div style={{ fontSize:13, fontWeight:600, color:'#1d1d1f', marginBottom:8 }}>{t('swCheckoutSplit')}</div>
