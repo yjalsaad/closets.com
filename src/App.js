@@ -3104,6 +3104,22 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
           ? <img src={cms('header.logo', '') || siteLogo} alt="The Closets" style={{ height:32, width:'auto', maxWidth:120, objectFit:'contain', borderRadius:6 }} />
           : <span style={{ fontFamily:'Fraunces, Georgia, serif', fontSize:16, fontWeight:600, color:'var(--ink)', letterSpacing:'.02em' }}>{cms('header.brand', 'THE CLOSETS')}</span>}
       </Link>
+
+      {/* 🧩 Design your own — pinned to the LEFT, right beside the logo.
+          Logged-out visitors land on the sign-in gate (PLANNER_PAGES is gated). */}
+      {!mobile && (
+        <button type="button" onClick={()=>{ setOpenMega(null); setMenuOpen(false); navTo('planner'); }}
+          title={lang==='ar' ? 'صمّم واحسب سعرك بنفسك' : 'Design & price your own'}
+          style={{ flexShrink:0, cursor:'pointer', padding:'7px 14px', fontSize:13.5, fontWeight:700,
+                   color: page==='planner' ? '#fff' : 'var(--clay-deep)',
+                   background: page==='planner' ? 'var(--clay)' : 'var(--sand)',
+                   border:'1px solid ' + (page==='planner' ? 'var(--clay)' : 'rgba(242,115,28,.35)'),
+                   borderRadius:999, display:'inline-flex', alignItems:'center', gap:6, whiteSpace:'nowrap' }}>
+          <span aria-hidden="true">🧩</span>
+          {lang==='ar' ? 'صمّم بنفسك' : 'Design your own'}
+        </button>
+      )}
+
       {!mobile && (
         <div onMouseLeave={scheduleClose} style={{ flex:1, minWidth:0, display:'flex', alignItems:'center', justifyContent:'center', gap:2, flexWrap:'nowrap', overflow:'visible' }}>
           {NAV_PRIMARY_KEYS.map(key => {
@@ -16178,6 +16194,54 @@ function initialPage() {
   } catch (e) {}
   return 'home';
 }
+
+// ── 🧩 Design your own — the pages that require a customer account ────────────
+const PLANNER_PAGES = ['planner','kitchen-planner','wardrobe-planner','tv-planner',
+                       'door-planner','office-planner','design-builder','cat:Doors'];
+
+// The screen a logged-out visitor sees instead of the planner.
+const GATE_COPY = {
+  title:   { en:'Design & price your own',            ar:'صمّم واحسب سعرك بنفسك' },
+  body:    { en:'Sign in or create a free account to use the design studio — set your sizes and materials and see your price instantly.',
+             ar:'سجّل الدخول أو أنشئ حساباً مجانياً لاستخدام استوديو التصميم — حدّد المقاسات والخامات وشاهد السعر فوراً.' },
+  why:     { en:'Your account keeps every design you make, so you can come back to it, share it, and turn it into a quotation whenever you are ready.',
+             ar:'يحفظ حسابك كل تصميم تنشئه، لتعود إليه وتشاركه وتحوّله إلى عرض سعر متى شئت.' },
+  create:  { en:'Create a free account',              ar:'أنشئ حساباً مجانياً' },
+  signIn:  { en:'I already have an account',          ar:'لديّ حساب بالفعل' },
+  back:    { en:'← Back to the site',                 ar:'العودة إلى الموقع →' },
+};
+function PlannerLoginGate({ openAuth, setPage, lang }) {
+  const g = (k) => (GATE_COPY[k] ? (GATE_COPY[k][lang] || GATE_COPY[k].en) : '');
+  return (
+    <div style={{ minHeight:'70vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'60px 20px' }}>
+      <div style={{ maxWidth:560, textAlign:'center' }}>
+        <div style={{ fontSize:52, marginBottom:18 }}>🧩</div>
+        <h1 style={{ fontFamily:'var(--serif, Georgia, serif)', fontSize:'clamp(28px,4vw,42px)', lineHeight:1.15, margin:'0 0 14px', color:'var(--ink,#1a1a1a)' }}>
+          {g('title')}
+        </h1>
+        <p style={{ fontSize:16, lineHeight:1.7, color:'var(--muted,#6b6b6b)', margin:'0 0 12px' }}>{g('body')}</p>
+        <p style={{ fontSize:14, lineHeight:1.7, color:'var(--muted,#8a8a8a)', margin:'0 0 30px' }}>{g('why')}</p>
+        <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
+          <button type="button" className="btn-clay" onClick={() => openAuth('register')}
+            style={{ fontSize:16, padding:'15px 30px' }}>
+            {g('create')}
+          </button>
+          <button type="button" onClick={() => openAuth('login')}
+            style={{ background:'#fff', border:'1px solid var(--line,#e2e2e2)', borderRadius:980, padding:'15px 30px',
+                     fontSize:16, fontWeight:500, color:'var(--ink,#1a1a1a)', cursor:'pointer' }}>
+            {g('signIn')}
+          </button>
+        </div>
+        <button type="button" onClick={() => setPage('home')}
+          style={{ marginTop:26, background:'none', border:'none', color:'var(--muted,#8a8a8a)',
+                   fontSize:14, cursor:'pointer', textDecoration:'underline' }}>
+          {g('back')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function AppInner() {
   useSiteContent();   // subscribe: re-render the whole tree once managed content loads
   // ── react-router-dom v6 is the source of truth for navigation ──
@@ -16289,6 +16353,17 @@ function AppInner() {
   const addToCart = item => setCart(c => [...c, item]);
   const openAuth = (mode = 'login', prefill) => { setAuthMode(mode); setAuthPrefill(prefill && typeof prefill==='object' ? prefill : null); setAuthOpen(true); };
   const productId = page.startsWith('product-') ? page.replace('product-','') : null;
+
+  // ── 🧩 DESIGN YOUR OWN — logged-in customers only ───────────────────────────
+  // Gated centrally at the router rather than at all 34 setPage() call sites, so
+  // no entry point can bypass it. The page state is kept, so the moment the
+  // customer signs in the planner they asked for renders — no re-navigation.
+  const plannerLocked = PLANNER_PAGES.includes(page) && !user;
+  useEffect(() => {
+    if (plannerLocked) openAuth('register');   // prompt immediately; they can dismiss and still see why
+    // eslint-disable-next-line
+  }, [plannerLocked]);
+
   return (
     <AppCtx.Provider value={{ user, setUser, cart, setCart, addToCart, setPage, lang, setLang }}>
       <style>{CSS}</style>
@@ -16317,17 +16392,19 @@ function AppInner() {
       {page==='ai' && <PageBoundary key="ai"><AIDesignerPage setPage={setPage} user={user} /></PageBoundary>}
       {page==='wardrobes' && <PageBoundary key="wardrobes"><WardrobesPage setPage={setPage} products={products} /></PageBoundary>}
       {page==='kitchen' && <PageBoundary key="kitchen"><KitchenPage setPage={setPage} products={products} /></PageBoundary>}
-      {page==='kitchen-planner' && <PageBoundary key="kp"><KitchenPlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
-      {page==='tv-planner' && <PageBoundary key="tvp"><TVUnitPlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
-      {page==='door-planner' && <PageBoundary key="dp"><DoorPlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
-      {page==='wardrobe-planner' && <PageBoundary key="wp"><WardrobePlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
+      {page==='kitchen-planner' && !plannerLocked && <PageBoundary key="kp"><KitchenPlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
+      {page==='tv-planner' && !plannerLocked && <PageBoundary key="tvp"><TVUnitPlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
+      {page==='door-planner' && !plannerLocked && <PageBoundary key="dp"><DoorPlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
+      {page==='wardrobe-planner' && !plannerLocked && <PageBoundary key="wp"><WardrobePlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
       {page==='office' && <PageBoundary key="office"><OfficePage setPage={setPage} products={products} /></PageBoundary>}
       {page==='tv' && <PageBoundary key="tv"><TVUnitPage setPage={setPage} products={products} /></PageBoundary>}
       {page==='doors' && <PageBoundary key="doors"><DoorsPage setPage={setPage} products={products} /></PageBoundary>}
-      {page==='office-planner' && <PageBoundary key="op"><OfficePlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
-      {page==='design-builder' && <PageBoundary key="db"><DesignBuilderPage setPage={setPage} user={user} /></PageBoundary>}
-      {page==='planner' && <PageBoundary key="planner"><PlannerPage setPage={setPage} user={user} openAuth={openAuth} siteLogo={siteLogo} /></PageBoundary>}
-      {page==='cat:Doors' && <PageBoundary key="dpc"><DoorPlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
+      {page==='office-planner' && !plannerLocked && <PageBoundary key="op"><OfficePlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
+      {page==='design-builder' && !plannerLocked && <PageBoundary key="db"><DesignBuilderPage setPage={setPage} user={user} /></PageBoundary>}
+      {page==='planner' && !plannerLocked && <PageBoundary key="planner"><PlannerPage setPage={setPage} user={user} openAuth={openAuth} siteLogo={siteLogo} /></PageBoundary>}
+      {page==='cat:Doors' && !plannerLocked && <PageBoundary key="dpc"><DoorPlannerWizard setPage={setPage} user={user} openAuth={openAuth} /></PageBoundary>}
+      {/* 🧩 Design your own — logged-out visitors get the sign-in gate, never the planner */}
+      {plannerLocked && <PlannerLoginGate openAuth={openAuth} setPage={setPage} lang={lang} />}
       {page.startsWith('cat:') && page!=='cat:Doors' && <CategoryPage category={page.slice(4)} products={products} setPage={setPage} addToCart={addToCart} />}
       {!['portal','checkout','planner'].includes(page) && <SiteFooter setPage={setPage} />}
       {/* Inert marker (hidden, aria-hidden, not rendered visually) — keeps the CRA smoke test green without affecting UI/SEO/a11y */}
