@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>Secure payment — The Closets International</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#131217;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+       color:#EDEBF2;min-height:100vh;min-height:100dvh;display:flex;align-items:center;
+       justify-content:center;padding:20px;-webkit-font-smoothing:antialiased}
+
+  .shell{width:100%;max-width:410px}
+
+  .brand{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:20px}
+  .brand img{height:26px;width:auto;object-fit:contain;opacity:.9}
+  .brand span{font-size:9px;letter-spacing:.26em;color:#6E6B7A;text-transform:uppercase}
+
+  .card{background:#1D1C23;border:1px solid #2C2B34;border-radius:18px;padding:26px 22px}
+
+  .eyebrow{font-size:9.5px;letter-spacing:.2em;color:#7C7A87;text-transform:uppercase;margin-bottom:14px}
+
+  .amt{font-size:42px;font-weight:600;letter-spacing:-.03em;color:#fff;line-height:1;margin-bottom:8px}
+  .amt .cur{font-size:19px;font-weight:500;color:#8E8B9B;margin-right:7px;letter-spacing:0}
+  .sub{font-size:13px;color:#9C99A8;line-height:1.55;margin-bottom:20px}
+  .sub b{color:#CFCCD8;font-weight:500}
+
+  /* Deposit breakdown — only shown when there IS a balance to follow. */
+  .rows{border-top:1px solid #2C2B34;border-bottom:1px solid #2C2B34;padding:13px 0;margin-bottom:20px}
+  .row{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;padding:4px 0}
+  .row .k{color:#8E8B9B}
+  .row .v{color:#CFCCD8;font-variant-numeric:tabular-nums}
+  .row.now .k{color:#EDEBF2;font-weight:500}
+  .row.now .v{color:#fff;font-weight:600}
+
+  .methods{display:flex;gap:6px;margin-bottom:18px}
+  .m{flex:1;background:#26252E;border:1px solid #33323C;border-radius:8px;padding:9px 4px;
+     text-align:center;font-size:10px;font-weight:500;color:#B4B1BF;letter-spacing:.01em}
+
+  button.pay{width:100%;padding:16px;border:none;border-radius:11px;background:#F97316;color:#fff;
+             font:600 15px Inter,sans-serif;cursor:pointer;letter-spacing:.01em;
+             transition:filter .15s,transform .1s}
+  button.pay:hover:not(:disabled){filter:brightness(1.08)}
+  button.pay:active:not(:disabled){transform:scale(.985)}
+  button.pay:disabled{opacity:.55;cursor:progress}
+
+  .alt{width:100%;margin-top:9px;padding:13px;border:1px solid #33323C;border-radius:11px;
+       background:transparent;color:#9C99A8;font:500 13px Inter,sans-serif;cursor:pointer}
+  .alt:hover{background:#26252E;color:#CFCCD8}
+
+  .trust{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:16px;
+         font-size:10.5px;color:#6E6B7A}
+  .trust svg{width:11px;height:11px;flex-shrink:0}
+
+  .err{background:#3A1D1D;border:1px solid #5A2A2A;color:#F6A6A6;border-radius:10px;
+       padding:13px;font-size:12.5px;line-height:1.55;margin-bottom:16px}
+
+  .skel{height:14px;background:#26252E;border-radius:5px;margin-bottom:10px}
+  .foot{text-align:center;margin-top:18px;font-size:10px;color:#56545F;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="brand">
+    <img src="/the-closets-logo.png" alt=""/>
+    <span>The Closets International</span>
+  </div>
+  <div class="card" id="card">
+    <div class="skel" style="width:40%"></div>
+    <div class="skel" style="width:70%;height:34px"></div>
+    <div class="skel" style="width:55%"></div>
+  </div>
+  <div class="foot">THE CLOSETS INTERNATIONAL W.L.L. &middot; +973 3611 1004</div>
+</div>
+
+<script>
+/* ─────────────────────────────────────────────────────────────────────────────
+   SECURE PAYMENT PAGE
+
+   /pay.html?kind=quotation|invoice|store_order|gift_voucher&ref=<id>
+
+   Two densities, one language:
+     · FULL    — a deposit with a balance to follow. Shows the split, because a
+                 customer handing over BD 3,850 of BD 7,700 needs to see why.
+     · EXPRESS — paid in full (everything under BD 500, per the agreement).
+                 No deposit talk, no breakdown. Nobody deliberates over BD 80.
+
+   This page NEVER decides the price. It asks the server (preview mode), and the
+   server reads it from the database. Editing anything here changes nothing.
+   ───────────────────────────────────────────────────────────────────────────── */
+var SUPA_URL = "https://jflmbfxbhpioyniibjsj.supabase.co";
+var SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmbG1iZnhiaHBpb3luaWlianNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NjkyNjQsImV4cCI6MjA5MDQ0NTI2NH0.XnQHF1Ivzhv6Zj12qe1Gh2x6ZyLdFfmUBweE_5SZnu0";
+
+var Q    = new URLSearchParams(location.search);
+var KIND = Q.get("kind") || "";
+var REF  = Q.get("ref")  || "";
+var LANG = Q.get("lang") === "ar" ? "ar" : "en";
+
+var LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">'
+         + '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
+
+function bd(n){
+  return Number(n||0).toLocaleString("en-BH",{minimumFractionDigits:3,maximumFractionDigits:3});
+}
+function esc(s){
+  return String(s==null?"":s).replace(/[&<>"]/g,function(m){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m];
+  });
+}
+function api(body){
+  return fetch(SUPA_URL + "/functions/v1/mf-pay", {
+    method:"POST",
+    headers:{ apikey:SUPA_KEY, Authorization:"Bearer "+SUPA_KEY, "Content-Type":"application/json" },
+    body: JSON.stringify(body)
+  }).then(function(r){ return r.json().catch(function(){ return null; }); })
+    .catch(function(){ return null; });
+}
+
+function fail(msg, retry){
+  document.getElementById("card").innerHTML =
+    '<div class="err">' + esc(msg) + '</div>' +
+    (retry ? '<button class="alt" onclick="location.reload()">Try again</button>' : '') +
+    '<button class="alt" onclick="location.href=\'/\'">Back to the site</button>';
+}
+
+/* PAY_FULL is only ever offered on a deposit. It is a customer choice, not a
+   price change — the server still decides what "full" means. */
+var payFull = false;
+
+function render(d){
+  var express = Number(d.balance_later) <= 0;   // nothing left to pay later
+  var el = document.getElementById("card");
+
+  var head = express
+    ? '<div class="eyebrow">Secure payment</div>'
+    : '<div class="eyebrow">Deposit &middot; secure payment</div>';
+
+  var amount =
+    '<div class="amt"><span class="cur">BD</span>' + bd(d.amount) + '</div>';
+
+  var sub = express
+    ? '<div class="sub">' + esc(d.label) + '</div>'
+    : '<div class="sub">Paying <b>' + (Math.round(d.amount / d.total * 100)) + '%</b> of '
+      + esc(d.label) + ' now, exactly as set out in your agreement.</div>';
+
+  /* The breakdown only exists when there is a balance to follow. For a BD 80
+     item it would be noise, so it is not rendered at all. */
+  var rows = express ? '' :
+    '<div class="rows">' +
+      '<div class="row"><span class="k">Total</span><span class="v">BD ' + bd(d.total) + '</span></div>' +
+      '<div class="row"><span class="k">Balance on delivery</span><span class="v">BD ' + bd(d.balance_later) + '</span></div>' +
+      '<div class="row now"><span class="k">Due today</span><span class="v">BD ' + bd(d.amount) + '</span></div>' +
+    '</div>';
+
+  var methods =
+    '<div class="methods">' +
+      '<div class="m">Visa</div><div class="m">Mastercard</div>' +
+      '<div class="m">Benefit</div><div class="m">Apple&nbsp;Pay</div>' +
+    '</div>';
+
+  var cta =
+    '<button class="pay" id="go">Pay BD ' + bd(d.amount) + '</button>' +
+    (express ? '' :
+      '<button class="alt" id="full">Pay the full BD ' + bd(d.total) + ' instead</button>');
+
+  var trust =
+    '<div class="trust">' + LOCK +
+    '<span>Encrypted and processed by MyFatoorah. We never see your card.</span></div>';
+
+  el.innerHTML = head + amount + sub + rows + methods + cta + trust;
+
+  document.getElementById("go").onclick = go;
+  var f = document.getElementById("full");
+  if (f) f.onclick = function(){ payFull = true; go(); };
+}
+
+async function go(){
+  var b = document.getElementById("go");
+  b.disabled = true;
+  b.textContent = "Opening secure checkout…";
+
+  var d = await api({ kind:KIND, ref_id:REF, pay_full:payFull, lang:LANG, origin:location.origin });
+
+  if (d && d.ok && d.url) { location.href = d.url; return; }   /* hand over to MyFatoorah */
+  fail((d && d.error) || "We could not open the payment page. Please try again.", true);
+}
+
+(async function(){
+  if (!KIND || !REF) { fail("This payment link is incomplete. Please use the link we sent you.", false); return; }
+
+  var d = await api({ kind:KIND, ref_id:REF, preview:true, lang:LANG });
+
+  if (!d)                 { fail("We could not reach the payment service. Please check your connection.", true); return; }
+  if (d.already_paid)     { fail("This has already been paid. Thank you — nothing more is due.", false); return; }
+  if (!d.ok)              { fail(d.error || "This payment link is no longer valid.", false); return; }
+
+  render(d);
+})();
+</script>
+</body>
+</html>
