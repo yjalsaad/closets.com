@@ -3676,7 +3676,9 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
             ? <div style={{ textAlign: 'center', padding: '48px 0' }}>
                 <div style={{ fontSize: 48, opacity: .15, marginBottom: 12 }}>◻</div>
                 <div style={{ fontSize: 15, color: '#86868b', marginBottom: 18 }}>{t('sw3CartEmpty')}</div>
-                <button type="button" className="btn-secondary" style={{ borderRadius: 980 }} onClick={() => { setOpen(false); setPage('products'); }}>Browse Collection</button>
+                {/* Same trap as Checkout: setOpen(false) runs navigate(-1), which would
+                    cancel the navigation. Navigating away closes the drawer by itself. */}
+                <button type="button" className="btn-secondary" style={{ borderRadius: 980 }} onClick={() => setPage('products')}>Browse Collection</button>
               </div>
             : cart.map((item, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: 14, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #f5f5f7' }}>
@@ -3699,7 +3701,15 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
               <span style={{ fontSize: 16, color: '#6e6e73' }}>{t('total')}</span>
               <span style={{ fontSize: 22, fontWeight: 700, color: '#1d1d1f' }}>{fmt(total)}</span>
             </div>
-            <button type="button" className="btn" style={{ width: '100%', borderRadius: 16 }} onClick={() => { setOpen(false); setPage('checkout'); }}>Checkout</button>
+            {/* Do NOT call setOpen(false) here.
+                The cart drawer is backed by a history entry (?cart=1), so closing it
+                runs navigate(-1) — a real history back. Calling it alongside
+                setPage('checkout') pushed /checkout and then immediately went back,
+                landing the customer on the shop again. The Checkout button appeared dead.
+
+                Navigating away closes the cart on its own: cartOpen is derived from
+                ?cart=1, and that param is gone the moment we leave the page. */}
+            <button type="button" className="btn" style={{ width: '100%', borderRadius: 16 }} onClick={() => setPage('checkout')}>Checkout</button>
             <div style={{ fontSize: 12, color: '#86868b', textAlign: 'center', marginTop: 10 }}>{t('sw3FreeDelivery')}</div>
           </div>
         )}
