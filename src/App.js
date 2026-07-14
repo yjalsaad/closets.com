@@ -2371,7 +2371,7 @@ const CSS = `
   /* Shimmer line */
   .hero-shimmer {
     position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(249,115,22,0.04), transparent);
+    background: linear-gradient(90deg, transparent, rgba(168,75,41,0.04), transparent);
     animation: shimmer 6s ease-in-out infinite;
     pointer-events: none; z-index: 0;
   }
@@ -2403,7 +2403,7 @@ const CSS = `
   .reveal { opacity: 0; transform: translateY(16px); transition: opacity .5s cubic-bezier(.25,.46,.45,.94), transform .5s cubic-bezier(.25,.46,.45,.94); }
   .reveal.vis { opacity: 1; transform: translateY(0); }
   .inp { background: var(--shop-fill, #f5f5f7); border: 1.5px solid transparent; border-radius: 12px; padding: 13px 16px; font-size: 16px; color: var(--shop-ink, #1d1d1f); width: 100%; transition: all .2s; -webkit-appearance: none; }
-  .inp:focus { outline: none; background: #fff; border-color: var(--clay); box-shadow: 0 0 0 4px rgba(249,115,22,.1); }
+  .inp:focus { outline: none; background: #fff; border-color: var(--clay); box-shadow: 0 0 0 4px rgba(168,75,41,.1); }
   .inp::placeholder { color: var(--shop-muted, #86868b); }
   .btn { background: var(--clay); color: #fff; border: none; border-radius: 14px; padding: 15px 24px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 50px; -webkit-tap-highlight-color: transparent; }
   .btn:active { transform: scale(.97); background: var(--clay-deep); }
@@ -2415,9 +2415,12 @@ const CSS = `
   .card { background: #fff; border-radius: 20px; border: 1px solid var(--shop-line, #e6e6e6); overflow: hidden; }
   /* ── Editorial-luxury design tokens (Home redesign) ── */
   :root {
-    --ink:#211c18; --ink-soft:#4a423b; --muted:#8a7f72; --cream:#f7f2ec; --sand:#efe7dc; --line:#e6ddd1; --clay:#F2731C; --clay-deep:#C2410C;
-    /* Editorial accents — were hardcoded across sections (walnut/brass family) */
-    --bronze:#9a6a3c; --brass:#c89b5e;
+    /* Palette v2 — enterprise-luxury: walnut + brass + linen + stone.
+       Terracotta/sienna accent (AA-safe with #fff), warm bone canvas (less yellow),
+       espresso ink. See Decisions Log 2026-07-14 "Palette v2". */
+    --ink:#1f1913; --ink-soft:#463d33; --muted:#726757; --cream:#f5f1ea; --sand:#ebe4d8; --line:#e2d9cc; --clay:#A84B29; --clay-deep:#89391E;
+    /* Editorial accents — restrained walnut/brass metallics */
+    --bronze:#8f6338; --brass:#bd9557;
     /* Shop layer — the store/checkout surfaces use a cool neutral system
        (distinct from the warm editorial layer, intentional). Tokenized so the
        two gray families never mix mid-component. */
@@ -2425,7 +2428,7 @@ const CSS = `
     --shop-fill:#f5f5f7; --shop-line:#e6e6e6;
     /* Semantic (site-wide) */
     --ok:#16a34a; --err:#b91c1c;
-    --focus-ring:0 0 0 3px rgba(242,115,28,.35);
+    --focus-ring:0 0 0 3px rgba(168,75,41,.35);
   }
   /* A11y: keyboard focus ring (mouse clicks unaffected) + reduced-motion */
   button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible,
@@ -2435,11 +2438,11 @@ const CSS = `
   }
   .display { font-family:'Fraunces',Georgia,'Times New Roman',serif; font-weight:600; letter-spacing:-.02em; line-height:1.04; }
   .eyebrow { font-size:12px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--clay); }
-  .btn-clay { background:var(--clay); color:#fff; border:none; border-radius:14px; padding:15px 26px; font-size:16px; font-weight:600; cursor:pointer; transition:transform .15s, background .2s, box-shadow .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:50px; box-shadow:0 12px 26px -14px rgba(176,97,59,.7); }
+  .btn-clay { background:var(--clay); color:#fff; border:none; border-radius:14px; padding:15px 26px; font-size:16px; font-weight:600; letter-spacing:.01em; cursor:pointer; transition:transform .15s, background .2s, box-shadow .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:50px; box-shadow:0 14px 30px -16px rgba(137,57,30,.55); }
   .btn-clay:active { transform:scale(.97); }
-  .btn-ink { background:var(--ink); color:#fff; border:none; border-radius:14px; padding:15px 26px; font-size:16px; font-weight:600; cursor:pointer; transition:transform .15s, opacity .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:50px; }
+  .btn-ink { background:var(--ink); color:#fff; border:none; border-radius:14px; padding:15px 26px; font-size:16px; font-weight:600; letter-spacing:.01em; cursor:pointer; transition:transform .15s, opacity .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:50px; }
   .btn-ink:active { transform:scale(.97); }
-  .btn-line { background:transparent; color:var(--ink); border:1px solid var(--ink); border-radius:14px; padding:14px 24px; font-size:15px; font-weight:500; cursor:pointer; transition:all .2s; min-height:50px; display:inline-flex; align-items:center; justify-content:center; gap:8px; }
+  .btn-line { background:transparent; color:var(--ink); border:1px solid var(--ink); border-radius:14px; padding:14px 24px; font-size:15px; font-weight:500; letter-spacing:.01em; cursor:pointer; transition:all .2s; min-height:50px; display:inline-flex; align-items:center; justify-content:center; gap:8px; }
   .lift { transition: transform .45s cubic-bezier(.22,1,.36,1), box-shadow .45s; }
   .tile-zoom { overflow:hidden; }
   .tile-zoom > img, .tile-zoom > .tz { transition: transform .9s cubic-bezier(.22,1,.36,1); }
@@ -2472,7 +2475,7 @@ const CSS = `
   .marquee { display:flex; gap:56px; width:max-content; animation:marquee 34s linear infinite; align-items:center; }
   .marquee-wrap:hover .marquee { animation-play-state:paused; }
   @keyframes marquee { to { transform:translateX(-50%); } }
-  .glass { background:rgba(247,242,236,.72); backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); }
+  .glass { background:rgba(245,241,234,.72); backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); }
   .hscroll { display:flex; gap:22px; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding:4px 0 14px; scrollbar-width:none; }
   .hscroll::-webkit-scrollbar{ display:none; }
   .hscroll > * { scroll-snap-align:center; flex:0 0 auto; }
@@ -2494,8 +2497,8 @@ const CSS = `
   @media (min-width: 768px) {
     .hide-desktop { display: none !important; }
     .btn:hover { background: var(--clay-deep); opacity: .9; }
-    .card:hover { box-shadow: 0 8px 32px rgba(0,0,0,.08); transform: translateY(-2px); }
-    .card { transition: box-shadow .3s, transform .3s; }
+    .card:hover { box-shadow: 0 22px 46px -24px rgba(31,25,19,.28); transform: translateY(-2px); }
+    .card { transition: box-shadow .35s cubic-bezier(.22,1,.36,1), transform .35s cubic-bezier(.22,1,.36,1); }
   }
 
   /* ── ui-ux-pro-max: site-wide UX baseline ── */
@@ -2527,10 +2530,10 @@ const CSS = `
   .yas-hero { position:relative; overflow:hidden; background:var(--cream); color:var(--ink); }
   .yas-aurora { position:absolute; inset:-30% -10%; z-index:0; pointer-events:none;
     background:
-      radial-gradient(40% 50% at 20% 30%, rgba(242,115,28,.16), transparent 60%),
-      radial-gradient(45% 55% at 80% 20%, rgba(242,115,28,.10), transparent 60%),
+      radial-gradient(40% 50% at 20% 30%, rgba(168,75,41,.16), transparent 60%),
+      radial-gradient(45% 55% at 80% 20%, rgba(168,75,41,.10), transparent 60%),
       radial-gradient(50% 50% at 60% 80%, rgba(194,65,12,.10), transparent 60%),
-      radial-gradient(40% 40% at 15% 85%, rgba(242,115,28,.12), transparent 60%);
+      radial-gradient(40% 40% at 15% 85%, rgba(168,75,41,.12), transparent 60%);
     filter:blur(46px); animation:yasAurora 22s ease-in-out infinite; }
   @keyframes yasAurora {
     0%,100% { transform:translate3d(0,0,0) scale(1); }
@@ -2541,20 +2544,20 @@ const CSS = `
     background-image:linear-gradient(rgba(33,28,24,.04) 1px, transparent 1px),linear-gradient(90deg, rgba(33,28,24,.04) 1px, transparent 1px);
     background-size:54px 54px; mask-image:radial-gradient(ellipse 90% 70% at 50% 40%, black, transparent); -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 40%, black, transparent); }
   .yas-orb { position:absolute; border-radius:50%; filter:blur(3px); pointer-events:none; z-index:0;
-    background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(242,115,28,.28)); animation:yasFloat 9s ease-in-out infinite; }
+    background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(168,75,41,.28)); animation:yasFloat 9s ease-in-out infinite; }
   @keyframes yasFloat { 0%,100% { transform:translateY(0); opacity:.35; } 50% { transform:translateY(-22px); opacity:.7; } }
   .yas-noise { position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.6;
-    background:radial-gradient(circle at 50% 0%, rgba(242,115,28,.06), transparent 55%); }
+    background:radial-gradient(circle at 50% 0%, rgba(168,75,41,.06), transparent 55%); }
   .yas-promptbar { background:#fff; border:1px solid var(--line); border-radius:20px;
     box-shadow:0 24px 60px -34px rgba(33,28,24,.4); }
   .yas-prompt-input { background:transparent; border:none; outline:none; color:var(--ink); font-size:17px; width:100%; font-family:inherit; }
   .yas-prompt-input::placeholder { color:var(--muted); }
   .yas-glass { background:#fff; border:1px solid var(--line); border-radius:20px; transition:transform .4s cubic-bezier(.22,1,.36,1), box-shadow .4s, border-color .25s; }
-  @media (min-width:768px){ .yas-glass.yas-int:hover { transform:translateY(-5px); box-shadow:0 30px 60px -30px rgba(33,28,24,.4); border-color:rgba(242,115,28,.55); } }
+  @media (min-width:768px){ .yas-glass.yas-int:hover { transform:translateY(-5px); box-shadow:0 30px 60px -30px rgba(33,28,24,.4); border-color:rgba(168,75,41,.55); } }
   .yas-chip { border-radius:999px; padding:8px 15px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .18s; border-width:1.5px; border-style:solid; }
   .yas-spark { display:inline-block; animation:yasSpin 4s linear infinite; }
   @keyframes yasSpin { from { transform:rotate(0); } to { transform:rotate(360deg); } }
-  .yas-shimmer-box { position:relative; overflow:hidden; background:linear-gradient(100deg,var(--sand, #efe7dc) 30%,#f7f2ec 50%,#efe7dc 70%); background-size:200% 100%; animation:yasShimmer 1.4s ease-in-out infinite; border-radius:12px; }
+  .yas-shimmer-box { position:relative; overflow:hidden; background:linear-gradient(100deg,var(--sand, #ebe4d8) 30%,#f5f1ea 50%,#ebe4d8 70%); background-size:200% 100%; animation:yasShimmer 1.4s ease-in-out infinite; border-radius:12px; }
   @keyframes yasShimmer { from { background-position:200% 0; } to { background-position:-200% 0; } }
   .yas-cap { display:inline-flex; align-items:center; gap:7px; background:var(--sand); border:1px solid var(--line); color:var(--clay-deep); border-radius:999px; padding:9px 15px; font-size:13px; font-weight:600; }
   /* AI YAS sub-brand lockup */
@@ -3117,7 +3120,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
 
   return (<>
     {/* Slim top bar — logo + actions */}
-    <nav onMouseLeave={scheduleClose} style={{ position:'fixed', top:0, left:0, right:0, zIndex:900, height:58, display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, padding: mobile?'0 16px':'0 24px', background: scrolled?'rgba(247,242,236,.92)':'rgba(247,242,236,.72)', backdropFilter:'blur(18px) saturate(180%)', borderBottom: scrolled?'1px solid var(--line)':'1px solid transparent', transition:'all .3s' }}>
+    <nav onMouseLeave={scheduleClose} style={{ position:'fixed', top:0, left:0, right:0, zIndex:900, height:58, display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, padding: mobile?'0 16px':'0 24px', background: scrolled?'rgba(245,241,234,.92)':'rgba(245,241,234,.72)', backdropFilter:'blur(18px) saturate(180%)', borderBottom: scrolled?'1px solid var(--line)':'1px solid transparent', transition:'all .3s' }}>
       <Link to="/" onClick={()=>{ setMenuOpen(false); }} aria-label="The Closets — home" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:8 }}>
         {(cms('header.logo', '') || siteLogo)
           ? <img src={cms('header.logo', '') || siteLogo} alt="The Closets" style={{ height:32, width:'auto', maxWidth:120, objectFit:'contain', borderRadius:6 }} />
@@ -3132,7 +3135,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
           style={{ flexShrink:0, cursor:'pointer', padding:'7px 14px', fontSize:13.5, fontWeight:700,
                    color: page==='planner' ? '#fff' : 'var(--clay-deep)',
                    background: page==='planner' ? 'var(--clay)' : 'var(--sand)',
-                   border:'1px solid ' + (page==='planner' ? 'var(--clay)' : 'rgba(242,115,28,.35)'),
+                   border:'1px solid ' + (page==='planner' ? 'var(--clay)' : 'rgba(168,75,41,.35)'),
                    borderRadius:999, display:'inline-flex', alignItems:'center', gap:6, whiteSpace:'nowrap' }}>
           <span aria-hidden="true">🧩</span>
           {lang==='ar' ? 'صمّم بنفسك' : 'Design your own'}
@@ -3171,7 +3174,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
           {/* One accent pill — ✨ AI + Design Lab, opens a small dropdown */}
           <div onMouseEnter={()=>openMenu('ai')} style={{ position:'static', flexShrink:0 }}>
             <button type="button" onClick={()=>setOpenMega(openMega==='ai'?null:'ai')} aria-expanded={openMega==='ai'}
-              style={{ cursor:'pointer', padding:'6px 12px', fontSize:14, fontWeight:700, color:(page==='ai-yas'||page==='design-lab')?'#fff':'var(--clay-deep)', background:(page==='ai-yas'||page==='design-lab')?'var(--clay)':'var(--sand)', border:'1px solid '+((page==='ai-yas'||page==='design-lab')?'var(--clay)':'rgba(242,115,28,.35)'), borderRadius:999, display:'inline-flex', alignItems:'center', gap:6, whiteSpace:'nowrap', flexShrink:0 }}>
+              style={{ cursor:'pointer', padding:'6px 12px', fontSize:14, fontWeight:700, color:(page==='ai-yas'||page==='design-lab')?'#fff':'var(--clay-deep)', background:(page==='ai-yas'||page==='design-lab')?'var(--clay)':'var(--sand)', border:'1px solid '+((page==='ai-yas'||page==='design-lab')?'var(--clay)':'rgba(168,75,41,.35)'), borderRadius:999, display:'inline-flex', alignItems:'center', gap:6, whiteSpace:'nowrap', flexShrink:0 }}>
               {'✨ ' + tr('navAiDesignLab')}
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: openMega==='ai'?'rotate(180deg)':'none', transition:'transform .2s', opacity:.7 }}><polyline points="6 9 12 15 18 9"/></svg>
             </button>
@@ -3181,7 +3184,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
       <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
         {!mobile && <Link to="/booking" style={{ textDecoration:'none', display:'inline-block', background:'var(--clay)', border:'none', borderRadius:980, padding:'8px 16px', fontSize:13, fontWeight:600, color:'#fff', cursor:'pointer' }}>{cms('header.cta.book', tr('bookVisit'))}</Link>}
         <button type="button" onClick={()=>setLang(lang==='ar'?'en':'ar')} title="Language" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'7px 13px', fontSize:13, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{lang==='ar'?'EN':'ع'}</button>
-        {user ? <Link to="/portal" style={{ textDecoration:'none', display:'inline-block', background:'rgba(242,115,28,.12)', border:'none', borderRadius:980, padding:'7px 14px', fontSize:13, fontWeight:500, color:'var(--clay-deep)', cursor:'pointer' }}>{user.name?.split(' ')[0]}</Link>
+        {user ? <Link to="/portal" style={{ textDecoration:'none', display:'inline-block', background:'rgba(168,75,41,.12)', border:'none', borderRadius:980, padding:'7px 14px', fontSize:13, fontWeight:500, color:'var(--clay-deep)', cursor:'pointer' }}>{user.name?.split(' ')[0]}</Link>
           : <button type="button" onClick={()=>openAuth('login')} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'7px 14px', fontSize:13, fontWeight:500, color:'var(--ink)', cursor:'pointer' }}>{tr('signIn')}</button>}
         <button type="button" onClick={()=>setCartOpen(true)} aria-label="Cart" style={{ position:'relative', background: cart.length>0?'var(--clay)':'#fff', border:'1px solid var(--line)', borderRadius:980, width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color: cart.length>0?'#fff':'var(--ink)' }}>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -3250,7 +3253,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
       {DOCK.map(d => {
         const active = page===d.id;
         const fabInner = (<>
-          <span style={{ width:46, height:46, borderRadius:'50%', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center', marginTop:-24, border:'3px solid #fff', boxShadow:'0 6px 16px rgba(242,115,28,.45)' }}>{d.icon}</span>
+          <span style={{ width:46, height:46, borderRadius:'50%', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center', marginTop:-24, border:'3px solid #fff', boxShadow:'0 6px 16px rgba(168,75,41,.45)' }}>{d.icon}</span>
           <span style={{ fontSize:10.5, fontWeight:600, color:'var(--clay-deep)' }}>{d.label}</span>
         </>);
         const tabInner = (<>{d.icon}<span style={{ fontSize:10.5, fontWeight: active?600:400 }}>{d.label}</span></>);
@@ -3330,7 +3333,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
               const open = openAcc==='ai';
               const activeAi = page==='ai-yas' || page==='design-lab';
               return (
-                <div style={{ background: activeAi?'var(--clay)':'var(--sand)', border:'1px solid '+(activeAi?'var(--clay)':'rgba(242,115,28,.35)'), borderRadius:12, overflow:'hidden' }}>
+                <div style={{ background: activeAi?'var(--clay)':'var(--sand)', border:'1px solid '+(activeAi?'var(--clay)':'rgba(168,75,41,.35)'), borderRadius:12, overflow:'hidden' }}>
                   <button type="button" onClick={()=>setOpenAcc(open?null:'ai')} aria-expanded={open} style={{ width:'100%', display:'flex', justifyContent:'space-between', alignItems:'center', background:'none', border:'none', cursor:'pointer', padding:'14px 15px', fontSize:15, fontWeight:700, color: activeAi?'#fff':'var(--clay-deep)' }}>
                     {'✨ ' + tr('navAiDesignLab')}
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open?'rotate(180deg)':'none', transition:'transform .2s', opacity:.85 }}><polyline points="6 9 12 15 18 9"/></svg>
@@ -3634,11 +3637,16 @@ function ProductAR({ product, mobile }) {
         src: product.model_url,
         'ios-src': product.ar_ios_url || undefined,
         ar: true, 'ar-modes': 'webxr scene-viewer quick-look',
+        // Premium AR/preview attributes (recommended by the 3D pass): neutral studio
+        // environment, ACES tone-mapping, soft shadows, floor placement at fixed scale.
+        'environment-image': 'neutral', exposure: '1', 'tone-mapping': 'aces',
+        'shadow-softness': '1', 'ar-placement': 'floor', 'ar-scale': 'fixed', loading: 'eager',
         'camera-controls': true, 'auto-rotate': true, 'shadow-intensity': '1',
         poster: product.image_url || undefined, alt: product.name,
         style: { width: '100%', height: mobile ? 320 : 480, background: 'var(--sand)', borderRadius: 20 },
       },
-        createElement('button', { slot: 'ar-button', key: 'arbtn', style: { position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', background: 'var(--clay)', color: '#fff', border: 'none', borderRadius: 980, padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' } }, '📱 View in your room')
+        // Clay-deep fill for white text = AA-safe (per Palette v2 / "orange never behind text").
+        createElement('button', { slot: 'ar-button', key: 'arbtn', style: { position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', background: 'var(--clay-deep)', color: '#fff', border: 'none', borderRadius: 980, padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 6px 20px rgba(137,57,30,.34)' } }, '📱 View in your room')
       )}
       <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 10 }}>{t('sw3ArHint')}</div>
     </div>
@@ -4365,14 +4373,14 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             x.fillStyle = '#3a3a3c'; x.font = `600 ${Math.round(head * 0.155)}px Inter, Arial, sans-serif`;
             x.fillText(specLine, tx, Math.round(head * 0.90));
           }
-          x.fillStyle = '#F2731C'; x.fillRect(pad, head - 4, w, 4);
+          x.fillStyle = '#A84B29'; x.fillRect(pad, head - 4, w, 4);
           x.drawImage(base, pad, head, w, h);
           const fy = head + h;
           x.fillStyle = '#1d1d1f'; x.font = `700 ${Math.round(foot * 0.26)}px Inter, Arial, sans-serif`;
           x.fillText(footTitle, pad, fy + Math.round(foot * 0.36));
           x.fillStyle = '#9aa0a6'; x.font = `400 ${Math.round(foot * 0.19)}px Inter, Arial, sans-serif`;
           x.fillText(footNote, pad, fy + Math.round(foot * 0.66));
-          x.textAlign = 'right'; x.fillStyle = '#F2731C'; x.font = `700 ${Math.round(foot * 0.22)}px Inter, Arial, sans-serif`;
+          x.textAlign = 'right'; x.fillStyle = '#A84B29'; x.font = `700 ${Math.round(foot * 0.22)}px Inter, Arial, sans-serif`;
           x.fillText('the-closets.com · +973 17555095', cw - pad, fy + Math.round(foot * 0.50));
           x.textAlign = 'left';
           try { resolve(cv.toDataURL('image/jpeg', 0.92)); } catch (e) { resolve(srcUri); }
@@ -4902,29 +4910,29 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
       + `<title>Quotation ${esc(quoteRef)} — The Closets</title>`
       + `<style>`
       + `*{box-sizing:border-box;margin:0;padding:0}`
-      + `body{font-family:Inter,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink, #211c18);background:#f3f3f3;padding:28px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}`
+      + `body{font-family:Inter,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink, #1f1913);background:#f3f3f3;padding:28px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}`
       + `.sheet{max-width:820px;margin:0 auto;background:#ffffff;padding:48px 52px;box-shadow:0 6px 30px rgba(0,0,0,.12)}`
-      + `.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid var(--clay, #F2731C);padding-bottom:18px;margin-bottom:24px}`
-      + `.wordmark{font-size:24px;font-weight:800;letter-spacing:.02em;color:var(--ink, #211c18)}`
+      + `.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid var(--clay, #A84B29);padding-bottom:18px;margin-bottom:24px}`
+      + `.wordmark{font-size:24px;font-weight:800;letter-spacing:.02em;color:var(--ink, #1f1913)}`
       + `.tag{font-size:12px;color:var(--muted, #8a7f72);margin-top:3px}`
       + `.qbox{text-align:right}`
       + `.qbox .t{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted, #8a7f72)}`
-      + `.qbox .ref{font-size:16px;font-weight:800;color:var(--clay-deep, #C2410C);margin-top:2px}`
+      + `.qbox .ref{font-size:16px;font-weight:800;color:var(--clay-deep, #89391E);margin-top:2px}`
       + `.qbox .date{font-size:12px;color:var(--ink-soft, #4a423b);margin-top:2px}`
       + `.prepared{font-size:13px;color:var(--ink-soft, #4a423b);margin-bottom:4px}`
-      + `.prepared b{color:var(--ink, #211c18)}`
-      + `.spec{font-size:12.5px;color:var(--ink-soft, #4a423b);background:var(--cream, #f7f2ec);border:1px solid var(--line, #e6ddd1);border-radius:8px;padding:10px 14px;margin:14px 0 20px}`
-      + `.img{width:100%;border:1px solid var(--line, #e6ddd1);border-radius:8px;display:block;margin-bottom:22px}`
+      + `.prepared b{color:var(--ink, #1f1913)}`
+      + `.spec{font-size:12.5px;color:var(--ink-soft, #4a423b);background:var(--cream, #f5f1ea);border:1px solid var(--line, #e2d9cc);border-radius:8px;padding:10px 14px;margin:14px 0 20px}`
+      + `.img{width:100%;border:1px solid var(--line, #e2d9cc);border-radius:8px;display:block;margin-bottom:22px}`
       + `table{width:100%;border-collapse:collapse;margin-bottom:6px}`
-      + `th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted, #8a7f72);border-bottom:2px solid var(--ink, #211c18);padding:8px 0}`
+      + `th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted, #8a7f72);border-bottom:2px solid var(--ink, #1f1913);padding:8px 0}`
       + `th.amt,td.amt{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}`
-      + `td{padding:9px 0;border-bottom:1px solid var(--line, #e6ddd1);font-size:13.5px;vertical-align:top}`
+      + `td{padding:9px 0;border-bottom:1px solid var(--line, #e2d9cc);font-size:13.5px;vertical-align:top}`
       + `td.desc .sub{display:block;font-size:11px;color:var(--muted, #8a7f72);margin-top:2px}`
       + `tr.sum td{border-bottom:none;padding:6px 0;color:var(--ink-soft, #4a423b);font-size:13px}`
-      + `tr.total td{border-top:2px solid var(--ink, #211c18);padding-top:12px;font-size:17px;font-weight:800;color:var(--ink, #211c18)}`
-      + `tr.total td.amt{color:var(--clay-deep, #C2410C)}`
-      + `.foot{margin-top:28px;padding-top:16px;border-top:1px solid var(--line, #e6ddd1);font-size:11.5px;color:var(--muted, #8a7f72)}`
-      + `.foot .contact{color:var(--clay-deep, #C2410C);font-weight:700;margin-top:6px}`
+      + `tr.total td{border-top:2px solid var(--ink, #1f1913);padding-top:12px;font-size:17px;font-weight:800;color:var(--ink, #1f1913)}`
+      + `tr.total td.amt{color:var(--clay-deep, #89391E)}`
+      + `.foot{margin-top:28px;padding-top:16px;border-top:1px solid var(--line, #e2d9cc);font-size:11.5px;color:var(--muted, #8a7f72)}`
+      + `.foot .contact{color:var(--clay-deep, #89391E);font-weight:700;margin-top:6px}`
       + `@page{size:A4;margin:14mm}`
       + `@media print{body{background:#fff;padding:0}.sheet{box-shadow:none;max-width:none;padding:0}}`
       + `</style></head><body><div class="sheet">`
@@ -5010,7 +5018,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
               <div key={p.id} className="lift" onClick={()=>setSelProduct({ id:p.id, name:p.name, ready })} style={{ cursor:'pointer', border: on?'2px solid var(--clay)':'1px solid var(--line)', borderRadius:16, background:'#fff', textAlign:'left', position:'relative', padding:'16px 16px 14px' }}>
                 {on && <span style={{ position:'absolute', top:12, right:12, width:22, height:22, borderRadius:'50%', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center' }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 6"/></svg></span>}
                 {!ready && !on && <span style={{ position:'absolute', top:12, right:12, fontSize:10, fontWeight:600, color:'var(--muted)', background:'var(--sand)', padding:'2px 8px', borderRadius:6 }}>{t('quoteOnly')}</span>}
-                <div style={{ width:42, height:42, borderRadius:11, background: on?'var(--clay)':'rgba(242,115,28,.1)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 }}>
+                <div style={{ width:42, height:42, borderRadius:11, background: on?'var(--clay)':'rgba(168,75,41,.1)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 }}>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={on?'#fff':'var(--clay)'} strokeWidth="1.6" aria-hidden="true"><path d={p.icon}/></svg>
                 </div>
                 <div className="display" style={{ fontSize:17, color:'var(--ink)' }}>{p.name}</div>
@@ -5113,7 +5121,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                 <i className="ti ti-file-invoice" aria-hidden="true" /> #{quoteRef} · {brandDateStr()}
               </div>
               {/* Top-right so it never overlaps the 3D zoom controls (bottom-right) or the drag-to-rotate hint (bottom-left). */}
-              <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', top:12, right:12, zIndex:3, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,var(--clay, #F2731C),#C2410C)', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(242,115,28,.4)' }}>
+              <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', top:12, right:12, zIndex:3, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,var(--clay, #A84B29),#89391E)', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(168,75,41,.4)' }}>
                 <i className={rendering ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" />
                 {rendering ? 'Rendering…' : (renderUrl ? 'Regenerate' : 'Make it photorealistic')}
               </button>
@@ -5199,7 +5207,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
         </div>
         {/* Mobile sticky CTA bar */}
         {mobile && (
-          <div style={{ position:'fixed', left:0, right:0, bottom:0, zIndex:80, background:'rgba(247,242,236,.96)', backdropFilter:'blur(8px)', borderTop:'1px solid var(--line)', padding:'10px 16px calc(10px + env(safe-area-inset-bottom))', display:'flex', alignItems:'center', gap:12 }}>
+          <div style={{ position:'fixed', left:0, right:0, bottom:0, zIndex:80, background:'rgba(245,241,234,.96)', backdropFilter:'blur(8px)', borderTop:'1px solid var(--line)', padding:'10px 16px calc(10px + env(safe-area-inset-bottom))', display:'flex', alignItems:'center', gap:12 }}>
             <div style={{ flexShrink:0 }}>
               <div style={{ fontSize:10.5, color:'var(--ink-soft)' }}>Total</div>
               <div style={{ fontSize:18, fontWeight:800, color:'var(--clay)', fontVariantNumeric:'tabular-nums' }}>{fmt(lineData.total)}</div>
@@ -5288,7 +5296,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
               <i className="ti ti-ruler-2" aria-hidden="true" />
               {(() => { const cv = (cm)=> unit==='in' ? (Math.round((cm/2.54)*10)/10)+' in' : cm+' cm'; return (supportsSideAB&&layout==='l-shape') ? `${cv(dims.sideA)} + ${cv(dims.sideB)} × ${cv(dims.height)} × ${cv(dims.depth)}` : `${cv(dims.width)} × ${cv(dims.height)} × ${cv(dims.depth)}`; })()}
             </div>
-            <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', bottom:12, right:12, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(249,115,22,.4)' }}>
+            <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', bottom:12, right:12, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(168,75,41,.4)' }}>
               <i className={rendering ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" />
               {rendering ? 'Rendering…' : 'Make it photorealistic'}
             </button>
@@ -5689,6 +5697,12 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
   const [prBusy, setPrBusy] = useState(false);
   const [prUrl, setPrUrl] = useState(null);
   const [prErr, setPrErr] = useState('');
+  // ── New premium-layout UI state (presentational unless noted) ──
+  const [activeGroup, setActiveGroup] = useState(null);         // material-type tab (group name)
+  const [pendingMaterial, setPendingMaterial] = useState(null); // swatch highlighted, pre-Apply
+  const [finish, setFinish] = useState('smooth');               // Smooth | Matt | Satin (cosmetic-but-real)
+  const [quickStyle, setQuickStyle] = useState('modern');       // Modern | Classic | Minimal | Luxury (cosmetic)
+  const [viewNonce, setViewNonce] = useState(0);                // bump to remount the scene (Reset View)
 
   // ── Defensive data load ──
   // Load this category's active scenes. The `category` column may not exist yet
@@ -5799,6 +5813,13 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
     });
     return { count: list.length, groups, ruleFiltered: filtered, ruleEmptied: emptied };
   }, [materials, activeSurface, applyRuleFilter]);
+
+  // Auto-select the first surface once surfaces load (the right picker is always visible).
+  useEffect(() => {
+    if (!activeSurface && surfaces.length > 0) setActiveSurface(surfaces[0].surface_key);
+  }, [surfaces, activeSurface]);
+  // Reset the material-type tab + pending swatch whenever the active surface changes.
+  useEffect(() => { setActiveGroup(null); setPendingMaterial(null); }, [activeSurface]);
 
   const openPanelFor = (key) => { setActiveSurface(key); setPanelOpen(true); };
   const surfaceLabel = (key) => { const s = surfaces.find(x => x.surface_key === key); const raw = (s && s.label) || (key ? key.charAt(0).toUpperCase() + key.slice(1) : ''); return trRd(raw, lang); };
@@ -5928,6 +5949,10 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
       <div style={ mode === '3d'
         ? { position:'relative', width:'100%', height: mobile ? 360 : 560, minHeight: mobile ? 360 : 520, borderRadius:16, overflow:'hidden', background:'#f4f1ea', boxShadow:'0 6px 30px rgba(0,0,0,.14)' }
         : { position:'relative', width:'100%', paddingTop:(aspect*100)+'%', borderRadius:16, overflow:'hidden', background:'#e9e4dc', boxShadow:'0 6px 30px rgba(0,0,0,.14)' } }>
+        {/* Reset View chip (best-effort remount of the scene) */}
+        <button type="button" onClick={()=>setViewNonce(n=>n+1)} aria-label="Reset view"
+          style={{ position:'absolute', top:12, right:12, zIndex:4, display:'inline-flex', alignItems:'center', gap:6, padding:'6px 12px', borderRadius:999, border:'1px solid var(--line)', background:'rgba(245,241,234,.92)', color:'var(--ink)', fontSize:12, fontWeight:600, cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,.12)' }}>↻ Reset View</button>
+        <div key={'rd-scene-'+viewNonce} style={{ position:'absolute', inset:0 }}>
         {(mode === '3d' && is3DCapable) ? (
           <div style={{ position:'absolute', inset:0 }}>
             {category === 'wardrobe' ? (() => {
@@ -6053,122 +6078,194 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
             })}
           </>
         )}
-      </div>
-      {/* "Your finishes" summary strip — one chip per surface, click to open its panel */}
-      {surfaces.length > 0 && (
-        <div style={{ marginTop:16 }}>
-          <div style={{ fontSize:10.5, letterSpacing:'.13em', textTransform:'uppercase', color:'var(--muted)', fontWeight:700, textAlign:'center', marginBottom:9 }}>{t('rdYourFinishes')}</div>
-          <div style={{ display:'flex', gap:8, flexWrap:'wrap', justifyContent:'center' }}>
+        </div>
+        {/* Floating surface toolbar — one button per clickable area, active one highlighted */}
+        {surfaces.length > 0 && (
+          <div style={{ position:'absolute', left:'50%', bottom:14, transform:'translateX(-50%)', maxWidth:'calc(100% - 24px)', display:'flex', gap:6, padding:6, borderRadius:16, background:'rgba(245,241,234,.94)', border:'1px solid var(--line)', boxShadow:'0 6px 22px rgba(0,0,0,.18)', overflowX:'auto', zIndex:4 }}>
             {surfaces.map(s => {
               const m = selections[s.surface_key];
               const on = activeSurface === s.surface_key;
               return (
-                <button key={'chip-'+s.id} type="button" onClick={()=>openPanelFor(s.surface_key)} title={surfaceLabel(s.surface_key)}
-                  style={{ display:'inline-flex', alignItems:'center', gap:9, padding:'6px 14px 6px 6px', borderRadius:999,
-                    border: on ? '1.5px solid var(--clay)' : '1px solid var(--line)',
-                    background: on ? 'rgba(242,115,28,.06)' : '#fff', cursor:'pointer', fontSize:12.5,
-                    boxShadow: on ? '0 2px 8px rgba(242,115,28,.14)' : '0 1px 3px rgba(0,0,0,.05)', transition:'all .2s ease' }}>
-                  <span style={{ width:24, height:24, borderRadius:'50%', flexShrink:0, boxShadow:'inset 0 0 0 1px rgba(0,0,0,.12)',
-                    background: m ? (m.hex || 'var(--sand)') : 'var(--sand)', backgroundImage: m && m.swatch_url ? `url(${absUrl(m.swatch_url)})` : undefined, backgroundSize:'cover', backgroundPosition:'center', transition:'background-color .35s ease' }} />
-                  <span style={{ fontWeight:700, color:'var(--ink)' }}>{surfaceLabel(s.surface_key)}</span>
-                  <span style={{ color: m ? 'var(--clay-deep)' : 'var(--muted)', fontWeight: m ? 600 : 400 }}>{m ? trRd(m.name, lang) : t('rdChoose')}</span>
+                <button key={'tb-'+s.id} type="button" onClick={()=>openPanelFor(s.surface_key)} title={surfaceLabel(s.surface_key)}
+                  style={{ display:'inline-flex', flexDirection:'column', alignItems:'center', gap:4, padding:'7px 12px', borderRadius:11, flexShrink:0, cursor:'pointer',
+                    border:'1px solid ' + (on ? 'var(--clay)' : 'transparent'),
+                    background: on ? 'var(--clay)' : 'transparent', transition:'all .18s ease' }}>
+                  <span style={{ width:20, height:20, borderRadius:'50%', flexShrink:0, boxShadow:'inset 0 0 0 1px rgba(0,0,0,.18)',
+                    background: m ? (m.hex || 'var(--sand)') : 'var(--sand)', backgroundImage: m && m.swatch_url ? `url(${absUrl(m.swatch_url)})` : undefined, backgroundSize:'cover', backgroundPosition:'center' }} />
+                  <span style={{ fontSize:11, fontWeight:700, whiteSpace:'nowrap', color: on ? 'var(--cream)' : 'var(--ink)' }}>{surfaceLabel(s.surface_key)}</span>
                 </button>
               );
             })}
           </div>
-        </div>
-      )}
-      {surfaces.length === 0 && (
-        <div style={{ textAlign:'center', fontSize:11.5, color:'var(--muted)', marginTop:9 }}>{lang==='ar' ? `تشطيبات ${productNounL} ${t('rdPanelEmpty')}` : `Finishes for this ${productNoun} ${t('rdPanelEmpty')}`}</div>
-      )}
-      {surfaces.length > 0 && mode === '3d' && (
-        <div style={{ textAlign:'center', fontSize:11.5, color:'var(--muted)', marginTop:9 }}>{t('rdHintOrbit')}{is3DCapable ? t('rdHintOrbitPhoto') : ''}.</div>
-      )}
-      {surfaces.length > 0 && !anySurfaceHasMask && mode === 'live' && (
-        <div style={{ textAlign:'center', fontSize:11.5, color:'var(--muted)', marginTop:9 }}>{t('rdHintMarker')}{is3DCapable ? t('rdHint3d') : ''}.</div>
-      )}
+        )}
+      </div>
+      <div style={{ textAlign:'center', fontSize:12, color:'var(--muted)', marginTop:12 }}>
+        {surfaces.length > 0 ? 'Click on any area to change materials' : (lang==='ar' ? `تشطيبات ${productNounL} ${t('rdPanelEmpty')}` : `Finishes for this ${productNoun} ${t('rdPanelEmpty')}`)}
+      </div>
     </div>
   );
 
-  // ── Material panel (right / bottom-sheet) ──
+  // ── Material picker (always-visible right column / stacked on mobile) ──
   const { count, groups, ruleFiltered, ruleEmptied } = groupedForActive();
-  const materialPanel = panelOpen ? (
+  const currentGroupName = (activeGroup && groups.some(g => g[0] === activeGroup)) ? activeGroup : (groups[0] ? groups[0][0] : null);
+  const currentItems = (groups.find(g => g[0] === currentGroupName) || [null, []])[1];
+  const appliedMat = activeSurface ? selections[activeSurface] : null;
+  const highlightMat = pendingMaterial || appliedMat;
+  const finishOpts = [['smooth','Smooth'],['matt','Matt'],['satin','Satin']];
+  const materialPicker = (
     <div style={ mobile
-      ? { position:'fixed', left:0, right:0, bottom:0, zIndex:5, maxHeight:'74vh', background:'var(--cream)', borderTopLeftRadius:22, borderTopRightRadius:22, boxShadow:'0 -10px 38px rgba(0,0,0,.26)', display:'flex', flexDirection:'column', animation:'rdSheetUp .32s cubic-bezier(.22,1,.36,1)' }
-      : { width:344, flexShrink:0, background:'var(--cream)', borderRadius:20, border:'1px solid var(--line)', display:'flex', flexDirection:'column', maxHeight:'78vh', boxShadow:'0 10px 34px rgba(0,0,0,.10)', animation:'rdPanelIn .3s ease' } }>
-      {mobile && <div aria-hidden="true" style={{ width:38, height:4, borderRadius:99, background:'var(--line)', margin:'9px auto 2px' }} />}
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding: mobile ? '8px 18px 12px' : '17px 18px 13px', borderBottom:'1px solid var(--line)' }}>
-        <div>
-          <div style={{ fontSize:10.5, letterSpacing:'.13em', textTransform:'uppercase', color:'var(--muted)', fontWeight:700, marginBottom:2 }}>{t('rdChooseFinish')}</div>
-          <div style={{ fontSize:17, fontWeight:800, color:'var(--ink)', letterSpacing:'-.01em' }}>{surfaceLabel(activeSurface)} <span style={{ color:'var(--muted)', fontWeight:600, fontSize:13 }}>· {count} {count===1?t('rdOption'):t('rdOptions')}</span></div>
-        </div>
-        <button type="button" aria-label="Close panel" onClick={()=>{ setPanelOpen(false); setActiveSurface(null); }} style={{ width:32, height:32, flexShrink:0, borderRadius:'50%', background:'#fff', border:'1px solid var(--line)', cursor:'pointer', fontSize:15, color:'var(--ink-soft)', lineHeight:1, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+      ? { width:'100%', background:'var(--cream)', borderRadius:16, border:'1px solid var(--line)', display:'flex', flexDirection:'column', boxShadow:'0 6px 22px rgba(0,0,0,.08)' }
+      : { width:330, flexShrink:0, background:'var(--cream)', borderRadius:16, border:'1px solid var(--line)', display:'flex', flexDirection:'column', maxHeight:'calc(100vh - 150px)', position:'sticky', top:0, boxShadow:'0 6px 22px rgba(0,0,0,.08)' } }>
+      <div style={{ padding:'16px 18px 12px', borderBottom:'1px solid var(--line)' }}>
+        <div style={{ fontSize:17, fontWeight:800, color:'var(--ink)', letterSpacing:'-.01em' }}>{activeSurface ? surfaceLabel(activeSurface) : t('rdChooseFinish')}</div>
+        <div style={{ fontSize:12.5, color:'var(--muted)', marginTop:2 }}>{activeSurface ? ('Select a material for ' + surfaceLabel(activeSurface).toLowerCase()) : ''}</div>
       </div>
-      <div style={{ overflowY:'auto', padding:'10px 16px 20px' }}>
-        {count === 0 && <div style={{ padding:'30px 6px', color:'var(--muted)', fontSize:13.5, textAlign:'center' }}>{t('rdNoOptions')}</div>}
-        {ruleFiltered && <div style={{ margin:'6px 4px 2px', fontSize:11.5, color:'var(--muted)' }}>{t('rdShowingAvailable')}</div>}
-        {ruleEmptied && <div style={{ margin:'6px 4px 2px', fontSize:11.5, color:'var(--muted)' }}>{t('rdAllShown')}</div>}
-        {groups.map(([gname, items]) => (
-          <div key={gname} style={{ marginTop:12 }}>
-            <div style={{ fontSize:11, letterSpacing:'.13em', textTransform:'uppercase', color:'var(--clay-deep)', fontWeight:800, margin:'6px 4px 12px' }}>{trRd(gname, lang)}</div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(76px,1fr))', gap:14 }}>
-              {items.map(m => {
-                const on = selections[activeSurface] && selections[activeSurface].id === m.id;
-                return (
-                  <button key={m.id} type="button" onClick={()=>chooseMaterial(activeSurface, m)} title={trRd(m.name, lang)}
-                    style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:7, background:'none', border:'none', cursor:'pointer', padding:0 }}>
-                    <span style={{ position:'relative', width:56, height:56, borderRadius:'50%', flexShrink:0, background: m.hex || 'var(--sand)', backgroundImage: m.swatch_url ? `url(${absUrl(m.swatch_url)})` : undefined, backgroundSize:'cover', backgroundPosition:'center',
-                      boxShadow: on ? '0 0 0 3px var(--cream), 0 0 0 5px var(--clay), 0 3px 10px rgba(242,115,28,.3)' : 'inset 0 0 0 1px rgba(0,0,0,.12)',
-                      transform: on ? 'scale(1.06)' : 'scale(1)', transition:'transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease' }}>
-                      {on && <span style={{ position:'absolute', right:-3, bottom:-3, width:21, height:21, borderRadius:'50%', background:'var(--clay)', color:'#fff', fontSize:12, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', border:'2px solid var(--cream)' }}>✓</span>}
-                    </span>
-                    <span style={{ fontSize:11, lineHeight:1.25, textAlign:'center', color: on ? 'var(--ink)' : 'var(--ink-soft)', fontWeight: on ? 700 : 500 }}>{trRd(m.name, lang)}</span>
-                    {m.price_per_m2 ? <span style={{ fontSize:10, color:'var(--muted)' }}>{fmt(m.price_per_m2)}/m²</span> : null}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+      {/* material-type tabs (group names) */}
+      {groups.length > 0 && (
+        <div style={{ display:'flex', gap:6, padding:'12px 16px 4px', overflowX:'auto', flexShrink:0 }}>
+          {groups.map(([gname]) => {
+            const on = gname === currentGroupName;
+            return (
+              <button key={gname} type="button" onClick={()=>setActiveGroup(gname)}
+                style={{ flexShrink:0, padding:'7px 13px', borderRadius:999, cursor:'pointer', fontSize:12.5, fontWeight:700,
+                  border:'1px solid ' + (on ? 'var(--clay)' : 'var(--line)'),
+                  background: on ? 'var(--clay)' : '#fff', color: on ? 'var(--cream)' : 'var(--ink-soft)' }}>{trRd(gname, lang)}</button>
+            );
+          })}
+        </div>
+      )}
+      <div style={{ overflowY:'auto', padding:'12px 16px', flex:1, minHeight: mobile ? 0 : 120 }}>
+        {count === 0 && <div style={{ padding:'30px 6px', color:'var(--muted)', fontSize:13.5, textAlign:'center' }}>{activeSurface ? t('rdNoOptions') : 'Pick an area from the toolbar to choose a material.'}</div>}
+        {ruleFiltered && <div style={{ margin:'2px 4px 8px', fontSize:11.5, color:'var(--muted)' }}>{t('rdShowingAvailable')}</div>}
+        {ruleEmptied && <div style={{ margin:'2px 4px 8px', fontSize:11.5, color:'var(--muted)' }}>{t('rdAllShown')}</div>}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:12 }}>
+          {currentItems.map(m => {
+            const on = highlightMat && highlightMat.id === m.id;
+            const applied = appliedMat && appliedMat.id === m.id;
+            return (
+              <button key={m.id} type="button" onClick={()=>{ setPendingMaterial(m); chooseMaterial(activeSurface, m); }} title={trRd(m.name, lang)}
+                style={{ display:'flex', flexDirection:'column', alignItems:'stretch', gap:7, background:'none', border:'none', cursor:'pointer', padding:0 }}>
+                <span style={{ position:'relative', width:'100%', paddingTop:'86%', borderRadius:12, background: m.hex || 'var(--sand)', backgroundImage: m.swatch_url ? `url(${absUrl(m.swatch_url)})` : undefined, backgroundSize:'cover', backgroundPosition:'center',
+                  boxShadow: on ? '0 0 0 3px var(--cream), 0 0 0 5px var(--clay), 0 4px 12px rgba(168,75,41,.28)' : 'inset 0 0 0 1px rgba(0,0,0,.12)',
+                  transition:'box-shadow .18s ease' }}>
+                  {applied && <span style={{ position:'absolute', right:6, bottom:6, width:22, height:22, borderRadius:'50%', background:'var(--clay)', color:'var(--cream)', fontSize:12, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', border:'2px solid var(--cream)' }}>✓</span>}
+                </span>
+                <span style={{ fontSize:12, lineHeight:1.25, textAlign:'left', color: on ? 'var(--ink)' : 'var(--ink-soft)', fontWeight: on ? 700 : 600 }}>{trRd(m.name, lang)}</span>
+                {m.price_per_m2 ? <span style={{ fontSize:10.5, color:'var(--muted)', textAlign:'left', marginTop:-4 }}>{fmt(m.price_per_m2)}/m²</span> : null}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      {/* Finish + Apply pinned to the bottom */}
+      <div style={{ padding:'12px 16px 16px', borderTop:'1px solid var(--line)', flexShrink:0 }}>
+        <div style={{ fontSize:10.5, letterSpacing:'.12em', textTransform:'uppercase', color:'var(--muted)', fontWeight:700, marginBottom:7 }}>Finish</div>
+        <div style={{ display:'flex', gap:4, background:'var(--sand)', border:'1px solid var(--line)', borderRadius:10, padding:3, marginBottom:12 }}>
+          {finishOpts.map(([k,label]) => (
+            <button key={k} type="button" onClick={()=>setFinish(k)}
+              style={{ flex:1, padding:'7px 0', fontSize:12.5, fontWeight:700, cursor:'pointer', border:'none', borderRadius:8,
+                background: finish===k ? 'var(--clay)' : 'transparent', color: finish===k ? 'var(--cream)' : 'var(--ink-soft)' }}>{label}</button>
+          ))}
+        </div>
+        <button type="button" disabled={!activeSurface || !highlightMat}
+          onClick={()=>{ if (activeSurface && highlightMat) chooseMaterial(activeSurface, highlightMat); }}
+          style={{ width:'100%', padding:'12px 0', borderRadius:12, border:'none', cursor: (activeSurface && highlightMat) ? 'pointer' : 'not-allowed',
+            background: (activeSurface && highlightMat) ? 'var(--ink)' : 'var(--sand)', color: (activeSurface && highlightMat) ? 'var(--cream)' : 'var(--muted)', fontSize:14, fontWeight:800 }}>Apply Material</button>
       </div>
     </div>
-  ) : null;
+  );
+
+  // ── Left column cards (stacked below on mobile) ──
+  const rdCard = { background:'var(--cream)', border:'1px solid var(--line)', borderRadius:14, padding:'14px 16px' };
+  const rdCardLabel = { fontSize:10.5, letterSpacing:'.12em', textTransform:'uppercase', color:'var(--muted)', fontWeight:700, marginBottom:9 };
+  const leftColumn = (
+    <div style={{ width: mobile ? '100%' : 248, flexShrink:0, display:'flex', flexDirection:'column', gap:14 }}>
+      <div style={rdCard}>
+        <div style={rdCardLabel}>{(productNoun.charAt(0).toUpperCase() + productNoun.slice(1))} Layout</div>
+        <select value={scene ? scene.id : ''} onChange={e=>{ const sc = scenes.find(s=>s.id===e.target.value); if (sc) selectScene(sc); }}
+          aria-label={t('rdSceneSwitcher')}
+          style={{ width:'100%', padding:'9px 11px', borderRadius:10, border:'1px solid var(--line)', background:'#fff', color:'var(--ink)', fontSize:13.5, fontWeight:600, cursor:'pointer' }}>
+          {scenes.length ? scenes.map(s => <option key={s.id} value={s.id}>{trRd(s.name, lang)}</option>) : <option>{productNounL}</option>}
+        </select>
+      </div>
+      <div style={rdCard}>
+        <div style={rdCardLabel}>View Mode</div>
+        <div style={{ display:'flex', gap:4, background:'var(--sand)', border:'1px solid var(--line)', borderRadius:10, padding:3 }}>
+          <button type="button" onClick={()=>setMode('live')} aria-pressed={mode==='live'} style={{ flex:1, padding:'8px 0', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', borderRadius:8, background: mode==='live'?'var(--clay)':'transparent', color: mode==='live'?'var(--cream)':'var(--ink-soft)' }}>2D</button>
+          <button type="button" onClick={()=>setMode('3d')} aria-pressed={mode==='3d'} style={{ flex:1, padding:'8px 0', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', borderRadius:8, background: mode==='3d'?'var(--clay)':'transparent', color: mode==='3d'?'var(--cream)':'var(--ink-soft)' }}>3D</button>
+        </div>
+      </div>
+      <div style={rdCard}>
+        <div style={rdCardLabel}>Quick Style</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+          {[['modern','Modern'],['classic','Classic'],['minimal','Minimal'],['luxury','Luxury']].map(([k,label]) => {
+            const on = quickStyle===k;
+            return <button key={k} type="button" onClick={()=>setQuickStyle(k)}
+              style={{ padding:'9px 0', borderRadius:999, cursor:'pointer', fontSize:12.5, fontWeight:700,
+                border:'1px solid ' + (on ? 'var(--clay)' : 'var(--line)'), background: on ? 'var(--clay)' : '#fff', color: on ? 'var(--cream)' : 'var(--ink-soft)' }}>{label}</button>;
+          })}
+        </div>
+      </div>
+      <div style={{ ...rdCard, background:'var(--ink)', border:'none' }}>
+        <div style={{ ...rdCardLabel, color:'rgba(245,241,234,.6)' }}>Estimated Price</div>
+        <div style={{ fontSize:26, fontWeight:800, color:'var(--cream)', letterSpacing:'-.02em' }}>{indicativeTotal != null ? fmt(indicativeTotal) : '—'}</div>
+        <button type="button" onClick={onGoToSummary} style={{ marginTop:8, background:'none', border:'none', cursor:'pointer', padding:0, fontSize:12.5, fontWeight:700, color:'var(--brass)' }}>View Full Quote ›</button>
+      </div>
+    </div>
+  );
+
+  // ── Top-bar stepper (Materials is the active step) ──
+  const rdSteps = [
+    { n:1, label:'Layout', done:true },
+    { n:2, label:'Materials', active:true },
+    { n:3, label:'Appliances' },
+    { n:4, label:'Review', go:true },
+  ];
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:11000, background:'var(--cream)', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+    <div className="rd-root" style={{ position:'fixed', inset:0, zIndex:11000, background:'var(--cream)', display:'flex', flexDirection:'column', overflow:'hidden' }}>
       <style>{`
         @keyframes rdPulse { 0% { transform:scale(.7); opacity:.85; } 70% { opacity:0; } 100% { transform:scale(1.9); opacity:0; } }
         @keyframes rdSheetUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
         @keyframes rdPanelIn { from { opacity:0; transform:translateX(10px); } to { opacity:1; transform:translateX(0); } }
         @keyframes rdSpin { to { transform:rotate(360deg); } }
         @keyframes rdFade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+        @media (prefers-reduced-motion: reduce) { .rd-root *, .rd-root *::before, .rd-root *::after { animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; } }
       `}</style>
       {/* Top bar */}
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, padding:'12px 16px', borderBottom:'1px solid var(--line)', background:'#fff', flexShrink:0 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <button type="button" aria-label="Close room designer" onClick={onClose} style={{ background:'none', border:'1px solid var(--line)', borderRadius:10, padding:'7px 12px', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--ink-soft)' }}>{lang==='ar'?'›':'‹'} {t('rdClose')}</button>
-          <span style={{ fontSize:15, fontWeight:800, color:'var(--ink)' }}>🎨 {t('rdRoomDesigner')}</span>
-          {scenes.length > 1 && (
-            <select value={scene ? scene.id : ''} onChange={e=>{ const sc = scenes.find(s=>s.id===e.target.value); if (sc) selectScene(sc); }}
-              aria-label={t('rdSceneSwitcher')}
-              style={{ marginLeft:6, padding:'7px 10px', borderRadius:10, border:'1px solid var(--line)', background:'var(--cream)', color:'var(--ink)', fontSize:13, fontWeight:600, cursor:'pointer' }}>
-              {scenes.map(s => <option key={s.id} value={s.id}>{trRd(s.name, lang)}</option>)}
-            </select>
-          )}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, padding:'10px 16px', borderBottom:'1px solid var(--line)', background:'#fff', flexShrink:0 }}>
+        {/* left: back + title chip */}
+        <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0 }}>
+          <button type="button" aria-label={t('rdClose')} onClick={onClose} style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:34, height:34, background:'#fff', border:'1px solid var(--line)', borderRadius:10, cursor:'pointer', fontSize:16, fontWeight:700, color:'var(--ink-soft)' }}>{lang==='ar'?'›':'‹'}</button>
+          <span style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'7px 12px', borderRadius:10, background:'var(--sand)', border:'1px solid var(--line)', fontSize:13.5, fontWeight:800, color:'var(--ink)', whiteSpace:'nowrap' }}>🎨 {t('rdRoomDesigner')}</span>
         </div>
-        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          {/* Live / 3D toggle (Approach C) */}
-          <div style={{ display:'flex', gap:2, background:'var(--sand)', border:'1px solid var(--line)', borderRadius:10, padding:3 }}>
-            {/* All product categories now have a real 3D scene — the 3D button is always live. */}
-            <button type="button" onClick={()=>setMode('3d')} style={seg(mode==='3d')} aria-pressed={mode==='3d'}>{t('rd3d')}</button>
-            <button type="button" onClick={()=>setMode('live')} style={seg(mode==='live')} aria-pressed={mode==='live'}>{t('rdPhoto')}</button>
+        {/* center: stepper */}
+        {!mobile && (
+          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+            {rdSteps.map((st, i) => [
+              <button key={'st'+st.n} type="button" onClick={st.go ? onGoToSummary : undefined}
+                style={{ display:'inline-flex', alignItems:'center', gap:7, background:'none', border:'none', padding:'2px 4px', cursor: st.go ? 'pointer' : 'default' }}>
+                <span style={{ width:24, height:24, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:800,
+                  background: (st.active||st.done) ? 'var(--ink)' : '#fff', color: (st.active||st.done) ? 'var(--cream)' : 'var(--muted)', border:'1px solid ' + ((st.active||st.done) ? 'var(--ink)' : 'var(--line)') }}>{st.done ? '✓' : st.n}</span>
+                <span style={{ fontSize:12.5, fontWeight: st.active ? 800 : 600, color: st.active ? 'var(--ink)' : 'var(--muted)' }}>{st.label}</span>
+              </button>,
+              i < rdSteps.length - 1 ? <span key={'sd'+st.n} aria-hidden="true" style={{ width:20, height:1, background:'var(--line)' }} /> : null
+            ])}
           </div>
-          <button type="button" onClick={onGoToSummary} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:10, border:'none', cursor:'pointer', background:'#1D9E75', color:'#fff', fontSize:13.5, fontWeight:700 }}>{summaryLabel} {summaryArrow}</button>
+        )}
+        {/* right: save / share / render */}
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          {!mobile && <button type="button" style={{ padding:'8px 14px', borderRadius:10, border:'1px solid var(--line)', background:'#fff', color:'var(--ink-soft)', fontSize:13, fontWeight:700, cursor:'pointer' }}>Save</button>}
+          {!mobile && <button type="button" style={{ padding:'8px 14px', borderRadius:10, border:'1px solid var(--line)', background:'#fff', color:'var(--ink-soft)', fontSize:13, fontWeight:700, cursor:'pointer' }}>Share</button>}
+          <button type="button" onClick={renderPhotoreal} disabled={prBusy}
+            style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'9px 16px', borderRadius:10, border:'none', cursor: prBusy ? 'wait' : 'pointer', background:'var(--ink)', color:'var(--cream)', fontSize:13, fontWeight:800, whiteSpace:'nowrap' }}>
+            <i className={prBusy ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" /> {prBusy ? t('rdRendering') : (mobile ? 'Render' : t('rdRenderPhotoreal'))}{!prBusy ? ' ✨' : ''}
+          </button>
         </div>
       </div>
 
       {/* Body */}
-      <div style={{ flex:1, overflowY:'auto', padding: mobile ? '14px 12px 80px' : '20px 24px' }}>
+      <div style={{ flex:1, overflowY:'auto', padding: mobile ? '12px 12px 40px' : '18px 22px' }}>
         {loading && <div style={{ textAlign:'center', padding:'80px 20px', color:'var(--muted)' }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:24 }} /><div style={{ marginTop:10 }}>{t('rdLoading')}</div></div>}
         {!loading && loadErr && (
           <div style={{ textAlign:'center', padding:'70px 20px', color:'var(--muted)' }}>
@@ -6178,19 +6275,12 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
           </div>
         )}
         {!loading && !loadErr && (
-          <div style={{ display:'flex', gap:20, alignItems:'flex-start', flexDirection: mobile ? 'column' : 'row', maxWidth:1320, margin:'0 auto' }}>
+          <div style={{ display:'flex', gap:18, alignItems:'flex-start', flexDirection: mobile ? 'column' : 'row', maxWidth:1360, margin:'0 auto' }}>
+            {!mobile && leftColumn}
+            {/* Center stage */}
             <div style={{ flex:1, minWidth:0, width:'100%' }}>
               {sceneStage}
-              {/* Indicative price + photoreal (Approach B) */}
-              <div style={{ display:'flex', flexWrap:'wrap', gap:12, alignItems:'center', justifyContent:'center', marginTop:18 }}>
-                {indicativeTotal != null && (
-                  <div style={{ fontSize:13, color:'var(--ink-soft)' }}>{t('rdIndicativeTotal')} <strong style={{ color:'var(--clay)', fontSize:16 }}>{fmt(indicativeTotal)}</strong></div>
-                )}
-                <button type="button" onClick={renderPhotoreal} disabled={prBusy} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:12, border:'none', cursor: prBusy?'wait':'pointer', background:'linear-gradient(135deg,var(--clay, #F2731C),#C2410C)', color:'#fff', fontSize:13.5, fontWeight:700, boxShadow:'0 4px 14px rgba(242,115,28,.35)' }}>
-                  <i className={prBusy ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" /> {prBusy ? t('rdRendering') : t('rdRenderPhotoreal')}
-                </button>
-              </div>
-              {prErr && <div role="alert" style={{ marginTop:12, maxWidth:540, marginLeft:'auto', marginRight:'auto', background:'#fff7f3', border:'1px solid #f3d3c2', color:'var(--clay-deep)', borderRadius:12, padding:'11px 16px', fontSize:13, textAlign:'center', animation:'rdFade .25s ease' }}>{prErr}</div>}
+              {prErr && <div role="alert" style={{ marginTop:14, maxWidth:540, marginLeft:'auto', marginRight:'auto', background:'#fff7f3', border:'1px solid var(--line)', color:'var(--clay-deep)', borderRadius:12, padding:'11px 16px', fontSize:13, textAlign:'center', animation:'rdFade .25s ease' }}>{prErr}</div>}
               {prUrl && (
                 <div style={{ marginTop:18, maxWidth:640, marginLeft:'auto', marginRight:'auto', background:'#fff', borderRadius:20, border:'1px solid var(--line)', boxShadow:'0 12px 40px rgba(0,0,0,.12)', overflow:'hidden', animation:'rdFade .35s ease' }}>
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 18px', borderBottom:'1px solid var(--line)' }}>
@@ -6199,30 +6289,19 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
                   </div>
                   <img src={prUrl} alt={'Photoreal render of your ' + productNoun} style={{ display:'block', width:'100%' }} />
                   <div style={{ padding:'14px 18px 16px', textAlign:'center' }}>
-                    <a href={prUrl} download="closets-room.jpg" style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'9px 18px', borderRadius:11, background:'var(--clay)', color:'#fff', fontSize:13, fontWeight:700, textDecoration:'none', boxShadow:'0 3px 12px rgba(242,115,28,.32)' }}>↓ {t('rdDownloadRender')}</a>
+                    <a href={prUrl} download="closets-room.jpg" style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'9px 18px', borderRadius:11, background:'var(--clay)', color:'var(--cream)', fontSize:13, fontWeight:700, textDecoration:'none', boxShadow:'0 3px 12px rgba(168,75,41,.32)' }}>↓ {t('rdDownloadRender')}</a>
                     <div style={{ fontSize:10.5, color:'var(--muted)', marginTop:10 }}>{t('rdAiDisclaimer')}</div>
                   </div>
                 </div>
               )}
             </div>
-            {/* Right panel (desktop). On mobile it renders as a fixed bottom sheet. */}
-            {!mobile && (
-              <div style={{ flexShrink:0 }}>
-                {materialPanel || (
-                  <div style={{ width:340, background:'#fff', borderRadius:18, border:'1px solid var(--line)', padding:'22px 20px', color:'var(--ink-soft)', fontSize:13.5 }}>
-                    <div style={{ fontSize:15, fontWeight:800, color:'var(--ink)', marginBottom:8 }}>{t('rdStyleYour')} {productNounL}</div>
-                    {surfaces.length === 0
-                      ? <>{lang==='ar' ? `تشطيبات ${productNounL} ${t('rdSettingUp')}` : `Finishes for this ${productNoun} ${t('rdSettingUp')}`}</>
-                      : <>{t('rdTapMarker')} “{'+'}” {t('rdMarkerToChoose')}{is3DCapable ? ' ' + t('rdInThe3d') : ''} {t('rdToChooseFinishesFor')} {surfaces.slice(0,3).map(s => trRd(s.label || s.surface_key, lang)).join('، ') || t('rdEachSurface')} {t('rdAndMore')}</>}
-                  </div>
-                )}
-              </div>
-            )}
+            {/* Right material picker (always visible) */}
+            {materialPicker}
+            {/* Left column stacked at the bottom on mobile */}
+            {mobile && leftColumn}
           </div>
         )}
       </div>
-      {/* Mobile bottom-sheet panel */}
-      {mobile && materialPanel}
       {/* Photoreal pending overlay */}
       {prBusy && (
         <div style={{ position:'fixed', inset:0, zIndex:11050, background:'rgba(15,18,22,.74)', backdropFilter:'blur(2px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
@@ -6351,15 +6430,15 @@ function HomeHub({ user, setUser, setPage }) {
     return `<!doctype html><html dir="${rtl ? 'rtl' : 'ltr'}" lang="${lang}"><head><meta charset="utf-8"/>
 <title>Invoice ${esc(num)}</title>
 <style>
-*{box-sizing:border-box} body{font-family:${lang==='ar'?"'Tajawal',":''}Arial,Helvetica,sans-serif;color:var(--ink, #211c18);margin:0;background:#fff}
+*{box-sizing:border-box} body{font-family:${lang==='ar'?"'Tajawal',":''}Arial,Helvetica,sans-serif;color:var(--ink, #1f1913);margin:0;background:#fff}
 .page{max-width:780px;margin:0 auto;padding:40px 44px}
-.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--clay, #f2731c);padding-bottom:20px;margin-bottom:26px}
-.brand{font-size:22px;font-weight:800;letter-spacing:.04em;color:var(--ink, #211c18)}
+.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--clay, #A84B29);padding-bottom:20px;margin-bottom:26px}
+.brand{font-size:22px;font-weight:800;letter-spacing:.04em;color:var(--ink, #1f1913)}
 .co{font-size:12px;color:var(--shop-ink-2, #6e6e73);margin-top:6px;line-height:1.6}
 .title{text-align:${rtl ? 'left' : 'right'}}
-.title h1{font-size:26px;margin:0 0 6px;color:var(--ink, #211c18);letter-spacing:-.01em}
+.title h1{font-size:26px;margin:0 0 6px;color:var(--ink, #1f1913);letter-spacing:-.01em}
 .meta{font-size:12.5px;color:var(--shop-ink-2, #6e6e73);line-height:1.8}
-.meta b{color:var(--ink, #211c18)}
+.meta b{color:var(--ink, #1f1913)}
 .billto{margin:22px 0 18px}
 .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#9a948d;margin-bottom:5px}
 .billto .nm{font-size:14px;font-weight:700}
@@ -6372,8 +6451,8 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
 .totals table{width:100%;border-collapse:collapse}
 .totals td{padding:7px 12px;font-size:13px}
 .totals td.tl{color:var(--shop-ink-2, #6e6e73)}
-.totals tr.grand td{font-size:16px;font-weight:800;border-top:2px solid var(--ink, #211c18);padding-top:11px}
-.pay{display:inline-block;margin-top:10px;padding:5px 12px;border-radius:980px;font-size:12px;font-weight:700;background:#f2731c18;color:#a3520f}
+.totals tr.grand td{font-size:16px;font-weight:800;border-top:2px solid var(--ink, #1f1913);padding-top:11px}
+.pay{display:inline-block;margin-top:10px;padding:5px 12px;border-radius:980px;font-size:12px;font-weight:700;background:#A84B2918;color:#a3520f}
 .foot{margin-top:36px;border-top:1px solid #ece6df;padding-top:16px;font-size:11.5px;color:#9a948d;text-align:center}
 @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{padding:24px}}
 </style></head><body><div class="page">
@@ -6524,13 +6603,13 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
   return (
     <div dir={dir} style={{ minHeight: '100dvh', paddingBottom: mobile ? 80 : 0, background: 'var(--shop-fill, #f5f5f7)' }}>
       {/* ── Single cohesive account bar (logo + account + back/sign-out, with tab row) ── */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 50, background: 'var(--cream, #f7f2ec)', borderBottom: '1px solid var(--line, #ece6df)' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 50, background: 'var(--cream, #f5f1ea)', borderBottom: '1px solid var(--line, #ece6df)' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: mobile ? '12px 16px 0' : '12px 32px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
             <button type="button" onClick={() => setPage('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, padding: 0 }}>
               {logoSrc
                 ? <img src={logoSrc} alt={brandTxt} style={{ height: 30, width: 'auto', maxWidth: 120, objectFit: 'contain', borderRadius: 6 }} />
-                : <span style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 16, fontWeight: 600, color: 'var(--ink, #211c18)', letterSpacing: '.02em' }}>{brandTxt}</span>}
+                : <span style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 16, fontWeight: 600, color: 'var(--ink, #1f1913)', letterSpacing: '.02em' }}>{brandTxt}</span>}
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: mobile ? 8 : 12 }}>
               {!mobile && (
@@ -6539,7 +6618,7 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
                   <div style={{ fontSize: 11.5, color: 'var(--muted, #86868b)' }}>{user.tier||'Bronze'} · {(user.points||0).toLocaleString()} pts</div>
                 </div>
               )}
-              <button type="button" onClick={() => setPage('home')} style={{ background: '#fff', border: '1px solid var(--line, #ece6df)', borderRadius: 980, padding: '7px 13px', fontSize: 13, fontWeight: 500, color: 'var(--ink, #211c18)', cursor: 'pointer', whiteSpace: 'nowrap' }}>{rtl ? '→ ' : '← '}{t('hubBackToSite')}</button>
+              <button type="button" onClick={() => setPage('home')} style={{ background: '#fff', border: '1px solid var(--line, #ece6df)', borderRadius: 980, padding: '7px 13px', fontSize: 13, fontWeight: 500, color: 'var(--ink, #1f1913)', cursor: 'pointer', whiteSpace: 'nowrap' }}>{rtl ? '→ ' : '← '}{t('hubBackToSite')}</button>
               <button type="button" onClick={() => { setUser(null); localStorage.removeItem('closets_user'); setPage('home'); }} style={{ background: 'rgba(217,48,37,.08)', border: 'none', borderRadius: 980, padding: '7px 13px', fontSize: 13, fontWeight: 500, color: '#d93025', cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('hubSignOut')}</button>
             </div>
           </div>
@@ -6628,7 +6707,7 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
                     </div>
                     <div style={{ textAlign: rtl ? 'left' : 'right' }}>
                       <div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginBottom:4 }}>{fmt(order.total||order.total_amount||order.amount)}</div>
-                      <Pill label={order.status||'Processing'} color="var(--clay)" bg="rgba(249,115,22,.1)" />
+                      <Pill label={order.status||'Processing'} color="var(--clay)" bg="rgba(168,75,41,.1)" />
                     </div>
                   </div>
                   <button type="button" onClick={()=>{ const k='ledger-'+order.id; if(open){setExpandedOrder(null);} else {setExpandedOrder(k); loadOrderItems(order.id);} }} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--clay)', fontSize:13, fontWeight:600, padding:'8px 0 0', display:'inline-flex', gap:5 }}>{open ? t('hubHideItems') : t('hubViewItems')} {open ? '▴' : '▾'}</button>
@@ -6697,7 +6776,7 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
                 <div key={o.id} style={{ background:'#fff', borderRadius:16, padding:'16px 18px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:10 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
                     <div><div style={{ fontSize:14, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', marginBottom:3 }}>{o.order_number||o.order_num||o.id}</div><div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{o.created_at?new Date(o.created_at).toLocaleDateString('en-GB'):'—'}</div></div>
-                    <div style={{ textAlign: rtl ? 'left' : 'right' }}><div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginBottom:6 }}>{fmt(o.total||o.total_amount||o.amount)}</div><Pill label={o.status||'Processing'} color="var(--clay)" bg="rgba(249,115,22,.1)" /></div>
+                    <div style={{ textAlign: rtl ? 'left' : 'right' }}><div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginBottom:6 }}>{fmt(o.total||o.total_amount||o.amount)}</div><Pill label={o.status||'Processing'} color="var(--clay)" bg="rgba(168,75,41,.1)" /></div>
                   </div>
                   <div style={{ display:'flex', gap:12, alignItems:'center', marginTop:8, flexWrap:'wrap' }}>
                     <button type="button" onClick={()=>{ const k='orders-'+o.id; if(open){setExpandedOrder(null);} else {setExpandedOrder(k); loadOrderItems(o.id);} }} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--clay)', fontSize:13, fontWeight:600, padding:0, display:'inline-flex', gap:5 }}>{open ? t('hubHideItems') : t('hubViewItems')} {open ? '▴' : '▾'}</button>
@@ -6842,7 +6921,7 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
             {tickets.map(t=>(
               <div key={t.id} style={{ background:'#fff', borderRadius:14, padding:'14px 18px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                 <div><div style={{ fontSize:14, fontWeight:500, color:'var(--shop-ink, #1d1d1f)', marginBottom:2 }}>{t.subject}</div><div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{t.id} · {t.priority}</div></div>
-                <Pill label={t.status||'Open'} color="var(--clay)" bg="rgba(249,115,22,.1)" />
+                <Pill label={t.status||'Open'} color="var(--clay)" bg="rgba(168,75,41,.1)" />
               </div>
             ))}
           </>}
@@ -6915,7 +6994,7 @@ function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
         : { position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', width:'min(390px,95vw)', maxHeight:'90svh', overflowY:'auto', background:'#fff', borderRadius:24, padding:'44px 40px', zIndex:2001, animation:'fadeUp .3s ease', boxShadow:'0 24px 64px rgba(0,0,0,.15)' }}>
         {mobile && <div style={{ width:36, height:4, background:'var(--shop-line, #e6e6e6)', borderRadius:2, margin:'-12px auto 20px' }} />}
         <div style={{ textAlign:'center', marginBottom:28 }}>
-          <div style={{ width:48, height:48, borderRadius:14, background:'rgba(249,115,22,.12)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px', fontSize:22 }}>◼</div>
+          <div style={{ width:48, height:48, borderRadius:14, background:'rgba(168,75,41,.12)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px', fontSize:22 }}>◼</div>
           <div style={{ fontSize:22, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', letterSpacing:'-.02em', marginBottom:5 }}>{mode==='reset'?t('w4AuthReset'):mode==='login'?t('w4AuthWelcome'):t('w4AuthCreate')}</div>
           <div style={{ fontSize:14, color:'var(--shop-muted, #86868b)' }}>{mode==='reset'?t('w4AuthResetSub'):mode==='login'?t('w4AuthLoginSub'):t('w4AuthRegisterSub')}</div>
         </div>
@@ -7473,11 +7552,11 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
                 <div style={{ fontSize:13, fontWeight:600, color:'var(--shop-muted, #86868b)', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:20 }}>{t('swCoStep2')}</div>
                 <div style={{ display:'flex', gap:8, marginBottom:16 }}>
                   {[['Card',t('swCoCard')],['Bank Transfer',t('swCoBankTransfer')],['Cash',t('swCoCash')],['Cheque',t('swCoCheque')]].map(([p,plabel])=>(
-                    <button type="button" key={p} onClick={()=>{ setForm(f=>({...f,payment:p})); setMonths(0); }} style={{ flex:1, padding:'12px 8px', borderRadius:12, border:`1.5px solid ${form.payment===p&&months===0?'var(--clay)':'#e6e6e6'}`, background:form.payment===p&&months===0?'rgba(249,115,22,.08)':'#fff', color:form.payment===p&&months===0?'var(--clay)':'#6e6e73', fontSize:13, cursor:'pointer', fontWeight:form.payment===p&&months===0?500:400, transition:'all .15s' }}>{plabel}</button>
+                    <button type="button" key={p} onClick={()=>{ setForm(f=>({...f,payment:p})); setMonths(0); }} style={{ flex:1, padding:'12px 8px', borderRadius:12, border:`1.5px solid ${form.payment===p&&months===0?'var(--clay)':'#e6e6e6'}`, background:form.payment===p&&months===0?'rgba(168,75,41,.08)':'#fff', color:form.payment===p&&months===0?'var(--clay)':'#6e6e73', fontSize:13, cursor:'pointer', fontWeight:form.payment===p&&months===0?500:400, transition:'all .15s' }}>{plabel}</button>
                   ))}
                 </div>
                 {form.payment==='Card' && months===0 && (
-                  <div style={{ marginBottom:16, background:'rgba(249,115,22,.06)', border:'1px solid rgba(249,115,22,.22)', borderRadius:12, padding:'11px 13px', fontSize:12.5, color:'var(--shop-ink-2, #6e6e73)', lineHeight:1.6 }}>
+                  <div style={{ marginBottom:16, background:'rgba(168,75,41,.06)', border:'1px solid rgba(168,75,41,.22)', borderRadius:12, padding:'11px 13px', fontSize:12.5, color:'var(--shop-ink-2, #6e6e73)', lineHeight:1.6 }}>
                     {t('swCoCardNote')}
                   </div>
                 )}
@@ -7486,7 +7565,7 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
                     <div style={{ fontSize:13, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', marginBottom:8 }}>{t('swCheckoutSplit')}</div>
                     <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                       {plans.map(m=>(
-                        <button type="button" key={m} onClick={()=>setMonths(months===m?0:m)} style={{ padding:'10px 14px', borderRadius:12, border:`1.5px solid ${months===m?'var(--clay)':'#e6e6e6'}`, background:months===m?'rgba(249,115,22,.08)':'#fff', cursor:'pointer', textAlign:'left' }}>
+                        <button type="button" key={m} onClick={()=>setMonths(months===m?0:m)} style={{ padding:'10px 14px', borderRadius:12, border:`1.5px solid ${months===m?'var(--clay)':'#e6e6e6'}`, background:months===m?'rgba(168,75,41,.08)':'#fff', cursor:'pointer', textAlign:'left' }}>
                           <div style={{ fontSize:14, fontWeight:700, color:months===m?'var(--clay)':'#1d1d1f' }}>{m} {t('swCoMonths')}</div>
                           <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>BHD {(total/m).toFixed(2)}/mo</div>
                         </button>
@@ -8818,7 +8897,7 @@ function YasRoomRedesign({ setPage }) {
 // 3) Style Finder / Moodboard — vibe tags → ai_design_concept → palette (fallback curated).
 const YAS_VIBES = ['Calm', 'Warm', 'Bold', 'Natural', 'Luxe', 'Airy', 'Moody', 'Playful', 'Timeless', 'Coastal'];
 const YAS_PALETTES = {
-  default: { style: 'Warm Modern', colors: [['Warm Oak', '#c89b5e'], ['Soft Cream', '#efe7dc'], ['Graphite', '#3a3a3c'], ['Clay', '#F2731C']], materials: ['Natural oak veneer', 'Matt lacquer', 'Brushed brass', 'Linen textiles'] },
+  default: { style: 'Warm Modern', colors: [['Warm Oak', '#c89b5e'], ['Soft Cream', '#ebe4d8'], ['Graphite', '#3a3a3c'], ['Clay', '#A84B29']], materials: ['Natural oak veneer', 'Matt lacquer', 'Brushed brass', 'Linen textiles'] },
   Moody: { style: 'Bold Walnut', colors: [['Deep Walnut', '#3f2a17'], ['Forest', '#2f4030'], ['Bronze', '#8a6a3a'], ['Charcoal', '#1f1c19']], materials: ['Walnut veneer', 'Smoked glass', 'Antique bronze', 'Velvet accents'] },
   Coastal: { style: 'Coastal Calm', colors: [['Whitewash', '#eef1f0'], ['Sea Blue', '#7fa9b3'], ['Sand', '#d8c8ad'], ['Driftwood', '#b6a892']], materials: ['Whitewashed oak', 'Woven rattan', 'Soft cotton', 'Matte ceramic'] },
   Luxe: { style: 'Modern Luxe', colors: [['Matte Black', '#1d1d1f'], ['Marble White', '#f3f1ec'], ['Champagne Gold', '#cbab73'], ['Slate', '#54585c']], materials: ['Marble surfaces', 'Brushed gold', 'High-gloss lacquer', 'Smoked mirror'] },
@@ -9428,7 +9507,7 @@ function ChatWidget({ setPage }) {
     { key:'showrooms', label:t('swChatChipShowrooms') },
   ];
   return (<>
-    <button type="button" onClick={()=>setOpen(o=>!o)} aria-label={t('swChatAria')} style={{ position:'fixed', right: mobile?16:24, bottom: mobile?88:24, zIndex:1400, width:56, height:56, borderRadius:'50%', background:'var(--clay)', border:'none', boxShadow:'0 6px 20px rgba(249,115,22,.4)', cursor:'pointer', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center' }}>
+    <button type="button" onClick={()=>setOpen(o=>!o)} aria-label={t('swChatAria')} style={{ position:'fixed', right: mobile?16:24, bottom: mobile?88:24, zIndex:1400, width:56, height:56, borderRadius:'50%', background:'var(--clay)', border:'none', boxShadow:'0 6px 20px rgba(168,75,41,.4)', cursor:'pointer', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center' }}>
       {open
         ? <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
         : <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5z"/></svg>}
@@ -10463,7 +10542,7 @@ function TVUnitPlannerWizard({ setPage, user, openAuth }) {
       ...storeItems.map(s=>`<tr><td>${s.name} ×${s.qty}</td><td style="text-align:right">${fmt(s.line)}</td></tr>`),
       ...lightItems.map(l=>`<tr><td>${l.name}</td><td style="text-align:right">${fmt(l.line)}</td></tr>`),
     ].join('');
-    w.document.write(`<html><head><title>TV Unit Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #C2410C);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
+    w.document.write(`<html><head><title>TV Unit Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
       <h1>The Closets — TV / Media Unit Quotation</h1>
       <p class="muted">${room.name} · ${lay.name} layout · Wall ${dims.wallW}×${dims.wallH}mm · ${carc.name} carcass · ${fin.name} finish · ${dec.name} panels</p>
       <p class="muted">TV ${tv.size}" ${tv.mount} · centre at ${tvCentre}mm</p>
@@ -10514,7 +10593,7 @@ function TVUnitPlannerWizard({ setPage, user, openAuth }) {
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?14:18, marginBottom:18 }}>
           {tvLayoutsView.map(l=>{ const on=layout===l.id; return (
             <button key={l.id} type="button" onClick={()=>pickLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:16, boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
-              <div style={{ position:'relative', width:'100%', background:'var(--cream,#f7f2ec)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
+              <div style={{ position:'relative', width:'100%', background:'var(--cream,#f5f1ea)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
                 <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height:'auto' }} />
                 {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:999, letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
               </div>
@@ -10945,7 +11024,7 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
       ...storeItems.map(s=>`<tr><td>${s.name} ×${s.qty}</td><td style="text-align:right">${fmt(s.line)}</td></tr>`),
       ...lightItems.map(l=>`<tr><td>${l.name}</td><td style="text-align:right">${fmt(l.line)}</td></tr>`),
     ].join('');
-    w.document.write(`<html><head><title>Home Office Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #C2410C);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
+    w.document.write(`<html><head><title>Home Office Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
       <h1>The Closets — Home Office Quotation</h1>
       <p class="muted">${room.name} · ${lay.name} layout · Wall ${dims.wallW}×${dims.wallH}mm · ${carc.name} carcass · ${fin.name} finish · ${wtop.name} worktop</p>
       <p class="muted">Desk ${desk.length}×${desk.depth}mm · ${desk.shape}</p>
@@ -10996,7 +11075,7 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?14:18, marginBottom:18 }}>
           {officeLayoutsView.map(l=>{ const on=layout===l.id; return (
             <button key={l.id} type="button" onClick={()=>pickLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:16, boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
-              <div style={{ position:'relative', width:'100%', background:'var(--cream,#f7f2ec)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
+              <div style={{ position:'relative', width:'100%', background:'var(--cream,#f5f1ea)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
                 <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height:'auto' }} />
                 {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:999, letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
               </div>
@@ -11578,7 +11657,7 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
       ...accItems.map(a=>`<tr><td>${a.name} ×${a.qty}</td><td style="text-align:right">${fmt(a.line)}</td></tr>`),
       ...lightItems.map(l=>`<tr><td>${l.name}</td><td style="text-align:right">${fmt(l.price)}</td></tr>`),
     ].join('');
-    w.document.write(`<html><head><title>Wardrobe Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #C2410C);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}.ai{background:#f6efe6;border-radius:10px;padding:10px 14px;margin:12px 0;font-size:12px;color:#6b5440}</style></head><body>
+    w.document.write(`<html><head><title>Wardrobe Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}.ai{background:#f6efe6;border-radius:10px;padding:10px 14px;margin:12px 0;font-size:12px;color:#6b5440}</style></head><body>
       <h1>The Closets — Wardrobe Quotation</h1>
       <p class="muted">${room.name} · ${lay.name} layout · Room ${dims.width}×${dims.length}×${dims.height}mm · ${carc.name} carcass · ${fin.name} finish</p>
       <div class="ai"><b>AI storage allocation:</b> ${pctStr}</div>
@@ -11649,7 +11728,7 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?14:18, marginBottom:18 }}>
           {wwLayoutsView.map(l=>{ const on=layout===l.id; return (
             <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:16, boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
-              <div style={{ position:'relative', width:'100%', aspectRatio:'1017 / 602', background:'var(--cream,#f7f2ec)', overflow:'hidden' }}>
+              <div style={{ position:'relative', width:'100%', aspectRatio:'1017 / 602', background:'var(--cream,#f5f1ea)', overflow:'hidden' }}>
                 <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height:'100%', objectFit:'cover' }} />
                 {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:999, letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
               </div>
@@ -12184,7 +12263,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
       `<tr><td>Hardware — ${hg.name} hinges ×${hingeQty}, ${lk.name} lock, ${hd.name} handle</td><td style="text-align:right">${fmt(hardwareTotal)}</td></tr>`,
       ...accItems.map(a=>`<tr><td>${a.name}</td><td style="text-align:right">${fmt(a.line)}</td></tr>`),
     ].filter(Boolean).join('');
-    w.document.write(`<html><head><title>Wood Door Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #C2410C);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
+    w.document.write(`<html><head><title>Wood Door Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
       <h1>The Closets — Wood Door Quotation</h1>
       <p class="muted">${dt.name} · ${loc.name} · ${dims.w}×${dims.h}mm · ${cr.name} core · ${fr.name} frame · ${st.name} style</p>
       <p class="muted">Finish: ${wd.name} ${sf.name} · Glass: ${gl.name} · Leaf weight ≈ ${leafWeight}kg · Direction: ${isSlide?slide.name:swing.name}</p>
@@ -12226,7 +12305,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?14:18 }}>
           {doorTypesView.map(t=>{ const on=doorType===t.id; return (
             <button key={t.id} type="button" onClick={()=>setDoorType(t.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:16, boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
-              <div style={{ position:'relative', width:'100%', background:'var(--cream,#f7f2ec)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
+              <div style={{ position:'relative', width:'100%', background:'var(--cream,#f5f1ea)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
                 <img src={t.img} alt={t.name} loading="lazy" style={{ display:'block', width:'100%', height:'auto' }} />
                 {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:999, letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
               </div>
@@ -13006,7 +13085,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
     const applRows = (D.installation.appliances_to_connect||[]).map(a=>`<li>${esc(a.name)} ×${a.qty}</li>`).join('') || '<li class="muted">None flagged</li>';
     const accFitRows = (D.installation.handles_accessories_fit||[]).map(a=>`<li>${esc(a.name)} ×${a.qty}</li>`).join('') || '<li class="muted">None</li>';
 
-    w.document.write(`<html><head><title>Kitchen Quotation & Production Pack</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:760px;margin:0 auto}h1{font-size:24px}h2{font-size:17px;color:#9a3412;margin:30px 0 4px;border-top:2px solid #e3d6c6;padding-top:18px}table{width:100%;border-collapse:collapse;margin-top:10px}th{text-align:left;font-size:11px;color:#8a7a68;text-transform:uppercase;letter-spacing:.4px;padding:6px 4px;border-bottom:1px solid #cbb89f}td{padding:7px 4px;border-bottom:1px solid #e3d6c6;font-size:12.5px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #C2410C);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}.tag{display:inline-block;background:#fdebd3;color:#9a3412;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;text-transform:uppercase;letter-spacing:.4px}ul{font-size:12.5px;margin:6px 0;padding-left:20px}.grid{display:flex;gap:24px;flex-wrap:wrap;font-size:12.5px;margin-top:8px}@media print{h2{page-break-after:avoid}}</style></head><body>
+    w.document.write(`<html><head><title>Kitchen Quotation & Production Pack</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:760px;margin:0 auto}h1{font-size:24px}h2{font-size:17px;color:#9a3412;margin:30px 0 4px;border-top:2px solid #e3d6c6;padding-top:18px}table{width:100%;border-collapse:collapse;margin-top:10px}th{text-align:left;font-size:11px;color:#8a7a68;text-transform:uppercase;letter-spacing:.4px;padding:6px 4px;border-bottom:1px solid #cbb89f}td{padding:7px 4px;border-bottom:1px solid #e3d6c6;font-size:12.5px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}.tag{display:inline-block;background:#fdebd3;color:#9a3412;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;text-transform:uppercase;letter-spacing:.4px}ul{font-size:12.5px;margin:6px 0;padding-left:20px}.grid{display:flex;gap:24px;flex-wrap:wrap;font-size:12.5px;margin-top:8px}@media print{h2{page-break-after:avoid}}</style></head><body>
       <h1>The Closets — Kitchen Quotation</h1>
       <p class="muted">${esc(lay.name)} layout · Room ${dims.length}×${dims.width}×${dims.ceiling}mm · ${esc(carc.name)} carcass · ${esc(door.name)} doors</p>
       <p class="muted">Work triangle: ${triOK?'within recommended guidelines':'review recommended'} — total ${triTotal.toFixed(1)}m</p>
@@ -13105,7 +13184,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?14:18, marginBottom:18 }}>
           {kwLayoutsView.map(l=>{ const on=layout===l.id; return (
             <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:16, boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
-              <div style={{ position:'relative', width:'100%', background:'var(--cream,#f7f2ec)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
+              <div style={{ position:'relative', width:'100%', background:'var(--cream,#f5f1ea)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
                 <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height:'auto' }} />
                 {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:999, letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
               </div>
@@ -15407,7 +15486,7 @@ function DesignBuilderPage({ setPage, user }) {
                 {catalog.styles.map(s => { const on = styleId === s.id; return (
                   <div key={s.id} style={{ border: on?'2px solid var(--clay)':'1px solid var(--line)', borderRadius:14, overflow:'hidden', background:'#fff' }}>
                     <button type="button" onClick={() => applyStyle(s)} style={{ width:'100%', textAlign:'left', border:'none', background:'none', cursor:'pointer', padding:0 }}>
-                      <div style={{ display:'flex', height:46 }}>{(s.colors && s.colors.length ? s.colors : ['#b0613b','#efe7dc','#211c18']).slice(0,5).map((c, i) => <div key={i} style={{ flex:1, background: c }} />)}</div>
+                      <div style={{ display:'flex', height:46 }}>{(s.colors && s.colors.length ? s.colors : ['#b0613b','#ebe4d8','#1f1913']).slice(0,5).map((c, i) => <div key={i} style={{ flex:1, background: c }} />)}</div>
                       <div style={{ padding:'10px 12px' }}>
                         <div style={{ fontSize:14, fontWeight:700, color: on?'var(--clay-deep)':'var(--ink)' }}>{trOpt(s.name, lang)}{on?(' '+t('sw2DbStyleSelected')):''}</div>
                         <div style={{ fontSize:11.5, color:'var(--muted)' }}>{trOpt(s.sub, lang)}</div>
@@ -16064,7 +16143,7 @@ function DlGallery({ setTab }) {
         <div style={{ padding: '40px 20px', background: '#fff', border: '1px dashed var(--line)', borderRadius: 16, textAlign: 'center', color: 'var(--ink-soft)', fontSize: 15 }}>{t('dlGalEmpty')}</div>
       )}
       {featured && (
-        <div style={{ background: '#fff', border: '2px solid var(--clay)', borderRadius: 18, overflow: 'hidden', marginBottom: 22, boxShadow: '0 14px 44px rgba(242,115,28,.14)' }}>
+        <div style={{ background: '#fff', border: '2px solid var(--clay)', borderRadius: 18, overflow: 'hidden', marginBottom: 22, boxShadow: '0 14px 44px rgba(168,75,41,.14)' }}>
           <div style={{ padding: '10px 16px', background: 'var(--clay)', color: '#fff', fontSize: 12.5, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>👑 {t('dlGalDesignOfMonth')}</div>
           {imgOf(featured) ? <img src={abs(imgOf(featured))} alt={featured.title || 'design'} style={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }} onError={e => { e.currentTarget.style.display = 'none'; }} /> : <div style={{ width: '100%', aspectRatio: '16 / 9', background: 'var(--sand)' }} />}
           <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>

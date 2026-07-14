@@ -66,10 +66,13 @@ All colors are CSS variables declared on `:root`. **Never hardcode a hex** where
 ### 3.1 Brand & neutrals (the warm editorial core)
 
 ```css
+/* Palette v2 (2026-07-14) — enterprise-luxury: walnut + brass + linen + stone.
+   See Decisions Log "Palette v2" for old→new + contrast ratios. */
 :root {
-  --ink:#211c18; --ink-soft:#4a423b; --muted:#8a7f72;
-  --cream:#f7f2ec; --sand:#efe7dc; --line:#e6ddd1;
-  --clay:#F2731C; --clay-deep:#C2410C;
+  --ink:#1f1913; --ink-soft:#463d33; --muted:#726757;
+  --cream:#f5f1ea; --sand:#ebe4d8; --line:#e2d9cc;
+  --clay:#A84B29; --clay-deep:#89391E;
+  --bronze:#8f6338; --brass:#bd9557;
 }
 ```
 
@@ -400,6 +403,27 @@ Tracked visual/technical debt. None are user-facing regressions; all improve mai
 | 2026-06-27 | Recommend 6-token radius + 10-step spacing scale | Replace ad-hoc values; align with Hub's tokenization discipline. |
 | 2026-07-14 | **Shop layer's cool-neutral palette tokenized** (`--shop-ink #1d1d1f`, `--shop-ink-2`, `--shop-muted`, `--shop-fill`, `--shop-line`) alongside new editorial accents (`--bronze #9a6a3c`, `--brass #c89b5e`) and site semantics (`--ok`, `--err`). 236 hardcoded hexes swept to `var(--token, #fallback)`. | The store/checkout surfaces deliberately use an Apple-style cool neutral system distinct from the warm editorial layer — but the values were scattered as raw hex, so the two gray families leaked into each other mid-component. Naming them makes the split intentional and enforceable: editorial pages use `--ink/--muted/--cream`, shop surfaces use `--shop-*`, never mixed. 3D scene files (Three.js) keep literal colors — canvas cannot resolve CSS variables. |
 | 2026-07-14 | Global `:focus-visible` ring (`--focus-ring`, clay at 35%) + `prefers-reduced-motion` media query added in code (previously documented, not implemented). | Same accessibility bar as the Hub: visible keyboard focus (WCAG 2.4.7) with zero noise for mouse users; OS motion preference honored (Apple HIG baseline). |
+| 2026-07-14 | **3D scenes, AR and render upgraded (Kitchen / TV / Door / Office scene files + configurator).** Product-photography lighting (warm rim/back light + soft radial contact shadows under floor-standing pieces), gentle idle auto-orbit that pauses on interaction and is disabled under reduced-motion, and a self-contained **"⬇ Save render"** pill that captures the WebGL frame at ~1.5× DPR, composes it onto a branded frame (ink bar · clay tab · "THE CLOSETS" wordmark), then Web-Share on mobile / PNG download on desktop. `CustomConfigurator.jsx` migrated off hardcoded Hub-orange (`#F97316`/`#EA580C`) to `--clay/--clay-deep` tokens. | The 3D preview is the site's biggest "is this a serious furniture house?" signal; flat lighting and no way to save/share a design undersold the craft. The scene files already had ACES tone-mapping + PBR + disposal, so the work layered premium capability on a sound base rather than rewriting. All literal stale fallbacks (`var(--clay,#F2731C)` etc.) refreshed to the Palette-v2 hexes so a token miss can never resurface the old loud orange. |
+| 2026-07-14 | **Room Designer (kitchen/wardrobe/TV/door/office planner) rebuilt into a premium 3-column app layout** matching the reference mockup: top stepper (Layout · Materials · Appliances · Review) + Save/Share/Render Photoreal; left rail (layout dropdown, 2D/3D view mode, Quick Style, Estimated Price card + View Full Quote); center 3D stage with Reset-View chip + a floating per-surface toolbar; right rail = a **persistent** material picker (type tabs · swatch grid · Finish · Apply Material). | The old planner was a single scene + a panel that only opened on demand, so the customer never saw materials and price laid out like a real configurator. Reshaped the **return JSX only** — every data path (scene load, `groupedForActive`, `chooseMaterial`, `renderPhotoreal`, `indicativeTotal`, the `KitchenScene3D`/`TVUnit3D`/`Door3D`/`Office3D`/`Wardrobe3D` mounts and their props) is reused verbatim, so behaviour is unchanged and only the layout is new. **Presentational-only, flagged for follow-up:** Save/Share have no handlers yet; Quick Style and Finish persist in state but don't affect pricing or the 3D; the stepper is presentational except Review → summary; Reset View remounts the scene (no reset prop exists). |
+| 2026-07-14 | **AR "view in your room" (`<model-viewer>`) enriched**: neutral studio environment, `tone-mapping:aces`, soft shadows, `ar-placement:floor`, `ar-scale:fixed`, eager load; the "View in your room" button re-filled with `--clay-deep` (AA-safe for white text). | The AR entry existed but rendered with default flat lighting and a clay fill that failed AA behind white text. Placement/scale hints make the in-room preview land correctly the first time. **Open follow-up:** AR is only wired to shop products that carry a GLB (`product.model_url`); driving AR *from the procedural configurator* needs a GLB/USDZ export bridge in App.js — deferred (the scene agent can add a `ref`-based `exportGLB()` on request). |
+| 2026-07-14 | **Palette v2 — enterprise-luxury refinement.** Owner feedback: "the color is not premium." Re-graded the whole warm editorial layer token-first (single `:root` change + a sweep of the matching literal glows/tints/gradients so decoration follows the tokens). Loud clay orange `#F2731C` → restrained terracotta/sienna `#A84B29`; yellowy cream → balanced warm bone; ink deepened to espresso; metallics restrained. All text/bg pairs re-verified ≥ 4.5:1 (see table below). The old Hub-orange focus-ring leftover `rgba(249,115,22,…)` was also folded into the new sienna, closing debt §12.3. | The clay orange read as loud / mid-market. A deeper sienna used only on small accents + AA-safe CTA fills, over a linen-bone canvas with espresso ink, reads as "walnut + brass + linen + stone" — quiet luxury. Token-first so the whole site shifts at once and stays enforceable. |
+
+**Palette v2 — old → new (contrast on new bone canvas `#f5f1ea` unless noted):**
+
+| Token | Old | New | Role | Contrast (AA ≥ 4.5) |
+|---|---|---|---|---|
+| `--clay` | `#F2731C` | `#A84B29` | Accent, links, eyebrows, CTA fill | **5.7:1** white-on-clay · **5.0:1** clay-on-cream |
+| `--clay-deep` | `#C2410C` | `#89391E` | Hover / pressed / tinted-pill text | ~**7.7:1** white-on-clay-deep |
+| `--ink` | `#211c18` | `#1f1913` | Headings, primary text, logo | ~**15:1** on cream (AAA) |
+| `--ink-soft` | `#4a423b` | `#463d33` | Body copy, sub-heads | ~**9:1** on cream |
+| `--muted` | `#8a7f72` | `#726757` | Meta, captions, labels | **4.9:1** on cream (now AA, was ~3.5) |
+| `--cream` | `#f7f2ec` | `#f5f1ea` | Page canvas (warm bone, less yellow) | — |
+| `--sand` | `#efe7dc` | `#ebe4d8` | Alt surface / chips / swatch tiles | — |
+| `--line` | `#e6ddd1` | `#e2d9cc` | Hairline dividers / card outlines | — |
+| `--bronze` | `#9a6a3c` | `#8f6338` | Walnut-bronze accent | — |
+| `--brass` | `#c89b5e` | `#bd9557` | Brushed-brass accent (restrained) | — |
+
+Also elevated (still App.js only): warm-tinted card-hover shadow (was cool `rgba(0,0,0,.08)`), softened/restrained `.btn-clay` shadow, and `.01em` editorial tracking on `.btn-clay/.btn-ink/.btn-line`.
 
 ---
 
