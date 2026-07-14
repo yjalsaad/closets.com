@@ -398,6 +398,8 @@ Tracked visual/technical debt. None are user-facing regressions; all improve mai
 | 2026-06-27 | Accessibility baseline enforced (focus rings, 4.5:1, ≥44px, aria-labels, alt) | Premium brand must be inclusive and WCAG-aligned. |
 | 2026-06-27 | EN-first / AR-second, full RTL mirror, numerals stay LTR | Bahrain bilingual market; prices/IDs must remain legible LTR. |
 | 2026-06-27 | Recommend 6-token radius + 10-step spacing scale | Replace ad-hoc values; align with Hub's tokenization discipline. |
+| 2026-07-14 | **Shop layer's cool-neutral palette tokenized** (`--shop-ink #1d1d1f`, `--shop-ink-2`, `--shop-muted`, `--shop-fill`, `--shop-line`) alongside new editorial accents (`--bronze #9a6a3c`, `--brass #c89b5e`) and site semantics (`--ok`, `--err`). 236 hardcoded hexes swept to `var(--token, #fallback)`. | The store/checkout surfaces deliberately use an Apple-style cool neutral system distinct from the warm editorial layer — but the values were scattered as raw hex, so the two gray families leaked into each other mid-component. Naming them makes the split intentional and enforceable: editorial pages use `--ink/--muted/--cream`, shop surfaces use `--shop-*`, never mixed. 3D scene files (Three.js) keep literal colors — canvas cannot resolve CSS variables. |
+| 2026-07-14 | Global `:focus-visible` ring (`--focus-ring`, clay at 35%) + `prefers-reduced-motion` media query added in code (previously documented, not implemented). | Same accessibility bar as the Hub: visible keyboard focus (WCAG 2.4.7) with zero noise for mouse users; OS motion preference honored (Apple HIG baseline). |
 
 ---
 

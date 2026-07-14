@@ -35,16 +35,16 @@ export default class ErrorBoundary extends Component {
     return (
       <div dir={ar ? "rtl" : "ltr"} style={{ minHeight: "70vh", display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center", textAlign: "center", padding: "40px 24px",
-        fontFamily: "Inter, system-ui, sans-serif", color: "#1d1d1f" }}>
+        fontFamily: "Inter, system-ui, sans-serif", color: "var(--shop-ink, #1d1d1f)" }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>🛠️</div>
         <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 10px" }}>
           {ar ? "حدث خطأ غير متوقع" : "Something went wrong"}
         </h1>
-        <p style={{ fontSize: 15, color: "#6e6e73", maxWidth: 420, lineHeight: 1.6, margin: "0 0 24px" }}>
+        <p style={{ fontSize: 15, color: "var(--shop-ink-2, #6e6e73)", maxWidth: 420, lineHeight: 1.6, margin: "0 0 24px" }}>
           {ar ? "نعتذر عن ذلك. حاول إعادة تحميل الصفحة." : "Sorry about that. Please try reloading the page."}
         </p>
         <button onClick={() => { try { window.location.reload(); } catch (e) {} }}
-          style={{ background: "#F2731C", color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px",
+          style={{ background: "var(--clay, #F2731C)", color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px",
             fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
           {ar ? "إعادة التحميل" : "Reload"}
         </button>

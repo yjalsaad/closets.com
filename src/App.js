@@ -2381,7 +2381,7 @@ const CSS = `
   }
   /* Banner strip */
   .banner-strip {
-    background: linear-gradient(90deg, #1d1d1f, #2d2d2f, #1d1d1f);
+    background: linear-gradient(90deg, var(--shop-ink, #1d1d1f), #2d2d2f, #1d1d1f);
     color: #fff; font-size: 13px; font-weight: 500;
     display: flex; align-items: center; justify-content: center;
     gap: 20px; padding: 10px 20px;
@@ -2393,7 +2393,7 @@ const CSS = `
   }
   @keyframes bannerFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
   .hero-content { position: relative; z-index: 1; }
-  body { background: #fff; color: #1d1d1f; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; -webkit-font-smoothing: antialiased; }
+  body { background: #fff; color: var(--shop-ink, #1d1d1f); font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; -webkit-font-smoothing: antialiased; }
   ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 2px; }
   input, select, textarea, button { font-family: inherit; }
   @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -2402,19 +2402,37 @@ const CSS = `
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
   .reveal { opacity: 0; transform: translateY(16px); transition: opacity .5s cubic-bezier(.25,.46,.45,.94), transform .5s cubic-bezier(.25,.46,.45,.94); }
   .reveal.vis { opacity: 1; transform: translateY(0); }
-  .inp { background: #f5f5f7; border: 1.5px solid transparent; border-radius: 12px; padding: 13px 16px; font-size: 16px; color: #1d1d1f; width: 100%; transition: all .2s; -webkit-appearance: none; }
+  .inp { background: var(--shop-fill, #f5f5f7); border: 1.5px solid transparent; border-radius: 12px; padding: 13px 16px; font-size: 16px; color: var(--shop-ink, #1d1d1f); width: 100%; transition: all .2s; -webkit-appearance: none; }
   .inp:focus { outline: none; background: #fff; border-color: var(--clay); box-shadow: 0 0 0 4px rgba(249,115,22,.1); }
-  .inp::placeholder { color: #86868b; }
+  .inp::placeholder { color: var(--shop-muted, #86868b); }
   .btn { background: var(--clay); color: #fff; border: none; border-radius: 14px; padding: 15px 24px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 50px; -webkit-tap-highlight-color: transparent; }
   .btn:active { transform: scale(.97); background: var(--clay-deep); }
   .btn-sm { background: var(--clay); color: #fff; border: none; border-radius: 12px; padding: 11px 18px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; }
   .btn-sm:active { transform: scale(.97); background: var(--clay-deep); }
-  .btn-secondary { background: #f5f5f7; color: #1d1d1f; border: none; border-radius: 14px; padding: 15px 24px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all .15s; min-height: 50px; }
+  .btn-secondary { background: var(--shop-fill, #f5f5f7); color: var(--shop-ink, #1d1d1f); border: none; border-radius: 14px; padding: 15px 24px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all .15s; min-height: 50px; }
   .btn-secondary:active { background: #e8e8ed; transform: scale(.97); }
-  .btn-ghost { background: transparent; border: 1.5px solid #e6e6e6; border-radius: 14px; padding: 14px 22px; font-size: 15px; font-weight: 500; cursor: pointer; color: #1d1d1f; transition: all .15s; }
-  .card { background: #fff; border-radius: 20px; border: 1px solid #e6e6e6; overflow: hidden; }
+  .btn-ghost { background: transparent; border: 1.5px solid var(--shop-line, #e6e6e6); border-radius: 14px; padding: 14px 22px; font-size: 15px; font-weight: 500; cursor: pointer; color: var(--shop-ink, #1d1d1f); transition: all .15s; }
+  .card { background: #fff; border-radius: 20px; border: 1px solid var(--shop-line, #e6e6e6); overflow: hidden; }
   /* ── Editorial-luxury design tokens (Home redesign) ── */
-  :root { --ink:#211c18; --ink-soft:#4a423b; --muted:#8a7f72; --cream:#f7f2ec; --sand:#efe7dc; --line:#e6ddd1; --clay:#F2731C; --clay-deep:#C2410C; }
+  :root {
+    --ink:#211c18; --ink-soft:#4a423b; --muted:#8a7f72; --cream:#f7f2ec; --sand:#efe7dc; --line:#e6ddd1; --clay:#F2731C; --clay-deep:#C2410C;
+    /* Editorial accents — were hardcoded across sections (walnut/brass family) */
+    --bronze:#9a6a3c; --brass:#c89b5e;
+    /* Shop layer — the store/checkout surfaces use a cool neutral system
+       (distinct from the warm editorial layer, intentional). Tokenized so the
+       two gray families never mix mid-component. */
+    --shop-ink:#1d1d1f; --shop-ink-2:#6e6e73; --shop-muted:#86868b;
+    --shop-fill:#f5f5f7; --shop-line:#e6e6e6;
+    /* Semantic (site-wide) */
+    --ok:#16a34a; --err:#b91c1c;
+    --focus-ring:0 0 0 3px rgba(242,115,28,.35);
+  }
+  /* A11y: keyboard focus ring (mouse clicks unaffected) + reduced-motion */
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible,
+  textarea:focus-visible, [tabindex]:focus-visible { outline:none; box-shadow:var(--focus-ring); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
+  }
   .display { font-family:'Fraunces',Georgia,'Times New Roman',serif; font-weight:600; letter-spacing:-.02em; line-height:1.04; }
   .eyebrow { font-size:12px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--clay); }
   .btn-clay { background:var(--clay); color:#fff; border:none; border-radius:14px; padding:15px 26px; font-size:16px; font-weight:600; cursor:pointer; transition:transform .15s, background .2s, box-shadow .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:50px; box-shadow:0 12px 26px -14px rgba(176,97,59,.7); }
@@ -2536,7 +2554,7 @@ const CSS = `
   .yas-chip { border-radius:999px; padding:8px 15px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .18s; border-width:1.5px; border-style:solid; }
   .yas-spark { display:inline-block; animation:yasSpin 4s linear infinite; }
   @keyframes yasSpin { from { transform:rotate(0); } to { transform:rotate(360deg); } }
-  .yas-shimmer-box { position:relative; overflow:hidden; background:linear-gradient(100deg,#efe7dc 30%,#f7f2ec 50%,#efe7dc 70%); background-size:200% 100%; animation:yasShimmer 1.4s ease-in-out infinite; border-radius:12px; }
+  .yas-shimmer-box { position:relative; overflow:hidden; background:linear-gradient(100deg,var(--sand, #efe7dc) 30%,#f7f2ec 50%,#efe7dc 70%); background-size:200% 100%; animation:yasShimmer 1.4s ease-in-out infinite; border-radius:12px; }
   @keyframes yasShimmer { from { background-position:200% 0; } to { background-position:-200% 0; } }
   .yas-cap { display:inline-flex; align-items:center; gap:7px; background:var(--sand); border:1px solid var(--line); color:var(--clay-deep); border-radius:999px; padding:9px 15px; font-size:13px; font-weight:600; }
   /* AI YAS sub-brand lockup */
@@ -3583,7 +3601,7 @@ function ProductDetailPage({ productId, products, setPage, addToCart, setConfigP
         </div>
       )}
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: mobile ? '24px 16px' : '40px 40px 80px' }}>
-        {!mobile && <button type="button" onClick={() => setPage('products')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: '#86868b', marginBottom: 32, display: 'flex', alignItems: 'center', gap: 6 }}>{t('w4PdBack')}</button>}
+        {!mobile && <button type="button" onClick={() => setPage('products')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--shop-muted, #86868b)', marginBottom: 32, display: 'flex', alignItems: 'center', gap: 6 }}>{t('w4PdBack')}</button>}
         {!mobile ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.05fr', gap: 64, marginBottom: 90, alignItems: 'center' }}>
             <Photo src={product.image_url || HOME_IMG.wardrobe} alt={product.name} className="rv-l tile-zoom zoomwrap" imgClass="tz" style={{ borderRadius: 24, aspectRatio: '1/1' }} />
@@ -3666,40 +3684,40 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
       <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 1000, opacity: open ? 1 : 0, pointerEvents: open ? 'all' : 'none', transition: 'opacity .3s', backdropFilter: 'blur(4px)' }} />
       <div style={mobile ? { position: 'fixed', left: 0, right: 0, bottom: 0, background: '#fff', zIndex: 1001, transform: open ? 'translateY(0)' : 'translateY(100%)', transition: 'transform .4s cubic-bezier(.25,.46,.45,.94)', display: 'flex', flexDirection: 'column', maxHeight: '90svh', borderRadius: '24px 24px 0 0', paddingBottom: 'env(safe-area-inset-bottom)' }
         : { position: 'fixed', right: 0, top: 0, bottom: 0, width: 400, background: '#fff', zIndex: 1001, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform .35s cubic-bezier(.25,.46,.45,.94)', display: 'flex', flexDirection: 'column' }}>
-        {mobile && <div style={{ width: 36, height: 4, background: '#e6e6e6', borderRadius: 2, margin: '12px auto 0' }} />}
-        <div style={{ padding: mobile ? '16px 20px' : '22px 26px', borderBottom: '1px solid #f5f5f7', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.02em' }}>Cart {cart.length > 0 && <span style={{ fontSize: 14, fontWeight: 400, color: '#86868b' }}>({cart.length})</span>}</div>
-          <button type="button" aria-label="Close cart" onClick={() => setOpen(false)} style={{ background: '#f5f5f7', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: '#86868b', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+        {mobile && <div style={{ width: 36, height: 4, background: 'var(--shop-line, #e6e6e6)', borderRadius: 2, margin: '12px auto 0' }} />}
+        <div style={{ padding: mobile ? '16px 20px' : '22px 26px', borderBottom: '1px solid var(--shop-fill, #f5f5f7)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.02em' }}>Cart {cart.length > 0 && <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--shop-muted, #86868b)' }}>({cart.length})</span>}</div>
+          <button type="button" aria-label="Close cart" onClick={() => setOpen(false)} style={{ background: 'var(--shop-fill, #f5f5f7)', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: 'var(--shop-muted, #86868b)', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: mobile ? '16px 20px' : '20px 26px', WebkitOverflowScrolling: 'touch' }}>
           {cart.length === 0
             ? <div style={{ textAlign: 'center', padding: '48px 0' }}>
                 <div style={{ fontSize: 48, opacity: .15, marginBottom: 12 }}>◻</div>
-                <div style={{ fontSize: 15, color: '#86868b', marginBottom: 18 }}>{t('sw3CartEmpty')}</div>
+                <div style={{ fontSize: 15, color: 'var(--shop-muted, #86868b)', marginBottom: 18 }}>{t('sw3CartEmpty')}</div>
                 {/* Same trap as Checkout: setOpen(false) runs navigate(-1), which would
                     cancel the navigation. Navigating away closes the drawer by itself. */}
                 <button type="button" className="btn-secondary" style={{ borderRadius: 980 }} onClick={() => setPage('products')}>Browse Collection</button>
               </div>
             : cart.map((item, idx) => (
-                <div key={idx} style={{ display: 'flex', gap: 14, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #f5f5f7' }}>
-                  <div style={{ width: 64, height: 64, borderRadius: 12, background: '#f5f5f7', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div key={idx} style={{ display: 'flex', gap: 14, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid var(--shop-fill, #f5f5f7)' }}>
+                  <div style={{ width: 64, height: 64, borderRadius: 12, background: 'var(--shop-fill, #f5f5f7)', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {item.image_url ? <img src={item.image_url} alt={item.name || item.product_name || 'Cart item'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 22, opacity: .3 }}>◻</span>}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
-                    <div style={{ fontSize: 12, color: '#86868b', marginBottom: 4 }}>{item.category}</div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: '#1d1d1f' }}>{fmt(item.price)}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--shop-ink, #1d1d1f)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
+                    <div style={{ fontSize: 12, color: 'var(--shop-muted, #86868b)', marginBottom: 4 }}>{item.category}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--shop-ink, #1d1d1f)' }}>{fmt(item.price)}</div>
                   </div>
-                  <button type="button" aria-label="Remove item" onClick={() => setCart(c => c.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#86868b', padding: '4px', alignSelf: 'flex-start', fontSize: 16 }}>✕</button>
+                  <button type="button" aria-label="Remove item" onClick={() => setCart(c => c.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--shop-muted, #86868b)', padding: '4px', alignSelf: 'flex-start', fontSize: 16 }}>✕</button>
                 </div>
               ))
           }
         </div>
         {cart.length > 0 && (
-          <div style={{ padding: mobile ? '16px 20px 24px' : '18px 26px', borderTop: '1px solid #f5f5f7' }}>
+          <div style={{ padding: mobile ? '16px 20px 24px' : '18px 26px', borderTop: '1px solid var(--shop-fill, #f5f5f7)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
-              <span style={{ fontSize: 16, color: '#6e6e73' }}>{t('total')}</span>
-              <span style={{ fontSize: 22, fontWeight: 700, color: '#1d1d1f' }}>{fmt(total)}</span>
+              <span style={{ fontSize: 16, color: 'var(--shop-ink-2, #6e6e73)' }}>{t('total')}</span>
+              <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--shop-ink, #1d1d1f)' }}>{fmt(total)}</span>
             </div>
             {/* Do NOT call setOpen(false) here.
                 The cart drawer is backed by a history entry (?cart=1), so closing it
@@ -3710,7 +3728,7 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
                 Navigating away closes the cart on its own: cartOpen is derived from
                 ?cart=1, and that param is gone the moment we leave the page. */}
             <button type="button" className="btn" style={{ width: '100%', borderRadius: 16 }} onClick={() => setPage('checkout')}>Checkout</button>
-            <div style={{ fontSize: 12, color: '#86868b', textAlign: 'center', marginTop: 10 }}>{t('sw3FreeDelivery')}</div>
+            <div style={{ fontSize: 12, color: 'var(--shop-muted, #86868b)', textAlign: 'center', marginTop: 10 }}>{t('sw3FreeDelivery')}</div>
           </div>
         )}
       </div>
@@ -4263,7 +4281,7 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
   }, [ready]);
 
   if (failed && fallback) return <>{fallback}</>;
-  const ctrlBtn = { width: 34, height: 34, borderRadius: 8, border: '1px solid #e3e3e6', background: 'rgba(255,255,255,.92)', color: '#1d1d1f', fontSize: 18, lineHeight: '1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 3px rgba(0,0,0,.08)' };
+  const ctrlBtn = { width: 34, height: 34, borderRadius: 8, border: '1px solid #e3e3e6', background: 'rgba(255,255,255,.92)', color: 'var(--shop-ink, #1d1d1f)', fontSize: 18, lineHeight: '1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 3px rgba(0,0,0,.08)' };
   return (
     <div style={{ width: '100%', height: tall ? '100%' : (mobile ? 340 : 460), minHeight: tall ? (mobile?340:560) : undefined, position: 'relative' }} ref={mountRef}>
       {!ready && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 13 }}>Loading 3D…</div>}
@@ -4884,29 +4902,29 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
       + `<title>Quotation ${esc(quoteRef)} — The Closets</title>`
       + `<style>`
       + `*{box-sizing:border-box;margin:0;padding:0}`
-      + `body{font-family:Inter,-apple-system,Segoe UI,Arial,sans-serif;color:#211c18;background:#f3f3f3;padding:28px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}`
+      + `body{font-family:Inter,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink, #211c18);background:#f3f3f3;padding:28px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}`
       + `.sheet{max-width:820px;margin:0 auto;background:#ffffff;padding:48px 52px;box-shadow:0 6px 30px rgba(0,0,0,.12)}`
-      + `.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #F2731C;padding-bottom:18px;margin-bottom:24px}`
-      + `.wordmark{font-size:24px;font-weight:800;letter-spacing:.02em;color:#211c18}`
-      + `.tag{font-size:12px;color:#8a7f72;margin-top:3px}`
+      + `.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid var(--clay, #F2731C);padding-bottom:18px;margin-bottom:24px}`
+      + `.wordmark{font-size:24px;font-weight:800;letter-spacing:.02em;color:var(--ink, #211c18)}`
+      + `.tag{font-size:12px;color:var(--muted, #8a7f72);margin-top:3px}`
       + `.qbox{text-align:right}`
-      + `.qbox .t{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#8a7f72}`
-      + `.qbox .ref{font-size:16px;font-weight:800;color:#C2410C;margin-top:2px}`
-      + `.qbox .date{font-size:12px;color:#4a423b;margin-top:2px}`
-      + `.prepared{font-size:13px;color:#4a423b;margin-bottom:4px}`
-      + `.prepared b{color:#211c18}`
-      + `.spec{font-size:12.5px;color:#4a423b;background:#f7f2ec;border:1px solid #e6ddd1;border-radius:8px;padding:10px 14px;margin:14px 0 20px}`
-      + `.img{width:100%;border:1px solid #e6ddd1;border-radius:8px;display:block;margin-bottom:22px}`
+      + `.qbox .t{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted, #8a7f72)}`
+      + `.qbox .ref{font-size:16px;font-weight:800;color:var(--clay-deep, #C2410C);margin-top:2px}`
+      + `.qbox .date{font-size:12px;color:var(--ink-soft, #4a423b);margin-top:2px}`
+      + `.prepared{font-size:13px;color:var(--ink-soft, #4a423b);margin-bottom:4px}`
+      + `.prepared b{color:var(--ink, #211c18)}`
+      + `.spec{font-size:12.5px;color:var(--ink-soft, #4a423b);background:var(--cream, #f7f2ec);border:1px solid var(--line, #e6ddd1);border-radius:8px;padding:10px 14px;margin:14px 0 20px}`
+      + `.img{width:100%;border:1px solid var(--line, #e6ddd1);border-radius:8px;display:block;margin-bottom:22px}`
       + `table{width:100%;border-collapse:collapse;margin-bottom:6px}`
-      + `th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8a7f72;border-bottom:2px solid #211c18;padding:8px 0}`
+      + `th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted, #8a7f72);border-bottom:2px solid var(--ink, #211c18);padding:8px 0}`
       + `th.amt,td.amt{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}`
-      + `td{padding:9px 0;border-bottom:1px solid #e6ddd1;font-size:13.5px;vertical-align:top}`
-      + `td.desc .sub{display:block;font-size:11px;color:#8a7f72;margin-top:2px}`
-      + `tr.sum td{border-bottom:none;padding:6px 0;color:#4a423b;font-size:13px}`
-      + `tr.total td{border-top:2px solid #211c18;padding-top:12px;font-size:17px;font-weight:800;color:#211c18}`
-      + `tr.total td.amt{color:#C2410C}`
-      + `.foot{margin-top:28px;padding-top:16px;border-top:1px solid #e6ddd1;font-size:11.5px;color:#8a7f72}`
-      + `.foot .contact{color:#C2410C;font-weight:700;margin-top:6px}`
+      + `td{padding:9px 0;border-bottom:1px solid var(--line, #e6ddd1);font-size:13.5px;vertical-align:top}`
+      + `td.desc .sub{display:block;font-size:11px;color:var(--muted, #8a7f72);margin-top:2px}`
+      + `tr.sum td{border-bottom:none;padding:6px 0;color:var(--ink-soft, #4a423b);font-size:13px}`
+      + `tr.total td{border-top:2px solid var(--ink, #211c18);padding-top:12px;font-size:17px;font-weight:800;color:var(--ink, #211c18)}`
+      + `tr.total td.amt{color:var(--clay-deep, #C2410C)}`
+      + `.foot{margin-top:28px;padding-top:16px;border-top:1px solid var(--line, #e6ddd1);font-size:11.5px;color:var(--muted, #8a7f72)}`
+      + `.foot .contact{color:var(--clay-deep, #C2410C);font-weight:700;margin-top:6px}`
       + `@page{size:A4;margin:14mm}`
       + `@media print{body{background:#fff;padding:0}.sheet{box-shadow:none;max-width:none;padding:0}}`
       + `</style></head><body><div class="sheet">`
@@ -4960,9 +4978,9 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   };
 
   if (!settings) return (
-    <div style={{ minHeight:'70vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'140px 24px', textAlign:'center', color:'#86868b' }}>
+    <div style={{ minHeight:'70vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'140px 24px', textAlign:'center', color:'var(--shop-muted, #86868b)' }}>
       {loadError ? (<>
-        <div style={{ fontSize:17, fontWeight:600, color:'#1d1d1f', marginBottom:8 }}>{t('sw3PlannerLoadErr')}</div>
+        <div style={{ fontSize:17, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', marginBottom:8 }}>{t('sw3PlannerLoadErr')}</div>
         <div style={{ fontSize:14, marginBottom:20, maxWidth:360 }}>{t('sw3PlannerLoadErrSub')}</div>
         <div style={{ display:'flex', gap:10 }}>
           <button type="button" className="btn" onClick={()=>{ setLoadError(false); setLoadAttempt(a=>a+1); }} style={{ borderRadius:14 }}>Try again</button>
@@ -5084,7 +5102,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           {/* ── OPTION B: visual hero (left) + on-screen quotation (right) ── */}
           <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1.25fr 1fr', gap:20, alignItems:'start' }}>
             {/* LEFT — branded design image / live 3D hero with a quotation chip overlaid */}
-            <div style={{ background:'#f5f5f7', borderRadius:20, position:'relative', minHeight: mobile?300:560, overflow:'hidden' }}>
+            <div style={{ background:'var(--shop-fill, #f5f5f7)', borderRadius:20, position:'relative', minHeight: mobile?300:560, overflow:'hidden' }}>
               {(renderUrl || brandedImg)
                 ? <img src={renderUrl || brandedImg} alt="Your design" style={{ width:'100%', display:'block' }} />
                 : (quoteImg
@@ -5095,7 +5113,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                 <i className="ti ti-file-invoice" aria-hidden="true" /> #{quoteRef} · {brandDateStr()}
               </div>
               {/* Top-right so it never overlaps the 3D zoom controls (bottom-right) or the drag-to-rotate hint (bottom-left). */}
-              <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', top:12, right:12, zIndex:3, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,#F2731C,#C2410C)', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(242,115,28,.4)' }}>
+              <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', top:12, right:12, zIndex:3, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,var(--clay, #F2731C),#C2410C)', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(242,115,28,.4)' }}>
                 <i className={rendering ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" />
                 {rendering ? 'Rendering…' : (renderUrl ? 'Regenerate' : 'Make it photorealistic')}
               </button>
@@ -5197,7 +5215,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
         )}
         {rendering && (
           <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(15,18,22,.72)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
-            <div style={{ background:'#fff', borderRadius:18, padding:'40px 50px', textAlign:'center', color:'#6e6e73', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>{t('sw3PlannerRendering')}</div></div>
+            <div style={{ background:'#fff', borderRadius:18, padding:'40px 50px', textAlign:'center', color:'var(--shop-ink-2, #6e6e73)', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>{t('sw3PlannerRendering')}</div></div>
           </div>
         )}
         {roomDesignerOverlay}
@@ -5242,7 +5260,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           return (<>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':(railCollapsed?'1fr 0px':'1.9fr 1fr'), gap: railCollapsed?0:20, alignItems:'stretch', transition:'grid-template-columns .35s ease, gap .35s ease' }}>
           {/* BIG 3D STAGE */}
-          <div style={{ background:'#f5f5f7', borderRadius:20, minHeight: mobile?'46vh':(railCollapsed?720:640), height: mobile?'46vh':undefined, position: mobile?'sticky':'relative', top: mobile?64:undefined, zIndex: mobile?5:undefined, overflow:'hidden' }}>
+          <div style={{ background:'var(--shop-fill, #f5f5f7)', borderRadius:20, minHeight: mobile?'46vh':(railCollapsed?720:640), height: mobile?'46vh':undefined, position: mobile?'sticky':'relative', top: mobile?64:undefined, zIndex: mobile?5:undefined, overflow:'hidden' }}>
             <Wardrobe3D apiRef={plannerApi} finishHex={finishHex} layout={layout} glass={hasGlass} handles={hasHandles} led={hasLed} mobile={mobile} tall product={prodKey} widthCm={sizeW} heightCm={dims.height} depthCm={dims.depth} sideACm={dims.sideA} sideBCm={dims.sideB} unit={unit} preset={camPreset} scaleMode={scaleMode} />
             {aiSummary && <div style={{ position:'absolute', top:54, left:12, right:12, fontSize:12, background:'var(--sand)', color:'var(--clay-deep)', padding:'8px 12px', borderRadius:12 }}><Spark size={12} color="var(--clay-deep)" style={{ verticalAlign:'-1px' }} /> {aiSummary}</div>}
             {/* 3D TOOLBAR — units · presets · true-scale · expand rail */}
@@ -5266,7 +5284,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                 </button>
               )}
             </div>
-            <div style={{ position:'absolute', bottom:12, left:12, display:'flex', gap:6, alignItems:'center', fontSize:12, color:'#6e6e73', background:'rgba(255,255,255,.85)', padding:'5px 10px', borderRadius:10 }}>
+            <div style={{ position:'absolute', bottom:12, left:12, display:'flex', gap:6, alignItems:'center', fontSize:12, color:'var(--shop-ink-2, #6e6e73)', background:'rgba(255,255,255,.85)', padding:'5px 10px', borderRadius:10 }}>
               <i className="ti ti-ruler-2" aria-hidden="true" />
               {(() => { const cv = (cm)=> unit==='in' ? (Math.round((cm/2.54)*10)/10)+' in' : cm+' cm'; return (supportsSideAB&&layout==='l-shape') ? `${cv(dims.sideA)} + ${cv(dims.sideB)} × ${cv(dims.height)} × ${cv(dims.depth)}` : `${cv(dims.width)} × ${cv(dims.height)} × ${cv(dims.depth)}`; })()}
             </div>
@@ -5280,17 +5298,17 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             <div onClick={()=>{ if(!rendering){ setRenderUrl(null); setRenderErr(''); } }} style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(15,18,22,.72)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
               <div onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:18, maxWidth:880, width:'100%', maxHeight:'90vh', overflow:'auto', boxShadow:'0 20px 60px rgba(0,0,0,.4)' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 18px', borderBottom:'1px solid #eee' }}>
-                  <span style={{ fontSize:15, fontWeight:700, color:'#1d1d1f' }}><Spark size={15} style={{ verticalAlign:'-2px' }} /> Photorealistic render</span>
+                  <span style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)' }}><Spark size={15} style={{ verticalAlign:'-2px' }} /> Photorealistic render</span>
                   <button type="button" aria-label="Close" onClick={()=>{ if(!rendering){ setRenderUrl(null); setRenderErr(''); } }} style={{ background:'none', border:'none', cursor:'pointer', color:'#999', fontSize:18 }}>✕</button>
                 </div>
                 <div style={{ padding:18, textAlign:'center' }}>
-                  {rendering && <div style={{ padding:'50px 0', color:'#6e6e73', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>{t('sw3PlannerRendering')}</div></div>}
+                  {rendering && <div style={{ padding:'50px 0', color:'var(--shop-ink-2, #6e6e73)', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>{t('sw3PlannerRendering')}</div></div>}
                   {!rendering && renderErr && <div style={{ padding:'40px 10px', color:'#c0392b', fontSize:14 }}>{renderErr}</div>}
                   {!rendering && renderUrl && (<>
                     <img src={renderUrl} alt="Photorealistic render of your design" style={{ width:'100%', borderRadius:12, display:'block' }} />
                     <div style={{ display:'flex', gap:10, justifyContent:'center', marginTop:14, flexWrap:'wrap' }}>
-                      <a href={renderUrl} download="closets-render.jpg" target="_blank" rel="noreferrer" style={{ padding:'10px 18px', borderRadius:12, background:'#1d1d1f', color:'#fff', textDecoration:'none', fontSize:13, fontWeight:700 }}>Download</a>
-                      <button type="button" onClick={doPhotoreal} style={{ padding:'10px 18px', borderRadius:12, border:'1px solid #ddd', background:'#fff', color:'#1d1d1f', cursor:'pointer', fontSize:13, fontWeight:700 }}>Regenerate</button>
+                      <a href={renderUrl} download="closets-render.jpg" target="_blank" rel="noreferrer" style={{ padding:'10px 18px', borderRadius:12, background:'var(--shop-ink, #1d1d1f)', color:'#fff', textDecoration:'none', fontSize:13, fontWeight:700 }}>Download</a>
+                      <button type="button" onClick={doPhotoreal} style={{ padding:'10px 18px', borderRadius:12, border:'1px solid #ddd', background:'#fff', color:'var(--shop-ink, #1d1d1f)', cursor:'pointer', fontSize:13, fontWeight:700 }}>Regenerate</button>
                     </div>
                     <div style={{ marginTop:10, fontSize:11, color:'#aaa' }}>{t('w4AiImpression')}</div>
                   </>)}
@@ -5308,7 +5326,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                   {lay.map(l=>{ const on = layout===l.id; return (
                     <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ display:'flex', alignItems:'center', gap:10, padding:'12px', border: on?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:12, background: on?'var(--sand)':'#fff', cursor:'pointer', textAlign:'left' }}>
                       {layoutIcon(l.id, on)}
-                      <span style={{ fontSize:13, fontWeight:on?600:500, color:'#1d1d1f' }}>{l.label}{(l.price>0)&&<span style={{ display:'block', fontSize:11, color:'var(--clay-deep)', fontWeight:400 }}>+{fmt(l.price)}</span>}</span>
+                      <span style={{ fontSize:13, fontWeight:on?600:500, color:'var(--shop-ink, #1d1d1f)' }}>{l.label}{(l.price>0)&&<span style={{ display:'block', fontSize:11, color:'var(--clay-deep)', fontWeight:400 }}>+{fmt(l.price)}</span>}</span>
                     </button> ); })}
                 </div>
               );
@@ -5371,7 +5389,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                   {FINISHES.map(f=>(
                     <button key={f.id} type="button" onClick={()=>setFinishId(f.id)} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5, padding:7, border: finishId===f.id?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:10, background:'#fff', cursor:'pointer' }}>
                       <span style={{ width:44, height:44, borderRadius:7, background:f.hex, border:'0.5px solid rgba(0,0,0,.12)' }} />
-                      <span style={{ fontSize:11, color:'#6e6e73' }}>{f.name}</span>
+                      <span style={{ fontSize:11, color:'var(--shop-ink-2, #6e6e73)' }}>{f.name}</span>
                     </button>
                   ))}
                 </div>
@@ -5524,25 +5542,25 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
 
             {/* STICKY SUMMARY — single primary CTA */}
             {!mobile && (
-              <div style={{ marginTop:6, background:'#fff', border:'0.5px solid #e6e6e6', borderRadius:14, padding:'16px', position:'sticky', bottom:0, boxShadow:'0 -2px 12px rgba(0,0,0,.04)' }}>
+              <div style={{ marginTop:6, background:'#fff', border:'0.5px solid var(--shop-line, #e6e6e6)', borderRadius:14, padding:'16px', position:'sticky', bottom:0, boxShadow:'0 -2px 12px rgba(0,0,0,.04)' }}>
                 <div style={{ fontSize:13, color:'var(--ink-soft)', marginBottom:10, lineHeight:1.5 }}>
                   <strong style={{ color:'var(--ink)' }}>{selProduct?.name || 'Wardrobe'}</strong> · {((prodLayouts||LAYOUTS).find(l=>l.id===layout)||{}).label || layout} · {(() => { const cv = (cm)=> unit==='in' ? (Math.round((cm/2.54)*10)/10)+'"' : cm+'cm'; return (supportsSideAB&&layout==='l-shape') ? `${cv(dims.sideA)}+${cv(dims.sideB)}` : `${cv(dims.width)}×${cv(dims.height)}`; })()} · {(FINISHES.find(f=>f.id===finishId)||{}).name || finishId}
                 </div>
                 {total>0 && !pricing && (
                   <div style={{ marginBottom:12 }}>
-                    <div style={{ fontSize:11, color:'#86868b', marginBottom:6 }}>Package</div>
+                    <div style={{ fontSize:11, color:'var(--shop-muted, #86868b)', marginBottom:6 }}>Package</div>
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6 }}>
                       {PACKAGES.map((p,i)=>{ const on = i===pkg; return (
                         <button key={p.name} type="button" onClick={()=>setPkg(i)} style={{ border:'1px solid '+(on?'var(--clay)':'#e6e6e6'), background:on?'var(--sand)':'#fff', borderRadius:10, padding:'8px 6px', textAlign:'center', cursor:'pointer' }}>
                           <div style={{ fontSize:11, fontWeight:700, color:on?'var(--clay)':'#1d1d1f' }}>{p.name}</div>
-                          <div style={{ fontSize:12, fontWeight:700, color:'#1d1d1f', marginTop:3 }}>{fmt(Math.round(total*p.mult))}</div>
+                          <div style={{ fontSize:12, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginTop:3 }}>{fmt(Math.round(total*p.mult))}</div>
                         </button>
                       ); })}
                     </div>
                   </div>
                 )}
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6 }}>
-                  <span style={{ fontSize:12, color:'#86868b' }}>Estimated total · {selPkg.name}</span>
+                  <span style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>Estimated total · {selPkg.name}</span>
                   <span style={{ fontSize:24, fontWeight:700, color:'var(--clay)' }}>{pricing?'…':fmt(pkgTotal)}</span>
                 </div>
                 {total>0 && !pricing && (
@@ -6168,7 +6186,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
                 {indicativeTotal != null && (
                   <div style={{ fontSize:13, color:'var(--ink-soft)' }}>{t('rdIndicativeTotal')} <strong style={{ color:'var(--clay)', fontSize:16 }}>{fmt(indicativeTotal)}</strong></div>
                 )}
-                <button type="button" onClick={renderPhotoreal} disabled={prBusy} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:12, border:'none', cursor: prBusy?'wait':'pointer', background:'linear-gradient(135deg,#F2731C,#C2410C)', color:'#fff', fontSize:13.5, fontWeight:700, boxShadow:'0 4px 14px rgba(242,115,28,.35)' }}>
+                <button type="button" onClick={renderPhotoreal} disabled={prBusy} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:12, border:'none', cursor: prBusy?'wait':'pointer', background:'linear-gradient(135deg,var(--clay, #F2731C),#C2410C)', color:'#fff', fontSize:13.5, fontWeight:700, boxShadow:'0 4px 14px rgba(242,115,28,.35)' }}>
                   <i className={prBusy ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" /> {prBusy ? t('rdRendering') : t('rdRenderPhotoreal')}
                 </button>
               </div>
@@ -6221,8 +6239,8 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
 
 function Row({ k, v, sub }) {
   return (
-    <div style={{ display:'flex', justifyContent:'space-between', padding: sub?'4px 0 4px 10px':'8px 0', borderBottom: sub?'none':'1px solid #e6e6e6' }}>
-      <span style={{ fontSize: sub?12:13, color: sub?'#86868b':'#1d1d1f' }}>{k}</span>
+    <div style={{ display:'flex', justifyContent:'space-between', padding: sub?'4px 0 4px 10px':'8px 0', borderBottom: sub?'none':'1px solid var(--shop-line, #e6e6e6)' }}>
+      <span style={{ fontSize: sub?12:13, color: sub?'var(--shop-muted, #86868b)':'#1d1d1f' }}>{k}</span>
       <span style={{ fontSize: sub?12:13, fontWeight: sub?400:500 }}>{v}</span>
     </div>
   );
@@ -6333,28 +6351,28 @@ function HomeHub({ user, setUser, setPage }) {
     return `<!doctype html><html dir="${rtl ? 'rtl' : 'ltr'}" lang="${lang}"><head><meta charset="utf-8"/>
 <title>Invoice ${esc(num)}</title>
 <style>
-*{box-sizing:border-box} body{font-family:${lang==='ar'?"'Tajawal',":''}Arial,Helvetica,sans-serif;color:#211c18;margin:0;background:#fff}
+*{box-sizing:border-box} body{font-family:${lang==='ar'?"'Tajawal',":''}Arial,Helvetica,sans-serif;color:var(--ink, #211c18);margin:0;background:#fff}
 .page{max-width:780px;margin:0 auto;padding:40px 44px}
-.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #f2731c;padding-bottom:20px;margin-bottom:26px}
-.brand{font-size:22px;font-weight:800;letter-spacing:.04em;color:#211c18}
-.co{font-size:12px;color:#6e6e73;margin-top:6px;line-height:1.6}
+.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--clay, #f2731c);padding-bottom:20px;margin-bottom:26px}
+.brand{font-size:22px;font-weight:800;letter-spacing:.04em;color:var(--ink, #211c18)}
+.co{font-size:12px;color:var(--shop-ink-2, #6e6e73);margin-top:6px;line-height:1.6}
 .title{text-align:${rtl ? 'left' : 'right'}}
-.title h1{font-size:26px;margin:0 0 6px;color:#211c18;letter-spacing:-.01em}
-.meta{font-size:12.5px;color:#6e6e73;line-height:1.8}
-.meta b{color:#211c18}
+.title h1{font-size:26px;margin:0 0 6px;color:var(--ink, #211c18);letter-spacing:-.01em}
+.meta{font-size:12.5px;color:var(--shop-ink-2, #6e6e73);line-height:1.8}
+.meta b{color:var(--ink, #211c18)}
 .billto{margin:22px 0 18px}
 .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#9a948d;margin-bottom:5px}
 .billto .nm{font-size:14px;font-weight:700}
-.billto .sub{font-size:12.5px;color:#6e6e73}
+.billto .sub{font-size:12.5px;color:var(--shop-ink-2, #6e6e73)}
 table.items{width:100%;border-collapse:collapse;margin-top:8px}
-table.items th{background:#faf6f1;text-align:${rtl ? 'right' : 'left'};font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:#6e6e73;padding:10px 12px;border-bottom:1px solid #ece6df}
+table.items th{background:#faf6f1;text-align:${rtl ? 'right' : 'left'};font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--shop-ink-2, #6e6e73);padding:10px 12px;border-bottom:1px solid #ece6df}
 table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
 .c{text-align:center}.r{text-align:${rtl ? 'left' : 'right'}}.muted{color:#9a948d}
 .totals{width:300px;margin-${rtl ? 'right' : 'left'}:auto;margin-top:18px}
 .totals table{width:100%;border-collapse:collapse}
 .totals td{padding:7px 12px;font-size:13px}
-.totals td.tl{color:#6e6e73}
-.totals tr.grand td{font-size:16px;font-weight:800;border-top:2px solid #211c18;padding-top:11px}
+.totals td.tl{color:var(--shop-ink-2, #6e6e73)}
+.totals tr.grand td{font-size:16px;font-weight:800;border-top:2px solid var(--ink, #211c18);padding-top:11px}
 .pay{display:inline-block;margin-top:10px;padding:5px 12px;border-radius:980px;font-size:12px;font-weight:700;background:#f2731c18;color:#a3520f}
 .foot{margin-top:36px;border-top:1px solid #ece6df;padding-top:16px;font-size:11.5px;color:#9a948d;text-align:center}
 @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{padding:24px}}
@@ -6438,9 +6456,9 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
     return (
       <div style={{ marginTop:12 }}>
         {items === 'loading'
-          ? <div style={{ fontSize:13, color:'#86868b', padding:'8px 0' }}>…</div>
+          ? <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', padding:'8px 0' }}>…</div>
           : rows.length === 0
-            ? <div style={{ fontSize:13, color:'#86868b', padding:'8px 0' }}>{t('hubNoItems')}</div>
+            ? <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', padding:'8px 0' }}>{t('hubNoItems')}</div>
             : (
               <div style={{ border:'1px solid #ececec', borderRadius:12, overflow:'hidden' }}>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr auto auto auto', gap:0, fontSize:11.5, textTransform:'uppercase', letterSpacing:'.04em', color:'#9a948d', background:'#faf6f1', padding:'8px 12px' }}>
@@ -6451,17 +6469,17 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
                 </div>
                 {rows.map((row, ri) => (
                   <div key={ri} style={{ display:'grid', gridTemplateColumns:'1fr auto auto auto', gap:0, fontSize:13, padding:'10px 12px', borderTop:'1px solid #f2efe9', alignItems:'center' }}>
-                    <span style={{ color:'#1d1d1f' }}>{row.name}</span>
-                    <span style={{ textAlign:'center', minWidth:42, color:'#6e6e73' }}>{row.qty}</span>
-                    <span style={{ textAlign: rtl ? 'left' : 'right', minWidth:80, color:'#6e6e73' }}>{bd(row.unit)}</span>
-                    <span style={{ textAlign: rtl ? 'left' : 'right', minWidth:90, fontWeight:600, color:'#1d1d1f' }}>{bd(row.total)}</span>
+                    <span style={{ color:'var(--shop-ink, #1d1d1f)' }}>{row.name}</span>
+                    <span style={{ textAlign:'center', minWidth:42, color:'var(--shop-ink-2, #6e6e73)' }}>{row.qty}</span>
+                    <span style={{ textAlign: rtl ? 'left' : 'right', minWidth:80, color:'var(--shop-ink-2, #6e6e73)' }}>{bd(row.unit)}</span>
+                    <span style={{ textAlign: rtl ? 'left' : 'right', minWidth:90, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{bd(row.total)}</span>
                   </div>
                 ))}
               </div>
             )}
         {withInvoice && (
           <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginTop:12, alignItems:'center' }}>
-            <span style={{ fontSize:12.5, fontWeight:600, color:'#86868b' }}>{t('hubInvoice')}:</span>
+            <span style={{ fontSize:12.5, fontWeight:600, color:'var(--shop-muted, #86868b)' }}>{t('hubInvoice')}:</span>
             <button type="button" onClick={()=>invoiceView(doc, key)} style={invBtn}>{t('hubView')}</button>
             <button type="button" onClick={()=>invoiceView(doc, key)} style={invBtn}>{t('hubPrint')}</button>
             <button type="button" onClick={()=>invoiceDownload(doc, key)} style={invBtn}>{t('hubDownload')}</button>
@@ -6504,7 +6522,7 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
     return map[key] && I18N[map[key]] ? t(map[key]) : fallback;
   };
   return (
-    <div dir={dir} style={{ minHeight: '100dvh', paddingBottom: mobile ? 80 : 0, background: '#f5f5f7' }}>
+    <div dir={dir} style={{ minHeight: '100dvh', paddingBottom: mobile ? 80 : 0, background: 'var(--shop-fill, #f5f5f7)' }}>
       {/* ── Single cohesive account bar (logo + account + back/sign-out, with tab row) ── */}
       <div style={{ position: 'sticky', top: 0, zIndex: 50, background: 'var(--cream, #f7f2ec)', borderBottom: '1px solid var(--line, #ece6df)' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: mobile ? '12px 16px 0' : '12px 32px 0' }}>
@@ -6536,7 +6554,7 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
         {/* Content */}
         <div style={{ maxWidth: 980, margin: '0 auto' }}>
           {tab === 'card' && <>
-            {!mobile && <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.02em', color: '#1d1d1f', marginBottom: 20 }}>My Digital Card</h2>}
+            {!mobile && <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.02em', color: 'var(--shop-ink, #1d1d1f)', marginBottom: 20 }}>My Digital Card</h2>}
             <div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:28, maxWidth:560 }}>
               {cardSlug ? <>
                 <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:18 }}>
@@ -6547,13 +6565,13 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
                     <button type="button" onClick={()=>document.getElementById('cust-photo-input').click()} title="Change photo" style={{ position:'absolute', right:-2, bottom:-2, width:24, height:24, borderRadius:'50%', border:'2px solid #fff', background:'var(--clay)', color:'#fff', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>✎</button>
                   </div>
                   <div>
-                    <div style={{ fontSize:18, fontWeight:700, color:'#1d1d1f' }}>{user.name}</div>
-                    <div style={{ fontSize:13, color:'#86868b' }}>{(user.tier||'Bronze')} member · {(user.points||0).toLocaleString()} pts</div>
+                    <div style={{ fontSize:18, fontWeight:700, color:'var(--shop-ink, #1d1d1f)' }}>{user.name}</div>
+                    <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)' }}>{(user.tier||'Bronze')} member · {(user.points||0).toLocaleString()} pts</div>
                   </div>
                 </div>
                 <input id="cust-photo-input" type="file" accept="image/*" style={{ display:'none' }} onChange={uploadPhoto} />
                 <div style={{ fontSize:12, color:'var(--muted)', marginBottom:10 }}>{t('imgHintAvatar')}</div>
-                <p style={{ fontSize:14, color:'#6e6e73', lineHeight:1.6, marginBottom:18 }}>{t('sw3HubCardLive')}</p>
+                <p style={{ fontSize:14, color:'var(--shop-ink-2, #6e6e73)', lineHeight:1.6, marginBottom:18 }}>{t('sw3HubCardLive')}</p>
                 <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
                   <a href={cardUrl} target="_blank" rel="noreferrer" className="btn" style={{ borderRadius:14, textDecoration:'none' }}>Open my card ↗</a>
                   <button type="button" className="btn-secondary" onClick={shareCard} style={{ borderRadius:14 }}>Share</button>
@@ -6561,19 +6579,19 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
                 </div>
               </> : <>
                 <div style={{ fontSize:40, marginBottom:10 }}>🪪</div>
-                <div style={{ fontSize:17, fontWeight:600, color:'#1d1d1f' }}>{t('sw3HubNoCard')}</div>
-                <p style={{ fontSize:14, color:'#86868b', marginTop:8 }}>{t('sw3HubNoCardSub')}</p>
+                <div style={{ fontSize:17, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{t('sw3HubNoCard')}</div>
+                <p style={{ fontSize:14, color:'var(--shop-muted, #86868b)', marginTop:8 }}>{t('sw3HubNoCardSub')}</p>
                 <button type="button" className="btn" onClick={()=>setPage('contact')} style={{ borderRadius:14, marginTop:14 }}>Contact us</button>
               </>}
             </div>
           </>}
           {tab === 'dashboard' && <>
-            {!mobile && <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.02em', color: '#1d1d1f', marginBottom: 20 }}>Home Hub</h2>}
+            {!mobile && <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.02em', color: 'var(--shop-ink, #1d1d1f)', marginBottom: 20 }}>Home Hub</h2>}
             <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: 12, marginBottom: 16 }}>
               {[['Total Invested', fmt(totalSpent), 'var(--clay)'], ['Active Orders', orders.filter(o=>!['Delivered','Cancelled'].includes(o.status)).length, '#1d1d1f'], ['Points', (user.points||0).toLocaleString(), '#b8860b'], ['Designs', designs.length, '#1d1d1f']].map(([label,val,color])=>(
-                <div key={label} style={{ background: '#fff', borderRadius: 18, padding: '18px 16px', border: '1px solid #e6e6e6' }}>
+                <div key={label} style={{ background: '#fff', borderRadius: 18, padding: '18px 16px', border: '1px solid var(--shop-line, #e6e6e6)' }}>
                   <div style={{ fontSize: mobile ? 18 : 22, fontWeight: 700, color, letterSpacing: '-.02em', marginBottom: 4 }}>{val}</div>
-                  <div style={{ fontSize: 12, color: '#86868b' }}>{label}</div>
+                  <div style={{ fontSize: 12, color: 'var(--shop-muted, #86868b)' }}>{label}</div>
                 </div>
               ))}
             </div>
@@ -6581,15 +6599,15 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
               const steps=['Confirmed','Materials','Production','Quality','Ready','Delivered'];
               const idx=Math.max(0,steps.findIndex(s=>(order.status||'').toLowerCase().startsWith(s.toLowerCase().slice(0,4))));
               const pct=Math.round(((idx+1)/steps.length)*100);
-              return <div key={order.id} style={{ background:'#fff', borderRadius:16, padding:'18px 20px', border:'1px solid #e6e6e6', marginBottom:10 }}>
+              return <div key={order.id} style={{ background:'#fff', borderRadius:16, padding:'18px 20px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:10 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', marginBottom:10, alignItems:'center' }}>
-                  <span style={{ fontSize:14, fontWeight:600, color:'#1d1d1f' }}>{order.order_number||order.id}</span>
+                  <span style={{ fontSize:14, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{order.order_number||order.id}</span>
                   <span style={{ fontSize:14, fontWeight:700, color:'var(--clay)' }}>{pct}%</span>
                 </div>
-                <div style={{ background:'#f5f5f7', borderRadius:980, height:6, overflow:'hidden' }}>
+                <div style={{ background:'var(--shop-fill, #f5f5f7)', borderRadius:980, height:6, overflow:'hidden' }}>
                   <div style={{ width:`${pct}%`, height:'100%', background:'linear-gradient(90deg,var(--clay),#ea6c0a)', borderRadius:980, transition:'width 1s ease' }} />
                 </div>
-                <div style={{ fontSize:12, color:'#86868b', marginTop:6 }}>{order.status||'In Progress'}</div>
+                <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)', marginTop:6 }}>{order.status||'In Progress'}</div>
               </div>;
             })}
           </>}
@@ -6599,17 +6617,17 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
               <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em' }}>{t('w4PLedgerTab')}</h2>
               <span style={{ fontSize:18, fontWeight:700, color:'var(--clay)' }}>{fmt(totalSpent)}</span>
             </div>
-            {orders.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'#86868b', background:'#fff', borderRadius:16, fontSize:14 }}>{t('hubNoItems')}</div> : orders.map(order=>{
+            {orders.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'var(--shop-muted, #86868b)', background:'#fff', borderRadius:16, fontSize:14 }}>{t('hubNoItems')}</div> : orders.map(order=>{
               const open = expandedOrder === ('ledger-'+order.id);
               return (
-                <div key={order.id} style={{ background:'#fff', borderRadius:16, padding:'16px 18px', border:'1px solid #e6e6e6', marginBottom:10 }}>
+                <div key={order.id} style={{ background:'#fff', borderRadius:16, padding:'16px 18px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:10 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
                     <div>
                       <div style={{ fontSize:14, fontWeight:600, color:'var(--clay)', marginBottom:2 }}>{order.order_number||order.order_num||order.id}</div>
-                      <div style={{ fontSize:12, color:'#86868b' }}>{order.notes||order.description||'Order'} · {order.created_at?new Date(order.created_at).toLocaleDateString('en-GB'):'—'}</div>
+                      <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{order.notes||order.description||'Order'} · {order.created_at?new Date(order.created_at).toLocaleDateString('en-GB'):'—'}</div>
                     </div>
                     <div style={{ textAlign: rtl ? 'left' : 'right' }}>
-                      <div style={{ fontSize:15, fontWeight:700, color:'#1d1d1f', marginBottom:4 }}>{fmt(order.total||order.total_amount||order.amount)}</div>
+                      <div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginBottom:4 }}>{fmt(order.total||order.total_amount||order.amount)}</div>
                       <Pill label={order.status||'Processing'} color="var(--clay)" bg="rgba(249,115,22,.1)" />
                     </div>
                   </div>
@@ -6620,22 +6638,22 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
             })}
             {invoices.length>0 && (
               <div style={{ marginTop:24 }}>
-                <h3 style={{ fontSize:15, fontWeight:700, color:'#1d1d1f', marginBottom:10 }}>{t('hubInvoice')}</h3>
-                <div style={{ background:'#fff', borderRadius:16, overflow:'hidden', border:'1px solid #e6e6e6' }}>
+                <h3 style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginBottom:10 }}>{t('hubInvoice')}</h3>
+                <div style={{ background:'#fff', borderRadius:16, overflow:'hidden', border:'1px solid var(--shop-line, #e6e6e6)' }}>
                   {invoices.map((inv,i)=>(
-                    <div key={inv.id} style={{ padding:'14px 18px', borderBottom:i<invoices.length-1?'1px solid #f5f5f7':'none' }}>
+                    <div key={inv.id} style={{ padding:'14px 18px', borderBottom:i<invoices.length-1?'1px solid var(--shop-fill, #f5f5f7)':'none' }}>
                       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
                         <div>
                           <div style={{ fontSize:14, fontWeight:500, color:'var(--clay)', marginBottom:2 }}>{inv.invoice_number||inv.id}</div>
-                          <div style={{ fontSize:12, color:'#86868b' }}>{inv.description||'Order'} · {inv.created_at?new Date(inv.created_at).toLocaleDateString('en-GB'):'—'}</div>
+                          <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{inv.description||'Order'} · {inv.created_at?new Date(inv.created_at).toLocaleDateString('en-GB'):'—'}</div>
                         </div>
                         <div style={{ textAlign: rtl ? 'left' : 'right' }}>
-                          <div style={{ fontSize:15, fontWeight:700, color:'#1d1d1f', marginBottom:4 }}>{fmt(inv.total_amount||inv.amount)}</div>
+                          <div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginBottom:4 }}>{fmt(inv.total_amount||inv.amount)}</div>
                           <Pill label={inv.status||'Pending'} color={inv.status==='Paid'?'#1a7a40':'#b8860b'} bg={inv.status==='Paid'?'rgba(26,122,64,.1)':'rgba(184,134,11,.1)'} />
                         </div>
                       </div>
                       <div style={{ display:'flex', gap:6, alignItems:'center', marginTop:10, flexWrap:'wrap' }}>
-                        <span style={{ fontSize:12.5, fontWeight:600, color:'#86868b' }}>{t('hubInvoice')}:</span>
+                        <span style={{ fontSize:12.5, fontWeight:600, color:'var(--shop-muted, #86868b)' }}>{t('hubInvoice')}:</span>
                         <button type="button" onClick={()=>invoiceView(inv, 'inv-'+inv.id)} style={invBtn}>{t('hubView')}</button>
                         <button type="button" onClick={()=>invoiceView(inv, 'inv-'+inv.id)} style={invBtn}>{t('hubPrint')}</button>
                         <button type="button" onClick={()=>invoiceDownload(inv, 'inv-'+inv.id)} style={invBtn}>{t('hubDownload')}</button>
@@ -6652,20 +6670,20 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
               <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', margin:0 }}>Service bookings</h2>
               <button type="button" className="btn" onClick={()=>setPage('services')} style={{ borderRadius:12, padding:'8px 16px', fontSize:14 }}>+ Book a service</button>
             </div>
-            {svcBookings.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'#86868b', background:'#fff', borderRadius:16, fontSize:14 }}>{t('sw3HubNoBookings')}</div> : svcBookings.map(b=>{
+            {svcBookings.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'var(--shop-muted, #86868b)', background:'#fff', borderRadius:16, fontSize:14 }}>{t('sw3HubNoBookings')}</div> : svcBookings.map(b=>{
               const s=(b.status||'').toLowerCase();
               const col = /complet/.test(s)?'#16a34a' : /cancel|disput/.test(s)?'#dc2626' : /request/.test(s)?'var(--clay)' : '#3b82f6';
               return (
-                <div key={b.id} style={{ background:'#fff', borderRadius:16, padding:'16px 18px', border:'1px solid #e6e6e6', marginBottom:10 }}>
+                <div key={b.id} style={{ background:'#fff', borderRadius:16, padding:'16px 18px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:10 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                    <div style={{ fontSize:15, fontWeight:600, color:'#1d1d1f' }}>{b.category_name||'Service'}</div>
+                    <div style={{ fontSize:15, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{b.category_name||'Service'}</div>
                     <Pill label={b.status||'Requested'} color={col} bg={col+'18'} />
                   </div>
-                  <div style={{ fontSize:12.5, color:'#86868b', marginTop:5 }}>
+                  <div style={{ fontSize:12.5, color:'var(--shop-muted, #86868b)', marginTop:5 }}>
                     {b.provider_name?('👷 '+b.provider_name):(b.mode==='on_demand'?'ASAP':'Scheduled')}{b.area?(' · '+b.area):''}{b.slot?(' · '+b.slot):''}
                     {b.price_approval_status==='pending'?'  ·  ⏳ price approval needed':''}
                   </div>
-                  {!!b.notes && <div style={{ fontSize:12.5, color:'#6e6e73', marginTop:6 }}>{b.notes}</div>}
+                  {!!b.notes && <div style={{ fontSize:12.5, color:'var(--shop-ink-2, #6e6e73)', marginTop:6 }}>{b.notes}</div>}
                 </div>
               );
             })}
@@ -6673,18 +6691,18 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
 
           {tab === 'orders' && <>
             <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>{t('w4POrdersTab')}</h2>
-            {orders.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'#86868b', background:'#fff', borderRadius:16, fontSize:14 }}>{t('hubNoItems')}</div> : orders.map(o=>{
+            {orders.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'var(--shop-muted, #86868b)', background:'#fff', borderRadius:16, fontSize:14 }}>{t('hubNoItems')}</div> : orders.map(o=>{
               const open = expandedOrder === ('orders-'+o.id);
               return (
-                <div key={o.id} style={{ background:'#fff', borderRadius:16, padding:'16px 18px', border:'1px solid #e6e6e6', marginBottom:10 }}>
+                <div key={o.id} style={{ background:'#fff', borderRadius:16, padding:'16px 18px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:10 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
-                    <div><div style={{ fontSize:14, fontWeight:600, color:'#1d1d1f', marginBottom:3 }}>{o.order_number||o.order_num||o.id}</div><div style={{ fontSize:12, color:'#86868b' }}>{o.created_at?new Date(o.created_at).toLocaleDateString('en-GB'):'—'}</div></div>
-                    <div style={{ textAlign: rtl ? 'left' : 'right' }}><div style={{ fontSize:15, fontWeight:700, color:'#1d1d1f', marginBottom:6 }}>{fmt(o.total||o.total_amount||o.amount)}</div><Pill label={o.status||'Processing'} color="var(--clay)" bg="rgba(249,115,22,.1)" /></div>
+                    <div><div style={{ fontSize:14, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', marginBottom:3 }}>{o.order_number||o.order_num||o.id}</div><div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{o.created_at?new Date(o.created_at).toLocaleDateString('en-GB'):'—'}</div></div>
+                    <div style={{ textAlign: rtl ? 'left' : 'right' }}><div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginBottom:6 }}>{fmt(o.total||o.total_amount||o.amount)}</div><Pill label={o.status||'Processing'} color="var(--clay)" bg="rgba(249,115,22,.1)" /></div>
                   </div>
                   <div style={{ display:'flex', gap:12, alignItems:'center', marginTop:8, flexWrap:'wrap' }}>
                     <button type="button" onClick={()=>{ const k='orders-'+o.id; if(open){setExpandedOrder(null);} else {setExpandedOrder(k); loadOrderItems(o.id);} }} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--clay)', fontSize:13, fontWeight:600, padding:0, display:'inline-flex', gap:5 }}>{open ? t('hubHideItems') : t('hubViewItems')} {open ? '▴' : '▾'}</button>
                     <div style={{ display:'flex', gap:6, alignItems:'center' }}>
-                      <span style={{ fontSize:12.5, fontWeight:600, color:'#86868b' }}>{t('hubInvoice')}:</span>
+                      <span style={{ fontSize:12.5, fontWeight:600, color:'var(--shop-muted, #86868b)' }}>{t('hubInvoice')}:</span>
                       <button type="button" onClick={()=>invoiceView(o, o.id)} style={invBtn}>{t('hubView')}</button>
                       <button type="button" onClick={()=>invoiceView(o, o.id)} style={invBtn}>{t('hubPrint')}</button>
                       <button type="button" onClick={()=>invoiceDownload(o, o.id)} style={invBtn}>{t('hubDownload')}</button>
@@ -6699,9 +6717,9 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
           {tab === 'designs' && <>
             <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>{t('w4PMyDesigns')}</h2>
             {designs.length===0 ? (
-              <div style={{ textAlign:'center', padding:'48px 24px', color:'#86868b', background:'#fff', borderRadius:16, border:'1px solid #e6e6e6' }}>
+              <div style={{ textAlign:'center', padding:'48px 24px', color:'var(--shop-muted, #86868b)', background:'#fff', borderRadius:16, border:'1px solid var(--shop-line, #e6e6e6)' }}>
                 <div style={{ fontSize:40, marginBottom:10 }}>🪟</div>
-                <div style={{ fontSize:15, color:'#1d1d1f', fontWeight:600, marginBottom:6 }}>{t('w4PNoDesigns')}</div>
+                <div style={{ fontSize:15, color:'var(--shop-ink, #1d1d1f)', fontWeight:600, marginBottom:6 }}>{t('w4PNoDesigns')}</div>
                 <p style={{ fontSize:13.5, marginBottom:16 }}>{t('w4PStartStudio')}</p>
                 <button type="button" className="btn" onClick={()=>setPage('planner')} style={{ borderRadius:14 }}>{t('w4POpenStudio')}</button>
               </div>
@@ -6711,20 +6729,20 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
                   const s=(d.status||'saved').toLowerCase();
                   const sCol = /quote/.test(s)?'#1a7a40' : 'var(--clay)';
                   return (
-                    <div key={d.id} onClick={()=>setSelectedDesign(d)} style={{ background:'#fff', borderRadius:16, border:'1px solid #e6e6e6', overflow:'hidden', cursor:'pointer', transition:'box-shadow .15s' }}>
-                      <div style={{ width:'100%', height:160, background:'#f5f5f7', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
+                    <div key={d.id} onClick={()=>setSelectedDesign(d)} style={{ background:'#fff', borderRadius:16, border:'1px solid var(--shop-line, #e6e6e6)', overflow:'hidden', cursor:'pointer', transition:'box-shadow .15s' }}>
+                      <div style={{ width:'100%', height:160, background:'var(--shop-fill, #f5f5f7)', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
                         {d.render_url
                           ? <img src={d.render_url} alt={d.product_name||'Design'} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                           : <span style={{ fontSize:38, opacity:.45 }}>🪟</span>}
                       </div>
                       <div style={{ padding:16 }}>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:8 }}>
-                          <div style={{ fontSize:15, fontWeight:600, color:'#1d1d1f' }}>{d.product_name||'Design'}</div>
+                          <div style={{ fontSize:15, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{d.product_name||'Design'}</div>
                           <Pill label={d.status||'Saved'} color={sCol} bg={sCol+'18'} />
                         </div>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                           <div style={{ fontSize:16, fontWeight:700, color:'var(--clay)' }}>{fmt(d.total_price)}</div>
-                          <div style={{ fontSize:12, color:'#86868b' }}>{d.created_at?new Date(d.created_at).toLocaleDateString('en-GB'):'—'}</div>
+                          <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{d.created_at?new Date(d.created_at).toLocaleDateString('en-GB'):'—'}</div>
                         </div>
                       </div>
                     </div>
@@ -6734,8 +6752,8 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
             )}
             {selectedDesign && (
               <div onClick={()=>setSelectedDesign(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.45)', display:'flex', alignItems:'center', justifyContent:'center', padding:16, zIndex:1000 }}>
-                <div onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:20, maxWidth:520, width:'100%', maxHeight:'90vh', overflow:'auto', border:'1px solid #e6e6e6' }}>
-                  <div style={{ position:'relative', width:'100%', height:220, background:'#f5f5f7', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
+                <div onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:20, maxWidth:520, width:'100%', maxHeight:'90vh', overflow:'auto', border:'1px solid var(--shop-line, #e6e6e6)' }}>
+                  <div style={{ position:'relative', width:'100%', height:220, background:'var(--shop-fill, #f5f5f7)', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
                     {selectedDesign.render_url
                       ? <img src={selectedDesign.render_url} alt={selectedDesign.product_name||'Design'} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                       : <span style={{ fontSize:54, opacity:.45 }}>🪟</span>}
@@ -6744,24 +6762,24 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
                   <div style={{ padding:22 }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:10, marginBottom:12 }}>
                       <div>
-                        <div style={{ fontSize:19, fontWeight:700, color:'#1d1d1f' }}>{selectedDesign.product_name||'Design'}</div>
-                        <div style={{ fontSize:12, color:'#86868b', marginTop:2 }}>{selectedDesign.created_at?new Date(selectedDesign.created_at).toLocaleDateString('en-GB'):''}</div>
+                        <div style={{ fontSize:19, fontWeight:700, color:'var(--shop-ink, #1d1d1f)' }}>{selectedDesign.product_name||'Design'}</div>
+                        <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)', marginTop:2 }}>{selectedDesign.created_at?new Date(selectedDesign.created_at).toLocaleDateString('en-GB'):''}</div>
                       </div>
                       <Pill label={selectedDesign.status||'Saved'} color={/quote/.test((selectedDesign.status||'').toLowerCase())?'#1a7a40':'var(--clay)'} bg={(/quote/.test((selectedDesign.status||'').toLowerCase())?'#1a7a40':'var(--clay)')+'18'} />
                     </div>
                     {selectedDesign.configuration && typeof selectedDesign.configuration==='object' && (
                       <div style={{ background:'#f8f8f8', borderRadius:14, padding:'14px 16px', marginBottom:16 }}>
-                        <div style={{ fontSize:12, fontWeight:600, color:'#86868b', marginBottom:8, textTransform:'uppercase', letterSpacing:'.04em' }}>{t('w4PSpecification')}</div>
+                        <div style={{ fontSize:12, fontWeight:600, color:'var(--shop-muted, #86868b)', marginBottom:8, textTransform:'uppercase', letterSpacing:'.04em' }}>{t('w4PSpecification')}</div>
                         {Object.entries(selectedDesign.configuration).filter(([,v])=>v!=null && typeof v!=='object').map(([k,v])=>(
                           <div key={k} style={{ display:'flex', justifyContent:'space-between', fontSize:13, padding:'4px 0', borderBottom:'1px solid #efefef' }}>
-                            <span style={{ color:'#86868b', textTransform:'capitalize' }}>{k.replace(/_/g,' ')}</span>
-                            <span style={{ color:'#1d1d1f', fontWeight:500, textAlign:'right' }}>{String(v)}</span>
+                            <span style={{ color:'var(--shop-muted, #86868b)', textTransform:'capitalize' }}>{k.replace(/_/g,' ')}</span>
+                            <span style={{ color:'var(--shop-ink, #1d1d1f)', fontWeight:500, textAlign:'right' }}>{String(v)}</span>
                           </div>
                         ))}
                       </div>
                     )}
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:18 }}>
-                      <span style={{ fontSize:13, color:'#86868b' }}>{t('w4PTotal')}</span>
+                      <span style={{ fontSize:13, color:'var(--shop-muted, #86868b)' }}>{t('w4PTotal')}</span>
                       <span style={{ fontSize:22, fontWeight:700, color:'var(--clay)' }}>{fmt(selectedDesign.total_price)}</span>
                     </div>
                     <button type="button" className="btn" onClick={()=>{ setSelectedDesign(null); setPage('planner'); }} style={{ borderRadius:14, width:'100%' }}>{t('w4PDesignAgain')}</button>
@@ -6773,22 +6791,22 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
 
           {tab === 'rewards' && <>
             <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>{t('w4PRewards')}</h2>
-            <div style={{ background:'#fff', borderRadius:20, padding:24, marginBottom:14, border:'1px solid #e6e6e6' }}>
-              <div style={{ fontSize:12, color:'#86868b', marginBottom:4 }}>{t('w4PBalance')}</div>
+            <div style={{ background:'#fff', borderRadius:20, padding:24, marginBottom:14, border:'1px solid var(--shop-line, #e6e6e6)' }}>
+              <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)', marginBottom:4 }}>{t('w4PBalance')}</div>
               <div style={{ fontSize:44, fontWeight:700, color:'var(--clay)', letterSpacing:'-.03em', marginBottom:4 }}>{(user.points||0).toLocaleString()}</div>
-              <div style={{ fontSize:13, color:'#86868b', marginBottom:20 }}>{t('w4PPoints')} · {user.tier||'Bronze'} {t('w4PMember')}</div>
+              <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', marginBottom:20 }}>{t('w4PPoints')} · {user.tier||'Bronze'} {t('w4PMember')}</div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8 }}>
                 {[['Bronze','0–999'],['Silver','1k–5k'],['Gold','5k–15k'],['Platinum','15k+']].map(([tier,range])=>(
                   <div key={tier} style={{ background:user.tier===tier?`${tierC[tier]}15`:'#f5f5f7', borderRadius:12, padding:'10px 8px', opacity:user.tier===tier?1:.4, border:user.tier===tier?`1.5px solid ${tierC[tier]}`:'1.5px solid transparent' }}>
                     <div style={{ fontSize:12, fontWeight:600, color:tierC[tier], marginBottom:1 }}>{tier}</div>
-                    <div style={{ fontSize:10, color:'#86868b' }}>{range}</div>
+                    <div style={{ fontSize:10, color:'var(--shop-muted, #86868b)' }}>{range}</div>
                   </div>
                 ))}
               </div>
             </div>
             {rewards.map((r,i)=>(
-              <div key={i} style={{ background:'#fff', borderRadius:14, padding:'14px 18px', border:'1px solid #e6e6e6', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <div><div style={{ fontSize:14, color:'#1d1d1f', marginBottom:2 }}>{r.description}</div><div style={{ fontSize:12, color:'#86868b' }}>{r.created_at?new Date(r.created_at).toLocaleDateString('en-GB'):''}</div></div>
+              <div key={i} style={{ background:'#fff', borderRadius:14, padding:'14px 18px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <div><div style={{ fontSize:14, color:'var(--shop-ink, #1d1d1f)', marginBottom:2 }}>{r.description}</div><div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{r.created_at?new Date(r.created_at).toLocaleDateString('en-GB'):''}</div></div>
                 <span style={{ fontSize:16, fontWeight:700, color:r.type==='earned'?'#1a7a40':'#d93025' }}>{r.type==='earned'?'+':'-'}{r.points}</span>
               </div>
             ))}
@@ -6796,7 +6814,7 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
 
           {tab === 'requests' && <>
             <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>{t('w4PServiceRequests')}</h2>
-            <div style={{ background:'#fff', borderRadius:20, padding:20, border:'1px solid #e6e6e6', marginBottom:14 }}>
+            <div style={{ background:'#fff', borderRadius:20, padding:20, border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:14 }}>
               <select className="inp" value={cmpForm.category} onChange={e=>setCmpForm(p=>({...p,category:e.target.value}))} style={{ marginBottom:10 }}>
                 {['Quality Issue','Delivery Problem','Incomplete Install','Design Discrepancy','Maintenance','Other'].map(c=><option key={c}>{c}</option>)}
               </select>
@@ -6804,8 +6822,8 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
               <button type="button" className="btn" onClick={submitComplaint} style={{ borderRadius:12 }}>{t('w4PSubmitRequest')}</button>
             </div>
             {complaints.map(c=>(
-              <div key={c.id} style={{ background:'#fff', borderRadius:14, padding:'14px 18px', border:'1px solid #e6e6e6', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <div><div style={{ fontSize:14, fontWeight:500, color:'#1d1d1f', marginBottom:2 }}>{c.category}</div><div style={{ fontSize:12, color:'#86868b' }}>{c.id}</div></div>
+              <div key={c.id} style={{ background:'#fff', borderRadius:14, padding:'14px 18px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <div><div style={{ fontSize:14, fontWeight:500, color:'var(--shop-ink, #1d1d1f)', marginBottom:2 }}>{c.category}</div><div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{c.id}</div></div>
                 <Pill label={c.status||'Open'} color={c.status==='Resolved'?'#1a7a40':'#b8860b'} bg={c.status==='Resolved'?'rgba(26,122,64,.1)':'rgba(184,134,11,.1)'} />
               </div>
             ))}
@@ -6813,7 +6831,7 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
 
           {tab === 'support' && <>
             <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>{t('w4PSupport')}</h2>
-            <div style={{ background:'#fff', borderRadius:20, padding:20, border:'1px solid #e6e6e6', marginBottom:14 }}>
+            <div style={{ background:'#fff', borderRadius:20, padding:20, border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:14 }}>
               <input className="inp" placeholder={t('w4PSubject')} aria-label={t('w4PSubject')} value={tktForm.subject} onChange={e=>setTktForm(p=>({...p,subject:e.target.value}))} style={{ marginBottom:10 }} />
               <textarea className="inp" rows={3} placeholder={t('w4PDescription')} aria-label={t('w4PDescription')} value={tktForm.description} onChange={e=>setTktForm(p=>({...p,description:e.target.value}))} style={{ marginBottom:10, resize:'vertical' }} />
               <select className="inp" value={tktForm.priority} onChange={e=>setTktForm(p=>({...p,priority:e.target.value}))} style={{ marginBottom:12 }}>
@@ -6822,8 +6840,8 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
               <button type="button" className="btn" onClick={submitTicket} style={{ borderRadius:12 }}>{t('w4PSubmitTicket')}</button>
             </div>
             {tickets.map(t=>(
-              <div key={t.id} style={{ background:'#fff', borderRadius:14, padding:'14px 18px', border:'1px solid #e6e6e6', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <div><div style={{ fontSize:14, fontWeight:500, color:'#1d1d1f', marginBottom:2 }}>{t.subject}</div><div style={{ fontSize:12, color:'#86868b' }}>{t.id} · {t.priority}</div></div>
+              <div key={t.id} style={{ background:'#fff', borderRadius:14, padding:'14px 18px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <div><div style={{ fontSize:14, fontWeight:500, color:'var(--shop-ink, #1d1d1f)', marginBottom:2 }}>{t.subject}</div><div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{t.id} · {t.priority}</div></div>
                 <Pill label={t.status||'Open'} color="var(--clay)" bg="rgba(249,115,22,.1)" />
               </div>
             ))}
@@ -6831,11 +6849,11 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
 
           {tab === 'profile' && <>
             <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>{t('w4PProfile')}</h2>
-            <div style={{ background:'#fff', borderRadius:20, padding:24, border:'1px solid #e6e6e6' }}>
+            <div style={{ background:'#fff', borderRadius:20, padding:24, border:'1px solid var(--shop-line, #e6e6e6)' }}>
               <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-                <div><label style={{ fontSize:13, fontWeight:500, color:'#86868b', display:'block', marginBottom:6 }}>{t('w4PFullName')}</label><input className="inp" value={editForm.name} onChange={e=>setEditForm(p=>({...p,name:e.target.value}))} /></div>
-                <div><label style={{ fontSize:13, fontWeight:500, color:'#86868b', display:'block', marginBottom:6 }}>{t('w4PEmail')}</label><input className="inp" value={user.email} disabled style={{ opacity:.5 }} /></div>
-                <div><label style={{ fontSize:13, fontWeight:500, color:'#86868b', display:'block', marginBottom:6 }}>{t('w4PPhone')}</label><input className="inp" value={editForm.phone} onChange={e=>setEditForm(p=>({...p,phone:e.target.value}))} /></div>
+                <div><label style={{ fontSize:13, fontWeight:500, color:'var(--shop-muted, #86868b)', display:'block', marginBottom:6 }}>{t('w4PFullName')}</label><input className="inp" value={editForm.name} onChange={e=>setEditForm(p=>({...p,name:e.target.value}))} /></div>
+                <div><label style={{ fontSize:13, fontWeight:500, color:'var(--shop-muted, #86868b)', display:'block', marginBottom:6 }}>{t('w4PEmail')}</label><input className="inp" value={user.email} disabled style={{ opacity:.5 }} /></div>
+                <div><label style={{ fontSize:13, fontWeight:500, color:'var(--shop-muted, #86868b)', display:'block', marginBottom:6 }}>{t('w4PPhone')}</label><input className="inp" value={editForm.phone} onChange={e=>setEditForm(p=>({...p,phone:e.target.value}))} /></div>
                 <button type="button" className="btn" onClick={saveProfile} style={{ borderRadius:14, marginTop:4 }}>{t('w4PSaveChanges')}</button>
               </div>
             </div>
@@ -6895,11 +6913,11 @@ function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
       <div onClick={onClose} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.4)', zIndex:2000, backdropFilter:'blur(8px)', animation:'fadeIn .2s ease' }} />
       <div style={mobile ? { position:'fixed', left:0, right:0, bottom:0, background:'#fff', zIndex:2001, borderRadius:'24px 24px 0 0', padding:'28px 20px 36px', animation:'slideUp .3s ease', paddingBottom:'calc(36px + env(safe-area-inset-bottom))', maxHeight:'92svh', overflowY:'auto', WebkitOverflowScrolling:'touch' }
         : { position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', width:'min(390px,95vw)', maxHeight:'90svh', overflowY:'auto', background:'#fff', borderRadius:24, padding:'44px 40px', zIndex:2001, animation:'fadeUp .3s ease', boxShadow:'0 24px 64px rgba(0,0,0,.15)' }}>
-        {mobile && <div style={{ width:36, height:4, background:'#e6e6e6', borderRadius:2, margin:'-12px auto 20px' }} />}
+        {mobile && <div style={{ width:36, height:4, background:'var(--shop-line, #e6e6e6)', borderRadius:2, margin:'-12px auto 20px' }} />}
         <div style={{ textAlign:'center', marginBottom:28 }}>
           <div style={{ width:48, height:48, borderRadius:14, background:'rgba(249,115,22,.12)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px', fontSize:22 }}>◼</div>
-          <div style={{ fontSize:22, fontWeight:700, color:'#1d1d1f', letterSpacing:'-.02em', marginBottom:5 }}>{mode==='reset'?t('w4AuthReset'):mode==='login'?t('w4AuthWelcome'):t('w4AuthCreate')}</div>
-          <div style={{ fontSize:14, color:'#86868b' }}>{mode==='reset'?t('w4AuthResetSub'):mode==='login'?t('w4AuthLoginSub'):t('w4AuthRegisterSub')}</div>
+          <div style={{ fontSize:22, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', letterSpacing:'-.02em', marginBottom:5 }}>{mode==='reset'?t('w4AuthReset'):mode==='login'?t('w4AuthWelcome'):t('w4AuthCreate')}</div>
+          <div style={{ fontSize:14, color:'var(--shop-muted, #86868b)' }}>{mode==='reset'?t('w4AuthResetSub'):mode==='login'?t('w4AuthLoginSub'):t('w4AuthRegisterSub')}</div>
         </div>
         {mode!=='reset' && (<div style={{ display:'flex', flexDirection:'column', gap:12 }}>
           {mode==='register'&&<input className="inp" placeholder={t('w4AuthFullName')} aria-label={t('w4AuthFullName')} value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} />}
@@ -6914,7 +6932,7 @@ function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
             <button type="button" className="btn" onClick={()=>reqReset('email')} disabled={loading} style={{ borderRadius:14 }}>{t('w4AuthEmailLink')}</button>
             <button type="button" onClick={()=>reqReset('otp')} disabled={loading} style={{ borderRadius:14, padding:'12px', background:'#fff', color:'var(--clay)', border:'1px solid var(--clay)', fontWeight:600, cursor:'pointer' }}>{t('w4AuthTextCode')}</button>
           </>)}
-          {rstep==='emailsent' && (<div style={{ fontSize:13, color:'#86868b', textAlign:'center' }}>{t('w4AuthCheckEmail')}</div>)}
+          {rstep==='emailsent' && (<div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', textAlign:'center' }}>{t('w4AuthCheckEmail')}</div>)}
           {rstep==='otp' && (<>
             <input className="inp" placeholder={t('w4AuthCode6')} aria-label={t('w4AuthCode6')} inputMode="numeric" value={rotp} onChange={e=>setRotp(e.target.value)} />
             <input className="inp" placeholder={t('w4AuthNewPassword')} aria-label={t('w4AuthNewPassword')} type="password" value={rnew} onChange={e=>setRnew(e.target.value)} />
@@ -6935,10 +6953,10 @@ function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
         </div>)}
         <div style={{ textAlign:'center', marginTop:16, display:'flex', flexDirection:'column', gap:8 }}>
           {mode!=='reset' && <button type="button" onClick={()=>setMode(mode==='login'?'register':'login')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:14, color:'var(--clay)', fontWeight:500 }}>{mode==='login'?t('w4AuthRegisterLink'):t('w4AuthLoginLink')}</button>}
-          {mode==='login' && <button type="button" onClick={()=>{ setRstep('request'); setMode('reset'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#86868b', fontWeight:500 }}>{t('w4AuthForgot')}</button>}
-          {mode==='reset' && <button type="button" onClick={()=>{ setMode('login'); setRstep('request'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#86868b', fontWeight:500 }}>{t('w4AuthBackToSignIn')}</button>}
+          {mode==='login' && <button type="button" onClick={()=>{ setRstep('request'); setMode('reset'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--shop-muted, #86868b)', fontWeight:500 }}>{t('w4AuthForgot')}</button>}
+          {mode==='reset' && <button type="button" onClick={()=>{ setMode('login'); setRstep('request'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--shop-muted, #86868b)', fontWeight:500 }}>{t('w4AuthBackToSignIn')}</button>}
         </div>
-        {!mobile && <button type="button" aria-label="Close" onClick={onClose} style={{ position:'absolute', top:14, right:16, background:'#f5f5f7', border:'none', borderRadius:'50%', width:30, height:30, cursor:'pointer', color:'#86868b', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>}
+        {!mobile && <button type="button" aria-label="Close" onClick={onClose} style={{ position:'absolute', top:14, right:16, background:'var(--shop-fill, #f5f5f7)', border:'none', borderRadius:'50%', width:30, height:30, cursor:'pointer', color:'var(--shop-muted, #86868b)', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>}
       </div>
     </>
   );
@@ -6953,15 +6971,15 @@ function AboutPage() {
     <div style={{ minHeight:'100dvh', paddingTop: mobile ? 16 : 72, paddingBottom: mobile ? 80 : 0, background:'#fff' }}>
       <div style={{ maxWidth:860, margin:'0 auto', padding: mobile ? '24px 16px 60px' : '60px 40px 100px' }}>
         <div className="reveal" style={{ fontSize:13, fontWeight:500, color:'var(--clay)', marginBottom:12 }}>{cms('about.hero.eyebrow', t('ourStory'))}</div>
-        <h1 className="reveal" style={{ fontSize: mobile ? 36 : 64, fontWeight:700, letterSpacing:'-.04em', color:'#1d1d1f', lineHeight:1.05, marginBottom:32 }}>{cms('about.hero.title', t('precision')+' '+t('permanence'))}</h1>
+        <h1 className="reveal" style={{ fontSize: mobile ? 36 : 64, fontWeight:700, letterSpacing:'-.04em', color:'var(--shop-ink, #1d1d1f)', lineHeight:1.05, marginBottom:32 }}>{cms('about.hero.title', t('precision')+' '+t('permanence'))}</h1>
         <div className="reveal" style={{ display:'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? 16 : 40, marginBottom:48 }}>
-          <p style={{ fontSize:16, lineHeight:1.8, color:'#6e6e73' }}>{cms('about.p1', t('aboutP1'))}</p>
-          <p style={{ fontSize:16, lineHeight:1.8, color:'#6e6e73' }}>{cms('about.p2', t('aboutP2'))}</p>
+          <p style={{ fontSize:16, lineHeight:1.8, color:'var(--shop-ink-2, #6e6e73)' }}>{cms('about.p1', t('aboutP1'))}</p>
+          <p style={{ fontSize:16, lineHeight:1.8, color:'var(--shop-ink-2, #6e6e73)' }}>{cms('about.p2', t('aboutP2'))}</p>
         </div>
         {[['2010','Founded in Manama, Bahrain'],['2013','First flagship showroom'],['2016','Bespoke configurator launched'],['2019','Expanded to four locations'],['2022','500+ projects completed'],['2024','Digital hub launched']].map(([year,event],i)=>(
-          <div key={year} className="reveal" style={{ transitionDelay:`${i*.07}s`, display:'flex', gap:28, padding:'18px 0', borderBottom:'1px solid #f5f5f7', alignItems:'center' }}>
+          <div key={year} className="reveal" style={{ transitionDelay:`${i*.07}s`, display:'flex', gap:28, padding:'18px 0', borderBottom:'1px solid var(--shop-fill, #f5f5f7)', alignItems:'center' }}>
             <span style={{ fontSize:15, fontWeight:700, color:'var(--clay)', minWidth:40 }}>{year}</span>
-            <span style={{ fontSize:15, color:'#1d1d1f' }}>{event}</span>
+            <span style={{ fontSize:15, color:'var(--shop-ink, #1d1d1f)' }}>{event}</span>
           </div>
         ))}
       </div>
@@ -7227,7 +7245,7 @@ function CardTile({ c }) {
   const pillCol = { vendor:'#1a7a40', customer:'#7a3fb0', employee:'#b5560f' }[ptype] || '#b5560f';
   return (
     <a href={`${HUB_ORIGIN}/card.html?c=${encodeURIComponent(c.slug)}`} target="_blank" rel="noreferrer"
-       style={{ textDecoration:'none', color:'#1d1d1f', background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:20, display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', transition:'transform .15s, box-shadow .15s' }}
+       style={{ textDecoration:'none', color:'var(--shop-ink, #1d1d1f)', background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:20, display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', transition:'transform .15s, box-shadow .15s' }}
        onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px)';e.currentTarget.style.boxShadow='0 12px 30px rgba(0,0,0,.08)';}}
        onMouseLeave={e=>{e.currentTarget.style.transform='none';e.currentTarget.style.boxShadow='none';}}>
       <div style={{ width:66, height:66, borderRadius:'50%', background:`linear-gradient(135deg,${theme},${theme}99)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:24, fontWeight:800, color:'#fff', overflow:'hidden', marginBottom:10 }}>
@@ -7235,7 +7253,7 @@ function CardTile({ c }) {
       </div>
       <div style={{ fontWeight:700, fontSize:15 }}>{c.display_name}</div>
       {c.title && <div style={{ color:theme, fontSize:12.5, marginTop:2 }}>{c.title}</div>}
-      {c.location && <div style={{ color:'#86868b', fontSize:12, marginTop:4 }}>{c.location}</div>}
+      {c.location && <div style={{ color:'var(--shop-muted, #86868b)', fontSize:12, marginTop:4 }}>{c.location}</div>}
       <span style={{ marginTop:10, fontSize:10.5, fontWeight:700, borderRadius:980, padding:'3px 10px', textTransform:'capitalize', background:pillBg, color:pillCol }}>{ptype}</span>
     </a>
   );
@@ -7259,11 +7277,11 @@ function DirectoryPage({ setPage }) {
         style={{ width:'100%', maxWidth:520, padding:'13px 18px', borderRadius:980, border:'1px solid #ececec', fontSize:15, marginBottom:16, fontFamily:'inherit' }}/>
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:24 }}>
         {tabs.map(([id,label]) => (
-          <button type="button" key={id||'all'} onClick={()=>setType(id)} style={{ padding:'8px 16px', borderRadius:980, border:'1px solid #ececec', cursor:'pointer', fontSize:13, fontWeight:600, fontFamily:'inherit', background: type===id ? 'var(--clay)' : '#fff', color: type===id ? '#fff' : '#1d1d1f' }}>{label}</button>
+          <button type="button" key={id||'all'} onClick={()=>setType(id)} style={{ padding:'8px 16px', borderRadius:980, border:'1px solid #ececec', cursor:'pointer', fontSize:13, fontWeight:600, fontFamily:'inherit', background: type===id ? 'var(--clay)' : '#fff', color: type===id ? '#fff' : 'var(--shop-ink, #1d1d1f)' }}>{label}</button>
         ))}
       </div>
-      {list === null ? <div style={{ color:'#86868b', padding:40 }}>Loading…</div>
-        : list.length === 0 ? <div style={{ color:'#86868b', padding:40 }}>No cards found.</div>
+      {list === null ? <div style={{ color:'var(--shop-muted, #86868b)', padding:40 }}>Loading…</div>
+        : list.length === 0 ? <div style={{ color:'var(--shop-muted, #86868b)', padding:40 }}>No cards found.</div>
         : <div style={{ display:'grid', gridTemplateColumns:`repeat(${mobile?2:4}, 1fr)`, gap:14 }}>{list.map(c => <CardTile key={c.slug} c={c} />)}</div>}
     </PageWrap>
   );
@@ -7413,68 +7431,68 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
     setStep(3);
   };
   return (
-    <div style={{ minHeight:'100dvh', paddingTop: mobile ? 0 : 56, paddingBottom: mobile ? 80 : 0, background:'#f5f5f7' }}>
+    <div style={{ minHeight:'100dvh', paddingTop: mobile ? 0 : 56, paddingBottom: mobile ? 80 : 0, background:'var(--shop-fill, #f5f5f7)' }}>
       <div style={{ maxWidth:960, margin:'0 auto', padding: mobile ? '24px 16px' : '40px 40px 80px' }}>
-        <h1 style={{ fontSize: mobile ? 26 : 32, fontWeight:700, letterSpacing:'-.03em', color:'#1d1d1f', marginBottom:24 }}>{t('checkout')}</h1>
+        <h1 style={{ fontSize: mobile ? 26 : 32, fontWeight:700, letterSpacing:'-.03em', color:'var(--shop-ink, #1d1d1f)', marginBottom:24 }}>{t('checkout')}</h1>
         {step===3 ? (
           <div style={{ textAlign:'center', padding:'60px 0' }}>
             <div style={{ width:72, height:72, borderRadius:'50%', background:'rgba(26,122,64,.1)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 24px', fontSize:32 }}>✓</div>
-            <h2 style={{ fontSize:26, fontWeight:700, color:'#1d1d1f', marginBottom:10 }}>{t('orderPlaced')}</h2>
-            <p style={{ color:'#86868b', fontSize:15, marginBottom:32 }}>{t('swContactConfirm24')}</p>
+            <h2 style={{ fontSize:26, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginBottom:10 }}>{t('orderPlaced')}</h2>
+            <p style={{ color:'var(--shop-muted, #86868b)', fontSize:15, marginBottom:32 }}>{t('swContactConfirm24')}</p>
             <button type="button" className="btn" onClick={()=>setPage('home')} style={{ borderRadius:14 }}>{t('backHome')}</button>
           </div>
         ) : (
           <div style={{ display: mobile ? 'flex' : 'grid', flexDirection: mobile ? 'column' : undefined, gridTemplateColumns: mobile ? undefined : '1fr 320px', gap:16 }}>
             {/* Order summary — show first on mobile */}
-            <div style={{ background:'#fff', borderRadius:20, padding:20, border:'1px solid #e6e6e6', order: mobile ? -1 : 1 }}>
-              <div style={{ fontSize:13, fontWeight:600, color:'#86868b', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:14 }}>{t('summary')}</div>
+            <div style={{ background:'#fff', borderRadius:20, padding:20, border:'1px solid var(--shop-line, #e6e6e6)', order: mobile ? -1 : 1 }}>
+              <div style={{ fontSize:13, fontWeight:600, color:'var(--shop-muted, #86868b)', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:14 }}>{t('summary')}</div>
               {cart.map((item,i)=>(
-                <div key={i} style={{ display:'flex', justifyContent:'space-between', marginBottom:10, paddingBottom:10, borderBottom:'1px solid #f5f5f7' }}>
-                  <span style={{ fontSize:14, color:'#1d1d1f' }}>{item.name}</span>
-                  <span style={{ fontSize:14, fontWeight:600, color:'#1d1d1f' }}>{fmt(item.price)}</span>
+                <div key={i} style={{ display:'flex', justifyContent:'space-between', marginBottom:10, paddingBottom:10, borderBottom:'1px solid var(--shop-fill, #f5f5f7)' }}>
+                  <span style={{ fontSize:14, color:'var(--shop-ink, #1d1d1f)' }}>{item.name}</span>
+                  <span style={{ fontSize:14, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{fmt(item.price)}</span>
                 </div>
               ))}
               <div style={{ display:'flex', justifyContent:'space-between', paddingTop:4 }}>
                 <span style={{ fontSize:16, fontWeight:700 }}>{t('total')}</span>
                 <span style={{ fontSize:20, fontWeight:700, color:'var(--clay)' }}>{fmt(total)}</span>
               </div>
-              {user && <div style={{ fontSize:12, color:'#86868b', marginTop:8 }}>+{Math.floor(total*10)} {t('swCoLoyaltyPts')}</div>}
+              {user && <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)', marginTop:8 }}>+{Math.floor(total*10)} {t('swCoLoyaltyPts')}</div>}
             </div>
-            <div style={{ background:'#fff', borderRadius:20, padding: mobile ? 20 : 28, border:'1px solid #e6e6e6' }}>
+            <div style={{ background:'#fff', borderRadius:20, padding: mobile ? 20 : 28, border:'1px solid var(--shop-line, #e6e6e6)' }}>
               {step===1&&<>
-                <div style={{ fontSize:13, fontWeight:600, color:'#86868b', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:20 }}>{t('swCoStep1')}</div>
+                <div style={{ fontSize:13, fontWeight:600, color:'var(--shop-muted, #86868b)', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:20 }}>{t('swCoStep1')}</div>
                 <div style={{ display:'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap:12, marginBottom:12 }}>
                   {[[t('swCoFullName'),'name','text'],[t('swCoEmail'),'email','email'],[t('swCoPhone'),'phone','tel'],[t('swCoCity'),'city','text']].map(([label,key,type])=>(
-                    <div key={key}><label style={{ fontSize:13, fontWeight:500, color:'#86868b', display:'block', marginBottom:6 }}>{label}</label><input className="inp" type={type} value={form[key]} onChange={e=>setForm(p=>({...p,[key]:e.target.value}))} /></div>
+                    <div key={key}><label style={{ fontSize:13, fontWeight:500, color:'var(--shop-muted, #86868b)', display:'block', marginBottom:6 }}>{label}</label><input className="inp" type={type} value={form[key]} onChange={e=>setForm(p=>({...p,[key]:e.target.value}))} /></div>
                   ))}
-                  <div style={{ gridColumn: mobile ? '1' : 'span 2' }}><label style={{ fontSize:13, fontWeight:500, color:'#86868b', display:'block', marginBottom:6 }}>{t('swCoAddress')}</label><input className="inp" value={form.address} onChange={e=>setForm(p=>({...p,address:e.target.value}))} /></div>
+                  <div style={{ gridColumn: mobile ? '1' : 'span 2' }}><label style={{ fontSize:13, fontWeight:500, color:'var(--shop-muted, #86868b)', display:'block', marginBottom:6 }}>{t('swCoAddress')}</label><input className="inp" value={form.address} onChange={e=>setForm(p=>({...p,address:e.target.value}))} /></div>
                 </div>
                 <button type="button" className="btn" onClick={()=>{ if(!form.name||!form.email){toast(t('swCoNameEmailReq'),'error');return;} setStep(2); }} style={{ borderRadius:12 }}>{t('swCoContinue')}</button>
               </>}
               {step===2&&<>
-                <div style={{ fontSize:13, fontWeight:600, color:'#86868b', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:20 }}>{t('swCoStep2')}</div>
+                <div style={{ fontSize:13, fontWeight:600, color:'var(--shop-muted, #86868b)', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:20 }}>{t('swCoStep2')}</div>
                 <div style={{ display:'flex', gap:8, marginBottom:16 }}>
                   {[['Card',t('swCoCard')],['Bank Transfer',t('swCoBankTransfer')],['Cash',t('swCoCash')],['Cheque',t('swCoCheque')]].map(([p,plabel])=>(
                     <button type="button" key={p} onClick={()=>{ setForm(f=>({...f,payment:p})); setMonths(0); }} style={{ flex:1, padding:'12px 8px', borderRadius:12, border:`1.5px solid ${form.payment===p&&months===0?'var(--clay)':'#e6e6e6'}`, background:form.payment===p&&months===0?'rgba(249,115,22,.08)':'#fff', color:form.payment===p&&months===0?'var(--clay)':'#6e6e73', fontSize:13, cursor:'pointer', fontWeight:form.payment===p&&months===0?500:400, transition:'all .15s' }}>{plabel}</button>
                   ))}
                 </div>
                 {form.payment==='Card' && months===0 && (
-                  <div style={{ marginBottom:16, background:'rgba(249,115,22,.06)', border:'1px solid rgba(249,115,22,.22)', borderRadius:12, padding:'11px 13px', fontSize:12.5, color:'#6e6e73', lineHeight:1.6 }}>
+                  <div style={{ marginBottom:16, background:'rgba(249,115,22,.06)', border:'1px solid rgba(249,115,22,.22)', borderRadius:12, padding:'11px 13px', fontSize:12.5, color:'var(--shop-ink-2, #6e6e73)', lineHeight:1.6 }}>
                     {t('swCoCardNote')}
                   </div>
                 )}
                 {instEnabled && (
                   <div style={{ marginBottom:16 }}>
-                    <div style={{ fontSize:13, fontWeight:600, color:'#1d1d1f', marginBottom:8 }}>{t('swCheckoutSplit')}</div>
+                    <div style={{ fontSize:13, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', marginBottom:8 }}>{t('swCheckoutSplit')}</div>
                     <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                       {plans.map(m=>(
                         <button type="button" key={m} onClick={()=>setMonths(months===m?0:m)} style={{ padding:'10px 14px', borderRadius:12, border:`1.5px solid ${months===m?'var(--clay)':'#e6e6e6'}`, background:months===m?'rgba(249,115,22,.08)':'#fff', cursor:'pointer', textAlign:'left' }}>
                           <div style={{ fontSize:14, fontWeight:700, color:months===m?'var(--clay)':'#1d1d1f' }}>{m} {t('swCoMonths')}</div>
-                          <div style={{ fontSize:12, color:'#86868b' }}>BHD {(total/m).toFixed(2)}/mo</div>
+                          <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>BHD {(total/m).toFixed(2)}/mo</div>
                         </button>
                       ))}
                     </div>
-                    {months>0 && <div style={{ marginTop:10, fontSize:13, color:'#16a34a', fontWeight:600 }}>✓ {months} {t('swCoInstConfirmPre')} {monthly.toFixed(2)} {t('swCoInstConfirmPost')}</div>}
+                    {months>0 && <div style={{ marginTop:10, fontSize:13, color:'var(--ok, #16a34a)', fontWeight:600 }}>✓ {months} {t('swCoInstConfirmPre')} {monthly.toFixed(2)} {t('swCoInstConfirmPost')}</div>}
                   </div>
                 )}
                 <textarea className="inp" rows={3} placeholder={t('swCoNotes')} aria-label={t('swCoNotesAria')} value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))} style={{ resize:'vertical', marginBottom:16 }} />
@@ -7498,7 +7516,7 @@ function HomeAIOffers({ setPage, mobile, P }) {
   useEffect(() => { api('store_offers?active=eq.true&order=sort_order.asc&limit=3').then(d => { if (Array.isArray(d)) setOffers(d); }).catch(()=>{}); }, []);
   return (<>
     <section style={{ padding:`0 ${P}`, maxWidth:1200, margin:'28px auto 0' }}>
-      <div className="reveal" style={{ background:'linear-gradient(135deg,#1d1d1f,#3a3530)', borderRadius:20, padding: mobile?24:36, color:'#fff', display:'flex', flexWrap:'wrap', gap:16, alignItems:'center', justifyContent:'space-between' }}>
+      <div className="reveal" style={{ background:'linear-gradient(135deg,var(--shop-ink, #1d1d1f),#3a3530)', borderRadius:20, padding: mobile?24:36, color:'#fff', display:'flex', flexWrap:'wrap', gap:16, alignItems:'center', justifyContent:'space-between' }}>
         <div style={{ maxWidth:580 }}>
           <div style={{ fontSize:12, letterSpacing:'.15em', textTransform:'uppercase', color:'#F9A35C' }}>{t('sw3AiOffersBadge')}</div>
           <div style={{ fontSize: mobile?22:30, fontWeight:700, margin:'8px 0', lineHeight:1.15 }}>{t('sw3AiOffersTitle')}</div>
@@ -7512,8 +7530,8 @@ function HomeAIOffers({ setPage, mobile, P }) {
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:12 }}>
           {offers.map(o=>(<button type="button" key={o.id} onClick={()=>setPage('offers')} className="reveal" style={{ textAlign:'left', background:'var(--sand)', border:'1px solid var(--clay)22', borderRadius:16, padding:'16px 18px', cursor:'pointer' }}>
             {o.badge && <span style={{ fontSize:11, fontWeight:700, color:'var(--clay)' }}>{o.badge}</span>}
-            <div style={{ fontSize:15, fontWeight:700, color:'#1d1d1f', marginTop:4 }}>{o.title}</div>
-            <div style={{ fontSize:13, color:'#86868b', marginTop:3 }}>{o.subtitle}</div>
+            <div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginTop:4 }}>{o.title}</div>
+            <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', marginTop:3 }}>{o.subtitle}</div>
           </button>))}
         </div>
       </section>
@@ -8328,13 +8346,13 @@ function CareersPage() {
       {rows.map(j=>(<div key={j.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
           <div>
-            <div style={{ fontSize:18, fontWeight:600, color:'#1d1d1f' }}>{j.job_title}</div>
-            <div style={{ fontSize:13, color:'#86868b', marginTop:4 }}>{[j.department,j.employment_type,j.location].filter(Boolean).join(' · ')}</div>
+            <div style={{ fontSize:18, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{j.job_title}</div>
+            <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', marginTop:4 }}>{[j.department,j.employment_type,j.location].filter(Boolean).join(' · ')}</div>
           </div>
           <button type="button" onClick={()=>setOpenId(openId===j.id?null:j.id)} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:980, padding:'10px 20px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{openId===j.id?t('swCarClose'):t('swCarApply')}</button>
         </div>
         {j.description && <div style={{ fontSize:14, color:'#555', marginTop:12, lineHeight:1.6 }}>{j.description}</div>}
-        {j.requirements && <div style={{ fontSize:13, color:'#86868b', marginTop:8, lineHeight:1.6 }}><strong>{t('swCarRequirements')}</strong> {j.requirements}</div>}
+        {j.requirements && <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', marginTop:8, lineHeight:1.6 }}><strong>{t('swCarRequirements')}</strong> {j.requirements}</div>}
         {openId===j.id && (sentFor===j.id
           ? <div style={{ marginTop:16, color:'#1D7A4D', fontWeight:600 }}>{t('swCarThankYou')}</div>
           : <div style={{ marginTop:16, display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
@@ -8342,7 +8360,7 @@ function CareersPage() {
               <input placeholder={t('swCarPhone')} aria-label={t('swCarPhoneAria')} value={f.phone} onChange={e=>setF({...f,phone:e.target.value})} style={inp} />
               <input placeholder={t('swCarEmail')} aria-label={t('swCarEmail')} value={f.email} onChange={e=>setF({...f,email:e.target.value})} style={inp} />
               <input placeholder={t('swCarNote')} aria-label={t('swCarNote')} value={f.note} onChange={e=>setF({...f,note:e.target.value})} style={inp} />
-              <button type="button" onClick={()=>apply(j)} style={{ gridColumn:'1 / -1', background:'#1d1d1f', color:'#fff', border:'none', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{t('swCarSubmit')}</button>
+              <button type="button" onClick={()=>apply(j)} style={{ gridColumn:'1 / -1', background:'var(--shop-ink, #1d1d1f)', color:'#fff', border:'none', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{t('swCarSubmit')}</button>
             </div>)}
       </div>))}
       {rows.length===0 && <div style={{ color:'#aaa' }}>{t('swCareersNoRoles')}</div>}
@@ -8359,9 +8377,9 @@ function OffersPage({ setPage }) {
     <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
       {rows.map(o=>(<div key={o.id} className="lift" style={{ background:'linear-gradient(135deg,var(--sand),#fff)', border:'1px solid var(--clay)33', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
         {o.badge && <span style={{ display:'inline-block', background:'var(--clay)', color:'#fff', fontSize:12, fontWeight:700, padding:'5px 12px', borderRadius:980 }}>{trMap(o.badge, OFFER_BADGE_KEY, lang)}</span>}
-        <div style={{ fontSize:19, fontWeight:700, color:'#1d1d1f', marginTop:12 }}>{trMap(o.title, OFFER_TITLE_KEY, lang)}</div>
-        <div style={{ fontSize:14, color:'#86868b', marginTop:6, lineHeight:1.6 }}>{trMap(o.subtitle, OFFER_SUB_KEY, lang)}</div>
-        <button type="button" onClick={()=>setPage('booking')} style={{ marginTop:16, background:'#1d1d1f', color:'#fff', border:'none', borderRadius:980, padding:'10px 18px', fontSize:13, fontWeight:600, cursor:'pointer' }}>{t('w4ClaimOffer')}</button>
+        <div style={{ fontSize:19, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginTop:12 }}>{trMap(o.title, OFFER_TITLE_KEY, lang)}</div>
+        <div style={{ fontSize:14, color:'var(--shop-muted, #86868b)', marginTop:6, lineHeight:1.6 }}>{trMap(o.subtitle, OFFER_SUB_KEY, lang)}</div>
+        <button type="button" onClick={()=>setPage('booking')} style={{ marginTop:16, background:'var(--shop-ink, #1d1d1f)', color:'#fff', border:'none', borderRadius:980, padding:'10px 18px', fontSize:13, fontWeight:600, cursor:'pointer' }}>{t('w4ClaimOffer')}</button>
       </div>))}
       {rows.length===0 && <div style={{ color:'#aaa' }}>{t('w4NoOffers')}</div>}
     </div>
@@ -8374,7 +8392,7 @@ function FaqPage() {
   return (<PageWrap title={cms('faq.hero.title','Frequently asked questions')} sub={cms('faq.hero.subtitle','Everything you need to know about designing with us.')}>
     <div className="reveal reveal-stagger" style={{ maxWidth:760, display:'flex', flexDirection:'column', gap:12 }}>
       {rows.map(q=>(<div key={q.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:16, overflow:'hidden' }}>
-        <button type="button" onClick={()=>setOpen(open===q.id?null:q.id)} style={{ width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'18px 20px', fontSize:16, fontWeight:600, color:'#1d1d1f', display:'flex', justifyContent:'space-between', gap:12 }}>
+        <button type="button" onClick={()=>setOpen(open===q.id?null:q.id)} style={{ width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'18px 20px', fontSize:16, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', display:'flex', justifyContent:'space-between', gap:12 }}>
           <span>{q.question}</span><span style={{ color:'var(--clay)', flexShrink:0 }}>{open===q.id?'–':'+'}</span>
         </button>
         {open===q.id && <div style={{ padding:'0 20px 18px', fontSize:15, color:'#555', lineHeight:1.65 }}>{q.answer}</div>}
@@ -8534,7 +8552,7 @@ function RequestPage({ kind, title, sub, refLabel, kindLabel }) {
       setSent(true); toast(t('swReqReceived'),'success'); }
     catch{ toast(t('swReqFailed'),'error'); } finally{ setBusy(false); }
   };
-  if(sent) return (<PageWrap title={t('swReqThankYou')}><div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:32, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div style={{ fontSize:19, fontWeight:600, color:'#1d1d1f', marginTop:12 }}>{t('swReqLoggedPrefix')} {kindLabel} {t('swReqLoggedSuffix')}</div><div style={{ fontSize:15, color:'#86868b', marginTop:8 }}>{t('swReqLoggedSub')}</div></div></PageWrap>);
+  if(sent) return (<PageWrap title={t('swReqThankYou')}><div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:32, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div style={{ fontSize:19, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', marginTop:12 }}>{t('swReqLoggedPrefix')} {kindLabel} {t('swReqLoggedSuffix')}</div><div style={{ fontSize:15, color:'var(--shop-muted, #86868b)', marginTop:8 }}>{t('swReqLoggedSub')}</div></div></PageWrap>);
   return (<PageWrap title={title} sub={sub}>
     <div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding: mobile?20:28, maxWidth:640, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
       <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:12 }}>
@@ -9418,14 +9436,14 @@ function ChatWidget({ setPage }) {
     </button>
     {open && (
       <div style={{ position:'fixed', right: mobile?10:24, bottom: mobile?150:92, zIndex:1400, width: mobile?'calc(100vw - 20px)':380, maxWidth:'calc(100vw - 20px)', height:520, maxHeight:'70vh', background:'#fff', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,.22)', border:'1px solid #ececec', display:'flex', flexDirection:'column', overflow:'hidden' }}>
-        <div style={{ background:'#1d1d1f', color:'#fff', padding:'14px 18px' }}>
+        <div style={{ background:'var(--shop-ink, #1d1d1f)', color:'#fff', padding:'14px 18px' }}>
           <div style={{ fontWeight:600, fontSize:15, display:'flex', alignItems:'center', gap:8 }}><Spark size={16} color="#F9A35C" /> {t('swChatTitle')}</div>
           <div style={{ fontSize:12, color:'#bdbdbd', marginTop:2 }}>{t('swChatSubtitle')}</div>
         </div>
         <div ref={listRef} style={{ flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:10, background:'#fafafa' }}>
-          {msgs.map((m,i)=>(<div key={i} style={{ alignSelf: m.role==='user'?'flex-end':'flex-start', maxWidth:'85%', background: m.role==='user'?'var(--clay)':'#fff', color: m.role==='user'?'#fff':'#1d1d1f', border: m.role==='user'?'none':'1px solid #ececec', borderRadius:14, padding:'10px 13px', fontSize:14, lineHeight:1.5, whiteSpace:'pre-wrap' }}>{m.content}</div>))}
+          {msgs.map((m,i)=>(<div key={i} style={{ alignSelf: m.role==='user'?'flex-end':'flex-start', maxWidth:'85%', background: m.role==='user'?'var(--clay)':'#fff', color: m.role==='user'?'#fff':'var(--shop-ink, #1d1d1f)', border: m.role==='user'?'none':'1px solid #ececec', borderRadius:14, padding:'10px 13px', fontSize:14, lineHeight:1.5, whiteSpace:'pre-wrap' }}>{m.content}</div>))}
           {busy && <div style={{ alignSelf:'flex-start', color:'#aaa', fontSize:13, padding:'4px 6px' }}>{t('swChatTyping')}</div>}
-          {msgs.length<=1 && <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>{chips.map(c=>(<button key={c.key} type="button" onClick={()=>{ if(c.key==='book'){ setOpen(false); setPage('booking'); } else send(c.label); }} style={{ fontSize:12, border:'1px solid #e0e0e0', borderRadius:16, padding:'6px 12px', background:'#fff', cursor:'pointer', color:'#1d1d1f' }}>{c.label}</button>))}</div>}
+          {msgs.length<=1 && <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>{chips.map(c=>(<button key={c.key} type="button" onClick={()=>{ if(c.key==='book'){ setOpen(false); setPage('booking'); } else send(c.label); }} style={{ fontSize:12, border:'1px solid #e0e0e0', borderRadius:16, padding:'6px 12px', background:'#fff', cursor:'pointer', color:'var(--shop-ink, #1d1d1f)' }}>{c.label}</button>))}</div>}
         </div>
         <div style={{ display:'flex', gap:8, padding:'12px', borderTop:'1px solid #ececec' }}>
           <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter') send(); }} aria-label={t('swChatPlaceholder')} placeholder={t('swChatPlaceholder')} style={{ flex:1, border:'1px solid #e0e0e0', borderRadius:980, padding:'10px 16px', fontSize:14, outline:'none' }} />
@@ -9443,7 +9461,7 @@ function BeforeAfter({ before, after }) {
   return (<div style={{ position:'relative' }}>
     <div style={{ height:200, borderRadius:14, background:`url('${show==='after'?after:before}') center/cover`, transition:'background .2s' }} />
     <div style={{ position:'absolute', top:10, left:10, display:'flex', gap:6 }}>
-      {['before','after'].map(k=>(<button type="button" key={k} onClick={()=>setShow(k)} style={{ background: show===k?'#1d1d1f':'rgba(255,255,255,.9)', color: show===k?'#fff':'#1d1d1f', border:'none', borderRadius:980, padding:'5px 12px', fontSize:11, fontWeight:700, cursor:'pointer', textTransform:'capitalize' }}>{k}</button>))}
+      {['before','after'].map(k=>(<button type="button" key={k} onClick={()=>setShow(k)} style={{ background: show===k?'var(--shop-ink, #1d1d1f)':'rgba(255,255,255,.9)', color: show===k?'#fff':'var(--shop-ink, #1d1d1f)', border:'none', borderRadius:980, padding:'5px 12px', fontSize:11, fontWeight:700, cursor:'pointer', textTransform:'capitalize' }}>{k}</button>))}
     </div>
   </div>);
 }
@@ -9460,16 +9478,16 @@ function PortfolioPage({ setPage }) {
           : <div style={{ height:200, background:`url('${p.cover_url}') center/cover, #eee` }} />}
         <div style={{ padding:20 }}>
           <div style={{ fontSize:12, color:'var(--clay)', fontWeight:600, textTransform:'uppercase', letterSpacing:'.05em' }}>{[p.category,p.client_type].filter(Boolean).join(' · ')}</div>
-          <div style={{ fontSize:17, fontWeight:600, color:'#1d1d1f', marginTop:6 }}>{p.name}</div>
+          <div style={{ fontSize:17, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', marginTop:6 }}>{p.name}</div>
           {p.location && <div style={{ fontSize:13, color:'#aaa', marginTop:4 }}>📍 {p.location}</div>}
-          <div style={{ fontSize:14, color:'#86868b', marginTop:8, lineHeight:1.6 }}>{p.description}</div>
+          <div style={{ fontSize:14, color:'var(--shop-muted, #86868b)', marginTop:8, lineHeight:1.6 }}>{p.description}</div>
         </div>
       </div>))}
       {rows.length===0 && <div style={{ color:'#aaa' }}>{t('swPortGallerySoon')}</div>}
     </div>
-    <div style={{ fontSize:13, color:'#86868b', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:14 }}>{t('swPortExploreByRoom')}</div>
+    <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:14 }}>{t('swPortExploreByRoom')}</div>
     <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:12 }}>
-      {cats.map(([val,label])=>(<button type="button" key={val} className="lift" onClick={()=>setPage('cat:'+val)} style={{ background:'#f5f5f7', border:'none', borderRadius:14, padding:'18px 16px', textAlign:'left', cursor:'pointer', fontSize:14, fontWeight:600, color:'#1d1d1f' }}>{lang==='ar' ? <>← {label}</> : <>{label} →</>}</button>))}
+      {cats.map(([val,label])=>(<button type="button" key={val} className="lift" onClick={()=>setPage('cat:'+val)} style={{ background:'var(--shop-fill, #f5f5f7)', border:'none', borderRadius:14, padding:'18px 16px', textAlign:'left', cursor:'pointer', fontSize:14, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{lang==='ar' ? <>← {label}</> : <>{label} →</>}</button>))}
     </div>
   </PageWrap>);
 }
@@ -9479,18 +9497,18 @@ function CategoryPage({ category, products, setPage, addToCart }) {
   return (<PageWrap title={category} sub={`${t('swCatSubPre')} ${category.toLowerCase()}${t('swCatSubPost')}`}>
     <div style={{ display:'flex', gap:10, marginBottom:24, flexWrap:'wrap' }}>
       <button type="button" onClick={()=>setPage('booking')} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:980, padding:'11px 22px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{t('bookFreeDesignVisit')}</button>
-      <button type="button" onClick={()=>setPage('planner')} style={{ background:'#1d1d1f', color:'#fff', border:'none', borderRadius:980, padding:'11px 22px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{t('designIt3d')}</button>
+      <button type="button" onClick={()=>setPage('planner')} style={{ background:'var(--shop-ink, #1d1d1f)', color:'#fff', border:'none', borderRadius:980, padding:'11px 22px', fontSize:14, fontWeight:600, cursor:'pointer' }}>{t('designIt3d')}</button>
     </div>
     <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))', gap:20 }}>
       {list.map(p=>(<div key={p.id} className="lift" onClick={()=>setPage('product-'+p.id)} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, overflow:'hidden', cursor:'pointer', boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
 
         <div style={{ height:170, background: p.image_url?`url('${p.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }} />
         <div style={{ padding:16 }}>
-          <div style={{ fontSize:16, fontWeight:600, color:'#1d1d1f' }}>{p.name}</div>
-          <div style={{ fontSize:13, color:'#86868b', marginTop:4 }}>{p.category}</div>
+          <div style={{ fontSize:16, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{p.name}</div>
+          <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', marginTop:4 }}>{p.category}</div>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:12 }}>
-            <span style={{ fontSize:16, fontWeight:700, color:'#1d1d1f' }}>BD {Number(p.price||0).toLocaleString()}</span>
-            <button type="button" onClick={e=>{ e.stopPropagation(); addToCart&&addToCart(p); }} style={{ background:'#f5f5f7', border:'none', borderRadius:10, padding:'8px 14px', fontSize:13, fontWeight:600, cursor:'pointer', color:'#1d1d1f' }}>{t('add')}</button>
+            <span style={{ fontSize:16, fontWeight:700, color:'var(--shop-ink, #1d1d1f)' }}>BD {Number(p.price||0).toLocaleString()}</span>
+            <button type="button" onClick={e=>{ e.stopPropagation(); addToCart&&addToCart(p); }} style={{ background:'var(--shop-fill, #f5f5f7)', border:'none', borderRadius:10, padding:'8px 14px', fontSize:13, fontWeight:600, cursor:'pointer', color:'var(--shop-ink, #1d1d1f)' }}>{t('add')}</button>
           </div>
         </div>
       </div>))}
@@ -10445,7 +10463,7 @@ function TVUnitPlannerWizard({ setPage, user, openAuth }) {
       ...storeItems.map(s=>`<tr><td>${s.name} ×${s.qty}</td><td style="text-align:right">${fmt(s.line)}</td></tr>`),
       ...lightItems.map(l=>`<tr><td>${l.name}</td><td style="text-align:right">${fmt(l.line)}</td></tr>`),
     ].join('');
-    w.document.write(`<html><head><title>TV Unit Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:#C2410C;text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
+    w.document.write(`<html><head><title>TV Unit Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #C2410C);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
       <h1>The Closets — TV / Media Unit Quotation</h1>
       <p class="muted">${room.name} · ${lay.name} layout · Wall ${dims.wallW}×${dims.wallH}mm · ${carc.name} carcass · ${fin.name} finish · ${dec.name} panels</p>
       <p class="muted">TV ${tv.size}" ${tv.mount} · centre at ${tvCentre}mm</p>
@@ -10927,7 +10945,7 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
       ...storeItems.map(s=>`<tr><td>${s.name} ×${s.qty}</td><td style="text-align:right">${fmt(s.line)}</td></tr>`),
       ...lightItems.map(l=>`<tr><td>${l.name}</td><td style="text-align:right">${fmt(l.line)}</td></tr>`),
     ].join('');
-    w.document.write(`<html><head><title>Home Office Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:#C2410C;text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
+    w.document.write(`<html><head><title>Home Office Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #C2410C);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
       <h1>The Closets — Home Office Quotation</h1>
       <p class="muted">${room.name} · ${lay.name} layout · Wall ${dims.wallW}×${dims.wallH}mm · ${carc.name} carcass · ${fin.name} finish · ${wtop.name} worktop</p>
       <p class="muted">Desk ${desk.length}×${desk.depth}mm · ${desk.shape}</p>
@@ -11560,7 +11578,7 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
       ...accItems.map(a=>`<tr><td>${a.name} ×${a.qty}</td><td style="text-align:right">${fmt(a.line)}</td></tr>`),
       ...lightItems.map(l=>`<tr><td>${l.name}</td><td style="text-align:right">${fmt(l.price)}</td></tr>`),
     ].join('');
-    w.document.write(`<html><head><title>Wardrobe Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:#C2410C;text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}.ai{background:#f6efe6;border-radius:10px;padding:10px 14px;margin:12px 0;font-size:12px;color:#6b5440}</style></head><body>
+    w.document.write(`<html><head><title>Wardrobe Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #C2410C);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}.ai{background:#f6efe6;border-radius:10px;padding:10px 14px;margin:12px 0;font-size:12px;color:#6b5440}</style></head><body>
       <h1>The Closets — Wardrobe Quotation</h1>
       <p class="muted">${room.name} · ${lay.name} layout · Room ${dims.width}×${dims.length}×${dims.height}mm · ${carc.name} carcass · ${fin.name} finish</p>
       <div class="ai"><b>AI storage allocation:</b> ${pctStr}</div>
@@ -12166,7 +12184,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
       `<tr><td>Hardware — ${hg.name} hinges ×${hingeQty}, ${lk.name} lock, ${hd.name} handle</td><td style="text-align:right">${fmt(hardwareTotal)}</td></tr>`,
       ...accItems.map(a=>`<tr><td>${a.name}</td><td style="text-align:right">${fmt(a.line)}</td></tr>`),
     ].filter(Boolean).join('');
-    w.document.write(`<html><head><title>Wood Door Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:#C2410C;text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
+    w.document.write(`<html><head><title>Wood Door Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #C2410C);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
       <h1>The Closets — Wood Door Quotation</h1>
       <p class="muted">${dt.name} · ${loc.name} · ${dims.w}×${dims.h}mm · ${cr.name} core · ${fr.name} frame · ${st.name} style</p>
       <p class="muted">Finish: ${wd.name} ${sf.name} · Glass: ${gl.name} · Leaf weight ≈ ${leafWeight}kg · Direction: ${isSlide?slide.name:swing.name}</p>
@@ -12988,7 +13006,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
     const applRows = (D.installation.appliances_to_connect||[]).map(a=>`<li>${esc(a.name)} ×${a.qty}</li>`).join('') || '<li class="muted">None flagged</li>';
     const accFitRows = (D.installation.handles_accessories_fit||[]).map(a=>`<li>${esc(a.name)} ×${a.qty}</li>`).join('') || '<li class="muted">None</li>';
 
-    w.document.write(`<html><head><title>Kitchen Quotation & Production Pack</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:760px;margin:0 auto}h1{font-size:24px}h2{font-size:17px;color:#9a3412;margin:30px 0 4px;border-top:2px solid #e3d6c6;padding-top:18px}table{width:100%;border-collapse:collapse;margin-top:10px}th{text-align:left;font-size:11px;color:#8a7a68;text-transform:uppercase;letter-spacing:.4px;padding:6px 4px;border-bottom:1px solid #cbb89f}td{padding:7px 4px;border-bottom:1px solid #e3d6c6;font-size:12.5px}.tot{font-size:20px;font-weight:700;color:#C2410C;text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}.tag{display:inline-block;background:#fdebd3;color:#9a3412;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;text-transform:uppercase;letter-spacing:.4px}ul{font-size:12.5px;margin:6px 0;padding-left:20px}.grid{display:flex;gap:24px;flex-wrap:wrap;font-size:12.5px;margin-top:8px}@media print{h2{page-break-after:avoid}}</style></head><body>
+    w.document.write(`<html><head><title>Kitchen Quotation & Production Pack</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:760px;margin:0 auto}h1{font-size:24px}h2{font-size:17px;color:#9a3412;margin:30px 0 4px;border-top:2px solid #e3d6c6;padding-top:18px}table{width:100%;border-collapse:collapse;margin-top:10px}th{text-align:left;font-size:11px;color:#8a7a68;text-transform:uppercase;letter-spacing:.4px;padding:6px 4px;border-bottom:1px solid #cbb89f}td{padding:7px 4px;border-bottom:1px solid #e3d6c6;font-size:12.5px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #C2410C);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}.tag{display:inline-block;background:#fdebd3;color:#9a3412;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;text-transform:uppercase;letter-spacing:.4px}ul{font-size:12.5px;margin:6px 0;padding-left:20px}.grid{display:flex;gap:24px;flex-wrap:wrap;font-size:12.5px;margin-top:8px}@media print{h2{page-break-after:avoid}}</style></head><body>
       <h1>The Closets — Kitchen Quotation</h1>
       <p class="muted">${esc(lay.name)} layout · Room ${dims.length}×${dims.width}×${dims.ceiling}mm · ${esc(carc.name)} carcass · ${esc(door.name)} doors</p>
       <p class="muted">Work triangle: ${triOK?'within recommended guidelines':'review recommended'} — total ${triTotal.toFixed(1)}m</p>
@@ -13126,11 +13144,11 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
           {[['Fridge → Sink',legFS],['Sink → Hob',legSH],['Hob → Fridge',legHF]].map(([l,v])=>(
             <div key={l} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fff', border:'1px solid var(--line)', borderRadius:10, padding:'8px 11px' }}>
               <span style={{ fontSize:13, color:'var(--ink)' }}>{l}</span>
-              <span style={{ fontSize:13, fontWeight:600, color: kwLegOK(v)?'#16a34a':'#d97706' }}>{v.toFixed(2)}m {kwLegOK(v)?'✓':'⚠'}</span>
+              <span style={{ fontSize:13, fontWeight:600, color: kwLegOK(v)?'var(--ok, #16a34a)':'#d97706' }}>{v.toFixed(2)}m {kwLegOK(v)?'✓':'⚠'}</span>
             </div>))}
           <div style={{ display:'flex', justifyContent:'space-between', padding:'8px 11px', fontWeight:700 }}>
             <span style={{ fontSize:13, color:'var(--ink)' }}>Total triangle</span>
-            <span style={{ fontSize:13, color: triOK?'#16a34a':'#d97706' }}>{triTotal.toFixed(2)}m</span>
+            <span style={{ fontSize:13, color: triOK?'var(--ok, #16a34a)':'#d97706' }}>{triTotal.toFixed(2)}m</span>
           </div>
         </div></>);
       case 5: return (<>{sectionH('6',t('shK5t'),t('shK5s'))}
