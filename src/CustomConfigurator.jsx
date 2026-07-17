@@ -85,9 +85,9 @@ export default function CustomConfigurator() {
   const upd = (i, k, v) => setSecs((list) => list.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
 
   const S = {
-    inp: { width: '100%', boxSizing: 'border-box', background: '#fff', border: '1px solid #e3ded6', borderRadius: 10, padding: '12px 13px', fontSize: 14, fontFamily: 'inherit', color: '#1c1a17', outline: 'none' },
-    lbl: { display: 'block', fontSize: 10, fontWeight: 800, color: '#8a8178', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 5 },
-    chip: { background: '#fff', border: '1px solid #e3ded6', borderRadius: 999, padding: '9px 14px', fontWeight: 700, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit', color: '#1c1a17' },
+    inp: { width: '100%', boxSizing: 'border-box', background: '#fff', border: '1px solid var(--line,#e6ddd1)', borderRadius: 10, padding: '12px 13px', fontSize: 14, fontFamily: 'inherit', color: 'var(--ink,#211c18)', outline: 'none' },
+    lbl: { display: 'block', fontSize: 10, fontWeight: 800, color: 'var(--muted,#8a7f72)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 5 },
+    chip: { background: '#fff', border: '1px solid var(--line,#e6ddd1)', borderRadius: 999, padding: '9px 14px', fontWeight: 700, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit', color: 'var(--ink,#211c18)' },
   };
 
   if (!pts.length || !mats.length) return null;
@@ -97,7 +97,7 @@ export default function CustomConfigurator() {
       {!open && (
         <button onClick={() => setOpen(true)}
           style={{ position: 'fixed', left: '50%', transform: 'translateX(-50%)', bottom: 18, zIndex: 9990,
-            background: 'linear-gradient(135deg,#F97316,#EA580C)', color: '#fff', border: 'none', borderRadius: 999,
+            background: 'linear-gradient(135deg,var(--clay,#A84B29),var(--clay-deep,#89391E))', color: '#fff', border: 'none', borderRadius: 999,
             padding: '14px 22px', fontWeight: 800, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit',
             boxShadow: '0 8px 24px rgba(0,0,0,.28)' }}>
           🧩 Design &amp; price your own
@@ -105,23 +105,23 @@ export default function CustomConfigurator() {
       )}
 
       {open && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 99998, background: '#faf8f5', overflow: 'auto', padding: 16 }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'var(--cream,#f7f2ec)', overflow: 'auto', padding: 16 }}>
           <div style={{ maxWidth: 860, margin: '0 auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: '#1c1a17' }}>🧩 Design your own</div>
-                <div style={{ color: '#8a8178', fontSize: 13 }}>Your sizes, your materials — priced instantly by our factory in Bahrain.</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--ink,#211c18)' }}>🧩 Design your own</div>
+                <div style={{ color: 'var(--muted,#8a7f72)', fontSize: 13 }}>Your sizes, your materials — priced instantly by our factory in Bahrain.</div>
               </div>
               <button onClick={() => { setOpen(false); setDone(null); }} style={{ ...S.chip }}>← Close</button>
             </div>
 
             {done ? (
-              <div style={{ background: '#fff', border: '1px solid #e3ded6', borderRadius: 16, padding: 30, textAlign: 'center' }}>
+              <div style={{ background: '#fff', border: '1px solid var(--line,#e6ddd1)', borderRadius: 16, padding: 30, textAlign: 'center' }}>
                 <div style={{ fontSize: 44 }}>✅</div>
-                <h2 style={{ margin: '8px 0 4px', color: '#1c1a17' }}>Your quotation is ready</h2>
-                <div style={{ color: '#8a8178', fontSize: 14, marginBottom: 14 }}>{done.quote_no}</div>
-                <div style={{ fontSize: 36, fontWeight: 800, color: '#EA580C' }}>BD {m3(done.total)}</div>
-                <div style={{ color: '#8a8178', fontSize: 12.5, margin: '6px 0 20px' }}>Includes VAT. Indicative — a free measurement confirms the final price.</div>
+                <h2 style={{ margin: '8px 0 4px', color: 'var(--ink,#211c18)' }}>Your quotation is ready</h2>
+                <div style={{ color: 'var(--muted,#8a7f72)', fontSize: 14, marginBottom: 14 }}>{done.quote_no}</div>
+                <div style={{ fontSize: 36, fontWeight: 800, color: 'var(--clay,#A84B29)' }}>BD {m3(done.total)}</div>
+                <div style={{ color: 'var(--muted,#8a7f72)', fontSize: 12.5, margin: '6px 0 20px' }}>Includes VAT. Indicative — a free measurement confirms the final price.</div>
                 <a href={`https://wa.me/${WA}?text=${encodeURIComponent('Hi, I designed a custom piece on your website. My quotation is ' + done.quote_no + ' (BD ' + m3(done.total) + '). Can we book a free measurement?')}`}
                   target="_blank" rel="noreferrer"
                   style={{ display: 'inline-block', background: '#25D366', color: '#fff', textDecoration: 'none', fontWeight: 800, padding: '14px 24px', borderRadius: 12 }}>
@@ -129,7 +129,7 @@ export default function CustomConfigurator() {
                 </a>
                 <div style={{ marginTop: 14 }}>
                   <a href={`/customer.html?q=${encodeURIComponent(done.quote_no)}&p=${encodeURIComponent(form.phone.trim())}`}
-                    style={{ color: '#EA580C', fontWeight: 700, fontSize: 13 }}>View &amp; approve my quotation →</a>
+                    style={{ color: 'var(--clay,#A84B29)', fontWeight: 700, fontSize: 13 }}>View &amp; approve my quotation →</a>
                 </div>
               </div>
             ) : (
@@ -141,7 +141,7 @@ export default function CustomConfigurator() {
                 </div>
 
                 {!secs.length && (
-                  <div style={{ textAlign: 'center', color: '#8a8178', padding: 30, fontSize: 14.5 }}>
+                  <div style={{ textAlign: 'center', color: 'var(--muted,#8a7f72)', padding: 30, fontSize: 14.5 }}>
                     Pick what you want above — a wardrobe, kitchen, TV unit, door or anything custom.
                   </div>
                 )}
@@ -154,11 +154,11 @@ export default function CustomConfigurator() {
                   const slots = [['carcass_id', 'Body material', 'carcass'], ['door_id', 'Door / front', 'door'], ['back_id', 'Back panel', 'back']]
                     .concat(fields.includes('worktop') ? [['worktop_id', 'Worktop', 'worktop']] : []);
                   return (
-                    <div key={i} style={{ background: '#fff', border: '1px solid #e3ded6', borderRadius: 14, padding: 16, marginBottom: 12 }}>
+                    <div key={i} style={{ background: '#fff', border: '1px solid var(--line,#e6ddd1)', borderRadius: 14, padding: 16, marginBottom: 12 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                        <div style={{ flex: 1, fontWeight: 800, color: '#1c1a17' }}>{pt.icon} {s.name}</div>
+                        <div style={{ flex: 1, fontWeight: 800, color: 'var(--ink,#211c18)' }}>{pt.icon} {s.name}</div>
                         <button onClick={() => setSecs((l) => l.filter((_, j) => j !== i))}
-                          style={{ background: 'none', border: 'none', color: '#c0392b', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Remove</button>
+                          style={{ background: 'none', border: 'none', color: 'var(--danger,#DC4444)', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Remove</button>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(110px,1fr))', gap: 10, marginBottom: 10 }}>
                         {nums.map((f) => (
@@ -181,7 +181,7 @@ export default function CustomConfigurator() {
                       {bools.length > 0 && (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14 }}>
                           {bools.map((f) => (
-                            <label key={f} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13.5, color: '#1c1a17', cursor: 'pointer' }}>
+                            <label key={f} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13.5, color: 'var(--ink,#211c18)', cursor: 'pointer' }}>
                               <input type="checkbox" checked={!!s[f]} onChange={(e) => upd(i, f, e.target.checked)} /> {LBL[f] || f}
                             </label>
                           ))}
@@ -192,12 +192,12 @@ export default function CustomConfigurator() {
                 })}
 
                 {priced && priced.costing && (
-                  <div style={{ background: '#fff', border: '2px solid #EA580C', borderRadius: 16, padding: 18 }}>
+                  <div style={{ background: '#fff', border: '2px solid var(--clay,#A84B29)', borderRadius: 16, padding: 18 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-                      <span style={{ color: '#8a8178', fontSize: 13.5 }}>Your price</span>
-                      <span style={{ fontSize: 32, fontWeight: 800, color: '#EA580C' }}>BD {m3(priced.costing.total)}</span>
+                      <span style={{ color: 'var(--muted,#8a7f72)', fontSize: 13.5 }}>Your price</span>
+                      <span style={{ fontSize: 32, fontWeight: 800, color: 'var(--clay,#A84B29)' }}>BD {m3(priced.costing.total)}</span>
                     </div>
-                    <div style={{ color: '#8a8178', fontSize: 12.5, marginBottom: 14 }}>
+                    <div style={{ color: 'var(--muted,#8a7f72)', fontSize: 12.5, marginBottom: 14 }}>
                       {m3(priced.costing.net)} + VAT {m3(priced.costing.vat)} · {priced.summary?.board_m2 || 0} m² board · {(priced.cutting_list || []).length} parts
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 8, marginBottom: 10 }}>
@@ -205,13 +205,13 @@ export default function CustomConfigurator() {
                       <input placeholder="Mobile number" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} style={S.inp} />
                       <input placeholder="Email (optional)" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} style={S.inp} />
                     </div>
-                    {err && <div style={{ color: '#c0392b', fontSize: 12.5, marginBottom: 8, fontWeight: 600 }}>{err}</div>}
+                    {err && <div style={{ color: 'var(--danger,#DC4444)', fontSize: 12.5, marginBottom: 8, fontWeight: 600 }}>{err}</div>}
                     <button onClick={submit} disabled={busy}
-                      style={{ width: '100%', background: 'linear-gradient(135deg,#F97316,#EA580C)', border: 'none', color: '#fff',
+                      style={{ width: '100%', background: 'linear-gradient(135deg,var(--clay,#A84B29),var(--clay-deep,#89391E))', border: 'none', color: '#fff',
                         fontWeight: 800, fontSize: 15, padding: 15, borderRadius: 12, cursor: busy ? 'wait' : 'pointer', fontFamily: 'inherit', opacity: busy ? 0.7 : 1 }}>
                       {busy ? 'Preparing your quotation…' : 'Get my quotation'}
                     </button>
-                    <div style={{ color: '#a39a90', fontSize: 11.5, textAlign: 'center', marginTop: 8 }}>
+                    <div style={{ color: 'var(--muted,#8a7f72)', fontSize: 11.5, textAlign: 'center', marginTop: 8 }}>
                       Indicative price — a free measurement confirms the final quote.
                     </div>
                   </div>

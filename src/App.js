@@ -1741,6 +1741,8 @@ const I18N = {
   swCoAddress:{ en:'Address', ar:'العنوان' },
   swCoContinue:{ en:'Continue →', ar:'← متابعة' },
   swCoNameEmailReq:{ en:'Name and email required', ar:'الاسم والبريد الإلكتروني مطلوبان' },
+  swCoOrderFailed:{ en:'Could not place your order. Please try again.', ar:'تعذّر تأكيد طلبك. يرجى المحاولة مرة أخرى.' },
+  swCoPlacing:{ en:'Placing order…', ar:'جارٍ تأكيد الطلب…' },
   swCoCard:{ en:'Card', ar:'بطاقة' },
   swCoCardNote:{ en:'Pay securely by card on the next step — Visa, Mastercard, Benefit or Apple Pay. We never see your card details.', ar:'ادفع بأمان بالبطاقة في الخطوة التالية — فيزا أو ماستركارد أو بنفت‌بِي أو Apple Pay. لا نطّلع أبداً على تفاصيل بطاقتك.' },
   swCoBankTransfer:{ en:'Bank Transfer', ar:'تحويل بنكي' },
@@ -7459,6 +7461,8 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
   const [form, setForm] = useState({ name:user?.name||'', email:user?.email||'', phone:user?.phone||'', address:'', city:'Manama', payment:'Card', notes:'' });
   const [settings, setSettings] = useState({});
   const [months, setMonths] = useState(0); // 0 = pay in full
+  const [placing, setPlacing] = useState(false); // in-flight guard (UI) — prevents duplicate orders from double-clicks
+  const placingRef = useRef(false);               // synchronous guard — blocks same-tick double-fire before re-render
   useEffect(() => { api('rpc/marketplace_settings_get', { method:'POST', body:{} }).then(d => setSettings(d && typeof d==='object' ? d : {})).catch(()=>{}); }, []);
   const total = cart.reduce((s,i)=>s+parseFloat(i.price||0), 0);
   const mobile = useMobile();
@@ -7466,6 +7470,10 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
   const instEnabled = settings.product_installments_enabled && total >= (Number(settings.installment_min_amount)||0) && plans.length > 0;
   const monthly = months > 0 ? (total / months) : 0;
   const place = async () => {
+    if (placingRef.current) return;   // guard: ignore repeat clicks while an order is in flight
+    placingRef.current = true;
+    setPlacing(true);
+    try {
     const payLabel = months > 0 ? `Installments — ${months} months @ BHD ${monthly.toFixed(2)}/mo` : form.payment;
     const planNote = months > 0 ? `[Installment plan: ${months} months × BHD ${monthly.toFixed(2)}] ` : '';
     // Audited order intake (validates, writes sales_order with correct columns, notifies team)
@@ -7508,6 +7516,12 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
     }
 
     setStep(3);
+    } catch (e) {
+      toast((e && e.message) ? e.message : t('swCoOrderFailed'), 'error');
+    } finally {
+      placingRef.current = false;
+      setPlacing(false);
+    }
   };
   return (
     <div style={{ minHeight:'100dvh', paddingTop: mobile ? 0 : 56, paddingBottom: mobile ? 80 : 0, background:'var(--shop-fill, #f5f5f7)' }}>
@@ -7577,7 +7591,7 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
                 <textarea className="inp" rows={3} placeholder={t('swCoNotes')} aria-label={t('swCoNotesAria')} value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))} style={{ resize:'vertical', marginBottom:16 }} />
                 <div style={{ display:'flex', gap:10 }}>
                   <button type="button" className="btn-secondary" onClick={()=>setStep(1)} style={{ borderRadius:12 }}>{t('swCoBack')}</button>
-                  <button type="button" className="btn" onClick={place} style={{ flex:1, borderRadius:12 }}>{t('swCoPlaceOrder')}</button>
+                  <button type="button" className="btn" onClick={place} disabled={placing} aria-busy={placing} style={{ flex:1, borderRadius:12, opacity: placing ? 0.6 : 1, cursor: placing ? 'not-allowed' : 'pointer' }}>{placing ? t('swCoPlacing') : t('swCoPlaceOrder')}</button>
                 </div>
               </>}
             </div>

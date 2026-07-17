@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import {
   Scene,
   Color,
@@ -12,6 +12,7 @@ import {
   AmbientLight,
   MeshStandardMaterial,
   MeshPhysicalMaterial,
+  MeshBasicMaterial,
   Mesh,
   Group,
   PlaneGeometry,
@@ -157,6 +158,16 @@ export default function KitchenScene3D({
     const width = mount.clientWidth || 640;
     const h = height;
 
+    // Respect the OS "reduce motion" preference: disables idle auto-orbit and the
+    // decorative emissive pulse (accessibility parity with the site-wide rule).
+    const reduce = typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false;
+
+    // Materials created outside the shared per-surface set (e.g. the soft contact
+    // shadow) that must still be disposed on unmount.
+    const extraMaterials = [];
+
     // ---- Resolve REAL room dimensions (mm -> metres, clamped) --------------
     // Backward compatible: when `dimensions` is absent we keep the legacy 7x7x3.2.
     const dim = dimensions || {};
@@ -201,7 +212,8 @@ export default function KitchenScene3D({
     cameraRef.current = camera;
 
     // ---- Renderer (physically-based, tone-mapped, soft shadows) ------------
-    const renderer = new WebGLRenderer({ antialias: true, alpha: false });
+    // preserveDrawingBuffer lets us capture a branded PNG render on demand.
+    const renderer = new WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
     renderer.setSize(width, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     // r160: physically-correct lighting is the default; expose color space + tone mapping.
@@ -271,6 +283,12 @@ export default function KitchenScene3D({
     const fill = new DirectionalLight(0xdfe7f2, 0.55);
     fill.position.set(-6, 4, 3);
     scene.add(fill);
+
+    // Rim / back light - warm, low, grazes the top edges so cabinetry separates
+    // cleanly from the wall (the premium "product photography" edge highlight).
+    const rim = new DirectionalLight(0xffe9cf, 0.9);
+    rim.position.set(-3, 7, -8);
+    scene.add(rim);
 
     // ---- Material factory (one shared material per surface key) -------------
     const makeMat = (mkey) => {
@@ -342,6 +360,25 @@ export default function KitchenScene3D({
       } catch (e) {
         return new BoxGeometry(w, hh, d);
       }
+    };
+
+    // ---- Soft contact shadow (grounding AO under each run) ------------------
+    // A faint radial-falloff decal laid on the floor directly beneath cabinetry,
+    // so pieces read as *planted*, not floating — complements the directional
+    // shadow map with soft ambient-occlusion contact darkening.
+    const shadowTex = track(makeSoftShadowTex());
+    const shadowMat = new MeshBasicMaterial({
+      map: shadowTex, transparent: true, opacity: 0.5, depthWrite: false, toneMapped: false,
+    });
+    extraMaterials.push(shadowMat);
+    const addContactShadow = (cx, cz, w, d) => {
+      const g = track(new PlaneGeometry(Math.max(0.1, w), Math.max(0.1, d)));
+      const m = new Mesh(g, shadowMat);
+      m.rotation.x = -Math.PI / 2;
+      m.position.set(cx, 0.006, cz);
+      m.renderOrder = 1;
+      scene.add(m);
+      return m;
     };
 
     // ---- Room shell (built to real L x W x H) ------------------------------
@@ -485,6 +522,10 @@ export default function KitchenScene3D({
       const plinth = addMesh(plinthGeo, 'appliance', { cast: false });
       plinth.position.set(baseX, TOE / 2, baseZ);
 
+      // soft contact shadow footprint under this run
+      if (axis === 'x') addContactShadow(center, baseZ, length + 0.24, BASE_D + 0.28);
+      else addContactShadow(baseX, center, BASE_D + 0.28, length + 0.24);
+
       // Worktop slab stays CONTINUOUS over the whole run (worktops aren't modular).
       const wGeo =
         axis === 'x'
@@ -627,6 +668,7 @@ export default function KitchenScene3D({
       const d = clampNum(islDm * 1000, 400, (ROOM_Z - 1.4) * 1000, 1000) / 1000;
       const islBase = addMesh(roundedBox(w, BASE_H - TOE, d, 0.02), 'cabinet');
       islBase.position.set(0, TOE + (BASE_H - TOE) / 2, z);
+      addContactShadow(0, z, w + 0.4, d + 0.4);
       const islPlinth = addMesh(new BoxGeometry(Math.max(0.2, w - 0.1), TOE, Math.max(0.2, d - 0.12)), 'appliance', { cast: false });
       islPlinth.position.set(0, TOE / 2, z);
       // thicker worktop slab on the island (overhangs)
@@ -761,8 +803,8 @@ export default function KitchenScene3D({
     controls.maxPolarAngle = Math.PI / 2.05; // never under the floor
     controls.minPolarAngle = 0.25;
     controls.enablePan = false; // keep camera centred on room
-    controls.autoRotate = false; // gentle auto-rotate optional-off
-    controls.autoRotateSpeed = 0.6;
+    controls.autoRotate = !reduce; // gentle idle auto-orbit (off for reduced-motion)
+    controls.autoRotateSpeed = 0.5;
     controls.target.set(0, 0.95, Math.min(0.4, ROOM_Z * 0.06)); // around counter height
     controls.update();
     controlsRef.current = controls;
@@ -771,7 +813,14 @@ export default function KitchenScene3D({
     const raycaster = new Raycaster();
     const ndc = new Vector2();
     let downXY = null;
-    const onPointerDown = (e) => { downXY = [e.clientX, e.clientY]; };
+    let idleTimer = null;
+    const pauseOrbit = () => {
+      if (reduce) return;
+      controls.autoRotate = false;
+      if (idleTimer) clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => { controls.autoRotate = true; }, 3500);
+    };
+    const onPointerDown = (e) => { downXY = [e.clientX, e.clientY]; pauseOrbit(); };
     const onPointerUp = (e) => {
       if (!downXY) return;
       const moved = Math.hypot(e.clientX - downXY[0], e.clientY - downXY[1]);
@@ -798,9 +847,9 @@ export default function KitchenScene3D({
     const animate = () => {
       frameRef.current = requestAnimationFrame(animate);
       controls.update();
-      // subtle emissive pulse on the active surface
+      // subtle emissive pulse on the active surface (static when reduced-motion)
       const t = clock.getElapsedTime();
-      const pulse = 0.16 + 0.1 * Math.sin(t * 3);
+      const pulse = reduce ? 0.2 : 0.16 + 0.1 * Math.sin(t * 3);
       Object.entries(surfaceMatsRef.current).forEach(([k, m]) => {
         if (activeRef.current && k === activeRef.current) {
           m.emissive.setHex(0xffffff);
@@ -827,6 +876,7 @@ export default function KitchenScene3D({
     // ---- Cleanup ------------------------------------------------------------
     return () => {
       cancelAnimationFrame(frameRef.current);
+      if (idleTimer) clearTimeout(idleTimer);
       ro.disconnect();
       renderer.domElement.removeEventListener('pointerdown', onPointerDown);
       renderer.domElement.removeEventListener('pointerup', onPointerUp);
@@ -840,6 +890,8 @@ export default function KitchenScene3D({
       surfaceMatsRef.current = {};
       // dispose per-mesh appliance material variants (dark glass / sink metal)
       Object.values(applianceMatVariants).forEach((m) => { if (m && m.dispose) m.dispose(); });
+      // dispose extra materials (contact shadow, etc.)
+      extraMaterials.forEach((m) => { if (m && m.dispose) m.dispose(); });
       meshesRef.current = [];
       if (envRef.current && envRef.current.dispose) { try { envRef.current.dispose(); } catch (e) {} }
       envRef.current = null;
@@ -862,11 +914,25 @@ export default function KitchenScene3D({
     });
   }, [materials]);
 
+  // ---- High-quality branded render capture + share --------------------------
+  const saveRender = useCallback(() => {
+    captureBrandedRender(rendererRef.current, sceneRef.current, cameraRef.current, 'kitchen');
+  }, []);
+
   return (
-    <div
-      ref={mountRef}
-      style={{ width: '100%', height, borderRadius: 12, overflow: 'hidden' }}
-    />
+    <div style={{ position: 'relative', width: '100%', height, borderRadius: 12, overflow: 'hidden' }}>
+      <div ref={mountRef} style={{ width: '100%', height: '100%' }} />
+      <button
+        type="button"
+        onClick={saveRender}
+        aria-label="Save a branded render of this design"
+        title="Save render"
+        style={captureBtnStyle}
+      >
+        <span aria-hidden="true" style={{ fontSize: 15, lineHeight: 1 }}>⬇</span>
+        Save render
+      </button>
+    </div>
   );
 }
 
@@ -895,6 +961,123 @@ function makeGradientEnv() {
   ctx.fillRect(0, 0, 64, 64);
   const tex = new CanvasTexture(c);
   tex.colorSpace = SRGBColorSpace;
+  return tex;
+}
+
+// Floating "Save render" affordance styling (brand clay pill, top-right).
+const captureBtnStyle = {
+  position: 'absolute', top: 12, right: 12, zIndex: 4,
+  display: 'inline-flex', alignItems: 'center', gap: 7,
+  background: 'rgba(33,28,24,0.82)', color: '#f7f2ec',
+  border: '1px solid rgba(247,242,236,0.22)', borderRadius: 999,
+  padding: '9px 15px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+  fontFamily: 'inherit', letterSpacing: '.01em', backdropFilter: 'blur(6px)',
+  WebkitBackdropFilter: 'blur(6px)', boxShadow: '0 6px 18px rgba(0,0,0,.28)',
+};
+
+// Capture the current WebGL frame at higher resolution, compose it onto a
+// branded frame (wordmark + clay accent), then share (Web Share API) or
+// download as a PNG. Self-contained; safe to call repeatedly.
+function captureBrandedRender(renderer, scene, camera, label) {
+  if (!renderer || !scene || !camera) return;
+  const canvas = renderer.domElement;
+  const cssW = canvas.clientWidth || canvas.width;
+  const cssH = canvas.clientHeight || canvas.height;
+  const restore = () => {
+    try {
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setSize(cssW, cssH, false);
+      camera.aspect = cssW / cssH;
+      camera.updateProjectionMatrix();
+      renderer.render(scene, camera);
+    } catch (e) { /* ignore */ }
+  };
+  try {
+    const exportDpr = Math.min(3, (window.devicePixelRatio || 1) * 1.5);
+    renderer.setPixelRatio(exportDpr);
+    renderer.setSize(cssW, cssH, false);
+    camera.aspect = cssW / cssH;
+    camera.updateProjectionMatrix();
+    renderer.render(scene, camera);
+
+    const w = canvas.width;
+    const hh = canvas.height;
+    const barH = Math.max(48, Math.round(w * 0.085));
+    const out = document.createElement('canvas');
+    out.width = w;
+    out.height = hh + barH;
+    const ctx = out.getContext('2d');
+    ctx.fillStyle = '#f4f1ea';
+    ctx.fillRect(0, 0, out.width, out.height);
+    ctx.drawImage(canvas, 0, 0, w, hh);
+    // brand bar
+    ctx.fillStyle = '#211c18';
+    ctx.fillRect(0, hh, out.width, barH);
+    const pad = Math.round(barH * 0.42);
+    const cy = hh + barH / 2;
+    // clay accent tab
+    ctx.fillStyle = '#F2731C';
+    ctx.fillRect(pad, cy - barH * 0.18, barH * 0.09, barH * 0.36);
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#f7f2ec';
+    ctx.font = `600 ${Math.round(barH * 0.32)}px Georgia,'Times New Roman',serif`;
+    ctx.fillText('THE CLOSETS', pad + barH * 0.26, cy - barH * 0.13);
+    ctx.fillStyle = 'rgba(247,242,236,0.62)';
+    ctx.font = `500 ${Math.round(barH * 0.185)}px -apple-system,Arial,sans-serif`;
+    ctx.fillText('Bespoke furniture · Bahrain', pad + barH * 0.26, cy + barH * 0.19);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(247,242,236,0.5)';
+    ctx.fillText('Design preview', out.width - pad, cy);
+    ctx.textAlign = 'left';
+
+    const finish = (blob) => {
+      restore();
+      if (!blob) return;
+      const fname = `the-closets-${label || 'design'}.png`;
+      try {
+        const file = new File([blob], fname, { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file], title: 'My design — The Closets' }).catch(() => downloadBlob(blob, fname));
+          return;
+        }
+      } catch (e) { /* fall through */ }
+      downloadBlob(blob, fname);
+    };
+    if (out.toBlob) out.toBlob(finish, 'image/png');
+    else { restore(); }
+  } catch (e) {
+    restore();
+  }
+}
+
+function downloadBlob(blob, fname) {
+  try {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fname;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  } catch (e) { /* ignore */ }
+}
+
+// Soft radial-falloff decal used as a fake ambient-occlusion contact shadow.
+// rgba with an alpha ramp so a MeshBasicMaterial reads it as a soft dark blob.
+function makeSoftShadowTex() {
+  const c = document.createElement('canvas');
+  c.width = 128;
+  c.height = 128;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(64, 64, 4, 64, 64, 62);
+  g.addColorStop(0, 'rgba(24,17,10,0.9)');
+  g.addColorStop(0.5, 'rgba(24,17,10,0.45)');
+  g.addColorStop(1, 'rgba(24,17,10,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 128, 128);
+  const tex = new CanvasTexture(c);
   return tex;
 }
 

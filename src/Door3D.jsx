@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import {
   Scene,
   Color,
@@ -100,6 +100,10 @@ export default function Door3D({
     const width = mount.clientWidth || 640;
     const h = height;
 
+    const reduce = typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false;
+
     const dim = dimensions || {};
     const lp = layoutParams || {};
     const DOOR_W = mmToM(dim.widthMm, 900);
@@ -126,7 +130,7 @@ export default function Door3D({
     );
     cameraRef.current = camera;
 
-    const renderer = new WebGLRenderer({ antialias: true, alpha: false });
+    const renderer = new WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
     renderer.setSize(width, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.outputColorSpace = SRGBColorSpace;
@@ -169,6 +173,10 @@ export default function Door3D({
     const fill = new DirectionalLight(0xdfe7f2, 0.5);
     fill.position.set(-4, 3, 4);
     scene.add(fill);
+    // Rim / back light to graze the leaf edges and hardware (premium separation).
+    const rim = new DirectionalLight(0xffe9cf, 0.8);
+    rim.position.set(-2, 5, -6);
+    scene.add(rim);
 
     const makeMat = (mkey) => {
       const d = DEFAULTS[mkey] || DEFAULTS.leaf;
@@ -335,6 +343,8 @@ export default function Door3D({
     controls.maxPolarAngle = Math.PI / 2.05;
     controls.minPolarAngle = 0.5;
     controls.enablePan = false;
+    controls.autoRotate = !reduce;
+    controls.autoRotateSpeed = 0.45;
     controls.target.set(0, DOOR_H * 0.45, 0.1);
     controls.update();
     controlsRef.current = controls;
@@ -342,7 +352,14 @@ export default function Door3D({
     const raycaster = new Raycaster();
     const ndc = new Vector2();
     let downXY = null;
-    const onPointerDown = (e) => { downXY = [e.clientX, e.clientY]; };
+    let idleTimer = null;
+    const pauseOrbit = () => {
+      if (reduce) return;
+      controls.autoRotate = false;
+      if (idleTimer) clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => { controls.autoRotate = true; }, 3500);
+    };
+    const onPointerDown = (e) => { downXY = [e.clientX, e.clientY]; pauseOrbit(); };
     const onPointerUp = (e) => {
       if (!downXY) return;
       const moved = Math.hypot(e.clientX - downXY[0], e.clientY - downXY[1]);
@@ -369,7 +386,7 @@ export default function Door3D({
       frameRef.current = requestAnimationFrame(animate);
       controls.update();
       const t = clock.getElapsedTime();
-      const pulse = 0.16 + 0.1 * Math.sin(t * 3);
+      const pulse = reduce ? 0.2 : 0.16 + 0.1 * Math.sin(t * 3);
       Object.entries(surfaceMatsRef.current).forEach(([k, m]) => {
         if (activeRef.current && k === activeRef.current) {
           m.emissive.setHex(0xffffff);
@@ -394,6 +411,7 @@ export default function Door3D({
 
     return () => {
       cancelAnimationFrame(frameRef.current);
+      if (idleTimer) clearTimeout(idleTimer);
       ro.disconnect();
       renderer.domElement.removeEventListener('pointerdown', onPointerDown);
       renderer.domElement.removeEventListener('pointerup', onPointerUp);
@@ -426,12 +444,119 @@ export default function Door3D({
     });
   }, [materials]);
 
+  const saveRender = useCallback(() => {
+    captureBrandedRender(rendererRef.current, sceneRef.current, cameraRef.current, 'door');
+  }, []);
+
   return (
-    <div
-      ref={mountRef}
-      style={{ width: '100%', height, borderRadius: 12, overflow: 'hidden' }}
-    />
+    <div style={{ position: 'relative', width: '100%', height, borderRadius: 12, overflow: 'hidden' }}>
+      <div ref={mountRef} style={{ width: '100%', height: '100%' }} />
+      <button
+        type="button"
+        onClick={saveRender}
+        aria-label="Save a branded render of this design"
+        title="Save render"
+        style={captureBtnStyle}
+      >
+        <span aria-hidden="true" style={{ fontSize: 15, lineHeight: 1 }}>⬇</span>
+        Save render
+      </button>
+    </div>
   );
+}
+
+const captureBtnStyle = {
+  position: 'absolute', top: 12, right: 12, zIndex: 4,
+  display: 'inline-flex', alignItems: 'center', gap: 7,
+  background: 'rgba(33,28,24,0.82)', color: '#f7f2ec',
+  border: '1px solid rgba(247,242,236,0.22)', borderRadius: 999,
+  padding: '9px 15px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+  fontFamily: 'inherit', letterSpacing: '.01em', backdropFilter: 'blur(6px)',
+  WebkitBackdropFilter: 'blur(6px)', boxShadow: '0 6px 18px rgba(0,0,0,.28)',
+};
+
+function captureBrandedRender(renderer, scene, camera, label) {
+  if (!renderer || !scene || !camera) return;
+  const canvas = renderer.domElement;
+  const cssW = canvas.clientWidth || canvas.width;
+  const cssH = canvas.clientHeight || canvas.height;
+  const restore = () => {
+    try {
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setSize(cssW, cssH, false);
+      camera.aspect = cssW / cssH;
+      camera.updateProjectionMatrix();
+      renderer.render(scene, camera);
+    } catch (e) { /* ignore */ }
+  };
+  try {
+    const exportDpr = Math.min(3, (window.devicePixelRatio || 1) * 1.5);
+    renderer.setPixelRatio(exportDpr);
+    renderer.setSize(cssW, cssH, false);
+    camera.aspect = cssW / cssH;
+    camera.updateProjectionMatrix();
+    renderer.render(scene, camera);
+
+    const w = canvas.width;
+    const hh = canvas.height;
+    const barH = Math.max(48, Math.round(w * 0.085));
+    const out = document.createElement('canvas');
+    out.width = w;
+    out.height = hh + barH;
+    const ctx = out.getContext('2d');
+    ctx.fillStyle = '#f4f1ea';
+    ctx.fillRect(0, 0, out.width, out.height);
+    ctx.drawImage(canvas, 0, 0, w, hh);
+    ctx.fillStyle = '#211c18';
+    ctx.fillRect(0, hh, out.width, barH);
+    const pad = Math.round(barH * 0.42);
+    const cy = hh + barH / 2;
+    ctx.fillStyle = '#F2731C';
+    ctx.fillRect(pad, cy - barH * 0.18, barH * 0.09, barH * 0.36);
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#f7f2ec';
+    ctx.font = `600 ${Math.round(barH * 0.32)}px Georgia,'Times New Roman',serif`;
+    ctx.fillText('THE CLOSETS', pad + barH * 0.26, cy - barH * 0.13);
+    ctx.fillStyle = 'rgba(247,242,236,0.62)';
+    ctx.font = `500 ${Math.round(barH * 0.185)}px -apple-system,Arial,sans-serif`;
+    ctx.fillText('Bespoke furniture · Bahrain', pad + barH * 0.26, cy + barH * 0.19);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(247,242,236,0.5)';
+    ctx.fillText('Design preview', out.width - pad, cy);
+    ctx.textAlign = 'left';
+
+    const finish = (blob) => {
+      restore();
+      if (!blob) return;
+      const fname = `the-closets-${label || 'design'}.png`;
+      try {
+        const file = new File([blob], fname, { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file], title: 'My design — The Closets' }).catch(() => downloadBlob(blob, fname));
+          return;
+        }
+      } catch (e) { /* fall through */ }
+      downloadBlob(blob, fname);
+    };
+    if (out.toBlob) out.toBlob(finish, 'image/png');
+    else { restore(); }
+  } catch (e) {
+    restore();
+  }
+}
+
+function downloadBlob(blob, fname) {
+  try {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fname;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  } catch (e) { /* ignore */ }
 }
 
 const _loader = new TextureLoader();
