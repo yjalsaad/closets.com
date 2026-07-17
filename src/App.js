@@ -6428,47 +6428,64 @@ function HomeHub({ user, setUser, setPage }) {
       ? rows.map(r => `<tr><td>${esc(r.name)}</td><td class="c">${r.qty}</td><td class="r">${esc(bd(r.unit))}</td><td class="r">${esc(bd(r.total))}</td></tr>`).join('')
       : `<tr><td colspan="4" class="muted c">${esc(t('hubNoItems'))}</td></tr>`;
     const totalsRow = (label, val) => (val != null ? `<tr><td class="tl">${esc(label)}</td><td class="r">${esc(bd(val))}</td></tr>` : '');
-    const logoHtml = logoSrc ? `<img src="${esc(logoSrc)}" alt="" style="height:46px"/>` : `<div class="brand">${esc(brandTxt)}</div>`;
+    // Unified with the Bonsai Hub tax-invoice template — same official letterhead
+    // (legal entity EN/AR, address, Tel/Email, CR + VAT) and same theme, so an
+    // invoice looks identical whether produced from the website portal or the Hub.
+    const invTitle = doc.invoice_number ? t('hubInvoiceNo') : t('hubOrderNo');
     return `<!doctype html><html dir="${rtl ? 'rtl' : 'ltr'}" lang="${lang}"><head><meta charset="utf-8"/>
 <title>Invoice ${esc(num)}</title>
 <style>
-*{box-sizing:border-box} body{font-family:${lang==='ar'?"'Tajawal',":''}Arial,Helvetica,sans-serif;color:var(--ink, #1f1913);margin:0;background:#fff}
-.page{max-width:780px;margin:0 auto;padding:40px 44px}
-.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--clay, #A84B29);padding-bottom:20px;margin-bottom:26px}
-.brand{font-size:22px;font-weight:800;letter-spacing:.04em;color:var(--ink, #1f1913)}
-.co{font-size:12px;color:var(--shop-ink-2, #6e6e73);margin-top:6px;line-height:1.6}
-.title{text-align:${rtl ? 'left' : 'right'}}
-.title h1{font-size:26px;margin:0 0 6px;color:var(--ink, #1f1913);letter-spacing:-.01em}
-.meta{font-size:12.5px;color:var(--shop-ink-2, #6e6e73);line-height:1.8}
-.meta b{color:var(--ink, #1f1913)}
-.billto{margin:22px 0 18px}
-.lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#9a948d;margin-bottom:5px}
-.billto .nm{font-size:14px;font-weight:700}
-.billto .sub{font-size:12.5px;color:var(--shop-ink-2, #6e6e73)}
-table.items{width:100%;border-collapse:collapse;margin-top:8px}
-table.items th{background:#faf6f1;text-align:${rtl ? 'right' : 'left'};font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--shop-ink-2, #6e6e73);padding:10px 12px;border-bottom:1px solid #ece6df}
+*{box-sizing:border-box} body{font-family:${lang==='ar'?"'Tajawal',":''}Arial,'Segoe UI',Helvetica,sans-serif;color:#1f1913;margin:0;background:#fff}
+.page{max-width:800px;margin:0 auto;padding:32px 40px}
+.lh{margin-bottom:22px}
+.lh-band{background:#F97316;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:16px 22px;border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.lh-l{display:flex;align-items:center;gap:14px;min-width:0}
+.lh-logo{height:46px;width:auto;display:block;background:#fff;border-radius:6px;padding:4px}
+.lh-name{font-size:18px;font-weight:800;color:#111827;letter-spacing:.4px;line-height:1.15}
+.lh-ar{font-size:13px;font-weight:700;color:#4B5563;direction:rtl}
+.lh-title{font-size:16px;font-weight:800;color:#111827;text-transform:uppercase;letter-spacing:.5px;text-align:${rtl ? 'left' : 'right'}}
+.lh-sub{font-size:11px;color:#111827;opacity:.92;margin-top:3px}
+.lh-info{border:1px solid #f0e6d8;border-top:none;border-radius:0 0 8px 8px;background:#fbf9f4;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:9px 22px;font-size:10.5px;color:#5a4a2a;line-height:1.6;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.lh-info b{color:#993c1d}
+.meta{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:4px 0 16px}
+.billto .lbl,.meta .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:#9a948d;margin-bottom:4px}
+.billto .nm{font-size:14px;font-weight:700;color:#1f1913}
+.billto .sub{font-size:12.5px;color:#6e6e73}
+.meta .rt{text-align:${rtl ? 'left' : 'right'};font-size:12.5px;color:#6e6e73;line-height:1.9}
+.meta .rt b{color:#1f1913}
+table.items{width:100%;border-collapse:collapse;margin-top:6px}
+table.items th{background:#faf6f1;text-align:${rtl ? 'right' : 'left'};font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#6e6e73;padding:10px 12px;border-bottom:2px solid #F97316}
 table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
 .c{text-align:center}.r{text-align:${rtl ? 'left' : 'right'}}.muted{color:#9a948d}
-.totals{width:300px;margin-${rtl ? 'right' : 'left'}:auto;margin-top:18px}
+.totals{width:300px;margin-${rtl ? 'right' : 'left'}:auto;margin-top:16px}
 .totals table{width:100%;border-collapse:collapse}
 .totals td{padding:7px 12px;font-size:13px}
-.totals td.tl{color:var(--shop-ink-2, #6e6e73)}
-.totals tr.grand td{font-size:16px;font-weight:800;border-top:2px solid var(--ink, #1f1913);padding-top:11px}
-.pay{display:inline-block;margin-top:10px;padding:5px 12px;border-radius:980px;font-size:12px;font-weight:700;background:#A84B2918;color:#a3520f}
-.foot{margin-top:36px;border-top:1px solid #ece6df;padding-top:16px;font-size:11.5px;color:#9a948d;text-align:center}
-@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{padding:24px}}
+.totals td.tl{color:#6e6e73}
+.totals tr.grand td{font-size:16px;font-weight:800;color:#F97316;border-top:2px solid #1f1913;padding-top:11px}
+.pay{display:inline-block;margin-top:10px;padding:5px 12px;border-radius:980px;font-size:12px;font-weight:700;background:#F9731618;color:#993c1d}
+.foot{margin-top:32px;border-top:1px solid #ece6df;padding-top:14px;font-size:10.5px;color:#9a948d;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{padding:20px}}
 </style></head><body><div class="page">
-<div class="head">
-  <div>${logoHtml}<div class="co">${esc(brandTxt)}<br/>Kingdom of Bahrain</div></div>
-  <div class="title"><h1>${esc(t('hubInvoice'))}</h1>
-    <div class="meta">${esc(num ? (doc.invoice_number ? t('hubInvoiceNo') : t('hubOrderNo')) + ' #' : '')} <b>${esc(num)}</b><br/>
-    ${dateStr ? esc(t('hubDate')) + ': <b>' + esc(dateStr) + '</b><br/>' : ''}
-    ${payStatus ? esc(t('hubStatus')) + ': <b>' + esc(payStatus) + '</b>' : ''}</div>
+<div class="lh">
+  <div class="lh-band">
+    <div class="lh-l">
+      <img class="lh-logo" src="https://closets-hub.vercel.app/the-closets-logo.png" alt="" onerror="this.style.display='none'"/>
+      <div><div class="lh-name">The Closets International W.L.L.</div><div class="lh-ar">شركة الخزائن العالمية ذ.م.م.</div></div>
+    </div>
+    <div><div class="lh-title">${esc(t('hubInvoice'))}</div>${num ? `<div class="lh-sub">${esc(invTitle)} #${esc(num)}</div>` : ''}</div>
+  </div>
+  <div class="lh-info">
+    <span><b>Address:</b> Building 2249, Road 90, Block 1014, P.O. Box 31613 — Hamala, Kingdom of Bahrain</span>
+    <span><b>Tel:</b> +973 17555095 · <b>Email:</b> Info@the-closets.com</span>
+    <span><b>CR:</b> 64299 · <b>VAT:</b> 220000826600002</span>
   </div>
 </div>
-<div class="billto"><div class="lbl">${esc(t('hubBillTo'))}</div>
-  <div class="nm">${esc(doc.customer_name || user.name || '')}</div>
-  <div class="sub">${esc(doc.customer_email || user.email || '')}</div>
+<div class="meta">
+  <div class="billto"><div class="lbl">${esc(t('hubBillTo'))}</div>
+    <div class="nm">${esc(doc.customer_name || user.name || '')}</div>
+    <div class="sub">${esc(doc.customer_email || user.email || '')}</div>
+  </div>
+  <div class="rt">${dateStr ? esc(t('hubDate')) + ': <b>' + esc(dateStr) + '</b><br/>' : ''}${payStatus ? esc(t('hubStatus')) + ': <b>' + esc(payStatus) + '</b>' : ''}</div>
 </div>
 <table class="items"><thead><tr>
   <th>${esc(t('hubItems'))}</th><th class="c">${esc(t('hubQty'))}</th>
@@ -6481,7 +6498,7 @@ table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
   ${totalsRow(t('hubTax'), tax)}
   <tr class="grand"><td class="tl">${esc(t('hubTotal'))}</td><td class="r">${esc(bd(total))}</td></tr>
 </table>${payStatus ? `<div style="text-align:${rtl ? 'left' : 'right'}"><span class="pay">${esc(payStatus)}</span></div>` : ''}</div>
-<div class="foot">${esc(brandTxt)} — ${esc(t('hubInvoice'))} ${esc(num)}</div>
+<div class="foot"><span>The Closets International W.L.L. · Hamala, Kingdom of Bahrain · CR 64299 · VAT 220000826600002</span><span>${esc(t('hubInvoice'))} ${esc(num)}</span></div>
 </div></body></html>`;
   };
   // Ensure items are loaded (await) then run a callback with them.
