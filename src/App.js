@@ -6427,78 +6427,80 @@ function HomeHub({ user, setUser, setPage }) {
     const rowsHtml = rows.length
       ? rows.map(r => `<tr><td>${esc(r.name)}</td><td class="c">${r.qty}</td><td class="r">${esc(bd(r.unit))}</td><td class="r">${esc(bd(r.total))}</td></tr>`).join('')
       : `<tr><td colspan="4" class="muted c">${esc(t('hubNoItems'))}</td></tr>`;
-    const totalsRow = (label, val) => (val != null ? `<tr><td class="tl">${esc(label)}</td><td class="r">${esc(bd(val))}</td></tr>` : '');
-    // Unified with the Bonsai Hub tax-invoice template — same official letterhead
-    // (legal entity EN/AR, address, Tel/Email, CR + VAT) and same theme, so an
-    // invoice looks identical whether produced from the website portal or the Hub.
+    // Matches the canonical Bonsai document template (public/closets-documents.html):
+    // same theme (--brand #F97316, ink #2C2017), logo + serif title, From/Bill-to
+    // parties, bordered meta cells, dark-header items table, orange footer band —
+    // so a customer's invoice looks identical from the website portal or the Hub.
     const invTitle = doc.invoice_number ? t('hubInvoiceNo') : t('hubOrderNo');
+    const rowsCanon = rows.length
+      ? rows.map((r, i) => `<tr><td>${i + 1}</td><td class="desc"><b>${esc(r.name)}</b></td><td class="r">${r.qty}</td><td class="r">${esc(bd(r.unit))}</td><td class="r">${esc(bd(r.total))}</td></tr>`).join('')
+      : `<tr><td colspan="5" class="muted" style="text-align:center;padding:22px">${esc(t('hubNoItems'))}</td></tr>`;
+    const trow = (label, val) => (val != null ? `<div class="tr"><span>${esc(label)}</span><span>${esc(bd(val))}</span></div>` : '');
     return `<!doctype html><html dir="${rtl ? 'rtl' : 'ltr'}" lang="${lang}"><head><meta charset="utf-8"/>
 <title>Invoice ${esc(num)}</title>
 <style>
-*{box-sizing:border-box} body{font-family:${lang==='ar'?"'Tajawal',":''}Arial,'Segoe UI',Helvetica,sans-serif;color:#1f1913;margin:0;background:#fff}
-.page{max-width:800px;margin:0 auto;padding:32px 40px}
-.lh{margin-bottom:22px}
-.lh-band{background:#F97316;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:16px 22px;border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
-.lh-l{display:flex;align-items:center;gap:14px;min-width:0}
-.lh-logo{height:46px;width:auto;display:block;background:#fff;border-radius:6px;padding:4px}
-.lh-name{font-size:18px;font-weight:800;color:#111827;letter-spacing:.4px;line-height:1.15}
-.lh-ar{font-size:13px;font-weight:700;color:#4B5563;direction:rtl}
-.lh-title{font-size:16px;font-weight:800;color:#111827;text-transform:uppercase;letter-spacing:.5px;text-align:${rtl ? 'left' : 'right'}}
-.lh-sub{font-size:11px;color:#111827;opacity:.92;margin-top:3px}
-.lh-info{border:1px solid #f0e6d8;border-top:none;border-radius:0 0 8px 8px;background:#fbf9f4;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:9px 22px;font-size:10.5px;color:#5a4a2a;line-height:1.6;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
-.lh-info b{color:#993c1d}
-.meta{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:4px 0 16px}
-.billto .lbl,.meta .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:#9a948d;margin-bottom:4px}
-.billto .nm{font-size:14px;font-weight:700;color:#1f1913}
-.billto .sub{font-size:12.5px;color:#6e6e73}
-.meta .rt{text-align:${rtl ? 'left' : 'right'};font-size:12.5px;color:#6e6e73;line-height:1.9}
-.meta .rt b{color:#1f1913}
-table.items{width:100%;border-collapse:collapse;margin-top:6px}
-table.items th{background:#faf6f1;text-align:${rtl ? 'right' : 'left'};font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#6e6e73;padding:10px 12px;border-bottom:2px solid #F97316}
-table.items td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f2efe9}
-.c{text-align:center}.r{text-align:${rtl ? 'left' : 'right'}}.muted{color:#9a948d}
-.totals{width:300px;margin-${rtl ? 'right' : 'left'}:auto;margin-top:16px}
-.totals table{width:100%;border-collapse:collapse}
-.totals td{padding:7px 12px;font-size:13px}
-.totals td.tl{color:#6e6e73}
-.totals tr.grand td{font-size:16px;font-weight:800;color:#F97316;border-top:2px solid #1f1913;padding-top:11px}
-.pay{display:inline-block;margin-top:10px;padding:5px 12px;border-radius:980px;font-size:12px;font-weight:700;background:#F9731618;color:#993c1d}
-.foot{margin-top:32px;border-top:1px solid #ece6df;padding-top:14px;font-size:10.5px;color:#9a948d;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{padding:20px}}
+:root{--brand:#F97316;--brand-d:#C2410C;--ink:#2C2017;--muted:#6F6157;--line:#E7DDCF;--head:#2C2017}
+*{box-sizing:border-box} body{font-family:${lang==='ar'?"'Tajawal',":''}Inter,system-ui,Arial,sans-serif;color:var(--ink);margin:0;background:#fff}
+.page{max-width:820px;margin:0 auto;padding:36px 40px 0;position:relative}
+.hd{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;border-bottom:3px solid var(--brand);padding-bottom:14px}
+.hd .co-l{display:flex;align-items:center;gap:14px;min-width:0}
+.hd img{height:56px;width:auto}
+.hd .co-nm{font-size:15px;font-weight:800;letter-spacing:.3px;line-height:1.2}
+.hd .co-ar{font-size:12px;font-weight:700;color:var(--muted);direction:rtl}
+.hd .doc{text-align:${rtl ? 'left' : 'right'}}
+.hd .doc .t{font-size:26px;font-weight:800;letter-spacing:.02em;text-transform:uppercase}
+.hd .doc .n{font-size:13px;color:var(--muted);margin-top:2px}
+.hd .doc .badge{display:inline-block;margin-top:6px;font-size:11px;font-weight:700;border-radius:999px;padding:3px 12px;background:#FFF1E6;color:var(--brand-d);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.parties{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:18px}
+.parties .lbl{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--brand-d);font-weight:700;margin-bottom:5px}
+.parties .nm{font-weight:700;font-size:14.5px}
+.parties .ln{font-size:12.5px;color:var(--muted);line-height:1.7}
+.meta{display:flex;flex-wrap:wrap;margin-top:16px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.meta .c{flex:1;min-width:120px;padding:9px 14px;border-right:1px solid var(--line)}
+.meta .c:last-child{border-right:none}
+.meta .k{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.meta .v{font-size:13px;font-weight:600;margin-top:2px}
+table.items{width:100%;border-collapse:collapse;margin-top:18px;font-size:13px}
+table.items th{background:var(--head);color:#fff;text-align:${rtl ? 'right' : 'left'};padding:10px 12px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+table.items th.r,table.items td.r{text-align:${rtl ? 'left' : 'right'}}
+table.items td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.items tr:nth-child(even) td{background:#FBF7F1;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+table.items .desc b{display:block}.muted{color:var(--muted)}
+.totrow{display:flex;justify-content:${rtl ? 'flex-start' : 'flex-end'};margin-top:14px}
+.totals{width:300px}
+.totals .tr{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px dashed var(--line)}
+.totals .tr.grand{border-bottom:none;border-top:2px solid var(--ink);margin-top:4px;padding-top:10px;font-size:16px;font-weight:800}
+.totals .tr.grand span:last-child{color:var(--brand-d)}
+.foot-note{margin-top:24px;font-size:11px;color:var(--muted);line-height:1.7}
+.bandfoot{margin-top:40px;background:var(--brand);color:#fff;font-size:11px;padding:9px 40px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-left:-40px;margin-right:-40px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{padding:22px 24px 0}.bandfoot{margin-left:-24px;margin-right:-24px;padding:9px 24px}}
 </style></head><body><div class="page">
-<div class="lh">
-  <div class="lh-band">
-    <div class="lh-l">
-      <img class="lh-logo" src="https://closets-hub.vercel.app/the-closets-logo.png" alt="" onerror="this.style.display='none'"/>
-      <div><div class="lh-name">The Closets International W.L.L.</div><div class="lh-ar">شركة الخزائن العالمية ذ.م.م.</div></div>
-    </div>
-    <div><div class="lh-title">${esc(t('hubInvoice'))}</div>${num ? `<div class="lh-sub">${esc(invTitle)} #${esc(num)}</div>` : ''}</div>
+<div class="hd">
+  <div class="co-l"><img src="https://closets-hub.vercel.app/the-closets-logo.png" alt="" onerror="this.style.display='none'"/>
+    <div><div class="co-nm">The Closets International W.L.L.</div><div class="co-ar">الخزائن العالمية</div></div>
   </div>
-  <div class="lh-info">
-    <span><b>Address:</b> Building 2249, Road 90, Block 1014, P.O. Box 31613 — Hamala, Kingdom of Bahrain</span>
-    <span><b>Tel:</b> +973 17555095 · <b>Email:</b> Info@the-closets.com</span>
-    <span><b>CR:</b> 64299 · <b>VAT:</b> 220000826600002</span>
-  </div>
+  <div class="doc"><div class="t">${esc(t('hubInvoice'))}</div>${num ? `<div class="n">${esc(invTitle)} #${esc(num)}</div>` : ''}${payStatus ? `<div class="badge">${esc(payStatus)}</div>` : ''}</div>
+</div>
+<div class="parties">
+  <div><div class="lbl">From</div><div class="nm">The Closets International W.L.L.</div>
+    <div class="ln">Building 2249, Road 90, Block 1014, P.O. Box 31613 — Hamala, Kingdom of Bahrain<br>CR 64299 · VAT 220000826600002<br>+973 17555095 · Info@the-closets.com</div></div>
+  <div><div class="lbl">${esc(t('hubBillTo'))}</div><div class="nm">${esc(doc.customer_name || user.name || '')}</div>
+    <div class="ln">${esc(doc.customer_email || user.email || '')}</div></div>
 </div>
 <div class="meta">
-  <div class="billto"><div class="lbl">${esc(t('hubBillTo'))}</div>
-    <div class="nm">${esc(doc.customer_name || user.name || '')}</div>
-    <div class="sub">${esc(doc.customer_email || user.email || '')}</div>
-  </div>
-  <div class="rt">${dateStr ? esc(t('hubDate')) + ': <b>' + esc(dateStr) + '</b><br/>' : ''}${payStatus ? esc(t('hubStatus')) + ': <b>' + esc(payStatus) + '</b>' : ''}</div>
+  ${num ? `<div class="c"><div class="k">${esc(invTitle)}</div><div class="v">${esc(num)}</div></div>` : ''}
+  ${dateStr ? `<div class="c"><div class="k">${esc(t('hubDate'))}</div><div class="v">${esc(dateStr)}</div></div>` : ''}
+  ${payStatus ? `<div class="c"><div class="k">${esc(t('hubStatus'))}</div><div class="v">${esc(payStatus)}</div></div>` : ''}
 </div>
-<table class="items"><thead><tr>
-  <th>${esc(t('hubItems'))}</th><th class="c">${esc(t('hubQty'))}</th>
-  <th class="r">${esc(t('hubUnitPrice'))}</th><th class="r">${esc(t('hubLineTotal'))}</th>
-</tr></thead><tbody>${rowsHtml}</tbody></table>
-<div class="totals"><table>
-  ${totalsRow(t('hubSubtotal'), subtotal)}
-  ${totalsRow(t('hubDiscount'), discount)}
-  ${totalsRow(t('hubShipping'), shipping)}
-  ${totalsRow(t('hubTax'), tax)}
-  <tr class="grand"><td class="tl">${esc(t('hubTotal'))}</td><td class="r">${esc(bd(total))}</td></tr>
-</table>${payStatus ? `<div style="text-align:${rtl ? 'left' : 'right'}"><span class="pay">${esc(payStatus)}</span></div>` : ''}</div>
-<div class="foot"><span>The Closets International W.L.L. · Hamala, Kingdom of Bahrain · CR 64299 · VAT 220000826600002</span><span>${esc(t('hubInvoice'))} ${esc(num)}</span></div>
+<table class="items"><thead><tr><th style="width:30px">#</th><th>${esc(t('hubItems'))}</th><th class="r">${esc(t('hubQty'))}</th><th class="r">${esc(t('hubUnitPrice'))}</th><th class="r">${esc(t('hubLineTotal'))}</th></tr></thead><tbody>${rowsCanon}</tbody></table>
+<div class="totrow"><div class="totals">
+  ${trow(t('hubSubtotal'), subtotal)}
+  ${trow(t('hubDiscount'), discount)}
+  ${trow(t('hubShipping'), shipping)}
+  ${trow(t('hubTax'), tax)}
+  <div class="tr grand"><span>${esc(t('hubTotal'))}</span><span>${esc(bd(total))}</span></div>
+</div></div>
+<div class="bandfoot"><span>The Closets International W.L.L. · closets-website.vercel.app</span><span>+973 17555095 · CR 64299 · VAT 220000826600002</span></div>
 </div></body></html>`;
   };
   // Ensure items are loaded (await) then run a callback with them.
