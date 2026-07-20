@@ -4137,7 +4137,7 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
         grid.position.y = bb.min.y - 0.01; fg.add(grid);
         // human-scale reference (~170cm) standing beside the model
         const hRef = (170 / (st.heightCm || 240)) * sz.y; // 170cm relative to model height
-        const torso = new THREE.Mesh(new THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(hRef * 0.09, hRef * 0.62, 4, 8) : new THREE.CylinderGeometry(hRef * 0.09, hRef * 0.09, hRef * 0.8, 8),
+        const torso = new THREE.Mesh(THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(hRef * 0.09, hRef * 0.62, 4, 8) : new THREE.CylinderGeometry(hRef * 0.09, hRef * 0.09, hRef * 0.8, 8),
           new THREE.MeshStandardMaterial({ color: 0xbcae9c, transparent: true, opacity: 0.5, roughness: 1 }));
         torso.position.set(bb.max.x + hRef * 0.45, bb.min.y + hRef * 0.5, bb.max.z);
         fg.add(torso);
@@ -4149,10 +4149,21 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
       } catch (e) { /* floor optional */ }
     }
 
+    // Free GPU/JS memory for a group's meshes before discarding it — Wardrobe3D
+    // rebuilds on every dimension/finish/layout change, so without this the
+    // geometries/materials/textures leak and the scene degrades over a session.
+    function disposeObj3D(obj) {
+      if (!obj) return;
+      obj.traverse(n => {
+        if (n.geometry) { try { n.geometry.dispose(); } catch (e) {} }
+        const m = n.material;
+        if (m) { (Array.isArray(m) ? m : [m]).forEach(mm => { try { if (mm && mm.map) mm.map.dispose(); if (mm) mm.dispose(); } catch (e) {} }); }
+      });
+    }
     function rebuild() {
       const st = stateRef.current;
       curUnit = st.unit || 'cm';
-      if (group) scene.remove(group);
+      if (group) { scene.remove(group); disposeObj3D(group); }
       group = new THREE.Group();
       if (st.product === 'tv') {
         group.add(buildTV(st));
@@ -4286,6 +4297,7 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
       if (ro) ro.disconnect();
       try { mount.removeChild(renderer.domElement); } catch (e) {}
       try { grain.dispose(); if (envTex) envTex.dispose(); } catch (e) {}
+      try { disposeObj3D(group); } catch (e) {}
       renderer.dispose(); sceneRef.current = null; if (apiRef) apiRef.current = null;
     };
   }, [ready]);

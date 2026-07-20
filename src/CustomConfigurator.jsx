@@ -13,6 +13,8 @@ const LBL = {
   drawers: 'Drawers', rails: 'Hanging rails', partitions: 'Partitions', led: 'LED lighting', mirror: 'Mirror',
   sliding: 'Sliding doors', wall_units: 'Wall units', worktop: 'Worktop',
 };
+// size envelopes — keep customer-entered dimensions manufacturable
+const RANGE = { width_mm: [100, 3000], height_mm: [100, 2800], depth_mm: [100, 900] };
 const BOOLS = ['led', 'mirror', 'sliding', 'wall_units', 'worktop'];
 const m3 = (n) => Number(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
@@ -161,12 +163,17 @@ export default function CustomConfigurator() {
                           style={{ background: 'none', border: 'none', color: 'var(--danger,#DC4444)', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Remove</button>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(110px,1fr))', gap: 10, marginBottom: 10 }}>
-                        {nums.map((f) => (
+                        {nums.map((f) => {
+                          const rng = RANGE[f]; const v = s[f] ?? 0; const bad = rng && (v < rng[0] || v > rng[1]);
+                          return (
                           <div key={f}>
                             <label style={S.lbl}>{LBL[f] || f}</label>
-                            <input type="number" min="0" value={s[f] ?? 0} onChange={(e) => upd(i, f, Number(e.target.value) || 0)} style={S.inp} />
+                            <input type="number" min={rng ? rng[0] : 0} max={rng ? rng[1] : undefined} value={s[f] ?? 0} onChange={(e) => upd(i, f, Number(e.target.value) || 0)}
+                              style={{ ...S.inp, border: bad ? '1px solid var(--danger,#DC4444)' : S.inp.border }} />
+                            {bad && <div style={{ fontSize: 11, color: 'var(--danger,#DC4444)', marginTop: 3, fontWeight: 700 }}>⚠ Allowed {rng[0]}–{rng[1]} mm</div>}
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(165px,1fr))', gap: 10, marginBottom: 10 }}>
                         {slots.map(([k, l, kind]) => (
@@ -206,11 +213,14 @@ export default function CustomConfigurator() {
                       <input placeholder="Email (optional)" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} style={S.inp} />
                     </div>
                     {err && <div style={{ color: 'var(--danger,#DC4444)', fontSize: 12.5, marginBottom: 8, fontWeight: 600 }}>{err}</div>}
-                    <button onClick={submit} disabled={busy}
+                    {(() => { const sizeBad = secs.some((s) => Object.keys(RANGE).some((f) => (s[f] != null) && (s[f] < RANGE[f][0] || s[f] > RANGE[f][1]))); return (<>
+                    {sizeBad && <div style={{ color: 'var(--danger,#DC4444)', fontSize: 12.5, marginBottom: 8, fontWeight: 700 }}>⚠ Some sizes are outside our manufacturable range — adjust the highlighted fields.</div>}
+                    <button onClick={submit} disabled={busy || sizeBad}
                       style={{ width: '100%', background: 'linear-gradient(135deg,var(--clay,#A84B29),var(--clay-deep,#89391E))', border: 'none', color: '#fff',
-                        fontWeight: 800, fontSize: 15, padding: 15, borderRadius: 12, cursor: busy ? 'wait' : 'pointer', fontFamily: 'inherit', opacity: busy ? 0.7 : 1 }}>
+                        fontWeight: 800, fontSize: 15, padding: 15, borderRadius: 12, cursor: (busy || sizeBad) ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: (busy || sizeBad) ? 0.6 : 1 }}>
                       {busy ? 'Preparing your quotation…' : 'Get my quotation'}
                     </button>
+                    </>); })()}
                     <div style={{ color: 'var(--muted,#8a7f72)', fontSize: 11.5, textAlign: 'center', marginTop: 8 }}>
                       Indicative price — a free measurement confirms the final quote.
                     </div>
