@@ -2331,7 +2331,7 @@ const CSS = `
     animation: blob1 18s ease-in-out infinite;
   }
   .blob-2 {
-    width: 600px; height: 600px; background: var(--teal);
+    width: 600px; height: 600px; background: var(--peach);
     top: -100px; right: -200px;
     animation: blob2 22s ease-in-out infinite;
   }
@@ -2411,7 +2411,7 @@ const CSS = `
     content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
     background:
       radial-gradient(1300px 640px at 50% -14%, rgba(255,255,255,.9), transparent 60%),
-      radial-gradient(900px 640px at 8% 4%, rgba(47,140,126,.06), transparent 55%),
+      radial-gradient(900px 640px at 8% 4%, rgba(242,165,102,.12), transparent 55%),
       radial-gradient(880px 620px at 92% 2%, rgba(198,93,46,.05), transparent 55%),
       linear-gradient(180deg, #F6FAF9 0%, #F1F5F4 52%, #E7EEEB 100%);
   }
@@ -2443,8 +2443,8 @@ const CSS = `
        luxury. Coral (--clay) AA-safe with #fff; teal for eyebrows/links/accents.
        See Decisions Log 2026-07-26 "Palette v3 — Summer Sea Breeze". */
     --ink:#1b2a27; --ink-soft:#3d4f4b; --muted:#6d7c77; --cream:#f1f5f4; --sand:#e2ece9; --line:#d6e0dd; --clay:#C65D2E; --clay-deep:#A94A22;
-    /* Fresh secondary — teal (the "cool + airy") */
-    --teal:#2F8C7E; --teal-deep:#256F63;
+    /* Fresh secondary — light orange accent (decorative washes / glows / rules) */
+    --peach:#F2A566; --peach-deep:#E08A44;
     /* Editorial accents — warm metal bridge (sand/brass) + bronze */
     --bronze:#8f6338; --brass:#c29a5b;
     /* Shop layer — the store/checkout surfaces use a cool neutral system
@@ -2454,7 +2454,7 @@ const CSS = `
     --shop-fill:#f5f5f7; --shop-line:#e6e6e6;
     /* Semantic (site-wide) */
     --ok:#16a34a; --err:#b91c1c;
-    --focus-ring:0 0 0 3px rgba(47,140,126,.38);
+    --focus-ring:0 0 0 3px rgba(198,93,46,.35);
   }
   /* A11y: keyboard focus ring (mouse clicks unaffected) + reduced-motion */
   button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible,
@@ -2463,7 +2463,7 @@ const CSS = `
     *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
   }
   .display { font-family:'Fraunces',Georgia,'Times New Roman',serif; font-weight:600; letter-spacing:-.02em; line-height:1.04; }
-  .eyebrow { font-size:12px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--teal); }
+  .eyebrow { font-size:12px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--clay); }
   .btn-clay { background:var(--clay); color:#fff; border:none; border-radius:14px; padding:15px 26px; font-size:16px; font-weight:600; letter-spacing:.01em; cursor:pointer; transition:transform .15s, background .2s, box-shadow .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:50px; box-shadow:0 14px 30px -16px rgba(137,57,30,.55); }
   .btn-clay:active { transform:scale(.97); }
   .btn-ink { background:var(--ink); color:#fff; border:none; border-radius:14px; padding:15px 26px; font-size:16px; font-weight:600; letter-spacing:.01em; cursor:pointer; transition:transform .15s, opacity .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:50px; }
