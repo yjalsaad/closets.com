@@ -2402,15 +2402,18 @@ const CSS = `
         canvas; existing var(--sand)/#fff sections become the rhythm bands.
      C (neutral panels): .card gets a soft resting shadow so it floats as a
         panel on the bright canvas. Reusable .band-soft / .panel-soft below. */
-  html { background: #FCFBF9; }
+  html { background: #F1EBE0; }
   body { background: transparent; color: var(--shop-ink, #1d1d1f); font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; -webkit-font-smoothing: antialiased; }
+  /* Fixed warm "bone" daylight canvas — clearly warm at every scroll position,
+     lit from above, with faint clay/brass corner warmth. White/sand sections
+     ride on top of this as crisp floating panels (blend A + B + C). */
   body::before {
     content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
     background:
-      radial-gradient(1200px 560px at 50% -10%, rgba(255,255,255,.95), transparent 62%),
-      radial-gradient(900px 620px at 88% 2%, rgba(168,75,41,.045), transparent 55%),
-      radial-gradient(760px 560px at 6% 12%, rgba(189,149,87,.05), transparent 55%),
-      linear-gradient(180deg, #FFFFFF 0%, #FDFCFA 44%, #F6F2EB 100%);
+      radial-gradient(1300px 640px at 50% -14%, rgba(255,255,255,.85), transparent 60%),
+      radial-gradient(920px 640px at 90% 0%, rgba(168,75,41,.06), transparent 55%),
+      radial-gradient(820px 620px at 4% 10%, rgba(189,149,87,.07), transparent 55%),
+      linear-gradient(180deg, #FAF5EC 0%, #F4EEE3 52%, #EEE6D8 100%);
   }
   .band-soft { background: #F4F1EB; border-top: 1px solid #ECE6DC; border-bottom: 1px solid #ECE6DC; }
   .panel-soft { background: #FBF9F5; border: 1px solid #EFEAE1; border-radius: 18px; }
