@@ -2331,12 +2331,12 @@ const CSS = `
     animation: blob1 18s ease-in-out infinite;
   }
   .blob-2 {
-    width: 600px; height: 600px; background: #8b5cf6;
+    width: 600px; height: 600px; background: var(--teal);
     top: -100px; right: -200px;
     animation: blob2 22s ease-in-out infinite;
   }
   .blob-3 {
-    width: 500px; height: 500px; background: #06b6d4;
+    width: 500px; height: 500px; background: var(--brass);
     bottom: -150px; left: 30%;
     animation: blob3 16s ease-in-out infinite;
   }
@@ -2402,21 +2402,21 @@ const CSS = `
         canvas; existing var(--sand)/#fff sections become the rhythm bands.
      C (neutral panels): .card gets a soft resting shadow so it floats as a
         panel on the bright canvas. Reusable .band-soft / .panel-soft below. */
-  html { background: #F1EBE0; }
+  html { background: #EEF3F1; }
   body { background: transparent; color: var(--shop-ink, #1d1d1f); font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; -webkit-font-smoothing: antialiased; }
-  /* Fixed warm "bone" daylight canvas — clearly warm at every scroll position,
-     lit from above, with faint clay/brass corner warmth. White/sand sections
-     ride on top of this as crisp floating panels (blend A + B + C). */
+  /* Fixed sea-mist daylight canvas — cool + airy summer base, lit from above,
+     with a faint teal wash and a warm coral corner so both accents live in the
+     background. White/sand sections ride on top as crisp floating panels. */
   body::before {
     content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
     background:
-      radial-gradient(1300px 640px at 50% -14%, rgba(255,255,255,.85), transparent 60%),
-      radial-gradient(920px 640px at 90% 0%, rgba(168,75,41,.06), transparent 55%),
-      radial-gradient(820px 620px at 4% 10%, rgba(189,149,87,.07), transparent 55%),
-      linear-gradient(180deg, #FAF5EC 0%, #F4EEE3 52%, #EEE6D8 100%);
+      radial-gradient(1300px 640px at 50% -14%, rgba(255,255,255,.9), transparent 60%),
+      radial-gradient(900px 640px at 8% 4%, rgba(47,140,126,.06), transparent 55%),
+      radial-gradient(880px 620px at 92% 2%, rgba(198,93,46,.05), transparent 55%),
+      linear-gradient(180deg, #F6FAF9 0%, #F1F5F4 52%, #E7EEEB 100%);
   }
-  .band-soft { background: #F4F1EB; border-top: 1px solid #ECE6DC; border-bottom: 1px solid #ECE6DC; }
-  .panel-soft { background: #FBF9F5; border: 1px solid #EFEAE1; border-radius: 18px; }
+  .band-soft { background: #EDF3F1; border-top: 1px solid #DCE7E3; border-bottom: 1px solid #DCE7E3; }
+  .panel-soft { background: #F7FBFA; border: 1px solid #E2ECE9; border-radius: 18px; }
   ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 2px; }
   input, select, textarea, button { font-family: inherit; }
   @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -2438,12 +2438,15 @@ const CSS = `
   .card { background: #fff; border-radius: 20px; border: 1px solid var(--shop-line, #e6e6e6); overflow: hidden; box-shadow: 0 1px 2px rgba(31,25,19,.04), 0 12px 30px -22px rgba(31,25,19,.22); }
   /* ── Editorial-luxury design tokens (Home redesign) ── */
   :root {
-    /* Palette v2 — enterprise-luxury: walnut + brass + linen + stone.
-       Terracotta/sienna accent (AA-safe with #fff), warm bone canvas (less yellow),
-       espresso ink. See Decisions Log 2026-07-14 "Palette v2". */
-    --ink:#1f1913; --ink-soft:#463d33; --muted:#726757; --cream:#f5f1ea; --sand:#ebe4d8; --line:#e2d9cc; --clay:#A84B29; --clay-deep:#89391E;
-    /* Editorial accents — restrained walnut/brass metallics */
-    --bronze:#8f6338; --brass:#bd9557;
+    /* Palette v3 — Summer "Sea Breeze": cool sea-mist canvas + fresh teal accent
+       + coral-orange CTA (teal/orange complementary). Airy and bright, still
+       luxury. Coral (--clay) AA-safe with #fff; teal for eyebrows/links/accents.
+       See Decisions Log 2026-07-26 "Palette v3 — Summer Sea Breeze". */
+    --ink:#1b2a27; --ink-soft:#3d4f4b; --muted:#6d7c77; --cream:#f1f5f4; --sand:#e2ece9; --line:#d6e0dd; --clay:#C65D2E; --clay-deep:#A94A22;
+    /* Fresh secondary — teal (the "cool + airy") */
+    --teal:#2F8C7E; --teal-deep:#256F63;
+    /* Editorial accents — warm metal bridge (sand/brass) + bronze */
+    --bronze:#8f6338; --brass:#c29a5b;
     /* Shop layer — the store/checkout surfaces use a cool neutral system
        (distinct from the warm editorial layer, intentional). Tokenized so the
        two gray families never mix mid-component. */
@@ -2451,7 +2454,7 @@ const CSS = `
     --shop-fill:#f5f5f7; --shop-line:#e6e6e6;
     /* Semantic (site-wide) */
     --ok:#16a34a; --err:#b91c1c;
-    --focus-ring:0 0 0 3px rgba(168,75,41,.35);
+    --focus-ring:0 0 0 3px rgba(47,140,126,.38);
   }
   /* A11y: keyboard focus ring (mouse clicks unaffected) + reduced-motion */
   button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible,
@@ -2460,7 +2463,7 @@ const CSS = `
     *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
   }
   .display { font-family:'Fraunces',Georgia,'Times New Roman',serif; font-weight:600; letter-spacing:-.02em; line-height:1.04; }
-  .eyebrow { font-size:12px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--clay); }
+  .eyebrow { font-size:12px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--teal); }
   .btn-clay { background:var(--clay); color:#fff; border:none; border-radius:14px; padding:15px 26px; font-size:16px; font-weight:600; letter-spacing:.01em; cursor:pointer; transition:transform .15s, background .2s, box-shadow .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:50px; box-shadow:0 14px 30px -16px rgba(137,57,30,.55); }
   .btn-clay:active { transform:scale(.97); }
   .btn-ink { background:var(--ink); color:#fff; border:none; border-radius:14px; padding:15px 26px; font-size:16px; font-weight:600; letter-spacing:.01em; cursor:pointer; transition:transform .15s, opacity .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:50px; }
