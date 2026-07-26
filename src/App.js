@@ -4,6 +4,7 @@ import TVUnit3D from './TVUnit3D';
 import Door3D from './Door3D';
 import Office3D from './Office3D';
 import { fitModules, WARDROBE_WIDTHS } from './moduleFit';
+import { Barcode128 } from './barcode128';
 import { handleError } from './errors';
 import { BrowserRouter, useLocation, useNavigate, Link } from 'react-router-dom';
 
@@ -2395,7 +2396,24 @@ const CSS = `
   }
   @keyframes bannerFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
   .hero-content { position: relative; z-index: 1; }
-  body { background: #fff; color: var(--shop-ink, #1d1d1f); font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; -webkit-font-smoothing: antialiased; }
+  /* ── Premium canvas (IKEA-bright blend A+B+C) ──────────────────────────────
+     B (soft daylight): body sits on a fixed white→warm wash, lit from above.
+     A (section bands): the transparent maxWidth sections read against this
+        canvas; existing var(--sand)/#fff sections become the rhythm bands.
+     C (neutral panels): .card gets a soft resting shadow so it floats as a
+        panel on the bright canvas. Reusable .band-soft / .panel-soft below. */
+  html { background: #FCFBF9; }
+  body { background: transparent; color: var(--shop-ink, #1d1d1f); font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; -webkit-font-smoothing: antialiased; }
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(1200px 560px at 50% -10%, rgba(255,255,255,.95), transparent 62%),
+      radial-gradient(900px 620px at 88% 2%, rgba(168,75,41,.045), transparent 55%),
+      radial-gradient(760px 560px at 6% 12%, rgba(189,149,87,.05), transparent 55%),
+      linear-gradient(180deg, #FFFFFF 0%, #FDFCFA 44%, #F6F2EB 100%);
+  }
+  .band-soft { background: #F4F1EB; border-top: 1px solid #ECE6DC; border-bottom: 1px solid #ECE6DC; }
+  .panel-soft { background: #FBF9F5; border: 1px solid #EFEAE1; border-radius: 18px; }
   ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 2px; }
   input, select, textarea, button { font-family: inherit; }
   @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -2414,7 +2432,7 @@ const CSS = `
   .btn-secondary { background: var(--shop-fill, #f5f5f7); color: var(--shop-ink, #1d1d1f); border: none; border-radius: 14px; padding: 15px 24px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all .15s; min-height: 50px; }
   .btn-secondary:active { background: #e8e8ed; transform: scale(.97); }
   .btn-ghost { background: transparent; border: 1.5px solid var(--shop-line, #e6e6e6); border-radius: 14px; padding: 14px 22px; font-size: 15px; font-weight: 500; cursor: pointer; color: var(--shop-ink, #1d1d1f); transition: all .15s; }
-  .card { background: #fff; border-radius: 20px; border: 1px solid var(--shop-line, #e6e6e6); overflow: hidden; }
+  .card { background: #fff; border-radius: 20px; border: 1px solid var(--shop-line, #e6e6e6); overflow: hidden; box-shadow: 0 1px 2px rgba(31,25,19,.04), 0 12px 30px -22px rgba(31,25,19,.22); }
   /* ── Editorial-luxury design tokens (Home redesign) ── */
   :root {
     /* Palette v2 — enterprise-luxury: walnut + brass + linen + stone.
@@ -3524,10 +3542,16 @@ function ProductCard({ product: p, setPage, addToCart, setConfigProduct }) {
       </div>
       <div style={{ padding: '16px' }}>
         <div style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 6 }}>{p.category ? trCat(p.category, lang) : t('w4PdBespoke')}</div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: (p.barcode || p.sku) ? 8 : 14 }}>
           <div className="display" style={{ fontSize: 18, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.2 }}>{p.name}</div>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--clay)', whiteSpace: 'nowrap' }}>{fmt(p.price)}</div>
         </div>
+        {(p.barcode || p.sku) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+            <Barcode128 value={p.barcode || p.sku} height={20} background="transparent" color="var(--muted)" width={62} style={{ flexShrink: 0 }} />
+            <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 11, letterSpacing: '.03em', color: 'var(--muted)' }}>SKU: {p.barcode || p.sku}</span>
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 8 }}>
           <button type="button" onClick={e => { e.stopPropagation(); addToCart(p); toast('Added to cart ✓', 'success'); }} style={{ flex: 1, background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 12, padding: '11px 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer', minHeight: 44 }}>{t('w4PdAddToCart')}</button>
           <button type="button" title={t('w4PdCustomise')} aria-label={t('w4PdCustomise')} onClick={e => { e.stopPropagation(); setPage('planner'); }} style={{ background: 'var(--sand)', border: '1px solid var(--line)', borderRadius: 12, padding: '11px 14px', fontSize: 15, cursor: 'pointer', minHeight: 44, color: 'var(--ink)' }}>✦</button>
@@ -3670,6 +3694,12 @@ function ProductInfo({ product, qty, setQty, addToCart, setConfigProduct, setPag
           </div>
         ))}
       </div>
+      {(product.barcode || product.sku) && (
+        <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4, marginBottom: 26 }}>
+          <Barcode128 value={product.barcode || product.sku} height={38} background="transparent" color="var(--ink)" width={mobile ? 150 : 180} />
+          <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 12, letterSpacing: '.06em', color: 'var(--muted)' }}>{product.barcode || product.sku}</span>
+        </div>
+      )}
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', background: '#fff', border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden' }}>
           <button type="button" onClick={() => setQty(q => Math.max(1, q - 1))} style={{ background: 'none', border: 'none', padding: '13px 18px', fontSize: 20, cursor: 'pointer', color: 'var(--ink)', minWidth: 50 }}>−</button>
@@ -4492,13 +4522,19 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   }
   const quoteRef = quoteRefRef.current;
   const priceTimer = useRef(null);
-  // Package tiers — multipliers + labels (shared between config & quote)
-  const PACKAGES = [
-    { name:'Economy', mult:0.72, hl:'Quality essentials' },
-    { name:'Standard', mult:1, hl:'Most popular' },
-    { name:'Premium', mult:1.45, hl:'Premium finishes' },
-    { name:'Luxury', mult:2.1, hl:'Top-tier materials' },
-  ];
+  // Package tiers — multipliers + labels. Single source of truth: the shared
+  // configurator config (website_configurator_settings.config.packages), so the
+  // website, the customer portal and the pricing engine never drift. Falls back
+  // to the built-in list if the config key is missing.
+  const PACKAGES = (Array.isArray(settings?.packages) && settings.packages.length
+    && settings.packages.every(p => p && p.name && isFinite(Number(p.mult))))
+    ? settings.packages.map(p => ({ name: p.name, mult: Number(p.mult), hl: p.hl || p.highlight || '' }))
+    : [
+        { name:'Economy', mult:0.72, hl:'Quality essentials' },
+        { name:'Standard', mult:1, hl:'Most popular' },
+        { name:'Premium', mult:1.45, hl:'Premium finishes' },
+        { name:'Luxury', mult:2.1, hl:'Top-tier materials' },
+      ];
 
   useEffect(() => {
     let alive = true; setLoadError(false);
