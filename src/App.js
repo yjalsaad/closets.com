@@ -6391,6 +6391,7 @@ function HomeHub({ user, setUser, setPage }) {
   const [orderItems, setOrderItems] = useState({}); // { [orderId]: array | 'loading' }
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [rewards, setRewards] = useState([]);
+  const [rwInfo, setRwInfo] = useState(null); // CUS loyalty balance {points, tier, value_bd}
   const [designs, setDesigns] = useState([]);
   const [complaints, setComplaints] = useState([]);
   const [tickets, setTickets] = useState([]);
@@ -6409,7 +6410,9 @@ function HomeHub({ user, setUser, setPage }) {
     // Scoped SECURITY DEFINER RPCs — direct anon reads on sales_orders/invoices are 403 (RLS)
     api('rpc/my_orders', { method:'POST', body:{ p_email: user.email, p_customer_id: user.id || null } }).then(r => setOrders(Array.isArray(r)?r:[])).catch(()=>{});
     api('rpc/my_invoices', { method:'POST', body:{ p_email: user.email } }).then(r => setInvoices(Array.isArray(r)?r:[])).catch(()=>{});
-    api(`website_rewards?customer_id=eq.${user.id}&order=created_at.desc&limit=50`).then(r => setRewards(Array.isArray(r)?r:[])).catch(()=>{});
+    // Loyalty now lives in the unified CUS ledger — pull history + live balance from the shared engine
+    api('rpc/customer_rewards_get', { method:'POST', body:{ p_customer_id: String(user.id) } }).then(r => setRewards(Array.isArray(r?.history)?r.history:[])).catch(()=>{});
+    if (user.phone) api('rpc/loyalty_balance', { method:'POST', body:{ p_phone: user.phone } }).then(d => { if (d && d.ok) setRwInfo(d); }).catch(()=>{});
     api(`product_configurations?customer_id=eq.${user.id}&order=created_at.desc&limit=20`).then(r => setDesigns(p => mergeDesigns(p, Array.isArray(r)?r:[]))).catch(()=>{});
     fetch(SUPA_URL + '/rest/v1/rpc/my_saved_designs', {
       method: 'POST',
@@ -6947,15 +6950,18 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
             <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>{t('w4PRewards')}</h2>
             <div style={{ background:'#fff', borderRadius:20, padding:24, marginBottom:14, border:'1px solid var(--shop-line, #e6e6e6)' }}>
               <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)', marginBottom:4 }}>{t('w4PBalance')}</div>
-              <div style={{ fontSize:44, fontWeight:700, color:'var(--clay)', letterSpacing:'-.03em', marginBottom:4 }}>{(user.points||0).toLocaleString()}</div>
-              <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', marginBottom:20 }}>{t('w4PPoints')} · {user.tier||'Bronze'} {t('w4PMember')}</div>
+              <div style={{ fontSize:44, fontWeight:700, color:'var(--clay)', letterSpacing:'-.03em', marginBottom:4 }}>{((rwInfo?rwInfo.points:user.points)||0).toLocaleString()}</div>
+              <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', marginBottom:20 }}>{t('w4PPoints')} · {(rwInfo&&rwInfo.tier)||user.tier||'Bronze'} {t('w4PMember')}</div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8 }}>
-                {[['Bronze','0–999'],['Silver','1k–5k'],['Gold','5k–15k'],['Platinum','15k+']].map(([tier,range])=>(
-                  <div key={tier} style={{ background:user.tier===tier?`${tierC[tier]}15`:'#f5f5f7', borderRadius:12, padding:'10px 8px', opacity:user.tier===tier?1:.4, border:user.tier===tier?`1.5px solid ${tierC[tier]}`:'1.5px solid transparent' }}>
+                {[['Bronze','0–999'],['Silver','1k–5k'],['Gold','5k–15k'],['Platinum','15k+']].map(([tier,range])=>{
+                  const curTier=(rwInfo&&rwInfo.tier)||user.tier;
+                  return (
+                  <div key={tier} style={{ background:curTier===tier?`${tierC[tier]}15`:'#f5f5f7', borderRadius:12, padding:'10px 8px', opacity:curTier===tier?1:.4, border:curTier===tier?`1.5px solid ${tierC[tier]}`:'1.5px solid transparent' }}>
                     <div style={{ fontSize:12, fontWeight:600, color:tierC[tier], marginBottom:1 }}>{tier}</div>
                     <div style={{ fontSize:10, color:'var(--shop-muted, #86868b)' }}>{range}</div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
             {rewards.map((r,i)=>(
