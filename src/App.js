@@ -7039,6 +7039,13 @@ function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
         : await api('rpc/account_register', { method:'POST', headers:hdr, body:{ p_email: form.email, p_password: form.password, p_name: form.name, p_phone: form.phone||null } });
       if (!u || !u.id) throw new Error('Unexpected response');
       setUser(u); localStorage.setItem('closets_user', JSON.stringify(u));
+      // New account → ensure a CUS Customer ID by phone + capture any referral (?ref).
+      if (mode !== 'login' && form.phone) {
+        try {
+          const ref = new URLSearchParams(window.location.search).get('ref');
+          api('rpc/loyalty_referral_signup', { method:'POST', headers:hdr, body:{ p_name: form.name, p_phone: form.phone, p_ref: ref || null } }).catch(()=>{});
+        } catch (_) {}
+      }
       toast(mode==='login'?t('w4AuthWelcomeToast'):t('w4AuthAccountCreated'), 'success'); onClose();
     } catch (e) {
       toast(e.message || t('w4AuthCouldNotSignIn'), 'error');
@@ -7542,6 +7549,21 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
   const plans = Array.isArray(settings.installment_plans) ? settings.installment_plans : [];
   const instEnabled = settings.product_installments_enabled && total >= (Number(settings.installment_min_amount)||0) && plans.length > 0;
   const monthly = months > 0 ? (total / months) : 0;
+  // ── Loyalty redemption ──────────────────────────────────────────────────
+  const [bal, setBal] = useState(null);
+  const [useRedeem, setUseRedeem] = useState(false);
+  useEffect(() => {
+    const ph = (form.phone || '').replace(/\D/g, '');
+    if (ph.length < 6) { setBal(null); return; }
+    let alive = true;
+    api('rpc/loyalty_balance', { method: 'POST', body: { p_phone: form.phone } }).then(d => { if (alive && d && d.ok) setBal(d); }).catch(() => {});
+    return () => { alive = false; };
+  }, [form.phone]);
+  const rppb = (bal && Number(bal.redeem_points_per_bd)) || 100;
+  const maxDiscount = (bal && bal.enabled && bal.points > 0) ? Math.min(Number(bal.value_bd) || 0, total) : 0;
+  const discount = useRedeem ? maxDiscount : 0;
+  const pointsUsed = discount > 0 ? Math.round(discount * rppb) : 0;
+  const payable = Math.max(0, +(total - discount).toFixed(3));
   const place = async () => {
     if (placingRef.current) return;   // guard: ignore repeat clicks while an order is in flight
     placingRef.current = true;
@@ -7553,7 +7575,7 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
     const id = await api('rpc/public_order_submit', { method:'POST', body:{
       p_name: form.name, p_phone: form.phone || null, p_email: form.email || null,
       p_address: (form.address ? form.address+', ' : '')+form.city,
-      p_items: cart, p_total: total, p_payment: payLabel, p_notes: planNote + (form.notes || ''),
+      p_items: cart, p_total: payable, p_payment: payLabel, p_notes: planNote + (form.notes || ''),
       p_customer_id: user?.id || null
     }});
     // Record the store order. This returns the order id, which is what the payment
@@ -7563,15 +7585,20 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
     try {
       const so = await api('rpc/store_checkout', { method:'POST', body:{
         p_customer_id: user?.id || null, p_customer_name: form.name, p_customer_email: form.email || null,
-        p_customer_phone: form.phone || null, p_items: cart, p_total: total,
+        p_customer_phone: form.phone || null, p_items: cart, p_total: payable,
         p_installment_months: months > 0 ? months : null,
         p_address: { line: form.address, city: form.city }, p_notes: form.notes || null,
       }});
       if (so && so.ok && so.id) orderId = so.id;
     } catch(e) {}
 
+    // Redeem loyalty points for the applied discount (deducts from the CUS balance).
+    if (pointsUsed > 0 && bal && bal.customer_no) {
+      try { await api('rpc/loyalty_redeem', { method:'POST', body:{ p_customer_no: bal.customer_no, p_points: pointsUsed, p_reason: 'Store order', p_ref: 'order:' + (orderId || Date.now()) } }); } catch(e) {}
+    }
+
     if (user) {
-      const pts = Math.floor(total*10);
+      const pts = Math.floor(payable*10);
       // SECURITY DEFINER RPC — writes the reward row AND increments points server-side
       // (direct anon POST/PATCH on website_rewards/website_customers is 403)
       try { await api('rpc/customer_points_award', { method:'POST', body:{ p_customer_id: String(user.id), p_points: pts, p_reason: 'Website order' } }); } catch(e) {}
@@ -7618,11 +7645,22 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
                   <span style={{ fontSize:14, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{fmt(item.price)}</span>
                 </div>
               ))}
+              {bal && bal.enabled && bal.points > 0 && maxDiscount > 0 && (
+                <label style={{ display:'flex', alignItems:'center', gap:8, margin:'6px 0 10px', cursor:'pointer', fontSize:13, color:'var(--shop-ink, #1d1d1f)' }}>
+                  <input type="checkbox" checked={useRedeem} onChange={e=>setUseRedeem(e.target.checked)} />
+                  <span>{lang==='ar' ? ('استخدم '+bal.points+' نقطة (خصم '+fmt(maxDiscount)+')') : ('Use '+bal.points+' points (−'+fmt(maxDiscount)+')')}</span>
+                </label>
+              )}
+              {discount > 0 && (
+                <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8, color:'var(--clay-deep)', fontSize:14, fontWeight:600 }}>
+                  <span>{lang==='ar' ? 'خصم النقاط' : 'Points discount'}</span><span>−{fmt(discount)}</span>
+                </div>
+              )}
               <div style={{ display:'flex', justifyContent:'space-between', paddingTop:4 }}>
                 <span style={{ fontSize:16, fontWeight:700 }}>{t('total')}</span>
-                <span style={{ fontSize:20, fontWeight:700, color:'var(--clay)' }}>{fmt(total)}</span>
+                <span style={{ fontSize:20, fontWeight:700, color:'var(--clay)' }}>{fmt(payable)}</span>
               </div>
-              {user && <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)', marginTop:8 }}>+{Math.floor(total*10)} {t('swCoLoyaltyPts')}</div>}
+              {user && <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)', marginTop:8 }}>+{Math.floor(payable*10)} {t('swCoLoyaltyPts')}</div>}
             </div>
             <div style={{ background:'#fff', borderRadius:20, padding: mobile ? 20 : 28, border:'1px solid var(--shop-line, #e6e6e6)' }}>
               {step===1&&<>
