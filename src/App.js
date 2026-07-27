@@ -15884,6 +15884,29 @@ function DlGlowUp({ user, setPage, openAuth, referral }) {
   const [pos, setPos] = useState(55);
   const [publishing, setPublishing] = useState(false);
   const [published, setPublished] = useState(false);
+  // Redesign → lead magnet: estimate + contact gate → public_lead_submit (auto CUS ID)
+  const [leadOpen, setLeadOpen] = useState(false);
+  const [leadSent, setLeadSent] = useState(false);
+  const [leadBusy, setLeadBusy] = useState(false);
+  const [lf, setLf] = useState({ name: (user && user.name) || '', phone: (user && user.phone) || '', email: (user && user.email) || '', room: 'Wardrobe', budget: '' });
+  const EST = { 'Wardrobe': [400, 1200], 'Walk-in Closet': [800, 2500], 'Kitchen': [1500, 5000], 'TV Unit': [300, 900], 'Home Office': [500, 1800], 'Full Fit-out': [3000, 15000], 'Other': [400, 3000] };
+  const estRange = () => { const e = EST[lf.room] || EST.Other; return 'BD ' + e[0].toLocaleString() + ' – ' + e[1].toLocaleString(); };
+  const glInp = { padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 10, fontSize: 14, fontFamily: 'inherit', width: '100%', boxSizing: 'border-box', background: '#fff', color: 'var(--ink)' };
+  const sendLead = async () => {
+    if (!lf.name.trim() || !lf.phone.trim()) { toast(lang === 'ar' ? 'أدخل الاسم ورقم الهاتف' : 'Enter your name and phone', 'error'); return; }
+    setLeadBusy(true);
+    const hosted = (typeof url === 'string' && !url.startsWith('data:')) ? url : null;
+    try {
+      await api('rpc/public_lead_submit', { method: 'POST', body: {
+        p_name: lf.name.trim(), p_phone: lf.phone.trim(), p_email: lf.email.trim() || null,
+        p_source: 'Website - AI Redesign', p_interest: lf.room,
+        p_message: 'AI Room Glow-Up (' + styleLabel(style) + ') · estimate ' + estRange() + (lf.budget ? (' · budget ' + lf.budget) : '') + (hosted ? (' · design: ' + hosted) : ''),
+        p_meta: { type: 'ai_redesign', style: style, room: lf.room, budget: lf.budget || null, estimate: estRange(), after_url: hosted },
+      } });
+      setLeadSent(true); toast(lang === 'ar' ? 'تم إرسال طلبك ✅' : 'Request sent ✅', 'success');
+    } catch (_) { toast(lang === 'ar' ? 'حدث خطأ، حاول مجددًا' : 'Something went wrong, try again', 'error'); }
+    setLeadBusy(false);
+  };
   const styleLabel = (s) => lang === 'ar' ? (DL_STYLE_AR[s] || s) : s;
   const shareLink = DL_SITE + '/?share=' + dlShareCode() + '&ref=' + encodeURIComponent(referral);
 
@@ -15968,8 +15991,27 @@ function DlGlowUp({ user, setPage, openAuth, referral }) {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
               <a href={url} download="closets-glow-up.jpg" target="_blank" rel="noreferrer" style={{ padding: '9px 14px', borderRadius: 99, background: 'var(--ink)', color: '#fff', textDecoration: 'none', fontSize: 13, fontWeight: 700 }}>⬇ {t('dlGuDownload')}</a>
               <button type="button" onClick={publish} disabled={publishing || published} className="btn-clay" style={{ padding: '9px 16px', borderRadius: 99, fontSize: 13, opacity: (publishing || published) ? .6 : 1 }}>{published ? '✓' : (publishing ? t('dlGuPublishing') : t('dlGuPublish'))}</button>
-              <button type="button" onClick={() => setPage('booking')} style={{ padding: '9px 14px', borderRadius: 99, background: 'var(--sand)', color: 'var(--clay-deep)', border: '1px solid var(--line)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{t('dlGuMakeReal')}</button>
+              <button type="button" onClick={() => { setLeadOpen(true); setLeadSent(false); }} style={{ padding: '9px 14px', borderRadius: 99, background: 'var(--clay)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>💰 {lang === 'ar' ? 'احصل على عرض سعر' : 'Get my free estimate'}</button>
             </div>
+            {leadOpen && !leadSent && (
+              <div style={{ marginTop: 14, padding: '14px 16px', background: '#fff', border: '1px solid var(--line)', borderRadius: 14 }}>
+                <div style={{ fontWeight: 800, color: 'var(--ink)', marginBottom: 3 }}>{lang === 'ar' ? 'احصل على عرض سعر مجاني' : 'Get your free estimate'}</div>
+                <div style={{ fontSize: 12.5, color: 'var(--muted)', marginBottom: 12 }}>{lang === 'ar' ? 'سيتواصل معك مصمم لتحويل هذه الفكرة إلى واقع.' : 'A designer will call you to make this design real.'}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <input placeholder={lang === 'ar' ? 'الاسم' : 'Name'} value={lf.name} onChange={e => setLf(p => ({ ...p, name: e.target.value }))} style={glInp} />
+                  <input placeholder={lang === 'ar' ? 'الهاتف' : 'Phone'} value={lf.phone} onChange={e => setLf(p => ({ ...p, phone: e.target.value }))} style={glInp} />
+                  <input placeholder={lang === 'ar' ? 'البريد (اختياري)' : 'Email (optional)'} value={lf.email} onChange={e => setLf(p => ({ ...p, email: e.target.value }))} style={glInp} />
+                  <select value={lf.room} onChange={e => setLf(p => ({ ...p, room: e.target.value }))} style={glInp}>{Object.keys(EST).map(k => <option key={k} value={k}>{k}</option>)}</select>
+                </div>
+                <div style={{ marginTop: 12, padding: '10px 12px', background: 'var(--sand)', borderRadius: 10, fontSize: 13.5, color: 'var(--clay-deep)', fontWeight: 700 }}>{lang === 'ar' ? 'التقدير المبدئي: ' : 'Ballpark estimate: '}{estRange()}</div>
+                <button type="button" className="btn-clay" disabled={leadBusy} onClick={sendLead} style={{ marginTop: 12, opacity: leadBusy ? .6 : 1 }}>{leadBusy ? (lang === 'ar' ? 'جارٍ الإرسال…' : 'Sending…') : (lang === 'ar' ? 'أرسل الطلب' : 'Send request')}</button>
+              </div>
+            )}
+            {leadSent && (
+              <div style={{ marginTop: 14, padding: '14px 16px', background: 'var(--sand)', border: '1px solid var(--line)', borderRadius: 14, fontSize: 14, color: 'var(--ink-soft)', fontWeight: 600 }}>
+                ✅ {lang === 'ar' ? 'تم استلام طلبك! سيتواصل معك مصمم قريبًا مع عرض السعر.' : 'Got it! A designer will contact you shortly with your quote.'}
+              </div>
+            )}
             {!user && (
               <div style={{ marginTop: 14, padding: '12px 14px', background: 'var(--sand)', borderRadius: 12, fontSize: 13, color: 'var(--ink-soft)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
                 <span>{t('dlSoftGate')}</span>
