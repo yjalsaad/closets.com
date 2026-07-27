@@ -4,18 +4,20 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="robots" content="noindex,nofollow"/>
-<meta name="theme-color" content="#0B0A0F"/>
+<meta name="theme-color" content="#EFF4F2"/>
 <title>Secure payment — The Closets International</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
   :root{
-    --bg:#0B0A0F; --card:#17151D; --card-2:#1E1B26;
-    --line:#2A2833; --line-2:#332F3D;
-    --ink:#F4F2F8; --ink-2:#B9B5C6; --ink-3:#8A8598; --ink-4:#63606E;
-    --brand:#F97316; --brand-2:#FB923C; --brand-ink:#FFF3EA;
-    --ok:#34D399; --radius:20px;
+    /* Light "Sea Breeze" — matches site Palette v3: sea-mist canvas, pine ink,
+       coral CTA (--brand) with light-orange (--peach) accents. */
+    --bg:#EFF4F2; --card:#FFFFFF; --card-2:#F4F9F7;
+    --line:#DBE5E2; --line-2:#CBD8D4;
+    --ink:#1B2A27; --ink-2:#3D4F4B; --ink-3:#6D7C77; --ink-4:#93A19C;
+    --brand:#C65D2E; --brand-2:#E08A44; --brand-ink:#FFFFFF; --peach:#F2A566;
+    --ok:#1F9E73; --radius:20px;
     --ease:cubic-bezier(.22,.61,.36,1);
     --ease-out:cubic-bezier(.16,1,.3,1);
   }
@@ -28,24 +30,24 @@
     padding:22px;-webkit-font-smoothing:antialiased;overflow-x:hidden;position:relative;
   }
 
-  /* ── Ambient animated backdrop ─────────────────────────────────────────── */
+  /* ── Ambient animated backdrop (soft, on light) ────────────────────────── */
   .aura{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
-  .aura b{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5;
+  .aura b{position:absolute;border-radius:50%;filter:blur(80px);opacity:.30;
           will-change:transform}
   .aura .b1{width:460px;height:460px;left:-140px;top:-120px;
-            background:radial-gradient(circle at 30% 30%,#F97316,transparent 70%);
+            background:radial-gradient(circle at 30% 30%,#C65D2E,transparent 70%);
             animation:drift1 20s var(--ease) infinite alternate}
   .aura .b2{width:400px;height:400px;right:-120px;bottom:-100px;
-            background:radial-gradient(circle at 60% 40%,#7C3AED,transparent 70%);opacity:.34;
+            background:radial-gradient(circle at 60% 40%,#F2A566,transparent 70%);opacity:.32;
             animation:drift2 24s var(--ease) infinite alternate}
   .aura .b3{width:300px;height:300px;right:20%;top:-90px;
-            background:radial-gradient(circle at 50% 50%,#EA580C,transparent 70%);opacity:.28;
+            background:radial-gradient(circle at 50% 50%,#E08A44,transparent 70%);opacity:.22;
             animation:drift3 18s var(--ease) infinite alternate}
   @keyframes drift1{to{transform:translate(60px,50px) scale(1.15)}}
   @keyframes drift2{to{transform:translate(-50px,-40px) scale(1.1)}}
   @keyframes drift3{to{transform:translate(-30px,40px) scale(1.2)}}
-  .grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
-         background-image:radial-gradient(rgba(255,255,255,.03) 1px,transparent 1px);
+  .grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.6;
+         background-image:radial-gradient(rgba(27,42,39,.03) 1px,transparent 1px);
          background-size:3px 3px}
 
   .shell{width:100%;max-width:418px;position:relative;z-index:1}
@@ -53,20 +55,20 @@
   /* ── Brand ─────────────────────────────────────────────────────────────── */
   .brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:22px;
          opacity:0;animation:rise .7s var(--ease-out) .05s forwards}
-  .brand img{height:28px;width:auto;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4))}
+  .brand img{height:28px;width:auto;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(27,42,39,.14))}
   .brand span{font-size:9px;letter-spacing:.28em;color:var(--ink-3);text-transform:uppercase;font-weight:600}
 
   /* ── Card ──────────────────────────────────────────────────────────────── */
   .card{position:relative;border-radius:var(--radius);padding:28px 24px;
-        background:linear-gradient(165deg,rgba(30,27,38,.92),rgba(20,18,26,.96));
+        background:linear-gradient(165deg,#FFFFFF,#F5FAF8);
         border:1px solid var(--line);
-        box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 30px 70px -20px rgba(0,0,0,.7),
-                   0 0 0 1px rgba(0,0,0,.2);
+        box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 30px 60px -28px rgba(27,42,39,.22),
+                   0 0 0 1px rgba(27,42,39,.03);
         -webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);
         opacity:0;animation:cardin .8s var(--ease-out) .12s forwards}
-  /* hairline top light */
+  /* hairline top light — faint peach */
   .card::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
-    background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 30%);
+    background:linear-gradient(180deg,rgba(242,165,102,.45),rgba(242,165,102,0) 30%);
     -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
     -webkit-mask-composite:xor;mask-composite:exclude}
   @keyframes cardin{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
@@ -79,20 +81,20 @@
 
   .eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:9.5px;letter-spacing:.2em;
            color:var(--ink-3);text-transform:uppercase;font-weight:600;margin-bottom:16px}
-  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);
-                box-shadow:0 0 0 0 rgba(52,211,153,.5);animation:pulse 2.2s ease-out infinite}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(52,211,153,.5)}70%{box-shadow:0 0 0 7px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--brand);
+                box-shadow:0 0 0 0 rgba(198,93,46,.5);animation:pulse 2.2s ease-out infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(198,93,46,.5)}70%{box-shadow:0 0 0 7px rgba(198,93,46,0)}100%{box-shadow:0 0 0 0 rgba(198,93,46,0)}}
 
-  .amt{font-size:46px;font-weight:700;letter-spacing:-.035em;color:#fff;line-height:1;
+  .amt{font-size:46px;font-weight:700;letter-spacing:-.035em;color:var(--ink);line-height:1;
        margin-bottom:9px;display:flex;align-items:baseline;gap:9px;font-variant-numeric:tabular-nums}
   .amt .cur{font-size:19px;font-weight:600;color:var(--ink-3);letter-spacing:0}
-  .amt .num{background:linear-gradient(180deg,#fff,#D8D4E0);-webkit-background-clip:text;
+  .amt .num{background:linear-gradient(180deg,#1B2A27,#41534E);-webkit-background-clip:text;
             background-clip:text;-webkit-text-fill-color:transparent}
 
   .sub{font-size:13px;color:var(--ink-2);line-height:1.6;margin-bottom:22px}
   .sub b{color:var(--ink);font-weight:600}
   .sub .pct{display:inline-flex;align-items:center;padding:1px 7px;border-radius:6px;
-            background:rgba(249,115,22,.16);color:var(--brand-2);font-weight:700;font-size:12px}
+            background:rgba(198,93,46,.14);color:var(--brand);font-weight:700;font-size:12px}
 
   /* Deposit breakdown */
   .rows{border-top:1px solid var(--line);border-bottom:1px solid var(--line);
@@ -102,7 +104,7 @@
   .row .v{color:var(--ink-2);font-variant-numeric:tabular-nums}
   .row.now{margin-top:4px;padding-top:9px;border-top:1px dashed var(--line-2)}
   .row.now .k{color:var(--ink);font-weight:600}
-  .row.now .v{color:#fff;font-weight:700}
+  .row.now .v{color:var(--ink);font-weight:700}
 
   /* Method chips */
   .methods{display:flex;gap:8px;margin-bottom:20px}
@@ -111,30 +113,30 @@
      color:var(--ink-2);letter-spacing:.01em;overflow:hidden;cursor:default;
      transition:transform .25s var(--ease-out),border-color .25s,background .25s,box-shadow .25s}
   .m svg{display:block;margin:0 auto 6px;height:16px;width:auto}
-  .m::after{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.08) 50%,transparent 70%);
+  .m::after{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent 30%,rgba(198,93,46,.06) 50%,transparent 70%);
             transform:translateX(-120%);transition:transform .6s var(--ease)}
-  .m:hover{transform:translateY(-3px);border-color:rgba(249,115,22,.5);
-           background:linear-gradient(180deg,rgba(249,115,22,.08),var(--card-2));
-           box-shadow:0 10px 24px -12px rgba(249,115,22,.5)}
+  .m:hover{transform:translateY(-3px);border-color:rgba(198,93,46,.45);
+           background:linear-gradient(180deg,rgba(242,165,102,.16),var(--card-2));
+           box-shadow:0 10px 22px -12px rgba(198,93,46,.4)}
   .m:hover::after{transform:translateX(120%)}
 
   /* Pay button */
   button.pay{position:relative;width:100%;padding:17px;border:none;border-radius:14px;
              background:linear-gradient(180deg,var(--brand-2),var(--brand));color:#fff;
              font:700 15px Inter,sans-serif;cursor:pointer;letter-spacing:.01em;overflow:hidden;
-             box-shadow:0 12px 28px -10px rgba(249,115,22,.7),0 1px 0 rgba(255,255,255,.25) inset;
+             box-shadow:0 12px 26px -10px rgba(198,93,46,.55),0 1px 0 rgba(255,255,255,.35) inset;
              transition:transform .12s var(--ease-out),box-shadow .25s,filter .2s}
   button.pay .lbl{position:relative;z-index:2;display:inline-flex;align-items:center;gap:8px}
   button.pay .shine{position:absolute;top:0;left:0;height:100%;width:60%;z-index:1;
-                    background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);
+                    background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);
                     transform:translateX(-160%) skewX(-18deg);animation:shine 3.4s ease-in-out 1.2s infinite}
   @keyframes shine{0%{transform:translateX(-160%) skewX(-18deg)}45%,100%{transform:translateX(260%) skewX(-18deg)}}
   button.pay:hover:not(:disabled){transform:translateY(-2px);
-        box-shadow:0 18px 40px -12px rgba(249,115,22,.85),0 1px 0 rgba(255,255,255,.3) inset}
+        box-shadow:0 18px 38px -12px rgba(198,93,46,.65),0 1px 0 rgba(255,255,255,.4) inset}
   button.pay:active:not(:disabled){transform:translateY(0) scale(.99)}
-  button.pay:disabled{cursor:progress;filter:saturate(.7) brightness(.95)}
+  button.pay:disabled{cursor:progress;filter:saturate(.7) brightness(.98)}
   button.pay:disabled .shine{animation:none;display:none}
-  .spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;
+  .spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;
            border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
   @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -147,14 +149,14 @@
          font-size:10.5px;color:var(--ink-4);line-height:1.4}
   .trust svg{width:12px;height:12px;flex-shrink:0;color:var(--ink-3)}
 
-  .err{background:linear-gradient(180deg,rgba(220,68,68,.14),rgba(220,68,68,.08));
-       border:1px solid rgba(220,68,68,.35);color:#F6A6A6;border-radius:12px;
+  .err{background:linear-gradient(180deg,rgba(212,64,52,.10),rgba(212,64,52,.05));
+       border:1px solid rgba(212,64,52,.30);color:#B23A2E;border-radius:12px;
        padding:14px;font-size:12.5px;line-height:1.6;margin-bottom:16px}
 
   /* Paid state */
   .paid-ok{display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 0 2px}
   .paid-ok .ring{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;
-                 background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.4);margin-bottom:14px;
+                 background:rgba(31,158,115,.10);border:1px solid rgba(31,158,115,.38);margin-bottom:14px;
                  animation:pop .5s var(--ease-out)}
   .paid-ok svg{width:28px;height:28px;color:var(--ok)}
   .paid-ok .ck{stroke-dasharray:26;stroke-dashoffset:26;animation:draw .6s var(--ease-out) .15s forwards}
@@ -167,7 +169,7 @@
   .skel{height:14px;border-radius:6px;margin-bottom:12px;position:relative;overflow:hidden;
         background:var(--card-2)}
   .skel::after{content:'';position:absolute;inset:0;transform:translateX(-100%);
-    background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);
+    background:linear-gradient(90deg,transparent,rgba(27,42,39,.05),transparent);
     animation:sweep 1.3s ease-in-out infinite}
   @keyframes sweep{to{transform:translateX(100%)}}
 
@@ -225,10 +227,10 @@ var LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wi
 
 /* Payment-method glyphs (inline, monochrome — kept generic). */
 var MG = {
-  visa:'<svg viewBox="0 0 48 16" height="14"><text x="0" y="13" font-family="Inter,sans-serif" font-size="15" font-weight="800" font-style="italic" fill="#8A8598">VISA</text></svg>',
-  mc:'<svg viewBox="0 0 30 20" height="16"><circle cx="11" cy="10" r="8" fill="#8A8598" opacity=".85"/><circle cx="19" cy="10" r="8" fill="#63606E" opacity=".7"/></svg>',
-  benefit:'<svg viewBox="0 0 24 24" height="15" fill="none" stroke="#8A8598" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>',
-  apple:'<svg viewBox="0 0 24 24" height="16" fill="#8A8598"><path d="M16.4 12.9c0-2 1.6-2.9 1.7-3-1-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 .7s-1.6-.7-2.6-.7c-1.3 0-2.6.8-3.2 2-1.4 2.4-.4 5.9 1 7.9.6.9 1.4 2 2.4 2 .9 0 1.3-.6 2.4-.6s1.4.6 2.4.6 1.7-.9 2.3-1.8c.7-1 1-2 1-2-.1 0-2-.7-1.9-3.2zM14.6 6.3c.5-.6.9-1.5.8-2.3-.8 0-1.7.5-2.2 1.1-.5.5-.9 1.4-.8 2.2.9.1 1.8-.4 2.2-1z"/></svg>'
+  visa:'<svg viewBox="0 0 48 16" height="14"><text x="0" y="13" font-family="Inter,sans-serif" font-size="15" font-weight="800" font-style="italic" fill="#6D7C77">VISA</text></svg>',
+  mc:'<svg viewBox="0 0 30 20" height="16"><circle cx="11" cy="10" r="8" fill="#6D7C77" opacity=".85"/><circle cx="19" cy="10" r="8" fill="#9AA8A3" opacity=".7"/></svg>',
+  benefit:'<svg viewBox="0 0 24 24" height="15" fill="none" stroke="#6D7C77" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>',
+  apple:'<svg viewBox="0 0 24 24" height="16" fill="#6D7C77"><path d="M16.4 12.9c0-2 1.6-2.9 1.7-3-1-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 .7s-1.6-.7-2.6-.7c-1.3 0-2.6.8-3.2 2-1.4 2.4-.4 5.9 1 7.9.6.9 1.4 2 2.4 2 .9 0 1.3-.6 2.4-.6s1.4.6 2.4.6 1.7-.9 2.3-1.8c.7-1 1-2 1-2-.1 0-2-.7-1.9-3.2zM14.6 6.3c.5-.6.9-1.5.8-2.3-.8 0-1.7.5-2.2 1.1-.5.5-.9 1.4-.8 2.2.9.1 1.8-.4 2.2-1z"/></svg>'
 };
 
 function bd(n){
