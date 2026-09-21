@@ -9575,9 +9575,10 @@ function AIDesignerPage({ setPage, user }) {
     </div>
   </PageWrap>);
 }
-function SiteFooter({ setPage }) {
+function SiteFooter({ setPage, siteLogo }) {
   const mobile=useMobile();
   const { t, lang } = useI18n();
+  const logo = cms('header.logo', '') || siteLogo;
   const col=(title,items)=>(<div><div style={{ fontSize:12, fontWeight:700, color:'var(--ink)', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:14 }}>{title}</div>{items.map(([label,go])=>(<Link to={pageToPath(go)} key={label} style={{ display:'block', color:'var(--ink-soft)', fontSize:14, padding:'6px 0', textAlign:'left', textDecoration:'none' }}>{trLabel(label, lang)}</Link>))}</div>);
   // Only verified profiles are linked. Instagram handle confirmed as @theclosets
   // (business phone 17555095 matches this site). Facebook/Pinterest/YouTube were
@@ -9585,7 +9586,7 @@ function SiteFooter({ setPage }) {
   const social=[
     ['Instagram','https://www.instagram.com/theclosets/','M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm5-2.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2z'],
   ];
-  return (<footer style={{ borderTop:'1px solid var(--line)', background:'var(--sand)', padding: mobile?'48px 18px 28px':'72px 40px 36px' }}>
+  return (<footer style={{ borderTop:'1px solid var(--line)', background:'var(--sand)', padding: mobile?'48px 18px 132px':'72px 40px 116px' }}>
     <div style={{ maxWidth:1280, margin:'0 auto' }}>
       <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'2fr 1fr 1fr 1fr 1fr', gap: mobile?28:48 }}>
         <div style={{ gridColumn: mobile?'1 / -1':'auto' }}>
@@ -9632,22 +9633,35 @@ function SiteFooter({ setPage }) {
         ))}
       </div>
 
-      <div style={{ borderTop:'1px solid var(--line)', marginTop:32, paddingTop:22, display:'flex', flexDirection: mobile?'column':'row', justifyContent:'space-between', gap:8, fontSize:13, color:'var(--muted)' }}>
-        <span>{cms('footer.copyright', '© 2026 The Closets Co. W.L.L. — Manama, Bahrain')} · <span>{t('devBy')} <a href="https://www.365neo.com" target="_blank" rel="noopener" style={{ color:'var(--clay)', textDecoration:'none', fontWeight:600 }}>365Neo Digital Services</a></span></span>
-        <span style={{ display:'flex', alignItems:'center', gap:14, flexWrap:'wrap' }}>
+      {/* Slim glass bar — Option C · translucent one-line footer, clears the floating nav + AI button */}
+      <div style={{
+        marginTop:40,
+        display:'flex', alignItems:'center', justifyContent:'space-between',
+        flexDirection: mobile?'column':'row', gap: mobile?14:20,
+        background:'rgba(255,255,255,.72)',
+        backdropFilter:'blur(20px) saturate(180%)', WebkitBackdropFilter:'blur(20px) saturate(180%)',
+        border:'1px solid var(--line)', borderRadius:18,
+        padding: mobile?'16px 18px':'14px 22px',
+        boxShadow:'0 8px 30px rgba(0,0,0,.06)'
+      }}>
+        {/* Left — Closets logo + copyright + 365Neo credit */}
+        <div style={{ display:'flex', alignItems:'center', gap:12, flexWrap:'wrap', justifyContent: mobile?'center':'flex-start' }}>
+          {logo
+            ? <img src={logo} alt="The Closets" style={{ height:26, width:'auto', maxWidth:110, objectFit:'contain' }} />
+            : <span className="display" style={{ fontSize:16, color:'var(--ink)' }}>{cms('footer.brand', 'The Closets Co.')}</span>}
+          <span style={{ fontSize:12.5, color:'var(--muted)', lineHeight:1.5, textAlign: mobile?'center':'left' }}>
+            {cms('footer.copyright', '© 2026 The Closets Co. W.L.L. — Manama, Bahrain')}
+            <span style={{ margin:'0 8px', opacity:.45 }}>·</span>
+            {t('devBy')} <a href="https://www.365neo.com" target="_blank" rel="noopener" style={{ color:'var(--clay)', textDecoration:'none', fontWeight:600 }}>365Neo Digital Services</a>
+          </span>
+        </div>
+        {/* Right — contact + legal */}
+        <div style={{ display:'flex', alignItems:'center', gap:14, flexWrap:'wrap', justifyContent: mobile?'center':'flex-end', fontSize:12.5 }}>
+          <a href="tel:+97317555095" style={{ color:'var(--ink-soft)', textDecoration:'none' }}>+973 17555095</a>
+          <span style={{ opacity:.35 }}>·</span>
           <a href="https://closets-hub.vercel.app/privacy.html" target="_blank" rel="noopener" style={{ color:'var(--muted)', textDecoration:'none' }}>{t('legalPrivacy')}</a>
           <a href="https://closets-hub.vercel.app/terms.html" target="_blank" rel="noopener" style={{ color:'var(--muted)', textDecoration:'none' }}>{t('legalTerms')}</a>
-          <span style={{ display:'inline-flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-            <a href="tel:+97317555095" style={{ color:'var(--muted)', textDecoration:'none' }}>+973 17555095</a>
-            <span>·</span>
-            <a href="mailto:info@the-closets.com" style={{ color:'var(--muted)', textDecoration:'none' }}>info@the-closets.com</a>
-          </span>
-        </span>
-      </div>
-
-      {/* Developed by 365Neo */}
-      <div style={{ marginTop:14, textAlign:'center', fontSize:13, color:'var(--muted)' }}>
-        {t('footDevBy')} <a href="https://www.365neo.com" target="_blank" rel="noopener" style={{ color:'var(--clay-deep)', fontWeight:600, textDecoration:'none' }}>365Neo Digital Services</a>
+        </div>
       </div>
     </div>
   </footer>);
@@ -16819,7 +16833,7 @@ function AppInner() {
       {/* 🧩 Design your own — logged-out visitors get the sign-in gate, never the planner */}
       {plannerLocked && <PlannerLoginGate openAuth={openAuth} setPage={setPage} lang={lang} />}
       {page.startsWith('cat:') && page!=='cat:Doors' && <CategoryPage category={page.slice(4)} products={products} setPage={setPage} addToCart={addToCart} />}
-      {!['portal','checkout','planner'].includes(page) && <SiteFooter setPage={setPage} />}
+      {!['portal','checkout','planner'].includes(page) && <SiteFooter setPage={setPage} siteLogo={siteLogo} />}
       {/* Inert marker (hidden, aria-hidden, not rendered visually) — keeps the CRA smoke test green without affecting UI/SEO/a11y */}
       <a href="https://reactjs.org" hidden aria-hidden="true" tabIndex={-1} style={{ display:'none' }}>Learn React</a>
       {!['kitchen-planner','tv-planner','door-planner','wardrobe-planner','office-planner','planner'].includes(page) && <ChatWidget setPage={setPage} />}
