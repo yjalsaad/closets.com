@@ -9682,19 +9682,42 @@ function PortfolioPage({ setPage }) {
   // Category VALUE stays English (used in route 'cat:'+value); label is translated for display.
   const cats=[['Kitchens',t('swPortCatKitchens')],['Wardrobes',t('swPortCatWardrobes')],['Walk-In Closets',t('swPortCatWalkin')],['TV Units',t('swPortCatTv')],['Doors',t('swPortCatDoors')],['Storage Solutions',t('swPortCatStorage')],['Office Furniture',t('swPortCatOffice')]];
   return (<PageWrap title={cms('projects.hero.title','Our projects')} sub={cms('projects.hero.subtitle','Real spaces we have designed, manufactured and installed across Bahrain.')}>
-    <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:20, marginBottom:48 }}>
-      {rows.map(p=>(<div key={p.id} className="lift" style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
-        {p.before_url && p.after_url ? <BeforeAfter before={p.before_url} after={p.after_url} />
-          : <div style={{ height:200, background:`url('${p.cover_url}') center/cover, #eee` }} />}
+    {(()=>{
+      // Branded cover when a project has no photo yet — initials + scope chip.
+      const cover = (p)=>{
+        if(p.before_url && p.after_url) return <BeforeAfter before={p.before_url} after={p.after_url} />;
+        if(p.cover_url) return <div style={{ height:200, background:`url('${p.cover_url}') center/cover, #eee` }} />;
+        const initials=(p.name||'?').replace(/[^A-Za-z0-9 ]/g,'').split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'•';
+        return (<div style={{ height:200, position:'relative', background:'linear-gradient(135deg,#FFF1E8 0%,#F5F5F7 60%,#EAF6F4 100%)', display:'grid', placeItems:'center' }}>
+          <div style={{ fontSize:46, fontWeight:800, letterSpacing:'-.03em', color:'var(--clay)', opacity:.32 }}>{initials}</div>
+          <div style={{ position:'absolute', bottom:10, left:10, background:'rgba(255,255,255,.85)', borderRadius:980, padding:'4px 11px', fontSize:11, fontWeight:700, color:'var(--shop-ink, #1d1d1f)' }}>{p.category||'Project'}</div>
+        </div>);
+      };
+      const card = (p)=>(<div key={p.id} className="lift" style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+        {cover(p)}
         <div style={{ padding:20 }}>
           <div style={{ fontSize:12, color:'var(--clay)', fontWeight:600, textTransform:'uppercase', letterSpacing:'.05em' }}>{[p.category,p.client_type].filter(Boolean).join(' · ')}</div>
           <div style={{ fontSize:17, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', marginTop:6 }}>{p.name}</div>
           {p.location && <div style={{ fontSize:13, color:'#aaa', marginTop:4 }}>📍 {p.location}</div>}
-          <div style={{ fontSize:14, color:'var(--shop-muted, #86868b)', marginTop:8, lineHeight:1.6 }}>{p.description}</div>
+          {p.description && <div style={{ fontSize:14, color:'var(--shop-muted, #86868b)', marginTop:8, lineHeight:1.6 }}>{p.description}</div>}
         </div>
-      </div>))}
-      {rows.length===0 && <div style={{ color:'#aaa' }}>{t('swPortGallerySoon')}</div>}
-    </div>
+      </div>);
+      // Group by client (client_type), preserving sort order; ungrouped fall back to a flat grid.
+      const groups=[]; const idx={};
+      rows.forEach(p=>{ const c=(p.client_type||'Other'); if(idx[c]==null){ idx[c]=groups.length; groups.push([c,[]]); } groups[idx[c]][1].push(p); });
+      if(rows.length===0) return <div style={{ color:'#aaa', marginBottom:48 }}>{t('swPortGallerySoon')}</div>;
+      return (<div style={{ marginBottom:48 }}>
+        {groups.map(([client,items])=>(<div key={client} style={{ marginBottom:36 }}>
+          <div style={{ display:'flex', alignItems:'baseline', gap:10, margin:'0 0 16px', paddingBottom:10, borderBottom:'1px solid #eee' }}>
+            <h3 style={{ margin:0, fontSize:19, fontWeight:700, letterSpacing:'-.02em', color:'var(--shop-ink, #1d1d1f)' }}>{client}</h3>
+            <span style={{ fontSize:13, color:'var(--shop-muted, #86868b)' }}>{items.length} {items.length===1?'project':'projects'}</span>
+          </div>
+          <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:20 }}>
+            {items.map(card)}
+          </div>
+        </div>))}
+      </div>);
+    })()}
     <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:14 }}>{t('swPortExploreByRoom')}</div>
     <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:12 }}>
       {cats.map(([val,label])=>(<button type="button" key={val} className="lift" onClick={()=>setPage('cat:'+val)} style={{ background:'var(--shop-fill, #f5f5f7)', border:'none', borderRadius:14, padding:'18px 16px', textAlign:'left', cursor:'pointer', fontSize:14, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{lang==='ar' ? <>← {label}</> : <>{label} →</>}</button>))}
