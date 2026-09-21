@@ -9682,6 +9682,14 @@ function PortfolioPage({ setPage }) {
   // Category VALUE stays English (used in route 'cat:'+value); label is translated for display.
   const cats=[['Kitchens',t('swPortCatKitchens')],['Wardrobes',t('swPortCatWardrobes')],['Walk-In Closets',t('swPortCatWalkin')],['TV Units',t('swPortCatTv')],['Doors',t('swPortCatDoors')],['Storage Solutions',t('swPortCatStorage')],['Office Furniture',t('swPortCatOffice')]];
   return (<PageWrap title={cms('projects.hero.title','Our projects')} sub={cms('projects.hero.subtitle','Real spaces we have designed, manufactured and installed across Bahrain.')}>
+    <div className="reveal" style={{ display:'flex', gap:14, flexWrap:'wrap', marginBottom:40 }}>
+      {[['20','Years of craft'],[(rows.length||0)+'+','Projects delivered'],['In-house','Own workshop'],['Bahrain','Design · make · install']].map(([n,l])=>(
+        <div key={l} style={{ flex:'1 1 160px', minWidth:150, background:'var(--shop-fill, #f5f5f7)', borderRadius:16, padding:'18px 20px' }}>
+          <div style={{ fontSize:30, fontWeight:800, letterSpacing:'-.03em', color:'var(--shop-ink, #1d1d1f)', lineHeight:1 }}>{n}</div>
+          <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', marginTop:6, fontWeight:600 }}>{l}</div>
+        </div>
+      ))}
+    </div>
     {(()=>{
       // Branded cover when a project has no photo yet — initials + scope chip.
       const cover = (p)=>{
