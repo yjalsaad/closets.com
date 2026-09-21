@@ -2638,6 +2638,29 @@ const CSS = `
     }
     .lift:hover { transform:none; }
   }
+  /* ─────────────  Apple-style site-wide polish  ───────────── */
+  html { scroll-behavior:smooth; }
+  body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; text-rendering:optimizeLegibility; }
+  ::selection { background:color-mix(in srgb, var(--clay,#C2410C) 22%, transparent); }
+  h1,h2 { letter-spacing:-.035em; }
+  h3 { letter-spacing:-.025em; }
+  /* Deeper, softer, springier lift on every card */
+  .lift { transition:transform .4s cubic-bezier(.22,1,.36,1), box-shadow .4s cubic-bezier(.22,1,.36,1); will-change:transform; }
+  .lift:hover { transform:translateY(-6px); box-shadow:0 30px 62px -26px rgba(20,16,12,.28); }
+  .zoomwrap img { transition:transform 1s cubic-bezier(.22,1,.36,1); }
+  .zoomwrap:hover img { transform:scale(1.05); }
+  /* Universal tactile press + smooth state transitions on buttons/links */
+  button, a[class*="btn"], [role="button"] { transition:transform .16s cubic-bezier(.22,1,.36,1), box-shadow .2s, filter .2s, background .2s, color .2s, border-color .2s; }
+  button:active, a[class*="btn"]:active, [role="button"]:active { transform:scale(.97); }
+  /* Brand-coloured focus ring for accessibility */
+  a:focus-visible, button:focus-visible, [role="button"]:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline:none; box-shadow:0 0 0 3px color-mix(in srgb, var(--clay,#C2410C) 34%, transparent);
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    .lift{ transition:none; } .lift:hover{ transform:none; box-shadow:0 18px 40px rgba(20,16,12,.12); }
+    button:active, a[class*="btn"]:active, [role="button"]:active { transform:none; }
+  }
 `;
 
 function useReveal() {
