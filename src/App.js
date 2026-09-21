@@ -3499,14 +3499,22 @@ function Hero({ setPage, banners }) {
   const { t } = useI18n();
   const mobile = useMobile();
   const [bannerIdx, setBannerIdx] = useState(0);
+  const [slideIdx, setSlideIdx] = useState(0);
   const heroRef = useRef(null);
   useEffect(() => {
     if (!banners || banners.length < 2) return;
     const id = setInterval(() => setBannerIdx(i => (i + 1) % banners.length), 5000);
     return () => clearInterval(id);
   }, [banners]);
+  // Cross-fading multi-image hero — the site's own curated rooms.
+  const HERO_SLIDES = [cms('home.hero.image', HOME_IMG.hero), HOME_IMG.walkin, HOME_IMG.kitchen, HOME_IMG.living].filter(Boolean);
+  useEffect(() => {
+    if (HERO_SLIDES.length < 2) return;
+    const id = setInterval(() => setSlideIdx(i => (i + 1) % HERO_SLIDES.length), 6000);
+    return () => clearInterval(id);
+  }, [HERO_SLIDES.length]);
   const banner = banners?.[bannerIdx];
-  const onHeroMove = (e) => { const el = heroRef.current; if (!el || mobile) return; const r = el.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5; const img = el.querySelector('.hero-img'); if (img) img.style.transform = `scale(1.14) translate(${x * -16}px, ${y * -16}px)`; };
+  const onHeroMove = (e) => { const el = heroRef.current; if (!el || mobile) return; const r = el.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5; el.querySelectorAll('.hero-img').forEach(img => { img.style.transform = `scale(1.14) translate(${x * -16}px, ${y * -16}px)`; }); };
   const HWORDS = cms('home.hero.title', 'Made to fit your life.').split(/\s+/);
 
   return (
@@ -3539,7 +3547,9 @@ function Hero({ setPage, banners }) {
 
       {/* ── Cinematic hero ── */}
       <section ref={heroRef} onMouseMove={onHeroMove} style={{ position: 'relative', minHeight: '100svh', display: 'flex', alignItems: 'flex-end', overflow: 'hidden', background: '#15110e' }}>
-        <Photo src={cms('home.hero.image', HOME_IMG.hero)} alt={t('swHeroAlt')} imgClass="hero-img kenburns" style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
+        {HERO_SLIDES.map((src, i) => (
+          <Photo key={i} src={src} alt={t('swHeroAlt')} imgClass="hero-img kenburns" style={{ position: 'absolute', inset: 0, zIndex: 0, opacity: i === slideIdx ? 1 : 0, transition: 'opacity 1.4s ease' }} />
+        ))}
         <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(180deg, rgba(20,16,12,.34) 0%, rgba(20,16,12,.12) 38%, rgba(20,16,12,.82) 100%)' }} />
         <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', mixBlendMode: 'overlay', opacity: .07, backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
         <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: 1280, margin: '0 auto', padding: mobile ? '120px 24px 72px' : '0 48px 88px' }}>
@@ -3555,6 +3565,14 @@ function Hero({ setPage, banners }) {
             <button type="button" onClick={() => setPage('products')} style={{ background: 'rgba(255,255,255,.1)', color: '#fff', border: '1px solid rgba(255,255,255,.45)', borderRadius: 14, padding: '15px 28px', fontSize: 16, fontWeight: 500, cursor: 'pointer', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', minHeight: 50 }}>{cms('home.hero.cta2', 'View collection')}</button>
           </div>
         </div>
+        {!mobile && HERO_SLIDES.length > 1 && (
+          <div style={{ position: 'absolute', bottom: 34, right: 48, zIndex: 2, display: 'flex', gap: 10 }}>
+            {HERO_SLIDES.map((src, i) => (
+              <button key={i} type="button" onClick={() => setSlideIdx(i)} aria-label={'Show hero image ' + (i + 1)}
+                style={{ width: i === slideIdx ? 60 : 46, height: 46, borderRadius: 12, border: i === slideIdx ? '2px solid #fff' : '2px solid rgba(255,255,255,.4)', background: `url('${src}') center/cover, #2a221c`, cursor: 'pointer', padding: 0, transition: 'width .4s cubic-bezier(.22,1,.36,1), border-color .3s', boxShadow: '0 10px 24px -10px rgba(0,0,0,.6)' }} />
+            ))}
+          </div>
+        )}
         {!mobile && <div className="scroll-cue" style={{ position: 'absolute', bottom: 30, left: '50%', transform: 'translateX(-50%)', zIndex: 2 }} />}
       </section>
     </>
