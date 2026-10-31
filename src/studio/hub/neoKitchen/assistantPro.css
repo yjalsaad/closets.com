@@ -1,0 +1,75 @@
+/* =============================================================================
+ * Neo Kitchen Designer UX-12 - the selected-cabinet editor inside Bonsai Assistant (UnitAssistCard.jsx).
+ * Everything is scoped under .nk. The ONLY literal colour is the owner's reference palette (blue front-editor handles, the picked-section
+ * tint, the drop marker): scoped --nk-* custom properties below, with a dark set. All other colours / spacing / radii are DESIGN.md tokens.
+ * ===========================================================================*/
+.nk {
+  --nk-handle: #2F6BFF; --nk-handle-edge: #1F4FD1; --nk-sec-on: rgba(47, 107, 255, .14); --nk-sec-ring: #2F6BFF; --nk-drop: #2F6BFF;
+}
+[data-theme="dark"] .nk, .nk[data-theme="dark"] {
+  --nk-handle: #6C93FF; --nk-handle-edge: #8AA9FF; --nk-sec-on: rgba(108, 147, 255, .2); --nk-sec-ring: #6C93FF; --nk-drop: #8AA9FF;
+}
+
+/* unit type dropdown in the card header (looks like the reference "Normal unit" pill, but it is a real <select>) */
+.nk .nk-ac-type { position: relative; display: inline-flex; align-items: center; }
+.nk .nk-ac-type > svg { position: absolute; inset-inline-start: var(--space-3); pointer-events: none; color: var(--text-2); }
+.nk .nk-ac-type .nk-select { padding-inline-start: calc(var(--space-3) + 20px); min-height: 36px; font-weight: 600; }
+
+/* division preview: blue handles, picked section, total-width dimension */
+.nk .nk-ac-prev { flex-basis: 112px; width: 112px; max-width: 38%; touch-action: manipulation; }
+.nk .nk-prev-sec { cursor: pointer; outline: none; }
+.nk .nk-prev-sec rect { transition: fill .12s; }
+.nk .nk-prev-sec:hover rect { filter: brightness(.97); }
+.nk .nk-prev-sec:focus-visible rect, .nk .nk-prev-sec.nk-prev-sel rect { stroke: var(--nk-sec-ring); stroke-width: 2; }
+.nk .nk-prev-sec.nk-prev-sel rect { fill: var(--nk-sec-on); }
+.nk .nk-handle { fill: var(--nk-handle); stroke: var(--nk-handle-edge); stroke-width: .5; }
+.nk .nk-prev-div { cursor: ns-resize; touch-action: none; outline: none; }
+.nk .nk-prev-hit { fill: transparent; }
+.nk .nk-prev-div:hover .nk-handle, .nk .nk-prev-div:focus-visible .nk-handle { stroke-width: 2; }
+.nk .nk-ac-prev-w { text-decoration: underline; }
+.nk .nk-ac-prev-dim { stroke: var(--nk-handle); }
+
+/* section cards */
+.nk .nk-ac-sec { cursor: pointer; border-inline-start: 3px solid transparent; position: relative; }
+.nk .nk-ac-sec-on { border-color: var(--nk-sec-ring); border-inline-start-color: var(--nk-sec-ring); background: var(--nk-sec-on); }
+.nk .nk-ac-sec-drag { opacity: .55; }
+.nk .nk-drop-before::before, .nk .nk-drop-after::after { content: ""; position: absolute; inset-inline: 0; height: 3px; border-radius: 2px; background: var(--nk-drop); }
+.nk .nk-drop-before::before { inset-block-start: -5px; }
+.nk .nk-drop-after::after { inset-block-end: -5px; }
+.nk .nk-ac-grip { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 28px; min-height: 36px; padding: 0; border: 0; background: transparent; color: var(--text-3); border-radius: var(--radius-md); cursor: grab; touch-action: none; }
+.nk .nk-ac-grip:hover:not(:disabled), .nk .nk-ac-grip:focus-visible { color: var(--text-1); background: var(--bg-3); }
+.nk .nk-ac-grip:active:not(:disabled) { cursor: grabbing; }
+.nk .nk-ac-grip:disabled { opacity: .35; cursor: default; }
+.nk .nk-ac-auto { border: 1px solid var(--border); background: var(--bg-2); color: var(--text-2); border-radius: var(--radius-md); padding: 0 var(--space-2); min-height: 28px; font-size: 11.5px; font-weight: 600; }
+.nk .nk-ac-auto:hover { color: var(--nk-ink, var(--brand)); border-color: var(--brand); }
+.nk .nk-ac-hint { margin: 0; }
+
+/* validation */
+.nk .nk-ac-msg { list-style: none; margin: 0; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); font-size: 12px; display: flex; flex-direction: column; gap: var(--space-1); }
+.nk .nk-ac-err { color: var(--danger); border: 1px solid var(--danger); background: transparent; }
+.nk .nk-ac-warn { color: var(--warning); border: 1px solid var(--warning); background: transparent; }
+
+/* RTL: the picture and every number / unit keep reading left-to-right */
+.nk-rtl .nk-ac-prev, .nk-rtl .nk-ac-h, .nk-rtl .nk-ac-wg { direction: ltr; }
+
+@media (max-width: 1023px), (pointer: coarse) {
+  .nk .nk-ac-grip { width: 40px; min-height: 44px; }
+  .nk .nk-ac-type .nk-select { min-height: 44px; }
+  .nk .nk-ac-auto { min-height: 36px; }
+}
+/* narrow card (phone sheet, floating popover, the 1280px dock): the picture sits above the section list instead of beside it */
+.nk .nk-ac { container-type: inline-size; }
+@container (max-width: 400px) {
+  .nk-ac-div { flex-direction: column; align-items: center; }
+  .nk-ac-prev { flex: 0 0 auto; width: 150px; max-width: 100%; }
+  .nk-ac-secs { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .nk .nk-prev-sec rect { transition: none; } }
+
+/* compact section cards in the narrow dock: the first row never wraps (grip, number, type, delete) */
+.nk .nk-ac-sec-r:first-child { flex-wrap: nowrap; }
+.nk .nk-ac-sec-r:first-child .nk-select { flex: 1 1 0; min-width: 0; }
+.nk .nk-ac-sec .nk-step .nk-ac-sb, .nk .nk-ac-leaves .nk-ac-sb { flex: 0 0 32px; min-width: 32px; }
+.nk .nk-ac-sec-sub { gap: var(--space-1); }
+.nk .nk-ac-sec-sub .nk-ac-h { white-space: nowrap; }
+@media (max-width: 1023px), (pointer: coarse) { .nk .nk-ac-sec .nk-step .nk-ac-sb, .nk .nk-ac-leaves .nk-ac-sb { flex-basis: 40px; min-width: 40px; } }

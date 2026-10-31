@@ -1,0 +1,47 @@
+/* Neo Kitchen Designer - real hinge hardware [NEO-HINGES-UX35]: 3D material colours (scoped --nk-hw-* constants, light + dark), the elevation drilling marks
+ * and the Drilling plan card. This block and the 3D material colours are the only places that hold literal colours; every rule below uses the design tokens. */
+.nk {
+  --nk-hw-metal: #98a0a9; --nk-hw-metal-dk: #5f666e; --nk-hw-screw: #3a3f46; /* clip-on hinge: cup boss, arm links, plate, screw heads */
+  --nk-hw-bore: #1d1610; --nk-hw-bevel: #8a6f4d;                               /* the 35 mm bore: dark floor + lighter bevel ring on the door's back face */
+}
+[data-theme="dark"] .nk, .nk[data-theme="dark"] {
+  --nk-hw-metal: #b4bcc6; --nk-hw-metal-dk: #747c86; --nk-hw-screw: #4d535c;
+  --nk-hw-bore: #0c0907; --nk-hw-bevel: #a08460;
+}
+
+/* ---- elevation: cups + plate holes on the Hardware layer, swing symbol of the selected door ---- */
+.nk-elev .nk-cup-m { fill: none; stroke: var(--info); stroke-width: 1.6; stroke-dasharray: 5 3; opacity: .85; pointer-events: none; }
+.nk-elev .nk-cup-m-c { fill: var(--info); stroke: none; pointer-events: none; }
+.nk-elev .nk-plate-m { fill: var(--bg-2); stroke: var(--info); stroke-width: 1.2; pointer-events: none; }
+.nk-elev .nk-swing-sel { fill: none; stroke: var(--brand); stroke-width: 2.4; stroke-dasharray: 12 8; opacity: .95; pointer-events: none; }
+
+/* ---- Drilling plan ---- */
+.nk .nk-dp { flex: 1 0 100%; order: 9; display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius-md); min-width: 0; }
+.nk .nk-dp-h { display: flex; align-items: baseline; gap: var(--space-3); flex-wrap: wrap; }
+.nk .nk-dp-h b { color: var(--text-1); }
+.nk .nk-dp-h small { color: var(--text-2); flex: 1 1 auto; font-family: var(--nk-mono); }
+.nk .nk-dp-body { display: flex; gap: var(--space-4); align-items: flex-start; flex-wrap: wrap; min-width: 0; }
+.nk .nk-dp-svg { flex: 1 1 280px; min-width: 0; max-width: 520px; width: 100%; height: auto; max-height: 150px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.nk .nk-dp-part { fill: var(--bg-3); stroke: var(--text-2); stroke-width: 1.5; }
+.nk .nk-dp-op { cursor: pointer; outline: none; }
+.nk .nk-dp-op circle { fill: none; stroke: var(--info); stroke-width: 1.6; }
+.nk .nk-dp-op .nk-dp-hit { fill: transparent; stroke: none; }
+.nk .nk-dp-op.nk-dp-plate circle, .nk .nk-dp-op.nk-dp-pin circle { stroke: var(--success); }
+.nk .nk-dp-op.nk-dp-handle circle { stroke: var(--warning); }
+.nk .nk-dp-op:hover circle:first-child, .nk .nk-dp-op:focus-visible circle:first-child { stroke-width: 3; }
+.nk .nk-dp-op.nk-dp-on circle:first-child { stroke: var(--brand); stroke-width: 3.2; fill: var(--brand-muted); }
+.nk .nk-dp-n { fill: var(--text-1); font-size: 9px; font-weight: 800; font-family: var(--nk-mono); pointer-events: none; }
+.nk .nk-dp-side { flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.nk .nk-dp-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; max-height: 130px; overflow: auto; }
+.nk .nk-dp-row { display: flex; align-items: center; gap: var(--space-2); width: 100%; padding: 4px var(--space-2); background: transparent; border: 1px solid transparent; border-radius: var(--radius-sm); color: var(--text-1); font: inherit; font-size: var(--text-sm, 13px); text-align: start; cursor: pointer; min-height: 28px; }
+.nk .nk-dp-row:hover { background: var(--bg-2); }
+.nk .nk-dp-row:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.nk .nk-dp-row.nk-dp-on { background: var(--brand-muted); border-color: var(--brand); }
+.nk .nk-dp-dot { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: var(--radius-pill); border: 2px solid var(--info); color: var(--text-1); font-size: 10px; font-weight: 800; flex: 0 0 auto; }
+.nk .nk-dp-dot.nk-dp-plate, .nk .nk-dp-dot.nk-dp-pin { border-color: var(--success); }
+.nk .nk-dp-dot.nk-dp-handle { border-color: var(--warning); }
+.nk .nk-dp-t { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nk .nk-dp-v { color: var(--text-2); font-family: var(--nk-mono); font-size: 12px; flex: 0 0 auto; }
+.nk .nk-dp-info { margin: 0; padding: var(--space-2); background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-1); font-size: var(--text-sm, 13px); min-height: 20px; }
+.nk .nk-dp-note { margin: 0; color: var(--text-2); font-size: 12px; }
+@media (max-width: 640px) { .nk .nk-dp-svg { max-height: 150px; } .nk .nk-dp-list { max-height: 120px; } }

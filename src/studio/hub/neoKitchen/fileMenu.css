@@ -1,0 +1,38 @@
+/* Neo Kitchen Designer UX-18 - the File menu (FileMenu.jsx): white floating panel, layout label row, grouped items with thin dividers,
+ * and the "Discard the current kitchen?" confirmation. Everything is scoped under .nk. The owner's blue is defined ONCE below as
+ * scoped --nk-fm-* custom properties (dark set under [data-theme="dark"]); every rule uses these or a DESIGN.md token. */
+.nk {
+  --nk-fm-blue: #356DFF;         /* layout dot + Reset camera icon */
+  --nk-fm-ic: #5B6475;           /* Load / Save / New / Default icons */
+  --nk-fm-scrim: rgba(15, 20, 35, .42);
+}
+[data-theme="dark"] .nk, .nk[data-theme="dark"] {
+  --nk-fm-blue: #6C93FF;
+  --nk-fm-ic: #A9B1C2;
+  --nk-fm-scrim: rgba(0, 0, 0, .62);
+}
+
+.nk .nk-fm-menu { min-width: 248px; padding: var(--space-2) 0; gap: 0; border-radius: var(--radius-lg); background: var(--bg-2); }
+.nk .nk-fm-layout { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); }
+.nk .nk-fm-dot { flex: none; width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--nk-fm-blue); }
+.nk .nk-fm-lt { font-family: var(--nk-mono); font-size: var(--text-xs, 11px); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text-2); }
+.nk .nk-fm-sep { height: 1px; background: var(--border); margin-block: var(--space-2); }
+.nk .nk-fm-mi { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: 40px; padding: var(--space-2) var(--space-4); border-radius: 0; font-size: var(--text-body, 14px); font-weight: 500; color: var(--text-1); }
+.nk .nk-fm-mi:focus-visible { outline-offset: -2px; background: var(--brand-muted); }
+.nk .nk-fm-ic { flex: none; display: inline-flex; width: 20px; justify-content: center; color: var(--nk-fm-ic); }
+.nk .nk-fm-ic-blue { color: var(--nk-fm-blue); }
+.nk .nk-fm-mi:hover:not(:disabled) .nk-fm-ic, .nk .nk-fm-mi:focus-visible .nk-fm-ic { color: inherit; }
+
+/* confirmation */
+.nk .nk-fm-scrim { position: fixed; inset: 0; z-index: 400; display: flex; align-items: center; justify-content: center; padding: var(--space-4); background: var(--nk-fm-scrim); }
+.nk .nk-fm-dlg { width: min(100%, 380px); background: var(--bg-2); color: var(--text-1); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--nk-shadow-2); padding: var(--space-5); }
+.nk .nk-fm-dt { margin: 0 0 var(--space-2); font-size: var(--text-h2, 18px); font-weight: 700; }
+.nk .nk-fm-dd { margin: 0 0 var(--space-4); color: var(--text-2); font-size: var(--text-small, 13px); }
+.nk .nk-fm-da { display: flex; gap: var(--space-2); justify-content: flex-end; flex-wrap: wrap; }
+@media (max-width: 640px) {
+  /* phone: the menu hangs under the whole header (full width minus the gutter) in LTR and RTL, so it never leaves the screen */
+  .nk .nk-head { position: relative; }
+  .nk .nk-fm { position: static; }
+  .nk .nk-fm-menu { inset-inline: var(--space-4); inset-block-start: calc(100% - var(--space-1)); min-width: 0; width: auto; }
+  .nk .nk-fm-mi, .nk .nk-fm-da .nk-btn { min-height: 44px; }
+}

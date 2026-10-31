@@ -1,0 +1,85 @@
+/* =============================================================================
+ * Neo Kitchen Designer - UX-21 "3D workspace": Hold camera, bigger workspace (animated panel collapse, Focus mode, Tools strip,
+ * compact chrome) and the Open / Close control bar (Speed, Doors / Drawers / Flip-ups, Open All / Close All, scope).
+ * Scoped under .nk. The only literal colours are the --nk-oc-* / --nk-ws-* custom properties in the two blocks below (light +
+ * dark sets); every rule after them uses DESIGN.md tokens. Documented in DESIGN.md (Decisions Log - NEO-KITCHEN-UX21).
+ * ===========================================================================*/
+.nk {
+  --nk-oc-bg: #FFFFFF; --nk-oc-line: #E1E5EC; --nk-oc-shadow: 0 2px 12px rgba(24, 32, 51, .10);
+  --nk-ws-hold: #356DFF; --nk-ws-handle-bg: #FFFFFF;
+  /* compact chrome: the floating toolbar row is 8px shorter than before, so the stage gets that height back */
+  --nk-tbh: 56px;
+}
+[data-theme="dark"] .nk, .nk[data-theme="dark"] {
+  --nk-oc-bg: #151A24; --nk-oc-line: #2A3243; --nk-oc-shadow: 0 2px 14px rgba(0, 0, 0, .5);
+  --nk-ws-hold: #6C93FF; --nk-ws-handle-bg: #151A24;
+}
+
+/* chrome sizes, the panel / dock layout and their collapse behaviour now live in workspace.css (UX-23) */
+
+/* ---------- Focus / Full workspace: header + banner fold away, panels are hidden by the component, the stage takes everything ---------- */
+.nk[data-focus="1"] .nk-head { max-height: 0; min-height: 0; padding-block: 0; opacity: 0; overflow: hidden; border-color: transparent; visibility: hidden; pointer-events: none; transition: max-height 200ms ease, padding 200ms ease, opacity 160ms ease, border-color 200ms ease, visibility 0s linear 200ms; }
+.nk[data-focus="1"] .nk-banner { display: none; }
+.nk .nk-focus-exit { position: absolute; z-index: 26; inset-block-start: var(--space-2); inset-inline-start: var(--space-2); display: inline-flex; align-items: center; gap: var(--space-1); min-height: 34px; padding: 0 var(--space-3); background: var(--bg-2); color: var(--nk-ink, var(--brand)); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--nk-shadow-1); font-weight: 700; font-size: 12.5px; }
+.nk-focus-exit:hover { background: var(--brand-muted); }
+.nk-focus-exit:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.nk-focus-exit[data-tip]::after { inset-inline-start: 0; left: auto; transform: translateY(-2px); }
+
+/* ---------- Tools strip: collapses the whole viewport tool column ---------- */
+.nk .nk-vtools { align-items: stretch; gap: 0; }
+.nk .nk-vtools[data-open="0"] { padding: 2px; }
+.nk-vt-strip { display: inline-flex; align-items: center; justify-content: center; gap: 2px; min-height: 24px; padding: 0 var(--space-1); border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-2); font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.nk-vt-strip:hover { background: var(--bg-3); color: var(--text-1); }
+.nk-vt-strip:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.nk .nk-vtools .nk-vt-strip[data-tip]::after { text-transform: none; letter-spacing: 0; font-weight: 500; inset-block-start: 50%; left: auto; inset-inline-end: calc(100% + 8px); transform: translateY(-50%); }
+.nk-vt-body { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-block-start: 2px; animation: nk-vt-in 160ms ease; }
+@keyframes nk-vt-in { from { opacity: 0; transform: translateY(-4px); } }
+.nk-vt-sep { align-self: stretch; height: 1px; margin: var(--space-1) 4px; background: var(--border); }
+.nk-rtl .nk-ws-ic svg { transform: scaleX(-1); }
+
+/* ---------- consistent popover header + close ---------- */
+.nk-pop-h { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding-inline-start: var(--space-1); }
+.nk-pop-h b { font-size: 13px; }
+.nk-pop-x { flex: 0 0 auto; border-color: transparent; background: transparent; color: var(--text-2); }
+.nk-pop-x:hover { background: var(--bg-3); color: var(--text-1); }
+.nk-pop-x:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.nk-exbar .nk-ib { border-color: transparent; background: transparent; color: var(--text-2); }
+
+/* ---------- Hold camera: a quiet frame + pointer cue while the camera is locked ---------- */
+.nk[data-hold="1"] .nk-3d { box-shadow: inset 0 0 0 2px var(--nk-ws-hold); }
+.nk[data-hold="1"] .nk-3d canvas { cursor: default; }
+
+/* ---------- Open / Close control bar (docked under the toolbar, in the flow: it never covers the model) ---------- */
+.nk-oc { position: relative; align-self: center; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: var(--space-2) var(--space-4); max-width: calc(100% - 200px); margin-block-start: var(--space-2); padding: var(--space-2) calc(var(--space-3) + 22px) var(--space-2) var(--space-3); background: var(--nk-oc-bg); border: 1px solid var(--nk-oc-line); border-radius: var(--radius-xl); box-shadow: var(--nk-oc-shadow); font-size: 12.5px; z-index: 12; }
+.nk-rtl .nk-oc { padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + 22px); }
+.nk-oc-g { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); }
+.nk .nk-oc .nk-oc-x { position: absolute; inset-block-start: var(--space-1); inset-inline-end: var(--space-1); }
+.nk-oc-speed { display: inline-flex; align-items: center; gap: var(--space-2); }
+.nk-oc-lbl { font-weight: 700; color: var(--text-2); }
+.nk-oc-speed .nk-range { width: 100px; flex: 0 0 auto; }
+.nk-oc-val { min-width: 4ch; text-align: end; font-family: var(--nk-mono); font-weight: 700; color: var(--text-1); }
+.nk-oc-kinds { display: inline-flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.nk-oc-chk { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--text-1); cursor: pointer; }
+.nk-oc-chk input { accent-color: var(--brand); width: 16px; height: 16px; }
+.nk-oc-chk[data-na="1"] { color: var(--text-3); cursor: default; }
+.nk-oc-n { color: var(--text-3); font-family: var(--nk-mono); font-size: 10.5px; }
+.nk-oc-btns { display: inline-flex; gap: var(--space-2); }
+.nk-oc-btns .nk-btn:disabled { opacity: .5; cursor: default; }
+.nk-oc-scope .nk-seg-b:disabled { opacity: .5; cursor: default; }
+.nk-oc .nk-oc-x { border-color: transparent; background: transparent; color: var(--text-2); }
+.nk-oc-x:hover { background: var(--bg-3); color: var(--text-1); }
+.nk-oc :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.nk-oc [data-tip]::after { inset-inline-end: 0; left: auto; transform: translateY(-2px); }
+
+@media (max-width: 1023px) { .nk-oc { margin-block-start: 52px; } } /* clears the Parameters tab that sits under the toolbar on tablets */
+@media (max-width: 640px) {
+  /* phones: one slim row that scrolls sideways (like the elevation mode bar) instead of a tall block over the model */
+  .nk-oc { align-self: flex-start; margin-inline: var(--space-2) 76px; margin-block-start: var(--space-2); max-width: calc(100% - 84px); flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; padding-inline: var(--space-3); gap: var(--space-4); }
+  .nk-rtl .nk-oc { padding-inline: var(--space-3); }
+  .nk-oc-g { flex: 0 0 auto; flex-wrap: nowrap; justify-content: flex-start; }
+  .nk .nk-oc .nk-oc-x { position: static; flex: 0 0 auto; }
+  .nk-oc-chk, .nk-oc-btns .nk-btn, .nk-oc-scope .nk-seg-b { white-space: nowrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nk .nk-panel, .nk .nk-head, .nk .nk-asst[data-docked="1"], .nk-vt-body { transition: none !important; animation: none !important; }
+}

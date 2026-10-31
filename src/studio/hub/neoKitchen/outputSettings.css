@@ -1,0 +1,44 @@
+/* [NEO-OUTPUT-UX34] the OUTPUT block (OutputSettingsControl.jsx). DESIGN.md tokens only (--bg*, --border, --text-*, --space-N, --radius-*, --brand):
+ * the dark block of the owner's screenshot is the dark theme of these tokens, so the same rules give the light block in light mode.
+ * Logical properties: Arabic mirrors by itself (the radio order follows `dir`). No font-family: it inherits from :root. */
+.nk .nk-ou { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4); background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg); color: var(--text-1); }
+.nk .nk-ou--menu { margin: var(--space-1) var(--space-2); padding: var(--space-3); background: var(--bg-3); border-radius: var(--radius-md); }
+.nk .nk-ou-eyebrow { font-size: var(--text-label, 10px); font-weight: 800; letter-spacing: .24em; text-transform: uppercase; color: var(--text-3); }
+.nk .nk-ou-lab { margin-block-start: var(--space-1); font-size: var(--text-small, 13px); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-2); }
+.nk .nk-ou--menu .nk-ou-lab { font-size: var(--text-xs, 11px); }
+.nk .nk-ou-seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-1); padding: var(--space-1); background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.nk .nk-ou--menu .nk-ou-seg { border-radius: var(--radius-md); }
+.nk .nk-ou-b { min-height: 40px; padding: 0 var(--space-2); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text-3); font: inherit; font-size: var(--text-small, 13px); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; cursor: pointer; transition: background .12s ease, color .12s ease; }
+.nk .nk-ou--menu .nk-ou-b { min-height: 36px; font-size: var(--text-xs, 11px); letter-spacing: .06em; }
+.nk .nk-ou-b:hover { color: var(--text-1); }
+.nk .nk-ou-b[aria-checked="true"] { background: var(--bg-4); color: var(--text-1); cursor: default; }
+.nk .nk-ou-b:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.nk .nk-ou--menu .nk-ou-cap { letter-spacing: .06em; }
+.nk .nk-ou-cap { margin: var(--space-1) 0 0; padding-inline: var(--space-1); font-size: var(--text-xs, 11px); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); }
+.nk .nk-ou-chk { display: flex; align-items: center; gap: var(--space-2); min-height: 32px; font-size: var(--text-small, 13px); color: var(--text-2); cursor: pointer; }
+.nk .nk-ou-chk input { width: 16px; height: 16px; accent-color: var(--brand); }
+.nk .nk-ou-note { margin: var(--space-1) 0 0; font-size: var(--text-xs, 11px); line-height: 1.4; color: var(--text-3); }
+@media (prefers-reduced-motion: reduce) { .nk .nk-ou-b { transition: none; } }
+
+/* the summary row + gear that opens the compact block inside the Export menu */
+.nk .nk-ou-sum { display: flex; align-items: center; gap: var(--space-2); width: 100%; min-height: 44px; padding: var(--space-1) var(--space-3); border: 0; border-radius: var(--radius-md); background: transparent; color: inherit; font: inherit; text-align: start; cursor: pointer; }
+.nk .nk-ou-sum:hover, .nk .nk-ou-sum[aria-expanded="true"] { background: var(--bg-3); }
+.nk .nk-ou-sum:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.nk .nk-ou-sum-t { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.nk .nk-ou-sum-n { font-size: var(--text-xs, 11px); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--text-2); }
+.nk .nk-ou-sum-v { font-family: var(--nk-mono); font-size: var(--text-small, 13px); font-weight: 700; color: var(--text-1); }
+.nk .nk-ou-sum svg { flex: none; color: var(--text-3); }
+.nk .nk-xm > .nk-ou-sum { margin-block-end: var(--space-1); border-block-end: 1px solid var(--nk-xm-line, var(--border)); border-radius: var(--radius-md) var(--radius-md) 0 0; }
+/* the gear opens the block as a popover beside the menu (it never makes the menu taller, so nothing runs under the page edge); on a phone it opens inline inside the menu */
+.nk .nk-xm .nk-ou-pop { position: absolute; z-index: 1; inset-block-start: 0; inset-inline-end: calc(100% + var(--space-2)); width: 296px; padding-block: var(--space-1); background: var(--nk-xm-panel, var(--bg-2)); border: 1px solid var(--nk-xm-line, var(--border)); border-radius: var(--radius-lg); box-shadow: var(--nk-xm-shadow); }
+@media (max-width: 640px) { .nk .nk-xm .nk-ou-pop { position: static; width: auto; border: 0; box-shadow: none; padding-block: 0; border-block-end: 1px solid var(--nk-xm-line, var(--border)); border-radius: 0; } }
+
+/* the File menu: the menu panel and the Output card beside it (under it on a phone) share one anchor (the menu keeps its own role=menu element, the card sits outside it) */
+.nk .nk-fm-pop { position: absolute; z-index: 60; inset-block-start: calc(100% + var(--space-2)); inset-inline-end: 0; display: flex; flex-direction: row-reverse; align-items: flex-start; gap: var(--space-2); }
+.nk .nk-fm-pop .nk-fm-menu { position: static; inset: auto; }
+.nk .nk-fm-out { width: 288px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--nk-shadow-2); padding-block: var(--space-1); }
+@media (max-width: 640px) {
+  .nk .nk-fm-pop { inset-inline: var(--space-4); inset-block-start: calc(100% - var(--space-1)); flex-direction: column; align-items: stretch; }
+  .nk .nk-fm-out { width: auto; }
+  .nk .nk-fm-pop .nk-fm-menu { min-width: 0; width: auto; }
+}

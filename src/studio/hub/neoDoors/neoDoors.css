@@ -1,0 +1,106 @@
+/* =============================================================================
+ * Neo Doors Designer [NEO-DOORS-UX27] - styles the Neo Kitchen workspace CSS does not already give a door.
+ * The studio root carries the `nk` class, so the header, floating toolbar, Parameters rail, stage, selection card, menus, assistant, cut list and
+ * export menu all use neoKitchen.css and its sibling files unchanged. Chrome here is DESIGN.md tokens only (--bg*, --border, --text-*, --brand*,
+ * --space-N, --radius-*), no per-component font-family, no hex outside the block directly below.
+ * The block below is the ONE place with literal colours: MATERIAL and DRAWING data, not UI chrome - timber and paint finishes, glass tints,
+ * ironmongery metal, the wall of the 3D scene and the part-type colours of the 2D drawing. Three.js reads the --nk-dr-* ones back from the
+ * computed style (Door3D.jsx), so JS holds no colour literal. Same exception as --nk-fin-* / --nk-w-* (DESIGN.md, Decisions Log NEO-DOORS-UX27).
+ * ===========================================================================*/
+.nk-dr {
+  --nk-dr-fin-white: #f0eee8; --nk-dr-fin-ivory: #e7ddc4; --nk-dr-fin-grey: #9c968c; --nk-dr-fin-black: #2b2c2f;
+  --nk-dr-fin-oak: #b88a55; --nk-dr-fin-walnut: #6b4a32; --nk-dr-fin-pine: #d4b27a; --nk-dr-fin-mahogany: #7b3d2b;
+  --nk-dr-timber: #c9a066; --nk-dr-core: #d9cba9; --nk-dr-grain: #3a2a1a; --nk-dr-hw: #aeb3b9;
+  --nk-dr-glass: #cfe3ea; --nk-dr-glass-frost: #e9f0f1; --nk-dr-glass-smoke: #272a2e; --nk-dr-wall: #d8d3c9;
+  /* 2D drawing: part-type fills */
+  --nk-dr-d-leaf: #e1cba4; --nk-dr-d-panel: #cdb386; --nk-dr-d-glass: #a6d4df; --nk-dr-d-louvre: #d8be86; --nk-dr-d-frame: #b89a6a; --nk-dr-d-arch: #cdb792;
+  --nk-dr-d-hw: #6d757e; --nk-dr-d-smoke: #59616a; --nk-dr-d-frost: #e3ecee; --nk-dr-d-core: #c9bb99; --nk-dr-d-wall: #ecebe6; --nk-dr-d-skin: #e8d6b4;
+}
+[data-theme="dark"] .nk-dr, .nk-dr[data-theme="dark"] {
+  --nk-dr-d-leaf: #6c5d44; --nk-dr-d-panel: #5a4d38; --nk-dr-d-glass: #34606c; --nk-dr-d-louvre: #75653f; --nk-dr-d-frame: #7d6a4b; --nk-dr-d-arch: #6a5b44;
+  --nk-dr-d-hw: #9aa3ad; --nk-dr-d-core: #50472f; --nk-dr-d-wall: #1c222e; --nk-dr-d-skin: #75664b;
+}
+
+/* ---------- Parameters ---------- */
+.nkd-panel { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-3); }
+.nkd-card { display: flex; flex-direction: column; gap: var(--space-2); }
+.nkd-card-body { display: flex; flex-direction: column; gap: var(--space-3); }
+.nkd-note { margin: 0; }
+.nkd-row { display: grid; gap: var(--space-1); }
+.nkd-row-l { font-size: 12px; font-weight: 600; color: var(--text-2); }
+.nkd-row-c { min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.nkd-row[data-off="1"] .nkd-row-c { opacity: .42; pointer-events: none; }
+.nkd-row[data-off="1"] .nkd-row-l { opacity: .6; }
+.nkd-step { display: inline-flex; align-items: center; gap: var(--space-2); }
+.nkd-step output { min-width: 2ch; text-align: center; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 15px; }
+.nkd-step .nk-ib { width: 36px; height: 36px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-2); font-size: 18px; line-height: 1; }
+.nkd-types { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: var(--space-2); }
+.nkd-type { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); padding: var(--space-2); min-height: 76px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-2); color: var(--text-2); font-size: 11.5px; font-weight: 600; text-align: center; line-height: 1.2; }
+.nkd-type:hover { background: var(--bg-3); color: var(--text-1); }
+.nkd-type[aria-pressed="true"] { border-color: var(--brand); background: var(--brand-muted); color: var(--nk-ink, var(--brand)); }
+.nkd-stats { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+.nkd-stat { display: flex; flex-direction: column; gap: 2px; padding: var(--space-2); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-3); min-width: 0; }
+.nkd-stat span { font-size: 10.5px; color: var(--text-2); font-weight: 600; }
+.nkd-stat b { font-variant-numeric: tabular-nums; font-size: 13px; overflow-wrap: anywhere; }
+.nkd-checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.nkd-checks li { display: flex; gap: var(--space-2); align-items: flex-start; font-size: 12px; line-height: 1.35; color: var(--text-1); }
+.nkd-checks li svg { flex: none; margin-block-start: 2px; }
+.nkd-checks li[data-level="error"] svg { color: var(--danger); } .nkd-checks li[data-level="warn"] svg { color: var(--warning); } .nkd-checks li[data-level="info"] svg { color: var(--info); }
+.nkd-price { font-variant-numeric: tabular-nums; font-weight: 700; }
+.nkd-price small { font-weight: 600; color: var(--text-3); margin-inline-start: 4px; } /* was opacity .7 (axe: 2.6:1) */
+.nkd-quote { white-space: nowrap; }
+.nkd-actions { display: none; }
+.nkd-warnchip { display: inline-flex; align-items: center; gap: 4px; margin-inline-start: auto; min-height: 28px; padding: 0 var(--space-2); border: 1px solid var(--warning); border-radius: var(--radius-sm); background: var(--bg-2); color: var(--text-1); font-size: 11.5px; font-weight: 700; }
+.nkd-warnchip[data-level="error"] { border-color: var(--danger); color: var(--danger); }
+.nkd-zoom { display: inline-flex; align-items: center; gap: 2px; }
+.nkd-zoom .nk-ib { min-width: 32px; height: 32px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-2); }
+.nkd-zoom-v { font-size: 11.5px; padding-inline: var(--space-2); }
+.nk-dr[data-compact="1"] .nk-head .nk-hb-t { display: none; }
+.nk-dr[data-compact="1"] .nk-head .nkd-price { display: none; }
+@media (max-width: 640px) {
+  .nkd-panel { padding: var(--space-2); }
+  .nkd-hd { display: none; }
+  .nkd-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+  .nkd-stats { grid-template-columns: 1fr; }
+}
+
+/* ---------- legend swatches (also the drawing's part-type fills) ---------- */
+.nkd-legend { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 2px var(--space-2); padding: 0 var(--space-3); }
+.nkd-legend .nk-lg { min-height: 26px; font-size: 11.5px; padding-inline: var(--space-1); }
+.nkd-sw { display: inline-block; flex: none; width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--text-3); }
+.nkd-sw.nkd-t-leaf, .nkd-sw.nkd-t-core { background: var(--nk-dr-d-leaf); } .nkd-sw.nkd-t-panel { background: var(--nk-dr-d-panel); } .nkd-sw.nkd-t-glass { background: var(--nk-dr-d-glass); }
+.nkd-sw.nkd-t-louvre { background: var(--nk-dr-d-louvre); } .nkd-sw.nkd-t-frame { background: var(--nk-dr-d-frame); } .nkd-sw.nkd-t-arch { background: var(--nk-dr-d-arch); } .nkd-sw.nkd-t-hardware { background: var(--nk-dr-d-hw); }
+
+/* ---------- the technical drawing ---------- */
+.nkd-draw { flex: 1 1 0; min-height: 0; min-width: 0; width: 100%; height: 100%; display: flex; overflow: hidden; background: var(--nk-stage-bg, var(--bg)); }
+.nkd-svg { display: block; flex: 1 1 auto; min-width: 0; min-height: 0; user-select: none; }
+.nkd-svg .nkd-wall { fill: var(--nk-dr-d-wall); stroke: var(--text-3); stroke-width: 1; }
+.nkd-svg .nkd-floor { stroke: var(--text-1); stroke-width: 2; }
+.nkd-svg .nkd-p rect, .nkd-svg .nkd-p ellipse { stroke: var(--text-1); stroke-width: 1; cursor: pointer; }
+.nkd-svg .nkd-p rect.nkd-skin { stroke: none; }
+.nkd-svg rect.nkd-p { stroke: var(--text-1); stroke-width: 1; cursor: pointer; }
+.nkd-svg rect.nkd-t-leaf { fill: var(--nk-dr-d-leaf); } .nkd-svg rect.nkd-t-frame { fill: var(--nk-dr-d-frame); } .nkd-svg rect.nkd-t-arch { fill: var(--nk-dr-d-arch); } .nkd-svg rect.nkd-t-hardware { fill: var(--nk-dr-d-hw); }
+.nkd-svg .nkd-t-leaf rect, .nkd-svg .nkd-t-leaf ellipse { fill: var(--nk-dr-d-leaf); } .nkd-svg .nkd-t-core rect { fill: var(--nk-dr-d-core); }
+.nkd-svg .nkd-t-panel rect, .nkd-svg .nkd-t-panel ellipse { fill: var(--nk-dr-d-panel); } .nkd-svg .nkd-t-glass rect { fill: var(--nk-dr-d-glass); fill-opacity: .8; }
+.nkd-svg .nkd-gk-smoked rect { fill: var(--nk-dr-d-smoke); fill-opacity: .9; } .nkd-svg .nkd-gk-frosted rect { fill: var(--nk-dr-d-frost); fill-opacity: .95; }
+.nkd-svg .nkd-t-louvre rect { fill: var(--nk-dr-d-louvre); } .nkd-svg .nkd-t-frame rect { fill: var(--nk-dr-d-frame); } .nkd-svg .nkd-t-arch rect { fill: var(--nk-dr-d-arch); }
+.nkd-svg .nkd-t-hardware rect, .nkd-svg .nkd-t-hardware ellipse { fill: var(--nk-dr-d-hw); }
+.nkd-svg .nkd-in { fill: none; stroke: var(--text-2); stroke-width: 1; pointer-events: none; }
+.nkd-svg .nkd-ln { stroke: var(--text-2); stroke-width: 1; }
+.nkd-svg .nkd-gl { stroke: var(--text-1); stroke-width: 1; opacity: .5; }
+.nkd-svg .nkd-int rect, .nkd-svg .nkd-int ellipse { stroke-dasharray: 5 3; fill-opacity: .45; }
+.nkd-svg .nkd-sel rect, .nkd-svg .nkd-sel ellipse { stroke: var(--brand); stroke-width: 3; }
+.nkd-svg .nkd-swing polyline { stroke: var(--text-2); stroke-width: 1.2; fill: none; } .nkd-svg .nkd-swing.nkd-away polyline { stroke-dasharray: 8 5; } .nkd-svg .nkd-swing line { stroke: var(--text-2); stroke-width: 1.5; }
+.nkd-svg .nkd-cl line { stroke: var(--brand); stroke-width: 1; stroke-dasharray: 14 4 2 4; }
+.nkd-svg .nkd-dim line { stroke-width: 1; } .nkd-svg .nkd-dim text { fill: currentColor; font-weight: 600; paint-order: stroke; stroke: var(--nk-stage-bg, var(--bg)); stroke-width: 3px; stroke-linejoin: round; font-variant-numeric: tabular-nums; }
+.nkd-svg .nkd-d-info { color: var(--info); stroke: var(--info); } .nkd-svg .nkd-d-danger { color: var(--danger); stroke: var(--danger); } .nkd-svg .nkd-d-grey { color: var(--text-2); stroke: var(--text-2); }
+.nkd-svg .nkd-dim text { stroke: var(--nk-stage-bg, var(--bg)); }
+.nkd-svg .nkd-badge circle { fill: var(--brand); stroke: var(--bg-2); stroke-width: 1; cursor: pointer; } .nkd-svg .nkd-badge text { fill: var(--text-on-brand); font-weight: 800; pointer-events: none; }
+.nkd-svg .nkd-ghost { fill: none; stroke: var(--text-2); stroke-dasharray: 6 4; stroke-width: 1; } .nkd-svg .nkd-arc { stroke: var(--text-2); stroke-width: 1.2; stroke-dasharray: 3 4; }
+.nkd-svg .nkd-spec text { fill: var(--text-1); paint-order: stroke; stroke: var(--nk-stage-bg, var(--bg)); stroke-width: 3px; stroke-linejoin: round; }
+.nkd-svg .nkd-spec text:not(:first-child) { fill: var(--text-2); }
+.nkd-svg .nkd-lbl { fill: var(--text-2); font-weight: 800; letter-spacing: .08em; }
+.nk-rtl .nkd-svg .nkd-lbl { letter-spacing: 0; }
+
+.nk-print-root .nkd-svg .nkd-dim text { stroke: white; }
+.nkd-print-fig figcaption { font-weight: 700; margin-block-end: 2mm; }

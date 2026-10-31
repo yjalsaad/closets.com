@@ -1,0 +1,79 @@
+/* =============================================================================
+ * Neo Kitchen Designer - UX-11 "3D View pro + X-Ray / Internal" (Kitchen3D.jsx, cameraViews.js).
+ * Every literal colour of this feature lives in the two blocks directly below, as scoped --nk-* custom properties (owner
+ * palette + material data read by Kitchen3D.jsx through getComputedStyle). Rules further down use DESIGN.md tokens only.
+ * Documented in DESIGN.md (Decisions Log - NEO-KITCHEN-UX11).
+ * ===========================================================================*/
+.nk {
+  /* selection colour in X-Ray / Internal (owner value) */
+  --nk-select: #FF8A24;
+}
+.nk .nk-3d {
+  /* restrained matte interiors / plinth for the normal view (grey carcass, no warm tint) */
+  --nk-carcass: #cfd1d4; --nk-back: #b3b6bb; --nk-shelf: #dadcdf; --nk-drawerbox: #c3c6cb; --nk-plinth: #2a2c30;
+  /* X-Ray panel tones (gray / blue-gray, opaque), ghosted fronts and the fine outline colour */
+  --nk-x-carcass: #aab2be; --nk-x-back: #8e97a5; --nk-x-shelf: #bcc3cd; --nk-x-box: #b2bac6; --nk-x-front: #c5ccd8; --nk-x-edge: #4d5a70;
+}
+[data-theme="dark"] .nk .nk-3d {
+  --nk-carcass: #b9bcc2; --nk-back: #9ea2aa; --nk-shelf: #c6c9cf; --nk-drawerbox: #aeb2ba; --nk-plinth: #17191c;
+  --nk-x-carcass: #8f99a8; --nk-x-back: #747e8e; --nk-x-shelf: #a1aab8; --nk-x-box: #98a2b1; --nk-x-front: #9aa4b6; --nk-x-edge: #c3cde0;
+}
+[data-theme="dark"] .nk { --nk-select: #FF9A40; }
+
+/* ---- 3D Look presets: selected card, swatches, environment colours (read by Kitchen3D through getComputedStyle) ---- */
+.nk {
+  --nk-look-sel-bg: #EAF0FF; --nk-look-sel-line: #356DFF;
+  --nk-look-studio-bg: #eceef2; --nk-look-day-bg: #d9dde3; --nk-look-day-floor: #b5895f; --nk-look-day-wall: #e9e4da;
+  --nk-look-eve-bg: #1d1712; --nk-look-eve-floor: #7a5a3c; --nk-look-eve-wall: #4a3a2e; --nk-look-led: #ffc46b;
+  --nk-look-sw-std: linear-gradient(135deg, #f4f5f8, #dfe3ea); --nk-look-sw-studio: radial-gradient(circle at 35% 30%, #ffffff, #dcdde2);
+  --nk-look-sw-day: linear-gradient(135deg, #fde7bf, #d9a066); --nk-look-sw-eve: radial-gradient(circle at 50% 38%, #e0913a, #1b1410 72%);
+}
+[data-theme="dark"] .nk { --nk-look-sel-bg: rgba(108, 147, 255, .18); --nk-look-sel-line: #6C93FF; --nk-look-studio-bg: #232831; --nk-look-day-bg: #3b4150; }
+
+/* ---------- floating category list (over the 3D viewport, inline-start edge) ---------- */
+.nk-v3cat { position: absolute; z-index: 21; inset-inline-start: var(--space-3); inset-block-start: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: var(--space-1); }
+.nk-v3cat-b { position: relative; display: inline-flex; align-items: center; gap: var(--space-2); min-height: 36px; padding: 0 var(--space-3); background: var(--bg-2); color: var(--text-1); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 12.5px; font-weight: 600; box-shadow: var(--nk-shadow-1); text-align: start; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease; }
+.nk-v3cat-b svg { flex: 0 0 auto; color: var(--nk-ink, var(--brand)); }
+.nk-v3cat-b:hover { background: var(--bg-3); }
+.nk-v3cat-b:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.nk-v3cat-b[aria-current="true"] { background: var(--brand-muted); border-color: var(--brand); color: var(--nk-ink, var(--brand)); }
+.nk-v3cat-b[data-hidden="1"] { opacity: .7; }
+/* category the current project does not contain: muted, struck through, red slash over the icon - still clickable */
+.nk-v3cat-b[data-absent="1"] { color: var(--text-3); background: var(--bg-3); }
+.nk-v3cat-b[data-absent="1"] svg { color: var(--text-3); }
+.nk-v3cat-b[data-absent="1"] .nk-v3cat-t { text-decoration: line-through; }
+.nk-v3cat-b[data-absent="1"]::before { content: ""; position: absolute; inset-inline-start: calc(var(--space-3) - 2px); inset-block-start: 50%; width: 20px; height: 2px; margin-block-start: -1px; background: var(--danger); border-radius: 1px; transform: rotate(-45deg); pointer-events: none; }
+.nk-rtl .nk-v3cat-b[data-absent="1"]::before { transform: rotate(45deg); }
+
+@media (max-width: 640px) {
+  /* phone: icon-only squares (the name stays in the accessible name and the tooltip) */
+  .nk-v3cat { inset-inline-start: var(--space-2); }
+  .nk-v3cat-b { width: 36px; padding: 0; justify-content: center; }
+  .nk-v3cat-t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .nk-v3cat-b[data-absent="1"]::before { inset-inline-start: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .nk-v3cat-b { transition: none; } }
+
+/* ---------- 3D VIEW LOOK panel (inside the Look popover, ~450px) ---------- */
+.nk .nk-menu-look { inset-inline-start: auto; inset-inline-end: 0; transform: none; width: min(450px, calc(100vw - 24px)); max-height: calc(100vh - var(--nk-tbh) - 80px); overflow-y: auto; }
+.nk-look { display: flex; flex-direction: column; gap: var(--space-1); margin-block-end: var(--space-3); }
+.nk-look .nk-menu-h { letter-spacing: .12em; text-transform: uppercase; }
+.nk-look-card { display: flex; align-items: center; gap: var(--space-3); width: 100%; padding: var(--space-2) var(--space-3); background: transparent; color: var(--text-1); border: 2px solid transparent; border-radius: var(--radius-lg); text-align: start; transition: background-color 160ms ease, border-color 160ms ease; }
+.nk-look-card:hover { background: var(--bg-3); }
+.nk-look-card:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.nk-look-card[aria-checked="true"] { background: var(--nk-look-sel-bg); border-color: var(--nk-look-sel-line); }
+.nk-look-sw { flex: 0 0 auto; width: 44px; height: 44px; border-radius: var(--radius-md); border: 1px solid var(--border); }
+.nk-look-card[data-look="standard"] .nk-look-sw { background: var(--nk-look-sw-std); }
+.nk-look-card[data-look="studio"] .nk-look-sw { background: var(--nk-look-sw-studio); }
+.nk-look-card[data-look="daylight"] .nk-look-sw { background: var(--nk-look-sw-day); }
+.nk-look-card[data-look="evening"] .nk-look-sw { background: var(--nk-look-sw-eve); }
+.nk-look-tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.nk-look-tx b { font-size: 14px; }
+.nk-look-tx small { font-size: 12.5px; color: var(--text-2); }
+.nk-look-sun { display: flex; align-items: center; gap: var(--space-3); margin-inline: var(--space-3) var(--space-1); padding: var(--space-2) var(--space-3); background: var(--bg-3); border-radius: var(--radius-lg); font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+.nk-look-sun .nk-range { flex: 1 1 auto; min-width: 0; }
+.nk-look-sun output { min-width: 3ch; text-align: end; color: var(--text-1); }
+/* toolbar Look button shows the active preset: blue outline + icon (not for Standard) */
+.nk-tool[data-look-active="1"] { color: var(--nk-ink, var(--brand)); box-shadow: inset 0 0 0 2px var(--brand); background: var(--brand-muted); }
+@media (prefers-reduced-motion: reduce) { .nk-look-card { transition: none; } }
+.nk-rtl .nk-menu-look { transform: none; }

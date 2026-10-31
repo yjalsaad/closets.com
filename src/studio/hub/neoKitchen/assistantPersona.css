@@ -1,0 +1,64 @@
+/* =============================================================================
+ * Neo Kitchen Designer UX-20 - the assistant persona (Haneen / Bonsai): onboarding screen, avatar, message meta line.
+ * Everything is scoped under .nk. The ONLY literal colours are the owner's reference palette (pill blue, pale ring, avatar tints):
+ * scoped --nk-as-* custom properties below, with a dark set. Everything else is DESIGN.md tokens.
+ * ===========================================================================*/
+.nk {
+  --nk-as-pill: #2F6BFF; --nk-as-pill-ink: #FFFFFF; --nk-as-ring: #DCE6FF; --nk-as-face: #EAF0FF; --nk-as-ink: #1F4FD1; --nk-as-leaf: #159A8A;
+}
+[data-theme="dark"] .nk, .nk[data-theme="dark"] {
+  --nk-as-pill: #6C93FF; --nk-as-pill-ink: #0B1220; --nk-as-ring: #2A3A66; --nk-as-face: #1B2747; --nk-as-ink: #A9C0FF; --nk-as-leaf: #4FD1BE;
+}
+
+/* avatar: drawn mark (or a picture through PERSONA.avatarSrc), pale ring, green status dot */
+.nk .nk-pav { position: relative; flex: 0 0 auto; display: inline-grid; place-items: center; width: var(--nk-pav-size, 30px); height: var(--nk-pav-size, 30px); border-radius: var(--radius-pill); background: var(--nk-as-face); color: var(--nk-as-ink); }
+.nk .nk-pav-ring { box-shadow: 0 0 0 calc(var(--nk-pav-size, 30px) * .09) var(--nk-as-ring); }
+.nk .nk-pav-mark, .nk .nk-pav-img { width: 100%; height: 100%; border-radius: var(--radius-pill); display: block; }
+.nk .nk-pav-img { object-fit: cover; }
+.nk .nk-pav-letter { fill: var(--nk-as-ink); font-family: inherit; }
+.nk .nk-pav-tree { display: none; }
+.nk .nk-pav-lg .nk-pav-tree { display: inline; }
+.nk .nk-pav-trunk { stroke: var(--nk-as-ink); }
+.nk .nk-pav-leaf { fill: var(--nk-as-leaf); }
+.nk .nk-pav-pot { fill: var(--nk-as-ink); }
+.nk .nk-pav-dot { position: absolute; inset-inline-end: 2%; inset-block-end: 2%; width: max(8px, calc(var(--nk-pav-size, 30px) * .2)); height: max(8px, calc(var(--nk-pav-size, 30px) * .2)); border-radius: var(--radius-pill); background: var(--success); border: 2px solid var(--bg-2); }
+
+/* header: the + (new conversation) is highlighted on the onboarding screen */
+.nk .nk-ib-hi, .nk .nk-asst-ctl .nk-ib.nk-ib-hi { background: var(--brand-muted); color: var(--nk-ink, var(--brand)); border-color: var(--brand); }
+
+/* onboarding screen */
+.nk .nk-onb { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-3); padding: var(--space-5) var(--space-3) var(--space-4); }
+.nk .nk-onb-name { margin: 0; font-size: 20px; font-weight: 800; color: var(--text-1); }
+.nk .nk-onb-role { margin: calc(var(--space-2) * -1) 0 0; font-size: 13px; color: var(--text-2); }
+.nk .nk-onb-ask { margin: var(--space-3) 0 0; font-size: 13px; color: var(--text-2); }
+.nk .nk-onb-pills { display: flex; flex-direction: column; gap: var(--space-2); width: 100%; max-width: 280px; }
+.nk .nk-pill { min-height: 44px; border-radius: var(--radius-pill); border: 2px solid var(--nk-as-pill); background: transparent; color: var(--nk-ink, var(--nk-as-pill)); font-size: 15px; font-weight: 700; cursor: pointer; padding: 0 var(--space-4); }
+.nk .nk-pill:hover { background: var(--nk-as-face); }
+.nk .nk-pill-primary { background: var(--nk-ink, var(--nk-as-pill)); color: var(--nk-as-pill-ink); }
+.nk .nk-pill-primary:hover { background: var(--nk-ink, var(--nk-as-pill)); filter: brightness(1.08); }
+.nk .nk-pill:focus-visible, .nk .nk-onb-hist:focus-visible, .nk .nk-asst-sw:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.nk .nk-onb-hist { border: 0; background: transparent; color: var(--text-2); font-size: 13px; text-decoration: underline; cursor: pointer; min-height: 36px; }
+.nk .nk-onb-hist:hover { color: var(--nk-ink, var(--brand)); }
+
+/* a message from the assistant: avatar + name + time above the bubble */
+.nk .nk-msg-meta { display: flex; align-items: center; gap: var(--space-2); font-size: 11.5px; color: var(--text-2); margin-block-start: var(--space-1); }
+.nk .nk-msg-meta b { color: var(--text-1); font-weight: 700; }
+.nk .nk-msg-meta time { color: var(--text-3); }
+.nk .nk-asst-sw { align-self: flex-start; border: 1px solid var(--border); background: var(--bg-3); color: var(--nk-as-ink); border-radius: var(--radius-pill); min-height: 32px; padding: 0 var(--space-3); font-size: 12.5px; font-weight: 600; cursor: pointer; }
+
+@media (max-width: 640px), (pointer: coarse) {
+  .nk .nk-pill { min-height: 48px; }
+  .nk .nk-onb-hist { min-height: 44px; }
+}
+.nk .nk-pav-lg .nk-pav-letter { transform: translateY(-5px); }
+
+/* floating popover / phone sheet: the first-run screen gets enough height to show both language pills and History without scrolling */
+.nk .nk-asst[data-docked="0"][data-screen="welcome"] { min-height: min(500px, 84%); }
+@media (max-width: 640px) {
+  .nk .nk-onb { padding-block: var(--space-3); gap: var(--space-2); }
+  .nk .nk-onb-ask { margin-block-start: var(--space-2); }
+}
+@media (max-width: 640px) {
+  .nk .nk-onb .nk-pav { width: 72px; height: 72px; }
+  .nk .nk-asst[data-docked="0"][data-screen="welcome"] .nk-asst-form { display: none; } /* phone sheet: pick the language first */
+}

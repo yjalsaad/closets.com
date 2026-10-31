@@ -1,0 +1,146 @@
+/* =============================================================================
+ * Neo Kitchen Designer - elevation PRO layer (UX-9): technical dimensioning + component map.
+ * Scoped: custom properties live on .nk (and the print root); every rule is prefixed by .nk-elev or a unique
+ * nk-maplegend / nk-mlg / nk-zoom class. The owner-palette hex values exist ONLY in the two --nk-* blocks below
+ * (light + dark); every rule uses var(--nk-*) or a DESIGN.md token. Map colours are configurable: override any
+ * --nk-mp-* on .nk (or a parent) - they only tint the drawing, the real materials are never touched.
+ * ===========================================================================*/
+.nk, .nk-print-root {
+  --nk-dim-p: #76A3FF;            /* primary dimensions: module / overall / vertical */
+  --nk-dim-s: #FF6578;            /* secondary dimensions: calculated board sizes */
+  --nk-dim-p-t: color-mix(in srgb, var(--nk-dim-p) 62%, black);   /* label text, readable on the light canvas */
+  --nk-dim-s-t: color-mix(in srgb, var(--nk-dim-s) 78%, black);
+  --nk-halo: #F5F6F8;
+  --nk-sel-o: #FF8A1F; --nk-sel-o-t: #1B1206;   /* selected = orange */
+  --nk-hov-c: #12A4E8;                          /* hovered */
+  --nk-badge-bg: #FFFFFF; --nk-badge-ink: #182033;
+  /* component-type map colours (legend swatch = fill = outline) */
+  --nk-mp-baseUnit: #4F54D8; --nk-mp-wallUnit: #2FB67C; --nk-mp-topUnit: #F0903A;
+  --nk-mp-door: #6A5BD6; --nk-mp-drawer: #E69A2E; --nk-mp-flip: #D95BC4; --nk-mp-glass: #25B3B8;
+  --nk-mp-open: #8CCB45; --nk-mp-shelf: #6E9B3F; --nk-mp-cover: #3F7DE0; --nk-mp-counter: #8A939E; --nk-mp-plinth: #3A2A1A;
+  /* right-hand row bands */
+  --nk-rb-top: #F0903A; --nk-rb-wall: #2FB67C; --nk-rb-base: #3A66E8;
+  --nk-rb-body: var(--nk-rb-base); --nk-rb-plinth: #B7791F; --nk-rb-topbox: var(--nk-rb-top);   /* wardrobe side labels (NEO-HANDLES-UX36) */
+}
+[data-theme="dark"] .nk, .nk[data-theme="dark"] {
+  --nk-dim-p: #8DB2FF; --nk-dim-s: #FF7F90;
+  --nk-dim-p-t: #A9C4FF; --nk-dim-s-t: #FF9AA8;
+  --nk-halo: #0E121A;
+  --nk-sel-o: #FFA040; --nk-sel-o-t: #1B1206;
+  --nk-hov-c: #3CC0FF;
+  --nk-badge-bg: #1B2230; --nk-badge-ink: #EAEFFA;
+  --nk-mp-baseUnit: #7F86FF; --nk-mp-wallUnit: #45D199; --nk-mp-topUnit: #FFA85A;
+  --nk-mp-door: #9B8CFF; --nk-mp-drawer: #FFB347; --nk-mp-flip: #F27FDD; --nk-mp-glass: #45D3D8;
+  --nk-mp-open: #A6E264; --nk-mp-shelf: #8FBF58; --nk-mp-cover: #6FA0FF; --nk-mp-counter: #A3ADB8; --nk-mp-plinth: #8A6A4A;
+  --nk-rb-top: #FFA85A; --nk-rb-wall: #45D199; --nk-rb-base: #7FA0FF; --nk-rb-plinth: #E0A94A;
+}
+@media print {
+  .nk-print-root { --nk-dim-p-t: var(--nk-dim-p); --nk-dim-s-t: var(--nk-dim-s); --nk-halo: white; }
+}
+
+/* ---------- dimension layers ---------- */
+.nk-elev .nk-dl, .nk-elev .nk-ext { stroke-linecap: butt; fill: none; }
+.nk-elev .nk-dl { stroke-width: 2.4; }
+.nk-elev .nk-ext { stroke-width: 1.2; opacity: .75; }
+.nk-elev .nk-dl.nk-dp, .nk-elev .nk-ext.nk-dp { stroke: var(--nk-dim-p); }
+.nk-elev .nk-dl.nk-ds, .nk-elev .nk-ext.nk-ds { stroke: var(--nk-dim-s); }
+.nk-elev .nk-dt { font-weight: 700; paint-order: stroke; stroke: var(--nk-halo); stroke-width: 7px; stroke-linejoin: round; stroke-opacity: .9; pointer-events: none; }
+.nk-elev .nk-dt.nk-dp { fill: var(--nk-dim-p-t); }
+.nk-elev .nk-dt.nk-ds { fill: var(--nk-dim-s-t); font-weight: 600; }
+.nk-elev .nk-dtag { fill: var(--text-3); paint-order: stroke; stroke: var(--nk-halo); stroke-width: 5px; stroke-opacity: .9; pointer-events: none; }
+.nk-elev .nk-boardnote { font-weight: 600; }
+.nk-elev .nk-cap { fill: var(--text-3); font-weight: 800; letter-spacing: .25em; pointer-events: none; }
+
+/* ---------- right-hand TOP / WALL / BASE bands ---------- */
+.nk-elev .nk-rb { stroke: none; pointer-events: none; }
+.nk-elev .nk-rb-body { fill: var(--nk-rb-body); opacity: .1; } .nk-elev .nk-rb-plinth { fill: var(--nk-rb-plinth); opacity: .18; } .nk-elev .nk-rb-topbox { fill: var(--nk-rb-topbox); opacity: .1; }
+.nk-elev .nk-rb-top { fill: var(--nk-rb-top); opacity: .1; } .nk-elev .nk-rb-wall { fill: var(--nk-rb-wall); opacity: .1; } .nk-elev .nk-rb-base { fill: var(--nk-rb-base); opacity: .1; }
+.nk-elev .nk-rg { stroke-width: 1.8; stroke-dasharray: 14 9; opacity: .75; pointer-events: none; }
+.nk-elev .nk-rg-body { stroke: var(--nk-rb-body); } .nk-elev .nk-rg-plinth { stroke: var(--nk-rb-plinth); } .nk-elev .nk-rg-topbox { stroke: var(--nk-rb-topbox); }
+.nk-elev .nk-rg-top { stroke: var(--nk-rb-top); } .nk-elev .nk-rg-wall { stroke: var(--nk-rb-wall); } .nk-elev .nk-rg-base { stroke: var(--nk-rb-base); }
+.nk-elev .nk-rcap { font-weight: 800; letter-spacing: .22em; pointer-events: none; }
+.nk-elev .nk-rcap-body { fill: var(--nk-rb-body); } .nk-elev .nk-rcap-plinth { fill: var(--nk-rb-plinth); } .nk-elev .nk-rcap-topbox { fill: var(--nk-rb-topbox); }
+.nk-elev .nk-rcap-top { fill: var(--nk-rb-top); } .nk-elev .nk-rcap-wall { fill: var(--nk-rb-wall); } .nk-elev .nk-rcap-base { fill: var(--nk-rb-base); }
+
+/* ---------- cabinet row labels (circled number + name, thin blue bracket) ---------- */
+.nk-elev .nk-brk { stroke: var(--nk-dim-p); stroke-width: 2.2; fill: none; }
+.nk-elev .nk-cab { cursor: pointer; }
+.nk-elev .nk-cabc { fill: var(--nk-badge-bg); stroke: var(--nk-dim-p); stroke-width: 2.4; }
+.nk-elev .nk-cabn, .nk-elev .nk-cabt { fill: var(--nk-dim-p-t); font-family: var(--nk-mono); font-weight: 700; pointer-events: none; }
+.nk-elev .nk-cab.nk-sel .nk-cabc { fill: var(--nk-sel-o); stroke: var(--nk-sel-o); }
+.nk-elev .nk-cab.nk-sel .nk-cabn { fill: var(--nk-sel-o-t); }
+
+/* ---------- component map: translucent type fills + sharp outlines ---------- */
+.nk-elev .nk-pt-topUnit { fill: var(--nk-mp-topUnit); fill-opacity: .28; }
+.nk-elev.nk-map-on .nk-it.nk-pt { stroke-width: 3; stroke-opacity: 1; }
+.nk-elev.nk-map-on .nk-pt-baseUnit { fill: var(--nk-mp-baseUnit); fill-opacity: .42; stroke: var(--nk-mp-baseUnit); }
+.nk-elev.nk-map-on .nk-pt-wallUnit { fill: var(--nk-mp-wallUnit); fill-opacity: .3; stroke: var(--nk-mp-wallUnit); }
+.nk-elev.nk-map-on .nk-pt-topUnit { fill: var(--nk-mp-topUnit); fill-opacity: .36; stroke: var(--nk-mp-topUnit); }
+.nk-elev.nk-map-on .nk-pt-door { fill: var(--nk-mp-door); fill-opacity: .38; stroke: var(--nk-mp-door); }
+.nk-elev.nk-map-on .nk-pt-drawer { fill: var(--nk-mp-drawer); fill-opacity: .5; stroke: var(--nk-mp-drawer); }
+.nk-elev.nk-map-on .nk-pt-flip { fill: var(--nk-mp-flip); fill-opacity: .45; stroke: var(--nk-mp-flip); }
+.nk-elev.nk-map-on .nk-pt-glass { fill: var(--nk-mp-glass); fill-opacity: .4; stroke: var(--nk-mp-glass); }
+.nk-elev.nk-map-on .nk-pt-open { fill: var(--nk-mp-open); fill-opacity: .4; stroke: var(--nk-mp-open); }
+.nk-elev.nk-map-on .nk-pt-shelf { fill: var(--nk-mp-shelf); fill-opacity: .5; stroke: var(--nk-mp-shelf); }
+.nk-elev.nk-map-on .nk-pt-cover { fill: var(--nk-mp-cover); fill-opacity: .45; stroke: var(--nk-mp-cover); }
+.nk-elev.nk-map-on .nk-pt-counter { fill: var(--nk-mp-counter); fill-opacity: .6; stroke: var(--nk-mp-counter); }
+.nk-elev.nk-map-on .nk-pt-plinth { fill: var(--nk-mp-plinth); fill-opacity: .9; stroke: var(--nk-mp-plinth); }
+/* hovered = temporary highlight; selected = orange; the three states never look alike */
+.nk-elev .nk-it.nk-pt.nk-hov { stroke: var(--nk-hov-c); stroke-width: 6; stroke-opacity: 1; stroke-dasharray: 18 8; fill-opacity: .6; }
+.nk-elev .nk-it.nk-pt.nk-sel { fill: var(--nk-sel-o); fill-opacity: .42; stroke: var(--nk-sel-o); stroke-width: 8; stroke-opacity: 1; stroke-dasharray: none; }
+.nk-elev .nk-bgrect { fill: transparent; }
+.nk-elev.nk-zoomed .nk-bgrect { cursor: grab; }
+.nk-elev.nk-zoomed { overflow: hidden; } /* [NEO-HANDLES-UX36] a zoomed drawing never paints (or catches the pointer) outside its own box: the zoom buttons above it stay clickable and pills / labels do not bleed over the toolbar */
+
+/* ---------- numbered badges ---------- */
+.nk-elev .nk-bubble { cursor: pointer; }
+.nk-elev .nk-bubble circle { fill: var(--nk-badge-bg); stroke: var(--nk-badge-ink); stroke-width: 2.4; }
+.nk-elev .nk-bubble text { fill: var(--nk-badge-ink); font-weight: 800; font-family: var(--nk-mono); pointer-events: none; }
+.nk-elev .nk-bubble .nk-bname { fill: var(--nk-badge-ink); font-weight: 700; paint-order: stroke; stroke: var(--nk-halo); stroke-width: 6px; stroke-linejoin: round; }
+.nk-elev .nk-bubble.nk-hov circle { stroke: var(--nk-hov-c); stroke-width: 5; }
+.nk-elev .nk-bubble.nk-sel circle { fill: var(--nk-sel-o); stroke: var(--nk-sel-o); }
+.nk-elev .nk-bubble.nk-sel text:not(.nk-bname) { fill: var(--nk-sel-o-t); }
+
+/* ---------- drawing frame (UX-23): a flex column - view bar (zoom + map legend) above the canvas. Nothing is positioned over the drawing. ---------- */
+.nk .nk-elevwrap { display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; min-width: 0; }
+.nk .nk-elevbar { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-2) var(--space-3); min-width: 0; }
+.nk .nk-elevcanvas { flex: 1 1 0; min-height: 0; min-width: 0; position: relative; padding: var(--space-2) var(--space-3) var(--space-3); display: flex; }
+.nk .nk-maplegend { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); min-width: 0; }
+.nk-mlg { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 26px; padding: 2px var(--space-3) 2px var(--space-2); border: 1px solid var(--border); background: var(--bg-2); color: var(--text-1); border-radius: var(--radius-pill); font-size: 12px; font-weight: 600; text-align: start; white-space: nowrap; }
+.nk-mlg[aria-pressed="true"] { border-color: var(--brand); background: var(--brand-muted); }
+.nk-mlg[data-absent="1"] { color: var(--text-3); }
+.nk-mlg-sw { width: 13px; height: 13px; border-radius: 3px; border: 1.5px solid currentColor; flex: 0 0 auto; }
+.nk-mlg-sw.nk-bt-baseUnit { background: color-mix(in srgb, var(--nk-mp-baseUnit) 45%, transparent); border-color: var(--nk-mp-baseUnit); }
+.nk-mlg-sw.nk-bt-wallUnit { background: color-mix(in srgb, var(--nk-mp-wallUnit) 45%, transparent); border-color: var(--nk-mp-wallUnit); }
+.nk-mlg-sw.nk-bt-topUnit { background: color-mix(in srgb, var(--nk-mp-topUnit) 45%, transparent); border-color: var(--nk-mp-topUnit); }
+.nk-mlg-sw.nk-bt-door { background: color-mix(in srgb, var(--nk-mp-door) 45%, transparent); border-color: var(--nk-mp-door); }
+.nk-mlg-sw.nk-bt-drawer { background: color-mix(in srgb, var(--nk-mp-drawer) 45%, transparent); border-color: var(--nk-mp-drawer); }
+.nk-mlg-sw.nk-bt-flip { background: color-mix(in srgb, var(--nk-mp-flip) 45%, transparent); border-color: var(--nk-mp-flip); }
+.nk-mlg-sw.nk-bt-glass { background: color-mix(in srgb, var(--nk-mp-glass) 45%, transparent); border-color: var(--nk-mp-glass); }
+.nk-mlg-sw.nk-bt-open { background: color-mix(in srgb, var(--nk-mp-open) 45%, transparent); border-color: var(--nk-mp-open); }
+.nk-mlg-sw.nk-bt-shelf { background: color-mix(in srgb, var(--nk-mp-shelf) 45%, transparent); border-color: var(--nk-mp-shelf); }
+.nk-mlg-sw.nk-bt-cover { background: color-mix(in srgb, var(--nk-mp-cover) 45%, transparent); border-color: var(--nk-mp-cover); }
+/* selected cabinet: one outline round the whole unit, same orange as the selected fill, drawn 2.5px on screen at every zoom */
+.nk-elev .nk-selbox { fill: var(--nk-sel-o); fill-opacity: .08; stroke: var(--nk-sel-o); stroke-width: 2.5px; vector-effect: non-scaling-stroke; pointer-events: none; }
+.nk .nk-zoom { display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-2); overflow: hidden; flex: none; }
+.nk .nk-zoom button { min-width: 36px; min-height: 34px; padding: 0 var(--space-2); border: 0; background: transparent; color: var(--text-1); font-weight: 800; font-size: 15px; }
+.nk .nk-zoom button.nk-zoom-fit { font-size: 12.5px; font-weight: 700; padding-inline: var(--space-3); border-inline-start: 1px solid var(--border); }
+.nk .nk-zoom button:hover:not(:disabled) { background: var(--brand-muted); color: var(--nk-ink, var(--brand)); }
+.nk .nk-zoom-v { min-width: 5ch; text-align: center; font-size: 12px; font-weight: 700; color: var(--text-2); padding-inline: var(--space-1); }
+@media (pointer: coarse) { .nk .nk-zoom button { min-width: 44px; min-height: 44px; } }
+@media (hover: none) { .nk-elev .nk-it.nk-pt.nk-hov { stroke-dasharray: none; } }
+
+/* ---------- consistent line weights: every stroke is a screen-pixel width, whatever the zoom or the kitchen size (UX-23) ---------- */
+.nk-elev line, .nk-elev path, .nk-elev rect, .nk-elev circle { vector-effect: non-scaling-stroke; }
+.nk-elev .nk-dl { stroke-width: 1.25px; } .nk-elev .nk-ext { stroke-width: 1px; }
+.nk-elev .nk-rg { stroke-width: 1px; stroke-dasharray: 6 4; }
+.nk-elev .nk-brk { stroke-width: 1.25px; } .nk-elev .nk-cabc { stroke-width: 1.25px; }
+.nk-elev .nk-bubble circle { stroke-width: 1.25px; }
+.nk-elev .nk-it { stroke-width: 1.25px; } .nk-elev.nk-map-on .nk-it.nk-pt { stroke-width: 1.5px; }
+.nk-elev .nk-it.nk-pt.nk-hov { stroke-width: 2.5px; stroke-dasharray: 6 3; }
+.nk-elev .nk-it.nk-pt.nk-sel { stroke-width: 2.5px; }
+.nk-elev .nk-floor { stroke-width: 2px; } .nk-elev .nk-wall { stroke-width: 1.5px; }
+.nk-elev .nk-hidden { stroke-dasharray: 6 4; } .nk-elev .nk-swing { stroke-width: 1.25px; stroke-dasharray: 6 4; }
+.nk-elev .nk-int { stroke-width: 1px; stroke-dasharray: 5 3; } .nk-elev .nk-center { stroke-width: 1px; stroke-dasharray: 10 3 2 3; }
+.nk-elev .nk-guide { stroke-width: 1px; } .nk-elev .nk-glare { stroke-width: 1px; }
+.nk-elev .nk-hnd-r { stroke-width: 2px; }

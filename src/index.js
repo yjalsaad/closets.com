@@ -7,11 +7,25 @@ import reportWebVitals from './reportWebVitals';
 
 const container = document.getElementById('root');
 
+// [WEB-STUDIO 2026-10-31] /studio/* = the Neo Design Studio (the 8 Bonsai Neo designers for signed-in customers): its own lazy chunk,
+// mounted instead of the marketing site so the designers get the full screen.
+const isStudio = /^\/studio(\/|$)/i.test(window.location.pathname || '');
+const StudioRoot = React.lazy(() => import('./studio/StudioRoot'));
+
 // When the page was prerendered (the postbuild puppeteer crawl writes static
 // markup into #root), hydrate it so the prerendered DOM is reused — no flash of
 // empty content, and crawlers see real text. Otherwise (normal dev / a route
 // that wasn't prerendered) mount fresh with createRoot.
-if (container.hasChildNodes()) {
+if (isStudio) {
+  if (container.hasChildNodes()) container.innerHTML = '';
+  ReactDOM.createRoot(container).render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <React.Suspense fallback={null}><StudioRoot /></React.Suspense>
+      </ErrorBoundary>
+    </React.StrictMode>
+  );
+} else if (container.hasChildNodes()) {
   ReactDOM.hydrateRoot(
     container,
     <React.StrictMode>

@@ -1,0 +1,90 @@
+/* =============================================================================
+ * Neo Kitchen Designer - "Production -> Cutting List" (UX-10). Everything for the
+ * CutListView panel lives in this file. Owner-palette literals exist ONLY as the
+ * scoped --nk-cl-* custom properties right below (light + dark); every rule uses
+ * those or the DESIGN.md tokens. .nk-print-root is listed too because the print
+ * sheet is portalled outside .nk.
+ * ===========================================================================*/
+.nk, .nk-print-root {
+  --nk-cl-blue: #356DFF; --nk-cl-teal: #159A8A; --nk-cl-orange: #C87916;
+  --nk-cl-warn-bg: #FFF8EE; --nk-cl-warn-line: #EBCB9C; --nk-cl-warn-text: #5A4426;
+  --nk-cl-panel: #FFFFFF; --nk-cl-line: #E3E6EC; --nk-cl-head-bg: #F7F8FB;
+  --nk-cl-text: #182033; --nk-cl-muted: #697386; --nk-cl-shadow: rgba(24, 32, 51, .05);
+}
+[data-theme="dark"] .nk, .nk[data-theme="dark"], [data-theme="dark"] .nk-print-root {
+  --nk-cl-blue: #7CA0FF; --nk-cl-teal: #3CC9B6; --nk-cl-orange: #E8A03F;
+  --nk-cl-warn-bg: #2A2318; --nk-cl-warn-line: #5E4A28; --nk-cl-warn-text: #F0DDB8;
+  --nk-cl-panel: #151A24; --nk-cl-line: #2A3243; --nk-cl-head-bg: #1B2230;
+  --nk-cl-text: #E8ECF4; --nk-cl-muted: #9AA5B8; --nk-cl-shadow: rgba(0, 0, 0, .35);
+}
+
+/* bottom padding keeps the floating assistant button from covering the last rows */
+.nk-cl { container-type: inline-size; container-name: nkcl; padding: var(--space-5) var(--space-5) 112px; max-width: 1280px; margin: 0 auto; box-sizing: border-box; display: flex; flex-direction: column; gap: var(--space-4); color: var(--nk-cl-text); }
+.nk-cl-panel { background: var(--nk-cl-panel); border: 1px solid var(--nk-cl-line); border-radius: var(--radius-lg); padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); box-shadow: 0 1px 2px var(--nk-cl-shadow); min-width: 0; }
+.nk-cl-head { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--space-4); flex-wrap: wrap; }
+.nk-cl-eyebrow { font-family: var(--nk-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--nk-cl-muted); font-weight: 700; }
+.nk-cl-h2 { margin: 2px 0 0; font-size: 26px; line-height: 1.15; font-weight: 800; color: var(--nk-cl-text); }
+.nk-cl-sub { color: var(--nk-cl-muted); font-size: 12.5px; margin-block-start: 2px; }
+.nk-cl-metrics { display: flex; gap: var(--space-6); flex-wrap: wrap; }
+.nk-cl-metric { display: flex; flex-direction: column; gap: 2px; min-width: 72px; }
+.nk-cl-mk { font-family: var(--nk-mono); font-size: 10.5px; letter-spacing: .12em; color: var(--nk-cl-muted); font-weight: 700; }
+.nk-cl-mv { font-family: var(--nk-mono); font-variant-numeric: tabular-nums; font-size: 30px; line-height: 1.05; font-weight: 800; }
+.nk-cl-blue { color: var(--nk-ink, var(--nk-cl-blue)); } .nk-cl-teal { color: var(--nk-ok-ink, var(--nk-cl-teal)); } .nk-cl-orange { color: var(--nk-warn-ink, var(--nk-cl-orange)); }
+
+.nk-cl-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); }
+.nk-cl-card { background: var(--nk-cl-panel); border: 1px solid var(--nk-cl-line); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4); min-width: 0; }
+.nk-cl-card-t { font-weight: 800; font-size: 14px; color: var(--nk-cl-text); }
+.nk-cl-card-s { font-family: var(--nk-mono); font-variant-numeric: tabular-nums; font-size: 12px; color: var(--nk-cl-muted); margin-block-start: 3px; }
+.nk-cl-named { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.nk-cl-badge { border: 1px solid var(--nk-cl-line); border-radius: var(--radius-pill); padding: 2px var(--space-3); font-family: var(--nk-mono); font-size: 11.5px; color: var(--nk-cl-text); }
+
+.nk-cl-warn { background: var(--nk-cl-warn-bg); border: 1px solid var(--nk-cl-warn-line); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4); }
+.nk-cl-warn-h { font-family: var(--nk-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 800; color: var(--nk-warn-ink, var(--nk-cl-orange)); margin-block-end: var(--space-2); }
+.nk-cl-warn-l { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.nk-cl-warn-l li { position: relative; padding-inline-start: 16px; font-size: 12.5px; line-height: 1.45; color: var(--nk-cl-warn-text); }
+.nk-cl-warn-l li::before { content: ""; position: absolute; inset-inline-start: 2px; inset-block-start: .55em; width: 6px; height: 6px; border-radius: var(--radius-pill); background: var(--nk-cl-orange); }
+
+.nk-cl-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.nk-cl-actions .nk-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.nk-cl-scroll { border: 1px solid var(--nk-cl-line); border-radius: var(--radius-lg); overflow: auto; max-height: min(68vh, 720px); background: var(--nk-cl-panel); }
+.nk-cl-table { width: 100%; min-width: 760px; border-collapse: separate; border-spacing: 0; font-family: var(--nk-mono); font-variant-numeric: tabular-nums; font-size: 12.5px; }
+.nk-cl-table th, .nk-cl-table td { padding: 9px var(--space-3); border-block-end: 1px solid var(--nk-cl-line); text-align: end; vertical-align: top; white-space: nowrap; }
+.nk-cl-table thead th { position: sticky; inset-block-start: 0; z-index: 2; background: var(--nk-cl-head-bg); font-size: 10.5px; letter-spacing: .12em; font-weight: 800; color: var(--nk-cl-muted); }
+.nk-cl-table thead th i { font-style: normal; font-weight: 600; letter-spacing: 0; text-transform: none; opacity: .8; }
+.nk-cl-table tbody tr:last-child td { border-block-end: 0; }
+.nk-cl-table tfoot th, .nk-cl-table tfoot td { position: sticky; inset-block-end: 0; background: var(--nk-cl-head-bg); border-block-start: 1px solid var(--nk-cl-line); border-block-end: 0; font-weight: 800; color: var(--nk-cl-text); }
+.nk-cl-table .nk-cl-start { text-align: start; }
+.nk-cl-table .nk-cl-c { text-align: center; width: 44px; }
+.nk-cl-mute { color: var(--nk-cl-muted); }
+.nk-cl-table td.nk-cl-start:nth-child(2) { white-space: normal; min-width: 260px; }
+.nk-cl-pname { font-family: inherit; font-weight: 700; font-size: 13px; color: var(--nk-cl-text); }
+.nk-cl-pnote { font-size: 11.5px; color: var(--nk-cl-muted); margin-block-start: 2px; line-height: 1.35; }
+.nk-cl-pcut { font-size: 11px; color: var(--nk-cl-muted); margin-block-start: 2px; opacity: .85; }
+.nk-cl-qty, .nk-cl-qtyh { color: var(--nk-ink, var(--nk-cl-blue)); font-weight: 800; }
+.nk-cl-mat { display: inline-block; border: 1px solid var(--nk-cl-line); border-radius: var(--radius-pill); padding: 1px var(--space-3); font-size: 11.5px; color: var(--nk-cl-text); }
+.nk-cl-empty { border: 1px dashed var(--nk-cl-line); border-radius: var(--radius-lg); padding: var(--space-6); text-align: center; display: flex; flex-direction: column; gap: var(--space-2); color: var(--nk-cl-muted); }
+.nk-cl-empty b { color: var(--nk-cl-text); font-size: 15px; }
+.nk-cl-foot { margin: 0; font-size: 11.5px; line-height: 1.5; color: var(--nk-cl-muted); }
+.nk-cl-foot b { color: var(--nk-cl-text); }
+.nk-cl-below { display: flex; flex-direction: column; gap: var(--space-4); }
+.nk-cl-below .nk-cut-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-4); }
+.nk-cl-below .nk-card-flat { background: var(--nk-cl-panel); border: 1px solid var(--nk-cl-line); border-radius: var(--radius-lg); padding: var(--space-4); }
+
+/* container queries: the docked assistant / sidebar narrow the panel, so the grid follows the panel, not the window */
+@container nkcl (max-width: 759px) { .nk-cl-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container nkcl (max-width: 419px) { .nk-cl-cards { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 559px) {
+  .nk-cl { padding: var(--space-3) var(--space-3) 112px; }
+  .nk-cl-panel { padding: var(--space-4); }
+  .nk-cl-mv { font-size: 26px; }
+  .nk-cl-metrics { gap: var(--space-4); width: 100%; }
+}
+
+/* print sheet (portalled; compact) */
+.nk-cl--compact { padding: 0; max-width: none; }
+.nk-cl--compact .nk-cl-panel { box-shadow: none; border: 0; padding: 0; }
+.nk-cl--compact .nk-cl-scroll { max-height: none; overflow: visible; border: 0; }
+.nk-cl--compact .nk-cl-table { min-width: 0; font-size: 9px; }
+.nk-cl--compact .nk-cl-table th, .nk-cl--compact .nk-cl-table td { padding: 2px 4px; }
+.nk-cl--compact .nk-cl-table thead th, .nk-cl--compact .nk-cl-table tfoot th, .nk-cl--compact .nk-cl-table tfoot td { position: static; }

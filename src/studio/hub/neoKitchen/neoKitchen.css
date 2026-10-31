@@ -1,0 +1,732 @@
+/* =============================================================================
+ * Neo Kitchen Designer - styles. UI chrome uses ONLY the DESIGN.md tokens
+ * (--bg*, --border, --text-*, --brand*, --success/--danger/--warning/--info,
+ * --space-N, --radius-*). The block directly below is the ONE place with literal
+ * colours: they are MATERIAL / DRAWING DATA, not UI chrome - PBR finish swatches
+ * (owner item 8), countertop stones, hardware metals, and the drawing's part-type
+ * colour coding (reference "Elevation CAD mode"). Documented in DESIGN.md
+ * (Decisions Log - NEO-KITCHEN). Nothing else in this file or in the .js/.jsx
+ * files hard-codes a colour.
+ * ===========================================================================*/
+.nk {
+  /* ---- PBR finishes (Natural Oak, Dark Walnut, Matte White Lacquer, Charcoal Grey) ---- */
+  --nk-fin-oak: #b08d57; --nk-fin-walnut: #5f4636; --nk-fin-white: #e7e4df; --nk-fin-charcoal: #43474b; --nk-fin-dark: #3a2a1a;
+  /* ---- countertop stones ---- */
+  --nk-ct-marble: #c9c9c6; --nk-ct-quartz: #ecebe7; --nk-ct-granite: #2a2c2e; --nk-ct-laminate: #8f9396; --nk-ct-oak: #a98550; --nk-vein: #6e7378;
+  /* ---- 3D carcass / hardware materials ---- */
+  --nk-carcass: #d9d6cf; --nk-back: #bcb8ae; --nk-shelf: #e6e3dc; --nk-drawerbox: #cfc8ba; --nk-plinth: #1f2124; --nk-metal: #9aa0a6;
+  --nk-glass: #8fb3c0; --nk-faucet: #0c0c0d; --nk-sink: #101113; --nk-oven: #26272b; --nk-fridge: #c6cacd;
+  --nk-edge: #3b3d40; --nk-xray: #2f6fcf; --nk-drill: #378add; --nk-grid: #8a8d91; --nk-diagram: #2563eb;
+  --nk-dowel: #e0c07a; --nk-minifix: #d94f4f; --nk-cam: #4f9d6a;
+  /* ---- 2D drawing part-type colours (legend swatches) ---- */
+  --nk-pt-baseUnit: #7f8791; --nk-pt-wallUnit: #98a1ab; --nk-pt-door: #6366f1; --nk-pt-drawer: #f59e0b; --nk-pt-flip: #ec4899; --nk-pt-glass: #14b8a6;
+  --nk-pt-open: #22c55e; --nk-pt-shelf: #84cc16; --nk-pt-cover: #3b82f6; --nk-pt-counter: #64748b; --nk-pt-plinth: #334155;
+  /* ---- aliases onto the design tokens ---- */
+  --nk-field: var(--bg-3);
+  --nk-mono: var(--font-mono);
+  /* ---- UX-1 workspace palette (owner spec). Also literal colour DATA: this block is the one place that may hold them.
+     Light = owner values; dark is the same roles on a dark surface scale. Inside the workspace they are mapped onto the
+     DESIGN.md tokens (--brand, --bg*, --border, --text-*), so every rule below keeps using the tokens only. ---- */
+  --nk-primary: #356DFF; --nk-primary-hover: #2B5BDB; --nk-primary-soft: #E7EEFF; --nk-on-primary: #FFFFFF;
+  --nk-bg: #FFFFFF; --nk-panel: #FFFFFF; --nk-field: #F1F3F7; --nk-line: #E1E5EC;
+  --nk-text: #182033; --nk-text-2: #697386;
+  --nk-shadow-1: 0 1px 2px rgba(24, 32, 51, .06), 0 4px 14px rgba(24, 32, 51, .08);
+  --nk-shadow-2: 0 10px 32px rgba(24, 32, 51, .18);
+  --nk-scrim: rgba(24, 32, 51, .34);
+  --brand: var(--nk-primary); --brand-hover: var(--nk-primary-hover); --brand-muted: var(--nk-primary-soft); --text-on-brand: var(--nk-on-primary);
+  --bg: var(--nk-bg); --bg-2: var(--nk-panel); --bg-3: var(--nk-field); --border: var(--nk-line);
+  --text-1: var(--nk-text); --text-2: var(--nk-text-2); --text-3: var(--nk-text-2);
+  /* ---- UX-2 "05 Shelves" card (owner palette): muted text, card hairline, shelf board green and the front-view frame ---- */
+  --nk-muted: #8490AA; --nk-card-line: #DFE2E9; --nk-shelf-board: #DCEAD6; /* muted: owner value from UX-3 (was #7F8BA8 in UX-2) */
+  --nk-frame-fill: #C8CEDC; --nk-frame-line: #5C6785; --nk-frame-bg: #F4F5FA; --nk-stage-bg: #F7F8FB;
+  /* ---- UX-3 "04 Drawers" diagram: pale blue-gray faces (front / top / right), cream board (bottom panel, plan front), ghost panel ---- */
+  --nk-dw-front: #E4E8F3; --nk-dw-top: #EFF2F9; --nk-dw-right: #D3D9E8; --nk-dw-cream: #EFE4CB; --nk-dw-ghost: #DDE3F1;
+  /* ---- UX-4 "03 Doors & Hinges" diagram: pale beige door faces (outer / top / thickness edge), their brown-gray outline ---- */
+  --nk-do-face: #EADDC3; --nk-do-top: #F3EAD7; --nk-do-edge: #DCCBA6; --nk-do-line: #7C6C4F; --nk-do-bore: #F8F3E8;
+  /* ---- UX-6 row screens (Wall / Top / L-Left / L-Right): selected-unit fill and the pale block grey of the plan diagram (owner palette) ---- */
+  --nk-sel-fill: #EAF0FF; --nk-block: #F1F2F4;
+  --nk-tbh: 64px; --nk-panel-w: 420px;
+}
+[data-theme="dark"] .nk, .nk[data-theme="dark"] {
+  --nk-primary: #6C93FF; --nk-primary-hover: #8AA9FF; --nk-primary-soft: rgba(108, 147, 255, .16); --nk-on-primary: #0B1020;
+  --nk-bg: #0E121A; --nk-panel: #151A24; --nk-field: #1B2230; --nk-line: #2A3243;
+  --nk-text: #E8ECF4; --nk-text-2: #9AA5B8;
+  --nk-shadow-1: 0 1px 2px rgba(0, 0, 0, .4), 0 4px 14px rgba(0, 0, 0, .35);
+  --nk-shadow-2: 0 10px 32px rgba(0, 0, 0, .55);
+  --nk-scrim: rgba(0, 0, 0, .55);
+  --nk-muted: #8C97B0; --nk-card-line: #2A3243; --nk-shelf-board: #3B5A45;
+  --nk-frame-fill: #2C3548; --nk-frame-line: #8A96B4; --nk-frame-bg: #10151F; --nk-stage-bg: #121823;
+  --nk-dw-front: #2E384D; --nk-dw-top: #3A4560; --nk-dw-right: #252E41; --nk-dw-cream: #6C6048; --nk-dw-ghost: #243049;
+  --nk-do-face: #6C6048; --nk-do-top: #7B6E54; --nk-do-edge: #594E3A; --nk-do-line: #C9B88F; --nk-do-bore: #2A2418;
+  --nk-sel-fill: rgba(108, 147, 255, .24); --nk-block: #1B2230;
+}
+/* [UI-STD6 2026-10-30] AA text in the designers' UI chrome (axe color-contrast on all eight Neo designers, light theme).
+   Screen only and never the report sheet (.nk-rep) or a drawing (svg): printed sheets and drawings keep the owner palette above byte-for-byte.
+   - secondary text: --nk-text-2 on the field grey was 4.29:1 -> the Hub's --color-text-3 (4.9:1); captions on --nk-muted (3.2:1) take the same value
+   - brand as TEXT, and brand FILLS under white text: --nk-ink = --nk-primary-hover, the [UI-STD5] fill of .nk-btn-primary (5.0:1 on the soft tint, 5.8:1 under white)
+   - the on-screen cut list's teal / orange figures (3.5:1 / 3.4:1) take --color-success / --color-warning (its print sheet keeps --nk-cl-*)
+   Dark already passes: there these resolve to `initial`, so every rule falls back to its old value. */
+@media screen {
+  .nk:not(.nk-rep) { --nk-ui-2: var(--color-text-3); --text-2: var(--nk-ui-2, var(--nk-text-2)); --text-3: var(--nk-ui-2, var(--nk-text-2)); --nk-muted-ui: var(--color-text-3); --nk-ink: var(--nk-primary-hover); --nk-ok-ink: var(--color-success); --nk-warn-ink: var(--color-warning); }
+  [data-theme="dark"] .nk:not(.nk-rep), .nk[data-theme="dark"]:not(.nk-rep) { --nk-ui-2: initial; --nk-muted-ui: initial; --nk-ink: initial; --nk-ok-ink: initial; --nk-warn-ink: initial; }
+  .nk:not(.nk-rep) svg { --text-2: var(--nk-text-2); --text-3: var(--nk-text-2); --nk-ink: initial; --nk-muted-ui: initial; --nk-ok-ink: initial; --nk-warn-ink: initial; }
+}
+
+.nk { display: flex; flex-direction: column; height: 100%; min-height: 620px; background: var(--bg); color: var(--text-1); position: relative; font: inherit; font-size: var(--text-sm, 13px); line-height: 1.4; }
+.nk *, .nk *::before, .nk *::after { box-sizing: border-box; }
+.nk button, .nk input, .nk select { font: inherit; color: inherit; }
+.nk button { cursor: pointer; }
+.nk button:disabled { opacity: .45; cursor: not-allowed; }
+.nk :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.nk [hidden] { display: none !important; }
+.nk-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.nk-mono { font-family: var(--nk-mono); font-variant-numeric: tabular-nums; }
+.nk-c-2 { color: var(--text-2); } .nk-c-3 { color: var(--text-3); }
+.nk-c-info { color: var(--info); } .nk-c-success { color: var(--success); } .nk-c-warning { color: var(--warning); }
+.nk-sub { color: var(--text-3); font-size: 12px; margin-block-start: var(--space-1); }
+.nk-eyebrow { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); font-weight: 800; }
+.nk-h2 { margin: 0; font-size: 24px; font-weight: 800; }
+.nk-h3 { margin: 0; font-size: 15px; font-weight: 700; flex: 1; }
+
+/* ---------- header ---------- */
+.nk-brand { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.nk-logo { width: 32px; height: 32px; border-radius: var(--radius-md); background: var(--brand); color: var(--text-on-brand); display: grid; place-items: center; font-weight: 800; }
+.nk-title { background: transparent; border: 1px solid transparent; border-radius: var(--radius-sm); font-size: 16px; font-weight: 700; padding: 2px var(--space-1); width: min(260px, 40vw); }
+.nk-title:hover, .nk-title:focus { border-color: var(--border); background: var(--bg-3); }
+.nk-subtitle { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 38vw; font-family: var(--nk-mono); font-size: 9.5px; letter-spacing: .14em; color: var(--text-3); padding-inline: var(--space-1); }
+.nk-seg { display: inline-flex; gap: 2px; padding: 3px; background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius-md); }
+.nk-seg-b { border: 0; background: transparent; color: var(--text-2); font-weight: 700; font-size: 12px; padding: 6px var(--space-3); border-radius: var(--radius-sm); white-space: nowrap; min-height: 30px; }
+.nk-seg-b[aria-pressed="true"] { background: var(--nk-ink, var(--brand)); color: var(--text-on-brand); }
+.nk-pill { display: inline-block; border-radius: var(--radius-pill, 9999px); padding: 3px var(--space-3); font-size: 11.5px; font-weight: 700; background: var(--bg-3); border: 1px solid var(--border); color: var(--text-2); }
+.nk-pill-run { background: var(--nk-ink, var(--brand)); color: var(--text-on-brand); border-color: var(--nk-ink, var(--brand)); }
+.nk-pill-mat { white-space: nowrap; font-family: var(--nk-mono); font-weight: 600; font-size: 11px; background: var(--bg-3); border-radius: var(--radius-sm); }
+.nk-menuwrap { position: relative; }
+.nk-menu-h { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); font-weight: 800; margin-block-start: var(--space-1); }
+.nk-menu-chk { display: flex; gap: var(--space-2); align-items: center; font-size: 12.5px; }
+.nk-mi { text-align: start; border: 0; background: transparent; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); font-weight: 600; }
+.nk-mi:hover:not(:disabled) { background: var(--brand-muted); color: var(--nk-ink, var(--brand)); }
+.nk-banner { display: flex; gap: var(--space-3); align-items: center; padding: var(--space-2) var(--space-4); background: var(--brand-muted); border-block-end: 1px solid var(--brand); font-size: 12.5px; }
+.nk-badge { display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: .08em; padding: 1px 6px; border-radius: var(--radius-xs, 4px); vertical-align: middle; }
+.nk-badge-new { background: var(--success); color: var(--text-on-brand); }
+.nk-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--success); margin-inline-start: 3px; }
+
+/* ---------- body / panel ---------- */
+.nk-panel-scroll { flex: 1 1 auto; overflow-y: auto; min-height: 0; }
+.nk-pbody { padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-3); }
+
+/* ---------- cards / controls ---------- */
+.nk-card { background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-3); }
+.nk-card-flat { background: var(--bg-2); }
+.nk-card-sel { border-color: var(--brand); }
+.nk-card-head { display: flex; align-items: center; gap: var(--space-2); margin-block-end: var(--space-2); }
+.nk-card-title { display: flex; align-items: center; gap: var(--space-2); border: 0; background: transparent; font-weight: 700; font-size: 14px; padding: 0; }
+.nk-chev { display: inline-block; transition: transform .15s; color: var(--text-3); } .nk-chev[data-open="1"] { transform: rotate(90deg); }
+.nk-rtl .nk-chev { transform: scaleX(-1); } .nk-rtl .nk-chev[data-open="1"] { transform: scaleX(-1) rotate(90deg); }
+.nk-bar { width: 3px; align-self: stretch; min-height: 16px; background: var(--brand); border-radius: 2px; }
+.nk-cnum { font-family: var(--nk-mono); font-weight: 800; font-size: 12px; background: var(--brand-muted); color: var(--nk-ink, var(--brand)); border-radius: var(--radius-sm); padding: 2px 7px; }
+.nk-cdesc { margin: 0 0 var(--space-3); color: var(--text-2); font-size: 12.5px; }
+.nk-unit-tag { font-family: var(--nk-mono); color: var(--text-3); font-size: 11px; }
+.nk-summary { display: flex; justify-content: space-between; align-items: center; background: var(--brand-muted); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); margin-block: var(--space-3); }
+.nk-summary b { font-family: var(--nk-mono); color: var(--nk-ink, var(--brand)); }
+.nk-ctl { padding-block: var(--space-3); border-block-start: 1px solid var(--border); }
+.nk-ctl-head { display: flex; gap: var(--space-3); align-items: flex-start; margin-block-end: var(--space-2); }
+.nk-cn { flex: 0 0 22px; height: 22px; border-radius: 50%; background: var(--text-1); color: var(--bg); font-size: 11px; font-weight: 800; display: grid; place-items: center; }
+.nk-ctl-t { min-width: 0; }
+.nk-ctl-name { font-weight: 700; font-size: 13px; display: block; }
+.nk-ctl-d { margin: 2px 0 0; color: var(--text-3); font-size: 12px; }
+.nk-dimblock { padding-block: var(--space-2); }
+.nk-mt { margin-block-start: var(--space-3); }
+.nk-num { width: 100%; }
+.nk-num-row { display: flex; align-items: center; gap: var(--space-3); }
+.nk-range { flex: 1 1 auto; min-width: 0; width: 100%; accent-color: var(--brand); height: 24px; }
+/* the value box (UX-23): the number and its unit sit in ONE bordered box, side by side - the unit is a flex sibling, never drawn over the value.
+   The input itself is styled by the boosted rule in controls.css (the Hub's global input rule outranks plain .nk-inp rules). */
+.nk-inp-wrap { direction: ltr; position: static; display: inline-flex; align-items: center; flex: 0 0 auto; min-width: 0; max-width: 100%; height: var(--nk-ctl-h, 40px); background: var(--nk-ctl-bg, var(--bg-3)); border: 1px solid var(--nk-ctl-bd, var(--border)); border-radius: var(--nk-ctl-r, var(--radius-md)); }
+.nk-inp-wrap:focus-within { border-color: var(--brand); box-shadow: var(--nk-focus, 0 0 0 3px var(--brand-muted)); }
+.nk-inp-wrap > .nk-inp { --nk-i-bd: transparent; --nk-i-bdh: transparent; --nk-i-bdf: transparent; --nk-i-bg: transparent; --nk-i-bgf: transparent; --nk-i-shf: none; --nk-i-r: 0; --nk-i-w: 100%; --nk-i-h: calc(var(--nk-ctl-h, 40px) - 2px); --nk-i-pad: 0 var(--space-1) 0 var(--space-3); flex: 1 1 auto; }
+.nk-unit { position: static; flex: none; padding-inline: 0 var(--space-3); color: var(--text-3); font-size: 11.5px; font-weight: 600; font-family: var(--nk-mono); pointer-events: none; }
+.nk-range-note { color: var(--text-3); font-size: 11.5px; font-family: var(--nk-mono); margin-block-start: 2px; }
+.nk-clamp { color: var(--warning); font-size: 12px; min-height: 0; }
+.nk-clamp:empty { display: none; }
+.nk-row-wrap { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: flex-end; }
+.nk-sel-l { display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; color: var(--text-2); font-weight: 600; }
+.nk-select { background: var(--nk-field); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0 var(--space-3); min-height: var(--nk-ctl-h, 40px); font-weight: 600; font-size: 12.5px; max-width: 100%; }
+.nk-pillsel { border-radius: var(--radius-pill, 9999px); }
+.nk-mat-row { display: flex; align-items: center; gap: var(--space-3); justify-content: space-between; padding-block: 4px; font-size: 12.5px; font-weight: 600; }
+.nk-mat-row .nk-inp { --nk-i-w: 40%; --nk-i-h: var(--nk-ctl-h-sm, 32px); }
+.nk-saved { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 3px var(--space-3); color: var(--text-2); font-size: 11.5px; font-weight: 700; }
+.nk-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.nk-chip { display: inline-flex; align-items: center; gap: var(--space-2); border: 1px solid var(--border); background: var(--bg-2); border-radius: var(--radius-pill, 9999px); padding: 5px var(--space-3); font-size: 12px; font-weight: 600; min-height: 32px; }
+.nk-chip[aria-checked="true"], .nk-chip[aria-pressed="true"] { border-color: var(--brand); background: var(--brand-muted); color: var(--nk-ink, var(--brand)); }
+.nk-chip-sm { font-size: 11px; padding: 3px var(--space-2); min-height: 26px; }
+.nk-swatch { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--border); display: inline-block; }
+.nk-btn { border: 1px solid var(--border); background: var(--bg-3); border-radius: var(--radius-md); min-height: 34px; padding: 0 var(--space-3); font-weight: 600; font-size: 12.5px; }
+.nk-btn-primary, .nk .nk-btn-primary { background: var(--nk-primary-hover, var(--brand)); color: var(--text-on-brand); border-color: var(--nk-primary-hover, var(--brand)); } /* [UI-STD5] .nk scope beats `.nk button { color: inherit }` (axe: dark ink on brand); the BUTTON uses the darker owner shade (white 5.8:1) so the palette — also drawn into quote elevations — stays untouched */
+.nk-btn-ghost { background: transparent; color: var(--nk-ink, var(--brand)); border-color: var(--brand); }
+.nk-btn-danger { color: var(--danger); border-color: var(--danger); background: transparent; }
+.nk-ib { width: 28px; height: 28px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-2); display: inline-grid; place-items: center; padding: 0; font-size: 13px; line-height: 1; }
+.nk-ib[aria-pressed="true"], .nk-ib.nk-on { color: var(--nk-ink, var(--brand)); border-color: var(--brand); background: var(--brand-muted); }
+.nk-ib-danger { color: var(--danger); }
+.nk-iconbar { display: inline-flex; gap: 4px; }
+.nk-toggle { width: 42px; height: 24px; border-radius: 999px; border: 1px solid var(--border-control, var(--border)); background: var(--bg-2); position: relative; padding: 0; flex: 0 0 auto; } /* [UI-STD6] the off track was a 1.2:1 hairline on a white card: only the knob showed (WCAG 1.4.11) */
+.nk-toggle[data-on="1"] { background: var(--brand); border-color: var(--brand); }
+.nk-knob { position: absolute; inset-block-start: 2px; inset-inline-start: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--text-1); transition: inset-inline-start .15s; }
+.nk-toggle[data-on="1"] .nk-knob { inset-inline-start: 20px; background: var(--text-on-brand); }
+.nk-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding-block: var(--space-2); font-weight: 600; }
+.nk-keep { display: flex; gap: var(--space-3); align-items: flex-start; margin-block: var(--space-3); }
+.nk-keep small { display: block; color: var(--text-3); font-size: 11.5px; font-weight: 500; }
+.nk-keep input { accent-color: var(--brand); margin-block-start: 3px; width: 16px; height: 16px; }
+.nk-triple { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: var(--space-2); margin-block-end: var(--space-3); }
+.nk-stat { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-2); display: flex; flex-direction: column; gap: 3px; }
+.nk-stat-k { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); font-weight: 800; }
+.nk-add { width: 100%; border: 1px dashed var(--brand); background: var(--brand-muted); color: var(--nk-ink, var(--brand)); font-weight: 700; padding: var(--space-3); border-radius: var(--radius-md); }
+.nk-center { text-align: center; }
+.nk-pilltabs { display: flex; gap: var(--space-2); }
+.nk-pilltab { border: 1px solid var(--border); background: var(--bg-3); border-radius: var(--radius-md); padding: 6px var(--space-4); font-weight: 700; font-size: 12px; }
+.nk-pilltab[aria-selected="true"] { background: var(--nk-ink, var(--brand)); color: var(--text-on-brand); border-color: var(--nk-ink, var(--brand)); }
+.nk-lib { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-2); }
+.nk-lib-b { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); text-align: start; border: 1px solid var(--border); background: var(--bg-2); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); font-weight: 600; font-size: 12.5px; }
+.nk-lib-b:hover { border-color: var(--brand); }
+.nk-lib-add { color: var(--nk-ink, var(--brand)); font-weight: 800; }
+
+/* unit editor */
+.nk-ucard { padding: var(--space-3); }
+.nk-unit-head { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; margin-block-end: var(--space-2); }
+.nk-unit-name { border: 0; background: transparent; padding: 0; text-align: start; font-size: 13.5px; flex: 1 1 120px; }
+.nk-unit-body { display: flex; gap: var(--space-3); margin-block-start: var(--space-2); }
+.nk-uprev { flex: 0 0 62px; width: 62px; height: 100px; }
+.nk-up-box { fill: var(--bg-2); stroke: var(--text-3); stroke-width: 1; }
+.nk-up-t { font-size: 7px; fill: var(--text-1); font-weight: 700; }
+.nk-unit-secs { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.nk-step { display: inline-flex; align-items: center; gap: var(--space-2); }
+.nk-step-v { font-family: var(--nk-mono); min-width: 54px; text-align: center; font-weight: 700; }
+.nk-step-v small { color: var(--text-3); font-weight: 500; font-size: 10px; }
+.nk-sec { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-2); }
+.nk-sec-top { display: flex; align-items: center; gap: var(--space-2); }
+.nk-sec-n { width: 20px; height: 20px; display: grid; place-items: center; font-size: 11px; font-weight: 800; background: var(--bg-3); border-radius: 50%; color: var(--text-2); }
+.nk-sec-top .nk-select { flex: 1 1 auto; }
+.nk-sec-ctl { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; margin-block-start: var(--space-2); }
+.nk-sec-h { display: flex; align-items: center; gap: var(--space-2); font-size: 11.5px; color: var(--text-2); }
+.nk-sec-h .nk-inp { --nk-i-w: 96px; --nk-i-ta: start; --nk-i-h: var(--nk-ctl-h-sm, 32px); }
+.nk-minimap { width: 100%; height: auto; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-md); touch-action: none; }
+.nk-mm-u rect { fill: var(--bg-3); stroke: var(--text-3); stroke-width: 1; cursor: pointer; }
+.nk-mm-u line { stroke: var(--text-3); stroke-width: .6; }
+.nk-mm-u.nk-sel rect { fill: var(--brand-muted); stroke: var(--brand); stroke-width: 1.6; }
+.nk-mm-dim { opacity: .55; }
+.nk-mm-t { font-size: 7px; fill: var(--text-3); }
+.nk-mm-w { font-size: 9px; fill: var(--text-2); font-family: var(--nk-mono); }
+.nk-mm-h { fill: var(--brand); stroke: var(--bg); stroke-width: 2; cursor: ew-resize; }
+.nk-mm-floor { stroke: var(--text-3); stroke-width: 1; }
+
+/* ---------- card art ---------- */
+.nk-art { width: 100%; height: auto; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-md); margin-block-end: var(--space-2); }
+.nk-art-cap { font-size: 8px; letter-spacing: .12em; fill: var(--text-3); font-family: var(--nk-mono); }
+.nk-art-fill { stroke: var(--text-3); stroke-width: .8; fill: var(--bg-3); }
+.nk-art-plinth, .nk-art-board { fill: var(--text-3); } .nk-art-counter { fill: var(--text-2); } .nk-art-base, .nk-art-wall { fill: var(--bg-3); }
+.nk-art-door { fill: var(--brand-muted); } .nk-art-drawer { fill: var(--brand-muted); } .nk-art-shelf { fill: var(--text-2); } .nk-art-back { fill: var(--warning); } .nk-art-edge { fill: var(--brand); stroke: none; }
+.nk-art-ghost { fill: none; stroke: var(--text-3); stroke-dasharray: 3 3; }
+.nk-art-axis { stroke: var(--info); stroke-width: .8; }
+.nk-art-wallline { stroke: var(--text-1); stroke-width: 1.4; }
+.nk-art-dim { stroke: var(--info); stroke-width: .9; fill: none; }
+.nk-art-hole { fill: none; stroke: var(--info); stroke-dasharray: 2 2; }
+.nk-art-zoom { fill: none; stroke: var(--info); stroke-dasharray: 3 3; }
+.nk-art-hidden { fill: url(#nk-hatch); opacity: .5; stroke: none; }
+.nk-art-call circle { fill: var(--bg); stroke: var(--text-1); stroke-width: 1; cursor: pointer; }
+.nk-art-call text { font-size: 9px; font-weight: 800; fill: var(--text-1); pointer-events: none; font-family: var(--nk-mono); }
+.nk-art-call:focus-visible circle { stroke: var(--brand); stroke-width: 2; }
+
+/* ---------- stage ---------- */
+.nk-layers { display: flex; flex-direction: column; gap: 5px; }
+.nk-layer { display: inline-flex; align-items: center; gap: var(--space-2); border: 1px solid var(--border); background: var(--bg-2); color: var(--text-1); border-radius: var(--radius-md); padding: 4px var(--space-3); font-weight: 600; font-size: 12.5px; min-height: 30px; }
+.nk-layer-i { color: var(--info); }
+.nk-layer[data-hidden="1"] { color: var(--text-3); border-color: var(--danger); background: var(--bg-3); }
+.nk-layer[data-hidden="1"] .nk-layer-t { text-decoration: line-through; }
+.nk-layer[data-hidden="1"] .nk-layer-i { color: var(--danger); }
+.nk-chk { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+.nk-chk input { accent-color: var(--brand); width: 24px; height: 24px; margin: 0; } /* WCAG 2.5.8 target ≥24px (was 15px + UA margin) */
+.nk-legend { display: flex; flex-direction: column; gap: 3px; }
+.nk-lg { display: inline-flex; align-items: center; gap: var(--space-2); border: 1px solid transparent; background: var(--bg-2); border-radius: var(--radius-sm); padding: 2px var(--space-2); font-size: 11.5px; font-weight: 600; text-align: start; }
+.nk-lg[aria-pressed="true"] { border-color: var(--brand); background: var(--brand-muted); }
+.nk-sw { width: 14px; height: 14px; border-radius: 3px; display: inline-block; border: 1px solid var(--text-3); flex: 0 0 auto; }
+.nk-exbar .nk-range { width: 140px; flex: 0 0 auto; }
+.nk-sel-t { display: flex; flex-direction: column; min-width: 0; }
+.nk-sel-t small { color: var(--text-3); font-family: var(--nk-mono); font-size: 11px; }
+
+/* ---------- SVG elevation ---------- */
+.nk-t { fill: var(--text-2); font-family: var(--nk-mono); }
+.nk-dim-l { stroke-width: 2; }
+.nk-dim-blue { stroke: var(--info); fill: var(--info); } .nk-dim-red { stroke: var(--danger); fill: var(--danger); } .nk-dim-grey { stroke: var(--text-2); fill: var(--text-2); }
+.nk-dim-t { stroke: none; font-weight: 700; }
+.nk-tag { fill: var(--text-3); } .nk-note { fill: var(--danger); }
+.nk-band { fill: var(--text-3); opacity: .08; } .nk-band-wall { fill: var(--info); }
+.nk-guide { stroke: var(--text-3); stroke-width: 1.2; stroke-dasharray: 10 8; opacity: .6; }
+.nk-rowlabel { fill: var(--text-3); letter-spacing: .3em; font-weight: 800; }
+.nk-wall { stroke: var(--text-1); stroke-width: 3; opacity: .5; }
+.nk-hidden { fill: url(#nk-hatch); stroke: var(--text-3); stroke-dasharray: 8 6; }
+.nk-hatch-l { stroke: var(--text-3); stroke-width: 2; }
+.nk-floor { stroke: var(--text-1); stroke-width: 4; }
+.nk-it { stroke: var(--text-1); stroke-width: 2.5; stroke-opacity: .65; cursor: pointer; transition: opacity .12s; }
+.nk-pt-baseUnit { fill: var(--nk-pt-baseUnit); fill-opacity: .28; } .nk-pt-wallUnit { fill: var(--nk-pt-wallUnit); fill-opacity: .28; }
+.nk-pt-door { fill: var(--nk-pt-door); fill-opacity: .42; } .nk-pt-drawer { fill: var(--nk-pt-drawer); fill-opacity: .5; } .nk-pt-flip { fill: var(--nk-pt-flip); fill-opacity: .45; }
+.nk-pt-glass { fill: var(--nk-pt-glass); fill-opacity: .4; } .nk-pt-open { fill: var(--nk-pt-open); fill-opacity: .18; } .nk-pt-shelf { fill: var(--nk-pt-shelf); fill-opacity: .5; }
+.nk-pt-cover { fill: var(--nk-pt-cover); fill-opacity: .45; } .nk-pt-counter { fill: var(--nk-pt-counter); fill-opacity: .7; } .nk-pt-plinth { fill: var(--nk-pt-plinth); fill-opacity: .85; }
+.nk-sw.nk-pt { fill: none; }
+.nk-sw.nk-pt-baseUnit { background: var(--nk-pt-baseUnit); } .nk-sw.nk-pt-wallUnit { background: var(--nk-pt-wallUnit); } .nk-sw.nk-pt-door { background: var(--nk-pt-door); }
+.nk-sw.nk-pt-drawer { background: var(--nk-pt-drawer); } .nk-sw.nk-pt-flip { background: var(--nk-pt-flip); } .nk-sw.nk-pt-glass { background: var(--nk-pt-glass); }
+.nk-sw.nk-pt-open { background: var(--nk-pt-open); } .nk-sw.nk-pt-shelf { background: var(--nk-pt-shelf); } .nk-sw.nk-pt-cover { background: var(--nk-pt-cover); }
+.nk-sw.nk-pt-counter { background: var(--nk-pt-counter); } .nk-sw.nk-pt-plinth { background: var(--nk-pt-plinth); }
+.nk-sw[class*="nk-pt-"] { fill-opacity: 1; }
+.nk-it.nk-xr { fill: none; stroke: var(--info); stroke-opacity: .9; stroke-width: 2.5; }
+.nk-it.nk-sel { fill: var(--brand); fill-opacity: .6; stroke: var(--brand); stroke-width: 6; stroke-opacity: 1; }
+.nk-out { opacity: .14; }
+.nk-glare { stroke: var(--text-1); stroke-width: 1.6; opacity: .45; }
+.nk-appl { fill: var(--text-1); fill-opacity: .6; stroke: none; } .nk-appl-t { fill: var(--text-2); font-weight: 700; }
+.nk-faucet { fill: var(--text-1); }
+.nk-swing { fill: none; stroke: var(--text-1); stroke-width: 1.6; stroke-dasharray: 10 8; opacity: .55; }
+.nk-int { fill: none; stroke: var(--text-2); stroke-width: 1.8; stroke-dasharray: 8 6; pointer-events: none; }
+.nk-int-shelf { fill: var(--nk-pt-shelf); fill-opacity: .35; stroke-dasharray: none; }
+.nk-groove { stroke: var(--warning); }
+.nk-handle-m { fill: var(--text-2); stroke: var(--text-1); stroke-width: 1; pointer-events: none; }
+.nk-hinge-m { fill: none; stroke: var(--text-1); stroke-width: 1.6; pointer-events: none; }
+.nk-drill { fill: none; stroke: var(--info); stroke-width: 2; pointer-events: none; }
+.nk-pin { fill: var(--info); }
+.nk-center { stroke: var(--text-3); stroke-width: 1.4; stroke-dasharray: 22 6 3 6; }
+.nk-bubble circle { fill: var(--bg); stroke: var(--text-1); stroke-width: 2; } .nk-bubble text { fill: var(--text-1); font-weight: 800; font-family: var(--nk-mono); pointer-events: none; }
+.nk-hnd { cursor: ew-resize; outline: none; } .nk-hnd-v { cursor: ns-resize; }
+.nk-hnd-r { fill: var(--info); stroke: var(--bg); stroke-width: 3; rx: 8; }
+.nk-hnd:focus-visible .nk-hnd-r, .nk-hnd:hover .nk-hnd-r { fill: var(--brand); }
+
+/* ---------- cut list ---------- */
+.nk-cut-inner { max-width: 1200px; margin: 0 auto; padding: var(--space-5, 20px); display: flex; flex-direction: column; gap: var(--space-4); }
+.nk-cut-head { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--space-4); flex-wrap: wrap; }
+.nk-stats { display: flex; gap: var(--space-5, 20px); }
+.nk-stat-v { font-family: var(--nk-mono); font-size: 26px; font-weight: 700; }
+.nk-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: var(--space-3); }
+.nk-mcard { background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-3); }
+.nk-mcard-t { font-weight: 700; } .nk-mcard-s { color: var(--text-2); font-family: var(--nk-mono); font-size: 12px; margin-block-start: 2px; }
+.nk-named { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; }
+.nk-warn { background: var(--bg-3); border: 1px solid var(--warning); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4); }
+.nk-warn-i { color: var(--warning); font-size: 12.5px; } .nk-ok { color: var(--success); font-size: 12.5px; }
+.nk-cut-actions { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
+.nk-table-wrap { overflow-x: auto; background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.nk-table { width: 100%; border-collapse: collapse; min-width: 880px; }
+.nk-table-sm { min-width: 0; }
+.nk-table th { font-size: 10px; letter-spacing: .08em; color: var(--text-3); font-weight: 800; padding: var(--space-3); border-block-end: 1px solid var(--border); text-align: end; white-space: nowrap; }
+.nk-table td { padding: 7px var(--space-3); border-block-end: 1px solid var(--border); text-align: end; font-size: 12.5px; vertical-align: top; }
+.nk-table .nk-th-name, .nk-table .nk-td-name { text-align: start; }
+.nk-grp th { text-align: start; background: var(--bg-2); color: var(--text-2); letter-spacing: .06em; }
+.nk-pname { font-weight: 700; } .nk-pnote { color: var(--info); font-family: var(--nk-mono); font-size: 11px; margin-block-start: 2px; }
+.nk-qty { color: var(--info); font-weight: 700; }
+.nk-total td { font-weight: 800; }
+.nk-cut-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-4); }
+
+/* ---------- assistant ---------- */
+.nk-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--bg); color: var(--nk-ink, var(--brand)); display: grid; place-items: center; font-weight: 800; }
+.nk-asst-head { display: flex; align-items: center; gap: var(--space-3); } .nk-asst-head > div { flex: 1; display: flex; flex-direction: column; } .nk-asst-head small { color: var(--text-3); }
+.nk-asst-ctx { font-size: 12px; color: var(--text-2); }
+.nk-log { overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-2); min-height: 80px; max-height: 220px; }
+.nk-msg { padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); max-width: 92%; font-size: 12.5px; background: var(--bg-3); border: 1px solid var(--border); }
+.nk-msg-me { align-self: flex-end; background: var(--nk-ink, var(--brand)); color: var(--text-on-brand); border-color: var(--nk-ink, var(--brand)); }
+.nk-msg-warn { border-color: var(--warning); color: var(--warning); } .nk-msg-ok { border-color: var(--success); }
+.nk-review { border: 1px solid var(--brand); border-radius: var(--radius-md); padding: var(--space-2); display: flex; flex-direction: column; gap: var(--space-2); max-height: 220px; overflow-y: auto; }
+.nk-rv { background: var(--bg-3); border-radius: var(--radius-sm); padding: var(--space-2); } .nk-rv-bad { border: 1px solid var(--danger); }
+.nk-rv-t { font-weight: 700; font-size: 12.5px; } .nk-rv-d { font-family: var(--nk-mono); font-size: 12px; color: var(--text-2); } .nk-rv-n { font-size: 11.5px; color: var(--warning); }
+.nk-rv-act { display: flex; gap: var(--space-2); justify-content: flex-end; }
+.nk-asst-form { display: flex; gap: var(--space-2); align-items: center; } .nk-asst-form .nk-inp { flex: 1 1 auto; min-width: 0; --nk-i-w: 100%; }
+.nk-mic { width: 36px; height: 36px; }
+.nk-asst-foot { display: flex; gap: var(--space-2); align-items: center; }
+.nk-chips-sm { max-height: 74px; overflow: auto; }
+
+/* ---------- responsive ---------- */
+
+/* =============================================================================
+ * UX-1 workspace: compact header, floating toolbar, Parameters sidebar, viewport tools, assistant button, responsive.
+ * Tokens only (see the palette block at the top). Breakpoints: >=1024 docked sidebar, 641-1023 slide-in sidebar, <=640 bottom sheet.
+ * ===========================================================================*/
+.nk-right { display: flex; align-items: center; gap: var(--space-1); }
+
+/* ---------- tooltips (CSS only; hidden on touch) ---------- */
+.nk [data-tip] { position: relative; }
+.nk [data-tip]::after {
+  content: attr(data-tip); position: absolute; z-index: 90; inset-block-start: calc(100% + 8px); left: 50%; transform: translate(-50%, -2px);
+  width: max-content; max-width: 230px; padding: 5px var(--space-2); border-radius: var(--radius-sm); background: var(--text-1); color: var(--bg-2);
+  font-size: 11.5px; font-weight: 500; line-height: 1.35; text-align: start; white-space: normal; pointer-events: none; opacity: 0; transition: opacity 150ms ease, transform 150ms ease;
+}
+.nk [data-tip]:hover::after, .nk [data-tip]:focus-visible::after { opacity: 1; transform: translate(-50%, 0); transition-delay: 350ms; }
+.nk-head [data-tip]::after { left: auto; inset-inline-end: 0; transform: translateY(-2px); }
+.nk-head [data-tip]:hover::after, .nk-head [data-tip]:focus-visible::after { transform: none; }
+.nk-vtools [data-tip]::after, .nk-ptab[data-tip]::after { inset-block-start: 50%; left: auto; inset-inline-end: calc(100% + 8px); transform: translateY(-50%); }
+.nk-vtools [data-tip]:hover::after, .nk-vtools [data-tip]:focus-visible::after { transform: translateY(-50%); }
+.nk-ptab[data-tip]::after { inset-inline-end: auto; inset-inline-start: calc(100% + 8px); }
+.nk-ptab[data-tip]:hover::after { transform: translateY(-50%); }
+.nk [aria-expanded="true"][data-tip]::after { display: none; }
+@media (hover: none) { .nk [data-tip]::after { display: none; } }
+
+/* ---------- header ---------- */
+.nk-hb { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 0 var(--space-3); border: 1px solid transparent; border-radius: var(--radius-md); background: transparent; color: var(--text-2); font-weight: 600; font-size: 12.5px; white-space: nowrap; transition: background-color 160ms ease, color 160ms ease; }
+.nk-hb:hover:not(:disabled) { background: var(--bg-3); color: var(--text-1); }
+.nk-hb[aria-expanded="true"] { background: var(--brand-muted); color: var(--nk-ink, var(--brand)); }
+.nk-hb-ic { width: 36px; padding: 0; }
+.nk-saved-chip { color: var(--text-2); font-size: 11.5px; padding-inline: var(--space-2); white-space: nowrap; }
+.nk-lang { margin-inline-start: var(--space-1); }
+
+/* ---------- menus ---------- */
+.nk-menu { position: absolute; z-index: 60; inset-block-start: calc(100% + 8px); inset-inline-start: 0; min-width: 210px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); box-shadow: var(--nk-shadow-2); }
+.nk-menu-r { inset-inline-start: auto; inset-inline-end: 0; }
+.nk-menu-look { min-width: 280px; gap: var(--space-2); inset-inline-start: 50%; transform: translateX(-50%); }
+.nk-rtl .nk-menu-look { transform: translateX(50%); }
+.nk-menu-side { inset-block-start: 0; inset-inline-start: auto; inset-inline-end: calc(100% + 8px); }
+.nk-menu-layers { min-width: 230px; }
+.nk-menu-layers .nk-legend { display: flex; flex-direction: column; }
+.nk-mi { min-height: 36px; }
+.nk-mi-ic { display: flex; align-items: center; gap: var(--space-2); }
+.nk-mi[aria-checked="true"] { color: var(--nk-ink, var(--brand)); background: var(--brand-muted); }
+
+/* ---------- floating toolbar ---------- */
+.nk-tg { display: flex; align-items: center; gap: 2px; }
+.nk-tsep { width: 1px; align-self: stretch; margin-block: var(--space-2); background: var(--border); }
+.nk-tool { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 36px; min-height: 36px; padding: 0 var(--space-3); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text-2); font-weight: 600; font-size: 12.5px; white-space: nowrap; transition: background-color 160ms ease, color 160ms ease, transform 160ms ease; }
+.nk-tool:hover:not(:disabled) { background: var(--bg-3); color: var(--text-1); }
+.nk-tool:active:not(:disabled) { transform: scale(.97); }
+.nk-tool[aria-pressed="true"], .nk-tool[aria-expanded="true"] { background: var(--brand-muted); color: var(--nk-ink, var(--brand)); }
+.nk-tool-active[aria-pressed="true"] { background: var(--nk-ink, var(--brand)); color: var(--text-on-brand); }
+.nk-tool-active[aria-pressed="true"]:hover:not(:disabled) { background: var(--brand-hover); color: var(--text-on-brand); }
+.nk-tool-dot { position: absolute; inset-block-start: 6px; inset-inline-end: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--brand); }
+
+/* ---------- viewport tools (right edge) ---------- */
+
+/* ---------- stage content ---------- */
+.nk-elev { direction: ltr; display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; overflow: visible; touch-action: none; } /* UX-23: fills its canvas box; no insets / magic offsets - the viewBox + preserveAspectRatio centre and scale the drawing */
+.nk-canvas { width: 100%; height: 100%; touch-action: none; outline-offset: -3px; cursor: grab; }
+.nk-canvas:active { cursor: grabbing; }
+.nk-3d-msg { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-3); color: var(--text-2); text-align: center; padding: var(--space-4); }
+.nk-3d-msg[data-kind="fail"], .nk-3d-msg[data-kind="nogl"] { color: var(--danger); }
+.nk-spin { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); border-block-start-color: var(--brand); animation: nk-spin .8s linear infinite; }
+@keyframes nk-spin { to { transform: rotate(360deg); } }
+.nk-exbar .nk-range { width: 140px; flex: 0 0 auto; }
+.nk-status:empty { display: none; }
+.nk-status:not(:empty) { border: 1px solid var(--brand); padding: 4px var(--space-3); }
+
+/* layers popover rows */
+.nk-layers { display: flex; flex-direction: column; gap: 2px; }
+.nk-layer { display: flex; align-items: center; gap: var(--space-2); border: 0; background: transparent; color: var(--text-1); border-radius: var(--radius-md); padding: 0 var(--space-2); font-weight: 600; font-size: 12.5px; min-height: 36px; transition: background-color 160ms ease; }
+.nk-layer:hover { background: var(--bg-3); }
+.nk-layer-i { color: var(--nk-ink, var(--brand)); display: inline-flex; }
+.nk-layer[data-hidden="1"] { color: var(--text-3); }
+.nk-layer[data-hidden="1"] .nk-layer-i { color: var(--text-3); }
+.nk-layer[data-hidden="1"] .nk-layer-t { text-decoration: line-through; }
+
+/* ---------- Parameters sidebar ---------- */
+.nk-panel-head { display: flex; align-items: center; justify-content: space-between; padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4); border-block-end: 1px solid var(--border); font-size: 13px; }
+.nk-panel-main { flex: 1 1 auto; min-height: 0; display: flex; }
+.nk-pcol { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+.nk-rail-g { display: flex; flex-direction: column; gap: 2px; }
+.nk-rail-g + .nk-rail-g { border-block-start: 1px solid var(--border); padding-block-start: var(--space-2); margin-block-start: var(--space-1); }
+.nk-rail-gt { font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); font-weight: 800; text-align: center; padding-block: 2px; }
+.nk-rt { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; padding: 6px 2px; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text-2); font-size: 10.5px; font-weight: 600; line-height: 1.15; transition: background-color 160ms ease, color 160ms ease; }
+.nk-rt:hover { background: var(--bg-3); color: var(--text-1); }
+.nk-rt[aria-selected="true"] { background: var(--brand-muted); color: var(--nk-ink, var(--brand)); }
+.nk-rt[aria-selected="true"]::before { content: ""; position: absolute; inset-inline-start: calc(-1 * var(--space-2)); inset-block: 10px; width: 3px; background: var(--brand); border-start-end-radius: 3px; border-end-end-radius: 3px; }
+.nk-rt-t { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nk-rt .nk-dot { position: absolute; inset-block-start: 6px; inset-inline-end: 8px; margin: 0; }
+.nk-rt-off { position: absolute; inset-block-start: 6px; inset-inline-start: 8px; width: 6px; height: 6px; border-radius: 50%; background: var(--warning); }
+.nk-runsel { padding: var(--space-2) var(--space-3) 0; }
+.nk-panel-scroll { flex: 1 1 auto; overflow-y: auto; min-height: 0; }
+.nk-pbody-lead { padding-block-end: 0; }
+.nk-cat-head { display: flex; align-items: center; gap: var(--space-2); margin-block-end: var(--space-3); flex-wrap: wrap; }
+.nk-cat-ic { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-md); background: var(--brand-muted); color: var(--nk-ink, var(--brand)); }
+.nk-cat-vis { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--text-2); font-size: 11.5px; margin-inline-start: auto; }
+.nk-cat-head > .nk-h3 { flex: 1 1 auto; overflow-wrap: normal; word-break: normal; } /* [UI-STD6] "Countertop" broke mid-word beside the toggle; now the toggle wraps under the title instead */
+.nk-ptab:hover { background: var(--brand-muted); }
+
+/* ---------- assistant button + panel ---------- */
+.nk-fab-t { max-width: 0; overflow: hidden; white-space: nowrap; opacity: 0; transition: max-width 200ms ease, opacity 160ms ease; }
+.nk-fab:hover, .nk-fab:focus-visible { gap: var(--space-2); transform: translateY(-1px); background: var(--brand-hover); }
+.nk-fab:hover .nk-fab-t, .nk-fab:focus-visible .nk-fab-t { max-width: 140px; opacity: 1; }
+
+/* UX-23: the tablet / phone layout (drawer, bottom sheet, touch sizes) now lives in workspace.css - it is driven by the measured width, not the window. */
+
+/* =============================================================================
+ * UX-1b workspace (docked assistant, elevation bar, header, selection card).  [NEO-KITCHEN-UX1B]
+ * One separated block; tokens and the existing --nk-* values only - this block adds NO literal colour.
+ * Breakpoints: >=1280 assistant docks beside the drawing (about 28%); <1280 the round button / popover / phone bottom sheet are unchanged.
+ * ===========================================================================*/
+
+/* ---------- header: logo + app name + PARAMETRIC line, project title field, autosave chip ---------- */
+.nk-appname { font-size: 16px; font-weight: 800; line-height: 1.15; white-space: nowrap; }
+.nk-title-wrap { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.nk-title-wrap .nk-subtitle { max-width: none; padding-inline: 0; letter-spacing: .16em; }
+.nk-rtl .nk-title-wrap .nk-subtitle { letter-spacing: .04em; }
+.nk-brand .nk-title { width: min(220px, 18vw); margin-inline-start: var(--space-3); border-color: var(--border); background: var(--bg-3); font-size: 13px; font-weight: 600; padding: 5px var(--space-2); }
+.nk-saved-chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--bg-3); padding: 3px var(--space-3); margin-inline: var(--space-1); }
+.nk-saved-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-3); flex: 0 0 auto; }
+.nk-saved-chip[data-saved="1"] .nk-saved-dot { background: var(--success); }
+.nk-menu-foot { margin-block-start: var(--space-1); padding: var(--space-2) var(--space-3) var(--space-1); border-block-start: 1px solid var(--border); font-size: 11px; color: var(--text-3); }
+
+.nk-seg-run { direction: ltr; } /* LEFT / MAIN / RIGHT are physical sides of the kitchen: same order in Arabic */
+.nk-seg-run .nk-seg-b { letter-spacing: .08em; }
+.nk-seg-b:disabled { opacity: .4; cursor: not-allowed; }
+.nk-mb-sep { width: 1px; align-self: stretch; margin-block: var(--space-1); background: var(--border); }
+.nk-sel-t { min-width: 0; display: flex; flex-direction: column; }
+.nk-sel-t b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nk-sel-t small { color: var(--text-2); font-family: var(--nk-mono); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- assistant: shared pieces ---------- */
+.nk-asst-head { position: relative; }
+.nk-asst-head > .nk-asst-ttl { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.nk-asst-head > .nk-asst-ctl { flex: 0 0 auto; display: flex; flex-direction: row; gap: 2px; }
+.nk-asst-name { display: inline-flex; align-items: center; gap: var(--space-2); }
+.nk-online { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 22%, transparent); flex: 0 0 auto; }
+.nk-asst-ctl .nk-ib { border-color: transparent; background: transparent; color: var(--text-2); }
+.nk-asst-ctl .nk-ib:hover:not(:disabled) { background: var(--bg-3); color: var(--text-1); }
+.nk-asst-ctl .nk-ib[aria-expanded="true"] { background: var(--brand-muted); color: var(--nk-ink, var(--brand)); }
+.nk-asst-ctl [data-tip]::after { inset-inline-start: auto; left: auto; inset-inline-end: 0; transform: translateY(-2px); }
+.nk-asst-ctl [data-tip]:hover::after, .nk-asst-ctl [data-tip]:focus-visible::after { transform: none; }
+.nk-asst-hist { position: absolute; z-index: 6; inset-inline: 0; inset-block-start: calc(100% + 4px); max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding: var(--space-2); background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--nk-shadow-2); }
+.nk-asst-hist .nk-mi { text-align: start; white-space: normal; border: 0; background: transparent; border-radius: var(--radius-md); padding: var(--space-2); font-size: 12.5px; }
+.nk-asst-hist .nk-mi:hover { background: var(--bg-3); }
+.nk-asst-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-2); }
+.nk-asst-scroll > * { flex-shrink: 0; }
+.nk-send { display: inline-flex; align-items: center; gap: 6px; }
+
+/* assistant docked / floating layout: see workspace.css */
+
+/* ---------- selected-cabinet card inside the assistant ---------- */
+.nk-ac { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-3); background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.nk-ac-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); flex-wrap: wrap; }
+.nk-ac-name b { font-size: 14px; }
+.nk-ac-tall { display: inline-flex; align-items: center; gap: 6px; }
+.nk-ac-w { display: flex; align-items: center; gap: var(--space-2); }
+.nk-ac-wg { flex: 1 1 auto; min-width: 0; display: inline-flex; align-items: center; gap: var(--space-1); }
+.nk-ac-wl { font-weight: 700; font-size: 13px; margin-inline-end: var(--space-1); }
+.nk-ac-sb { flex: 1 1 32px; min-width: 32px; min-height: 36px; padding: 0 var(--space-2); border: 1px solid var(--border); background: var(--bg-2); border-radius: var(--radius-md); font-weight: 700; font-size: 12.5px; font-family: var(--nk-mono); }
+.nk-ac-leaves .nk-ac-sb, .nk-ac-sec .nk-step .nk-ac-sb, .nk-ac-nsec .nk-ac-sb { flex: 0 0 36px; min-width: 36px; }
+.nk-ac-sb:hover:not(:disabled) { background: var(--bg); }
+.nk-ac-sb[aria-pressed="true"] { background: var(--brand-muted); color: var(--nk-ink, var(--brand)); border-color: var(--brand); }
+.nk-ac-wv { flex: 1.8 1 78px; justify-content: center; direction: ltr; display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--brand); background: var(--brand-muted); color: var(--nk-ink, var(--brand)); border-radius: var(--radius-md); padding-inline-end: var(--space-3); min-height: 36px; }
+.nk-ac-winp.nk-inp { --nk-i-w: 52px; --nk-i-h: var(--nk-ctl-h-sm, 32px); --nk-i-bd: transparent; --nk-i-bdh: transparent; --nk-i-bg: transparent; --nk-i-ta: center; --nk-i-pad: 0; --nk-i-bdf: transparent; --nk-i-bgf: transparent; --nk-i-shf: none; --nk-i-c: var(--nk-ink, var(--brand)); flex: 0 1 52px; }
+.nk-ac-wu { font-size: 12px; font-weight: 700; }
+.nk-ac-note { margin: 0; }
+.nk-ac-keep { margin: 0; }
+.nk-ac-div { display: flex; gap: var(--space-3); align-items: flex-start; }
+.nk-ac-prev { direction: ltr; flex: 0 0 112px; width: 112px; height: auto; }
+.nk-ac-prev-t { font-size: 9.5px; font-weight: 700; fill: var(--text-1); }
+.nk-ac-prev-dim { stroke: var(--info); stroke-width: 1; }
+.nk-ac-prev-w { font-size: 10px; font-weight: 700; fill: var(--brand); font-family: var(--nk-mono); }
+.nk-ac-secs { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.nk-ac-nsec { display: flex; align-items: center; gap: var(--space-2); }
+.nk-ac-sec { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-2); background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-md); }
+.nk-ac-sec-r { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.nk-ac-sec .nk-select { flex: 1 1 96px; min-width: 0; }
+.nk-ac-leaves { display: inline-flex; gap: 2px; }
+.nk-ac-del { margin-inline-start: auto; }
+.nk-ac-sec-sub { justify-content: space-between; }
+.nk-ac-h { font-size: 11.5px; font-family: var(--nk-mono); margin-inline-start: auto; }
+
+@media (max-width: 1023px), (pointer: coarse) {
+  .nk-ac-sb { min-height: 44px; }
+  .nk-ac-wv { min-height: 44px; }
+  .nk-asst-ctl .nk-ib { width: 44px; height: 44px; }
+}
+@media (max-width: 640px) {
+  .nk-ac-div { flex-direction: column; align-items: stretch; }
+  .nk-ac-prev { align-self: center; }
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) { .nk *, .nk *::before, .nk *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+
+/* ---------- print / PDF (elevation + cut list). The sheet is a portal child of <body>, so everything else is hidden ---------- */
+.nk-print-root { display: none; }
+@media print {
+  body > *:not(.nk-print-root) { display: none !important; }
+  .nk-print-root { display: block !important; position: static; color: black; background: white; font: inherit; font-size: 11px; --text-1: black; --text-2: black; --text-3: gray; --bg: white; --bg-2: white; --bg-3: white; --border: lightgray; --info: blue; --danger: red; --success: green; --warning: darkorange; --brand: black; --brand-muted: whitesmoke; }
+  .nk-print-sheet { break-after: page; padding: 8mm; }
+  .nk-print-fig { margin: 0 0 6mm; break-inside: avoid; } .nk-print-fig svg { width: 100%; max-height: 120mm; }
+  .nk-print-root .nk-cut-inner { padding: 0; max-width: none; }
+  .nk-print-root .nk-table { min-width: 0; } .nk-print-root .nk-table td, .nk-print-root .nk-table th { padding: 2px 4px; font-size: 9px; }
+  .nk-print-root .nk-table-wrap { overflow: visible; border: 0; }
+  @page { size: A4 landscape; margin: 8mm; }
+}
+.nk-ctr { text-align: center; }
+
+.nk-t { unicode-bidi: plaintext; }
+
+/* ---------- UX-2: "05 Shelves" card (white card, front-view diagram stage, two numbered rows) ---------- */
+.nk-shelfcard { background: var(--bg-2); border-color: var(--nk-card-line); border-radius: var(--radius-lg); padding: var(--space-4); }
+.nk-shelfcard .nk-card-head { gap: var(--space-3); margin-block-end: var(--space-3); }
+.nk-shelfcard .nk-cnum { background: var(--brand-muted); color: var(--nk-ink, var(--brand)); border-radius: var(--radius-md); padding: var(--space-1) var(--space-2); font-size: 13px; }
+.nk-shelfcard .nk-h3 { font-size: 18px; font-weight: 800; color: var(--text-1); }
+.nk-shelfcard > .nk-cdesc { color: var(--nk-muted-ui, var(--nk-muted)); font-size: 13.5px; margin-block-end: var(--space-4); }
+.nk-shelf-stage { margin: 0 0 var(--space-4); padding: var(--space-4) var(--space-3) var(--space-3); background: var(--nk-stage-bg); border: 1px solid var(--nk-card-line); border-radius: var(--radius-lg); }
+.nk-shelf-stage .nk-art { background: transparent; border: 0; border-radius: 0; margin: 0; max-height: 340px; direction: ltr; }
+.nk-shelf-cap { margin-block-start: var(--space-2); text-align: center; color: var(--nk-muted-ui, var(--nk-muted)); font-size: 11.5px; letter-spacing: .01em; }
+.nk-sh-frame { fill: var(--nk-frame-fill); stroke: var(--nk-frame-line); stroke-width: 1.2; }
+.nk-sh-open { fill: var(--nk-frame-bg); stroke: var(--nk-frame-line); stroke-width: 1; }
+.nk-sh-board { fill: var(--nk-shelf-board); stroke: var(--nk-frame-line); stroke-width: 1; }
+.nk-sh-dot { fill: var(--nk-frame-line); stroke: none; }
+.nk-sh-meas { stroke: var(--brand); stroke-width: 1.5; fill: none; stroke-linecap: round; }
+.nk-sh-lead { stroke: var(--text-1); stroke-width: 1; fill: none; }
+.nk-sh-ref { fill: var(--bg-2); stroke: var(--text-1); stroke-width: 1.2; }
+.nk-sh-call circle { fill: var(--bg-2); stroke: var(--text-1); stroke-width: 1.3; cursor: pointer; }
+.nk-sh-call text { font-size: 13px; font-weight: 600; fill: var(--text-1); pointer-events: none; font-family: var(--nk-mono); }
+.nk-sh-call:focus-visible circle, .nk-sh-call:hover circle { stroke: var(--brand); stroke-width: 2; }
+.nk-shelf-row { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "n t" ". i"; gap: var(--space-2) var(--space-3); align-items: start; padding-block: var(--space-3); } /* UX-23: number + text on the first line, the value box under the text - the text never shares a line with the input, so it never wraps word by word */
+.nk-shelf-row > .nk-cn { grid-area: n; } .nk-shelf-row > .nk-ctl-t { grid-area: t; } .nk-shelf-row > .nk-shelf-in { grid-area: i; }
+.nk-shelf-row + .nk-shelf-row { border-block-start: 1px solid var(--nk-card-line); }
+.nk-shelf-row .nk-cn { flex: none; width: 32px; height: 32px; font-size: 15px; font-weight: 600; background: var(--text-1); color: var(--bg-2); }
+.nk-shelf-row .nk-ctl-name { font-size: 15px; font-weight: 800; color: var(--text-1); }
+.nk-shelf-row .nk-ctl-d { color: var(--nk-muted-ui, var(--nk-muted)); font-size: 12.5px; margin-block-start: var(--space-1); }
+.nk-shelf-in { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
+.nk-shelf-in .nk-num { width: 100%; }
+.nk-shelf-in .nk-inp-wrap { background: var(--bg-2); border-color: var(--nk-card-line); }
+.nk-shelf-in .nk-pf-input { --nk-i-fw: 700; --nk-i-fs: 15px; }
+.nk-shelf-in .nk-unit { color: var(--nk-muted-ui, var(--nk-muted)); font-size: 12px; }
+.nk-shelf-in .nk-range-note { color: var(--nk-muted-ui, var(--nk-muted)); }
+.nk-shelf-in .nk-clamp { max-width: 100%; }
+.nk-shelf-warn { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.nk-shelf-warn li { font-size: 12.5px; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--bg-3); border-inline-start: 3px solid var(--warning); color: var(--text-1); }
+.nk-shelf-warn li[data-level="error"] { border-inline-start-color: var(--danger); }
+
+/* ---------- UX-3: "04 Drawers" card. Shell, rows and warnings reuse the .nk-shelfcard / .nk-shelf-row rules above (same visual family);
+   everything drawer-specific lives in this block. ---------- */
+.nk-drawercard .nk-shelf-stage { margin-block-end: var(--space-4); }
+.nk-dw-art { width: 100%; height: auto; display: block; }
+.nk-dw-p path { stroke: var(--nk-frame-line); stroke-width: 1; stroke-linejoin: round; }
+.nk-dw-p .nk-dw-front { fill: var(--nk-dw-front); } .nk-dw-p .nk-dw-top { fill: var(--nk-dw-top); } .nk-dw-p .nk-dw-right { fill: var(--nk-dw-right); }
+.nk-dw-p.nk-dw-bottom .nk-dw-top, .nk-dw-p.nk-dw-bottom .nk-dw-front, .nk-dw-p.nk-dw-bottom .nk-dw-right { fill: var(--nk-dw-cream); stroke-width: .8; }
+.nk-dw-ghost path { fill: var(--nk-dw-ghost); fill-opacity: .35; stroke-opacity: .55; stroke-dasharray: 3 3; }
+.nk-dw-ext { stroke: var(--nk-frame-line); stroke-width: .8; fill: none; opacity: .7; }
+.nk-dw-src { stroke: var(--nk-frame-line); stroke-width: .9; opacity: .7; }
+.nk-dw-lens { fill: var(--bg-2); }
+.nk-dw-zoom { fill: none; stroke: var(--brand); stroke-width: 1.4; stroke-dasharray: 5 4; }
+.nk-dw-d-carc { fill: var(--nk-dw-right); stroke: var(--nk-frame-line); stroke-width: 1; }
+.nk-dw-d-side { fill: var(--nk-dw-front); stroke: var(--nk-frame-line); stroke-width: 1; }
+.nk-dw-d-groove { fill: var(--nk-frame-line); fill-opacity: .35; }
+.nk-dw-d-panel { fill: var(--nk-dw-cream); stroke: var(--nk-frame-line); stroke-width: 1; }
+.nk-dw-edge { stroke: var(--nk-frame-line); stroke-width: .8; stroke-dasharray: 2 2; fill: none; }
+.nk-dw-planbox { fill: var(--bg-2); stroke: var(--nk-frame-line); stroke-width: 1.2; }
+.nk-dw-planfloor { fill: var(--nk-dw-cream); fill-opacity: .35; stroke: var(--nk-frame-line); stroke-width: .6; stroke-dasharray: 2 2; }
+.nk-dw-lbl { fill: var(--nk-muted); font-family: var(--nk-mono); font-size: 12.5px; font-weight: 600; letter-spacing: .1em; }
+.nk-dw-call text { font-size: 16px; }
+.nk-dw-meas { stroke-width: 1.8; }
+.nk-dw-closed { stroke-dasharray: 3 3; }
+
+/* ---------- UX-4: "03 Doors & Hinges" card. Shell, rows and warnings reuse the .nk-shelfcard / .nk-shelf-row rules (same visual family). ---------- */
+.nk-doorcard .nk-shelf-stage { margin-block-end: var(--space-4); }
+.nk-do-art { width: 100%; height: auto; display: block; }
+.nk-do-p path { stroke-width: 1; stroke-linejoin: round; }
+.nk-do-carc path { stroke: var(--nk-frame-line); }
+.nk-do-carc .nk-do-front { fill: var(--nk-dw-front); } .nk-do-carc .nk-do-top { fill: var(--nk-dw-top); } .nk-do-carc .nk-do-right { fill: var(--nk-dw-right); }
+.nk-do-carc.nk-do-part-back .nk-do-front { fill: var(--nk-dw-ghost); }
+.nk-do-door path { stroke: var(--nk-do-line); }
+.nk-do-door .nk-do-front { fill: var(--nk-do-face); } .nk-do-door .nk-do-top { fill: var(--nk-do-top); } .nk-do-door .nk-do-right { fill: var(--nk-do-face); }
+.nk-do-part-doorOpen .nk-do-front, .nk-do-part-doorClosed .nk-do-right { fill: var(--nk-do-edge); }
+.nk-do-cup { fill: var(--nk-do-bore); stroke: var(--nk-do-line); stroke-width: 1.1; }
+.nk-do-handle { stroke: var(--nk-do-line); stroke-width: 1.6; stroke-linecap: round; fill: none; }
+.nk-do-ext { stroke: var(--nk-frame-line); stroke-width: .8; fill: none; opacity: .7; }
+.nk-do-call text { font-size: 16px; }
+.nk-do-meas { stroke-width: 1.8; }
+
+
+/* ---------- UX-6: row screens (Wall / Top / L-Left / L-Right) - ONE component family. Card shell, rows and warnings reuse the
+   .nk-shelfcard look (white card, card hairline, --radius-lg); the plan diagram colours are --nk-block / --nk-sel-fill / --brand. [NEO-KITCHEN-UX6] ---------- */
+.nk-rk-card { background: var(--bg-2); border-color: var(--nk-card-line); padding: var(--space-4); container: nkrk / inline-size; }
+.nk-rk-card .nk-card-head { gap: var(--space-3); margin-block-end: var(--space-3); }
+.nk-rk-card .nk-h3 { font-size: 16px; font-weight: 800; color: var(--text-1); min-width: 0; flex: 1 1 auto; }
+.nk-rk-card .nk-card-head { flex-wrap: wrap; row-gap: 0; }
+.nk-rk-card .nk-rk-count { margin-inline-start: auto; }
+.nk-rk-card > .nk-cdesc { color: var(--nk-muted-ui, var(--nk-muted)); }
+.nk-rk-count { color: var(--nk-muted-ui, var(--nk-muted)); font-size: 11.5px; white-space: nowrap; flex: none; }
+.nk-rk-plan { margin: 0 0 var(--space-3); padding: var(--space-3); background: var(--nk-stage-bg); border: 1px solid var(--nk-card-line); border-radius: var(--radius-lg); }
+.nk-pl { width: 100%; height: auto; display: block; direction: ltr; overflow: visible; }
+.nk-pl-floor { stroke: var(--nk-card-line); stroke-width: 1; }
+.nk-pl-u { cursor: pointer; outline: none; }
+.nk-pl-u rect { fill: var(--nk-block); stroke: var(--nk-card-line); stroke-width: .9; }
+.nk-pl-u.nk-pl-focus rect { fill: var(--bg-2); stroke: var(--nk-frame-line); stroke-width: 1.1; }
+.nk-pl-u.nk-pl-tall rect { stroke: var(--nk-card-line); }
+.nk-pl-u.nk-pl-sel rect { fill: var(--nk-sel-fill); stroke: var(--brand); stroke-width: 2; }
+.nk-pl-u.nk-pl-hidden rect { fill: transparent; stroke-dasharray: 3 2; opacity: .6; }
+.nk-pl-u.nk-pl-off rect { stroke-dasharray: 3 3; opacity: .65; }
+.nk-pl-u:hover rect, .nk-pl-u:focus-visible rect { stroke: var(--brand); }
+.nk-pl-t { fill: var(--text-1); font-family: var(--nk-mono); font-size: 10.5px; font-weight: 700; pointer-events: none; }
+.nk-pl-mark path, .nk-pl-line path { stroke: var(--brand); stroke-width: 1.4; fill: none; stroke-linecap: round; }
+.nk-pl-mark text, .nk-pl-line text { fill: var(--brand); font-family: var(--nk-mono); font-size: 10.5px; font-weight: 700; }
+.nk-pl-legbars rect { fill: var(--brand); }
+.nk-pl-h { fill: var(--bg-2); stroke: var(--brand); stroke-width: 2; cursor: ew-resize; touch-action: none; }
+.nk-pl-pill { fill: var(--brand); }
+.nk-rk-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); margin-block: var(--space-3); }
+.nk-rk-sumc { background: var(--bg-2); border: 1px solid var(--nk-card-line); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.nk-rk-sumk { color: var(--nk-muted-ui, var(--nk-muted)); font-size: 11.5px; line-height: 1.25; }
+.nk-rk-sumv { font-size: 15px; font-weight: 800; color: var(--text-1); font-family: var(--nk-mono); white-space: nowrap; }
+.nk-rk-sumc .nk-pf { gap: 0; } .nk-rk-sumc .nk-pf-box { width: 100%; max-width: none; height: var(--nk-ctl-h-sm, 36px); background: transparent; }
+.nk-rk-sumc .nk-pf-input { --nk-i-fs: 15px; --nk-i-fw: 800; --nk-i-h: calc(var(--nk-ctl-h-sm, 36px) - 2px); }
+.nk-rk-sumc .nk-unit { font-size: 12px; color: var(--text-2); font-weight: 800; }
+.nk-rk-cm { display: flex; flex-direction: column; gap: 2px; }
+.nk-rk-slider { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "l r v"; align-items: center; gap: var(--space-3); margin-block: var(--space-3); }
+.nk-rk-slider-l { grid-area: l; } .nk-rk-slider .nk-range { grid-area: r; } .nk-rk-slider-v { grid-area: v; }
+.nk-rk-slider-l { font-size: 15px; font-weight: 800; color: var(--text-1); }
+.nk-rk-slider-v { font-size: 15px; font-weight: 800; color: var(--text-1); min-width: 58px; text-align: end; }
+.nk-rk-keep { display: flex; gap: var(--space-3); align-items: flex-start; margin-block: var(--space-3); cursor: pointer; }
+.nk-rk-keep input { accent-color: var(--brand); width: 20px; height: 20px; margin: 2px 0 0; flex: none; }
+.nk-rk-keep b { display: block; font-size: 14px; font-weight: 800; color: var(--text-1); }
+.nk-rk-keep small { display: block; color: var(--nk-muted-ui, var(--nk-muted)); font-size: 12.5px; margin-block-start: 2px; }
+.nk-rk-add { min-height: 48px; border-radius: var(--radius-lg); font-size: 14px; }
+.nk-rk-opt { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding-block: var(--space-3); }
+.nk-rk-opt b { display: block; font-size: 15px; font-weight: 800; color: var(--text-1); }
+.nk-rk-opt small { display: block; color: var(--nk-muted-ui, var(--nk-muted)); font-size: 12.5px; }
+.nk-rk-sep { border: 0; border-block-start: 1px solid var(--nk-card-line); margin-block: var(--space-3); }
+.nk-rk-eyebrow { margin: 0 0 var(--space-1); font-size: 11px; letter-spacing: .12em; font-weight: 800; color: var(--nk-muted-ui, var(--nk-muted)); }
+.nk-rk-hint { margin: var(--space-2) 0 0; color: var(--nk-muted-ui, var(--nk-muted)); font-size: 12.5px; }
+.nk-rk-tabs { gap: var(--space-2); flex-wrap: wrap; }
+.nk-rk-tabs .nk-pilltab { background: var(--bg-2); border-color: var(--nk-card-line); color: var(--text-1); min-width: 64px; }
+.nk-rk-tabs .nk-pilltab[aria-selected="true"] { background: var(--nk-ink, var(--brand)); color: var(--text-on-brand); border-color: var(--nk-ink, var(--brand)); }
+.nk-rk-issues { margin-block: var(--space-2); }
+.nk-rk-lf { padding-block: var(--space-3); }
+.nk-rk-lf + .nk-rk-lf { border-block-start: 1px solid var(--nk-card-line); }
+.nk-rk-lf-head { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; margin-block-end: var(--space-2); }
+.nk-rk-lf-l { font-size: 15px; font-weight: 800; color: var(--text-1); }
+.nk-rk-state { font-size: 11px; font-weight: 700; padding: 2px var(--space-2); border-radius: var(--radius-pill, 9999px); background: var(--bg-3); border: 1px solid var(--nk-card-line); color: var(--nk-muted-ui, var(--nk-muted)); }
+.nk-rk-state-own { background: var(--brand-muted); border-color: var(--brand); color: var(--nk-ink, var(--brand)); }
+.nk-rk-reset { margin-inline-start: auto; border: 0; background: transparent; color: var(--nk-ink, var(--brand)); font-weight: 700; font-size: 12.5px; padding: var(--space-1) var(--space-2); text-decoration: underline; }
+.nk-rk-ucard { background: var(--bg-2); border-color: var(--nk-card-line); container: nkuc / inline-size; }
+.nk-rk-ucard.nk-card-sel { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand); }
+.nk-rk-hiddenu { opacity: .78; }
+.nk-rk-uhead .nk-unit-name b { font-size: 15px; font-weight: 800; }
+.nk-rk-eye[aria-pressed="true"] { color: var(--nk-muted-ui, var(--nk-muted)); }
+.nk-rk-del { color: var(--danger); border-color: var(--danger); background: transparent; }
+.nk-rk-del:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 10%, transparent); }
+.nk-rk-confirm { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; padding: var(--space-2) var(--space-3); margin-block-end: var(--space-2); background: var(--bg-3); border-inline-start: 3px solid var(--danger); border-radius: var(--radius-md); font-size: 12.5px; }
+.nk-rk-confirm span { flex: 1 1 160px; font-weight: 600; }
+.nk-rk-hidenote { margin-block: 0 var(--space-2); }
+.nk-iso { flex: 0 0 84px; width: 84px; height: auto; direction: ltr; }
+.nk-iso-top { fill: var(--nk-dw-top); stroke: var(--nk-frame-line); stroke-width: .9; stroke-linejoin: round; }
+.nk-iso-right { fill: var(--nk-dw-right); stroke: var(--nk-frame-line); stroke-width: .9; stroke-linejoin: round; }
+.nk-iso-front { fill: var(--nk-dw-front); stroke: var(--nk-frame-line); stroke-width: .9; }
+.nk-iso-sec { stroke: var(--nk-frame-line); stroke-width: .7; }
+.nk-iso-n { fill: var(--brand); } .nk-iso-nt { fill: var(--text-on-brand); font-size: 9px; font-weight: 800; font-family: var(--nk-mono); }
+
+.nk-rk-uh { border: 1px solid var(--nk-card-line); border-radius: var(--radius-lg); padding: var(--space-3); margin-block: var(--space-3); background: var(--bg-2); }
+.nk-rk-uh-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "l r n"; align-items: center; gap: var(--space-3); }
+.nk-rk-uh-row .nk-rk-slider-l { grid-area: l; } .nk-rk-uh-row .nk-range { grid-area: r; } .nk-rk-uh-row .nk-rk-cm { grid-area: n; }
+.nk-rk-uh .nk-rk-hint { margin-block-start: var(--space-2); }
+.nk-rk-off { text-align: center; padding: var(--space-3); margin-block-end: var(--space-3); background: var(--bg-3); border-radius: var(--radius-md); }
+.nk-rk-off .nk-cdesc { margin-block-end: var(--space-2); }
+.nk-rk-note { margin-block: 0 var(--space-2); }
+/* narrow sidebar (the docked assistant leaves ~290px at 1440): label + value on one line, the slider full width below; unit card body stacks */
+@container nkrk (max-width: 360px) {
+  .nk-rk-slider { grid-template-columns: 1fr auto; grid-template-areas: "l v" "r r"; row-gap: var(--space-1); }
+  .nk-rk-uh-row { grid-template-columns: 1fr auto; grid-template-areas: "l n" "r r"; row-gap: var(--space-1); }
+}
+/* UX-23: three summary cells never fit side by side in a ~340px card (the labels wrapped word by word) -> one row per figure: label start, value end */
+@container nkrk (max-width: 460px) {
+  .nk-rk-sum { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+  .nk-rk-sumc { flex-direction: row; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-2) var(--space-3); }
+  .nk-rk-sumk { flex: 1 1 auto; font-size: 12.5px; }
+  .nk-rk-sumv { flex: none; }
+  .nk-rk-sumc .nk-rk-cm { flex: 0 0 132px; width: 132px; }
+}
+@container nkuc (max-width: 360px) {
+  .nk-rk-ucard .nk-unit-body { flex-direction: column; align-items: stretch; }
+  .nk-rk-ucard .nk-iso { align-self: center; }
+}

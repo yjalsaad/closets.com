@@ -1,0 +1,79 @@
+/* =============================================================================
+ * Neo Wardrobe Studio [NEO-CLOSETS-UX22] - styles that the Neo Kitchen workspace CSS does not already give it.
+ * The studio root carries the `nk` class, so the header, floating toolbar, Parameters rail, stage, selection card, menus,
+ * assistant and the 2D / 3D / cut-list screens all use neoKitchen.css and its sibling files unchanged. Chrome here is
+ * DESIGN.md tokens only (--bg*, --border, --text-*, --brand*, --space-N, --radius-*).
+ * The block directly below is the ONE place with literal colours: the clothes and hangers drawn in the 3D view are
+ * MATERIAL data (muted garment tones), not UI chrome - the same exception as the --nk-fin-* finishes (DESIGN.md Decisions Log).
+ * Kitchen3D reads them back from the computed style (--nk-w-c0 .. c4).
+ * ===========================================================================*/
+.nk-wd {
+  --nk-w-c0: #a9bad4; --nk-w-c1: #d9c3a0; --nk-w-c2: #9bb59f; --nk-w-c3: #cfa9bb; --nk-w-c4: #7b8296; --nk-w-c5: #e6e0d3; --nk-w-c6: #474b5a; --nk-w-c7: #b0705e;
+  /* [NEO-CLOSETS-UX24] 3D MATERIAL data for the wardrobe: black door frames / glazing bars / sliding tracks, clear and SMOKED glass tints, wooden hangers.
+     Same exception as the garment tones above (read back by Kitchen3D from the computed style); the same values in light and dark, they are objects, not chrome. */
+  --nk-w-frame: #0d0e10; --nk-w-glass: #cfe3ea; --nk-w-smoke: #1b1d21; --nk-w-wood: #b79468;
+}
+
+.nkw-panel { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-3); }
+.nkw-card { display: flex; flex-direction: column; gap: var(--space-2); }
+.nkw-card-body { display: flex; flex-direction: column; gap: var(--space-3); }
+.nkw-note { margin: 0; }
+.nkw-row { display: grid; gap: var(--space-1); }
+.nkw-row-l { font-size: 12px; font-weight: 600; color: var(--text-2); }
+.nkw-row-c { min-width: 0; }
+
+.nkw-cols { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.nkw-step { display: inline-flex; align-items: center; gap: var(--space-2); }
+.nkw-step output { min-width: 2ch; text-align: center; font-family: var(--nk-mono); font-variant-numeric: tabular-nums; font-weight: 700; font-size: 15px; }
+.nkw-step .nk-ib { width: 36px; height: 36px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-2); font-size: 18px; line-height: 1; }
+
+/* part-type legend as a strip under the elevation controls (the reference shows it inside the stage) */
+.nkw-legend { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 2px var(--space-2); padding: 0 var(--space-3); } .nkw-legend .nk-lg { min-height: 26px; font-size: 11.5px; padding-inline: var(--space-1); }
+
+.nkw-price { font-family: var(--nk-mono); font-variant-numeric: tabular-nums; font-weight: 700; }
+.nkw-quote { white-space: nowrap; }
+
+.nkw-actions { display: none; }
+@media (max-width: 640px) {
+  .nkw-panel { padding: var(--space-2); }
+  .nkw-hd { display: none; }
+  .nkw-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+}
+
+/* columns card (the owner's "Main unit - columns" panel): mini elevation, stat tiles, add column */
+.nkw-mini { background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-3); }
+.nkw-mini-svg { width: 100%; height: 150px; display: block; }
+.nkw-mini-col { cursor: pointer; }
+.nkw-mini-col rect { fill: var(--bg-2); stroke: var(--text-3); stroke-width: 8; }
+.nkw-mini-col line { stroke: var(--text-3); stroke-width: 8; }
+.nkw-mini-col .nkw-mini-rail { stroke: var(--text-2); stroke-width: 18; }
+.nkw-mini-col text { fill: var(--text-2); font-family: var(--nk-mono); }
+.nkw-mini-col[data-on="1"] rect { fill: var(--brand-muted); stroke: var(--brand); stroke-width: 14; }
+.nkw-mini-col:focus-visible rect { stroke: var(--brand); stroke-width: 14; }
+.nkw-mini-total { text-align: center; color: var(--nk-ink, var(--brand)); font-weight: 700; font-size: 12px; border-block-start: 1px solid var(--brand); margin-block-start: var(--space-1); padding-block-start: var(--space-1); }
+.nkw-keep { align-items: center; gap: var(--space-2); }
+.nkw-stats { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+.nkw-stat { background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); font-size: 11px; color: var(--text-2); min-width: 0; }
+.nkw-stat b { color: var(--text-1); font-size: 15px; }
+.nkw-add { border-style: dashed; border-color: var(--brand); color: var(--nk-ink, var(--brand)); background: var(--brand-muted); width: 100%; font-weight: 700; }
+.nkw-all { display: flex; flex-direction: column; gap: var(--space-3); border-block-start: 1px solid var(--border); padding-block-start: var(--space-3); }
+.nkw-stat:first-child { grid-column: 1 / -1; }
+
+/* [NEO-CLOSETS-UX24] mini-elevation drag handles (right edge of each column) */
+.nkw-mini-h { cursor: ew-resize; outline: none; }
+.nkw-mini-h .nkw-mini-hit { fill: transparent; }
+.nkw-mini-h .nkw-mini-grip { fill: var(--bg-2); stroke: var(--text-3); stroke-width: 10; transition: fill .12s, stroke .12s; }
+.nkw-mini-h[data-on="1"] .nkw-mini-grip { fill: var(--brand-muted); stroke: var(--brand); stroke-width: 12; }
+.nkw-mini-h:hover .nkw-mini-grip { fill: var(--brand-muted); stroke: var(--brand); }
+.nkw-mini-h:focus-visible .nkw-mini-grip { stroke: var(--brand); stroke-width: 18; }
+.nkw-mini-svg { touch-action: none; height: 200px; }
+
+/* the selected column's details inside the columns card, and the shared M&S blocks */
+.nkw-detail { display: flex; flex-direction: column; gap: var(--space-2); background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-3); }
+.nkw-detail-t { font-size: 12px; color: var(--text-1); }
+.nkw-shared { display: flex; flex-direction: column; gap: var(--space-3); }
+.nkw-cols .nk-chip[data-wing="1"] { border-style: dashed; }
+
+/* the frames and glazing bars of glass doors in the elevation */
+.nk-wd .nk-elev .nk-frame { fill: var(--text-1); fill-opacity: .82; stroke: none; pointer-events: none; }
+.nk-wd .nk-elev .nk-frame.nk-xr { fill-opacity: .35; }

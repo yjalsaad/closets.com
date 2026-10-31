@@ -1,0 +1,78 @@
+/* =============================================================================
+ * Neo category studios [NEO-CATEGORIES-UX26] (bathroom, laundry, TV unit, office) - styles the Neo Kitchen workspace CSS does not already give them.
+ * The studio root carries the `nk` class, so the header, floating toolbar, Parameters rail, stage, selection card, menus, assistant and the
+ * 2D / 3D / cut-list screens use neoKitchen.css and its sibling files unchanged. Chrome here is DESIGN.md tokens only
+ * (--bg*, --border, --text-*, --brand*, --space-N, --radius-*).
+ *
+ * The block directly below is the ONE place with literal colours: the objects drawn in the 3D view (ceramic basin, steel / chrome taps, white
+ * appliances, the TV screen, LED light, a flame, fabric, paper, mirror glass) are MATERIAL data, not UI chrome - the same exception as the
+ * --nk-fin-* finishes and the wardrobe's --nk-w-* garment tones (DESIGN.md Decisions Log, [NEO-CATEGORIES-UX26]).
+ * Kitchen3D reads them back from the computed style (neoKitchen/propMats.js names them). Same values in light and dark: they are objects in a room.
+ * ===========================================================================*/
+.nk-cat {
+  --nk-c-ceramic: #f2f2ee; --nk-c-steel: #b9bec4; --nk-c-chrome: #dfe3e8; --nk-c-machine: #eceff2; --nk-c-machine-glass: #1c2a33;
+  --nk-c-screen: #0b0c0e; --nk-c-bezel: #1a1b1e; --nk-c-led: #ffd9a0; --nk-c-fire: #ff8a3c; --nk-c-fabric: #6e7a8c; --nk-c-paper: #e8e2d4;
+  --nk-c-dark: #25272b; --nk-c-wood: #a07850; --nk-c-mirror: #cfd9df;
+}
+
+.nkc-panel { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-3); }
+.nkc-card { display: flex; flex-direction: column; gap: var(--space-2); }
+.nkc-card-body { display: flex; flex-direction: column; gap: var(--space-3); }
+.nkc-note { margin: 0; }
+.nkc-row { display: grid; gap: var(--space-1); }
+.nkc-row-l { font-size: 12px; font-weight: 600; color: var(--text-2); }
+.nkc-row-c { min-width: 0; }
+.nkc-row[data-off="1"] .nkc-row-c { opacity: .55; }
+.nkc-why { font-size: 11px; color: var(--text-3); margin: 0; }
+.nkc-help { font-size: 11px; color: var(--text-3); margin: 0; }
+.nkc-cols { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.nkc-step { display: inline-flex; align-items: center; gap: var(--space-2); }
+.nkc-step output { min-width: 2ch; text-align: center; font-family: var(--nk-mono); font-variant-numeric: tabular-nums; font-weight: 700; font-size: 15px; }
+.nkc-step .nk-ib { width: 36px; height: 36px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-2); font-size: 18px; line-height: 1; }
+.nkc-step .nk-ib:disabled { opacity: .45; }
+
+.nkc-legend { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 2px var(--space-2); padding: 0 var(--space-3); }
+.nkc-legend .nk-lg { min-height: 26px; font-size: 11.5px; padding-inline: var(--space-1); }
+.nkc-price { font-family: var(--nk-mono); font-variant-numeric: tabular-nums; font-weight: 700; }
+.nkc-quote { white-space: nowrap; }
+.nkc-actions { display: none; }
+@media (max-width: 640px) {
+  .nkc-panel { padding: var(--space-2); }
+  .nkc-hd { display: none; }
+  .nkc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+}
+
+/* the units strip: units drawn to scale, click selects */
+.nkc-strip { background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-3); }
+.nkc-strip-svg { width: 100%; height: 150px; display: block; touch-action: manipulation; }
+.nkc-strip-u { cursor: pointer; outline: none; }
+.nkc-strip-u rect.nkc-su-box { fill: var(--bg-2); stroke: var(--text-3); stroke-width: 6; }
+.nkc-strip-u rect.nkc-su-wall { fill: var(--bg-2); stroke: var(--text-3); stroke-width: 6; stroke-dasharray: 22 12; }
+.nkc-strip-u line.nkc-su-leg { stroke: var(--text-3); stroke-width: 14; }
+.nkc-strip-u text { fill: var(--text-2); font-family: var(--nk-mono); }
+.nkc-strip-u[data-on="1"] rect.nkc-su-box, .nkc-strip-u[data-on="1"] rect.nkc-su-wall { fill: var(--brand-muted); stroke: var(--brand); stroke-width: 12; }
+.nkc-strip-u:focus-visible rect.nkc-su-box { stroke: var(--brand); stroke-width: 12; }
+.nkc-strip-total { text-align: center; color: var(--nk-ink, var(--brand)); font-weight: 700; font-size: 12px; border-block-start: 1px solid var(--brand); margin-block-start: var(--space-1); padding-block-start: var(--space-1); }
+.nkc-keep { align-items: center; gap: var(--space-2); }
+.nkc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+.nkc-stat { background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); font-size: 11px; color: var(--text-2); min-width: 0; }
+.nkc-stat b { color: var(--text-1); font-size: 15px; }
+.nkc-stat:first-child { grid-column: 1 / -1; }
+.nkc-add { border-style: dashed; border-color: var(--brand); color: var(--nk-ink, var(--brand)); background: var(--brand-muted); font-weight: 700; }
+.nkc-detail { display: flex; flex-direction: column; gap: var(--space-2); background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-3); }
+.nkc-detail-t { font-size: 12px; color: var(--text-1); }
+.nkc-detail-act { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.nkc-shared { display: flex; flex-direction: column; gap: var(--space-3); }
+.nkc-presets { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+
+/* the checks (rules / warnings) strip over the drawing */
+.nkc-warn { display: flex; flex-direction: column; gap: var(--space-1); padding: 0 var(--space-3); align-items: flex-start; }
+.nkc-warn ul { margin: 0; padding-inline-start: var(--space-4); font-size: 12px; color: var(--text-2); max-height: 132px; overflow: auto; display: flex; flex-direction: column; gap: var(--space-1); }
+
+/* price tab */
+.nkc-ptable { width: 100%; border-collapse: collapse; font-size: 12px; }
+.nkc-ptable th { text-align: start; font-weight: 600; color: var(--text-2); padding: var(--space-1); border-block-end: 1px solid var(--border); }
+.nkc-ptable td { padding: var(--space-1); border-block-end: 1px solid var(--border); vertical-align: top; }
+.nkc-ptable td.num, .nkc-ptable th.num { text-align: end; font-family: var(--nk-mono); font-variant-numeric: tabular-nums; }
+.nkc-ptable tr.nkc-ptot td { font-weight: 800; border-block-end: 0; font-size: 13px; }
+.nkc-ph { display: inline-block; font-size: 10px; font-weight: 700; color: var(--warning, var(--text-2)); border: 1px solid currentColor; border-radius: var(--radius-sm); padding: 0 var(--space-1); }

@@ -1,0 +1,83 @@
+/* Neo Kitchen Designer NEO-KITCHEN-UX29 - layout picker, live floor plan, end view and the galley / peninsula / island screens.
+ * No literal colour: the scoped --nk-ly-* custom properties below are mixed from DESIGN.md tokens (and the existing --nk-pt-* drawing
+ * colours), so the light / dark sets follow the theme with no second palette. Everything is scoped under .nk. */
+.nk {
+  --nk-ly-card: var(--bg-2);
+  --nk-ly-card-on: color-mix(in srgb, var(--brand) 9%, var(--bg-2));
+  --nk-ly-line: var(--border);
+  --nk-ly-line-on: var(--brand);
+  --nk-ly-icon: color-mix(in srgb, var(--text-2) 70%, var(--bg-2));
+  --nk-ly-icon-on: var(--brand);
+  --nk-ly-wall: color-mix(in srgb, var(--text-2) 55%, var(--bg-2));
+  --nk-ly-ground: color-mix(in srgb, var(--text-2) 8%, var(--bg-2));
+  --nk-ly-dim: var(--brand);
+  --nk-ly-open: color-mix(in srgb, var(--warning) 80%, var(--bg-2));
+}
+
+/* ------------------------------------------------------------------ picker */
+.nk .nk-ly { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.nk .nk-ly-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+.nk .nk-ly-card {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) 18px; align-items: center; gap: var(--space-3);
+  min-height: 52px; padding: var(--space-2) var(--space-3); text-align: start;
+  background: var(--nk-ly-card); border: 1px solid var(--nk-ly-line); border-radius: var(--radius-lg); color: var(--text-1);
+  transition: border-color .12s ease, background .12s ease;
+}
+.nk .nk-ly-card:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--nk-ly-line)); }
+.nk .nk-ly-card[data-on="1"] { background: var(--nk-ly-card-on); border-color: var(--nk-ly-line-on); box-shadow: inset 0 0 0 1px var(--nk-ly-line-on); }
+.nk .nk-ly-card:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.nk .nk-ly-t { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+.nk .nk-ly-n { font-size: 13px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.nk .nk-ly-d { font-size: 12px; color: var(--text-2); line-height: 1.3; overflow-wrap: anywhere; }
+.nk .nk-ly-tick { width: 16px; height: 16px; border-radius: 999px; border: 1.5px solid var(--nk-ly-line); background: transparent; justify-self: end; position: relative; }
+.nk .nk-ly-card[data-on="1"] .nk-ly-tick { border-color: var(--nk-ly-line-on); background: var(--nk-ly-line-on); }
+.nk .nk-ly-card[data-on="1"] .nk-ly-tick::after { content: ''; position: absolute; inset-inline-start: 4.5px; top: 2px; width: 4px; height: 8px; border: solid var(--text-on-brand); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.nk .nk-ly-ic { display: block; color: var(--nk-ly-icon); }
+.nk .nk-ly-card[data-on="1"] .nk-ly-ic { color: var(--nk-ly-icon-on); }
+.nk .nk-ly-ic-run { fill: currentColor; fill-opacity: .85; }
+.nk .nk-ly-ic-wall { stroke: var(--nk-ly-wall); stroke-width: 2; stroke-linecap: round; }
+.nk .nk-ly-ic-open { stroke: var(--nk-ly-open); stroke-width: 1.4; stroke-dasharray: 3 2; }
+.nk .nk-ly-opt { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
+.nk .nk-ly-opt-l { font-size: 12px; color: var(--text-2); font-weight: 600; }
+.nk .nk-ly-go { align-self: flex-start; }
+
+/* ------------------------------------------------------------------ live floor plan */
+.nk .nk-lp { margin: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.nk .nk-lp-svg { display: block; width: 100%; height: auto; max-height: 190px; background: var(--nk-ly-ground); border: 1px solid var(--nk-ly-line); border-radius: var(--radius-md); direction: ltr; }
+.nk .nk-lp-compact .nk-lp-svg { max-height: 150px; }
+.nk .nk-lp-room { stroke: var(--nk-ly-wall); stroke-width: 3; vector-effect: non-scaling-stroke; }
+.nk .nk-lp-r { vector-effect: non-scaling-stroke; stroke-width: 1; }
+.nk .nk-lp-base { fill: var(--nk-pt-baseUnit); fill-opacity: .55; stroke: var(--nk-pt-baseUnit); }
+.nk .nk-lp-tall { fill: var(--nk-pt-baseUnit); fill-opacity: .9; stroke: var(--nk-pt-baseUnit); }
+.nk .nk-lp-r.nk-lp-wall { fill: var(--nk-pt-wallUnit); fill-opacity: .3; stroke: var(--nk-pt-wallUnit); stroke-dasharray: 3 2; }
+.nk .nk-lp-counter { fill: none; stroke: var(--nk-pt-counter); stroke-width: 1.4; }
+.nk .nk-lp-panel { fill: var(--nk-pt-cover); fill-opacity: .9; stroke: var(--nk-pt-cover); }
+.nk .nk-lp-dim line { stroke: var(--nk-ly-dim); stroke-width: 1.3; vector-effect: non-scaling-stroke; }
+.nk .nk-lp-dim text { fill: var(--nk-ly-dim); font-weight: 700; font-family: var(--nk-mono); }
+.nk .nk-lp-cap { font-size: 11px; color: var(--text-3); }
+
+/* ------------------------------------------------------------------ run screens */
+.nk .nk-xr-fields { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+.nk .nk-xr-fields .nk-pf { min-width: 0; }
+.nk .nk-xr-seg { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
+.nk .nk-xr-seg > span { font-size: 12px; font-weight: 600; color: var(--text-2); }
+.nk .nk-xr-sub { font-size: 12px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: .06em; margin-block-start: var(--space-2); }
+.nk .nk-xr-empty { display: flex; flex-direction: column; gap: var(--space-2); align-items: flex-start; }
+.nk .nk-xr-stat { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); font-size: 12px; color: var(--text-2); }
+.nk .nk-xr-stat b { font-family: var(--nk-mono); color: var(--text-1); font-size: 13px; }
+.nk .nk-rk-issues li[data-level="info"] { color: var(--text-2); }
+
+/* ------------------------------------------------------------------ end view (peninsula / island) */
+.nk .nk-ev { width: 100%; height: 100%; display: flex; flex-direction: column; min-height: 0; }
+.nk .nk-ev-svg { width: 100%; height: 100%; min-height: 0; direction: ltr; display: block; }
+.nk .nk-ev-fl { stroke: var(--text-2); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.nk .nk-ev-unit { fill: var(--nk-pt-baseUnit); fill-opacity: .35; stroke: var(--nk-pt-baseUnit); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.nk .nk-ev-panel { fill: var(--nk-pt-cover); fill-opacity: .22; stroke: var(--nk-pt-cover); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.nk .nk-ev-panel[data-off="1"] { fill: none; stroke-dasharray: 5 4; fill-opacity: 0; }
+.nk .nk-ev-top { fill: var(--nk-pt-counter); fill-opacity: .6; stroke: var(--nk-pt-counter); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.nk .nk-ev-plinth { fill: var(--nk-pt-plinth); fill-opacity: .8; stroke: var(--nk-pt-plinth); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.nk .nk-ev-support { stroke: var(--nk-ly-open); stroke-width: 2; vector-effect: non-scaling-stroke; fill: none; }
+.nk .nk-ev-dim line { stroke: var(--nk-ly-dim); stroke-width: 1.3; vector-effect: non-scaling-stroke; }
+.nk .nk-ev-dim text { fill: var(--nk-ly-dim); font-weight: 700; font-family: var(--nk-mono); }
+.nk .nk-ev-cap { fill: var(--text-2); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .nk .nk-ly-card { transition: none; } }

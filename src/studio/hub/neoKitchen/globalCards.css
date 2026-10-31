@@ -1,0 +1,34 @@
+/* Neo Kitchen Designer UX-15 - active row + highlighted diagram part, shared by the Carcass / Doors & Hinges / Drawers / Shelves cards
+ * (they now also sit at the bottom of the Global tab). Imported by activeRow.jsx; everything is scoped under .nk.
+ * The owner palette is defined ONCE below as scoped --nk-gc-* custom properties (dark set under [data-theme="dark"]); every rule uses these or a DESIGN.md token. */
+.nk {
+  --nk-gc-row-on: #EAF0FF;      /* active row band */
+  --nk-gc-badge-on: #3D6BFF;    /* active number badge (the others stay navy) */
+  --nk-gc-badge-on-text: #FFFFFF;
+  --nk-gc-hl-fill: #FFF1CC;     /* highlighted diagram part: pale yellow ... */
+  --nk-gc-hl-fill-side: #FBE3A6;
+  --nk-gc-hl-line: #FFB13B;     /* ... with a vivid orange outline */
+}
+[data-theme="dark"] .nk, .nk[data-theme="dark"] {
+  --nk-gc-row-on: rgba(108, 147, 255, .18);
+  --nk-gc-badge-on: #6C93FF;
+  --nk-gc-badge-on-text: #0B1020;
+  --nk-gc-hl-fill: #6B5A24;
+  --nk-gc-hl-fill-side: #54461B;
+  --nk-gc-hl-line: #F6B94A;
+}
+
+/* active row: light-blue band + blue badge. Same box in every state (padding + negative margin, no border change), so nothing shifts. */
+.nk .nk-ar-row { border-radius: var(--radius-lg); padding-inline: var(--space-3); transition: background .12s ease; }
+.nk .nk-ar-row + .nk-ar-row { border-block-start-color: transparent; }
+.nk .nk-ar-row[data-on="1"] { background: var(--nk-gc-row-on); }
+.nk .nk-ar-row[data-on="1"] .nk-cn { background: var(--nk-gc-badge-on); color: var(--nk-gc-badge-on-text); }
+.nk .nk-ar-row[data-on="1"] .nk-shelf-in .nk-inp-wrap { border-color: var(--nk-gc-badge-on); }
+@media (prefers-reduced-motion: reduce) { .nk .nk-ar-row { transition: none; } }
+
+/* highlighted diagram part (data-hl="1" on the SVG element; ids come from activeRow.ACTIVE_PARTS) */
+.nk .nk-sh-board[data-hl="1"] { fill: var(--nk-gc-hl-fill); stroke: var(--nk-gc-hl-line); stroke-width: 2; }
+.nk .nk-sh-meas[data-hl="1"] { stroke: var(--nk-gc-hl-line); stroke-width: 2.4; }
+.nk .nk-do-p[data-hl="1"] path, .nk .nk-dw-p[data-hl="1"] path { fill: var(--nk-gc-hl-fill); stroke: var(--nk-gc-hl-line); stroke-width: 2; }
+.nk .nk-do-p[data-hl="1"] .nk-do-right, .nk .nk-dw-p[data-hl="1"] .nk-dw-right { fill: var(--nk-gc-hl-fill-side); }
+.nk .nk-do-cup[data-hl="1"] { fill: var(--nk-gc-hl-fill); stroke: var(--nk-gc-hl-line); stroke-width: 2; }

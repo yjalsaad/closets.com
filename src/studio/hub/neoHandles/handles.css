@@ -1,0 +1,33 @@
+/* =============================================================================
+ * [NEO-HANDLES-UX36] SMART HANDLES - the shared pill overlay. Tokens only (DESIGN.md): the scoped --nk-hdl-* vars below are aliases of --brand / --danger /
+ * --bg / --text-on-brand, so a studio theme (light / dark / RTL) re-colours every pill with no hex here. Sizes are set in JS in screen pixels.
+ * ===========================================================================*/
+.nk-hdl-layer {
+  --nk-hdl: var(--brand, var(--info));
+  --nk-hdl-hot: var(--brand-hover, var(--brand));
+  --nk-hdl-halo: var(--bg-2, var(--bg));
+  --nk-hdl-ink: var(--text-on-brand, var(--bg));
+  --nk-hdl-limit: var(--danger);
+}
+.nk-hdl { cursor: grab; outline: none; touch-action: none; -webkit-user-select: none; user-select: none; }
+.nk-hdl-y { cursor: ns-resize; } .nk-hdl-x { cursor: ew-resize; }
+.nk-hdl.is-active { cursor: grabbing; }
+.nk-hdl .nk-hdl-hit { fill: transparent; stroke: none; }
+.nk-hdl .nk-hdl-halo { fill: var(--nk-hdl-halo); stroke: none; opacity: 0.92; }
+.nk-hdl .nk-hdl-pill { fill: var(--nk-hdl); stroke: none; transition: fill 0.12s ease; }
+.nk-hdl .nk-hdl-glyph { fill: none; stroke: var(--nk-hdl-ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.nk-hdl.is-hover .nk-hdl-pill, .nk-hdl:hover .nk-hdl-pill, .nk-hdl:focus-visible .nk-hdl-pill { fill: var(--nk-hdl-hot); }
+.nk-hdl:focus-visible .nk-hdl-halo, .nk-hdl.is-active .nk-hdl-halo { stroke: var(--nk-hdl); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.nk-hdl.is-active .nk-hdl-pill { fill: var(--nk-hdl-hot); }
+.nk-hdl.is-limit .nk-hdl-pill { fill: var(--nk-hdl-limit); }
+.nk-hdl.is-limit .nk-hdl-halo { stroke: var(--nk-hdl-limit); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.nk-hdl-bubble rect { fill: var(--nk-hdl); stroke: none; }
+.nk-hdl-bubble text { fill: var(--nk-hdl-ink); font-weight: 700; font-family: inherit; font-variant-numeric: tabular-nums; }
+.nk-hdl-bubble.is-limit rect { fill: var(--nk-hdl-limit); }
+.nk-hdl-bubble .nk-hdl-why { font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .nk-hdl .nk-hdl-pill { transition: none; } }
+/* never in a print / PDF / export render */
+@media print { .nk-hdl-layer { display: none !important; } }
+.nk-print-root .nk-hdl-layer { display: none !important; }
+/* the "Handles" toggle in the drawing bar reuses .nk-chk; only its state is styled here */
+.nk-chk-hdl input:checked + span, .nk-chk-hdl[data-on="1"] { font-weight: 700; }

@@ -1,0 +1,336 @@
+/* =============================================================================
+ * Neo Kitchen Designer UX-23 - the workspace layout. [NEO-UX23]  Imported LAST, so it owns every layout property of the shell.
+ *
+ *   header (grid)                           brand | tools - the title field and the Saved chip can never overlap or be clipped
+ *   .nk-body (flex row, min-width:0)        [Parameters panel] [handle] [stage] [handle] [assistant | collapsed rail]
+ *   .nk-stage (flex column)                 .nk-bar (toolbar, wraps) / .nk-stagebody (.nk-stagemain + tools column) / toast
+ *   .nk-stagemain (flex column)             sub-bars in the flow / drawing (flex 1) / .nk-foot (selection card, hint)
+ *
+ * ROOT CAUSES this file removes (all found by running the real app in the Hub shell):
+ *  1  no definite height: the Hub page gives the designer an auto-height box, so the stage collapsed. The component now measures the page
+ *     scroller and sets --nk-h; here .nk uses it.
+ *  2  toolbar, tools column, selection card, hint, zoom controls were position:absolute over the drawing with hard-coded offsets
+ *     (84px, 64px, --nk-tbh ...) -> they overlapped each other and the model. Everything is now a flex / grid item in the flow.
+ *  3  the columns were sized from the WINDOW (46vw, 28%, @media 1280px) although the Hub sidebar + margins take 90-290px of it. The
+ *     component measures .nk-body and passes --nk-panel-w / --nk-asst-w (resizable, remembered); panel mode comes from data-panel-mode.
+ *  4  the panel content had min-width:420px inside a narrower clipping panel (rail drawn over the panel) - removed.
+ * Colours: tokens only. Sizes: --nk-ctl-h / --space-N / --radius-*.
+ * ===========================================================================*/
+
+/* ---------- shell ---------- */
+.nk { height: var(--nk-h, 100%); min-height: 560px; min-width: 0; overflow: clip; }
+.nk-body { flex: 1 1 auto; display: flex; min-height: 0; min-width: 0; position: relative; background: var(--bg); overflow: clip; }
+
+/* ---------- header: brand | tools ---------- */
+.nk .nk-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); min-height: 52px; padding: var(--space-1) var(--space-4); background: var(--bg-2); border-block-end: 1px solid var(--border); position: relative; z-index: 30; min-width: 0; }
+.nk .nk-brand { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.nk .nk-logo { flex: none; }
+.nk .nk-title-wrap { flex: 0 1 auto; min-width: 0; }
+.nk .nk-appname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nk .nk-subtitle { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nk .nk-brand .nk-title { flex: 1 1 160px; min-width: 96px; max-width: 280px; margin: 0; }
+.nk .nk-right { display: flex; align-items: center; gap: var(--space-1); flex: none; }
+.nk .nk-saved-chip { flex: none; margin-inline: var(--space-1); }
+.nk .nk-saved-t { white-space: nowrap; }
+.nk[data-head="mid"] .nk-subtitle, .nk[data-head="slim"] .nk-subtitle { display: none; }
+.nk[data-head="mid"] .nk-hb-t, .nk[data-head="slim"] .nk-hb-t { display: none; }
+.nk[data-head="mid"] .nk-hb:not(.nk-hb-ic) { padding-inline: var(--space-2); }
+.nk[data-head="slim"] .nk-saved-t { display: none; }
+.nk[data-head="slim"] .nk-brand .nk-title { flex-basis: 120px; max-width: 180px; }
+.nk[data-head="slim"] .nk-appname { font-size: 14px; }
+
+/* ---------- Parameters panel + handles ---------- */
+.nk .nk-panel { flex: 0 0 var(--nk-panel-w, 400px); width: var(--nk-panel-w, 400px); max-width: none; min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--bg-2); border-inline-end: 0; overflow: clip; }
+.nk .nk-panel > * { min-width: 0; }
+.nk .nk-panel.nk-panel-closed { display: none; }
+.nk .nk-panel-head { padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4); }
+.nk .nk-panel-main { flex: 1 1 auto; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+.nk .nk-pcol { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+.nk .nk-panel-scroll { flex: 1 1 auto; min-height: 0; min-width: 0; overflow-y: auto; overflow-x: hidden; container: nkpanel / inline-size; }
+.nk .nk-pbody { padding: var(--space-3); gap: var(--space-3); min-width: 0; }
+.nk .nk-resizer { flex: 0 0 8px; width: 8px; position: relative; z-index: 6; cursor: col-resize; touch-action: none; outline: none; background: transparent; }
+.nk .nk-resizer > i { position: absolute; inset-block: 0; inset-inline-start: calc(50% - .5px); width: 1px; background: var(--border); transition: width 120ms ease, background-color 120ms ease, inset-inline-start 120ms ease; }
+.nk .nk-resizer:hover > i, .nk .nk-resizer[data-active="1"] > i, .nk .nk-resizer:focus-visible > i { width: 3px; inset-inline-start: calc(50% - 1.5px); background: var(--brand); border-radius: 2px; }
+
+/* the category bar (UX-23, owner request): ONE horizontal strip across the top of the Parameters panel - Kitchen | Parts as labelled segments,
+   icon + label chips, scrolls sideways with an edge fade when the panel is narrow (never wraps, never clips, never overlaps the cards) */
+.nk .nk-rail { flex: 0 0 auto; width: auto; min-width: 0; display: flex; flex-direction: row; align-items: center; gap: var(--space-1); padding: var(--space-1) var(--space-2); background: var(--bg-2); border-inline-end: 0; border-block-end: 1px solid var(--border); overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; scroll-snap-type: x proximity; position: sticky; inset-block-start: 0; z-index: 3; }
+.nk .nk-rail[data-fs="1"] { -webkit-mask-image: linear-gradient(to right, transparent 0, black 22px); mask-image: linear-gradient(to right, transparent 0, black 22px); }
+.nk .nk-rail[data-fe="1"] { -webkit-mask-image: linear-gradient(to left, transparent 0, black 22px); mask-image: linear-gradient(to left, transparent 0, black 22px); }
+.nk .nk-rail[data-fs="1"][data-fe="1"] { -webkit-mask-image: linear-gradient(to right, transparent 0, black 22px, black calc(100% - 22px), transparent 100%); mask-image: linear-gradient(to right, transparent 0, black 22px, black calc(100% - 22px), transparent 100%); }
+.nk-rtl .nk-rail[data-fs="1"] { -webkit-mask-image: linear-gradient(to left, transparent 0, black 22px); mask-image: linear-gradient(to left, transparent 0, black 22px); }
+.nk-rtl .nk-rail[data-fe="1"] { -webkit-mask-image: linear-gradient(to right, transparent 0, black 22px); mask-image: linear-gradient(to right, transparent 0, black 22px); }
+.nk-rtl .nk-rail[data-fs="1"][data-fe="1"] { -webkit-mask-image: linear-gradient(to right, transparent 0, black 22px, black calc(100% - 22px), transparent 100%); mask-image: linear-gradient(to right, transparent 0, black 22px, black calc(100% - 22px), transparent 100%); }
+.nk .nk-rail-g { flex: none; display: flex; flex-direction: row; align-items: center; gap: 2px; padding-block-start: 0; margin-block-start: 0; border-block-start: 0; }
+.nk .nk-rail-g + .nk-rail-g { border-inline-start: 1px solid var(--border); padding-inline-start: var(--space-2); margin-inline-start: var(--space-1); }
+.nk .nk-rail-gt { flex: none; padding-inline: var(--space-1) var(--space-2); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); white-space: nowrap; }
+.nk-rtl .nk-rail-gt { letter-spacing: 0; }
+.nk .nk-rt { flex: none; flex-direction: row; gap: 6px; min-height: var(--nk-ctl-h-sm, 36px); min-width: 0; padding: 0 var(--space-3); font-size: var(--nk-fs-sm); font-weight: 700; white-space: nowrap; scroll-snap-align: center; }
+.nk .nk-rt[aria-selected="true"]::before { inset-block: auto 0; inset-inline: var(--space-2); width: auto; height: 2px; border-radius: 2px 2px 0 0; }
+.nk .nk-rt .nk-dot { position: static; margin: 0; }
+.nk .nk-rt .nk-rt-off { position: static; flex: none; }
+.nk .nk-runsel { padding: var(--space-2) var(--space-3) 0; }
+
+/* collapsed panel: a slim handle at the inline-start edge of the stage (in the flow, so it takes its own 28px, never covers the drawing) */
+.nk .nk-ptab { position: static; flex: 0 0 28px; width: 28px; min-height: 96px; align-self: flex-start; margin-block-start: var(--space-3); padding: var(--space-2) 0; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-1); background: var(--bg-2); color: var(--nk-ink, var(--brand)); border: 1px solid var(--border); border-inline-start: 0; border-start-end-radius: var(--radius-md); border-end-end-radius: var(--radius-md); box-shadow: var(--nk-shadow-1); font-weight: 700; font-size: 12.5px; }
+.nk .nk-ptab span { writing-mode: vertical-rl; letter-spacing: .04em; }
+.nk .nk-scrim { display: none; }
+
+/* ---------- stage ---------- */
+.nk .nk-stage { flex: 1 1 0; min-width: 0; min-height: 0; position: relative; display: flex; flex-direction: column; padding: 0; background: var(--bg); overflow: clip; }
+.nk .nk-stagebar { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: var(--space-2); padding: var(--space-2) var(--space-3); min-width: 0; }
+.nk .nk-focus-exit { position: static; flex: none; z-index: auto; }
+.nk .nk-ftb { position: static; inset: auto; margin: 0; width: auto; max-width: 100%; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-1); padding: 3px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--nk-shadow-1); z-index: 25; }
+.nk .nk-ftb .nk-tool { min-height: var(--nk-ctl-h-sm, 36px); }
+.nk .nk-stagebody { flex: 1 1 0; min-height: 0; min-width: 0; display: flex; gap: var(--space-2); padding-inline-end: var(--space-2); }
+.nk .nk-stagemain { flex: 1 1 0; min-width: 0; min-height: 0; display: flex; flex-direction: column; position: relative; }
+.nk .nk-vtools { position: static; inset: auto; flex: 0 0 auto; align-self: flex-start; display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: var(--space-1); background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--nk-shadow-1); z-index: 22; }
+.nk .nk-vtools .nk-tool { padding: 0; }
+.nk .nk-draw { flex: 1 1 0; min-height: 0; min-width: 0; position: relative; overflow: hidden; display: flex; }
+.nk .nk-3dwrap { flex: 1 1 0; min-height: 0; min-width: 0; position: relative; display: flex; }
+.nk .nk-3dwrap > .nk-3d { flex: 1 1 auto; min-width: 0; min-height: 0; margin: 0; }
+.nk .nk-cutwrap { flex: 1 1 0; min-height: 0; min-width: 0; overflow: auto; }
+
+/* sub-bars live in the flow above the drawing */
+.nk .nk-modebar { position: static; align-self: center; width: auto; max-width: calc(100% - var(--space-3)); display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-2) var(--space-3); margin: var(--space-1) var(--space-2) 0; padding: var(--space-1) var(--space-3); background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--nk-shadow-1); z-index: 12; }
+.nk .nk-mb-checks { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-4); }
+.nk .nk-modebar .nk-chk { font-size: 12.5px; white-space: nowrap; }
+.nk .nk-exbar { position: static; align-self: center; max-width: calc(100% - var(--space-3)); margin: var(--space-1) var(--space-2) 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-2) var(--space-3); padding: var(--space-2) var(--space-3); background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--nk-shadow-1); }
+.nk .nk-oc { position: relative; align-self: center; max-width: calc(100% - var(--space-3)); margin: var(--space-1) var(--space-2) 0; }
+
+/* foot: the selected-part card and the 3D hint, in the flow under the drawing - never over it */
+.nk .nk-foot { flex: 0 0 auto; display: flex; justify-content: center; padding: var(--space-2) var(--space-2) var(--space-3); min-width: 0; }
+.nk .nk-selcard { position: static; inset: auto; margin: 0; width: auto; max-width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-2) var(--space-3); background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--nk-shadow-1); z-index: 14; }
+.nk .nk-selcard .nk-sel-t { flex: 1 1 140px; min-width: 0; }
+.nk .nk-selcard .nk-btn, .nk .nk-selcard .nk-ib { flex: 0 0 auto; }
+.nk .nk-hint { position: static; inset: auto; flex: 0 0 auto; max-width: none; margin: 0; padding: var(--space-1) var(--space-3) var(--space-2); background: transparent; border: 0; text-align: center; color: var(--text-3); font-size: var(--nk-fs-xs); line-height: 1.4; text-wrap: balance; }
+.nk[data-tier="tight"] .nk-hint { display: none; }
+/* the toast: transient, over the lower edge of the drawing */
+.nk .nk-status { position: absolute; inset-block-end: var(--space-4); inset-inline: 0; margin-inline: auto; width: max-content; max-width: calc(100% - 2 * var(--space-4)); z-index: 26; font-size: 12.5px; color: var(--text-1); background: var(--bg-2); border-radius: var(--radius-pill); box-shadow: var(--nk-shadow-2); pointer-events: none; }
+.nk .nk-status:empty { display: none; }
+.nk .nk-status:not(:empty) { border: 1px solid var(--brand); padding: 6px var(--space-4); }
+
+/* ---------- assistant: docked column / floating panel / collapsed rail ---------- */
+.nk .nk-asst { position: absolute; z-index: 45; inset-inline-end: var(--space-4); inset-block-end: var(--space-4); width: min(400px, calc(100% - 2 * var(--space-4))); max-height: min(640px, calc(100% - 2 * var(--space-4))); display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-3); box-shadow: var(--nk-shadow-2); overflow: hidden; }
+.nk .nk-asst[data-docked="1"] { position: relative; inset: auto; z-index: 5; flex: 0 0 var(--nk-asst-w, 340px); width: var(--nk-asst-w, 340px); max-width: none; max-height: none; align-self: stretch; gap: 0; padding: 0; border-width: 0; border-radius: 0; box-shadow: none; }
+.nk .nk-asst[data-docked="1"] .nk-asst-head { padding: var(--space-3); border-block-end: 1px solid var(--border); }
+.nk .nk-asst[data-docked="1"] .nk-asst-scroll { padding: var(--space-3); }
+.nk .nk-asst[data-docked="1"] .nk-log { max-height: none; min-height: 0; overflow: visible; }
+.nk .nk-asst[data-docked="1"] .nk-review { max-height: none; }
+.nk .nk-asst[data-docked="1"] .nk-chips-sm { max-height: none; }
+.nk .nk-asst[data-docked="1"] .nk-asst-form { padding: var(--space-3); border-block-start: 1px solid var(--border); background: var(--bg-2); }
+.nk .nk-asst[data-docked="1"] .nk-asst-form + .nk-sub { padding-inline: var(--space-3); margin: 0; }
+.nk .nk-asst[data-docked="1"] .nk-asst-foot { padding: var(--space-2) var(--space-3) var(--space-3); }
+.nk .nk-asst[data-docked="0"] .nk-asst-scroll { padding: 0; }
+.nk .nk-asst-head { min-width: 0; }
+.nk .nk-asst-ctl { flex-wrap: nowrap; }
+.nk .nk-asst-rail { flex: 0 0 48px; width: 48px; display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding-block: var(--space-3); background: var(--bg-2); border-inline-start: 1px solid var(--border); }
+.nk .nk-rail-btn { position: relative; width: 40px; height: 40px; color: var(--nk-ink, var(--brand)); border-color: transparent; background: var(--brand-muted); }
+.nk .nk-rail-dot { position: absolute; inset-block-start: 4px; inset-inline-end: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--warning); border: 2px solid var(--bg-2); }
+.nk .nk-rail-t { writing-mode: vertical-rl; font-size: var(--nk-fs-xs); font-weight: 700; letter-spacing: .06em; color: var(--text-2); }
+.nk .nk-fab { position: absolute; z-index: 40; inset-inline-end: var(--space-4); inset-block-end: var(--space-4); display: inline-flex; align-items: center; justify-content: center; gap: 0; height: 48px; min-width: 48px; padding: 0 14px; background: var(--nk-ink, var(--brand)); color: var(--text-on-brand); border: 0; border-radius: var(--radius-pill); font-weight: 700; box-shadow: var(--nk-shadow-2); transition: box-shadow 180ms ease, transform 180ms ease, gap 180ms ease, background-color 160ms ease; }
+.nk .nk-fab-t { max-width: 0; overflow: hidden; white-space: nowrap; opacity: 0; transition: max-width 200ms ease, opacity 160ms ease; }
+.nk .nk-fab:hover, .nk .nk-fab:focus-visible { gap: var(--space-2); transform: translateY(-1px); background: var(--brand-hover); }
+.nk .nk-fab:hover .nk-fab-t, .nk .nk-fab:focus-visible .nk-fab-t { max-width: 140px; opacity: 1; }
+/* the proposal preview (assistant) */
+.nk .nk-review { min-width: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-2); padding: var(--space-3); gap: var(--space-2); max-height: none; overflow: visible; }
+.nk .nk-rv-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); font-size: var(--nk-fs-sm); }
+.nk .nk-rv-legend { display: inline-flex; align-items: center; gap: var(--space-1); color: var(--text-3); font-size: var(--nk-fs-xs); }
+.nk .nk-rv-k { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-inline-start: var(--space-2); }
+.nk .nk-rv-k-saved { background: var(--text-3); } .nk .nk-rv-k-new { background: var(--brand); }
+.nk .nk-rv { background: var(--bg-3); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); min-width: 0; }
+.nk .nk-rv-t { overflow-wrap: anywhere; }
+.nk .nk-rv-delta { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); font-size: var(--nk-fs-md); }
+.nk .nk-rv-old { color: var(--text-3); text-decoration: line-through; text-decoration-thickness: 1px; }
+.nk .nk-rv-arrow { color: var(--text-3); }
+.nk .nk-rv-new { color: var(--nk-ink, var(--brand)); font-weight: 800; }
+.nk .nk-rv-bad { border: 1px solid var(--danger); background: color-mix(in srgb, var(--danger) 7%, var(--bg-3)); }
+.nk .nk-rv-skip { color: var(--danger); }
+.nk .nk-rv-act { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-2); }
+.nk .nk-rv-sum { flex: 1 1 100%; color: var(--text-2); font-size: var(--nk-fs-xs); }
+.nk .nk-applied { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-2) var(--space-3); border: 1px solid var(--success); border-radius: var(--radius-md); background: color-mix(in srgb, var(--success) 9%, var(--bg-2)); color: var(--text-1); font-size: var(--nk-fs-sm); font-weight: 600; }
+.nk .nk-applied svg { color: var(--success); vertical-align: -3px; }
+
+/* ---------- parameter cards: quieter nesting (one card level; fields separated by whitespace and a hairline) ---------- */
+.nk .nk-card { background: var(--bg-2); border-color: var(--nk-card-line, var(--border)); border-radius: var(--radius-lg); padding: var(--space-4); box-shadow: none; }
+.nk .nk-ctl { padding-block: var(--space-3); border-block-start: 1px solid var(--nk-card-line, var(--border)); }
+.nk .nk-ctl-head { align-items: flex-start; gap: var(--space-3); min-width: 0; }
+.nk .nk-ctl-t { flex: 1 1 0; min-width: 0; }
+.nk .nk-ctl-name { overflow-wrap: break-word; text-wrap: pretty; }
+.nk .nk-ctl-d, .nk .nk-cdesc { overflow-wrap: break-word; text-wrap: pretty; }
+.nk .nk-card-head { min-width: 0; flex-wrap: wrap; row-gap: var(--space-1); }
+.nk .nk-h3 { min-width: 0; overflow-wrap: break-word; }
+.nk .nk-dimblock { padding-block: var(--space-2); }
+.nk .nk-dimblock + .nk-dimblock { border-block-start: 1px solid var(--nk-card-line, var(--border)); padding-block-start: var(--space-3); margin-block-start: var(--space-1); }
+.nk .nk-pcol .nk-seg { flex-wrap: wrap; max-width: 100%; }
+/* the 4-way Layout switch: a 2x2 grid when the column is narrow, one line when it fits - never a half-wrapped orphan */
+.nk .nk-dimblock .nk-seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); width: 100%; }
+.nk .nk-dimblock .nk-seg-b { text-align: center; min-width: 0; }
+.nk .nk-sel-l { min-width: 0; }
+.nk .nk-row-wrap { min-width: 0; }
+.nk .nk-row-wrap > .nk-sel-l { flex: 1 1 120px; }
+
+/* ---------- touch + tablet sizes ---------- */
+@media (max-width: 1023px), (pointer: coarse) {
+  .nk-tool, .nk-hb, .nk-rt, .nk-mi, .nk-layer { min-height: 44px; }
+  .nk-tool, .nk-hb-ic { min-width: 44px; }
+  .nk-btn, .nk-select, .nk-chip, .nk-pilltab, .nk-seg-b, .nk-lib-b { min-height: 44px; }
+  .nk-ib { width: 44px; height: 44px; }
+  .nk-chk { min-height: 44px; }
+  .nk-chk input { width: 24px; height: 24px; }
+  .nk-range { height: 44px; }
+  .nk-toggle { position: relative; }
+  .nk-toggle::before { content: ""; position: absolute; inset: -10px -4px; }
+  .nk .nk-ftb .nk-tool { min-height: 44px; }
+}
+
+/* ---------- drawer mode (the body is narrower than DRAWER_BELOW): the Parameters panel slides over the stage ---------- */
+.nk[data-panel-mode="drawer"] .nk-panel { position: absolute; z-index: 50; inset-block: 0; inset-inline-start: 0; width: min(var(--nk-panel-w, 400px), calc(100% - var(--space-6))); flex: none; box-shadow: var(--nk-shadow-2); border-inline-end: 1px solid var(--border); transition: transform 200ms cubic-bezier(.16, 1, .3, 1), visibility 0s linear 0s; }
+.nk[data-panel-mode="drawer"] .nk-panel.nk-panel-closed { display: flex; transform: translateX(-104%); visibility: hidden; pointer-events: none; transition: transform 200ms ease, visibility 0s linear 200ms; }
+.nk-rtl[data-panel-mode="drawer"] .nk-panel.nk-panel-closed { transform: translateX(104%); }
+.nk[data-panel-mode="drawer"] .nk-scrim { display: block; position: absolute; inset: 0; z-index: 48; border: 0; padding: 0; background: var(--nk-scrim); }
+
+/* ---------- phone (<= 640px window): bottom sheet + icon toolbar ---------- */
+@media (max-width: 640px) {
+  .nk .nk-head { padding-inline: var(--space-3); gap: var(--space-2); }
+  .nk .nk-subtitle, .nk .nk-saved-chip, .nk .nk-hb-t, .nk .nk-head .nk-hb-ic { display: none; }
+  .nk .nk-brand .nk-title { display: none; }
+  .nk[data-panel-mode="drawer"] .nk-panel { inset-block: auto 0; inset-inline: 0; width: auto; height: min(74%, 620px); border-inline-end: 0; border-start-start-radius: var(--radius-xl); border-start-end-radius: var(--radius-xl); }
+  .nk[data-panel-mode="drawer"] .nk-panel.nk-panel-closed { transform: translateY(104%); }
+  .nk-rtl[data-panel-mode="drawer"] .nk-panel.nk-panel-closed { transform: translateY(104%); }
+  .nk .nk-panel-head::before { content: ""; position: absolute; inset-block-start: 6px; inset-inline: 0; margin-inline: auto; width: 36px; height: 4px; border-radius: 2px; background: var(--border); }
+  .nk .nk-panel-head { position: relative; padding-block-start: var(--space-3); }
+  .nk .nk-panel-head .nk-hb svg { transform: rotate(-90deg); }
+  .nk-rtl .nk-panel-head .nk-hb svg { transform: rotate(90deg); }
+  .nk .nk-ptab { position: absolute; inset-block-end: var(--space-4); inset-inline-start: var(--space-3); width: auto; min-height: 48px; flex-direction: row; padding: 0 var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-pill); z-index: 24; }
+  .nk .nk-ptab span { writing-mode: horizontal-tb; }
+  .nk[data-panel-open="1"] .nk-fab { display: none; }
+  .nk .nk-fab { height: 52px; min-width: 52px; }
+  .nk .nk-asst { inset-inline: 0; inset-block-end: 0; width: auto; max-height: 84%; border-end-start-radius: 0; border-end-end-radius: 0; border-start-start-radius: var(--radius-xl); border-start-end-radius: var(--radius-xl); }
+  .nk .nk-log { max-height: 30vh; }
+  .nk .nk-stagebody { padding-inline-end: var(--space-1); }
+  .nk .nk-modebar { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; align-self: stretch; }
+  .nk .nk-modebar .nk-chk, .nk .nk-modebar .nk-seg { flex: 0 0 auto; white-space: nowrap; }
+  .nk .nk-mb-checks { flex-wrap: nowrap; }
+  .nk .nk-oc { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; align-self: stretch; }
+  .nk .nk-menu-look { position: fixed; inset-block-start: 96px; inset-inline: var(--space-2); min-width: 0; transform: none; width: auto; }
+  .nk .nk-cut-inner { padding: var(--space-3); }
+  /* [MOB-DQ] phone legibility: nothing under 12px (legend, units, range notes, small pills were 11–11.5px) */
+  .nk { --nk-fs-xs: 12px; }
+  .nk .nk-pill, .nk .nk-unit, .nk .nk-range-note, .nk .nk-sel-l, .nk .nk-saved, .nk .nk-keep small, .nk .nk-lg, .nk .nkc-legend .nk-lg { font-size: 12.5px; }
+  .nk .nkc-legend .nk-lg, .nk .nkd-legend .nk-lg { min-height: 44px; padding-inline: var(--space-2); font-size: 12.5px; }
+  .nk .nkd-zoom-v, .nk .nkc-zoom-v, .nk [class$="-zoom-v"] { font-size: 12.5px; }
+  .nk .nk-tool-t { font-size: 12px; }
+  .nk .nk-pill-mat, .nk .nk-unit-tag, .nk .nk-chip-sm, .nk .nk-cn { font-size: 12px; }
+  .nk .nk-chip-sm { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { .nk .nk-resizer > i, .nk .nk-panel { transition: none !important; } }
+
+/* ---------- the floating assistant window (default): moves + resizes, takes no layout width ---------- */
+.nk .nk-asst[data-floating="1"] { max-width: none; max-height: none; resize: none; }
+.nk .nk-asst[data-floating="1"] .nk-asst-head { cursor: grab; touch-action: none; user-select: none; }
+.nk .nk-asst[data-floating="1"] .nk-asst-head:active { cursor: grabbing; }
+.nk .nk-asst-grip { flex: none; cursor: grab; border-color: transparent; background: transparent; color: var(--text-3); }
+.nk .nk-asst-resize { position: absolute; inset-block-end: 2px; inset-inline-end: 2px; z-index: 3; width: 22px; height: 22px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: var(--text-3); cursor: nwse-resize; touch-action: none; }
+.nk-rtl .nk-asst-resize { cursor: nesw-resize; }
+.nk .nk-asst-resize:hover, .nk .nk-asst-resize:focus-visible { color: var(--nk-ink, var(--brand)); }
+.nk .nk-asst[data-floating="1"] .nk-asst-scroll { padding-inline: var(--space-1); }
+@media (max-width: 640px) {
+  .nk .nk-asst[data-floating="1"] { left: 0 !important; top: auto !important; width: auto !important; height: auto !important; max-height: 84% !important; inset-inline: 0 !important; inset-block-end: 0 !important; }
+  .nk .nk-asst-grip, .nk .nk-asst-resize { display: none; }
+}
+
+/* ---------- viewport tools: every tool shows its name (icon over a short label), grouped under View / Workspace ---------- */
+.nk .nk-vtools { position: relative; z-index: 47; width: 68px; align-items: stretch; overflow: visible; }
+.nk .nk-vtools .nk-menuwrap { position: static; }
+.nk .nk-vtools .nk-menu-side { inset-block-start: 0; inset-inline-end: calc(100% + 8px); inset-inline-start: auto; }
+.nk .nk-vt-body { align-items: stretch; gap: 2px; }
+.nk .nk-vt-h { padding: var(--space-1) var(--space-1) 2px; font-size: var(--nk-fs-xs); font-weight: 700; color: var(--text-3); text-align: center; }
+.nk .nk-vtools .nk-tool { flex-direction: column; gap: 2px; width: 100%; min-width: 0; min-height: 52px; padding: 6px 2px; font-size: 11px; font-weight: 600; line-height: 1.15; white-space: normal; text-align: center; border-radius: var(--radius-md); }
+.nk .nk-vtools .nk-tool-t { display: block; max-width: 100%; overflow-wrap: anywhere; }
+.nk .nk-vtools .nk-tool[aria-pressed="true"] { background: var(--brand-muted); color: var(--nk-ink, var(--brand)); box-shadow: inset 0 0 0 1.5px var(--brand); }
+.nk .nk-vt-strip { width: 100%; min-height: 28px; font-size: var(--nk-fs-xs); letter-spacing: 0; text-transform: none; font-weight: 700; }
+.nk .nk-vt-sep { margin-block: var(--space-1); }
+/* Layers popover: anchored to its button, scrolls inside, two clear sections */
+.nk .nk-menu-layers { width: 280px; max-width: calc(100vw - 24px); max-height: min(560px, calc(var(--nk-h, 100vh) - 200px)); overflow: hidden; display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); }
+.nk .nk-lay-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-4); padding-inline-end: var(--space-1); }
+.nk .nk-lay-sec { display: flex; flex-direction: column; gap: var(--space-2); }
+.nk .nk-lay-h { margin: 0; font-size: var(--nk-fs-md); font-weight: 700; color: var(--text-1); letter-spacing: 0; text-transform: none; text-wrap: balance; }
+.nk .nk-lay-bulk { display: flex; gap: var(--space-2); }
+.nk .nk-lay-bulk .nk-btn { flex: 1 1 0; min-height: var(--nk-ctl-h-sm, 32px); }
+.nk .nk-menu-layers .nk-layers { gap: 2px; }
+.nk .nk-menu-layers .nk-layer { justify-content: flex-start; width: 100%; }
+.nk .nk-layer-s { margin-inline-start: auto; font-size: var(--nk-fs-xs); font-weight: 700; color: var(--nk-ink, var(--brand)); }
+.nk .nk-layer[data-hidden="1"] .nk-layer-s { color: var(--text-3); }
+.nk .nk-menu-layers .nk-legend { gap: 2px; }
+.nk .nk-menu-layers .nk-lg { min-height: var(--nk-ctl-h-sm, 32px); width: 100%; font-size: var(--nk-fs-sm); border-radius: var(--radius-md); padding-inline: var(--space-2); }
+.nk .nk-lg-on { margin-inline-start: auto; color: var(--nk-ink, var(--brand)); font-weight: 700; font-size: var(--nk-fs-xs); }
+.nk .nk-lay-clear { align-self: flex-start; }
+.nk .nk-menu-side { inset-block-start: 0; inset-inline-start: auto; inset-inline-end: calc(100% + 8px); }
+.nk .nk-vt-h { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- compact numeric fields inside rows (unit height, summary): a fixed, real width - never the box's max-content ---------- */
+.nk .nk-rk-cm { display: block; min-width: 0; width: 120px; }
+.nk .nk-rk-cm .nk-pf { width: 100%; }
+.nk .nk-rk-cm .nk-pf-box { width: 100%; max-width: none; }
+.nk .nk-rk-uh-row { grid-template-columns: auto minmax(64px, 1fr) 120px; }
+.nk .nk-ac-winp.nk-inp { --nk-i-w: 56px; flex-basis: 56px; }
+@container nkrk (max-width: 420px) {
+  .nk-rk-uh-row { grid-template-columns: minmax(0, 1fr) 120px; grid-template-areas: "l n" "r r"; row-gap: var(--space-1); }
+}
+
+/* zoom group in the tools column: [-][+] / 100% / Fit */
+.nk .nk-vt-zoom { display: block; }
+.nk .nk-vt-zoom .nk-zoom { display: grid; grid-template-columns: 1fr 1fr; width: 100%; border: 1px solid var(--border); }
+.nk .nk-vt-zoom .nk-zoom button { min-width: 0; min-height: 32px; padding: 0; }
+.nk .nk-vt-zoom .nk-zoom-v { grid-column: 1 / -1; order: 3; padding-block: 2px; border-block-start: 1px solid var(--border); }
+.nk .nk-vt-zoom .nk-zoom-fit { grid-column: 1 / -1; order: 4; border-inline-start: 0; border-block-start: 1px solid var(--border); font-size: 11px; }
+
+/* the round launcher sits beside the tools column, never over it */
+.nk .nk-fab { inset-inline-end: calc(68px + var(--space-6)); }
+.nk[data-asst="off"] .nk-fab { inset-block-end: var(--space-3); }
+.nk .nk-vtools .nk-tool { min-height: 46px; padding-block: 4px; }
+.nk .nk-vt-h { padding-block: 2px 0; }
+@media (max-width: 640px) { .nk .nk-fab { inset-inline-end: var(--space-4); } }
+
+/* assistant header: title never breaks word by word; the controls wrap to a second row when the window is narrow */
+.nk .nk-asst-head { flex-wrap: wrap; row-gap: var(--space-1); }
+.nk .nk-asst-head > .nk-asst-ttl { flex: 1 1 140px; min-width: 0; }
+.nk .nk-asst-name b { white-space: nowrap; }
+.nk .nk-asst-head small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nk .nk-asst-head > .nk-asst-ctl { flex: 0 1 auto; margin-inline-start: auto; }
+
+/* the foot row of the drawing keeps one height whether a part is selected or not, so selecting never makes the drawing jump / rescale */
+.nk .nk-draw + .nk-foot { min-height: 60px; align-items: center; }
+.nk .nk-foot-idle .nk-hint { padding: 0; }
+
+/* controls: one height ladder (input / select 40, button 36, dense 32) and one-line labels - a short button label never breaks into stacked syllables */
+.nk .nk-btn, .nk .nk-zoom-fit, .nk .nk-seg-b { white-space: nowrap; }
+.nk .nk-btn { min-height: 36px; border-radius: var(--nk-ctl-r); }
+.nk .nk-chip { min-height: var(--nk-ctl-h-sm, 32px); }
+@media (max-width: 1023px), (pointer: coarse) { .nk .nk-btn { min-height: 44px; } }
+
+/* vertical economy: every pixel of height the chrome does not use goes to the drawing (labels print larger on short screens) */
+.nk .nk-head { min-height: 46px; padding-block: 2px; }
+.nk .nk-stagebar { padding: var(--space-1) var(--space-3); }
+.nk .nk-modebar { margin-block-start: 2px; padding-block: 2px; }
+.nk .nk-elevcanvas { padding: 2px var(--space-2) var(--space-1); }
+.nk .nk-draw + .nk-foot { min-height: 52px; padding: 2px var(--space-2) var(--space-2); }
+
+/* the tools column scrolls when the stage is shorter than the column (3D view has 10 tools); its menus are position:fixed (VtMenu) so nothing is clipped */
+.nk .nk-vtools { max-height: 100%; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; overscroll-behavior: contain; }
+.nk .nk-vtools [data-tip]::after { display: none; }
+.nk .nk-menu-fixed { position: fixed; inset-block-start: auto; inset-inline: auto; z-index: 70; }
+
+/* short screens (<= 820px high): the tools column packs tighter so the whole column fits beside the 3D view (it still scrolls if it must) */
+@media (max-height: 820px) {
+  .nk .nk-vtools .nk-tool { min-height: 38px; padding-block: 2px; gap: 0; }
+  .nk .nk-vt-h { display: none; }
+  .nk .nk-vt-zoom .nk-zoom button { min-height: 28px; }
+  .nk .nk-vt-zoom .nk-zoom-v { padding-block: 0; }
+}
+
+/* [UI-STD6 2026-10-30] header menus (Export / File / Look ...) open ABOVE the stage: the head (z 30) sat under the floating assistant button (z 40),
+   which covered the last Export items; and a long Export panel scrolls inside the designer instead of being cut off by its clip. */
+.nk .nk-head:has([aria-expanded="true"]) { z-index: 56; }
+@media (min-width: 641px) { .nk .nk-xm { max-height: calc(var(--nk-h, 100vh - 206px) - var(--nk-tbh) - var(--space-6)); overflow-y: auto; } }

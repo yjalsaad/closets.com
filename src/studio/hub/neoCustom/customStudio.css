@@ -1,0 +1,140 @@
+/* =============================================================================
+ * Neo Custom Designer [NEO-CUSTOM-UX28] - styles the Neo Kitchen workspace CSS does not already give it.
+ * The studio root carries the `nk` class, so the header, floating toolbar, Parameters rail, stage, selection card, menus, assistant, 3D and cut-list screens
+ * use neoKitchen.css and its sibling files unchanged. EVERY value here is a DESIGN.md token (--bg*, --border, --text-*, --brand*, --info, --danger, --warning,
+ * --space-N, --radius-*) or an existing scoped Neo variable (--nk-pt-* part-type fills, --nk-dim-p / --nk-dim-s dimension inks, --nk-halo, --nk-sel-o, --nk-hov-c,
+ * --nk-badge-*). NO new literal colour is introduced: the part colours of the drawing are the same --nk-pt-* swatches as the kitchen elevation legend.
+ * ===========================================================================*/
+
+/* ---- panel scaffolding (same look as the wardrobe studio's cards) ---- */
+.nkc-panel { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-3); }
+.nkc-card { display: flex; flex-direction: column; gap: var(--space-2); }
+.nkc-card-body { display: flex; flex-direction: column; gap: var(--space-3); }
+.nkc-note { margin: 0; }
+.nkc-row { display: grid; gap: var(--space-1); }
+.nkc-row-l { font-size: 12px; font-weight: 600; color: var(--text-2); }
+.nkc-row-c { min-width: 0; }
+.nkc-save { white-space: nowrap; }
+.nkc-price { font-family: var(--nk-mono); font-variant-numeric: tabular-nums; font-weight: 700; }
+.nkc-quote { white-space: nowrap; }
+.nkc-actions { display: none; }
+.nkc-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+.nkc-h4 { margin: var(--space-2) 0 0; font-size: 12px; font-weight: 700; color: var(--text-2); }
+.nkc-ratenote { margin: 0; }
+.nkc-shared { display: flex; flex-direction: column; gap: var(--space-3); }
+.nkc-bad { color: var(--danger); }
+.nkc-warnlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.nkc-warnbtn { all: unset; box-sizing: border-box; display: block; width: 100%; cursor: pointer; padding: var(--space-2); border-radius: var(--radius-md); background: var(--bg-3); border: 1px solid var(--border); color: var(--text-1); font-size: 12.5px; line-height: 1.4; }
+.nkc-warnbtn:hover:not(:disabled) { border-color: var(--warning); }
+.nkc-warnbtn:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.nkc-warnbtn:disabled { cursor: default; }
+@media (max-width: 640px) {
+  .nkc-panel { padding: var(--space-2); }
+  .nkc-hd { display: none; }
+  .nkc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+  .nkc-grid2 { grid-template-columns: 1fr; }
+}
+
+/* ---- Parts tab ---- */
+.nkc-parts { display: flex; flex-direction: column; gap: var(--space-3); }
+.nkc-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); }
+.nkc-tools .nk-btn { display: inline-flex; align-items: center; gap: var(--space-1); }
+.nkc-addmenu { max-height: 340px; overflow: auto; min-width: 220px; }
+.nkc-empty { margin: 0; padding: var(--space-3); border: 1px dashed var(--border); border-radius: var(--radius-md); }
+.nkc-tree { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; max-height: 280px; overflow: auto; }
+.nkc-tr { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 28px 1fr auto auto auto; align-items: center; gap: var(--space-2); width: 100%; min-height: 36px; cursor: pointer;
+  padding-block: 2px; padding-inline: calc(var(--space-2) + var(--nkc-depth, 0) * var(--space-4)) var(--space-2); border-radius: var(--radius-md); font-size: 13px; color: var(--text-1); }
+.nkc-tr:hover { background: var(--bg-3); }
+.nkc-tr:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.nkc-tr.is-on { background: var(--brand-muted); box-shadow: inset 0 0 0 1px var(--brand); }
+.nkc-tr-no { font-family: var(--nk-mono); font-weight: 700; font-size: 11px; color: var(--text-2); text-align: center; }
+.nkc-tr-n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.nkc-tr-rep { font-family: var(--nk-mono); font-size: 11px; font-weight: 700; color: var(--nk-ink, var(--brand)); background: var(--brand-muted); border-radius: var(--radius-sm); padding: 0 var(--space-1); }
+.nkc-tr-s { font-family: var(--nk-mono); font-size: 11px; color: var(--text-3); white-space: nowrap; }
+.nkc-tr-w { width: 18px; height: 18px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 11px; font-weight: 800; background: var(--warning); color: var(--bg-2); }
+.nkc-editor { gap: var(--space-3); }
+.nkc-warn { margin: 0; padding: var(--space-2) var(--space-3); list-style: none; background: var(--bg-3); border: 1px solid var(--warning); border-radius: var(--radius-md); font-size: 12px; display: flex; flex-direction: column; gap: var(--space-1); }
+.nkc-row2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--space-3); align-items: start; }
+.nkc-sel { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; font-size: 12px; font-weight: 600; color: var(--text-2); }
+.nkc-sel .nk-select { width: 100%; }
+.nkc-ax, .nkc-card2 { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius-lg); min-width: 0; }
+.nkc-ax-h { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2); font-size: 12px; }
+.nkc-ax-h b { color: var(--text-1); font-size: 13px; }
+.nkc-ax-h small { color: var(--text-2); font-family: var(--nk-mono); font-size: 11px; }
+.nkc-ax-f { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--space-2); }
+.nkc-anchors { flex-wrap: wrap; }
+.nkc-anchors .nk-seg-b { padding-inline: var(--space-2); font-size: 12px; }
+.nkc-computed { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--text-2); justify-content: center; }
+.nkc-computed b { color: var(--text-1); font-family: var(--nk-mono); font-size: 14px; }
+.nkc-computed small { color: var(--text-3); }
+.nkc-rep { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.nkc-step { display: inline-flex; align-items: center; gap: var(--space-2); }
+.nkc-step output { min-width: 2ch; text-align: center; font-family: var(--nk-mono); font-variant-numeric: tabular-nums; font-weight: 700; font-size: 15px; }
+.nkc-step .nk-ib { width: 36px; height: 36px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-2); font-size: 18px; line-height: 1; }
+.nkc-eb { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.nkc-eb-svg { width: 96px; height: 52px; flex: 0 0 auto; }
+.nkc-eb-body { fill: var(--bg-2); stroke: var(--border); stroke-width: 1; }
+.nkc-eb-svg line { stroke: var(--text-3); stroke-width: 1; stroke-dasharray: 3 3; }
+.nkc-eb-svg line.is-on { stroke: var(--brand); stroke-width: 4; stroke-dasharray: none; }
+.nkc-cut { display: grid; grid-template-columns: auto 1fr; gap: var(--space-2); align-items: end; padding-block-end: var(--space-2); border-block-end: 1px solid var(--border); }
+.nkc-cut > b { grid-column: 1 / -1; font-size: 12px; }
+.nkc-cut .nk-ib { justify-self: end; }
+
+/* ---- the technical drawing ---- */
+.nkc-legend { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 2px var(--space-2); padding: 0 var(--space-3); }
+.nkc-legend .nk-lg { min-height: 26px; font-size: 11.5px; padding-inline: var(--space-1); }
+.nkc-draw { position: relative; width: 100%; height: 100%; min-height: 0; }
+.nkc-svg { display: block; width: 100%; height: 100%; touch-action: none; user-select: none; -webkit-user-select: none; direction: ltr; }
+.nkc-env { fill: none; stroke: var(--text-3); stroke-width: 1; stroke-dasharray: 6 5; pointer-events: none; }
+.nkc-vt { fill: var(--text-3); font-weight: 800; letter-spacing: .2em; text-transform: uppercase; pointer-events: none; }
+.nkc-part { cursor: grab; outline: none; transition: opacity .12s; }
+.nkc-part .nkc-shape { stroke: var(--text-2); stroke-width: 1.2; }
+.nkc-part.is-hw .nkc-shape { stroke-width: 1; }
+.nkc-part.is-hov .nkc-shape { stroke: var(--nk-hov-c); stroke-width: 2; }
+.nkc-part:focus-visible .nkc-shape { stroke: var(--nk-hov-c); stroke-width: 2.4; }
+.nkc-part.is-sel .nkc-shape { stroke: var(--nk-sel-o); stroke-width: 2.6; fill-opacity: .8; }
+.nkc-part.is-dim { opacity: .16; }
+.nkc-part:active { cursor: grabbing; }
+.nkc-hit { fill: transparent; stroke: none; }
+.nkc-ebl { stroke: var(--text-1); stroke-width: 3.4; stroke-linecap: butt; pointer-events: none; }
+.nkc-swing { stroke: var(--text-3); stroke-width: 1; stroke-dasharray: 5 4; }
+.nkc-handle { stroke: var(--text-1); stroke-width: 2.4; fill: var(--bg-2); }
+.nkc-center line { stroke: var(--text-3); stroke-width: 1; stroke-dasharray: 14 4 2 4; }
+.nkc-guide { stroke: var(--brand); stroke-width: 1.2; stroke-dasharray: 5 4; pointer-events: none; }
+.nkc-dim line { stroke-width: 1.4; fill: none; }
+.nkc-d-p line { stroke: var(--nk-dim-p); }
+.nkc-d-s line { stroke: var(--nk-dim-s); }
+.nkc-dt { font-weight: 700; font-family: var(--nk-mono); paint-order: stroke; stroke: var(--nk-halo); stroke-width: 4px; stroke-linejoin: round; stroke-opacity: .9; }
+.nkc-d-p .nkc-dt { fill: var(--nk-dim-p-t); }
+.nkc-d-s .nkc-dt { fill: var(--nk-dim-s-t); }
+.nkc-bub circle { fill: var(--nk-badge-bg); stroke: var(--nk-dim-p); stroke-width: 1.6; }
+.nkc-bub line { stroke: var(--nk-dim-p); stroke-width: 1; }
+.nkc-bub text { fill: var(--nk-badge-ink); font-family: var(--nk-mono); font-weight: 700; }
+.nkc-bub.is-sel circle { fill: var(--nk-sel-o); stroke: var(--nk-sel-o); }
+.nkc-bub.is-sel text { fill: var(--nk-sel-o-t); }
+.nkc-zoom { position: absolute; inset-block-start: var(--space-2); inset-inline-end: var(--space-2); display: flex; align-items: center; gap: 2px; padding: 2px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-md); }
+.nkc-zoom .nk-ib { width: 30px; height: 30px; font-size: 16px; line-height: 1; }
+.nkc-zoom output { min-width: 4ch; text-align: center; font-family: var(--nk-mono); font-size: 11px; color: var(--text-2); }
+
+/* ---- sheet nesting under the cut list ---- */
+.nkc-nest { margin-block-start: var(--space-3); }
+.nkc-nest-cfg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); max-width: 520px; }
+.nkc-nest-m { display: flex; flex-direction: column; gap: var(--space-2); }
+.nkc-nest-h { font-size: 12.5px; color: var(--text-2); }
+.nkc-nest-h b { color: var(--text-1); }
+.nkc-nest-sheets { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.nkc-sheet { width: min(100%, 360px); height: auto; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-3); }
+.nkc-sheet-bg { fill: var(--bg-2); }
+.nkc-sheet-p rect { fill: var(--brand-muted); stroke: var(--brand); stroke-width: 1; }
+.nkc-sheet-p text { fill: var(--text-1); font-family: var(--nk-mono); font-weight: 700; pointer-events: none; }
+@media (max-width: 640px) { .nkc-nest-cfg { grid-template-columns: 1fr; } }
+
+/* ---- print ---- */
+@media (max-width: 640px) {
+  .nkc-draw { padding-block-start: 38px; box-sizing: border-box; } /* the zoom buttons get their own strip: they never cover the sheet */
+  .nkc-zoom { inset-block-start: 0; }
+}
+@media print {
+  .nk-print-root .nkc-draw { height: 160mm; }
+  .nk-print-root .nkc-zoom { display: none; }
+}

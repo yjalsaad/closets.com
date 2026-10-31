@@ -1,0 +1,108 @@
+/* =============================================================================
+ * Neo Kitchen Designer - EXPORT menu + PDF Production Report sheet (UX-19).
+ * Owner-palette literals exist ONLY as the scoped --nk-xm-* (menu, light + dark) and --nk-rep-* (printed sheet,
+ * always light: it is paper) custom properties right below; every rule uses those or the DESIGN.md tokens.
+ * Logical properties throughout so Arabic mirrors by itself.
+ * ===========================================================================*/
+.nk {
+  --nk-xm-panel: #FFFFFF; --nk-xm-line: #E3E6EC; --nk-xm-text: #182033; --nk-xm-muted: #697386;
+  --nk-xm-icon: #356DFF; --nk-xm-hover: #F1F5FF; --nk-xm-shadow: 0 10px 32px rgba(24, 32, 51, .18), 0 1px 2px rgba(24, 32, 51, .08);
+}
+[data-theme="dark"] .nk, .nk[data-theme="dark"] {
+  --nk-xm-panel: #151A24; --nk-xm-line: #2A3243; --nk-xm-text: #E8ECF4; --nk-xm-muted: #9AA5B8;
+  --nk-xm-icon: #7CA0FF; --nk-xm-hover: #1F2840; --nk-xm-shadow: 0 10px 32px rgba(0, 0, 0, .55), 0 1px 2px rgba(0, 0, 0, .4);
+}
+
+/* ---------------- the dropdown ---------------- */
+.nk-xm { position: absolute; z-index: 60; inset-block-start: calc(100% + var(--space-2)); inset-inline-end: 0; width: 296px; max-width: calc(100vw - var(--space-4) * 2); background: var(--nk-xm-panel); color: var(--nk-xm-text); border: 1px solid var(--nk-xm-line); border-radius: var(--radius-lg); padding: var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); box-shadow: var(--nk-xm-shadow); }
+.nk-xm-i { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: 44px; padding: var(--space-2) var(--space-3); border: 0; border-radius: var(--radius-md); background: transparent; color: inherit; font: inherit; font-weight: 600; text-align: start; cursor: pointer; }
+.nk-xm-i:hover:not(:disabled), .nk-xm-i:focus-visible { background: var(--nk-xm-hover); }
+.nk-xm-i:focus-visible, .nk-xm-more:focus-visible, .nk-xm-cfg:focus-visible { outline: 2px solid var(--nk-xm-icon); outline-offset: -2px; }
+.nk-xm-i:disabled { cursor: not-allowed; }
+.nk-xm-i:disabled .nk-xm-n { color: var(--nk-xm-muted); }
+.nk-xm-i:disabled .nk-xm-ic { opacity: .45; }
+.nk-xm-ic { display: inline-flex; flex: none; color: var(--nk-xm-icon); }
+.nk-xm-t { display: flex; flex-direction: column; min-width: 0; }
+.nk-xm-n { line-height: 1.25; }
+.nk-xm-s { font-size: 11.5px; font-weight: 500; line-height: 1.3; color: var(--nk-xm-muted); }
+.nk-xm-sep { height: 1px; margin: var(--space-1) var(--space-2); background: var(--nk-xm-line); }
+.nk-xm-row { display: flex; align-items: center; gap: var(--space-1); }
+.nk-xm-row .nk-xm-i { flex: 1; min-width: 0; }
+.nk-xm-cfg { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--nk-xm-muted); cursor: pointer; }
+.nk-xm-cfg:hover, .nk-xm-cfg[aria-expanded="true"] { background: var(--nk-xm-hover); color: var(--nk-xm-icon); }
+.nk-xm-sheet { display: flex; align-items: flex-end; flex-wrap: wrap; gap: var(--space-2); margin: 0 var(--space-3) var(--space-2); padding: var(--space-2) var(--space-3); border: 1px solid var(--nk-xm-line); border-radius: var(--radius-md); }
+.nk-xm-f { display: flex; flex-direction: column; gap: var(--space-1); font-size: 11px; color: var(--nk-xm-muted); }
+.nk-xm-f input { width: 76px; min-height: 36px; padding: 0 var(--space-2); border: 1px solid var(--nk-xm-line); border-radius: var(--radius-sm); background: transparent; color: var(--nk-xm-text); font: inherit; font-size: 13px; text-align: end; }
+.nk-xm-f input:focus-visible { outline: 2px solid var(--nk-xm-icon); outline-offset: 1px; }
+.nk-xm-u { align-self: center; font-size: 11px; color: var(--nk-xm-muted); padding-block-start: var(--space-4); }
+.nk-xm-more { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 40px; padding: var(--space-1) var(--space-3); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--nk-xm-muted); font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; }
+.nk-xm-more:hover { background: var(--nk-xm-hover); color: var(--nk-xm-text); }
+.nk-xm-more svg { transition: transform .15s ease; }
+.nk-xm-more[aria-expanded="true"] svg { transform: rotate(180deg); }
+.nk-xm-moreg { display: flex; flex-direction: column; gap: var(--space-1); }
+.nk-xm-more[data-testid="export-doc-settings"] { text-transform: none; letter-spacing: normal; text-align: start; } /* [UI-STD6] a sentence, not an eyebrow: the uppercase "(LOGO, PROJECT, QR)" wrapped to three lines */
+.nk-xm-i2 { min-height: 40px; padding-inline-start: var(--space-5); font-weight: 500; font-size: 13px; }
+.nk-xm-foot { margin-block-start: var(--space-1); padding: var(--space-2) var(--space-3) var(--space-1); border-block-start: 1px solid var(--nk-xm-line); font-size: 11px; color: var(--nk-xm-muted); }
+@media (prefers-reduced-motion: reduce) { .nk-xm-more svg { transition: none; } }
+@media (max-width: 640px) {
+  /* phone: the panel spans the width under the header, so it can never run off either edge */
+  .nk-xm-wrap { position: static; }
+  .nk-xm { position: fixed; inset-block-start: calc(var(--nk-tbh) + var(--space-2)); inset-inline: var(--space-2); width: auto; max-width: none; max-height: calc(100vh - var(--nk-tbh) - var(--space-4)); overflow-y: auto; }
+}
+
+/* ---------------- PDF Production Report (A4 portrait, printed) ---------------- */
+.nk-rep-root {
+  --nk-rep-ink: #182033; --nk-rep-muted: #5B6578; --nk-rep-line: #CBD2DE; --nk-rep-head: #EEF2FA; --nk-rep-accent: #356DFF;
+  --nk-rep-warn-bg: #FFF8EE; --nk-rep-warn-line: #E6C48F;
+  display: none;
+}
+@page nkrep { size: A4 portrait; margin: 12mm; @bottom-center { content: counter(page) " / " counter(pages); font-size: 8pt; color: gray; } }
+@media print {
+  html.nk-reporting, html.nk-reporting body { background: white !important; }
+  body > .nk-rep-root.nk-rep-root { display: block !important; page: nkrep; position: static; background: white; color: var(--nk-rep-ink); }
+  html.nk-reporting body > *:not(.nk-rep-root) { display: none !important; } /* [UX32] scoped to the report: unscoped it also hid the legacy .nk-print-root, so Print / PDF printed a blank page */
+  .nk-rep-root .nk.nk-rep { display: block; height: auto; min-height: 0; background: white; color: var(--nk-rep-ink); font-size: 10.5px; line-height: 1.4; --text-1: var(--nk-rep-ink); --text-2: var(--nk-rep-muted); --text-3: var(--nk-rep-muted); --bg: white; --bg-2: white; --bg-3: var(--nk-rep-head); --border: var(--nk-rep-line); }
+  .nk-rep-page { break-after: page; }
+  .nk-rep-page:last-child { break-after: auto; }
+  .nk-rep-eyebrow { font-family: var(--nk-mono); font-size: 10px; letter-spacing: .14em; font-weight: 800; color: var(--nk-rep-accent); }
+  .nk-rep-title { margin: var(--space-2) 0 var(--space-4); font-size: 30px; line-height: 1.15; font-weight: 800; }
+  .nk-rep-h2 { margin: var(--space-5) 0 var(--space-2); font-size: 14px; font-weight: 800; padding-block-end: var(--space-1); border-block-end: 1.5px solid var(--nk-rep-accent); break-after: avoid; }
+  .nk-rep-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2) var(--space-5); margin: 0; }
+  .nk-rep-facts div { border-block-end: 1px solid var(--nk-rep-line); padding-block-end: var(--space-1); }
+  .nk-rep-facts dt { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--nk-rep-muted); font-weight: 700; }
+  .nk-rep-facts dd { margin: 0; font-size: 12.5px; font-weight: 600; }
+  .nk-rep-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); margin-block-end: var(--space-3); }
+  .nk-rep-metrics div { border: 1px solid var(--nk-rep-line); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); display: flex; flex-direction: column; }
+  .nk-rep-metrics b { font-family: var(--nk-mono); font-size: 22px; font-variant-numeric: tabular-nums; }
+  .nk-rep-metrics span { font-family: var(--nk-mono); font-size: 8.5px; letter-spacing: .12em; color: var(--nk-rep-muted); font-weight: 700; }
+  .nk-rep-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; margin-block-end: var(--space-3); }
+  .nk-rep-table th, .nk-rep-table td { padding: var(--space-1) var(--space-2); border-block-end: 1px solid var(--nk-rep-line); text-align: end; vertical-align: top; }
+  .nk-rep-table th { background: var(--nk-rep-head); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: var(--nk-rep-muted); }
+  .nk-rep-table th i { font-style: normal; text-transform: none; opacity: .7; }
+  .nk-rep-table .nk-rep-start { text-align: start; }
+  .nk-rep-table thead { display: table-header-group; }
+  .nk-rep-table tr { break-inside: avoid; }
+  .nk-rep-table tfoot th, .nk-rep-table tfoot td { font-weight: 800; border-block-start: 2px solid var(--nk-rep-ink); background: transparent; }
+  .nk-rep-mat { width: auto; min-width: 60%; }
+  .nk-rep-pn { font-weight: 700; }
+  .nk-rep-pd { font-size: 9px; color: var(--nk-rep-muted); }
+  .nk-rep-hw { width: auto; min-width: 60%; }
+  .nk-rep-warn { margin: 0; padding: var(--space-3) var(--space-4); list-style: none; background: var(--nk-rep-warn-bg); border: 1px solid var(--nk-rep-warn-line); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: var(--space-1); }
+  .nk-rep-warn li { break-inside: avoid; }
+  .nk-rep-ok { margin: 0; color: var(--nk-rep-muted); }
+  .nk-rep-foot { font-size: 9px; color: var(--nk-rep-muted); }
+  .nk-rep-fig { margin: 0; break-inside: avoid; }
+  .nk-rep-fig .nk-zoom, .nk-rep-fig .nk-maplegend { display: none; }
+  .nk-rep-fig .nk-elev { position: static; inset: auto; display: block; width: 100%; height: auto; max-height: 200mm; overflow: visible; }
+}
+
+/* NEO-CLOSETS-UX24: the wardrobe "Include props" opt-in under the 3D model entries (checkbox + two-line label, same row rhythm as an entry) */
+.nk .nk-xm-chk { display: flex; align-items: flex-start; gap: var(--space-2); padding: var(--space-2) var(--space-3); cursor: pointer; border-radius: var(--radius-md); }
+.nk .nk-xm-chk:hover { background: var(--nk-xm-hover); }
+.nk .nk-xm-chk input { margin-block-start: 3px; accent-color: var(--brand); }
+.nk .nk-xm-chk:focus-within { outline: 2px solid var(--brand); outline-offset: -2px; }
+
+/* [NEO-CUTLIST-UX32] title block, part id and picture columns of the PDF report (the title block's own rules come from docPrint.TB_CSS; paper is always light) */
+.nk-rep-tb { margin-block-end: var(--space-3); break-inside: avoid; }
+.nk-rep-pic { width: 11mm; padding: .5mm !important; text-align: center !important; } .nk-rep-pic svg { display: block; width: 9mm; height: 9mm; margin: auto; }
+.nk-rep-pid { font-family: var(--nk-mono); font-weight: 700; white-space: nowrap; }

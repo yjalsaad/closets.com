@@ -1,0 +1,90 @@
+/* =============================================================================
+ * Neo Kitchen Designer UX-23 - control foundation. [NEO-UX23]
+ * ROOT CAUSE this file fixes: the Hub ships a GLOBAL rule  input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file])  (App.js,
+ * specificity 0,4,1) that sets width:100%, padding:10px 13px, min-height:42px, a purple focus ring ... and therefore beat EVERY `.nk-inp` / `.nk-title`
+ * rule written in the designer (0,1,0 - 0,3,0). Result in the product: number fields stretched to the whole row, the slider squeezed to a dot,
+ * the unit label drawn on top of the value, the project-title field painted over the app name.
+ * The rule below re-asserts the designer's inputs ONCE, with enough specificity (the :not(#nk-boost) term adds an id's weight), and exposes
+ * the few things a variant may change as custom properties (--nk-i-*). Variants set the property instead of fighting the cascade.
+ * Colours: tokens only (--brand, --border, --nk-field ...); no literal colour here.
+ * ===========================================================================*/
+.nk {
+  /* one control size for the whole designer: 40px inputs / buttons (44px on touch), 32px for dense rows */
+  --nk-ctl-h: 40px; --nk-ctl-h-sm: 32px; --nk-ctl-r: var(--radius-md);
+  --nk-ctl-bg: var(--nk-field); --nk-ctl-bd: var(--border);
+  --nk-ctl-px: var(--space-3);
+  --nk-ui-font: var(--font-en, system-ui, sans-serif); /* the Hub's UI face (a custom property cannot use `inherit`, so the inputs read this token) */
+  --nk-focus: 0 0 0 3px color-mix(in srgb, var(--brand) 26%, transparent);
+  /* one type scale: caption 11.5 / small 12.5 / body 13.5 / strong 15 / title 18 */
+  --nk-fs-xs: 11.5px; --nk-fs-sm: 12.5px; --nk-fs-md: 13.5px; --nk-fs-lg: 15px; --nk-fs-xl: 18px;
+}
+@media (pointer: coarse), (max-width: 1023px) { .nk { --nk-ctl-h: 44px; --nk-ctl-h-sm: 40px; } }
+
+/* ---- the designer's text inputs: .nk-inp (numbers, prices, commands), .nk-title (project title), .wp-dim-in (inline width), export sheet numbers ---- */
+.nk input.nk-inp:not(#nk-boost),
+.nk input.nk-title:not(#nk-boost),
+.nk input.wp-dim-in:not(#nk-boost),
+.nk .nk-xm-f input:not(#nk-boost) {
+  box-sizing: border-box; -webkit-appearance: none; appearance: none;
+  width: var(--nk-i-w, 88px); min-width: 0; max-width: 100%;
+  min-height: var(--nk-i-h, var(--nk-ctl-h));
+  padding: var(--nk-i-pad, 0 var(--nk-ctl-px));
+  background: var(--nk-i-bg, var(--nk-ctl-bg));
+  border: 1px solid var(--nk-i-bd, var(--nk-ctl-bd)); border-radius: var(--nk-i-r, var(--nk-ctl-r));
+  color: var(--nk-i-c, var(--text-1));
+  font-family: var(--nk-i-ff, var(--nk-mono)); font-size: var(--nk-i-fs, var(--nk-fs-sm)); font-weight: var(--nk-i-fw, 600); line-height: 1.2;
+  text-align: var(--nk-i-ta, end); font-variant-numeric: tabular-nums;
+  box-shadow: none; outline: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+.nk input.nk-inp:not(#nk-boost):hover:not(:disabled):not(:focus) { border-color: var(--nk-i-bdh, var(--text-3)); }
+.nk input.nk-inp:not(#nk-boost):focus,
+.nk input.nk-title:not(#nk-boost):focus,
+.nk input.wp-dim-in:not(#nk-boost):focus,
+.nk .nk-xm-f input:not(#nk-boost):focus {
+  border-color: var(--nk-i-bdf, var(--brand)) !important; box-shadow: var(--nk-i-shf, var(--nk-focus)) !important; background: var(--nk-i-bgf, var(--bg-2)) !important; outline: none;
+}
+.nk input.nk-inp:not(#nk-boost):disabled { opacity: .55; cursor: not-allowed; }
+/* variants: set the variable, never the property */
+.nk-rtl { --nk-ui-font: var(--font-ar, var(--font-en, system-ui, sans-serif)); }
+.nk .nk-inp-wide { --nk-i-w: 100%; --nk-i-ta: start; --nk-i-ff: var(--nk-ui-font); --nk-i-fs: var(--nk-fs-md); --nk-i-fw: 500; }
+.nk .nk-title { --nk-i-w: 100%; --nk-i-ta: start; --nk-i-ff: var(--nk-ui-font); --nk-i-fs: var(--nk-fs-md); --nk-i-fw: 600; --nk-i-h: var(--nk-ctl-h-sm); --nk-i-pad: 0 var(--space-2); }
+.nk .nk-xm-f input { --nk-i-w: 84px; --nk-i-h: var(--nk-ctl-h-sm); --nk-i-ta: end; }
+.nk .wp-dim-in { --nk-i-w: 6ch; --nk-i-h: var(--nk-ctl-h-sm); --nk-i-pad: 0 var(--space-1); --nk-i-ta: center; --nk-i-bg: transparent; --nk-i-bd: transparent; }
+
+/* selects (the global select rule is 0,0,1, so the class already wins; this only aligns the size with the inputs) */
+.nk select.nk-select { min-height: var(--nk-ctl-h); padding: 0 var(--space-3); border-radius: var(--nk-ctl-r); font-size: var(--nk-fs-sm); width: 100%; }
+
+/* ============================ ParameterField ============================ */
+.nk .nk-pf { container: nkpf / inline-size; display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; width: 100%; }
+.nk .nk-pf-head { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.nk .nk-pf-label { font-size: var(--nk-fs-md); font-weight: 700; color: var(--text-1); min-width: 0; overflow-wrap: break-word; }
+.nk .nk-pf-tip { width: 22px; height: 22px; border-radius: 50%; border-color: transparent; background: transparent; color: var(--text-3); flex: none; }
+.nk .nk-pf-tip:hover { color: var(--nk-ink, var(--brand)); background: var(--brand-muted); }
+/* slider | value box. The box has a real width, the slider takes what is left (never 0), and they stack when the field is narrow */
+.nk .nk-pf-ctl { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); align-items: center; }
+.nk .nk-pf-has-slider .nk-pf-ctl { grid-template-columns: minmax(72px, 1fr) auto; }
+.nk .nk-pf-slider { width: 100%; min-width: 72px; margin: 0; height: 24px; accent-color: var(--brand); }
+.nk .nk-pf-box { display: flex; align-items: center; direction: ltr; position: static; min-width: 0; flex: none; width: 100%; max-width: 220px; height: var(--nk-ctl-h); background: var(--nk-ctl-bg); border: 1px solid var(--nk-ctl-bd); border-radius: var(--nk-ctl-r); transition: border-color 140ms ease, box-shadow 140ms ease; }
+.nk .nk-pf-has-slider .nk-pf-box { width: 136px; }
+.nk .nk-num-compact .nk-pf-box, .nk .nk-pf.nk-num-compact .nk-pf-box { width: 112px; }
+.nk .nk-pf-box:hover { border-color: var(--text-3); }
+.nk .nk-pf-box:focus-within { border-color: var(--brand); box-shadow: var(--nk-focus); background: var(--bg-2); }
+.nk .nk-pf-box[data-state="warn"] { border-color: var(--warning); }
+.nk .nk-pf-box[data-state="error"] { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 7%, var(--nk-ctl-bg)); }
+.nk .nk-pf-box[data-state="error"]:focus-within { box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 26%, transparent); }
+.nk .nk-pf-box .nk-pf-input { --nk-i-w: 100%; --nk-i-h: calc(var(--nk-ctl-h) - 2px); --nk-i-bg: transparent; --nk-i-bd: transparent; --nk-i-bdh: transparent; --nk-i-bdf: transparent; --nk-i-bgf: transparent; --nk-i-shf: none; --nk-i-r: 0; --nk-i-pad: 0 var(--space-1) 0 var(--space-3); --nk-i-fs: var(--nk-fs-lg); --nk-i-fw: 700; flex: 1 1 auto; }
+.nk .nk-pf-unit { position: static; flex: none; min-width: 2.4ch; padding-inline: 0 var(--space-3); color: var(--text-3); font-size: var(--nk-fs-xs); font-weight: 600; font-family: var(--nk-mono); text-align: start; pointer-events: none; }
+.nk .nk-pf[data-disabled="1"] { opacity: .6; }
+.nk .nk-pf[data-disabled="1"] .nk-pf-box:hover { border-color: var(--nk-ctl-bd); }
+.nk .nk-pf-rng, .nk .nk-pf .nk-range-note { margin: 0; color: var(--text-3); font-family: var(--nk-mono); font-size: var(--nk-fs-xs); line-height: 1.4; overflow-wrap: break-word; text-wrap: pretty; }
+.nk .nk-pf-help { color: var(--text-2); font-size: var(--nk-fs-sm); line-height: 1.4; text-wrap: pretty; }
+.nk .nk-pf-msg { margin: 0; font-size: var(--nk-fs-xs); line-height: 1.35; color: var(--warning); min-height: 0; }
+.nk .nk-pf-msg:empty { display: none; }
+.nk .nk-pf-msg[data-kind="error"] { color: var(--danger); }
+/* narrow field (the parameter column is ~300px): slider on its own line, the value box beneath it, aligned to the end */
+@container nkpf (max-width: 250px) {
+  .nk-pf-has-slider .nk-pf-ctl { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+  .nk-pf-has-slider .nk-pf-box { width: 100%; max-width: none; }
+}
+@media (pointer: coarse), (max-width: 1023px) { .nk .nk-pf-slider { height: 44px; } }

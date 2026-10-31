@@ -1,0 +1,152 @@
+/* =============================================================================
+ * Neo Wardrobe Studio [NEO-CLOSETS-UX25] - Global tab cards, column warnings, per-column editor, wing chips, mini-elevation additions.
+ * Owner palette = the scoped --nk-* tokens of neoKitchen.css / globalCards.css (aliased below as --nk-wd-*); every other value is a DESIGN.md token.
+ * ===========================================================================*/
+.nk-wd {
+  --nk-wd-line: var(--nk-card-line); --nk-wd-muted: var(--nk-muted); --nk-wd-stage: var(--nk-stage-bg);
+  --nk-wd-ro: var(--nk-sel-fill);                                         /* the read-only computed field (body height) */
+  --nk-wd-warn: color-mix(in srgb, var(--warning) 12%, var(--bg-2));       /* amber warning card */
+  --nk-wd-warn-line: color-mix(in srgb, var(--warning) 45%, var(--bg-2));
+}
+.nkw-dimcard { padding: var(--space-4); border-color: var(--nk-wd-line); border-radius: var(--radius-lg); }
+.nkw-dimcard .nk-card-head { align-items: baseline; }
+.nkw-dimcard .nk-h3 { font-size: 18px; font-weight: 800; }
+.nkw-unit-tag { font-family: var(--nk-mono); color: var(--nk-muted-ui, var(--nk-wd-muted)); font-size: 12px; }
+.nkw-desc { color: var(--nk-muted-ui, var(--nk-wd-muted)); font-size: 13.5px; margin: 0; }
+.nkw-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: var(--space-2); }
+.nkw-tile { background: var(--bg-3); border: 1px solid var(--nk-wd-line); border-radius: var(--radius-lg); padding: var(--space-2) var(--space-2) var(--space-3); min-width: 0; }
+.nkw-tile .nk-pf-label { font-size: 12px; color: var(--nk-muted-ui, var(--nk-wd-muted)); font-weight: 600; }
+.nkw-tile .nk-inp-wrap { background: var(--bg-2); border-color: var(--nk-wd-line); }
+.nkw-tile .nk-pf-input { --nk-i-fw: 700; --nk-i-fs: 17px; text-align: start; }
+.nk.nk-wd .nkw-tile .nk-pf-box.nk-inp-wrap { width: 100%; max-width: none; }
+.nk.nk-wd .nkw-colscard .nkw-stat .nk-pf-box.nk-inp-wrap, .nk.nk-wd .nkw-ced-widthrow .nk-pf-box.nk-inp-wrap { width: 100%; max-width: none; }
+.nkw-tile .nk-unit { display: none; }   /* the unit is named once, in the card header */
+.nkw-tile .nk-pf-help { font-family: var(--nk-mono); font-size: 12px; color: var(--nk-muted-ui, var(--nk-wd-muted)); }
+.nkw-inner { font-family: var(--nk-mono); }
+.nkw-colsrow { display: flex; align-items: center; justify-content: center; gap: var(--space-3); }
+.nkw-colslbl { font-weight: 700; color: var(--text-2); }
+.nkw-keepbig b { font-size: 15px; color: var(--text-1); }
+.nkw-keepbig input { width: 20px; height: 20px; }
+.nkw-note { color: var(--nk-muted-ui, var(--nk-wd-muted)); }
+
+/* 01 Heights and depths */
+.nkw-heights .nkw-overall { margin-block: var(--space-2); }
+.nkw-ro { display: inline-flex; align-items: center; gap: var(--space-2); background: var(--nk-wd-ro); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); min-height: 40px; color: var(--nk-ink, var(--brand)); font-family: var(--nk-mono); font-size: 16px; }
+.nkw-ro .nk-unit { color: var(--nk-muted-ui, var(--nk-wd-muted)); font-size: 12px; }
+.nkw-sub { font-family: var(--nk-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--nk-muted-ui, var(--nk-wd-muted)); margin-block: var(--space-3) var(--space-1); }
+.nkw-art { width: 100%; height: auto; max-height: 420px; direction: ltr; }
+.nkw-art-heights .nk-sh-call text, .nkw-art-heights .nkw-art-call text { font-size: 13px; }
+.nkw-art-floor { stroke: var(--text-1); stroke-width: 1.4; }
+.nkw-art-div { stroke: var(--nk-frame-line); stroke-width: 1; }
+.nkw-art-plinth { fill: var(--nk-frame-fill); }
+.nkw-art-body, .nkw-art-sidebody { fill: var(--nk-frame-bg); }
+.nkw-art-topbox, .nkw-art-sidetop { fill: var(--nk-sel-fill); }
+.nkw-art-door { fill: var(--nk-frame-fill); }
+.nkw-art-rail { fill: var(--nk-metal); stroke: var(--nk-frame-line); stroke-width: 1; }
+.nkw-art [data-hl="1"].nkw-art-body, .nkw-art [data-hl="1"].nkw-art-topbox, .nkw-art [data-hl="1"].nkw-art-sidebody, .nkw-art [data-hl="1"].nkw-art-plinth, .nkw-art [data-hl="1"].nkw-art-rail { fill: var(--nk-gc-hl-fill); stroke: var(--nk-gc-hl-line); stroke-width: 2; }
+.nkw-art .nkw-art-call circle { fill: var(--bg-2); }
+.nkw-art .nkw-art-call text { font-size: 12px; }
+.nkw-art path[data-hl="1"] { stroke: var(--nk-gc-hl-line); stroke-width: 2.4; }
+.nkw-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding-block: var(--space-3); border-block-start: 1px solid var(--nk-wd-line); }
+.nkw-toggle-row .nk-ctl-name { font-size: 15px; font-weight: 800; color: var(--text-1); }
+.nkw-toggle-row .nk-ctl-d { color: var(--nk-muted-ui, var(--nk-wd-muted)); font-size: 12.5px; margin: var(--space-1) 0 0; }
+
+/* column warnings (amber cards above the columns card) */
+.nkw-warns { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.nkw-warn { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); background: var(--nk-wd-warn); border: 1px solid var(--nk-wd-warn-line); border-radius: var(--radius-lg); padding: var(--space-3); }
+.nkw-warn-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--warning); }
+.nkw-warn-t { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 12.5px; color: var(--text-2); }
+.nkw-warn-t b { color: var(--text-1); font-size: 14px; }
+.nkw-warn-b { white-space: nowrap; font-weight: 700; border-color: var(--warning); }
+@media (max-width: 480px) { .nkw-warn { grid-template-columns: auto minmax(0, 1fr); } .nkw-warn-b { grid-column: 1 / -1; } }
+
+/* columns card additions */
+.nkw-colscard .nkw-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.nkw-colscard .nkw-stat:first-child { grid-column: auto; }
+.nkw-colscard .nkw-stat .nk-pf-input { --nk-i-fs: 14px; }
+@media (max-width: 480px) { .nkw-colscard .nkw-stats { grid-template-columns: 1fr 1fr; } }
+.nkw-mini { position: relative; }
+.nkw-mini-live { font-size: 11px; color: var(--nk-muted-ui, var(--nk-wd-muted)); display: flex; align-items: center; gap: 6px; margin-block-end: var(--space-1); }
+.nkw-live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); display: inline-block; }
+.nkw-mini-ghost rect { fill: var(--bg-3); stroke: var(--border); opacity: .75; }
+.nkw-mini-ghost text { fill: var(--nk-wd-muted); }
+.nkw-mini-col[data-hidden="1"] rect { stroke-dasharray: 36 24; fill: transparent; }
+.nkw-mini-col[data-hidden="1"] text { opacity: .5; }
+.nkw-mini-pin { fill: var(--brand); stroke: none; }
+.nkw-mini-dr-in { stroke-dasharray: 36 24; } /* [NEO-CLOSETS-UX30] inside drawers are hidden lines behind the door */
+.nkw-mini-div .nkw-mini-grip { fill: var(--bg-2); stroke: var(--brand); stroke-width: 14; }
+.nkw-mini-div[data-on="1"] .nkw-mini-grip, .nkw-mini-div:hover .nkw-mini-grip { fill: var(--brand); }
+.nkw-mini-h .nkw-mini-grip { stroke: var(--brand); }
+.nkw-allcard { padding: var(--space-3); }
+
+/* the per-column editor */
+.nkw-ced { gap: var(--space-3); border-color: var(--nk-wd-line); }
+.nkw-ced-head { display: flex; align-items: center; gap: var(--space-2); }
+.nkw-ced-t { flex: 1; margin: 0; font-size: 15px; font-weight: 800; display: flex; align-items: baseline; gap: var(--space-2); min-width: 0; flex-wrap: wrap; }
+.nkw-ced-w { font-family: var(--nk-mono); color: var(--nk-muted-ui, var(--nk-wd-muted)); font-size: 13px; font-weight: 600; }
+.nkw-ced-b { width: 34px; height: 34px; border: 1px solid var(--border); border-radius: var(--radius-pill, 9999px); background: var(--bg-2); display: inline-grid; place-items: center; color: var(--text-2); flex: none; }
+.nkw-ced-b[aria-pressed="true"] { background: var(--brand-muted); color: var(--nk-ink, var(--brand)); border-color: var(--brand); }
+.nkw-ced-del { color: var(--danger); }
+.nkw-ced-widthrow .nk-pf-label { font-weight: 700; color: var(--text-2); }
+.nkw-ced-widthrow .nk-inp-wrap { border-color: var(--brand); }
+.nkw-ced-widthrow .nk-pf-input { color: var(--nk-ink, var(--brand)); --nk-i-fw: 700; }
+.nkw-ced-body { display: grid; grid-template-columns: minmax(120px, 160px) minmax(0, 1fr); gap: var(--space-3); align-items: start; }
+@media (max-width: 480px) { .nkw-ced-body { grid-template-columns: 1fr; } }
+.nkw-colprev { width: 100%; max-width: 170px; height: auto; margin-inline: auto; }
+.nkw-cp-front { fill: var(--bg-3); stroke: var(--nk-frame-line); stroke-width: 1.2; }
+.nkw-cp-side { fill: var(--nk-frame-fill); stroke: var(--nk-frame-line); stroke-width: 1; }
+.nkw-cp-top { fill: var(--nk-frame-bg); stroke: var(--nk-frame-line); stroke-width: 1; }
+.nkw-cp-shelf { stroke: var(--nk-frame-line); stroke-width: 2; }
+.nkw-cp-rail { stroke: var(--text-2); stroke-width: 3; stroke-linecap: round; }
+.nkw-cp-drawer { fill: var(--nk-shelf-board); stroke: var(--nk-frame-line); stroke-width: 1; }
+.nkw-cp-pill rect { fill: var(--brand); }
+.nkw-cp-pill text { fill: var(--text-on-brand); font-size: 11px; font-weight: 700; font-family: var(--nk-mono); }
+.nkw-cp-dim { font-family: var(--nk-mono); font-size: 12px; fill: var(--brand); font-weight: 700; }
+.nkw-ced-zones { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.nkw-ced-line { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); }
+.nkw-ced-line > .nkw-row-l { min-width: 64px; }
+.nkw-zone { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "n t x" ". c ."; gap: var(--space-2); align-items: center; padding: var(--space-2); background: var(--bg-3); border: 1px solid var(--nk-wd-line); border-radius: var(--radius-md); }
+.nkw-zone > .nkw-zn { grid-area: n; }
+.nkw-zone > .nkw-zsel { grid-area: t; justify-self: start; }
+.nkw-zone > .nkw-zc { grid-area: c; }
+.nkw-zone > .nkw-ced-b { grid-area: x; width: 28px; height: 28px; }
+/* [NEO-CLOSETS-UX30] the drawers zone: count + Front | Inside, drawer height, door height */
+.nkw-dr { display: grid; gap: var(--space-2); }
+.nkw-dr-top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.nkw-zone[data-zone="drawers"] > .nkw-zc { grid-area: auto; grid-column: 1 / -1; grid-row: 2; } /* the drawers zone has the most controls: it takes the whole row under its pill */
+.nkw-dr .nk-seg { display: flex; width: 100%; }
+.nkw-dr .nk-seg-b { flex: 1 1 auto; white-space: nowrap; }
+.nkw-dr .nkw-ced-line { flex-wrap: wrap; }
+.nkw-zn { width: 24px; height: 24px; border-radius: 50%; background: var(--nk-ink, var(--brand)); color: var(--text-on-brand); display: grid; place-items: center; font: 700 12px var(--nk-mono); }
+.nkw-zsel { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--brand); color: var(--nk-ink, var(--brand)); border-radius: var(--radius-pill, 9999px); padding: 2px var(--space-2); background: var(--bg-2); max-width: 100%; }
+.nkw-zsel-i { border: 0; background: transparent; font-weight: 700; color: var(--nk-ink, var(--brand)); min-width: 0; padding: 4px 2px; }
+.nkw-zsel-plain { max-width: 100%; }
+.nkw-zc { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); min-width: 0; }
+.nkw-zrail { display: flex; flex-direction: column; gap: var(--space-1); width: 100%; }
+.nkw-zcap { font-family: var(--nk-mono); font-size: 12px; color: var(--nk-muted-ui, var(--nk-wd-muted)); }
+.nkw-ced-sec { display: flex; flex-direction: column; gap: var(--space-2); border-block-start: 1px solid var(--nk-wd-line); padding-block-start: var(--space-3); }
+.nkw-ced-widthrow { border-block-start: 0; padding-block-start: 0; }
+.nkw-hinge { margin-inline-start: auto; }
+
+/* the L-Shape tab's side chips */
+.nkw-sides { display: flex; gap: var(--space-2); }
+.nkw-side { flex: 1; display: flex; align-items: center; justify-content: center; gap: var(--space-2); border: 1px solid var(--border); background: var(--bg-2); color: var(--text-2); border-radius: var(--radius-pill, 9999px); padding: var(--space-2) var(--space-3); font-weight: 700; min-height: 40px; }
+.nkw-side small { font-size: 10px; letter-spacing: .08em; color: var(--nk-muted-ui, var(--nk-wd-muted)); }
+.nkw-side[aria-pressed="true"] { background: var(--nk-ink, var(--brand)); border-color: var(--nk-ink, var(--brand)); color: var(--text-on-brand); }
+.nkw-side[aria-pressed="true"] small { color: inherit; }
+.nkw-ushape { margin: 0; }
+
+/* the closet cards put the field on the row's right (label | field), like the owner's reference; a phone stacks them */
+@media (min-width: 481px) {
+  .nk.nk-wd .nk-shelf-row { grid-template-columns: auto minmax(0, 1fr) minmax(104px, 132px); grid-template-areas: "n t i"; align-items: center; }
+  .nk.nk-wd .nk-shelf-row > .nk-shelf-in { align-items: stretch; }
+  .nk.nk-wd .nk-shelf-in .nk-pf-box.nk-inp-wrap { width: 100%; max-width: none; }
+  .nk.nk-wd .nkw-hrow .nkw-ro { width: 100%; justify-content: flex-end; }
+}
+
+.nk-wd .nk-shelf-in .nk-pf-rng { display: none; }   /* the range stays in the field's tooltip; the card reads clean, like the owner's reference */
+
+/* [NEO-CLOSETS-UX30] inside-drawer settings (Global Drawers card + Drawers tab) */
+.nkw-inside { display: grid; gap: var(--space-1); }
+.nkw-inside .nkw-toggle-row { align-items: flex-start; flex-wrap: wrap; }
+.nkw-inside .nkw-toggle-row .nk-ctl-t { flex: 1 1 14rem; min-width: 0; }

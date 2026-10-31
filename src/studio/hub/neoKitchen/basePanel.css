@@ -1,0 +1,63 @@
+/* =============================================================================
+ * Neo Kitchen Designer UX-14 - the Base screen (BaseScreen.jsx, basePlan.js). Everything is scoped under .nk.
+ * The ONLY literal colours are the owner's reference palette for the plan fronts and the tooltip, as scoped --nk-bp-* custom
+ * properties here (light + dark sets). Selected fill / outline / handles use the existing --nk-sel-fill / --brand tokens.
+ * ===========================================================================*/
+.nk {
+  --nk-bp-front: #FFFFFF; --nk-bp-front-line: #9AA3B8; --nk-bp-front-sel: #DCE6FF; --nk-bp-tip-bg: #2A3040; --nk-bp-tip-fg: #FFFFFF;
+}
+[data-theme="dark"] .nk, .nk[data-theme="dark"] {
+  --nk-bp-front: #1B2230; --nk-bp-front-line: #5B6682; --nk-bp-front-sel: rgba(108, 147, 255, .3); --nk-bp-tip-bg: #E8ECF4; --nk-bp-tip-fg: #151A24;
+}
+
+/* plan: door / drawer fronts inside every base unit; selected = pale blue with a blue outline */
+.nk .nk-bp-plan { margin: 0; }
+.nk .nk-pl-u .nk-bp-front rect { fill: var(--nk-bp-front); stroke: var(--nk-bp-front-line); stroke-width: .6; }
+.nk .nk-pl-u .nk-bp-front line { stroke: var(--nk-bp-front-line); stroke-width: .6; }
+.nk .nk-pl-u.nk-pl-sel .nk-bp-front rect { fill: var(--nk-bp-front-sel); stroke: var(--brand); stroke-width: .7; }
+.nk .nk-pl-u.nk-pl-sel .nk-bp-front line { stroke: var(--brand); }
+.nk .nk-pl-u .nk-bp-f-open rect { fill: var(--nk-block); }
+.nk .nk-pl-u .nk-bp-f-glass rect { fill: var(--nk-bp-front-sel); }
+.nk .nk-bp-sink, .nk .nk-bp-tall, .nk .nk-bp-offt { font-family: var(--nk-mono); font-size: 7px; fill: var(--nk-muted); pointer-events: none; }
+.nk .nk-bp-w { font-family: var(--nk-mono); font-size: 9.5px; fill: var(--nk-muted); pointer-events: none; }
+.nk .nk-bp-div { fill: var(--bg-2); stroke: var(--brand); stroke-width: 1.6; cursor: ew-resize; touch-action: none; outline: none; }
+.nk .nk-bp-div:hover, .nk .nk-bp-div:focus-visible { fill: var(--brand-muted); stroke-width: 2.4; }
+.nk .nk-bp-bar { fill: var(--brand); cursor: ew-resize; touch-action: none; outline: none; }
+.nk .nk-bp-bar:hover, .nk .nk-bp-bar:focus-visible { stroke: var(--brand-hover, var(--brand)); stroke-width: 2; }
+
+/* add-unit type menu (in flow under the dashed button, so no card clips it) */
+.nk .nk-bp-addwrap { display: flex; flex-direction: column; gap: var(--space-2); }
+.nk .nk-bp-menu { background: var(--bg-2); border: 1px solid var(--nk-card-line); border-radius: var(--radius-lg); padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); }
+.nk .nk-bp-menu-free { margin: 0; font-size: 12.5px; color: var(--nk-muted-ui, var(--nk-muted)); }
+.nk .nk-bp-menu-w { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); font-size: 13px; font-weight: 600; }
+.nk .nk-bp-menu-w .nk-inp { --nk-i-w: 9ch; }
+.nk .nk-bp-menu-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-2); }
+.nk .nk-bp-mi { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; text-align: start; padding: var(--space-2) var(--space-3); border: 1px solid var(--nk-card-line); border-radius: var(--radius-md); background: var(--bg-2); color: var(--text-1); cursor: pointer; }
+.nk .nk-bp-mi b { font-size: 13px; font-weight: 800; }
+.nk .nk-bp-mi small { color: var(--nk-muted-ui, var(--nk-muted)); font-size: 11.5px; }
+.nk .nk-bp-mi:hover, .nk .nk-bp-mi:focus-visible { border-color: var(--brand); background: var(--brand-muted); }
+.nk .nk-bp-mi[data-ok="0"] { opacity: .55; }
+.nk .nk-bp-menu-msg { min-height: 1.2em; color: var(--danger); }
+
+/* unit card: header buttons share the row of the name and the type pill; a turned-off unit is dimmed and marked */
+.nk .nk-bp-ucard { padding: var(--space-3); }
+.nk .nk-bp-ucard .nk-ac { border: 0; box-shadow: none; padding: 0; background: transparent; }
+.nk .nk-ac-extra { display: inline-flex; gap: var(--space-2); margin-inline-start: auto; }
+.nk .nk-ac-name-btn { cursor: pointer; border-radius: var(--radius-sm); outline: none; }
+.nk .nk-ac-name-btn:focus-visible { box-shadow: 0 0 0 2px var(--brand); }
+.nk .nk-bp-offcard { border-style: dashed; }
+.nk .nk-bp-offcard .nk-ac { opacity: .6; }
+.nk .nk-bp-offcard .nk-ac .nk-rk-eye { opacity: 1; color: var(--warning); border-color: var(--warning); background: color-mix(in srgb, var(--warning) 14%, transparent); }
+.nk .nk-bp-offcard .nk-ac .nk-rk-del { color: var(--nk-muted-ui, var(--nk-muted)); border-color: var(--nk-card-line); }
+.nk .nk-bp-offnote { display: flex; gap: var(--space-2); align-items: flex-start; margin: 0 0 var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--nk-block); color: var(--text-2); font-size: 12.5px; }
+.nk .nk-bp-offnote svg { flex: none; margin-block-start: 2px; }
+
+/* tooltip on the eye button: "Turn this unit off (not built, not in the cut list)" */
+.nk .nk-bp-tip { position: relative; }
+.nk .nk-bp-tip::after { content: attr(data-tip); position: absolute; inset-inline-end: 0; bottom: calc(100% + 8px); width: max-content; max-width: 230px; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); background: var(--nk-bp-tip-bg); color: var(--nk-bp-tip-fg); font-size: 12.5px; font-weight: 500; line-height: 1.3; text-align: start; white-space: normal; opacity: 0; transform: translateY(2px); pointer-events: none; transition: opacity .12s, transform .12s; z-index: 30; }
+.nk .nk-bp-tip:hover::after, .nk .nk-bp-tip:focus-visible::after { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .nk .nk-bp-tip::after { transition: none; } }
+.nk .nk-bp-div.nk-bp-div-on { fill: var(--brand); }
+.nk .nk-bp-addrow { display: flex; gap: var(--space-2); }
+.nk .nk-bp-addrow .nk-add { flex: 1 1 auto; width: auto; }
+.nk .nk-bp-types { display: inline-flex; align-items: center; gap: var(--space-1); }

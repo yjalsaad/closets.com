@@ -1,0 +1,40 @@
+/* Neo Kitchen Designer UX-5 - "02 Carcass Boards" card. Imported by CarcassCard.jsx; everything is scoped under .nk.
+ * The shell, rows and warning list reuse the .nk-shelfcard / .nk-shelf-row / .nk-shelf-warn rules (same visual family as
+ * Shelves, Drawers and Doors). The block below is the ONE place with literal colours (owner palette, diagram drawing data);
+ * dark set under [data-theme="dark"]. Every rule uses var(--nk-cc-*) or a DESIGN.md token. */
+.nk {
+  --nk-cc-face: #E3E8F3; --nk-cc-top: #EEF1F8; --nk-cc-side: #CDD4E5; --nk-cc-back: #DDE3F0; --nk-cc-line: #4A5273;
+  --nk-cc-slot: #AEB6CD; --nk-cc-recess: #D3D9E9;
+  --nk-cc-sel-fill: #FDF1CE; --nk-cc-sel-side: #FBE7A8; --nk-cc-sel-line: #F6A623;
+  --nk-cc-label: #8490AA;
+}
+[data-theme="dark"] .nk, .nk[data-theme="dark"] {
+  --nk-cc-face: #2E384D; --nk-cc-top: #3A4560; --nk-cc-side: #252E41; --nk-cc-back: #2A3449; --nk-cc-line: #A9B4CE;
+  --nk-cc-slot: #151B29; --nk-cc-recess: #202A3D;
+  --nk-cc-sel-fill: #6B5A24; --nk-cc-sel-side: #54461B; --nk-cc-sel-line: #F6B94A;
+  --nk-cc-label: #8C97B0;
+}
+
+.nk-carcasscard .nk-shelf-stage { margin-block-end: var(--space-4); }
+.nk-cc-art { width: 100%; height: auto; display: block; max-height: none; }
+.nk-cc-p path { stroke: var(--nk-cc-line); stroke-width: 1; stroke-linejoin: round; fill: var(--nk-cc-face); }
+.nk-cc-p .nk-cc-top { fill: var(--nk-cc-top); }
+.nk-cc-p .nk-cc-side { fill: var(--nk-cc-side); }
+.nk-cc-p.nk-cc-b-back .nk-cc-rear { fill: var(--nk-cc-back); }
+.nk-cc-recess { fill: var(--nk-cc-recess); stroke: var(--nk-cc-line); stroke-width: .6; stroke-linejoin: round; }
+.nk-cc-slot { fill: var(--nk-cc-slot); stroke: var(--nk-cc-line); stroke-width: .6; stroke-linejoin: round; }
+.nk-cc-p.nk-cc-sel path { fill: var(--nk-cc-sel-fill); stroke: var(--nk-cc-sel-line); stroke-width: 2; }
+.nk-cc-p.nk-cc-sel .nk-cc-side { fill: var(--nk-cc-sel-side); }
+.nk-cc-recess.nk-cc-sel, .nk-cc-slot.nk-cc-sel { fill: var(--nk-cc-sel-fill); stroke: var(--nk-cc-sel-line); stroke-width: 1.6; }
+.nk-cc-lbl { fill: var(--nk-cc-label); font-family: var(--nk-mono); font-size: 14px; font-weight: 600; letter-spacing: .1em; }
+.nk-cc-dot { fill: var(--text-1); }
+.nk-cc-call text { font-size: 16px; }
+.nk[dir="rtl"] .nk-cc-lbl, [dir="rtl"] .nk-cc-lbl { letter-spacing: 0; font-family: inherit; font-size: 15px; }
+
+/* the selected row: light-blue band with a blue number badge (the others keep the navy badge) */
+.nk-cc-row { border-radius: var(--radius-lg); padding-inline: var(--space-3); transition: background .12s ease; }
+.nk-cc-row[data-on="1"] { background: var(--brand-muted); }
+.nk-cc-row[data-on="1"] .nk-cn { background: var(--nk-ink, var(--brand)); color: var(--text-on-brand); }
+.nk-cc-row + .nk-cc-row { border-block-start-color: transparent; }
+.nk-cc-row[data-on="1"] .nk-shelf-in .nk-inp-wrap { border-color: var(--brand); }
+@media (prefers-reduced-motion: reduce) { .nk-cc-row { transition: none; } }

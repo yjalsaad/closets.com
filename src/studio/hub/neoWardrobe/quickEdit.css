@@ -1,0 +1,54 @@
+/* =============================================================================
+ * Neo Wardrobe Studio [NEO-CLOSETS-UX31] - the quick-edit floating menu. DESIGN.md tokens only (--bg*, --border, --text-*, --brand*, --danger,
+ * --space-N, --radius-*), scoped --nkq-* vars derived from them. Logical properties throughout, so Arabic / RTL mirrors without extra rules.
+ * The menu is absolutely placed (physical left / top from placeMenu) inside .nk-stagemain, over the drawing box only.
+ * ===========================================================================*/
+.nkq {
+  --nkq-bg: var(--bg-2); --nkq-line: var(--border); --nkq-fg: var(--text-1); --nkq-fg2: var(--text-2); --nkq-on: var(--brand);
+  --nkq-pad: var(--space-2); --nkq-r: var(--radius-lg); --nkq-hit: 34px;
+  position: absolute; z-index: 30; width: max-content; max-width: 372px; box-sizing: border-box; min-width: 232px; overflow: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: var(--space-2); padding: var(--nkq-pad); color: var(--nkq-fg);
+  background: var(--nkq-bg); border: 1px solid var(--nkq-line); border-radius: var(--nkq-r); box-shadow: var(--shadow-md, var(--nk-shadow-1));
+  font-size: 12.5px; line-height: 1.3; touch-action: manipulation;
+}
+.nkq[data-side="sheet"] { width: auto; inset-inline: auto; }
+.nkq-head { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.nkq-t { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.nkq-t b { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nkq-t small { color: var(--text-3); font-family: var(--nk-mono); font-size: 11px; white-space: nowrap; }
+.nkq-ib { flex: 0 0 auto; width: var(--nkq-hit); height: var(--nkq-hit); display: inline-grid; place-items: center; padding: 0; color: var(--nkq-fg2); background: transparent; border: 1px solid transparent; border-radius: var(--radius-md); cursor: pointer; }
+.nkq-ib:hover { background: var(--bg-3); color: var(--nkq-fg); }
+.nkq-ib[aria-expanded="true"] { background: var(--brand-muted); color: var(--nkq-on); }
+.nkq-body { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.nkq-btns { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.nkq-b {
+  display: inline-flex; align-items: center; gap: var(--space-1); min-height: var(--nkq-hit); padding: 0 var(--space-2); cursor: pointer; white-space: nowrap;
+  font: inherit; font-weight: 600; font-size: 12px; color: var(--nkq-fg); background: var(--bg-3); border: 1px solid var(--nkq-line); border-radius: var(--radius-md);
+}
+.nkq-b:hover:not([aria-disabled="true"]) { border-color: var(--nkq-on); color: var(--nkq-on); }
+.nkq-b[aria-pressed="true"] { background: var(--brand-muted); color: var(--nkq-on); border-color: var(--nkq-on); }
+.nkq-b[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
+.nkq-danger { color: var(--danger); }
+.nkq-danger:hover:not([aria-disabled="true"]) { border-color: var(--danger); color: var(--danger); }
+.nkq-b:focus-visible, .nkq-ib:focus-visible, .nkq-nb:focus-visible { outline: 2px solid var(--nkq-on); outline-offset: 1px; }
+.nkq-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); min-width: 0; }
+.nkq-l { flex: 0 0 auto; min-width: 7.5em; max-width: 12em; font-size: 11.5px; font-weight: 600; color: var(--nkq-fg2); }
+.nkq-why { flex: 1 1 100%; font-size: 11px; color: var(--text-3); }
+.nkq-numc { display: inline-flex; align-items: center; gap: var(--space-1); min-width: 0; }
+.nkq-numc .nk-pf { width: 8.5em; }
+.nkq-nb { width: var(--nkq-hit); height: var(--nkq-hit); display: inline-grid; place-items: center; padding: 0; font-size: 18px; line-height: 1; color: var(--nkq-fg); background: var(--bg-3); border: 1px solid var(--nkq-line); border-radius: var(--radius-md); cursor: pointer; }
+.nkq-nb[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
+.nkq-sep { display: flex; align-items: center; gap: var(--space-2); color: var(--text-3); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.nkq-sep::before, .nkq-sep::after { content: ""; flex: 1 1 0; height: 1px; background: var(--nkq-line); }
+.nkq .nk-seg { max-width: 100%; flex-wrap: wrap; }
+.nkq .nkw-step .nk-ib { width: var(--nkq-hit); height: var(--nkq-hit); }
+.nkq .nk-chips { gap: var(--space-1); }
+@media (pointer: coarse), (max-width: 640px) {
+  .nkq { --nkq-hit: 44px; font-size: 13px; }
+  .nkq-b { font-size: 13px; }
+}
+@media (max-width: 640px) {
+  .nkq { min-width: 0; }
+  .nkq-l { min-width: 0; flex: 1 1 100%; max-width: none; }
+}
+@media (forced-colors: active) { .nkq { border: 2px solid CanvasText; } .nkq-b[aria-pressed="true"] { outline: 2px solid Highlight; } }
