@@ -35,7 +35,7 @@ export default class ErrorBoundary extends Component {
     return (
       <div dir={ar ? "rtl" : "ltr"} style={{ minHeight: "70vh", display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center", textAlign: "center", padding: "40px 24px",
-        fontFamily: "Inter, system-ui, sans-serif", color: "var(--shop-ink, #1d1d1f)" }}>
+        fontFamily: "var(--font-sans, system-ui, sans-serif)", color: "var(--shop-ink, #1d1d1f)" }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>🛠️</div>
         <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 10px" }}>
           {ar ? "حدث خطأ غير متوقع" : "Something went wrong"}

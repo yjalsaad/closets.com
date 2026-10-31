@@ -2310,12 +2310,15 @@ function Toasts() {
 }
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=El+Messiri:wght@500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
+  /* ── Typography [2026-10-31]: the platform UI font — SF Pro on Apple, Segoe UI on Windows, Roboto on Android / ChromeOS.
+     One clear sans for body AND headings (Apple / Google style); Arabic uses SF Arabic on Apple, IBM Plex Sans Arabic elsewhere. ── */
+  :root { --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --font-ar: -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", "Noto Sans Arabic", Tahoma, sans-serif; --font-display: var(--font-sans); --serif: var(--font-display); }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  /* ── Arabic typography: IBM Plex Sans Arabic for body/UI (parallels Inter), El Messiri for display headings ── */
-  html[lang="ar"] body, [dir="rtl"] { font-family: 'IBM Plex Sans Arabic','Segoe UI',sans-serif; }
-  html[lang="ar"] .display, [dir="rtl"] .display { font-family: 'El Messiri','IBM Plex Sans Arabic',serif; letter-spacing: 0; }
-  html[lang="ar"] .eyebrow, [dir="rtl"] .eyebrow { font-family: 'IBM Plex Sans Arabic',sans-serif; }
+  /* ── Arabic typography: the same system sans (SF Arabic / IBM Plex Sans Arabic) for body and headings ── */
+  html[lang="ar"] body, [dir="rtl"] { font-family: var(--font-ar); }
+  html[lang="ar"] .display, [dir="rtl"] .display { font-family: var(--font-ar); letter-spacing: 0; }
+  html[lang="ar"] .eyebrow, [dir="rtl"] .eyebrow { font-family: var(--font-ar); }
   html { -webkit-tap-highlight-color: transparent; }
   /* ── RTL logical fixes (reach what inline styles don't) ── */
   [dir="rtl"] input, [dir="rtl"] textarea, [dir="rtl"] select { text-align: right; }
@@ -2410,7 +2413,7 @@ const CSS = `
      C (neutral panels): .card gets a soft resting shadow so it floats as a
         panel on the bright canvas. Reusable .band-soft / .panel-soft below. */
   html { background: #EEF3F1; }
-  body { background: transparent; color: var(--shop-ink, #1d1d1f); font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; -webkit-font-smoothing: antialiased; }
+  body { background: transparent; color: var(--shop-ink, #1d1d1f); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
   /* Fixed sea-mist daylight canvas — cool + airy summer base, lit from above,
      with a faint teal wash and a warm coral corner so both accents live in the
      background. White/sand sections ride on top as crisp floating panels. */
@@ -2469,7 +2472,7 @@ const CSS = `
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
   }
-  .display { font-family:'Fraunces',Georgia,'Times New Roman',serif; font-weight:600; letter-spacing:-.02em; line-height:1.04; }
+  .display { font-family:var(--font-display); font-weight:700; letter-spacing:-.025em; line-height:1.06; }
   .eyebrow { font-size:12px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--clay); }
   .btn-clay { background:var(--clay); color:#fff; border:none; border-radius:14px; padding:15px 26px; font-size:16px; font-weight:600; letter-spacing:.01em; cursor:pointer; transition:transform .15s, background .2s, box-shadow .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:50px; box-shadow:0 14px 30px -16px rgba(137,57,30,.55); }
   .btn-clay:active { transform:scale(.97); }
@@ -3189,7 +3192,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
       <Link to="/" onClick={()=>{ setMenuOpen(false); }} aria-label="The Closets — home" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:8 }}>
         {(cms('header.logo', '') || siteLogo)
           ? <img src={cms('header.logo', '') || siteLogo} alt="The Closets" style={{ height:32, width:'auto', maxWidth:120, objectFit:'contain', borderRadius:6 }} />
-          : <span style={{ fontFamily:'Fraunces, Georgia, serif', fontSize:16, fontWeight:600, color:'var(--ink)', letterSpacing:'.02em' }}>{cms('header.brand', 'THE CLOSETS')}</span>}
+          : <span style={{ fontFamily:'var(--font-sans)', fontSize:16, fontWeight:600, color:'var(--ink)', letterSpacing:'.02em' }}>{cms('header.brand', 'THE CLOSETS')}</span>}
       </Link>
 
       {/* 🧩 Design your own — pinned to the LEFT, right beside the logo.
@@ -4145,7 +4148,7 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
       const pad = 8, fs = 44;
       const c = document.createElement('canvas');
       const cx = c.getContext('2d');
-      cx.font = `700 ${fs}px Inter, Arial, sans-serif`;
+      cx.font = `700 ${fs}px -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
       const tw = Math.ceil(cx.measureText(text).width);
       c.width = tw + pad * 2 + 4; c.height = fs + pad * 2;
       const x = c.getContext('2d');
@@ -4158,7 +4161,7 @@ function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, 
       x.arcTo(0, h, 0, 0, r); x.arcTo(0, 0, w, 0, r); x.closePath();
       x.fill(); x.stroke();
       x.fillStyle = '#3a2a1c';
-      x.font = `700 ${fs}px Inter, Arial, sans-serif`;
+      x.font = `700 ${fs}px -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
       x.textBaseline = 'middle'; x.textAlign = 'center';
       x.fillText(text, w / 2, h / 2 + 2);
       const tex = new THREE.CanvasTexture(c); tex.needsUpdate = true;
@@ -4465,29 +4468,29 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             try { x.drawImage(logoImg, pad, Math.round((head - lh) / 2) - Math.round(head * 0.05), lw, lh); tx = pad + lw + Math.round(w * 0.025); } catch (e) {}
           }
           x.textBaseline = 'alphabetic'; x.textAlign = 'left';
-          x.fillStyle = '#1d1d1f'; x.font = `800 ${Math.round(head * 0.30)}px Inter, Arial, sans-serif`;
+          x.fillStyle = '#1d1d1f'; x.font = `800 ${Math.round(head * 0.30)}px -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
           x.fillText('THE CLOSETS', tx, Math.round(head * 0.46));
-          x.fillStyle = '#86868b'; x.font = `500 ${Math.round(head * 0.135)}px Inter, Arial, sans-serif`;
+          x.fillStyle = '#86868b'; x.font = `500 ${Math.round(head * 0.135)}px -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
           x.fillText('Bespoke furniture · Kingdom of Bahrain', tx, Math.round(head * 0.69));
           // Date (top-right of the header)
           if (dateStr) {
-            x.textAlign = 'right'; x.fillStyle = '#86868b'; x.font = `600 ${Math.round(head * 0.135)}px Inter, Arial, sans-serif`;
+            x.textAlign = 'right'; x.fillStyle = '#86868b'; x.font = `600 ${Math.round(head * 0.135)}px -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
             x.fillText(dateStr, cw - pad, Math.round(head * 0.46));
             x.textAlign = 'left';
           }
           // Project name / spec line (just under the header, above the image)
           if (specLine) {
-            x.fillStyle = '#3a3a3c'; x.font = `600 ${Math.round(head * 0.155)}px Inter, Arial, sans-serif`;
+            x.fillStyle = '#3a3a3c'; x.font = `600 ${Math.round(head * 0.155)}px -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
             x.fillText(specLine, tx, Math.round(head * 0.90));
           }
           x.fillStyle = '#A84B29'; x.fillRect(pad, head - 4, w, 4);
           x.drawImage(base, pad, head, w, h);
           const fy = head + h;
-          x.fillStyle = '#1d1d1f'; x.font = `700 ${Math.round(foot * 0.26)}px Inter, Arial, sans-serif`;
+          x.fillStyle = '#1d1d1f'; x.font = `700 ${Math.round(foot * 0.26)}px -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
           x.fillText(footTitle, pad, fy + Math.round(foot * 0.36));
-          x.fillStyle = '#9aa0a6'; x.font = `400 ${Math.round(foot * 0.19)}px Inter, Arial, sans-serif`;
+          x.fillStyle = '#9aa0a6'; x.font = `400 ${Math.round(foot * 0.19)}px -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
           x.fillText(footNote, pad, fy + Math.round(foot * 0.66));
-          x.textAlign = 'right'; x.fillStyle = '#A84B29'; x.font = `700 ${Math.round(foot * 0.22)}px Inter, Arial, sans-serif`;
+          x.textAlign = 'right'; x.fillStyle = '#A84B29'; x.font = `700 ${Math.round(foot * 0.22)}px -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
           x.fillText('the-closets.com · +973 17555095', cw - pad, fy + Math.round(foot * 0.50));
           x.textAlign = 'left';
           try { resolve(cv.toDataURL('image/jpeg', 0.92)); } catch (e) { resolve(srcUri); }
@@ -5023,7 +5026,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
       + `<title>Quotation ${esc(quoteRef)} — The Closets</title>`
       + `<style>`
       + `*{box-sizing:border-box;margin:0;padding:0}`
-      + `body{font-family:Inter,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink, #1f1913);background:#f3f3f3;padding:28px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}`
+      + `body{font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;color:var(--ink, #1f1913);background:#f3f3f3;padding:28px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}`
       + `.sheet{max-width:820px;margin:0 auto;background:#ffffff;padding:48px 52px;box-shadow:0 6px 30px rgba(0,0,0,.12)}`
       + `.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid var(--clay, #A84B29);padding-bottom:18px;margin-bottom:24px}`
       + `.wordmark{font-size:24px;font-weight:800;letter-spacing:.02em;color:var(--ink, #1f1913)}`
@@ -6554,7 +6557,7 @@ function HomeHub({ user, setUser, setPage }) {
 <title>Invoice ${esc(num)}</title>
 <style>
 :root{--brand:#F97316;--brand-d:#C2410C;--ink:#2C2017;--muted:#6F6157;--line:#E7DDCF;--head:#2C2017}
-*{box-sizing:border-box} body{font-family:${lang==='ar'?"'Tajawal',":''}Inter,system-ui,Arial,sans-serif;color:var(--ink);margin:0;background:#fff}
+*{box-sizing:border-box} body{font-family:${lang==='ar'?'-apple-system, BlinkMacSystemFont, \'SF Arabic\', \'IBM Plex Sans Arabic\', \'Segoe UI\', \'Noto Sans Arabic\', Tahoma, sans-serif':'-apple-system, BlinkMacSystemFont, \'SF Pro Text\', \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif'};color:var(--ink);margin:0;background:#fff}
 .page{max-width:820px;margin:0 auto;padding:36px 40px 0;position:relative}
 .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;border-bottom:3px solid var(--brand);padding-bottom:14px}
 .hd .co-l{display:flex;align-items:center;gap:14px;min-width:0}
@@ -6744,7 +6747,7 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
             <button type="button" onClick={() => setPage('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, padding: 0 }}>
               {logoSrc
                 ? <img src={logoSrc} alt={brandTxt} style={{ height: 30, width: 'auto', maxWidth: 120, objectFit: 'contain', borderRadius: 6 }} />
-                : <span style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 16, fontWeight: 600, color: 'var(--ink, #1f1913)', letterSpacing: '.02em' }}>{brandTxt}</span>}
+                : <span style={{ fontFamily: 'var(--font-sans)', fontSize: 16, fontWeight: 600, color: 'var(--ink, #1f1913)', letterSpacing: '.02em' }}>{brandTxt}</span>}
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: mobile ? 8 : 12 }}>
               {!mobile && (
@@ -7274,7 +7277,7 @@ function AboutPage({ setPage = () => {} }) {
       {/* ── PULL QUOTE ── */}
       <section style={{ background:'var(--sand)', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
         <div className="rv" style={{ maxWidth:940, margin:'0 auto', padding: mobile?'56px 22px':'96px 40px', textAlign:'center' }}>
-          <div style={{ fontSize: mobile?40:64, color:'var(--clay)', lineHeight:0, fontFamily:'Georgia, serif' }}>“</div>
+          <div style={{ fontSize: mobile?40:64, color:'var(--clay)', lineHeight:0, fontFamily:'var(--font-sans)' }}>“</div>
           <blockquote className="display" style={{ fontSize: mobile?26:40, lineHeight:1.22, color:'var(--ink)', letterSpacing:'-.015em', margin:'12px 0 0' }}>
             {cms('about.quote', 'We don’t sell cabinets. We give people back the space they live in — calmer, quieter, and made exactly for them.')}
           </blockquote>
@@ -10967,7 +10970,7 @@ function TVUnitPlannerWizard({ setPage, user, openAuth }) {
       ...storeItems.map(s=>`<tr><td>${s.name} ×${s.qty}</td><td style="text-align:right">${fmt(s.line)}</td></tr>`),
       ...lightItems.map(l=>`<tr><td>${l.name}</td><td style="text-align:right">${fmt(l.line)}</td></tr>`),
     ].join('');
-    w.document.write(`<html><head><title>TV Unit Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
+    w.document.write(`<html><head><title>TV Unit Quotation</title><style>body{font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
       <h1>The Closets — TV / Media Unit Quotation</h1>
       <p class="muted">${room.name} · ${lay.name} layout · Wall ${dims.wallW}×${dims.wallH}mm · ${carc.name} carcass · ${fin.name} finish · ${dec.name} panels</p>
       <p class="muted">TV ${tv.size}" ${tv.mount} · centre at ${tvCentre}mm</p>
@@ -11449,7 +11452,7 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
       ...storeItems.map(s=>`<tr><td>${s.name} ×${s.qty}</td><td style="text-align:right">${fmt(s.line)}</td></tr>`),
       ...lightItems.map(l=>`<tr><td>${l.name}</td><td style="text-align:right">${fmt(l.line)}</td></tr>`),
     ].join('');
-    w.document.write(`<html><head><title>Home Office Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
+    w.document.write(`<html><head><title>Home Office Quotation</title><style>body{font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
       <h1>The Closets — Home Office Quotation</h1>
       <p class="muted">${room.name} · ${lay.name} layout · Wall ${dims.wallW}×${dims.wallH}mm · ${carc.name} carcass · ${fin.name} finish · ${wtop.name} worktop</p>
       <p class="muted">Desk ${desk.length}×${desk.depth}mm · ${desk.shape}</p>
@@ -12082,7 +12085,7 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
       ...accItems.map(a=>`<tr><td>${a.name} ×${a.qty}</td><td style="text-align:right">${fmt(a.line)}</td></tr>`),
       ...lightItems.map(l=>`<tr><td>${l.name}</td><td style="text-align:right">${fmt(l.price)}</td></tr>`),
     ].join('');
-    w.document.write(`<html><head><title>Wardrobe Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}.ai{background:#f6efe6;border-radius:10px;padding:10px 14px;margin:12px 0;font-size:12px;color:#6b5440}</style></head><body>
+    w.document.write(`<html><head><title>Wardrobe Quotation</title><style>body{font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}.ai{background:#f6efe6;border-radius:10px;padding:10px 14px;margin:12px 0;font-size:12px;color:#6b5440}</style></head><body>
       <h1>The Closets — Wardrobe Quotation</h1>
       <p class="muted">${room.name} · ${lay.name} layout · Room ${dims.width}×${dims.length}×${dims.height}mm · ${carc.name} carcass · ${fin.name} finish</p>
       <div class="ai"><b>AI storage allocation:</b> ${pctStr}</div>
@@ -12688,7 +12691,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
       `<tr><td>Hardware — ${hg.name} hinges ×${hingeQty}, ${lk.name} lock, ${hd.name} handle</td><td style="text-align:right">${fmt(hardwareTotal)}</td></tr>`,
       ...accItems.map(a=>`<tr><td>${a.name}</td><td style="text-align:right">${fmt(a.line)}</td></tr>`),
     ].filter(Boolean).join('');
-    w.document.write(`<html><head><title>Wood Door Quotation</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
+    w.document.write(`<html><head><title>Wood Door Quotation</title><style>body{font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
       <h1>The Closets — Wood Door Quotation</h1>
       <p class="muted">${dt.name} · ${loc.name} · ${dims.w}×${dims.h}mm · ${cr.name} core · ${fr.name} frame · ${st.name} style</p>
       <p class="muted">Finish: ${wd.name} ${sf.name} · Glass: ${gl.name} · Leaf weight ≈ ${leafWeight}kg · Direction: ${isSlide?slide.name:swing.name}</p>
@@ -13510,7 +13513,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
     const applRows = (D.installation.appliances_to_connect||[]).map(a=>`<li>${esc(a.name)} ×${a.qty}</li>`).join('') || '<li class="muted">None flagged</li>';
     const accFitRows = (D.installation.handles_accessories_fit||[]).map(a=>`<li>${esc(a.name)} ×${a.qty}</li>`).join('') || '<li class="muted">None</li>';
 
-    w.document.write(`<html><head><title>Kitchen Quotation & Production Pack</title><style>body{font-family:Inter,Arial,sans-serif;color:#2a1f16;padding:36px;max-width:760px;margin:0 auto}h1{font-size:24px}h2{font-size:17px;color:#9a3412;margin:30px 0 4px;border-top:2px solid #e3d6c6;padding-top:18px}table{width:100%;border-collapse:collapse;margin-top:10px}th{text-align:left;font-size:11px;color:#8a7a68;text-transform:uppercase;letter-spacing:.4px;padding:6px 4px;border-bottom:1px solid #cbb89f}td{padding:7px 4px;border-bottom:1px solid #e3d6c6;font-size:12.5px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}.tag{display:inline-block;background:#fdebd3;color:#9a3412;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;text-transform:uppercase;letter-spacing:.4px}ul{font-size:12.5px;margin:6px 0;padding-left:20px}.grid{display:flex;gap:24px;flex-wrap:wrap;font-size:12.5px;margin-top:8px}@media print{h2{page-break-after:avoid}}</style></head><body>
+    w.document.write(`<html><head><title>Kitchen Quotation & Production Pack</title><style>body{font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;color:#2a1f16;padding:36px;max-width:760px;margin:0 auto}h1{font-size:24px}h2{font-size:17px;color:#9a3412;margin:30px 0 4px;border-top:2px solid #e3d6c6;padding-top:18px}table{width:100%;border-collapse:collapse;margin-top:10px}th{text-align:left;font-size:11px;color:#8a7a68;text-transform:uppercase;letter-spacing:.4px;padding:6px 4px;border-bottom:1px solid #cbb89f}td{padding:7px 4px;border-bottom:1px solid #e3d6c6;font-size:12.5px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}.tag{display:inline-block;background:#fdebd3;color:#9a3412;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;text-transform:uppercase;letter-spacing:.4px}ul{font-size:12.5px;margin:6px 0;padding-left:20px}.grid{display:flex;gap:24px;flex-wrap:wrap;font-size:12.5px;margin-top:8px}@media print{h2{page-break-after:avoid}}</style></head><body>
       <h1>The Closets — Kitchen Quotation</h1>
       <p class="muted">${esc(lay.name)} layout · Room ${dims.length}×${dims.width}×${dims.ceiling}mm · ${esc(carc.name)} carcass · ${esc(door.name)} doors</p>
       <p class="muted">Work triangle: ${triOK?'within recommended guidelines':'review recommended'} — total ${triTotal.toFixed(1)}m</p>
@@ -16822,7 +16825,7 @@ function PlannerLoginGate({ openAuth, setPage, lang }) {
     <div style={{ minHeight:'70vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'60px 20px' }}>
       <div style={{ maxWidth:560, textAlign:'center' }}>
         <div style={{ fontSize:52, marginBottom:18 }}>🧩</div>
-        <h1 style={{ fontFamily:'var(--serif, Georgia, serif)', fontSize:'clamp(28px,4vw,42px)', lineHeight:1.15, margin:'0 0 14px', color:'var(--ink,#1a1a1a)' }}>
+        <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(28px,4vw,42px)', lineHeight:1.15, margin:'0 0 14px', color:'var(--ink,#1a1a1a)' }}>
           {g('title')}
         </h1>
         <p style={{ fontSize:16, lineHeight:1.7, color:'var(--muted,#6b6b6b)', margin:'0 0 12px' }}>{g('body')}</p>
@@ -16874,7 +16877,7 @@ function AppInner() {
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('dir', dir);
       document.documentElement.setAttribute('lang', lang);
-      document.body.style.fontFamily = lang === 'ar' ? "'IBM Plex Sans Arabic','Segoe UI',sans-serif" : '';
+      document.body.style.fontFamily = lang === 'ar' ? 'var(--font-ar)' : '';
     }
   }, [lang]);
   // Per-route <title> + meta description, bilingual. Keeps deep links / prerender / share previews correct.

@@ -516,7 +516,7 @@ function captureBrandedRender(renderer, scene, camera, label) {
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
     ctx.fillStyle = '#f7f2ec';
-    ctx.font = `600 ${Math.round(barH * 0.32)}px Georgia,'Times New Roman',serif`;
+    ctx.font = `600 ${Math.round(barH * 0.32)}px -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
     ctx.fillText('THE CLOSETS', pad + barH * 0.26, cy - barH * 0.13);
     ctx.fillStyle = 'rgba(247,242,236,0.62)';
     ctx.font = `500 ${Math.round(barH * 0.185)}px -apple-system,Arial,sans-serif`;

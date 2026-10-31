@@ -3,6 +3,7 @@
  * The studios were built on Bonsai's token set (--space-*, --text-*, --bg-*, --brand …). They are defined here, scoped to .ws-root,
  * with the WEBSITE palette (DESIGN.md: ink, clay, cream) so the designers look like part of the site, not the admin app.
  * ===========================================================================*/
+:root { --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --font-ar: -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", "Noto Sans Arabic", Tahoma, sans-serif; --font-display: var(--font-sans); }
 .ws-root {
   /* website palette */
   --ws-ink: #1b2a27; --ws-ink-2: #3d4f4b; --ws-muted: #6d7c77; --ws-cream: #f6f3ee; --ws-line: #d6e0dd; --ws-clay: #C65D2E; --ws-clay-deep: #A94A22;
@@ -33,15 +34,15 @@
   --studio-h: calc(100dvh - var(--ws-bar-h));
 
   min-height: 100dvh; background: var(--bg); color: var(--text-1);
-  font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 14px;
+  font-family: var(--font-sans, system-ui, sans-serif); font-size: 14px; -webkit-font-smoothing: antialiased;
 }
-.ws-root[dir="rtl"] { font-family: 'IBM Plex Sans Arabic', 'Segoe UI', sans-serif; }
+.ws-root[dir="rtl"] { font-family: var(--font-ar, sans-serif); }
 .ws-root *, .ws-root *::before, .ws-root *::after { box-sizing: border-box; }
 
 /* ── top bar ─────────────────────────────────────────────────────────────── */
 .ws-bar { position: sticky; top: 0; z-index: 50; height: var(--ws-bar-h); display: flex; align-items: center; gap: 12px; padding: 0 16px;
   background: rgba(246,243,238,.92); backdrop-filter: blur(16px) saturate(170%); border-bottom: 1px solid var(--ws-line); }
-.ws-brand { font-family: Fraunces, Georgia, serif; font-weight: 600; letter-spacing: .02em; color: var(--ws-ink); text-decoration: none; font-size: 16px; white-space: nowrap; }
+.ws-brand { font-family: var(--font-display, system-ui, sans-serif); letter-spacing: -.02em; font-weight: 600; letter-spacing: .02em; color: var(--ws-ink); text-decoration: none; font-size: 16px; white-space: nowrap; }
 .ws-crumb { background: none; border: 0; padding: 6px 8px; border-radius: 8px; color: var(--ws-ink-2); font: inherit; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .ws-crumb:hover { background: var(--ov-2); }
 .ws-switch { font: inherit; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--ws-line); background: #fff; color: var(--ws-ink); max-width: 44vw; }
@@ -57,8 +58,8 @@
 .ws-narrow { max-width: 460px; }
 .ws-hero { padding: 24px 0 28px; max-width: 760px; }
 .ws-eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 700; color: var(--ws-clay-deep); margin: 0 0 10px; }
-.ws-hero h1, .ws-acct-head h1 { font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: clamp(30px, 5vw, 46px); line-height: 1.08; margin: 0 0 14px; color: var(--ws-ink); }
-.ws-root[dir="rtl"] .ws-hero h1, .ws-root[dir="rtl"] .ws-acct-head h1 { font-family: 'El Messiri', 'IBM Plex Sans Arabic', serif; }
+.ws-hero h1, .ws-acct-head h1 { font-family: var(--font-display, system-ui, sans-serif); letter-spacing: -.02em; font-weight: 600; font-size: clamp(30px, 5vw, 46px); line-height: 1.08; margin: 0 0 14px; color: var(--ws-ink); }
+.ws-root[dir="rtl"] .ws-hero h1, .ws-root[dir="rtl"] .ws-acct-head h1 { font-family: var(--font-ar, sans-serif); letter-spacing: 0; }
 .ws-lede { font-size: 16px; line-height: 1.6; color: var(--ws-ink-2); margin: 0 0 18px; }
 .ws-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
 .ws-card { display: flex; flex-direction: column; gap: 8px; padding: 20px; border-radius: 18px; background: #fff; border: 1px solid var(--ws-line); text-decoration: none; color: var(--ws-ink);
@@ -96,12 +97,12 @@
 
 /* ── dialog + forms (also used outside .ws-root via the portal) ─────────── */
 .wsq-scrim { position: fixed; inset: 0; z-index: 3000; background: rgba(20,28,26,.48); display: flex; align-items: center; justify-content: center; padding: 16px;
-  font-family: Inter, system-ui, sans-serif; color: #1b2a27; }
-.wsq-scrim[dir="rtl"] { font-family: 'IBM Plex Sans Arabic', 'Segoe UI', sans-serif; }
+  font-family: var(--font-sans, system-ui, sans-serif); color: #1b2a27; -webkit-font-smoothing: antialiased; }
+.wsq-scrim[dir="rtl"] { font-family: var(--font-ar, sans-serif); }
 .wsq { width: min(680px, 100%); max-height: calc(100dvh - 32px); overflow: auto; background: #fff; border-radius: 20px; box-shadow: 0 24px 60px rgba(0,0,0,.25); outline: none; }
 .wsq-narrow { width: min(440px, 100%); }
 .wsq-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 22px 0; }
-.wsq-head h2 { margin: 2px 0 0; font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: 24px; }
+.wsq-head h2 { margin: 2px 0 0; font-family: var(--font-display, system-ui, sans-serif); letter-spacing: -.02em; font-weight: 600; font-size: 24px; }
 .wsq-eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: #A94A22; }
 .wsq-x { border: 0; background: #f1efe9; width: 36px; height: 36px; border-radius: 50%; font-size: 22px; line-height: 1; cursor: pointer; color: #1b2a27; flex-shrink: 0; }
 .wsq-body { padding: 16px 22px 22px; display: grid; gap: 14px; }
@@ -118,7 +119,7 @@
 .wsq-grid { display: grid; gap: 12px; }
 .wsq-price { border-radius: 14px; background: #faf7f2; border: 1px solid #ece6dc; padding: 14px 16px; }
 .wsq-price-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 15px; }
-.wsq-price-row b { font-size: 22px; font-family: Fraunces, Georgia, serif; }
+.wsq-price-row b { font-size: 22px; font-family: var(--font-display, system-ui, sans-serif); letter-spacing: -.02em; }
 .wsq-lines { width: 100%; border-collapse: collapse; font-size: 14px; }
 .wsq-lines td { padding: 6px 0; border-bottom: 1px solid #ece6dc; }
 .wsq-lines td:last-child { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -137,7 +138,7 @@
 .wsq-lead { font-size: 15.5px; line-height: 1.6; margin: 0; max-width: 520px; }
 .wsq-ref { margin: 0; font-size: 15px; }
 .wsa { display: grid; gap: 12px; }
-.wsa h3 { margin: 0; font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: 24px; }
+.wsa h3 { margin: 0; font-family: var(--font-display, system-ui, sans-serif); letter-spacing: -.02em; font-weight: 600; font-size: 24px; }
 .wsa-sub { margin: 0; color: #6d7c77; line-height: 1.5; font-size: 14px; }
 .wsa-tabs { display: grid; grid-template-columns: 1fr 1fr; background: #f1efe9; border-radius: 12px; padding: 4px; gap: 4px; }
 .wsa-tabs button { font: inherit; font-weight: 600; border: 0; background: none; padding: 8px; border-radius: 9px; cursor: pointer; color: #3d4f4b; }
