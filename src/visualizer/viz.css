@@ -202,3 +202,20 @@
 .vz-embed .vz-designer, .vz-embed-wrap .vz-designer { height: 100dvh; }
 .vz-embed-badge { position: fixed; bottom: 10px; inset-inline-start: 10px; z-index: 40; background: rgba(27,42,39,.85); color: #fff; padding: 6px 12px; border-radius: 999px; font-size: 12px; text-decoration: none; }
 @media (max-width: 860px) { .vz-embed-badge { bottom: auto; top: 58px; } }
+
+/* ── Digital Showroom v2 [DIGITAL-SHOWROOM 2026-11-08]: labels, stock, favourites, filters ─────────────────── */
+.vz-prod-img { position: relative; display: block; }
+.vz-badges { display: flex; flex-wrap: wrap; gap: 4px; margin: 2px 0; }
+.vz-badges-sm { position: absolute; top: 4px; inset-inline-start: 4px; right: auto; margin: 0; pointer-events: none; }
+.vz-badge { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 999px; font-size: 10.5px; font-weight: 700; line-height: 1.4; background: var(--clay); color: #fff; }
+.vz-badges-sm .vz-badge { font-size: 9.5px; padding: 1px 6px; box-shadow: 0 1px 3px rgba(0,0,0,.18); }
+.vz-badge-warn { background: #b7791f; color: #fff; }
+.vz-badge-out { background: #7a7a7a; color: #fff; }
+.vz-fav { margin-inline-start: 6px; border: 0; background: transparent; color: var(--clay); font-size: 18px; line-height: 1; cursor: pointer; padding: 2px 4px; vertical-align: middle; }
+.vz-fav.on { color: #c0392b; }
+.vz-chips-sub { margin-top: 6px; }
+.vz-chips-sub button { font-size: 11.5px; }
+.vz-shade { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-inline-end: 5px; vertical-align: -1px; border: 1px solid rgba(0,0,0,.15); }
+.vz-shade-light { background: #efe9df; } .vz-shade-medium { background: #a99b86; } .vz-shade-dark { background: #3b3835; }
+.vz-card-cta { display: inline-block; margin-top: 4px; font-weight: 700; color: var(--clay); }
+.vz-form select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font: inherit; background: #fff; }

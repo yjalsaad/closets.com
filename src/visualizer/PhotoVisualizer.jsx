@@ -10,9 +10,9 @@ import { drawLayout } from './layout';
 import { defaultGrout, hexRgb, roughnessOf, displayName } from './materials';
 import { SURFACES } from './rooms';
 import { T } from './strings';
-import { ProductPanel, download, brandedImage, shrinkImage } from './ui';
+import { ProductPanel, download, brandedImage, shrinkImage, quantity, groutFor } from './ui';
 import { QuoteModal } from './Designer';
-import { track } from './api';
+import { track, noteApplied } from './api';
 
 const TYPES = {
   floor: { key: 'floor', size: [4, 4], corners: [[0.22, 0.6], [0.78, 0.6], [1.05, 1.02], [-0.05, 1.02]] },
@@ -51,8 +51,9 @@ export default function PhotoVisualizer({ products, settings, lang, channel = 'w
       bg.filter = `blur(${Math.round(Math.max(c.width, c.height) / 140)}px)`; bg.drawImage(c, 0, 0);
       const s = document.createElement('canvas'); s.width = 96; s.height = Math.round(96 * c.height / c.width); s.getContext('2d').drawImage(b, 0, 0, s.width, s.height);
       blur.current = b; lumSmall.current = s;
-      setRegions([]); setActiveId(null); setImg(c); track('photo', {});
+      setRegions([]); setActiveId(null); setImg(c); track('photo', { meta: { w: c.width, h: c.height } });
     };
+    im.onerror = () => { URL.revokeObjectURL(url); track('photo_fail', { meta: { type: file.type || 'unknown', kb: Math.round((file.size || 0) / 1024) } }); };
     im.src = url;
   };
 
@@ -152,10 +153,10 @@ export default function PhotoVisualizer({ products, settings, lang, channel = 'w
   const save = async () => {
     const src = comp.current.snapshot();
     const lines = regions.map((r) => `${SURFACES[TYPES[r.type].key][ar ? 'ar' : 'en']}: ${displayName(byId[r.sel.pid], ar)}`);
-    download(await brandedImage(src, { title: T('photoTitle', ar), lines, ar }), 'the-closets-my-room.jpg');
-    track('snapshot', { mode: 'photo' });
+    download(await brandedImage(src, { title: T('photoTitle', ar), lines, ar, wm: settings.watermark }), 'the-closets-my-room.jpg');
+    track('download_jpg', { mode: 'photo' });
   };
-  const items = () => regions.map((r) => { const p = byId[r.sel.pid]; return { surface: SURFACES[TYPES[r.type].key][ar ? 'ar' : 'en'], product_id: p.id, name: displayName(p, ar), sku: p.sku || null, layout: r.sel.layout, m2: Math.round(r.size[0] * r.size[1] * 10) / 10 }; });
+  const items = () => regions.map((r) => { const p = byId[r.sel.pid]; const q = quantity(p, r.size[0] * r.size[1], settings); return { surface: SURFACES[TYPES[r.type].key][ar ? 'ar' : 'en'], id: p.id, product_id: p.id, name: displayName(p, ar), sku: p.sku || null, layout: r.sel.layout, m2: Math.round(r.size[0] * r.size[1] * 10) / 10, boxes: q && q.boxes ? q.boxes : null }; });
 
   if (!img) {
     return (
@@ -231,12 +232,12 @@ export default function PhotoVisualizer({ products, settings, lang, channel = 'w
               </div>
             </div>
             <ProductPanel surfaceKey={TYPES[active.type].key} products={products} sel={active.sel} ar={ar} settings={settings} area={active.size[0] * active.size[1]}
-              onPick={(p) => { const g = defaultGrout(p); updateRegion(active.id, { sel: { pid: p.id, layout: p.default_layout || 'straight', groutMm: g.mm, groutColor: g.color, rotation: 0, pid2: null } }); track('apply', { mode: 'photo', surface: active.type, product_id: p.id }); }}
+              onPick={(p) => { const g = groutFor(p, settings); updateRegion(active.id, { sel: { pid: p.id, layout: p.default_layout || 'straight', groutMm: g.mm, groutColor: g.color, rotation: 0, pid2: null } }); track('apply', { mode: 'photo', surface: active.type, product_id: p.id }); noteApplied(p.id); }}
               onChange={(patch) => updateRegion(active.id, { sel: { ...active.sel, ...patch } })} />
           </>
         ) : <p className="vz-foot">{T('photoEmpty', ar)}</p>}
       </aside>
-      {modal === 'quote' && <QuoteModal ar={ar} channel={channel} room="photo" items={items()} getThumb={() => shrinkImage(comp.current.snapshot(), 640)} onClose={() => setModal(null)} />}
+      {modal === 'quote' && <QuoteModal ar={ar} channel={channel} room="photo" items={items()} getThumb={() => shrinkImage(comp.current.snapshot(), 640)} onClose={() => setModal(null)} settings={settings} />}
     </div>
   );
 }

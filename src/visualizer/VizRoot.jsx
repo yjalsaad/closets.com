@@ -10,14 +10,14 @@
  * ===========================================================================*/
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './viz.css';
-import Designer, { defaultSel } from './Designer';
+import Designer, { defaultSel, useGate } from './Designer';
 import PhotoVisualizer from './PhotoVisualizer';
 import { ROOMS, SURFACES, roomById } from './rooms';
 import { createViewer } from './scene3d';
 import { defaultGrout, displayName } from './materials';
-import { T, KIND_LABEL } from './strings';
-import { Swatch, download } from './ui';
-import { loadCatalog, loadSettings, getShare, track, setChannel, DEFAULT_SETTINGS } from './api';
+import { T, TX, KIND_LABEL } from './strings';
+import { Swatch, download, Badges } from './ui';
+import { loadCatalog, loadSettings, getShare, track, setChannel, startSession, DEFAULT_SETTINGS } from './api';
 
 const LANG_KEY = 'closets_lang';
 const readLang = () => { try { return localStorage.getItem(LANG_KEY) === 'ar' ? 'ar' : 'en'; } catch (e) { return 'en'; } };
@@ -52,7 +52,7 @@ export default function VizRoot() {
 
   const { a, b, q } = route;
   const chrome = a !== 'kiosk' && a !== 'embed';
-  useEffect(() => { setChannel(a === 'kiosk' ? 'kiosk' : a === 'embed' ? 'embed' : a === 'r' ? 'qr' : 'web'); }, [a]);
+  useEffect(() => { const ch = a === 'kiosk' ? 'kiosk' : a === 'embed' ? 'embed' : a === 'r' ? 'qr' : 'web'; setChannel(ch); startSession(ch); }, [a]);
 
   let body;
   if (!data) body = <div className="vz-loading"><span className="vz-spin" />{T('loading', ar)}</div>;
@@ -117,17 +117,17 @@ function Home({ data, settings, lang, rooms, q }) {
   useEffect(() => {
     const pid = q.get('product'); if (!pid) return;
     const p = data.products.find((x) => x.id === pid); const st = p && stateForProduct(p, rooms);
-    if (st) { try { sessionStorage.setItem('vz_state_' + st.room, JSON.stringify(st)); } catch (e) { /* ignore */ } go('/visualizer/room/' + st.room, true); track('product_link', { product_id: pid }); }
+    if (st) { try { sessionStorage.setItem('vz_state_' + st.room, JSON.stringify(st)); } catch (e) { /* ignore */ } go('/visualizer/room/' + st.room, true); track('product_link', { product_id: pid }); track('product_view', { product_id: pid }); }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const featured = data.products.filter((p) => p.featured).slice(0, 12);
   return (
     <div className="vz-page">
       <section className="vz-hero">
         <p className="vz-eyebrow">{T('heroEyebrow', ar)}</p>
-        <h1>{T('heroTitle', ar)}</h1>
-        <p className="vz-lede">{T('heroLede', ar)}</p>
+        <h1>{TX(settings, 'hero_title', ar, 'heroTitle')}</h1>
+        <p className="vz-lede">{TX(settings, 'hero_sub', ar, 'heroLede')}</p>
       </section>
-      <h2 className="vz-h2">{T('pickRoom', ar)}</h2>
+      <h2 className="vz-h2">{TX(settings, 'tip_rooms', ar, 'pickRoom')}</h2>
       <div className="vz-rooms">
         {rooms.map((r) => (
           <div key={r.id} className="vz-room" data-testid={'vz-room-' + r.id}>
@@ -138,7 +138,7 @@ function Home({ data, settings, lang, rooms, q }) {
               <span className="vz-room-t">{r.icon} {r[ar ? 'ar' : 'en']}</span>
               <span className="vz-room-a">
                 <button type="button" className="vz-link-btn" onClick={() => go('/visualizer/room/' + r.id)}>{T('modeRoom', ar)}</button>
-                {settings.pano !== false && <button type="button" className="vz-link-btn" onClick={() => go('/visualizer/room/' + r.id + '?mode=360')}>{T('mode360', ar)}</button>}
+                {settings.pano !== false && <button type="button" className="vz-link-btn" title={TX(settings, 'tip_360', ar, 'open360')} onClick={() => go('/visualizer/room/' + r.id + '?mode=360')}>{T('mode360', ar)}</button>}
               </span>
             </div>
           </div>
@@ -147,7 +147,7 @@ function Home({ data, settings, lang, rooms, q }) {
       <div className="vz-cards">
         {settings.photo_mode !== false && (
           <button type="button" className="vz-card" onClick={() => go('/visualizer/photo')}>
-            <span className="vz-card-i">📷</span><b>{T('tryPhoto', ar)}</b><span>{T('tryPhotoSub', ar)}</span>
+            <span className="vz-card-i">📷</span><b>{TX(settings, 'tip_photo', ar, 'tryPhoto')}</b><span>{T('tryPhotoSub', ar)}</span><span className="vz-card-cta">{TX(settings, 'photo_button', ar, 'upload')}</span>
           </button>
         )}
         {settings.catalog !== false && (
@@ -162,7 +162,7 @@ function Home({ data, settings, lang, rooms, q }) {
           <div className="vz-feat">
             {featured.map((p) => (
               <button key={p.id} type="button" className="vz-feat-i" onClick={() => go('/visualizer?product=' + encodeURIComponent(p.id))}>
-                <Swatch product={p} size={220} className="vz-feat-sw" />
+                <span className="vz-prod-img"><Swatch product={p} size={220} className="vz-feat-sw" /><Badges p={p} settings={settings} ar={ar} small /></span>
                 <b>{displayName(p, ar)}</b><span>{(KIND_LABEL[p.kind] || KIND_LABEL.other)[ar ? 1 : 0]}</span>
               </button>
             ))}
@@ -220,20 +220,22 @@ function CatalogPage({ products, settings, lang }) {
   const [kind, setKind] = useState('all'); const [title, setTitle] = useState(ar ? 'تشطيبات مختارة' : 'Selected finishes');
   const [prices, setPrices] = useState(!!settings.show_prices); const [busy, setBusy] = useState(0);
   const [withRoom, setWithRoom] = useState(false);
+  const [gate, gateModal] = useGate(settings, 'web');
   const lastRoom = useMemo(() => { try { const keys = Object.keys(sessionStorage).filter((k) => k.startsWith('vz_thumb_')); return keys.length ? sessionStorage.getItem(keys[0]) : null; } catch (e) { return null; } }, []);
   const kinds = useMemo(() => [...new Set(products.map((p) => p.kind))], [products]);
   const shown = products.filter((p) => kind === 'all' || p.kind === kind);
   const toggle = (id) => setPicked((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
-  const make = async () => {
+  const make = () => gate(async () => {
     const list = products.filter((p) => picked.has(p.id)); if (!list.length) return;
     setBusy(0.01);
     try {
       const { buildCatalogPdf } = await import('./catalogPdf');
-      const blob = await buildCatalogPdf({ products: list, title, ar, prices: prices && settings.show_prices, roomImage: withRoom ? lastRoom : null, origin: window.location.origin, onProgress: (x) => setBusy(Math.max(0.02, Math.min(0.99, x))) });
+      const labels = Object.fromEntries(((settings.tax && settings.tax.labels) || []).map((l) => [l.name, l]));
+      const blob = await buildCatalogPdf({ products: list, title, ar, prices: prices && settings.show_prices, roomImage: withRoom ? lastRoom : null, origin: window.location.origin, design: settings.catalog_pdf || {}, labels, onProgress: (x) => setBusy(Math.max(0.02, Math.min(0.99, x))) });
       download(URL.createObjectURL(blob), (title || 'catalogue').replace(/[^\w؀-ۿ-]+/g, '-') + '.pdf');
       track('catalog_pdf', { meta: { n: list.length } });
     } finally { setBusy(0); }
-  };
+  });
   return (
     <div className="vz-page">
       <section className="vz-hero vz-hero-sm"><p className="vz-eyebrow">PDF</p><h1>{T('catTitle', ar)}</h1><p className="vz-lede">{T('catSub', ar)}</p></section>
@@ -254,17 +256,20 @@ function CatalogPage({ products, settings, lang }) {
       <div className="vz-cat-grid">
         {shown.map((p) => (
           <button key={p.id} type="button" className={'vz-cat-i' + (picked.has(p.id) ? ' on' : '')} onClick={() => toggle(p.id)} aria-pressed={picked.has(p.id)}>
-            <Swatch product={p} size={200} className="vz-cat-sw" /><span className="vz-cat-n">{displayName(p, ar)}</span><span className="vz-cat-tick">✓</span>
+            <span className="vz-prod-img"><Swatch product={p} size={200} className="vz-cat-sw" /><Badges p={p} settings={settings} ar={ar} small /></span><span className="vz-cat-n">{displayName(p, ar)}</span><span className="vz-cat-tick">✓</span>
           </button>
         ))}
       </div>
+      {gateModal(ar, null)}
     </div>
   );
 }
 
 /* ── showroom kiosk ────────────────────────────────────────────────────────────────────────────────────────── */
-function Kiosk({ data, settings, lang, setLang, rooms }) {
+function Kiosk({ data, settings: base, lang, setLang, rooms }) {
   const ar = lang === 'ar';
+  const settings = useMemo(() => ((base.kiosk || {}).show_prices === false ? { ...base, show_prices: false } : base), [base]);
+  const startRoom = (base.kiosk || {}).start_room;
   const [phase, setPhase] = useState('attract'); const [roomId, setRoomId] = useState(null); const [nonce, setNonce] = useState(0);
   const thumbs = useRoomThumbs(rooms, data.products);
   const idle = Math.max(20, Number((settings.kiosk || {}).idle_seconds) || 90) * 1000;
@@ -277,7 +282,7 @@ function Kiosk({ data, settings, lang, setLang, rooms }) {
   }, [idle]);
   const [slide, setSlide] = useState(0);
   useEffect(() => { if (phase !== 'attract') return undefined; const t = setInterval(() => setSlide((s) => s + 1), 5000); return () => clearInterval(t); }, [phase]);
-  const start = () => { try { if (document.documentElement.requestFullscreen && !document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}); } catch (e) { /* ignore */ } setPhase('rooms'); track('kiosk_start', {}); };
+  const start = () => { try { if (document.documentElement.requestFullscreen && !document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}); } catch (e) { /* ignore */ } if (startRoom && rooms.some((r) => r.id === startRoom)) { setRoomId(startRoom); setPhase('design'); } else setPhase('rooms'); track('kiosk_start', { meta: { branch: (base.kiosk || {}).branch || null } }); };
   const k = settings.kiosk || {};
   if (phase === 'attract') {
     const ids = rooms.map((r) => r.id).filter((id) => thumbs[id]); const cur = ids.length ? thumbs[ids[slide % ids.length]] : null;

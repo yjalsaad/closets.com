@@ -9,29 +9,37 @@ import { createViewer } from './scene3d';
 import { ROOMS, SURFACES, roomById } from './rooms';
 import { defaultGrout, displayName } from './materials';
 import { layoutName } from './layout';
-import { T } from './strings';
-import { Swatch, ProductPanel, Modal, qrDataUrl, download, brandedImage, shrinkImage } from './ui';
-import { createShare, requestQuote, track } from './api';
+import { T, TX } from './strings';
+import { Swatch, ProductPanel, Modal, qrDataUrl, download, brandedImage, shrinkImage, groutFor, quantity } from './ui';
+import { createShare, requestQuote, capture, knownContact, feature, noteApplied, track } from './api';
 
-export function defaultSel(room, byId, products) {
+export function defaultSel(room, byId, products, settings) {
   const out = {};
   room.surfaces.forEach((k) => {
     let p = byId[room.defaults[k]];
     if (!p) p = products.find((x) => (x.applications || []).some((a) => SURFACES[k].apps.includes(a)));
-    if (p) { const g = defaultGrout(p); out[k] = { pid: p.id, layout: p.default_layout || 'straight', groutMm: g.mm, groutColor: g.color, rotation: 0, pid2: null }; }
+    if (p) { const g = settings ? groutFor(p, settings) : defaultGrout(p); out[k] = { pid: p.id, layout: p.default_layout || 'straight', groutMm: g.mm, groutColor: g.color, rotation: 0, pid2: null }; }
   });
   return out;
 }
-export const selItems = (room, sel, byId, areas, ar) => room.surfaces.filter((k) => sel[k] && byId[sel[k].pid]).map((k) => {
-  const p = byId[sel[k].pid]; const a = areas[k] || 0;
-  return { surface: SURFACES[k][ar ? 'ar' : 'en'], surface_key: k, product_id: p.id, name: displayName(p, ar), sku: p.sku || null, layout: sel[k].layout ? layoutName(sel[k].layout, false) : null, m2: a ? Math.round(a * 10) / 10 : null };
+export const selItems = (room, sel, byId, areas, ar, settings) => room.surfaces.filter((k) => sel[k] && byId[sel[k].pid]).map((k) => {
+  const p = byId[sel[k].pid]; const a = areas[k] || 0; const q = settings ? quantity(p, a, settings) : null;
+  return { surface: SURFACES[k][ar ? 'ar' : 'en'], surface_key: k, id: p.id, product_id: p.id, name: displayName(p, ar), sku: p.sku || null, layout: sel[k].layout ? layoutName(sel[k].layout, false) : null, m2: a ? Math.round(a * 10) / 10 : null, boxes: q && q.boxes ? q.boxes : null };
 });
+
+/** run `fn` now, or after the visitor leaves contact details once (Bonsai setting: forms.download_gate) */
+export function useGate(settings, channel) {
+  const [pending, setPending] = useState(null);
+  const gate = (fn) => { if (!(settings.forms && settings.forms.download_gate) || channel === 'kiosk' || knownContact()) { fn(); return; } setPending(() => fn); };
+  const modal = (ar, room) => pending && <LeadModal ar={ar} kind="download" settings={settings} channel={channel} room={room} onClose={() => setPending(null)} onDone={() => { const f = pending; setPending(null); f(); }} />;
+  return [gate, modal];
+}
 
 export default function Designer({ roomId, products, settings, lang, initial, channel = 'web', kiosk = false, embed = false, onBack, onState, onShareCode }) {
   const ar = lang === 'ar';
   const byId = useMemo(() => Object.fromEntries(products.map((p) => [p.id, p])), [products]);
   const room = roomById(roomId);
-  const [sel, setSel] = useState(() => ({ ...defaultSel(room, byId, products), ...((initial && initial.room === room.id && initial.sel) || {}) }));
+  const [sel, setSel] = useState(() => ({ ...defaultSel(room, byId, products, settings), ...((initial && initial.room === room.id && initial.sel) || {}) }));
   const [active, setActive] = useState((initial && initial.surface && room.surfaces.includes(initial.surface)) ? initial.surface : 'floor');
   const [mode, setMode] = useState((initial && initial.mode === '360' && settings.pano !== false) ? '360' : '2d');
   const [view, setView] = useState((initial && initial.view) || 0);
@@ -42,6 +50,8 @@ export default function Designer({ roomId, products, settings, lang, initial, ch
   const [modal, setModal] = useState(null);   // 'share' | 'quote'
   const [sheet, setSheet] = useState(false);
   const [gyroOn, setGyroOn] = useState(false);
+  const [gate, gateModal] = useGate(settings, channel);
+  const forms = settings.forms || {};
   const host = useRef(null); const viewer = useRef(null); const applied = useRef({});
 
   /* viewer lifecycle */
@@ -84,21 +94,22 @@ export default function Designer({ roomId, products, settings, lang, initial, ch
   useEffect(() => { const v = viewer.current; if (v) v.setView(view); }, [view]);
 
   const pick = useCallback((p) => {
-    setSel((s) => { const g = defaultGrout(p); const prev = s[active] || {}; const same = prev.pid === p.id;
+    setSel((s) => { const g = groutFor(p, settings); const prev = s[active] || {}; const same = prev.pid === p.id;
       return { ...s, [active]: same ? prev : { pid: p.id, layout: p.default_layout || 'straight', groutMm: g.mm, groutColor: g.color, rotation: 0, pid2: null } }; });
-    track('apply', { room: room.id, surface: active, product_id: p.id, mode });
-  }, [active, room.id, mode]);
+    track('apply', { room: room.id, surface: active, product_id: p.id, mode }); noteApplied(p.id);
+  }, [active, room.id, mode, settings]);
   const change = useCallback((patch) => setSel((s) => ({ ...s, [active]: { ...s[active], ...patch } })), [active]);
 
   const state = () => ({ v: 1, room: room.id, mode, view, sel });
-  const items = () => selItems(room, sel, byId, areas, ar);
+  const items = () => selItems(room, sel, byId, areas, ar, settings);
 
-  const saveImage = async () => {
+  const saveImage = () => gate(async () => {
     const src = viewer.current.snapshot();
     const lines = items().map((i) => `${i.surface}: ${i.name}${i.layout && i.layout !== 'Straight' ? ' · ' + i.layout : ''}`);
-    const out = await brandedImage(src, { title: room[ar ? 'ar' : 'en'], lines, ar });
-    download(out, `the-closets-${room.id}.jpg`); track('snapshot', { room: room.id, mode });
-  };
+    const out = await brandedImage(src, { title: room[ar ? 'ar' : 'en'], lines, ar, wm: settings.watermark });
+    download(out, `the-closets-${room.id}.jpg`); track('download_jpg', { room: room.id, mode });
+  });
+  const customText = TX(settings, 'custom_button', ar, ' ').trim(); const customUrl = settings.texts && settings.texts.custom_url;
   const togglePin = () => { if (pinned) { setPinned(null); return; } setPinned(viewer.current.snapshot()); setSplit(50); track('compare', { room: room.id }); };
 
   const enabledRooms = ROOMS.filter((r) => !settings.rooms || settings.rooms[r.id] !== false);
@@ -136,14 +147,16 @@ export default function Designer({ roomId, products, settings, lang, initial, ch
         <div className="vz-bottombar">
           {mode === '2d' && room.views.length > 1 && room.views.map((_, i) => <button key={i} type="button" className={'vz-pill' + (view === i ? ' on' : '')} onClick={() => setView(i)}>{T('view', ar)} {i + 1}</button>)}
           {mode === '360' && <span className="vz-hint">{T('dragLook', ar)}</span>}
-          {mode === '360' && typeof window !== 'undefined' && 'DeviceOrientationEvent' in window && ('ontouchstart' in window) && (
+          {mode === '360' && feature(settings, 'gyro') && typeof window !== 'undefined' && 'DeviceOrientationEvent' in window && ('ontouchstart' in window) && (
             <button type="button" className={'vz-pill' + (gyroOn ? ' on' : '')} onClick={async () => { const r = await viewer.current.gyro(!gyroOn); setGyroOn(!!r && !gyroOn); }}>📱 {T('gyro', ar)}</button>
           )}
           <span className="vz-grow" />
-          <button type="button" className={'vz-pill' + (pinned ? ' on' : '')} onClick={togglePin}>{pinned ? T('unpin', ar) : T('compare', ar)}</button>
-          {!kiosk && <button type="button" className="vz-pill" onClick={saveImage}>⤓ {T('save', ar)}</button>}
-          <button type="button" className="vz-pill" onClick={() => setModal('share')} data-testid="vz-share">{kiosk ? '📱 ' + T('continuePhone', ar) : T('share', ar)}</button>
-          {settings.quote_cta !== false && <button type="button" className="vz-pill vz-pill-cta" onClick={() => setModal('quote')} data-testid="vz-quote">{T('quote', ar)}</button>}
+          {feature(settings, 'compare') && <button type="button" className={'vz-pill' + (pinned ? ' on' : '')} onClick={togglePin}>{pinned ? T('unpin', ar) : T('compare', ar)}</button>}
+          {!kiosk && feature(settings, 'download') && <button type="button" className="vz-pill" onClick={saveImage}>⤓ {T('save', ar)}</button>}
+          {(kiosk ? (settings.kiosk || {}).phone_qr !== false : feature(settings, 'share')) && <button type="button" className="vz-pill" onClick={() => setModal('share')} data-testid="vz-share">{kiosk ? '📱 ' + T('continuePhone', ar) : T('share', ar)}</button>}
+          {customText && customUrl && !kiosk && <a className="vz-pill" href={customUrl} target="_blank" rel="noopener noreferrer">{customText}</a>}
+          {forms.visitor_enabled !== false && <button type="button" className="vz-pill" onClick={() => setModal('ask')} data-testid="vz-ask">💬 {(ar ? forms.visitor_button_ar : forms.visitor_button_en) || T('askExpert', ar)}</button>}
+          {settings.quote_cta !== false && <button type="button" className="vz-pill vz-pill-cta" onClick={() => setModal('quote')} data-testid="vz-quote">{TX(settings, 'quote_button', ar, 'quote')}</button>}
         </div>
       </div>
 
@@ -167,7 +180,9 @@ export default function Designer({ roomId, products, settings, lang, initial, ch
       </aside>
 
       {modal === 'share' && <ShareModal ar={ar} kiosk={kiosk} state={state()} label={room[ar ? 'ar' : 'en']} source={kiosk ? 'kiosk' : embed ? 'embed' : 'share'} onClose={() => setModal(null)} onCode={onShareCode} />}
-      {modal === 'quote' && <QuoteModal ar={ar} channel={channel} room={room.id} items={items()} getState={state} getThumb={() => shrinkImage(viewer.current.snapshot(), 640)} onClose={() => setModal(null)} kiosk={kiosk} />}
+      {modal === 'quote' && <QuoteModal ar={ar} channel={channel} room={room.id} items={items()} getState={state} getThumb={() => shrinkImage(viewer.current.snapshot(), 640)} onClose={() => setModal(null)} kiosk={kiosk} settings={settings} />}
+      {modal === 'ask' && <LeadModal ar={ar} kind="visitor" settings={settings} channel={channel} room={room.id} items={items()} getState={state} onClose={() => setModal(null)} onDone={() => {}} />}
+      {gateModal(ar, room.id)}
     </div>
   );
 }
@@ -205,8 +220,8 @@ export function ShareModal({ ar, state, label, source = 'share', onClose, kiosk,
 }
 
 /* ── quote request ─────────────────────────────────────────────────────────────────────────────────────────── */
-export function QuoteModal({ ar, channel, room, items, getState, getThumb, onClose, kiosk }) {
-  const [f, setF] = useState({ name: '', phone: '', email: '', note: '', website: '' });
+export function QuoteModal({ ar, channel, room, items, getState, getThumb, onClose, kiosk, settings }) {
+  const [f, setF] = useState(() => ({ name: '', phone: '', email: '', note: '', website: '', ...((!kiosk && knownContact()) || {}) }));
   const [busy, setBusy] = useState(false); const [err, setErr] = useState(''); const [done, setDone] = useState(null);
   const set = (k) => (e) => setF((v) => ({ ...v, [k]: e.target.value }));
   const send = async (e) => {
@@ -216,7 +231,8 @@ export function QuoteModal({ ar, channel, room, items, getState, getThumb, onClo
     try {
       const st = getState ? getState() : null;
       const [code, thumb] = await Promise.all([st ? createShare(st, kiosk ? 'kiosk' : 'share', 'quote') : null, getThumb ? getThumb() : null]);
-      const r = await requestQuote({ ...f, room, items, share_code: code, thumb, channel });
+      const branch = kiosk && settings && settings.kiosk && settings.kiosk.branch;
+      const r = await requestQuote({ ...f, note: [f.note, branch ? (ar ? 'الفرع: ' : 'Branch: ') + branch : ''].filter(Boolean).join('\n'), room, items, share_code: code, thumb, channel });
       if (r && r.ok) { setDone(r.ref || '—'); track('quote', { room }); }
       else setErr(r && r.error === 'rate_limited' ? T('rateLimited', ar) : T('failed', ar));
     } catch (er) { setErr(T('failed', ar)); } finally { setBusy(false); }
@@ -228,7 +244,7 @@ export function QuoteModal({ ar, channel, room, items, getState, getThumb, onClo
       ) : (
         <form className="vz-form" onSubmit={send} noValidate>
           {items && items.length > 0 && (
-            <div className="vz-sel-list"><b>{T('yourSelection', ar)}</b>{items.map((i) => <div key={i.surface}>{i.surface}: {i.name}{i.m2 ? ` · ${i.m2} m²` : ''}</div>)}</div>
+            <div className="vz-sel-list"><b>{T('yourSelection', ar)}</b>{items.map((i) => <div key={i.surface}>{i.surface}: {i.name}{i.m2 ? ` · ${i.m2} m²` : ''}{i.boxes ? ` · ${T('boxes', ar, { n: i.boxes })}` : ''}</div>)}</div>
           )}
           <label>{T('name', ar)}<input value={f.name} onChange={set('name')} autoComplete="name" maxLength={120} /></label>
           <label>{T('phone', ar)}<input type="tel" value={f.phone} onChange={set('phone')} autoComplete="tel" dir="ltr" placeholder="+973" maxLength={30} /></label>
@@ -237,6 +253,52 @@ export function QuoteModal({ ar, channel, room, items, getState, getThumb, onClo
           <input className="vz-hp" tabIndex={-1} autoComplete="off" value={f.website} onChange={set('website')} aria-hidden="true" />
           {err && <div className="vz-err" role="alert">{err}</div>}
           <button type="submit" className="vz-btn vz-btn-dark vz-wide" disabled={busy} data-testid="vz-send">{busy ? T('sending', ar) : T('send', ar)}</button>
+        </form>
+      )}
+    </Modal>
+  );
+}
+
+/* ── visitor inquiry / download gate — fields come from Bonsai (forms.fields) ───────────────────────────────── */
+const CORE = ['name', 'phone', 'email', 'message'];
+export function LeadModal({ ar, kind = 'visitor', settings, channel, room, items, getState, onClose, onDone }) {
+  const cfg = (settings && settings.forms) || {};
+  const fields = (Array.isArray(cfg.fields) && cfg.fields.length ? cfg.fields : [
+    { id: 'name', en: 'Name', ar: 'الاسم', type: 'text', required: true }, { id: 'phone', en: 'Mobile', ar: 'الجوال', type: 'tel', required: true },
+    { id: 'email', en: 'Email', ar: 'البريد الإلكتروني', type: 'email' }, { id: 'message', en: 'Message', ar: 'الرسالة', type: 'textarea' },
+  ]).filter((x) => kind !== 'download' || x.id !== 'message');
+  const [v, setV] = useState(() => ({ ...(knownContact() || {}) }));
+  const [busy, setBusy] = useState(false); const [err, setErr] = useState(''); const [done, setDone] = useState(null); const [hp, setHp] = useState('');
+  const set = (k, x) => setV((o) => ({ ...o, [k]: x }));
+  const send = async (e) => {
+    e.preventDefault(); setErr('');
+    const miss = fields.filter((x) => x.required && !String(v[x.id] || '').trim() && !(x.id === 'phone' && String(v.email || '').trim()));
+    if (!String(v.name || '').trim() || (!String(v.phone || '').trim() && !String(v.email || '').trim()) || miss.length) { setErr(T('needContact', ar)); return; }
+    setBusy(true);
+    try {
+      const extra = Object.fromEntries(fields.filter((x) => !CORE.includes(x.id) && v[x.id]).map((x) => [x.en || x.id, v[x.id]]));
+      let code = null; if (getState && kind === 'visitor') code = await createShare(getState(), channel === 'kiosk' ? 'kiosk' : 'share', 'inquiry');
+      const r = await capture({ kind, name: v.name, phone: v.phone, email: v.email, message: v.message, fields: extra, room, items, share_code: code, channel, website: hp });
+      if (r && r.ok) { if (kind === 'download') { onDone(); return; } setDone(r.ref || '—'); onDone(); }
+      else setErr(r && r.error === 'rate_limited' ? T('rateLimited', ar) : T('failed', ar));
+    } catch (er) { setErr(T('failed', ar)); } finally { setBusy(false); }
+  };
+  const title = kind === 'download' ? T('gateTitle', ar) : ((ar ? cfg.visitor_button_ar : cfg.visitor_button_en) || T('askTitle', ar));
+  return (
+    <Modal ar={ar} title={done ? T('sent', ar) : title} sub={done ? T('sentSub', ar) : kind === 'download' ? T('gateSub', ar) : T('askSub', ar)} onClose={onClose}>
+      {done ? <div className="vz-done"><p>{T('ref', ar)}: <b>{done}</b></p><button type="button" className="vz-btn vz-btn-dark" onClick={onClose}>{T('close', ar)}</button></div> : (
+        <form className="vz-form" onSubmit={send} noValidate data-testid="vz-lead-form">
+          {fields.map((x) => { const label = (ar ? x.ar : x.en) || x.en || x.id; const req = x.required && x.id !== 'email';
+            return (
+              <label key={x.id}>{label}{req ? ' *' : ''}
+                {x.type === 'textarea' ? <textarea rows={3} value={v[x.id] || ''} onChange={(e) => set(x.id, e.target.value)} maxLength={1500} />
+                  : x.type === 'select' ? <select value={v[x.id] || ''} onChange={(e) => set(x.id, e.target.value)}><option value="">—</option>{(x.options || []).map((o) => <option key={o} value={o}>{o}</option>)}</select>
+                  : <input type={x.type === 'tel' || x.type === 'email' || x.type === 'number' ? x.type : 'text'} dir={x.type === 'tel' || x.type === 'email' ? 'ltr' : undefined} value={v[x.id] || ''} onChange={(e) => set(x.id, e.target.value)} maxLength={160}
+                      autoComplete={x.id === 'name' ? 'name' : x.id === 'phone' ? 'tel' : x.id === 'email' ? 'email' : 'off'} placeholder={x.type === 'tel' ? '+973' : undefined} />}
+              </label>); })}
+          <input className="vz-hp" tabIndex={-1} autoComplete="off" value={hp} onChange={(e) => setHp(e.target.value)} aria-hidden="true" />
+          {err && <div className="vz-err" role="alert">{err}</div>}
+          <button type="submit" className="vz-btn vz-btn-dark vz-wide" disabled={busy} data-testid="vz-lead-send">{busy ? T('sending', ar) : kind === 'download' ? T('gateGo', ar) : T('send', ar)}</button>
         </form>
       )}
     </Modal>

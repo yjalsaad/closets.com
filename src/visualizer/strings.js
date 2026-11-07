@@ -44,7 +44,21 @@ const S = {
   kioskStart: ['Touch to start', 'المس للبدء'], continuePhone: ['Continue on your phone', 'تابع على هاتفك'], scanMe: ['Scan to take this design with you', 'امسح لتأخذ هذا التصميم معك'], startOver: ['Start over', 'ابدأ من جديد'],
   poweredBy: ['The Closets · Room Visualizer', 'الخزائن · مُصوِّر الغرف'], openFull: ['Open full visualizer ↗', 'افتح المُصوِّر الكامل ↗'],
   notFound: ['This saved design was not found.', 'لم يتم العثور على هذا التصميم المحفوظ.'],
+  // digital showroom v2
+  askExpert: ['Ask an expert', 'اسأل خبيراً'], askTitle: ['Ask our design team', 'اسأل فريق التصميم'], askSub: ['Tell us about your project — we reply the same day.', 'أخبرنا عن مشروعك — نرد في اليوم نفسه.'],
+  gateTitle: ['Where should we send it?', 'إلى أين نرسله؟'], gateSub: ['Leave your details once — your downloads start right away.', 'اترك بياناتك مرة واحدة — يبدأ التنزيل فورًا.'], gateGo: ['Continue to download', 'متابعة التنزيل'],
+  message: ['Message (optional)', 'الرسالة (اختياري)'], boxes: ['{n} boxes', '{n} صندوق'], perBox: ['{m} m² per box', '{m} م² في الصندوق'],
+  lowStock: ['Low stock', 'كمية محدودة'], outStock: ['Out of stock', 'نفدت الكمية'], inStock: ['In stock', 'متوفر'],
+  fav: ['Add to favourites', 'أضف إلى المفضلة'], unfav: ['Remove from favourites', 'إزالة من المفضلة'], favs: ['Favourites', 'المفضلة'],
+  shade: ['Shade', 'درجة اللون'], light: ['Light', 'فاتح'], medium: ['Medium', 'متوسط'], dark: ['Dark', 'داكن'],
+  per: { m2: ['/ m²', '/ م²'], box: ['/ box', '/ صندوق'], piece: ['/ piece', '/ قطعة'], sheet: ['/ sheet', '/ لوح'], litre: ['/ litre', '/ لتر'] },
 };
+/** admin-editable text (Bonsai → Digital Showroom → Visualizer settings → Texts) with the built-in wording as fallback */
+export function TX(settings, key, ar, fallbackKey, vars) {
+  const t = settings && settings.texts && settings.texts[key + (ar ? '_ar' : '_en')];
+  return t && String(t).trim() ? String(t) : T(fallbackKey || key, ar, vars);
+}
+export const perUnit = (u, ar) => ((S.per[u || 'm2']) || S.per.m2)[ar ? 1 : 0];
 export function T(key, ar, vars) {
   const v = S[key]; let s = v ? v[ar ? 1 : 0] : key;
   if (vars) Object.entries(vars).forEach(([k, val]) => { s = s.replace('{' + k + '}', val); });
