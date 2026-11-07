@@ -11,12 +11,24 @@ const container = document.getElementById('root');
 // mounted instead of the marketing site so the designers get the full screen.
 const isStudio = /^\/studio(\/|$)/i.test(window.location.pathname || '');
 const StudioRoot = React.lazy(() => import('./studio/StudioRoot'));
+// [ROOM-VIZ 2026-11-07] /visualizer/* = the Room Visualizer (Tilesview-style): its own lazy chunk and full-screen shell
+const isViz = /^\/visualizer(\/|$)/i.test(window.location.pathname || '');
+const VizRoot = React.lazy(() => import('./visualizer/VizRoot'));
 
 // When the page was prerendered (the postbuild puppeteer crawl writes static
 // markup into #root), hydrate it so the prerendered DOM is reused — no flash of
 // empty content, and crawlers see real text. Otherwise (normal dev / a route
 // that wasn't prerendered) mount fresh with createRoot.
-if (isStudio) {
+if (isViz) {
+  if (container.hasChildNodes()) container.innerHTML = '';
+  ReactDOM.createRoot(container).render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <React.Suspense fallback={null}><VizRoot /></React.Suspense>
+      </ErrorBoundary>
+    </React.StrictMode>
+  );
+} else if (isStudio) {
   if (container.hasChildNodes()) container.innerHTML = '';
   ReactDOM.createRoot(container).render(
     <React.StrictMode>

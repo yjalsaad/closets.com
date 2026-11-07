@@ -428,6 +428,9 @@ const I18N = {
   navTalkDesigner:{ en:'Talk to a designer', ar:'تحدّث مع مصمّم' },
   // [WEB-STUDIO 2026-10-31]
   navNeoDesigners:{ en:'Neo designers', ar:'مصممو نيو' },
+  // [ROOM-VIZ 2026-11-07]
+  navVizCol:{ en:'Room visualizer', ar:'مُصوِّر الغرف' }, navlViz:{ en:'🎨 Room visualizer', ar:'🎨 مُصوِّر الغرف' }, navlViz360:{ en:'360° rooms', ar:'غرف 360°' },
+  navlVizPhoto:{ en:'Visualize your room photo', ar:'جرّب على صورة غرفتك' }, navlVizPdf:{ en:'Finishes catalogue (PDF)', ar:'كتالوج التشطيبات (PDF)' },
   navlNeoKitchen:{ en:'Neo Kitchen Designer', ar:'مصمم المطابخ نيو' }, navlNeoClosets:{ en:'Neo Closets Designer', ar:'مصمم الخزائن نيو' },
   navlNeoCustom:{ en:'Neo Custom Designer', ar:'مصمم القطع الخاصة نيو' }, navlNeoBathroom:{ en:'Neo Bathroom Designer', ar:'مصمم الحمامات نيو' },
   navlNeoLaundry:{ en:'Neo Laundry Designer', ar:'مصمم غرف الغسيل نيو' }, navlNeoTv:{ en:'Neo TV Unit Designer', ar:'مصمم وحدات التلفزيون نيو' },
@@ -2752,6 +2755,9 @@ const NAV_GROUPS = [
       { title: 'Plan it yourself', items: [
         ['✨ AI YAS', 'ai-yas'], ['How it works', 'how-it-works'], ['Wardrobe planner', 'wardrobe-planner'], ['Kitchen planner', 'kitchen-planner'], ['TV unit planner', 'tv-planner'], ['Office planner', 'office-planner'], ['Wood door planner', 'door-planner'], ['AI interior designer', 'ai'],
       ] },
+      { title: 'Room visualizer', items: [
+        ['🎨 Room visualizer', 'viz:'], ['360° rooms', 'viz:room/living?mode=360'], ['Visualize your room photo', 'viz:photo'], ['Finishes catalogue (PDF)', 'viz:catalog'],
+      ] }, // [ROOM-VIZ 2026-11-07]
       { title: 'Neo designers', items: [
         ['Neo Kitchen Designer', 'neo:kitchen'], ['Neo Closets Designer', 'neo:closets'], ['Neo Custom Designer', 'neo:custom'], ['Neo Bathroom Designer', 'neo:bathroom'],
         ['Neo Laundry Designer', 'neo:laundry'], ['Neo TV Unit Designer', 'neo:tv'], ['Neo Office Designer', 'neo:office'], ['Neo Doors Designer', 'neo:doors'],
@@ -2826,6 +2832,7 @@ const NAV_LABEL_KEY = {
   'Build & spec': 'navBuildSpec', 'Rooms & products': 'navRoomsProducts', 'Explore': 'navExplore',
   'Plan it yourself': 'navPlanYourself', 'Talk to a designer': 'navTalkDesigner',
   // [WEB-STUDIO 2026-10-31] Neo designers column
+  'Room visualizer': 'navVizCol', '🎨 Room visualizer': 'navlViz', '360° rooms': 'navlViz360', 'Visualize your room photo': 'navlVizPhoto', 'Finishes catalogue (PDF)': 'navlVizPdf', // [ROOM-VIZ]
   'Neo designers': 'navNeoDesigners', 'Neo Kitchen Designer': 'navlNeoKitchen', 'Neo Closets Designer': 'navlNeoClosets', 'Neo Custom Designer': 'navlNeoCustom',
   'Neo Bathroom Designer': 'navlNeoBathroom', 'Neo Laundry Designer': 'navlNeoLaundry', 'Neo TV Unit Designer': 'navlNeoTv', 'Neo Office Designer': 'navlNeoOffice',
   'Neo Doors Designer': 'navlNeoDoors', 'My designs & quotes →': 'navlNeoAccount',
@@ -16776,8 +16783,11 @@ function pageToPath(p) {
 // Resolve a nav target (incl. category shortcuts) to a URL path — mirrors navTo().
 // [WEB-STUDIO 2026-10-31] 'neo:<kind>' = a Neo designer page of the Design Studio app (/studio/<kind>); 'neo:account' = My designs
 function neoStudioPath(target) { const k = String(target).slice(4); return k === 'account' ? '/studio/account' : k ? '/studio/' + k : '/studio'; }
+// [ROOM-VIZ 2026-11-07] 'viz:<path>' = the Room Visualizer app (/visualizer/<path>)
+function vizPath(target) { const k = String(target).slice(4); return k ? '/visualizer/' + k : '/visualizer'; }
 function navToPath(target) {
   if (typeof target === 'string' && target.startsWith('neo:')) return neoStudioPath(target);
+  if (typeof target === 'string' && target.startsWith('viz:')) return vizPath(target);
   if (target === 'cat:Doors') return pageToPath('door-planner');
   if (typeof target === 'string' && target.startsWith('cat:')) return pageToPath('products');
   return pageToPath(target);
@@ -16858,9 +16868,10 @@ function AppInner() {
   const location = useLocation();
   const navigate = useNavigate();
   const page = pathToPage(location.pathname);
-  useEffect(() => { if (/^\/studio(\/|$)/i.test(location.pathname)) window.location.reload(); }, [location.pathname]); // [WEB-STUDIO] the studio is its own app shell (src/index.js)
+  useEffect(() => { if (/^\/(studio|visualizer)(\/|$)/i.test(location.pathname)) window.location.reload(); }, [location.pathname]); // [WEB-STUDIO] the studio is its own app shell (src/index.js)
   const setPage = useCallback((p) => {
     if (typeof p === 'string' && p.startsWith('neo:')) { window.location.assign(neoStudioPath(p)); return; }   // [WEB-STUDIO] separate app shell
+    if (typeof p === 'string' && p.startsWith('viz:')) { window.location.assign(vizPath(p)); return; }        // [ROOM-VIZ] separate app shell
     if (p != null) navigate(pageToPath(p));
   }, [navigate]);
   // Scroll to top on route change
