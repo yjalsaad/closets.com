@@ -103,6 +103,7 @@ export function certificatePage(r, { ar = true, verifyBase = (typeof window !== 
     <div><span>${L('Reward reference', 'مرجع الجائزة')}</span><b class="ikh-ref">${esc(r.ref)}</b></div>
     <div><span>${L('Valid until', 'صالحة حتى')}</span><b>${esc(day(r.expires_at, ar))}</b></div>
     ${discount ? `<div><span>${L('Discount value', 'قيمة الخصم')}</span><b>${esc(discount)}</b></div>` : ''}
+    ${discount && Number(r.quote_total) > 0 ? `<div><span>${L('Quotation total', 'إجمالي الكوتيشن')}</span><b>${esc(money(r.quote_total))}</b></div><div><span>${L('Total after reward', 'الإجمالي بعد الجائزة')}</span><b>${esc(money(Math.max(Number(r.quote_total) - Number(r.discount_amount || 0), 0)))}</b></div>` : ''}
     <div><span>${L('Issued', 'تاريخ الإصدار')}</span><b>${esc(day(r.revealed_at, ar))}</b></div>
   </div>
   <div class="ikh-foot">
