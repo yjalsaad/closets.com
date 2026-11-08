@@ -330,6 +330,7 @@ function RewardCard({ ar, reward: r, note, onPrint, whatsapp, logo }) {
         <p className="ik-eyebrow">{T('arrived', ar)}</p>
         <h1 id="ik-congrats" className="ik-congrats">{T('congrats', ar)}</h1>
         <p className="ik-sentence">{rewardSentence(r, ar)}</p>
+        {r.image_url && /^https:\/\//.test(r.image_url) && <img className="ik-prize-img" src={r.image_url} alt="" />}
         <div className="ik-value" data-testid="ik-value">{rewardValueText(r, ar)}</div>
         <p className="ik-rname">{ar ? r.name_ar : r.name_en}</p>
         {desc && <p className="ik-muted">{desc}</p>}

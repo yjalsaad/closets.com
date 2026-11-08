@@ -17,6 +17,7 @@ const SAMPLES = [
   { type: 'fixed', value: 150, name_ar: 'خصم 150 دينار', name_en: 'BD 150 off' },
   { type: 'gift', value: 0, name_ar: 'منظم أدراج مجاني', name_en: 'Free drawer organiser' },
   { type: 'premium', value: 0, name_ar: 'إضاءة LED مجانية للخزانة', name_en: 'Free wardrobe LED lighting' },
+  { type: 'premium', value: 251, name_ar: 'فرن ماكسي ٧١ لتر فرانكي Maxi FMXO 86 (90cm)', name_en: 'Franke Maxi FMXO 86 (90cm) — Maxi oven 71L', image_url: 'https://closets-website.vercel.app/brand/ikhtarha/prizes/franke-maxi-fmxo-86.jpg' },
 ];
 const demoReward = (box) => {
   const s = SAMPLES[Math.floor(Math.random() * SAMPLES.length)]; const total = 1200;

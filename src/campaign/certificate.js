@@ -91,6 +91,7 @@ export function certificatePage(r, { ar = true, verifyBase = (typeof window !== 
     <div class="ikh-sub">${esc(L('You chose — and your reward is here.', 'اختارها وجائزتك وصلت!'))}</div>
   </div>
   <div class="ikh-prize">
+    ${r.image_url && /^https:\/\//.test(r.image_url) ? `<img src="${esc(r.image_url)}" alt="" style="display:block;width:38mm;height:38mm;object-fit:contain;margin:0 auto 3mm;background:#fff;border-radius:3mm">` : ''}
     <div class="ikh-name">${esc(rewardSentence(r, ar))}</div>
     <div class="ikh-value">${esc(rewardValueText(r, ar))}</div>
     <div class="ikh-name">${esc(ar ? r.name_ar : r.name_en)}</div>
