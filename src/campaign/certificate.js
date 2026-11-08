@@ -76,7 +76,7 @@ const CSS = `
 export const CERT_CSS = CSS;
 
 /** the reward certificate page (one A4 page, its own page break) */
-export function certificatePage(r, { ar = true, verifyBase = (typeof window !== 'undefined' ? window.location.origin : 'https://closets-website.vercel.app') + '/campaign/ikhtarha/verify' } = {}) {
+export function certificatePage(r, { ar = true, totalDiscount = null, verifyBase = (typeof window !== 'undefined' ? window.location.origin : 'https://closets-website.vercel.app') + '/campaign/ikhtarha/verify' } = {}) {
   const L = (en, a) => (ar ? a : en);
   const verify = `${verifyBase}?t=${encodeURIComponent(r.verify_token || '')}`;
   const desc = ar ? (r.description_ar || r.description_en) : (r.description_en || r.description_ar);
@@ -104,7 +104,7 @@ export function certificatePage(r, { ar = true, verifyBase = (typeof window !== 
     <div><span>${L('Reward reference', 'مرجع الجائزة')}</span><b class="ikh-ref">${esc(r.ref)}</b></div>
     <div><span>${L('Valid until', 'صالحة حتى')}</span><b>${esc(day(r.expires_at, ar))}</b></div>
     ${discount ? `<div><span>${L('Discount value', 'قيمة الخصم')}</span><b>${esc(discount)}</b></div>` : ''}
-    ${discount && Number(r.quote_total) > 0 ? `<div><span>${L('Quotation total', 'إجمالي الكوتيشن')}</span><b>${esc(money(r.quote_total))}</b></div><div><span>${L('Total after reward', 'الإجمالي بعد الجائزة')}</span><b>${esc(money(Math.max(Number(r.quote_total) - Number(r.discount_amount || 0), 0)))}</b></div>` : ''}
+    ${discount && Number(r.quote_total) > 0 ? `<div><span>${L('Quotation total', 'إجمالي الكوتيشن')}</span><b>${esc(money(r.quote_total))}</b></div><div><span>${L('Total after reward', 'الإجمالي بعد الجائزة')}</span><b>${esc(money(Math.max(Number(r.quote_total) - Number(totalDiscount != null ? totalDiscount : r.discount_amount || 0), 0)))}</b></div>` : ''}
     <div><span>${L('Issued', 'تاريخ الإصدار')}</span><b>${esc(day(r.revealed_at, ar))}</b></div>
   </div>
   <div class="ikh-foot">
@@ -117,6 +117,13 @@ export function certificatePage(r, { ar = true, verifyBase = (typeof window !== 
 }
 
 /** the "you have a surprise" block added at the end of the quotation */
+// [IKHTARHA 2026-11-08g] several draws → one certificate page per prize; "total after" counts every prize's discount
+export function certificatePages(rewards, opts = {}) {
+  const list = (rewards || []).filter(Boolean);
+  const totalDiscount = list.reduce((n, x) => n + (Number(x.discount_amount) || 0), 0);
+  return list.map((x) => certificatePage(x, { ...opts, totalDiscount })).join('');
+}
+
 export function inviteBlock({ code, link, ends, ar = true, brand }) {
   const L = (en, a) => (ar ? a : en); const clogo = assetUrl((brand || {}).logo);
   return `<div class="ikh-invite" dir="${ar ? 'rtl' : 'ltr'}" style="${esc(brandVars(brand))}">
@@ -132,11 +139,11 @@ export function inviteBlock({ code, link, ends, ar = true, brand }) {
 }
 
 /** full stand-alone document (studio / website print) */
-export function certificateDocument(rewards, { ar = true, title } = {}) {
+export function certificateDocument(rewards, { ar = true, title, totalDiscount = null } = {}) {
   const list = Array.isArray(rewards) ? rewards : [rewards];
   return `<!doctype html><html dir="${ar ? 'rtl' : 'ltr'}" lang="${ar ? 'ar' : 'en'}"><head><meta charset="utf-8"><title>${esc(title || 'Ikhtarha')}</title>
 <style>html,body{margin:0;background:#e9e6e2}${CSS}.ikh-page:first-of-type{page-break-before:auto;break-before:auto}</style></head>
-<body>${list.map((r) => certificatePage(r, { ar })).join('')}<script>window.onload=function(){var im=[].slice.call(document.images);Promise.all(im.map(function(i){return i.complete?0:new Promise(function(r){i.onload=i.onerror=r;})})).then(function(){setTimeout(function(){window.print()},300)})}<\/script></body></html>`;
+<body>${list.map((r) => certificatePage(r, { ar, totalDiscount })).join('')}<script>window.onload=function(){var im=[].slice.call(document.images);Promise.all(im.map(function(i){return i.complete?0:new Promise(function(r){i.onload=i.onerror=r;})})).then(function(){setTimeout(function(){window.print()},300)})}<\/script></body></html>`;
 }
 
 /** append extra sections to a complete quotation HTML document (the quotation pages stay untouched) */

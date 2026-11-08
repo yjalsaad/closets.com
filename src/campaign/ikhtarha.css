@@ -224,3 +224,20 @@
 
 /* product prize photo on the reward card */
 .ik-prize-img { display: block; width: min(220px, 60%); aspect-ratio: 1; object-fit: contain; margin: 4px auto 10px; border-radius: 18px; background: #fff; padding: 8px; box-shadow: 0 12px 40px rgba(0,0,0,.35); animation: ik-rise .7s .15s cubic-bezier(.2,.8,.2,1) both; }
+
+/* [IKHTARHA 2026-11-08g] draw rules: "Draw 1 of 2" chip, every prize won, and the next-draw call to action */
+.ik-draw-chip { display: inline-block; margin-inline-start: 10px; padding: 2px 10px; border-radius: 999px; background: rgba(217,105,47,.18); border: 1px solid var(--ik-orange); color: var(--ik-cream); font-size: 13px; letter-spacing: 0; }
+.ik-allprizes { margin: 18px 0 0; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--ik-line); background: rgba(247,242,236,.05); text-align: start; }
+.ik-allprizes .ik-eyebrow { margin: 0 0 6px; }
+.ik-allprizes ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ik-allprizes li { display: grid; grid-template-columns: auto auto 1fr; gap: 4px 10px; align-items: baseline; padding-bottom: 8px; border-bottom: 1px dashed var(--ik-line); }
+.ik-allprizes li:last-child { border-bottom: 0; padding-bottom: 0; }
+.ik-allprizes li span { color: var(--ik-muted); font-size: 12px; }
+.ik-allprizes li b { color: var(--ik-orange-2); font-size: 18px; }
+.ik-allprizes li em { font-style: normal; min-width: 0; overflow-wrap: anywhere; }
+.ik-allprizes li code { grid-column: 1 / -1; color: var(--ik-muted); font-size: 12px; }
+.ik-next { margin: 18px 0 4px; padding: 14px; border-radius: 18px; background: linear-gradient(135deg, rgba(217,105,47,.22), rgba(201,163,90,.14)); border: 1px solid var(--ik-orange); }
+.ik-next .ik-small { margin: 0 0 8px; }
+.ik-next-btn { animation: ik-next-pulse 1.8s ease-in-out infinite; }
+@keyframes ik-next-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(217,105,47,.45); } 50% { box-shadow: 0 0 0 10px rgba(217,105,47,0); } }
+@media (prefers-reduced-motion: reduce) { .ik-next-btn { animation: none; } }
