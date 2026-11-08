@@ -53,7 +53,9 @@ const S = {
   failed: ['Something went wrong — please try again.', 'حدث خطأ — حاول مرة أخرى.'],
   greet: ['Welcome, {n}', 'أهلًا {n}'], pick: ['Choose one box', 'اختار صندوق واحد'], pickSub: ['Tap a box to select it. Only one can be opened.', 'المس صندوقًا لاختياره. يمكن فتح صندوق واحد فقط.'],
   box: ['Box {n}', 'صندوق {n}'], selected: ['Box {n} selected', 'تم اختيار الصندوق {n}'], choose: ['Ikhtarha', 'اختارها'], opening: ['Opening your box…', 'نفتح صندوقك…'],
-  congrats: ['Congratulations!', 'مبروك!'], arrived: ['You chose — and your reward is here!', 'اختارها وجائزتك وصلت!'],
+  congrats: ['Congratulations!', 'مبروك!'],
+  drawOf: ['Draw {n} of {t}', 'السحب {n} من {t}'], nextDraw: ['🎁 You have another draw — play now', '🎁 لديك سحب آخر — العب الآن'],
+  nextLeft: ['{n} more draw waiting for you', 'بقي لك {n} سحب'], allPrizes: ['Your prizes', 'جوائزك'], printAll: ['Print all certificates', 'طباعة كل الشهادات'], arrived: ['You chose — and your reward is here!', 'اختارها وجائزتك وصلت!'],
   onOrder: ['On your order with The Closets International.', 'على طلبك من الخزائن العالمية.'],
   ref: ['Reward reference', 'مرجع الجائزة'], quoteNo: ['Quotation', 'الكوتيشن'], customer: ['Customer', 'العميل'], validUntil: ['Valid until', 'صالحة حتى'], discount: ['Discount value', 'قيمة الخصم'],
   howUse: ['Show this reward (printed or on your phone) when you confirm your order. It is linked to your quotation and can be used once.', 'اعرض جائزتك (مطبوعة أو على جوالك) عند تأكيد طلبك. الجائزة مرتبطة بالكوتيشن وتُستخدم مرة واحدة.'],
@@ -137,6 +139,11 @@ export default function IkhtarhaRoot() {
   const [session, setSession] = useState(null); // { token, first_name }
   const [selected, setSelected] = useState(null);
   const [reward, setReward] = useState(null);
+  // [IKHTARHA 2026-11-08g] draw rules: a quotation can have several draws — { total, done, remaining, rewards[] }
+  const [draws, setDraws] = useState({ total: 1, done: 0, remaining: 0, rewards: [] });
+  const [drawKey, setDrawKey] = useState(0);
+  const takeDraws = useCallback((r) => { if (!r) return; const list = Array.isArray(r.rewards) && r.rewards.length ? r.rewards : r.reward ? [r.reward] : [];
+    setDraws({ total: Math.max(Number(r.draws_total) || 1, list.length || 1), done: list.length, remaining: Math.max(Number(r.remaining) || 0, 0), rewards: list }); }, []);
   const [burst, setBurst] = useState(false);
   const [sound, setSound] = useState(false);
   const [ready3d, setReady3d] = useState(false);
@@ -153,9 +160,9 @@ export default function IkhtarhaRoot() {
   const scratchReq = useRef(null);
   const startScratch = useCallback(() => { if (!scratchReq.current) scratchReq.current = api.reveal(session && session.token, 0).catch(() => null); return scratchReq.current; }, [session]);
   const scratchDone = useCallback((r) => {
-    if (r && r.ok && r.reward) { setReward(r.reward); setBurst(true); if (sound) chime('open'); setPhase('reward'); }
+    if (r && r.ok && r.reward) { setReward(r.reward); takeDraws(r); setBurst(true); if (sound) chime('open'); setPhase('reward'); }
     else { const k = (r && r.state) || 'failed'; if (k === 'session') api.clearSession(); setMsg({ kind: 'error', key: k === 'already' ? 'already' : k }); setPhase(k === 'session' ? 'form' : 'error'); }
-  }, [sound]);
+  }, [sound, takeDraws]);
   useEffect(() => { document.documentElement.lang = ar ? 'ar' : 'en'; document.documentElement.dir = ar ? 'rtl' : 'ltr'; document.title = gameName + (ar ? ' — الخزائن العالمية' : ' — The Closets International'); }, [ar, gameName]);
   useEffect(() => {
     if (!document.getElementById('ik-font')) { const l = document.createElement('link'); l.id = 'ik-font'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap'; document.head.appendChild(l); }
@@ -163,8 +170,8 @@ export default function IkhtarhaRoot() {
     const s = api.loadSession();
     if (s && s.token && phase !== 'verify') {
       api.reward(s.token).then((r) => {
-        if (r && r.ok && r.state === 'revealed') { setSession(s); setReward(r.reward); setPhase('reward'); }
-        else if (r && r.ok && r.state === 'ready') { setSession(s); setPhase('experience'); }
+        if (r && r.ok && r.state === 'revealed') { setSession(s); setReward(r.reward); takeDraws(r); setPhase('reward'); }
+        else if (r && r.ok && r.state === 'ready') { setSession(s); setDraws({ total: Number(r.draws_total) || 1, done: 0, remaining: Number(r.draws_total) || 1, rewards: [] }); setPhase('experience'); }
         else api.clearSession();
       }).catch(() => {});
     }
@@ -176,14 +183,16 @@ export default function IkhtarhaRoot() {
     setPhase('checking'); setMsg({ kind: 'info', key: 'checking' });
     try {
       const r = await api.validate({ code: form.code.trim(), name: form.name.trim(), quote_no: form.quote_no.trim(), website: form.website });
-      if (r && r.ok && r.state === 'ready') {
+      if (r && r.ok && (r.state === 'ready' || r.state === 'partial')) {
         const s = { token: r.token, first_name: r.first_name }; setSession(s); api.saveSession(s);
+        if (r.state === 'partial') { const rw = await api.reward(r.token).catch(() => null); if (rw && rw.ok) takeDraws(rw); }
+        else setDraws({ total: Number(r.draws_total) || 1, done: 0, remaining: Number(r.draws_total) || 1, rewards: [] });
         if (r.boxes) setCfg((x) => ({ ...x, boxes: r.boxes, anim_ms: r.anim_ms || x.anim_ms }));
         setMsg({ kind: 'ok', key: 'ok' }); setTimeout(() => setPhase('experience'), 700);
       } else if (r && r.ok && r.state === 'already') {
         const s = { token: r.token, first_name: r.first_name }; setSession(s); api.saveSession(s);
         const rw = await api.reward(r.token);
-        if (rw && rw.reward) { setReward(rw.reward); setMsg({ kind: 'info', key: 'already' }); setPhase('reward'); } else { setPhase('form'); setMsg({ kind: 'error', key: 'already' }); }
+        if (rw && rw.reward) { setReward(rw.reward); takeDraws(rw); setMsg({ kind: 'info', key: 'already' }); setPhase('reward'); } else { setPhase('form'); setMsg({ kind: 'error', key: 'already' }); }
       } else { setPhase('form'); setMsg({ kind: 'error', key: (r && r.state) || 'invalid' }); }
     } catch (er) { setPhase('form'); setMsg({ kind: 'error', key: 'failed' }); }
   };
@@ -195,10 +204,18 @@ export default function IkhtarhaRoot() {
     const req = api.reveal(session.token, selected).catch(() => null);
     const anim = viewer.current ? viewer.current.reveal(selected, cfg.anim_ms || 2600) : new Promise((r) => setTimeout(r, reduced ? 300 : Math.min(cfg.anim_ms || 2600, 2400)));
     const [r] = await Promise.all([req, anim]);
-    if (r && r.ok && r.reward) { setReward(r.reward); if (sound) chime('open'); setBurst(true); setTimeout(() => setPhase('reward'), reduced ? 100 : game === 'classic' ? 650 : 1500); }   // cinematic: let the burst play before the card
+    if (r && r.ok && r.reward) { setReward(r.reward); takeDraws(r); if (sound) chime('open'); setBurst(true); setTimeout(() => setPhase('reward'), reduced ? 100 : game === 'classic' ? 650 : 1500); }   // cinematic: let the burst play before the card
     else { const k = (r && r.state) || 'failed'; if (k === 'session') api.clearSession(); setMsg({ kind: 'error', key: k === 'already' ? 'already' : k }); setPhase(k === 'session' ? 'form' : 'error'); }
   };
-  const printReward = () => { const w = window.open('', '_blank'); if (!w) return; w.document.write(certificateDocument({ ...reward, brand: reward.brand || B }, { ar, title: reward.ref })); w.document.close(); };
+  const printReward = () => {
+    const w = window.open('', '_blank'); if (!w) return;
+    const list = (draws.rewards.length ? draws.rewards : [reward]).map((x) => ({ ...x, brand: x.brand || B }));
+    const totalDiscount = list.reduce((n, x) => n + (Number(x.discount_amount) || 0), 0);
+    w.document.write(certificateDocument(list, { ar, title: list.map((x) => x.ref).join(' · '), totalDiscount })); w.document.close();
+  };
+  // next draw: a fresh wardrobe / scratch card with the same session (the server decides which prize types this draw can give)
+  const nextDraw = () => { scratchReq.current = null; setSelected(null); setBurst(false); setReward(null); setMsg(null); setReady3d(false); setDrawKey((k) => k + 1); setPhase('experience'); };
+  const drawLabel = draws.total > 1 && (phase === 'experience' || phase === 'revealing') ? T('drawOf', ar, { n: Math.min(draws.done + 1, draws.total), t: draws.total }) : '';
 
   const step = phase === 'hero' ? -1 : phase === 'form' || phase === 'checking' ? 0 : phase === 'experience' ? (selected == null ? 1 : 2) : phase === 'revealing' ? 2 : phase === 'reward' ? 3 : -1;
   if (phase === 'verify') return <Verify ar={ar} setLang={setLang} q={q} />;
@@ -234,10 +251,10 @@ export default function IkhtarhaRoot() {
         <div className="ik-kv ik-kv-soft" aria-hidden="true"><picture>{B.hero_portrait && <source media="(max-width: 760px)" srcSet={B.hero_portrait} />}<img src={B.hero_wide || B.hero_portrait} alt="" /></picture></div>
       )}
       {scratchMode && phase === 'experience' && (
-        <ScratchCard ar={ar} brand={B} gameName={gameName} firstName={session && session.first_name} reduced={reduced} onStart={startScratch} onDone={scratchDone} />
+        <ScratchCard key={'sc' + drawKey} drawLabel={drawLabel} ar={ar} brand={B} gameName={gameName} firstName={session && session.first_name} reduced={reduced} onStart={startScratch} onDone={scratchDone} />
       )}
       {!scratchMode && (phase === 'experience' || phase === 'revealing' || (phase === 'reward' && viewer.current) || phase === 'error') && (
-        <Stage engine={game} cfg={cfg} mode="play" reduced={reduced} apiRef={viewer} selected={selected} onPick={onPick} onBurst={() => setBurst(true)}
+        <Stage key={'st' + drawKey} engine={game} cfg={cfg} mode="play" reduced={reduced} apiRef={viewer} selected={selected} onPick={onPick} onBurst={() => setBurst(true)}
           onReady={(v) => { setReady3d(true); if (v && phase === 'experience') v.intro(); }} />
       )}
 
@@ -278,7 +295,7 @@ export default function IkhtarhaRoot() {
       {!scratchMode && (phase === 'experience' || phase === 'revealing') && (
         <div className="ik-hud">
           <div className="ik-hud-top">
-            <p className="ik-eyebrow">{session && session.first_name ? T('greet', ar, { n: session.first_name }) : ''}</p>
+            <p className="ik-eyebrow">{session && session.first_name ? T('greet', ar, { n: session.first_name }) : ''}{drawLabel ? <span className="ik-draw-chip" data-testid="ik-draw-label">{drawLabel}</span> : null}</p>
             <h2>{phase === 'revealing' ? T('opening', ar) : T('pick', ar)}</h2>
             {phase === 'experience' && <p className="ik-muted">{T('pickSub', ar)}</p>}
           </div>
@@ -303,7 +320,7 @@ export default function IkhtarhaRoot() {
           {cfg.whatsapp && <a className="ik-btn ik-btn-ghost ik-wide" href={'https://wa.me/' + String(cfg.whatsapp).replace(/\D/g, '')} target="_blank" rel="noopener noreferrer">{T('whatsapp', ar)}</a>}</div></main>
       )}
 
-      {phase === 'reward' && reward && <RewardCard ar={ar} reward={reward} note={msg && msg.key === 'already' ? T('already', ar) : null} onPrint={printReward} whatsapp={cfg.whatsapp} logo={B.logo_light} />}
+      {phase === 'reward' && reward && <RewardCard ar={ar} reward={reward} draws={draws} onNext={nextDraw} note={msg && msg.key === 'already' && !draws.remaining ? T('already', ar) : null} onPrint={printReward} whatsapp={cfg.whatsapp} logo={B.logo_light} />}
       <Confetti on={burst && phase === 'reward'} calm={cfg.reveal === 'glow'} />
 
       {how && (
@@ -320,7 +337,8 @@ export default function IkhtarhaRoot() {
   );
 }
 
-function RewardCard({ ar, reward: r, note, onPrint, whatsapp, logo }) {
+function RewardCard({ ar, reward: r, draws = { total: 1, remaining: 0, rewards: [] }, onNext, note, onPrint, whatsapp, logo }) {
+  const many = draws.rewards.length > 1; const totalDisc = draws.rewards.reduce((n, x) => n + (Number(x.discount_amount) || 0), 0);
   const desc = ar ? (r.description_ar || r.description_en) : (r.description_en || r.description_ar);
   return (
     <main className="ik-reward-wrap">
@@ -342,9 +360,22 @@ function RewardCard({ ar, reward: r, note, onPrint, whatsapp, logo }) {
           <div><dt>{T('validUntil', ar)}</dt><dd>{fmtDay(r.expires_at, ar)}</dd></div>
           {Number(r.discount_amount) > 0 && <div><dt>{T('discount', ar)}</dt><dd dir="ltr">{money(r.discount_amount)}</dd></div>}
         </dl>
+        {many && (
+          <div className="ik-allprizes" data-testid="ik-all-prizes">
+            <p className="ik-eyebrow">{T('allPrizes', ar)}</p>
+            <ul>{draws.rewards.map((x, i) => <li key={x.ref}><span>{T('drawOf', ar, { n: x.draw_no || i + 1, t: draws.total })}</span><b dir="auto">{rewardValueText(x, ar)}</b><em>{ar ? x.name_ar : x.name_en}</em><code dir="ltr">{x.ref}</code></li>)}</ul>
+            {totalDisc > 0 && <p className="ik-small">{T('discount', ar)} · <bdi dir="ltr">{money(totalDisc)}</bdi></p>}
+          </div>
+        )}
+        {draws.remaining > 0 && onNext && (
+          <div className="ik-next">
+            <p className="ik-small">{T('nextLeft', ar, { n: draws.remaining })}</p>
+            <button type="button" className="ik-btn ik-btn-primary ik-wide ik-next-btn" onClick={onNext} autoFocus data-testid="ik-next-draw">{T('nextDraw', ar)}</button>
+          </div>
+        )}
         <p className="ik-small">{T('howUse', ar)}</p>
         <div className="ik-ctas">
-          <button type="button" className="ik-btn ik-btn-primary" onClick={onPrint} data-testid="ik-print">{T('print', ar)}</button>
+          <button type="button" className={'ik-btn ' + (draws.remaining > 0 ? 'ik-btn-ghost' : 'ik-btn-primary')} onClick={onPrint} data-testid="ik-print">{many ? T('printAll', ar) : T('print', ar)}</button>
           {r.quote_url ? <a className="ik-btn ik-btn-ghost" href={r.quote_url} target="_blank" rel="noopener noreferrer">{T('viewQuote', ar)}</a>
             : <span className="ik-btn ik-btn-ghost ik-disabled" title={T('noQuoteLink', ar)}>{T('viewQuote', ar)}</span>}
         </div>

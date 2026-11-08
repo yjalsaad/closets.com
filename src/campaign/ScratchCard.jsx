@@ -9,7 +9,7 @@ import { rewardValueText } from './certificate';
 const HEX = /^#[0-9A-Fa-f]{6}$/;
 const shade = (hex, k) => { const n = parseInt(hex.slice(1), 16); const f = (x) => Math.max(0, Math.min(255, Math.round(k < 0 ? x * (1 + k) : x + (255 - x) * k))); return '#' + [n >> 16, (n >> 8) & 255, n & 255].map((x) => f(x).toString(16).padStart(2, '0')).join(''); };
 
-export default function ScratchCard({ ar, brand = {}, gameName, firstName, reduced, onStart, onDone }) {
+export default function ScratchCard({ ar, brand = {}, gameName, firstName, drawLabel, reduced, onStart, onDone }) {
   const wrap = useRef(null); const cv = useRef(null); const last = useRef(null); const moves = useRef(0);
   const [reward, setReward] = useState(null); const [started, setStarted] = useState(false); const [cleared, setCleared] = useState(false);
   const [pct, setPct] = useState(0); const done = useRef(false); const req = useRef(null);
@@ -87,7 +87,7 @@ export default function ScratchCard({ ar, brand = {}, gameName, firstName, reduc
   return (
     <main className="ik-scratch-wrap">
       <div className="ik-scratch-head">
-        {firstName && <p className="ik-eyebrow">{T('Welcome, ', 'أهلًا ') + firstName}</p>}
+        {(firstName || drawLabel) && <p className="ik-eyebrow">{firstName ? T('Welcome, ', 'أهلًا ') + firstName : ''}{drawLabel ? <span className="ik-draw-chip" data-testid="ik-draw-label">{drawLabel}</span> : null}</p>}
         <h2>{cleared ? T('Your reward is here!', 'جائزتك وصلت!') : T('Scratch the card', 'امسح البطاقة')}</h2>
         <p className="ik-muted">{T('Use your finger or mouse to scratch the gold foil.', 'استخدم إصبعك أو الماوس لمسح الطبقة الذهبية.')}</p>
       </div>

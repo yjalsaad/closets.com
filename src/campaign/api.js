@@ -26,10 +26,21 @@ const demoReward = (box) => {
   return { ...s, ref: 'SAMPLE-' + new Date().getFullYear() + '-000000', discount_amount: disc, quote_total: total, quote_no: 'QT-SAMPLE', customer_name: 'Sample Customer',
     expires_at: d, revealed_at: new Date().toISOString(), verify_token: '', box_index: box, terms_ar: 'هذه معاينة — الجائزة ليست حقيقية.', terms_en: 'This is a preview — the prize is not real.' };
 };
+// demo of draw rules: /demo?draws=2 → draw 1 a percentage, draw 2 a premium prize
+const DEMO_DRAWS = DEMO ? Math.min(5, Math.max(1, Number(new URLSearchParams(window.location.search).get('draws')) || 1)) : 1;
+const demoWon = [];
+const demoReveal = (box) => {
+  if (demoWon.length >= DEMO_DRAWS) return { ok: true, state: 'revealed', repeat: true, reward: demoWon[demoWon.length - 1], rewards: demoWon.slice(), draws_total: DEMO_DRAWS, remaining: 0 };
+  let w = demoReward(box);
+  if (DEMO_DRAWS > 1) { const want = demoWon.length === 0 ? 'percent' : 'premium'; const s = SAMPLES.filter((x) => x.type === want); w = { ...demoReward(box), ...s[Math.floor(Math.random() * s.length)] }; w.discount_amount = w.type === 'percent' ? (1200 * w.value) / 100 : 0; }
+  w = { ...w, ref: 'SAMPLE-' + new Date().getFullYear() + '-00000' + (demoWon.length + 1), draw_no: demoWon.length + 1 };
+  demoWon.push(w);
+  return { ok: true, state: 'revealed', reward: w, rewards: demoWon.slice(), draw_no: w.draw_no, draws_total: DEMO_DRAWS, remaining: DEMO_DRAWS - demoWon.length };
+};
 const later = (ms, v) => new Promise((r) => setTimeout(() => r(v), ms));
 export const landing = (code) => rpc('ikh_landing', { p_code: code || null });
-export const validate = (p) => (DEMO ? later(700, { ok: true, state: 'ready', token: 'demo', first_name: String((p && p.name) || '').trim().split(/\s+/)[0] || 'Guest', boxes: 9 }) : rpc('ikh_validate', { p }));
-export const reveal = (token, box) => (DEMO ? later(400, { ok: true, state: 'revealed', reward: demoReward(box) }) : rpc('ikh_reveal', { p: { token, box } }));
+export const validate = (p) => (DEMO ? later(700, { ok: true, state: 'ready', token: 'demo', first_name: String((p && p.name) || '').trim().split(/\s+/)[0] || 'Guest', boxes: 9, draws_total: DEMO_DRAWS, draws_done: 0 }) : rpc('ikh_validate', { p }));
+export const reveal = (token, box) => (DEMO ? later(400, demoReveal(box)) : rpc('ikh_reveal', { p: { token, box } }));
 export const reward = (token) => (DEMO ? Promise.resolve({ ok: false }) : rpc('ikh_reward', { p: { token } }));
 export const verify = (t) => rpc('ikh_verify', { p_t: t });
 
