@@ -10,6 +10,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import './ikhtarha.css';
 import * as api from './api';
+import ScratchCard from './ScratchCard';
 import { certificateDocument, rewardSentence, rewardValueText } from './certificate';
 
 /* campaign identity — the اختارها brand pack; Bonsai (Ad Campaigns → campaign identity) overrides any key per campaign */
@@ -59,6 +60,7 @@ const S = {
   print: ['Print your reward', 'اطبع جائزتك'], viewQuote: ['View quotation', 'عرض الكوتيشن'], noQuoteLink: ['Ask your consultant for your quotation link', 'اطلب رابط الكوتيشن من مستشارك'],
   whatsapp: ['Questions? WhatsApp us', 'استفسار؟ راسلنا واتساب'], soundOn: ['Sound on', 'الصوت مفعّل'], soundOff: ['Sound off', 'الصوت مطفأ'],
   steps: [['Details', 'البيانات'], ['Wardrobe', 'الخزانة'], ['Choose', 'الاختيار'], ['Reward', 'الجائزة']],
+  stepsScratch: [['Details', 'البيانات'], ['Card', 'البطاقة'], ['Scratch', 'المسح'], ['Reward', 'الجائزة']],
   noWebgl: ['Simple view (3D is not available on this device)', 'عرض مبسّط (العرض ثلاثي الأبعاد غير متاح على هذا الجهاز)'],
   verifyTitle: ['Reward verification', 'التحقق من الجائزة'], vValid: ['Valid reward', 'جائزة صالحة'], vRedeemed: ['Already used', 'تم استخدامها'], vExpired: ['Expired', 'منتهية'], vVoid: ['Cancelled', 'ملغاة'], vBad: ['This certificate could not be verified.', 'تعذّر التحقق من هذه الشهادة.'],
   ended: ['Campaign ends', 'تنتهي الحملة'],
@@ -95,13 +97,13 @@ function Confetti({ on, calm }) {
 }
 
 /* the 3D stage (lazy-loads three.js) with a 2D fallback */
-function Stage({ cfg, mode, onReady, onPick, selected, reduced, apiRef, onBurst }) {
+function Stage({ cfg, mode, onReady, onPick, selected, reduced, apiRef, onBurst, engine }) {
   const host = useRef(null); const [fallback, setFallback] = useState(false);
   useEffect(() => {
     let v = null; let alive = true;
     (async () => {
       try {
-        const mod = api.DEMO ? await import('./wardrobe3dPro') : await import('./wardrobe3d');   // [DEMO] the cinematic engine is reviewed on /demo first
+        const mod = engine === 'classic' ? await import('./wardrobe3d') : await import('./wardrobe3dPro');   // game style from the campaign: cinematic (default) · classic
         if (!alive || !host.current) return;
         if (!mod.webglAvailable()) { setFallback(true); if (onReady) onReady(null); return; }
         v = mod.createWardrobe(host.current, { boxes: cfg.boxes, theme: cfg.theme, brand: brandOf(cfg), reduced, preview: mode === 'preview', side: mode === 'preview' ? (document.documentElement.dir === 'rtl' ? -1 : 1) : 0, calm: cfg.reveal === 'glow', onPick: (i) => onPick && onPick(i), onBurst: () => onBurst && onBurst() });
@@ -109,7 +111,7 @@ function Stage({ cfg, mode, onReady, onPick, selected, reduced, apiRef, onBurst 
       } catch (e) { setFallback(true); if (onReady) onReady(null); }
     })();
     return () => { alive = false; if (v) v.dispose(); if (apiRef) apiRef.current = null; };
-  }, [cfg.boxes, cfg.theme, cfg.reveal, JSON.stringify(cfg.brand || null), mode, reduced]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [cfg.boxes, cfg.theme, cfg.reveal, JSON.stringify(cfg.brand || null), mode, reduced, engine]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (apiRef && apiRef.current && selected != null) apiRef.current.select(selected); }, [selected, apiRef]);
   return (
     <div className={'ik-stage' + (mode === 'preview' ? ' ik-stage-preview' : '')}>
@@ -144,6 +146,16 @@ export default function IkhtarhaRoot() {
 
   // the game name is a campaign setting (Bonsai → campaign → reward boxes): اختارها / Ikhtarha by default
   const gameName = ar ? (cfg.name_ar || 'اختارها') : (cfg.name_en || 'Ikhtarha');
+  // game style (Bonsai → campaign → reward game): cinematic 3D wardrobe (default) · classic 3D wardrobe · scratch card. /demo?game=… previews any.
+  const GAMES = ['cinematic', 'classic', 'scratch'];
+  const game = (api.DEMO && GAMES.includes(q.get('game'))) ? q.get('game') : GAMES.includes(cfg.game) ? cfg.game : 'cinematic';
+  const scratchMode = game === 'scratch';
+  const scratchReq = useRef(null);
+  const startScratch = useCallback(() => { if (!scratchReq.current) scratchReq.current = api.reveal(session && session.token, 0).catch(() => null); return scratchReq.current; }, [session]);
+  const scratchDone = useCallback((r) => {
+    if (r && r.ok && r.reward) { setReward(r.reward); setBurst(true); if (sound) chime('open'); setPhase('reward'); }
+    else { const k = (r && r.state) || 'failed'; if (k === 'session') api.clearSession(); setMsg({ kind: 'error', key: k === 'already' ? 'already' : k }); setPhase(k === 'session' ? 'form' : 'error'); }
+  }, [sound]);
   useEffect(() => { document.documentElement.lang = ar ? 'ar' : 'en'; document.documentElement.dir = ar ? 'rtl' : 'ltr'; document.title = gameName + (ar ? ' — الخزائن العالمية' : ' — The Closets International'); }, [ar, gameName]);
   useEffect(() => {
     if (!document.getElementById('ik-font')) { const l = document.createElement('link'); l.id = 'ik-font'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap'; document.head.appendChild(l); }
@@ -183,7 +195,7 @@ export default function IkhtarhaRoot() {
     const req = api.reveal(session.token, selected).catch(() => null);
     const anim = viewer.current ? viewer.current.reveal(selected, cfg.anim_ms || 2600) : new Promise((r) => setTimeout(r, reduced ? 300 : Math.min(cfg.anim_ms || 2600, 2400)));
     const [r] = await Promise.all([req, anim]);
-    if (r && r.ok && r.reward) { setReward(r.reward); if (sound) chime('open'); setBurst(true); setTimeout(() => setPhase('reward'), reduced ? 100 : api.DEMO ? 1500 : 650); }   // [DEMO] let the burst play before the card
+    if (r && r.ok && r.reward) { setReward(r.reward); if (sound) chime('open'); setBurst(true); setTimeout(() => setPhase('reward'), reduced ? 100 : game === 'classic' ? 650 : 1500); }   // cinematic: let the burst play before the card
     else { const k = (r && r.state) || 'failed'; if (k === 'session') api.clearSession(); setMsg({ kind: 'error', key: k === 'already' ? 'already' : k }); setPhase(k === 'session' ? 'form' : 'error'); }
   };
   const printReward = () => { const w = window.open('', '_blank'); if (!w) return; w.document.write(certificateDocument({ ...reward, brand: reward.brand || B }, { ar, title: reward.ref })); w.document.close(); };
@@ -199,7 +211,7 @@ export default function IkhtarhaRoot() {
         {phase !== 'hero' && B.logo_light && <img className="ik-clogo-head" src={B.logo_light} alt={gameName} />}
         {step >= 0 && (
           <ol className="ik-steps" aria-label={ar ? 'المراحل' : 'Progress'}>
-            {S.steps.map((s, i) => <li key={i} className={i < step ? 'done' : i === step ? 'on' : ''} aria-current={i === step ? 'step' : undefined}><span>{i + 1}</span><em>{s[ar ? 1 : 0]}</em></li>)}
+            {(scratchMode ? S.stepsScratch : S.steps).map((s, i) => <li key={i} className={i < step ? 'done' : i === step ? 'on' : ''} aria-current={i === step ? 'step' : undefined}><span>{i + 1}</span><em>{s[ar ? 1 : 0]}</em></li>)}
           </ol>
         )}
         <span className="ik-grow" />
@@ -216,10 +228,16 @@ export default function IkhtarhaRoot() {
         </div>
       )}
       {(phase === 'hero' || phase === 'form' || phase === 'checking') && !(B.hero_wide || B.hero_portrait) && (
-        <Stage cfg={cfg} mode="preview" reduced={reduced} onReady={() => setReady3d(true)} />
+        <Stage engine={game} cfg={cfg} mode="preview" reduced={reduced} onReady={() => setReady3d(true)} />
       )}
-      {(phase === 'experience' || phase === 'revealing' || (phase === 'reward' && viewer.current) || phase === 'error') && (
-        <Stage cfg={cfg} mode="play" reduced={reduced} apiRef={viewer} selected={selected} onPick={onPick} onBurst={() => setBurst(true)}
+      {scratchMode && (phase === 'experience' || phase === 'reward' || phase === 'error') && (B.hero_wide || B.hero_portrait) && (
+        <div className="ik-kv ik-kv-soft" aria-hidden="true"><picture>{B.hero_portrait && <source media="(max-width: 760px)" srcSet={B.hero_portrait} />}<img src={B.hero_wide || B.hero_portrait} alt="" /></picture></div>
+      )}
+      {scratchMode && phase === 'experience' && (
+        <ScratchCard ar={ar} brand={B} gameName={gameName} firstName={session && session.first_name} reduced={reduced} onStart={startScratch} onDone={scratchDone} />
+      )}
+      {!scratchMode && (phase === 'experience' || phase === 'revealing' || (phase === 'reward' && viewer.current) || phase === 'error') && (
+        <Stage engine={game} cfg={cfg} mode="play" reduced={reduced} apiRef={viewer} selected={selected} onPick={onPick} onBurst={() => setBurst(true)}
           onReady={(v) => { setReady3d(true); if (v && phase === 'experience') v.intro(); }} />
       )}
 
@@ -257,7 +275,7 @@ export default function IkhtarhaRoot() {
         </main>
       )}
 
-      {(phase === 'experience' || phase === 'revealing') && (
+      {!scratchMode && (phase === 'experience' || phase === 'revealing') && (
         <div className="ik-hud">
           <div className="ik-hud-top">
             <p className="ik-eyebrow">{session && session.first_name ? T('greet', ar, { n: session.first_name }) : ''}</p>
