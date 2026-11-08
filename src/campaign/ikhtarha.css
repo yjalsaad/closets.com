@@ -185,3 +185,14 @@
   .ik-phase-experience .ik-clogo-head, .ik-phase-revealing .ik-clogo-head { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .ik-kv img { animation: none; } }
+
+/* [DEMO] sample preview badge */
+.ik-demo { position: absolute; z-index: 6; left: 50%; bottom: 14px; transform: translateX(-50%); padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  background: rgba(20,11,12,.72); border: 1px dashed var(--ik-orange); color: var(--ik-cream); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); white-space: nowrap; pointer-events: none; }
+/* hero copy stays clear of the logo baked into the key visual on narrower desktops */
+@media (min-width: 761px) {
+  .ik-phase-hero.ik-kv-right .ik-hero, .ik-phase-hero.ik-kv-left .ik-hero { width: min(600px, 40vw); padding-inline: clamp(20px, 4vw, 72px); }
+  .ik-phase-hero.ik-kv-right .ik-kv img { object-position: 100% center; }
+  .ik-phase-hero.ik-kv-left .ik-kv img { object-position: 0% center; }
+}
+@media (max-width: 760px) { .ik-demo { bottom: auto; top: 108px; font-size: 10.5px; padding: 3px 10px; } }

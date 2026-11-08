@@ -101,7 +101,7 @@ function Stage({ cfg, mode, onReady, onPick, selected, reduced, apiRef, onBurst 
     let v = null; let alive = true;
     (async () => {
       try {
-        const mod = await import('./wardrobe3d');
+        const mod = api.DEMO ? await import('./wardrobe3dPro') : await import('./wardrobe3d');   // [DEMO] the cinematic engine is reviewed on /demo first
         if (!alive || !host.current) return;
         if (!mod.webglAvailable()) { setFallback(true); if (onReady) onReady(null); return; }
         v = mod.createWardrobe(host.current, { boxes: cfg.boxes, theme: cfg.theme, brand: brandOf(cfg), reduced, preview: mode === 'preview', side: mode === 'preview' ? (document.documentElement.dir === 'rtl' ? -1 : 1) : 0, calm: cfg.reveal === 'glow', onPick: (i) => onPick && onPick(i), onBurst: () => onBurst && onBurst() });
@@ -123,14 +123,14 @@ function Stage({ cfg, mode, onReady, onPick, selected, reduced, apiRef, onBurst 
 export default function IkhtarhaRoot() {
   const path = (window.location.pathname || '').replace(/\/+$/, '');
   const q = useMemo(() => new URLSearchParams(window.location.search), []);
-  const urlCode = (q.get('code') || '').trim();
+  const urlCode = api.DEMO ? 'DEMO-SAMP-LE00' : (q.get('code') || '').trim();
   const [lang, setLangS] = useState(() => { try { return q.get('lang') || localStorage.getItem(LANG_KEY) || 'ar'; } catch (e) { return 'ar'; } });
   const ar = lang !== 'en';
   const setLang = (l) => { try { localStorage.setItem(LANG_KEY, l); } catch (e) { /* ignore */ } setLangS(l); };
-  const [cfg, setCfg] = useState({ boxes: 9, theme: 'walnut', anim_ms: 2600, sound: false, live: true });
+  const [cfg, setCfg] = useState({ boxes: 9, theme: 'walnut', anim_ms: api.DEMO ? 3200 : 2600, sound: false, live: true });
   const [phase, setPhase] = useState(/\/verify$/.test(path) ? 'verify' : 'hero');
   const [how, setHow] = useState(false);
-  const [form, setForm] = useState({ name: '', quote_no: '', code: urlCode, website: '' });
+  const [form, setForm] = useState(api.DEMO ? { name: 'Sara', quote_no: 'QT-SAMPLE', code: urlCode, website: '' } : { name: '', quote_no: '', code: urlCode, website: '' });
   const [msg, setMsg] = useState(null); // { kind: 'error'|'ok'|'info', key }
   const [session, setSession] = useState(null); // { token, first_name }
   const [selected, setSelected] = useState(null);
@@ -147,7 +147,7 @@ export default function IkhtarhaRoot() {
   useEffect(() => { document.documentElement.lang = ar ? 'ar' : 'en'; document.documentElement.dir = ar ? 'rtl' : 'ltr'; document.title = gameName + (ar ? ' — الخزائن العالمية' : ' — The Closets International'); }, [ar, gameName]);
   useEffect(() => {
     if (!document.getElementById('ik-font')) { const l = document.createElement('link'); l.id = 'ik-font'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap'; document.head.appendChild(l); }
-    api.landing(urlCode).then((c) => { if (c) setCfg((x) => ({ ...x, ...c })); }).catch(() => {});
+    api.landing(api.DEMO ? null : urlCode).then((c) => { if (c) setCfg((x) => ({ ...x, ...c, ...(api.DEMO ? { anim_ms: 3200, live: true } : {}) })); }).catch(() => {});
     const s = api.loadSession();
     if (s && s.token && phase !== 'verify') {
       api.reward(s.token).then((r) => {
@@ -183,7 +183,7 @@ export default function IkhtarhaRoot() {
     const req = api.reveal(session.token, selected).catch(() => null);
     const anim = viewer.current ? viewer.current.reveal(selected, cfg.anim_ms || 2600) : new Promise((r) => setTimeout(r, reduced ? 300 : Math.min(cfg.anim_ms || 2600, 2400)));
     const [r] = await Promise.all([req, anim]);
-    if (r && r.ok && r.reward) { setReward(r.reward); if (sound) chime('open'); setBurst(true); setTimeout(() => setPhase('reward'), reduced ? 100 : 650); }
+    if (r && r.ok && r.reward) { setReward(r.reward); if (sound) chime('open'); setBurst(true); setTimeout(() => setPhase('reward'), reduced ? 100 : api.DEMO ? 1500 : 650); }   // [DEMO] let the burst play before the card
     else { const k = (r && r.state) || 'failed'; if (k === 'session') api.clearSession(); setMsg({ kind: 'error', key: k === 'already' ? 'already' : k }); setPhase(k === 'session' ? 'form' : 'error'); }
   };
   const printReward = () => { const w = window.open('', '_blank'); if (!w) return; w.document.write(certificateDocument({ ...reward, brand: reward.brand || B }, { ar, title: reward.ref })); w.document.close(); };
@@ -193,6 +193,7 @@ export default function IkhtarhaRoot() {
 
   return (
     <div className={'ik-root ik-phase-' + phase + ((B.hero_wide || B.hero_portrait) ? ' ik-kv-' + (B.hero_text_side === 'left' ? 'left' : 'right') : '')} dir={ar ? 'rtl' : 'ltr'} lang={ar ? 'ar' : 'en'} style={brandStyle(B)}>
+      {api.DEMO && <div className="ik-demo" role="note">{ar ? 'معاينة تجريبية — الجوائز هنا ليست حقيقية' : 'Sample preview — prizes here are not real'}</div>}
       <header className="ik-head">
         <a href="/" className="ik-logo" aria-label={T('brand', ar)}><img src="/brand/closets-logo-white.png" alt={T('brand', ar)} /></a>
         {phase !== 'hero' && B.logo_light && <img className="ik-clogo-head" src={B.logo_light} alt={gameName} />}
