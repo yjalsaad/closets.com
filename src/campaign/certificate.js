@@ -37,7 +37,7 @@ export function rewardSentence(r, ar) {
 const CSS = `
 .ikh-page,.ikh-invite{--ikh-b:#5B1520;--ikh-o:#FF7A00;--ikh-s:#F7F2EC}
 .ikh-page{width:210mm;min-height:297mm;box-sizing:border-box;padding:16mm 16mm 14mm;margin:0 auto;background:var(--ikh-s);color:${C.ink};
-  font-family:-apple-system,"SF Arabic","Segoe UI","IBM Plex Sans Arabic","Noto Sans Arabic",Tahoma,Arial,sans-serif;position:relative;page-break-before:always;break-before:page;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Arabic","IBM Plex Sans Arabic","Segoe UI","Noto Sans Arabic",Tahoma,Arial,sans-serif;position:relative;page-break-before:always;break-before:page;
   -webkit-print-color-adjust:exact;print-color-adjust:exact;overflow:hidden}
 .ikh-page *{box-sizing:border-box}
 .ikh-frame{position:absolute;inset:8mm;border:1.2px solid color-mix(in srgb,var(--ikh-b) 14%,transparent);border-radius:6mm;pointer-events:none}
@@ -65,7 +65,7 @@ const CSS = `
 .ikh-ref{font-family:"SF Mono",Menlo,Consolas,monospace;letter-spacing:.04em;direction:ltr;unicode-bidi:embed;white-space:nowrap;font-size:.92em}
 .ikh-band{position:absolute;inset-inline:0;bottom:0;height:9mm;background:var(--ikh-b);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9pt;letter-spacing:.14em}
 .ikh-invite{border:1px solid color-mix(in srgb,var(--ikh-b) 20%,transparent);border-radius:5mm;padding:7mm 8mm;background:var(--ikh-s);display:grid;grid-template-columns:1fr 34mm;gap:6mm;align-items:center;
-  font-family:-apple-system,"SF Arabic","Segoe UI","IBM Plex Sans Arabic",Tahoma,Arial,sans-serif;color:${C.ink};page-break-inside:avoid;break-inside:avoid;margin-top:8mm;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Arabic","IBM Plex Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif;color:${C.ink};page-break-inside:avoid;break-inside:avoid;margin-top:8mm;
   -webkit-print-color-adjust:exact;print-color-adjust:exact}
 .ikh-invite h3{margin:0 0 1mm;font-size:16pt;color:var(--ikh-b)}
 .ikh-invite .k{display:inline-block;margin-top:2mm;padding:1.5mm 3mm;border-radius:2mm;background:#fff;border:1px dashed var(--ikh-o);font-weight:800;color:var(--ikh-o);font-size:12pt}
@@ -146,7 +146,7 @@ export function appendToQuoteHtml(html, extraHtml) {
 /** "invite card" print for Quote+ quotations (customer_quotes) that have no OneQuote PDF to extend */
 export function inviteDocument({ code, link, ends, customer, quoteNo, ar = true, brand }) {
   return `<!doctype html><html dir="${ar ? 'rtl' : 'ltr'}"><head><meta charset="utf-8"><title>Ikhtarha ${esc(code)}</title><style>
-  body{margin:0;font-family:-apple-system,"SF Arabic","Segoe UI",Tahoma,Arial,sans-serif;color:#2A1A1C}${CSS}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Arabic","IBM Plex Sans Arabic","Segoe UI","Noto Sans Arabic",Tahoma,sans-serif;color:#2A1A1C}${CSS}
   .wrap{width:148mm;margin:12mm auto}.hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:4mm}.hd img{height:16mm}
   @page{size:A5 landscape;margin:0}</style></head><body><div class="wrap">
   <div class="hd"><img src="${LOGO}" alt="The Closets International"><div style="text-align:${ar ? 'left' : 'right'};font-size:10pt">${esc(customer || '')}<br><span class="ikh-ref">${esc(quoteNo || '')}</span></div></div>

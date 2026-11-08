@@ -2,12 +2,14 @@
 .ik-root {
   --ik-orange: #D9692F; --ik-orange-2: #E8874F; --ik-burgundy: #4B1F24; --ik-wine: #2A1416; --ik-ink: #140B0C; --ik-cream: #F7F2EC;
   --ik-grey: #EDEBE8; --ik-muted: rgba(247, 242, 236, .66); --ik-line: rgba(247, 242, 236, .14); --ik-gold: #C9A35A;
-  --ik-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --ik-font-ar: "IBM Plex Sans Arabic", -apple-system, "SF Arabic", "Segoe UI", "Noto Sans Arabic", Tahoma, sans-serif;
+  /* same typography as the main website (App.js :root --font-sans / --font-ar): SF on Apple, IBM Plex Sans Arabic elsewhere */
+  --ik-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ik-font-ar: -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", "Noto Sans Arabic", Tahoma, sans-serif;
   position: fixed; inset: 0; overflow: hidden; background: radial-gradient(120% 90% at 50% 20%, var(--ik-wine) 0%, var(--ik-ink) 62%); color: var(--ik-cream);
   font-family: var(--ik-font); -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 1.5;
 }
 .ik-root[dir="rtl"] { font-family: var(--ik-font-ar); }
+.ik-root[dir="rtl"] * { letter-spacing: 0; }
 .ik-root *, .ik-root *::before, .ik-root *::after { box-sizing: border-box; }
 .ik-root button { font-family: inherit; }
 
