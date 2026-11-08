@@ -142,7 +142,9 @@ export default function IkhtarhaRoot() {
   const B = useMemo(() => brandOf(cfg), [cfg]);
   const viewer = useRef(null);
 
-  useEffect(() => { document.documentElement.lang = ar ? 'ar' : 'en'; document.documentElement.dir = ar ? 'rtl' : 'ltr'; document.title = (ar ? 'اختارها — الخزائن العالمية' : 'Ikhtarha — The Closets International'); }, [ar]);
+  // the game name is a campaign setting (Bonsai → campaign → reward boxes): اختارها / Ikhtarha by default
+  const gameName = ar ? (cfg.name_ar || 'اختارها') : (cfg.name_en || 'Ikhtarha');
+  useEffect(() => { document.documentElement.lang = ar ? 'ar' : 'en'; document.documentElement.dir = ar ? 'rtl' : 'ltr'; document.title = gameName + (ar ? ' — الخزائن العالمية' : ' — The Closets International'); }, [ar, gameName]);
   useEffect(() => {
     if (!document.getElementById('ik-font')) { const l = document.createElement('link'); l.id = 'ik-font'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap'; document.head.appendChild(l); }
     api.landing(urlCode).then((c) => { if (c) setCfg((x) => ({ ...x, ...c })); }).catch(() => {});
@@ -193,7 +195,7 @@ export default function IkhtarhaRoot() {
     <div className={'ik-root ik-phase-' + phase + ((B.hero_wide || B.hero_portrait) ? ' ik-kv-' + (B.hero_text_side === 'left' ? 'left' : 'right') : '')} dir={ar ? 'rtl' : 'ltr'} lang={ar ? 'ar' : 'en'} style={brandStyle(B)}>
       <header className="ik-head">
         <a href="/" className="ik-logo" aria-label={T('brand', ar)}><img src="/brand/closets-logo-white.png" alt={T('brand', ar)} /></a>
-        {phase !== 'hero' && B.logo_light && <img className="ik-clogo-head" src={B.logo_light} alt={ar ? (cfg.name_ar || 'اختارها') : 'Ikhtarha'} />}
+        {phase !== 'hero' && B.logo_light && <img className="ik-clogo-head" src={B.logo_light} alt={gameName} />}
         {step >= 0 && (
           <ol className="ik-steps" aria-label={ar ? 'المراحل' : 'Progress'}>
             {S.steps.map((s, i) => <li key={i} className={i < step ? 'done' : i === step ? 'on' : ''} aria-current={i === step ? 'step' : undefined}><span>{i + 1}</span><em>{s[ar ? 1 : 0]}</em></li>)}
@@ -223,7 +225,7 @@ export default function IkhtarhaRoot() {
       {phase === 'hero' && (
         <main className="ik-hero">
           <p className="ik-eyebrow">{T('eyebrow', ar)}</p>
-          {(() => { const kvLogo = (B.hero_wide || B.hero_portrait) && B.hero_has_logo; const name = ar ? (cfg.name_ar || 'اختارها') : 'Ikhtarha';
+          {(() => { const kvLogo = (B.hero_wide || B.hero_portrait) && B.hero_has_logo; const name = gameName;
             return kvLogo ? <h1 className="ik-sr">{name}</h1>
               : B.logo_light ? <h1 className="ik-title ik-title-logo"><img src={B.logo_light} alt={name} /></h1>
               : <h1 className="ik-title">{name}</h1>; })()}
@@ -270,7 +272,7 @@ export default function IkhtarhaRoot() {
             </div>
             <div className="ik-choose-row">
               <span className="ik-selnote" aria-live="polite">{selected != null ? T('selected', ar, { n: selected + 1 }) : ''}</span>
-              <button type="button" className="ik-btn ik-btn-primary ik-choose" disabled={selected == null || phase !== 'experience'} onClick={choose} data-testid="ik-choose">{T('choose', ar)}</button>
+              <button type="button" className="ik-btn ik-btn-primary ik-choose" disabled={selected == null || phase !== 'experience'} onClick={choose} data-testid="ik-choose">{gameName}</button>
             </div>
           </div>
           {!ready3d && <div className="ik-loading"><span className="ik-spin" /></div>}
