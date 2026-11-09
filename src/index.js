@@ -17,12 +17,24 @@ const VizRoot = React.lazy(() => import('./visualizer/VizRoot'));
 // [IKHTARHA 2026-11-08] /campaign/ikhtarha = the «اختارها» choose-your-box reward campaign (lazy chunk; three.js loads only there)
 const isIkhtarha = /^\/campaign\/ikhtarha(\/|$)/i.test(window.location.pathname || '');
 const IkhtarhaRoot = React.lazy(() => import('./campaign/IkhtarhaRoot'));
+// [IKHTARHA GAMES 2026-11-09] /ikhtarha/games = the Games Hub (extra activity of the campaign; its own lazy chunk)
+const isGames = /^\/ikhtarha\/games(\/|$)/i.test(window.location.pathname || '');
+const GamesRoot = React.lazy(() => import('./games/GamesRoot'));
 
 // When the page was prerendered (the postbuild puppeteer crawl writes static
 // markup into #root), hydrate it so the prerendered DOM is reused — no flash of
 // empty content, and crawlers see real text. Otherwise (normal dev / a route
 // that wasn't prerendered) mount fresh with createRoot.
-if (isIkhtarha) {
+if (isGames) {
+  if (container.hasChildNodes()) container.innerHTML = '';
+  ReactDOM.createRoot(container).render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <React.Suspense fallback={null}><GamesRoot /></React.Suspense>
+      </ErrorBoundary>
+    </React.StrictMode>
+  );
+} else if (isIkhtarha) {
   if (container.hasChildNodes()) container.innerHTML = '';
   ReactDOM.createRoot(container).render(
     <React.StrictMode>
