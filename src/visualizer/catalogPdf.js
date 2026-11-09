@@ -8,7 +8,7 @@ import { KIND_LABEL, FINISH_LABEL } from './strings';
 import { qrDataUrl } from './ui';
 
 const PW = 1240, PH = 1754;   // A4 @ 150 dpi
-const FONT = '-apple-system, "SF Pro Text", "Segoe UI", Roboto, "IBM Plex Sans Arabic", Arial, sans-serif';
+const FONT = '-apple-system, "SF Pro Text", "Segoe UI", Roboto, "Noto Sans Arabic", "IBM Plex Sans Arabic", Arial, sans-serif';
 const load = (src) => new Promise((res) => { if (!src) { res(null); return; } const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
 const page = () => { const c = document.createElement('canvas'); c.width = PW; c.height = PH; const g = c.getContext('2d'); g.fillStyle = '#ffffff'; g.fillRect(0, 0, PW, PH); return [c, g]; };
 const GRID = { 4: [2, 2], 6: [2, 3], 9: [3, 3] };
