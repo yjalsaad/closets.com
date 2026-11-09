@@ -8,7 +8,7 @@ import { Barcode128 } from './barcode128';
 import { handleError } from './errors';
 import { BrowserRouter, useLocation, useNavigate, Link } from 'react-router-dom';
 import ShowroomTour from './home/ShowroomTour';   // [HOME 2026-11-09] scroll-driven showroom walk-through
-import { useIkhLanding, IkhtarhaSpotlight, IkhtarhaPrizes, BusinessBand, CampaignPill } from './campaign/HomeCampaign';   // [IKHTARHA 2026-11-09] home page campaign + business sections
+import { useIkhLanding, IkhtarhaSpotlight, IkhtarhaDesigns, BusinessBand, CampaignPill } from './campaign/HomeCampaign';   // [IKHTARHA 2026-11-09] home page campaign + business sections
 
 // Guarded polyfills for browser APIs absent in non-browser/test (jsdom) environments.
 // Inert in real browsers (only defined when missing) — keeps the app rendering safely everywhere.
@@ -2315,14 +2315,14 @@ function Toasts() {
 }
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Kufam:wght@600;700;800&family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
   /* ── Typography [2026-10-31]: the platform UI font — SF Pro on Apple, Segoe UI on Windows, Roboto on Android / ChromeOS.
      One clear sans for body AND headings (Apple / Google style); Arabic uses SF Arabic on Apple, IBM Plex Sans Arabic elsewhere. ── */
-  :root { --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --font-ar-display: "Kufam", "Cairo", -apple-system, "SF Arabic", sans-serif; --font-ar: "Cairo", -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif; --font-display: var(--font-sans); --serif: var(--font-display); }
+  :root { --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --font-ar-display: "Alexandria", "IBM Plex Sans Arabic", -apple-system, "SF Arabic", sans-serif; --font-ar: "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "SF Arabic", "Segoe UI", Tahoma, sans-serif; --font-display: var(--font-sans); --serif: var(--font-display); }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  /* ── Arabic typography: Cairo for text; Kufam (close to the Ikhtarha logo lettering) for display headings, with room between lines ── */
+  /* ── Arabic typography [2026-11-09 brand kit]: IBM Plex Sans Arabic for text; Alexandria (the Ikhtarha campaign display face) for headings ── */
   html[lang="ar"] body, [dir="rtl"] { font-family: var(--font-ar); }
-  html[lang="ar"] .display, [dir="rtl"] .display { font-family: var(--font-ar-display); font-weight: 800; letter-spacing: 0; line-height: 1.4 !important; }
+  html[lang="ar"] .display, [dir="rtl"] .display { font-family: var(--font-ar-display); font-weight: 800; letter-spacing: 0; line-height: 1.3 !important; }
   html[lang="ar"] .eyebrow, [dir="rtl"] .eyebrow { font-family: var(--font-ar); }
   html { -webkit-tap-highlight-color: transparent; }
   /* ── RTL logical fixes (reach what inline styles don't) ── */
@@ -6574,7 +6574,7 @@ function HomeHub({ user, setUser, setPage }) {
 <title>Invoice ${esc(num)}</title>
 <style>
 :root{--brand:#F97316;--brand-d:#C2410C;--ink:#2C2017;--muted:#6F6157;--line:#E7DDCF;--head:#2C2017}
-*{box-sizing:border-box} body{font-family:${lang==='ar'?'\'Cairo\', -apple-system, BlinkMacSystemFont, \'SF Arabic\', \'IBM Plex Sans Arabic\', \'Segoe UI\', Tahoma, sans-serif':'-apple-system, BlinkMacSystemFont, \'SF Pro Text\', \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif'};color:var(--ink);margin:0;background:#fff}
+*{box-sizing:border-box} body{font-family:${lang==='ar'?'\'IBM Plex Sans Arabic\', -apple-system, BlinkMacSystemFont, \'SF Arabic\', \'IBM Plex Sans Arabic\', \'Segoe UI\', Tahoma, sans-serif':'-apple-system, BlinkMacSystemFont, \'SF Pro Text\', \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif'};color:var(--ink);margin:0;background:#fff}
 .page{max-width:820px;margin:0 auto;padding:36px 40px 0;position:relative}
 .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;border-bottom:3px solid var(--brand);padding-bottom:14px}
 .hd .co-l{display:flex;align-items:center;gap:14px;min-width:0}
@@ -8408,7 +8408,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
       <Hero setPage={setPage} banners={banners} />
       {/* [IKHTARHA 2026-11-09] live reward campaign — shows only while the campaign is live */}
       <IkhtarhaSpotlight cfg={ikh} lang={lang} mobile={mobile} cms={cms} setPage={setPage} />
-      <IkhtarhaPrizes cfg={ikh} lang={lang} cms={cms} />
+      <IkhtarhaDesigns cfg={ikh} lang={lang} cms={cms} setPage={setPage} />
       {/* [HOME 2026-11-09] walk into the showroom */}
       <ShowroomTour lang={lang} setPage={setPage} img={{ walkin: cms('home.tour.walkin', TOUR_IMG.walkin), kitchen: cms('home.tour.kitchen', TOUR_IMG.kitchen), living: cms('home.tour.living', TOUR_IMG.living), wardrobe: cms('home.tour.wardrobe', TOUR_IMG.wardrobe), door: cms('home.tour.door', TOUR_IMG.door) }} fallback={{ walkin: HOME_IMG.walkin, kitchen: HOME_IMG.kitchen, living: HOME_IMG.living, wardrobe: HERO_IMG.wardrobe, door: HERO_IMG.door }} />
 

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="علم مملكة البحرين يرفرف فوق تلة فيروزية" width="872" height="400" viewBox="0 0 872 400">
+<rect width="872" height="400" fill="#F1ECF8"></rect>
+<path d="M0 330 C200 300 360 350 520 325 C680 300 780 340 872 320 V400 H0Z" fill="#9FDDD8"></path>
+<rect x="246" y="40" width="10" height="300" rx="5" fill="#4A2C82"></rect>
+<path d="M256 50 C360 30 460 80 620 50 V230 C460 260 360 210 256 230 Z" fill="#CE1126"></path>
+<path d="M256 50 H330 L300 68 L330 86 L300 104 L330 122 L300 140 L330 158 L300 176 L330 194 L300 212 L330 230 H256 Z" fill="#FFFFFF"></path>
+<circle cx="120" cy="90" r="7" fill="#3FB6B0"></circle><circle cx="740" cy="80" r="8" fill="#7B5BB5"></circle><circle cx="700" cy="200" r="6" fill="#3FB6B0"></circle><circle cx="160" cy="220" r="6" fill="#7B5BB5"></circle>
+</svg>

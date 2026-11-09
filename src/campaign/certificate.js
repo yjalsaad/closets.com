@@ -5,13 +5,23 @@
 import qrcode from 'qrcode-generator';
 
 export const LOGO = (typeof window !== 'undefined' ? window.location.origin : 'https://closets-website.vercel.app') + '/brand/closets-logo-clear.png';
-const C = { orange: '#D9692F', burgundy: '#4B1F24', cream: '#F7F2EC', grey: '#EDEBE8', ink: '#2A1A1C', muted: '#7A6A66', gold: '#B8924E' };
+const C = { orange: '#23807C', burgundy: '#4A2C82', cream: '#FFFFFF', grey: '#F1ECF8', ink: '#3A1F6B', muted: '#6A4FA3', gold: '#9FDDD8' };   // [2026-11-09] Ekhtar-ha brand kit (purple · turquoise)
 const ORIGIN = LOGO.replace(/\/brand\/.*$/, '');
 /** campaign asset URL: absolute https, or a /brand/… path served by this app */
 export const assetUrl = (u) => (!u ? '' : /^https:\/\//.test(u) ? u : ORIGIN + (u.startsWith('/') ? u : '/' + u));
 const HEX = /^#[0-9A-Fa-f]{6}$/;
+
+/** [2026-11-09 brand kit] campaigns saved before the Ekhtar-ha kit still carry the old default pack (burgundy #5B1520 / orange #FF7A00 / beige):
+ *  treat that pack as "not customised" and use the kit colours instead. Any other (custom) colour is kept. */
+export const KIT = { primary: '#4A2C82', accent: '#23807C', sand: '#F1ECF8', taupe: '#9FDDD8', charcoal: '#3A1F6B' };
+const LEGACY = { primary: '#5B1520', accent: '#FF7A00', sand: '#EFE8E0', taupe: '#B9ADA1', charcoal: '#2D2D2D' };
+export function kitColours(b) {
+  const o = { ...(b || {}) };
+  Object.keys(KIT).forEach((k) => { if (!o[k] || String(o[k]).toUpperCase() === LEGACY[k]) o[k] = KIT[k]; });
+  return o;
+}
 /** inline CSS variables from a campaign brand (only well-formed hex values are used) */
-export const brandVars = (b) => { b = b || {}; const v = []; if (HEX.test(b.primary || '')) v.push('--ikh-b:' + b.primary); if (HEX.test(b.accent || '')) v.push('--ikh-o:' + b.accent); if (HEX.test(b.sand || '')) v.push('--ikh-s:' + b.sand); return v.join(';'); };
+export const brandVars = (b) => { b = kitColours(b); const v = []; if (HEX.test(b.primary || '')) v.push('--ikh-b:' + b.primary); if (HEX.test(b.accent || '')) v.push('--ikh-o:' + b.accent); if (HEX.test(b.sand || '')) v.push('--ikh-s:' + b.sand); return v.join(';'); };
 export const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export function qrSvg(text, cell = 4) {
   const q = qrcode(0, 'M'); q.addData(String(text)); q.make();
@@ -34,10 +44,10 @@ export function rewardSentence(r, ar) {
   return ar ? `لقد حصلت على: ${r.name_ar || r.name_en}` : `You won: ${r.name_en || r.name_ar}`;
 }
 
-const CSS = `
-.ikh-page,.ikh-invite{--ikh-b:#5B1520;--ikh-o:#FF7A00;--ikh-s:#F7F2EC}
+const FONTS = `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alexandria:wght@700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">`;
+const CSS = `.ikh-page,.ikh-invite{--ikh-b:#4A2C82;--ikh-o:#23807C;--ikh-s:#F1ECF8}
 .ikh-page{width:210mm;min-height:297mm;box-sizing:border-box;padding:16mm 16mm 14mm;margin:0 auto;background:var(--ikh-s);color:${C.ink};
-  font-family:"Cairo",-apple-system,BlinkMacSystemFont,"SF Arabic","IBM Plex Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif;position:relative;page-break-before:always;break-before:page;
+  font-family:"IBM Plex Sans Arabic",-apple-system,BlinkMacSystemFont,"SF Arabic","Segoe UI",Tahoma,Arial,sans-serif;position:relative;page-break-before:always;break-before:page;
   -webkit-print-color-adjust:exact;print-color-adjust:exact;overflow:hidden}
 .ikh-page *{box-sizing:border-box}
 .ikh-frame{position:absolute;inset:8mm;border:1.2px solid color-mix(in srgb,var(--ikh-b) 14%,transparent);border-radius:6mm;pointer-events:none}
@@ -48,11 +58,11 @@ const CSS = `
 .ikh-hero{margin:18mm 0 8mm;text-align:center;position:relative}
 .ikh-clogo{height:30mm;width:auto;display:block;margin:0 auto 4mm}
 .ikh-eyebrow{font-size:11pt;color:var(--ikh-o);font-weight:700;letter-spacing:.08em}
-.ikh-title{font-size:40pt;font-weight:800;color:var(--ikh-b);margin:2mm 0 1mm;line-height:1.1}
+.ikh-title{font-family:"Alexandria","IBM Plex Sans Arabic",sans-serif;font-size:40pt;font-weight:900;color:var(--ikh-b);margin:2mm 0 1mm;line-height:1.1}
 .ikh-sub{font-size:13pt;color:${C.ink}}
 .ikh-prize{margin:8mm auto 6mm;max-width:150mm;background:#fff;border-radius:6mm;padding:9mm 10mm;text-align:center;box-shadow:0 0 0 .6px color-mix(in srgb,var(--ikh-b) 14%,transparent);position:relative}
-.ikh-prize:before{content:"";position:absolute;inset-inline:0;top:0;height:2.2mm;border-radius:6mm 6mm 0 0;background:linear-gradient(90deg,var(--ikh-o),${C.gold},var(--ikh-b))}
-.ikh-value{font-size:46pt;font-weight:800;color:var(--ikh-o);line-height:1;margin:2mm 0}
+.ikh-prize:before{content:"";position:absolute;inset-inline:0;top:0;height:2.2mm;border-radius:6mm 6mm 0 0;background:var(--ikh-o)}
+.ikh-value{font-family:"Alexandria","IBM Plex Sans Arabic",sans-serif;font-size:46pt;font-weight:900;color:var(--ikh-o);line-height:1;margin:2mm 0}
 .ikh-name{font-size:15pt;font-weight:700;color:var(--ikh-b)}
 .ikh-desc{font-size:10.5pt;color:${C.muted};margin-top:2mm}
 .ikh-grid{display:grid;grid-template-columns:1fr 1fr;gap:3mm 8mm;max-width:150mm;margin:0 auto;font-size:10.5pt}
@@ -65,7 +75,7 @@ const CSS = `
 .ikh-ref{font-family:"SF Mono",Menlo,Consolas,monospace;letter-spacing:.04em;direction:ltr;unicode-bidi:embed;white-space:nowrap;font-size:.92em}
 .ikh-band{position:absolute;inset-inline:0;bottom:0;height:9mm;background:var(--ikh-b);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9pt;letter-spacing:.14em}
 .ikh-invite{border:1px solid color-mix(in srgb,var(--ikh-b) 20%,transparent);border-radius:5mm;padding:7mm 8mm;background:var(--ikh-s);display:grid;grid-template-columns:1fr 34mm;gap:6mm;align-items:center;
-  font-family:"Cairo",-apple-system,BlinkMacSystemFont,"SF Arabic","IBM Plex Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif;color:${C.ink};page-break-inside:avoid;break-inside:avoid;margin-top:8mm;
+  font-family:"IBM Plex Sans Arabic",-apple-system,BlinkMacSystemFont,"SF Arabic","Segoe UI",Tahoma,Arial,sans-serif;color:${C.ink};page-break-inside:avoid;break-inside:avoid;margin-top:8mm;
   -webkit-print-color-adjust:exact;print-color-adjust:exact}
 .ikh-invite h3{margin:0 0 1mm;font-size:16pt;color:var(--ikh-b)}
 .ikh-invite .k{display:inline-block;margin-top:2mm;padding:1.5mm 3mm;border-radius:2mm;background:#fff;border:1px dashed var(--ikh-o);font-weight:800;color:var(--ikh-o);font-size:12pt}
@@ -142,7 +152,7 @@ export function inviteBlock({ code, link, ends, ar = true, brand }) {
 export function certificateDocument(rewards, { ar = true, title, totalDiscount = null } = {}) {
   const list = Array.isArray(rewards) ? rewards : [rewards];
   return `<!doctype html><html dir="${ar ? 'rtl' : 'ltr'}" lang="${ar ? 'ar' : 'en'}"><head><meta charset="utf-8"><title>${esc(title || 'Ikhtarha')}</title>
-<style>html,body{margin:0;background:#e9e6e2}${CSS}.ikh-page:first-of-type{page-break-before:auto;break-before:auto}</style></head>
+${FONTS}<style>html,body{margin:0;background:#F1ECF8}${CSS}.ikh-page:first-of-type{page-break-before:auto;break-before:auto}</style></head>
 <body>${list.map((r) => certificatePage(r, { ar, totalDiscount })).join('')}${list.length ? policyPage({ ar, brand: list[0].brand }) : ''}<script>window.onload=function(){var im=[].slice.call(document.images);Promise.all(im.map(function(i){return i.complete?0:new Promise(function(r){i.onload=i.onerror=r;})})).then(function(){setTimeout(function(){window.print()},300)})}<\/script></body></html>`;
 }
 
@@ -154,8 +164,8 @@ export function appendToQuoteHtml(html, extraHtml) {
 
 /** "invite card" print for Quote+ quotations (customer_quotes) that have no OneQuote PDF to extend */
 export function inviteDocument({ code, link, ends, customer, quoteNo, ar = true, brand }) {
-  return `<!doctype html><html dir="${ar ? 'rtl' : 'ltr'}"><head><meta charset="utf-8"><title>Ikhtarha ${esc(code)}</title><style>
-  body{margin:0;font-family:"Cairo",-apple-system,BlinkMacSystemFont,"SF Arabic","IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;color:#2A1A1C}${CSS}
+  return `<!doctype html><html dir="${ar ? 'rtl' : 'ltr'}"><head><meta charset="utf-8"><title>Ikhtarha ${esc(code)}</title>${FONTS}<style>
+  body{margin:0;font-family:"IBM Plex Sans Arabic",-apple-system,BlinkMacSystemFont,"SF Arabic","Segoe UI",Tahoma,sans-serif;color:#3A1F6B}${CSS}
   .wrap{width:148mm;margin:12mm auto}.hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:4mm}.hd img{height:16mm}
   @page{size:A5 landscape;margin:0}</style></head><body><div class="wrap">
   <div class="hd"><img src="${LOGO}" alt="The Closets International"><div style="text-align:${ar ? 'left' : 'right'};font-size:10pt">${esc(customer || '')}<br><span class="ikh-ref">${esc(quoteNo || '')}</span></div></div>
@@ -189,7 +199,7 @@ export function policyPage({ ar = true, brand } = {}) {
   <div class="ikh-frame"></div>
   <div class="ikh-top"><img class="ikh-logo" src="${LOGO}" alt="The Closets International">${clogo ? `<img src="${esc(clogo)}" alt="" style="height:16mm;width:auto">` : `<span class="ikh-tag">${L('Policy', 'السياسة')}</span>`}</div>
   <h2 style="font-size:20pt;color:var(--ikh-b);margin:8mm 0 2mm;position:relative">${esc(POLICY.title[ar ? 1 : 0])}</h2>
-  <p style="font-size:10pt;color:#7A6A66;margin:0 0 4mm;position:relative">${esc(POLICY.intro[ar ? 1 : 0])}</p>
+  <p style="font-size:10pt;color:#6A4FA3;margin:0 0 4mm;position:relative">${esc(POLICY.intro[ar ? 1 : 0])}</p>
   <ol style="margin:0;padding-inline-start:6mm;font-size:9.6pt;line-height:1.55;position:relative">
     ${POLICY.items.map((x) => `<li style="margin:0 0 2.4mm"><b style="color:var(--ikh-b)">${esc(ar ? x[1] : x[0])}.</b> ${esc(ar ? x[3] : x[2])}</li>`).join('')}
   </ol>

@@ -11,18 +11,18 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
 const THEMES = {
-  walnut:   { wood: ['#5b3a26', '#3b2416'], inner: '#e9dccb', accent: '#D9692F', rim: '#7a2633', handle: '#c9a35a', bg: '#140b0c' },
-  oak:      { wood: ['#b88a58', '#8a6234'], inner: '#f1e6d6', accent: '#E07A3F', rim: '#6d2430', handle: '#c9a35a', bg: '#170e0c' },
-  ivory:    { wood: ['#efe8dc', '#d9cfbf'], inner: '#fbf7f1', accent: '#D9692F', rim: '#4B1F24', handle: '#b8924e', bg: '#120a0b', lacquer: true },
-  charcoal: { wood: ['#3a3634', '#262322'], inner: '#d8cdc0', accent: '#C9702E', rim: '#5a1d26', handle: '#b87333', bg: '#0e0a0a' },
+  walnut:   { wood: ['#5b3a26', '#3b2416'], inner: '#e9dccb', accent: '#3FB6B0', rim: '#4A2C82', handle: '#c9a35a', bg: '#1A0D33' },
+  oak:      { wood: ['#b88a58', '#8a6234'], inner: '#f1e6d6', accent: '#3FB6B0', rim: '#4A2C82', handle: '#c9a35a', bg: '#1A0D33' },
+  ivory:    { wood: ['#efe8dc', '#d9cfbf'], inner: '#fbf7f1', accent: '#3FB6B0', rim: '#4A2C82', handle: '#b8924e', bg: '#1A0D33', lacquer: true },
+  charcoal: { wood: ['#3a3634', '#262322'], inner: '#d8cdc0', accent: '#3FB6B0', rim: '#4A2C82', handle: '#b87333', bg: '#1A0D33' },
 };
 const BOX_PALETTE = [
-  { body: '#D9692F', ribbon: '#f6efe5', rough: 0.45 },   // orange satin, cream ribbon
-  { body: '#4B1F24', ribbon: '#c9a35a', rough: 0.7 },    // burgundy velvet, gold ribbon
-  { body: '#f3ece2', ribbon: '#D9692F', rough: 0.5 },    // cream, orange ribbon
-  { body: '#b8924e', ribbon: '#4B1F24', rough: 0.3, metal: 0.6 }, // gold, burgundy ribbon
-  { body: '#6b2a33', ribbon: '#f3ece2', rough: 0.6 },    // wine, cream ribbon
-  { body: '#e4884f', ribbon: '#4B1F24', rough: 0.45 },   // light orange, burgundy ribbon
+  { body: '#3FB6B0', ribbon: '#4A2C82', rough: 0.45 },   // [2026-11-09 brand kit] turquoise, purple ribbon
+  { body: '#7B5BB5', ribbon: '#3FB6B0', rough: 0.6 },    // purple, turquoise ribbon
+  { body: '#FFFFFF', ribbon: '#3FB6B0', rough: 0.5 },    // white, turquoise ribbon
+  { body: '#4A2C82', ribbon: '#9FDDD8', rough: 0.4 },    // deep purple, light turquoise ribbon
+  { body: '#23807C', ribbon: '#FFFFFF', rough: 0.5 },    // dark turquoise, white ribbon
+  { body: '#9A86C4', ribbon: '#4A2C82', rough: 0.45 },   // lavender, purple ribbon
 ];
 /** box finishes from the campaign colours (Bonsai → campaign identity); falls back to the default palette */
 const HEX = /^#[0-9A-Fa-f]{6}$/;
@@ -30,7 +30,7 @@ function brandPalette(b) {
   if (!b || !HEX.test(b.primary || '') || !HEX.test(b.accent || '')) return BOX_PALETTE;
   const sand = HEX.test(b.sand || '') ? b.sand : '#f3ece2'; const taupe = HEX.test(b.taupe || '') ? b.taupe : '#b8924e';
   return [
-    { body: b.accent, ribbon: sand, rough: 0.45 }, { body: b.primary, ribbon: '#c9a35a', rough: 0.7 }, { body: sand, ribbon: b.accent, rough: 0.5 },
+    { body: b.accent, ribbon: sand, rough: 0.45 }, { body: b.primary, ribbon: '#3FB6B0', rough: 0.7 }, { body: sand, ribbon: b.accent, rough: 0.5 },
     { body: taupe, ribbon: b.primary, rough: 0.35, metal: 0.3 }, { body: b.primary, ribbon: sand, rough: 0.6 }, { body: b.accent, ribbon: b.primary, rough: 0.4 },
   ];
 }
@@ -88,7 +88,7 @@ export function createWardrobe(host, opts = {}) {
   const camera = new THREE.PerspectiveCamera(mobile ? 46 : 36, host.clientWidth / host.clientHeight, 0.05, 60);
 
   // ── lights ──
-  scene.add(new THREE.HemisphereLight('#ffe9d6', '#1b0f10', 0.35));
+  scene.add(new THREE.HemisphereLight('#ffe9d6', '#1A0D33', 0.35));
   const key = new THREE.SpotLight('#fff1e2', 26, 16, Math.PI / 7, 0.55, 1.6); key.position.set(-1.6, 5.2, 4.2); key.castShadow = !mobile; key.shadow.mapSize.set(1024, 1024); key.shadow.bias = -0.0004;
   key.target.position.set(0, 1.2, 0); scene.add(key, key.target);
   const accent = new THREE.PointLight(theme.accent, 7, 9, 2); accent.position.set(-3.2, 1.6, 1.4); scene.add(accent);
@@ -96,9 +96,9 @@ export function createWardrobe(host, opts = {}) {
   const burst = new THREE.PointLight('#ffd8a6', 0, 6, 2); scene.add(burst);
 
   // ── floor ──
-  const floor = new THREE.Mesh(new THREE.CircleGeometry(9, 64), new THREE.MeshStandardMaterial({ color: '#1d1314', roughness: 0.32, metalness: 0.1 }));
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(9, 64), new THREE.MeshStandardMaterial({ color: '#21123F', roughness: 0.32, metalness: 0.1 }));
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
-  const pool = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 5.5), new THREE.MeshBasicMaterial({ map: glowTexture('#d9692f'), transparent: true, opacity: 0.18, depthWrite: false }));
+  const pool = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 5.5), new THREE.MeshBasicMaterial({ map: glowTexture('#3FB6B0'), transparent: true, opacity: 0.18, depthWrite: false }));
   pool.rotation.x = -Math.PI / 2; pool.position.set(0, 0.005, 0.6); scene.add(pool);
 
   // ── wardrobe ──
@@ -114,7 +114,7 @@ export function createWardrobe(host, opts = {}) {
   panel(T, H, D, wood, -W / 2 + T / 2, base + H / 2, 0); panel(T, H, D, wood, W / 2 - T / 2, base + H / 2, 0);
   panel(W, T, D, wood, 0, base + H - T / 2, 0); panel(W, T, D, wood, 0, base + T / 2, 0); panel(W - 2 * T, H - 2 * T, 0.02, inner, 0, base + H / 2, -D / 2 + 0.01);
   panel(W + 0.08, 0.07, D + 0.08, wood, 0, base + H + 0.035, 0.0);                     // crown
-  panel(W - 0.06, base, D - 0.06, new THREE.MeshStandardMaterial({ color: '#120b0b', roughness: 0.6 }), 0, base / 2, 0); // plinth
+  panel(W - 0.06, base, D - 0.06, new THREE.MeshStandardMaterial({ color: '#1A0D33', roughness: 0.6 }), 0, base / 2, 0); // plinth
 
   // shelves + LED strips
   const rows = n <= 4 ? 1 : n <= 9 ? 3 : 4;
@@ -170,9 +170,9 @@ export function createWardrobe(host, opts = {}) {
     const bowGeo = new THREE.TorusGeometry(size * 0.15, size * 0.04, 10, 24);
     [-1, 1].forEach((s2) => { const b = new THREE.Mesh(bowGeo, rm); b.position.set(s2 * size * 0.13, size * 0.17, 0); b.rotation.set(Math.PI / 2.4, 0, s2 * 0.6); lid.add(b); });
     const knot = new THREE.Mesh(new THREE.SphereGeometry(size * 0.06, 16, 12), rm); knot.position.y = size * 0.14; lid.add(knot);
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(size * 0.75, size * 0.025, 8, 48), new THREE.MeshBasicMaterial({ color: '#ffb36b', transparent: true, opacity: 0 }));
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(size * 0.75, size * 0.025, 8, 48), new THREE.MeshBasicMaterial({ color: '#9FDDD8', transparent: true, opacity: 0 }));
     ring.rotation.x = Math.PI / 2; ring.position.y = -size * 0.5; g.add(ring);
-    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture('#ffb36b'), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture('#3FB6B0'), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
     halo.scale.set(size * 3, size * 3, 1); g.add(halo);
     g.add(body, rb1, rb2, lid); wardrobe.add(g);
     boxes.push({ g, body, lid, ring, halo, bodyMat, size });
@@ -181,7 +181,7 @@ export function createWardrobe(host, opts = {}) {
   // particles for the reveal
   const PN = mobile ? 160 : 320; const pGeo = new THREE.BufferGeometry(); const pPos = new Float32Array(PN * 3); const pVel = new Float32Array(PN * 3);
   pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-  const pCols = new Float32Array(PN * 3); const palette = ['#ffcf7a', '#D9692F', '#f6efe5', '#c9a35a'].map((c) => new THREE.Color(c));
+  const pCols = new Float32Array(PN * 3); const palette = ['#3FB6B0', '#7B5BB5', '#FFFFFF', '#9FDDD8'].map((c) => new THREE.Color(c));
   for (let i = 0; i < PN; i++) { const c = palette[i % palette.length]; pCols[i * 3] = c.r; pCols[i * 3 + 1] = c.g; pCols[i * 3 + 2] = c.b; }
   pGeo.setAttribute('color', new THREE.BufferAttribute(pCols, 3));
   const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ size: 0.035, vertexColors: true, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));

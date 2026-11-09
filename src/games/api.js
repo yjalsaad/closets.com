@@ -1,5 +1,5 @@
 /* [IKHTARHA GAMES 2026-11-09] Games Hub data access — public RPCs only: ikg_hub, ikg_enter, ikg_state, ikg_game_prizes, ikg_play, ikg_verify.
- * The browser sends the customer's name + quotation number once, then a short-lived session token, the chosen game and (for some games)
+ * The browser sends the customer's name + mobile number (quotation number optional, or required if the admin says so) once, then a short-lived session token, the chosen game and (for some games)
  * the position they picked. It never sends or decides a prize: ikg_play draws it on the server.
  * Demo: /ikhtarha/games?demo=1 runs every game with local sample prizes — nothing is sent, drawn or saved. */
 import { SUPA_URL, SUPA_KEY } from '../studio/hub/supaConfig';
@@ -26,12 +26,12 @@ const demoPlays = {}; let demoName = 'Guest';
 const demoGames = () => GAME_IDS.map((id, i) => ({ id, enabled: true, sort: i, attempts: 1, used: demoPlays[id] ? 1 : 0, state: demoPlays[id] ? 'played' : 'available' }));
 const later = (ms, v) => new Promise((r) => setTimeout(() => r(v), ms));
 
-export const hub = () => (DEMO ? later(200, { live: true, name_ar: 'اختارها', name_en: 'Ikhtarha', games: demoGames(), brand: {} }) : rpc('ikg_hub'));
+export const hub = () => (DEMO ? later(200, { live: true, require_quote: false, name_ar: 'اختارها', name_en: 'Ikhtarha', games: demoGames(), brand: {} }) : rpc('ikg_hub'));
 export const enter = (p) => (DEMO
-  ? later(600, { ok: true, token: 'demo', first_name: (demoName = String((p && p.name) || 'Guest').trim().split(/\s+/)[0]), quote_no: 'QT-SAMPLE', games: demoGames() })
+  ? later(600, { ok: true, token: 'demo', first_name: (demoName = String((p && p.name) || 'Guest').trim().split(/\s+/)[0]), quote_no: (p && p.quote_no) || null, phone_tail: String((p && p.phone) || '').replace(/\D/g, '').slice(-4) || '2233', games: demoGames() })
   : rpc('ikg_enter', { p }));
 export const state = (token) => (DEMO
-  ? later(150, { ok: true, games: demoGames(), wins: Object.values(demoPlays).filter((x) => x.won), first_name: demoName, quote_no: 'QT-SAMPLE', live: true })
+  ? later(150, { ok: true, games: demoGames(), wins: Object.values(demoPlays).filter((x) => x.won), first_name: demoName, quote_no: null, phone_tail: '2233', live: true })
   : rpc('ikg_state', { p: { token } }));
 export const gamePrizes = (token, game) => (DEMO ? later(150, { ok: true, prizes: SAMPLE.map((x, i) => ({ ...x, id: 'demo-' + i })) }) : rpc('ikg_game_prizes', { p: { token, game } }));
 export const play = (token, game, pick) => {
@@ -40,8 +40,8 @@ export const play = (token, game, pick) => {
   const i = Math.floor(Math.random() * SAMPLE.length); const s = SAMPLE[i];
   const won = s.type !== 'none';
   const res = { ...s, game, won, prize_id: 'demo-' + i, code: won ? 'SAMPLE-' + new Date().getFullYear() + '-00000' + (Object.keys(demoPlays).length + 1) : null,
-    discount_amount: s.type === 'fixed' ? s.value : s.type === 'percent' ? 60 : 0, expires_at: won ? new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10) : null,
-    quote_no: 'QT-SAMPLE', customer_name: 'Sample Customer', verify_token: '' };
+    discount_amount: s.type === 'fixed' ? s.value : 0, expires_at: won ? new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10) : null,
+    quote_no: null, phone_tail: '2233', customer_name: 'Sample Customer', verify_token: '' };
   demoPlays[game] = res;
   return later(500, { ok: true, result: res, games: demoGames() });
 };

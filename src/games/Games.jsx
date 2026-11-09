@@ -40,7 +40,7 @@ const wheelLabel = (s, ar) => {
   for (const x of w) { if ((o + ' ' + x).trim().length > 15) break; o = (o + ' ' + x).trim(); }
   return o || w[0];
 };
-const SEG = ['#4B1F24', '#D9692F', '#7A2230', '#E8874F', '#3E0E16', '#C75E27'];
+const SEG = ['#4A2C82', '#3FB6B0', '#7B5BB5', '#9FDDD8', '#3A1F6B', '#23807C'];
 export function SpinWin({ ar, onPlay, onDone, prizes = [] }) {
   const segs = prizes.length ? prizes : [{ id: 'x', name_en: '?', name_ar: '؟' }];
   const n = segs.length; const a = 360 / n;
@@ -68,16 +68,16 @@ export function SpinWin({ ar, onPlay, onDone, prizes = [] }) {
       <div className="g-wheel-wrap">
         <span className="g-pointer" aria-hidden="true" />
         <svg viewBox="0 0 320 320" className="g-wheel" style={{ transform: `rotate(${rot}deg)`, transitionDuration: reduced() ? '0.6s' : '5.6s' }} aria-hidden="true">
-          <circle cx={C} cy={C} r={R + 8} fill="#2A1416" />
+          <circle cx={C} cy={C} r={R + 8} fill="#2A1650" />
           {segs.map((s, i) => (
             <g key={s.id + i}>
-              <path d={path(i)} fill={SEG[i % SEG.length]} stroke="#F7F2EC" strokeOpacity=".35" />
+              <path d={path(i)} fill={SEG[i % SEG.length]} stroke="#FFFFFF" strokeOpacity=".35" />
               <text x={C} y={C - R + 34} fill="#fff" fontSize={n > 8 ? 10 : 12} fontWeight="700" textAnchor="middle" transform={`rotate(${i * a + a / 2} ${C} ${C})`}>
                 {wheelLabel(s, ar)}
               </text>
             </g>
           ))}
-          {Array.from({ length: 24 }, (_, i) => <circle key={i} cx={C + (R + 4) * Math.cos((i * 15 * Math.PI) / 180)} cy={C + (R + 4) * Math.sin((i * 15 * Math.PI) / 180)} r="2.6" fill={i % 2 ? '#FFD7B0' : '#fff'} className="g-bulb" style={{ '--i': i }} />)}
+          {Array.from({ length: 24 }, (_, i) => <circle key={i} cx={C + (R + 4) * Math.cos((i * 15 * Math.PI) / 180)} cy={C + (R + 4) * Math.sin((i * 15 * Math.PI) / 180)} r="2.6" fill={i % 2 ? '#9FDDD8' : '#fff'} className="g-bulb" style={{ '--i': i }} />)}
         </svg>
         <button type="button" className="g-hubbtn" onClick={spin} disabled={busy} data-testid="g-spin">{busy ? '…' : T(ar, 'SPIN', 'لُف')}</button>
       </div>
@@ -110,7 +110,7 @@ export function LuckyKey({ ar, onPlay, onDone }) {
         {Array.from({ length: 5 }, (_, i) => (
           <button key={i} type="button" className={'g-key' + (pick === i ? ' is-pick' : pick != null ? ' is-other' : '')} onClick={() => go(i)} disabled={phase !== 'choose'}
             aria-label={T(ar, `Key ${i + 1}`, `المفتاح ${i + 1}`)} data-testid="g-key" style={{ '--i': i }}>
-            <svg viewBox="0 0 40 110" aria-hidden="true"><defs><linearGradient id={'kg' + i} x1="0" x2="1"><stop offset="0" stopColor="#B07A2A" /><stop offset=".5" stopColor="#FFE2A8" /><stop offset="1" stopColor="#B07A2A" /></linearGradient></defs>
+            <svg viewBox="0 0 40 110" aria-hidden="true"><defs><linearGradient id={'kg' + i} x1="0" x2="1"><stop offset="0" stopColor="#23807C" /><stop offset=".5" stopColor="#9FDDD8" /><stop offset="1" stopColor="#23807C" /></linearGradient></defs>
               <circle cx="20" cy="18" r="14" fill="none" stroke={`url(#kg${i})`} strokeWidth="7" /><rect x="17" y="30" width="6" height="66" rx="3" fill={`url(#kg${i})`} />
               <rect x="23" y="74" width="10" height="5" rx="2" fill={`url(#kg${i})`} /><rect x="23" y="86" width="7" height="5" rx="2" fill={`url(#kg${i})`} /></svg>
           </button>
@@ -165,7 +165,7 @@ export function MemoryMatch({ ar, onPlay, onDone }) {
 }
 
 /* ─────────── 6. Lucky Claw ─────────── */
-const CAPS = ['#D9692F', '#4B1F24', '#F7F2EC', '#C9A35A', '#E8874F', '#7A2230', '#C75E27'];
+const CAPS = ['#3FB6B0', '#4A2C82', '#FFFFFF', '#3FB6B0', '#9FDDD8', '#7B5BB5', '#23807C'];
 export function LuckyClaw({ ar, onPlay, onDone }) {
   const [x, setX] = useState(50); const [phase, setPhase] = useState('aim'); const [held, setHeld] = useState(null); const [res, setRes] = useState(null);
   const caps = useMemo(() => Array.from({ length: 7 }, (_, i) => ({ i, left: 10 + i * 13 + (i % 2 ? 2 : -2), row: i % 2 })), []);

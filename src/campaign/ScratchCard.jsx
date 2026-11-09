@@ -14,7 +14,7 @@ export default function ScratchCard({ ar, brand = {}, gameName, firstName, drawL
   const [reward, setReward] = useState(null); const [started, setStarted] = useState(false); const [cleared, setCleared] = useState(false);
   const [pct, setPct] = useState(0); const done = useRef(false); const req = useRef(null);
   const T = (en, a) => (ar ? a : en);
-  const accent = HEX.test(brand.accent || '') ? brand.accent : '#FF7A00'; const primary = HEX.test(brand.primary || '') ? brand.primary : '#5B1520';
+  const accent = HEX.test(brand.accent || '') ? brand.accent : '#23807C'; const primary = HEX.test(brand.primary || '') ? brand.primary : '#4A2C82';
 
   // paint the foil
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function ScratchCard({ ar, brand = {}, gameName, firstName, drawL
       const g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.globalCompositeOperation = 'source-over';
       const w = r.width, h = r.height;
       const gr = g.createLinearGradient(0, 0, w, h);
-      gr.addColorStop(0, shade(accent, -0.25)); gr.addColorStop(0.35, shade(accent, 0.35)); gr.addColorStop(0.5, '#ffe7c4'); gr.addColorStop(0.65, shade(accent, 0.2)); gr.addColorStop(1, shade(accent, -0.35));
+      gr.addColorStop(0, shade(accent, -0.25)); gr.addColorStop(0.35, shade(accent, 0.35)); gr.addColorStop(0.5, '#9FDDD8'); gr.addColorStop(0.65, shade(accent, 0.2)); gr.addColorStop(1, shade(accent, -0.35));
       g.fillStyle = gr; g.fillRect(0, 0, w, h);
       g.globalAlpha = 0.12; g.strokeStyle = '#ffffff'; g.lineWidth = 1;
       for (let x = -h; x < w; x += 7) { g.beginPath(); g.moveTo(x, h); g.lineTo(x + h, 0); g.stroke(); }
@@ -66,7 +66,7 @@ export default function ScratchCard({ ar, brand = {}, gameName, firstName, drawL
   const dust = (x, y) => {
     if (reduced || !wrap.current) return;
     const s = document.createElement('span'); s.className = 'ik-sc-dust'; s.style.left = x + 'px'; s.style.top = y + 'px';
-    s.style.setProperty('--dx', (Math.random() * 40 - 20) + 'px'); s.style.background = Math.random() < 0.5 ? accent : '#ffe7c4';
+    s.style.setProperty('--dx', (Math.random() * 40 - 20) + 'px'); s.style.background = Math.random() < 0.5 ? accent : '#9FDDD8';
     wrap.current.appendChild(s); setTimeout(() => s.remove(), 700);
   };
   const scratch = (ev) => {

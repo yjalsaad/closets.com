@@ -13,8 +13,10 @@ const LANG_KEY = 'closets_lang';
 const BASE = '/ikhtarha/games';
 const S = {
   title: ['Choose your game', 'اختر لعبتك'], sub: ['Your next surprise is just one game away.', 'مفاجأتك القادمة على بُعد لعبة واحدة.'],
-  enterT: ['Enter the Games Hub', 'ادخل إلى صالة الألعاب'], enterS: ['Use the name and quotation number on your The Closets quotation.', 'استخدم الاسم ورقم عرض السعر الموجودين في عرض السعر من الخزائن العالمية.'],
-  name: ['Your name', 'اسمك'], quote: ['Quotation number', 'رقم عرض السعر'], go: ['Enter', 'دخول'], checking: ['Checking…', 'جارٍ التحقق…'],
+  enterT: ['Enter the Games Hub', 'ادخل إلى صالة الألعاب'], enterS: ['Enter your name and mobile number to play. Have a The Closets quotation? Add its number too.', 'أدخل اسمك ورقم جوالك للعب. لديك عرض سعر من الخزائن؟ أضف رقمه أيضًا.'], enterQ: ['Use the name and quotation number on your The Closets quotation.', 'استخدم الاسم ورقم عرض السعر الموجودين في عرض السعر من الخزائن.'],
+  name: ['Your name', 'اسمك'], quote: ['Quotation number', 'رقم عرض السعر'], quoteOpt: ['Quotation number (optional)', 'رقم عرض السعر (اختياري)'], phone: ['Mobile number', 'رقم الجوال'], mobile: ['Mobile', 'الجوال'],
+  invalid_phone: ['Please enter a valid mobile number.', 'من فضلك أدخل رقم جوال صحيح.'], invalid_name: ['Please enter your name.', 'من فضلك أدخل اسمك.'],
+  quote_required: ['Please enter your quotation number.', 'من فضلك أدخل رقم عرض السعر.'], go: ['Enter', 'دخول'], checking: ['Checking…', 'جارٍ التحقق…'],
   invalid: ['We couldn’t match that name and quotation number. Check both and try again.', 'لم نتمكن من مطابقة الاسم ورقم عرض السعر. تأكد منهما وحاول مرة أخرى.'],
   not_eligible: ['This quotation isn’t eligible for the games yet. Ask your consultant.', 'عرض السعر هذا غير مؤهل للألعاب بعد. تواصل مع مستشارك.'],
   closed: ['The Games Hub is closed right now.', 'صالة الألعاب مغلقة حاليًا.'], expired: ['The Games Hub has ended. Thank you for playing.', 'انتهت صالة الألعاب. شكرًا لمشاركتك.'],
@@ -26,7 +28,7 @@ const S = {
   left: ['{n} left', 'متبقي {n}'], back: ['Back to games', 'العودة للألعاب'], how: ['How to play', 'طريقة اللعب'], sound: ['Sound', 'الصوت'],
   won: ['You won!', 'مبروك! ربحت'], lost: ['Not this time', 'ليس هذه المرة'], lostS: ['Thanks for playing — try another game.', 'شكرًا لمشاركتك — جرّب لعبة أخرى.'],
   code: ['Winning code', 'رمز الفوز'], valid: ['Valid until', 'صالحة حتى'], disc: ['Discount value', 'قيمة الخصم'], quoteNo: ['Quotation', 'عرض السعر'],
-  keep: ['Show this code when you confirm your order. It’s saved with your quotation.', 'اعرض هذا الرمز عند تأكيد طلبك. تم حفظه مع عرض السعر الخاص بك.'],
+  keep: ['Show this code with your mobile number at The Closets when you order.', 'اعرض هذا الرمز مع رقم جوالك في الخزائن عند الطلب.'],
   yourPrizes: ['Your prizes', 'جوائزك'], sample: ['Sample preview — prizes here are not real', 'معاينة تجريبية — الجوائز هنا ليست حقيقية'],
   extra: ['An extra activity of the Ikhtarha campaign — separate from your reward box.', 'نشاط إضافي في حملة اختارها — منفصل عن صندوق جائزتك.'],
   verifyT: ['Prize check', 'التحقق من الجائزة'], vValid: ['Valid prize', 'جائزة صالحة'], vRedeemed: ['Already used', 'تم استخدامها'], vExpired: ['Expired', 'منتهية'], vBad: ['We couldn’t verify this prize.', 'تعذّر التحقق من هذه الجائزة.'],
@@ -50,7 +52,7 @@ export default function GamesRoot() {
   useEffect(() => { document.documentElement.lang = ar ? 'ar' : 'en'; document.documentElement.dir = ar ? 'rtl' : 'ltr'; document.title = (ar ? 'ألعاب اختارها' : 'Ikhtarha Games') + ' — The Closets'; }, [ar]);
   useEffect(() => {
     if (!document.getElementById('ikg-font')) { const l = document.createElement('link'); l.id = 'ikg-font'; l.rel = 'stylesheet';
-      l.href = 'https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Kufam:wght@600;700;800&family=Cairo:wght@400;500;600;700&display=swap'; document.head.appendChild(l); }
+      l.href = 'https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Alexandria:wght@500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap'; document.head.appendChild(l); }
     api.hub().then(setHub).catch(() => setHub(null));
     const onPop = () => setSlug(route()); window.addEventListener('popstate', onPop); return () => window.removeEventListener('popstate', onPop);
   }, []);
@@ -70,9 +72,10 @@ export default function GamesRoot() {
   const game = slug ? GAMES.find((g) => g.id === slug) : null;
 
   return (
-    <div className="ikg" dir={ar ? 'rtl' : 'ltr'} lang={ar ? 'ar' : 'en'}>
+    <div className="ikg" dir={ar ? 'rtl' : 'ltr'} lang={ar ? 'ar' : 'en'} style={{ backgroundImage: 'url(/brand/ikhtarha/banner.jpg)' }}>
       {api.DEMO && <div className="ikg-demo" role="note">{t('sample', ar)}</div>}
       <header className="ikg-head">
+        {!game && <a href="/" className="ikg-home" data-testid="ikg-home"><span aria-hidden="true">{ar ? '→' : '←'}</span><em>{ar ? 'العودة للموقع' : 'Back to website'}</em></a>}
         <a href="/" className="ikg-logo" aria-label="The Closets"><img src="/brand/closets-logo-white.png" alt="The Closets" /></a>
         <button type="button" className="ikg-brand" onClick={() => nav(null)}><img src="/brand/ikhtarha/logo-light.png" alt={ar ? 'اختارها' : 'Ikhtarha'} /></button>
         <span className="ikg-grow" />
@@ -83,7 +86,7 @@ export default function GamesRoot() {
         {hub === undefined ? <div className="ikg-center"><span className="ikg-spin" aria-label={t('loading', ar)} /></div>
           : !hub ? <Notice ar={ar} k="failed" onRetry={() => { setHub(undefined); api.hub().then(setHub).catch(() => setHub(null)); }} />
           : !hub.live ? <Notice ar={ar} k="closed" />
-          : !sess ? <Enter ar={ar} msg={msg} onIn={(s) => { api.saveSession(s); setMsg(null); setSess(s); setSt({ ok: true, games: s.games, wins: [], first_name: s.first_name, quote_no: s.quote_no }); }} />
+          : !sess ? <Enter ar={ar} msg={msg} req={!!hub.require_quote} onIn={(s) => { api.saveSession(s); setMsg(null); setSess(s); setSt({ ok: true, games: s.games, wins: [], first_name: s.first_name, quote_no: s.quote_no, phone_tail: s.phone_tail }); }} />
           : game ? <Play ar={ar} game={game} sess={sess} st={st} hub={hub} onBack={() => { refresh(); nav(null); }} onRefresh={refresh} />
           : <Hub ar={ar} st={st} onPlay={nav} onOut={() => { api.clearSession(); setSess(null); setSt(null); }} />}
       </main>
@@ -96,14 +99,16 @@ function Notice({ ar, k, onRetry }) {
   return <div className="ikg-center"><div className="ikg-panel ikg-notice" role="status"><h2>{t(k, ar)}</h2>{onRetry && <button type="button" className="ikg-btn ikg-btn-main" onClick={onRetry}>{t('retry', ar)}</button>}<a className="ikg-link" href="/campaign/ikhtarha">{ar ? 'صفحة حملة اختارها' : 'Ikhtarha campaign page'}</a></div></div>;
 }
 
-function Enter({ ar, msg, onIn }) {
-  const [f, setF] = useState(api.DEMO ? { name: 'Sara', quote_no: 'QT-SAMPLE', website: '' } : { name: '', quote_no: '', website: '' });
+function Enter({ ar, msg, onIn, req }) {
+  const [f, setF] = useState(api.DEMO ? { name: 'Sara', phone: '3311 2233', quote_no: '', website: '' } : { name: '', phone: '', quote_no: '', website: '' });
   const [busy, setBusy] = useState(false); const [err, setErr] = useState(msg);
   const submit = async (e) => {
     e.preventDefault(); if (busy) return;
-    if (!f.name.trim() || !f.quote_no.trim()) { setErr('invalid'); return; }
+    if (f.name.trim().length < 2) { setErr('invalid_name'); return; }
+    if (req && !f.quote_no.trim()) { setErr('quote_required'); return; }
+    if (!req && !f.quote_no.trim() && f.phone.replace(/\D/g, '').length < 8) { setErr('invalid_phone'); return; }
     setBusy(true); setErr(null);
-    try { const r = await api.enter({ name: f.name.trim(), quote_no: f.quote_no.trim(), website: f.website });
+    try { const r = await api.enter({ name: f.name.trim(), phone: f.phone.trim(), quote_no: f.quote_no.trim(), website: f.website });
       if (r && r.ok) { sfx('match'); onIn(r); } else setErr((r && r.state) || 'invalid');
     } catch (er) { setErr('failed'); } finally { setBusy(false); }
   };
@@ -116,9 +121,10 @@ function Enter({ ar, msg, onIn }) {
         <div className="ikg-hero-stack" aria-hidden="true">{GAMES.map((g, i) => <span key={g.id} className={'ikg-prev ikg-prev-' + g.id} style={{ '--i': i }}><Preview id={g.id} /></span>)}</div>
       </div>
       <form className="ikg-panel ikg-form" onSubmit={submit} noValidate aria-busy={busy}>
-        <h2>{t('enterT', ar)}</h2><p className="ikg-muted">{t('enterS', ar)}</p>
+        <h2>{t('enterT', ar)}</h2><p className="ikg-muted">{t(req ? 'enterQ' : 'enterS', ar)}</p>
         <label>{t('name', ar)}<input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} autoComplete="name" maxLength={120} required data-testid="ikg-name" /></label>
-        <label>{t('quote', ar)}<input value={f.quote_no} onChange={(e) => setF({ ...f, quote_no: e.target.value })} dir="ltr" autoCapitalize="characters" maxLength={40} required data-testid="ikg-quote" /></label>
+        {!req && <label>{t('phone', ar)}<input value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} type="tel" inputMode="tel" autoComplete="tel" dir="ltr" placeholder="3XXX XXXX" maxLength={20} required data-testid="ikg-phone" /></label>}
+        <label>{t(req ? 'quote' : 'quoteOpt', ar)}<input value={f.quote_no} onChange={(e) => setF({ ...f, quote_no: e.target.value })} dir="ltr" autoCapitalize="characters" maxLength={40} required={req} data-testid="ikg-quote" /></label>
         <input className="ikg-hp" tabIndex={-1} autoComplete="off" value={f.website} onChange={(e) => setF({ ...f, website: e.target.value })} aria-hidden="true" />
         {err && <div className="ikg-err" role="alert">{t(err, ar)}</div>}
         <button type="submit" className="ikg-btn ikg-btn-main ikg-wide" disabled={busy} data-testid="ikg-go">{busy ? t('checking', ar) : t('go', ar)}</button>
@@ -134,7 +140,7 @@ function Hub({ ar, st, onPlay, onOut }) {
   return (
     <section className="ikg-hub">
       <div className="ikg-hub-head">
-        <p className="ikg-eyebrow">{t('hello', ar, { n: st.first_name || '' })} · <bdi dir="ltr">{st.quote_no}</bdi> · <button type="button" className="ikg-link" onClick={onOut}>{t('change', ar)}</button></p>
+        <p className="ikg-eyebrow">{t('hello', ar, { n: st.first_name || '' })} · <bdi dir="ltr">{st.quote_no || (st.phone_tail ? '•••• ' + st.phone_tail : '')}</bdi> · <button type="button" className="ikg-link" onClick={onOut}>{t('change', ar)}</button></p>
         <h1 className="ikg-display">{t('title', ar)}</h1>
         <p className="ikg-lead">{t('sub', ar)}</p>
       </div>
@@ -208,7 +214,7 @@ function Result({ ar, r, onBack }) {
         {won && (
           <dl className="ikg-facts">
             <div><dt>{t('code', ar)}</dt><dd dir="ltr" data-testid="ikg-code">{r.code}</dd></div>
-            <div><dt>{t('quoteNo', ar)}</dt><dd dir="ltr">{r.quote_no}</dd></div>
+            {r.quote_no ? <div><dt>{t('quoteNo', ar)}</dt><dd dir="ltr">{r.quote_no}</dd></div> : r.phone_tail ? <div><dt>{t('mobile', ar)}</dt><dd dir="ltr">•••• {r.phone_tail}</dd></div> : null}
             {r.expires_at && <div><dt>{t('valid', ar)}</dt><dd>{new Date(r.expires_at).toLocaleDateString(ar ? 'ar-BH' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</dd></div>}
             {Number(r.discount_amount) > 0 && <div><dt>{t('disc', ar)}</dt><dd>{money(r.discount_amount, ar)}</dd></div>}
           </dl>
@@ -236,7 +242,7 @@ function Verify({ ar, setLang }) {
         {v === undefined ? <span className="ikg-spin" /> : !v.ok ? <h2>{t('vBad', ar)}</h2> : <>
           <div className={'ikg-verify is-' + st}>{({ valid: '✓ ' + t('vValid', ar), redeemed: t('vRedeemed', ar), expired: t('vExpired', ar) })[st]}</div>
           <div className="ikg-value">{valueText(v, ar)}</div>{(v.type === 'percent' || v.type === 'fixed') && <p className="ikg-rname">{ar ? v.name_ar : v.name_en}</p>}
-          <dl className="ikg-facts"><div><dt>{t('code', ar)}</dt><dd dir="ltr">{v.ref}</dd></div><div><dt>{t('quoteNo', ar)}</dt><dd dir="ltr">{v.quote_no}</dd></div><div><dt>{ar ? 'العميل' : 'Customer'}</dt><dd>{v.customer}</dd></div></dl>
+          <dl className="ikg-facts"><div><dt>{t('code', ar)}</dt><dd dir="ltr">{v.ref}</dd></div>{v.quote_no ? <div><dt>{t('quoteNo', ar)}</dt><dd dir="ltr">{v.quote_no}</dd></div> : v.phone_tail ? <div><dt>{t('mobile', ar)}</dt><dd dir="ltr">•••• {v.phone_tail}</dd></div> : null}<div><dt>{ar ? 'العميل' : 'Customer'}</dt><dd>{v.customer}</dd></div></dl>
         </>}
       </div></main>
     </div>
