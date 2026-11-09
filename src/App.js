@@ -7,6 +7,7 @@ import { fitModules, WARDROBE_WIDTHS } from './moduleFit';
 import { Barcode128 } from './barcode128';
 import { handleError } from './errors';
 import { BrowserRouter, useLocation, useNavigate, Link } from 'react-router-dom';
+import ShowroomTour from './home/ShowroomTour';   // [HOME 2026-11-09] scroll-driven showroom walk-through
 import { useIkhLanding, IkhtarhaSpotlight, IkhtarhaPrizes, BusinessBand, CampaignPill } from './campaign/HomeCampaign';   // [IKHTARHA 2026-11-09] home page campaign + business sections
 
 // Guarded polyfills for browser APIs absent in non-browser/test (jsdom) environments.
@@ -8400,6 +8401,8 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
       {/* [IKHTARHA 2026-11-09] live reward campaign — shows only while the campaign is live */}
       <IkhtarhaSpotlight cfg={ikh} lang={lang} mobile={mobile} cms={cms} setPage={setPage} />
       <IkhtarhaPrizes cfg={ikh} lang={lang} cms={cms} />
+      {/* [HOME 2026-11-09] walk into the showroom */}
+      <ShowroomTour lang={lang} setPage={setPage} img={{ walkin: cms('home.tour.walkin', HOME_IMG.walkin), kitchen: cms('home.tour.kitchen', HOME_IMG.kitchen), living: cms('home.tour.living', HOME_IMG.living), wardrobe: cms('home.tour.wardrobe', HERO_IMG.wardrobe), door: cms('home.tour.door', HERO_IMG.door) }} />
 
       {/* Trust marquee */}
       <div className="marquee-wrap" style={{ borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)', padding: '18px 0', background: 'var(--cream)' }}>
