@@ -2314,14 +2314,14 @@ function Toasts() {
 }
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Kufam:wght@600;700;800&family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
   /* ── Typography [2026-10-31]: the platform UI font — SF Pro on Apple, Segoe UI on Windows, Roboto on Android / ChromeOS.
      One clear sans for body AND headings (Apple / Google style); Arabic uses SF Arabic on Apple, IBM Plex Sans Arabic elsewhere. ── */
-  :root { --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --font-ar: "Cairo", -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif; --font-display: var(--font-sans); --serif: var(--font-display); }
+  :root { --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --font-ar-display: "Kufam", "Cairo", -apple-system, "SF Arabic", sans-serif; --font-ar: "Cairo", -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif; --font-display: var(--font-sans); --serif: var(--font-display); }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  /* ── Arabic typography: the same system sans (SF Arabic / IBM Plex Sans Arabic) for body and headings ── */
+  /* ── Arabic typography: Cairo for text; Kufam (close to the Ikhtarha logo lettering) for display headings, with room between lines ── */
   html[lang="ar"] body, [dir="rtl"] { font-family: var(--font-ar); }
-  html[lang="ar"] .display, [dir="rtl"] .display { font-family: var(--font-ar); letter-spacing: 0; }
+  html[lang="ar"] .display, [dir="rtl"] .display { font-family: var(--font-ar-display); font-weight: 800; letter-spacing: 0; line-height: 1.4 !important; }
   html[lang="ar"] .eyebrow, [dir="rtl"] .eyebrow { font-family: var(--font-ar); }
   html { -webkit-tap-highlight-color: transparent; }
   /* ── RTL logical fixes (reach what inline styles don't) ── */
