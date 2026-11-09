@@ -72,7 +72,7 @@ export default function GamesRoot() {
   const game = slug ? GAMES.find((g) => g.id === slug) : null;
 
   return (
-    <div className="ikg" dir={ar ? 'rtl' : 'ltr'} lang={ar ? 'ar' : 'en'}>
+    <div className="ikg" dir={ar ? 'rtl' : 'ltr'} lang={ar ? 'ar' : 'en'} style={{ backgroundImage: 'url(/brand/ikhtarha/banner.jpg)' }}>
       {api.DEMO && <div className="ikg-demo" role="note">{t('sample', ar)}</div>}
       <header className="ikg-head">
         {!game && <a href="/" className="ikg-home" data-testid="ikg-home"><span aria-hidden="true">{ar ? '→' : '←'}</span><em>{ar ? 'العودة للموقع' : 'Back to website'}</em></a>}

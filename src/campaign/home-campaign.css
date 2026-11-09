@@ -13,8 +13,8 @@
 [dir="rtl"].hc-ekh .display, [dir="rtl"].hc-designs .display { letter-spacing: 0; line-height: 1.3 !important; }
 
 /* ── campaign ticket ─────────────────────────────────────────────────── */
-.hc-ekh { position: relative; overflow: hidden; background: var(--ekh-700); color: var(--ekh-800); padding: clamp(56px, 7vw, 96px) clamp(16px, 4vw, 48px) clamp(40px, 5vw, 64px); }
-.hc-hills { position: absolute; inset-inline: 0; bottom: 0; width: 100%; height: 46%; object-fit: cover; opacity: .9; pointer-events: none; }
+.hc-ekh { position: relative; overflow: hidden; padding-bottom: clamp(80px, 14vw, 200px) !important; background-color: var(--ekh-700); background-position: center bottom; background-size: 100% auto; background-repeat: no-repeat; color: var(--ekh-800); padding: clamp(56px, 7vw, 96px) clamp(16px, 4vw, 48px) clamp(40px, 5vw, 64px); }
+.hc-hills { display: none; position: absolute; inset-inline: 0; bottom: 0; width: 100%; height: 46%; object-fit: cover; opacity: .9; pointer-events: none; }
 .hc-dot { position: absolute; border-radius: 50%; pointer-events: none; }
 .hc-dot.d1 { width: 12px; height: 12px; background: var(--tq-500); top: 9%; inset-inline-start: 8%; }
 .hc-dot.d2 { width: 9px; height: 9px; background: var(--ekh-300); top: 18%; inset-inline-end: 12%; }

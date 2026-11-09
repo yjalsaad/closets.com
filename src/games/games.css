@@ -7,7 +7,7 @@
   --f: "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
   --f-ar: "IBM Plex Sans Arabic", -apple-system, "SF Arabic", "Segoe UI", Tahoma, sans-serif; --f-ar-d: "Alexandria", "IBM Plex Sans Arabic", sans-serif;
   min-height: 100vh; min-height: 100dvh; overflow-x: clip; display: flex; flex-direction: column; color: var(--cream); font-family: var(--f); -webkit-font-smoothing: antialiased;
-  background: var(--burg); }
+  background-color: var(--burg); background-position: center bottom; background-size: 100% auto; background-repeat: no-repeat; background-attachment: fixed; }
 .ikg[dir="rtl"] { font-family: var(--f-ar); }
 .ikg *, .ikg *::before, .ikg *::after { box-sizing: border-box; }
 .ikg button, .ikg input { font: inherit; }

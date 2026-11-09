@@ -274,3 +274,10 @@
 .ik-reward .ik-btn-primary { background: #23807C; box-shadow: none; }
 .ik-reward .ik-msg { color: #3A1F6B; }
 .ik-reward .ik-congrats { font-size: clamp(30px, 6.4vw, 56px); overflow-wrap: normal; word-break: keep-all; hyphens: none; }
+
+/* [2026-11-09] new key visuals: phone image has open sky at the top and gifts at the bottom → copy sits at the top, scrim at the top */
+@media (max-width: 760px) {
+  .ik-phase-hero[class*="ik-kv-"] .ik-hero { justify-content: flex-start; padding-top: 110px; }
+  .ik-phase-hero .ik-kv img { object-position: center bottom; }
+  .ik-phase-hero .ik-kv::after, .ik-root[dir="rtl"].ik-phase-hero .ik-kv::after { background: linear-gradient(180deg, color-mix(in srgb, var(--ik-ink) 55%, transparent) 0%, transparent 52%); }
+}

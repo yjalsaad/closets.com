@@ -15,23 +15,25 @@ import { certificateDocument, rewardSentence, rewardValueText, kitColours } from
 
 /* campaign identity — the اختارها brand pack; Bonsai (Ad Campaigns → campaign identity) overrides any key per campaign */
 const BRAND = { logo: '/brand/ikhtarha/logo.png', logo_light: '/brand/ikhtarha/logo-light.png', hero_wide: '/brand/ikhtarha/hero-wide.jpg', hero_portrait: '/brand/ikhtarha/hero-portrait.jpg',
-  hero_has_logo: true, hero_text_side: 'right', primary: '#4A2C82', accent: '#23807C', sand: '#FFFFFF', taupe: '#9FDDD8', charcoal: '#3A1F6B', slogan_ar: 'تصاميم جميلة. جاهزة لك.', slogan_en: 'Beautiful designs. Ready for you.' };
+  hero_has_logo: false, hero_text_side: 'right', primary: '#4A2C82', accent: '#23807C', sand: '#FFFFFF', taupe: '#9FDDD8', charcoal: '#3A1F6B', slogan_ar: 'تصاميم جميلة. جاهزة لك.', slogan_en: 'Beautiful designs. Ready for you.' };
 const HEX = /^#[0-9A-Fa-f]{6}$/;
+const OLD_TAGS = ['افتح خزانة المفاجآت واكتشف جائزتك.', 'Choose your box and unlock your reward.'];   // pre-kit default tagline → the kit line
 const safeUrl = (u) => (typeof u === 'string' && /^(https:\/\/|\/brand\/)/.test(u) ? u : '');
 const shade = (hex, k) => { const n = parseInt(hex.slice(1), 16); const f = (x) => Math.max(0, Math.min(255, Math.round(k < 0 ? x * (1 + k) : x + (255 - x) * k))); return '#' + [n >> 16, (n >> 8) & 255, n & 255].map((x) => f(x).toString(16).padStart(2, '0')).join(''); };
 function brandOf(cfg) {
   const b = { ...BRAND, ...kitColours((cfg && cfg.brand) || {}) };
   ['primary', 'accent', 'sand', 'taupe', 'charcoal'].forEach((k) => { if (!HEX.test(b[k] || '')) b[k] = BRAND[k]; });
   ['logo', 'logo_light', 'hero_wide', 'hero_portrait'].forEach((k) => { b[k] = safeUrl(b[k]); });
+  if (b.hero_wide === BRAND.hero_wide) b.hero_has_logo = false;   // [2026-11-09] the kit key visuals carry no logo — the page shows it
   return b;
 }
 const brandStyle = (b) => ({ '--ik-orange': b.accent, '--ik-orange-2': shade(b.accent, 0.22), '--ik-burgundy': b.primary, '--ik-wine': shade(b.primary, -0.55), '--ik-ink': shade(b.primary, -0.8), '--ik-cream': b.sand, '--ik-taupe': b.taupe });
 
 const S = {
   brand: ['The Closets International', 'الخزائن العالمية'],
-  eyebrow: ['Every wardrobe hides a surprise.', 'كل خزانة تخبّي مفاجأة…'],
+  eyebrow: ['Beautiful designs… and the prize is your choice.', 'تصاميم روعة… والجائزة باختيارك'],
   title: ['Ikhtarha', 'اختارها'],
-  tagline: ['Choose your box and unlock your reward.', 'افتح خزانة المفاجآت واكتشف جائزتك.'],
+  tagline: ['Price your design and pick your prize box.', 'سعّر تصميمك واختار صندوق جائزتك.'],
   start: ['Start your experience', 'ابدأ تجربتك'], how: ['How does it work?', 'كيف تعمل الحملة؟'],
   how1: ['Visit The Closets showroom and finish your quotation.', 'زر معرض الخزائن العالمية وخلّص الكوتيشن.'],
   how2: ['Open your personal link or scan the QR on your quotation.', 'افتح رابطك الخاص أو امسح الكود الموجود في الكوتيشن.'],
@@ -270,7 +272,7 @@ export default function IkhtarhaRoot() {
             return kvLogo ? <h1 className="ik-sr">{name}</h1>
               : B.logo_light ? <h1 className="ik-title ik-title-logo"><img src={B.logo_light} alt={name} /></h1>
               : <h1 className="ik-title">{name}</h1>; })()}
-          <p className="ik-tag">{(ar ? cfg.tagline_ar : cfg.tagline_en) || T('tagline', ar)}</p>
+          <p className="ik-tag">{(() => { const tg = ar ? cfg.tagline_ar : cfg.tagline_en; return !tg || OLD_TAGS.includes(tg) ? T('tagline', ar) : tg; })()}</p>
           {(ar ? B.slogan_ar : B.slogan_en) && <p className="ik-tag ik-tag-2">{ar ? B.slogan_ar : B.slogan_en}</p>}
           <div className="ik-ctas">
             <button type="button" className="ik-btn ik-btn-primary" onClick={() => { setPhase('form'); setMsg(null); }} data-testid="ik-start">{T('start', ar)}</button>

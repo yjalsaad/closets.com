@@ -75,7 +75,7 @@ export function IkhtarhaSpotlight({ cfg, lang, cms, setPage }) {
     [c('home.ikh.s3', 'Pick your prize box', 'اختار صندوق جائزتك'), c('home.ikh.s3d', 'Open it and reveal your prize — it’s added to your quotation.', 'افتحه واكتشف جائزتك — وتنضاف على عرض السعر.')],
   ];
   return (
-    <section ref={ref} className="hc-ekh" dir={ar ? 'rtl' : 'ltr'} aria-labelledby="hc-ikh-h" data-testid="home-ikhtarha">
+    <section ref={ref} className="hc-ekh" dir={ar ? 'rtl' : 'ltr'} aria-labelledby="hc-ikh-h" data-testid="home-ikhtarha" style={{ backgroundImage: 'url(/brand/ikhtarha/banner.jpg)' }}>
       <img className="hc-hills" src={ILL + 'scene-hills-bare.svg'} alt="" aria-hidden="true" />
       <i className="hc-dot d1" aria-hidden="true" /><i className="hc-dot d2" aria-hidden="true" /><i className="hc-dot d3" aria-hidden="true" />
       <article className="hc-tk" {...tilt(2)}>
