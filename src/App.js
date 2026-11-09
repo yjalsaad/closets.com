@@ -2314,10 +2314,10 @@ function Toasts() {
 }
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
   /* ── Typography [2026-10-31]: the platform UI font — SF Pro on Apple, Segoe UI on Windows, Roboto on Android / ChromeOS.
      One clear sans for body AND headings (Apple / Google style); Arabic uses SF Arabic on Apple, IBM Plex Sans Arabic elsewhere. ── */
-  :root { --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --font-ar: "Noto Sans Arabic", -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif; --font-display: var(--font-sans); --serif: var(--font-display); }
+  :root { --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --font-ar: "Cairo", -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif; --font-display: var(--font-sans); --serif: var(--font-display); }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   /* ── Arabic typography: the same system sans (SF Arabic / IBM Plex Sans Arabic) for body and headings ── */
   html[lang="ar"] body, [dir="rtl"] { font-family: var(--font-ar); }
@@ -6565,7 +6565,7 @@ function HomeHub({ user, setUser, setPage }) {
 <title>Invoice ${esc(num)}</title>
 <style>
 :root{--brand:#F97316;--brand-d:#C2410C;--ink:#2C2017;--muted:#6F6157;--line:#E7DDCF;--head:#2C2017}
-*{box-sizing:border-box} body{font-family:${lang==='ar'?'\'Noto Sans Arabic\', -apple-system, BlinkMacSystemFont, \'SF Arabic\', \'IBM Plex Sans Arabic\', \'Segoe UI\', Tahoma, sans-serif':'-apple-system, BlinkMacSystemFont, \'SF Pro Text\', \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif'};color:var(--ink);margin:0;background:#fff}
+*{box-sizing:border-box} body{font-family:${lang==='ar'?'\'Cairo\', -apple-system, BlinkMacSystemFont, \'SF Arabic\', \'IBM Plex Sans Arabic\', \'Segoe UI\', Tahoma, sans-serif':'-apple-system, BlinkMacSystemFont, \'SF Pro Text\', \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif'};color:var(--ink);margin:0;background:#fff}
 .page{max-width:820px;margin:0 auto;padding:36px 40px 0;position:relative}
 .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;border-bottom:3px solid var(--brand);padding-bottom:14px}
 .hd .co-l{display:flex;align-items:center;gap:14px;min-width:0}

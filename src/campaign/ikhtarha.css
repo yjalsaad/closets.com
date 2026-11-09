@@ -4,7 +4,7 @@
   --ik-grey: #EDEBE8; --ik-muted: rgba(247, 242, 236, .66); --ik-line: rgba(247, 242, 236, .14); --ik-gold: #C9A35A;
   /* same typography as the main website (App.js :root --font-sans / --font-ar): SF on Apple, IBM Plex Sans Arabic elsewhere */
   --ik-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --ik-font-ar: "Noto Sans Arabic", -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --ik-font-ar: "Cairo", -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
   position: fixed; inset: 0; overflow: hidden; background: radial-gradient(120% 90% at 50% 20%, var(--ik-wine) 0%, var(--ik-ink) 62%); color: var(--ik-cream);
   font-family: var(--ik-font); -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 1.5;
 }
