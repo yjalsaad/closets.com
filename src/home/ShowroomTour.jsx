@@ -10,7 +10,7 @@ const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const reduced = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
 
-export default function ShowroomTour({ lang = 'en', img = {}, setPage }) {
+export default function ShowroomTour({ lang = 'en', img = {}, fallback = {}, setPage }) {
   const ar = lang === 'ar';
   const T = (en, a) => (ar ? a : en);
   const ROOMS = useMemo(() => { const L = (en, a) => (ar ? a : en); return [
@@ -82,7 +82,7 @@ export default function ShowroomTour({ lang = 'en', img = {}, setPage }) {
           return (
             <div key={r.k} className={'st-room' + (i === cur ? ' is-cur' : '')} style={style} aria-hidden={i !== cur}>
               <div className="st-cam" style={{ transform: `scale(${scale.toFixed(4)})`, filter: blur > 0.2 ? `blur(${blur.toFixed(1)}px)` : 'none' }}>
-                <img src={r.src} alt="" draggable="false" />
+                <img src={r.src} alt="" draggable="false" onError={(e) => { const fb = fallback[r.k === 'doors' ? 'door' : r.k]; if (fb && e.currentTarget.src !== fb) e.currentTarget.src = fb; }} />
               </div>
               <div className="st-shade" />
               {r.doors === 'wood' && !rm && (() => {

@@ -3450,6 +3450,14 @@ const HOME_IMG = {
   living:  'https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20260627_155945_016fe59a-81d0-465d-9f96-1a674fd99b99.png',
   detail:  'https://images.unsplash.com/photo-1600121848594-d8644e57abab?auto=format&fit=crop&w=1200&q=80',
 };
+// [HOME 2026-11-09] Showroom tour rooms — recent (2025–26) free-license Unsplash photography; override per room from the CMS (home.tour.*).
+const TOUR_IMG = {
+  walkin:   'https://images.unsplash.com/photo-1778731660196-1b57aa0f7ef5?auto=format&fit=crop&w=1920&q=78',   // luxurious closet with chandelier, seen through open doors
+  kitchen:  'https://images.unsplash.com/photo-1785535573585-8f962fa3cda5?auto=format&fit=crop&w=1920&q=78',   // modern kitchen, large marble island, bar stools
+  living:   'https://images.unsplash.com/photo-1738168259543-d0c58e2b91ed?auto=format&fit=crop&w=1920&q=78',   // living room with a large TV wall
+  wardrobe: 'https://images.unsplash.com/photo-1785395407788-71b829c98bb4?auto=format&fit=crop&w=1920&q=78',   // minimalist walk-in wardrobe, wooden shelves
+  door:     'https://images.unsplash.com/photo-1764592119348-0aaeab50e2d0?auto=format&fit=crop&w=1920&q=78',   // modern wooden door with a spotlight
+};
 // Modern category hero photography (curated free-license stock — Pexels).
 const HERO_IMG = {
   kitchen: 'https://images.pexels.com/photos/35189706/pexels-photo-35189706.jpeg?auto=compress&cs=tinysrgb&w=1920',
@@ -8402,7 +8410,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
       <IkhtarhaSpotlight cfg={ikh} lang={lang} mobile={mobile} cms={cms} setPage={setPage} />
       <IkhtarhaPrizes cfg={ikh} lang={lang} cms={cms} />
       {/* [HOME 2026-11-09] walk into the showroom */}
-      <ShowroomTour lang={lang} setPage={setPage} img={{ walkin: cms('home.tour.walkin', HOME_IMG.walkin), kitchen: cms('home.tour.kitchen', HOME_IMG.kitchen), living: cms('home.tour.living', HOME_IMG.living), wardrobe: cms('home.tour.wardrobe', HERO_IMG.wardrobe), door: cms('home.tour.door', HERO_IMG.door) }} />
+      <ShowroomTour lang={lang} setPage={setPage} img={{ walkin: cms('home.tour.walkin', TOUR_IMG.walkin), kitchen: cms('home.tour.kitchen', TOUR_IMG.kitchen), living: cms('home.tour.living', TOUR_IMG.living), wardrobe: cms('home.tour.wardrobe', TOUR_IMG.wardrobe), door: cms('home.tour.door', TOUR_IMG.door) }} fallback={{ walkin: HOME_IMG.walkin, kitchen: HOME_IMG.kitchen, living: HOME_IMG.living, wardrobe: HERO_IMG.wardrobe, door: HERO_IMG.door }} />
 
       {/* Trust marquee */}
       <div className="marquee-wrap" style={{ borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)', padding: '18px 0', background: 'var(--cream)' }}>
