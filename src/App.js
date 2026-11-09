@@ -7,6 +7,7 @@ import { fitModules, WARDROBE_WIDTHS } from './moduleFit';
 import { Barcode128 } from './barcode128';
 import { handleError } from './errors';
 import { BrowserRouter, useLocation, useNavigate, Link } from 'react-router-dom';
+import { useIkhLanding, IkhtarhaSpotlight, IkhtarhaPrizes, BusinessBand, CampaignPill } from './campaign/HomeCampaign';   // [IKHTARHA 2026-11-09] home page campaign + business sections
 
 // Guarded polyfills for browser APIs absent in non-browser/test (jsdom) environments.
 // Inert in real browsers (only defined when missing) — keeps the app rendering safely everywhere.
@@ -2313,10 +2314,10 @@ function Toasts() {
 }
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
   /* ── Typography [2026-10-31]: the platform UI font — SF Pro on Apple, Segoe UI on Windows, Roboto on Android / ChromeOS.
      One clear sans for body AND headings (Apple / Google style); Arabic uses SF Arabic on Apple, IBM Plex Sans Arabic elsewhere. ── */
-  :root { --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --font-ar: -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", "Noto Sans Arabic", Tahoma, sans-serif; --font-display: var(--font-sans); --serif: var(--font-display); }
+  :root { --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --font-ar: "Noto Sans Arabic", -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif; --font-display: var(--font-sans); --serif: var(--font-display); }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   /* ── Arabic typography: the same system sans (SF Arabic / IBM Plex Sans Arabic) for body and headings ── */
   html[lang="ar"] body, [dir="rtl"] { font-family: var(--font-ar); }
@@ -6564,7 +6565,7 @@ function HomeHub({ user, setUser, setPage }) {
 <title>Invoice ${esc(num)}</title>
 <style>
 :root{--brand:#F97316;--brand-d:#C2410C;--ink:#2C2017;--muted:#6F6157;--line:#E7DDCF;--head:#2C2017}
-*{box-sizing:border-box} body{font-family:${lang==='ar'?'-apple-system, BlinkMacSystemFont, \'SF Arabic\', \'IBM Plex Sans Arabic\', \'Segoe UI\', \'Noto Sans Arabic\', Tahoma, sans-serif':'-apple-system, BlinkMacSystemFont, \'SF Pro Text\', \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif'};color:var(--ink);margin:0;background:#fff}
+*{box-sizing:border-box} body{font-family:${lang==='ar'?'\'Noto Sans Arabic\', -apple-system, BlinkMacSystemFont, \'SF Arabic\', \'IBM Plex Sans Arabic\', \'Segoe UI\', Tahoma, sans-serif':'-apple-system, BlinkMacSystemFont, \'SF Pro Text\', \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif'};color:var(--ink);margin:0;background:#fff}
 .page{max-width:820px;margin:0 auto;padding:36px 40px 0;position:relative}
 .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;border-bottom:3px solid var(--brand);padding-bottom:14px}
 .hd .co-l{display:flex;align-items:center;gap:14px;min-width:0}
@@ -8324,6 +8325,7 @@ function DigitalCardCarousel({ user, setPage }) {
 function HomePage({ user, products, testimonials, banners, siteLogo, setPage, addToCart, setConfigProduct }) {
   const { t, lang } = useI18n();
   const mobile = useMobile();
+  const ikh = useIkhLanding();
   useReveal();
   useHomeFx();
   const P = mobile ? '24px' : '48px';
@@ -8395,6 +8397,9 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
     <div style={{ background: 'var(--cream)' }}>
       <div id="scrollProgress" />
       <Hero setPage={setPage} banners={banners} />
+      {/* [IKHTARHA 2026-11-09] live reward campaign — shows only while the campaign is live */}
+      <IkhtarhaSpotlight cfg={ikh} lang={lang} mobile={mobile} cms={cms} setPage={setPage} />
+      <IkhtarhaPrizes cfg={ikh} lang={lang} cms={cms} />
 
       {/* Trust marquee */}
       <div className="marquee-wrap" style={{ borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)', padding: '18px 0', background: 'var(--cream)' }}>
@@ -8556,6 +8561,9 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </div>
       </section>
 
+      {/* [IKHTARHA 2026-11-09] The Closets for Business */}
+      <BusinessBand lang={lang} mobile={mobile} cms={cms} setPage={setPage} live={!!ikh} />
+
       {/* AI designer band — editorial hero banner (safe-zone text left, photo right, single CTA) */}
       <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 100}px ${P}` }}>
         <div className="rv-sc" style={{ position: 'relative', borderRadius: 26, overflow: 'hidden', background: '#15110e', display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1.05fr .95fr', alignItems: 'stretch', minHeight: mobile ? 'auto' : 440 }}>
@@ -8703,6 +8711,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </div>
       </section>
 
+      <CampaignPill cfg={ikh} lang={lang} />
       {mobile && <div style={{ height: 80 }} />}
     </div>
   );
