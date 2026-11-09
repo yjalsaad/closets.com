@@ -1310,7 +1310,7 @@ const I18N = {
   swApptHome:{ en:'Home design', ar:'تصميم منزلي' },
   swApptHomeSub:{ en:'A designer visits with samples and a tailored 3D concept.', ar:'يزورك مصمّم بعيّنات وتصوّر ثلاثي الأبعاد مُصمّم خصيصاً لك.' },
   swApptShowroom:{ en:'Showroom visit', ar:'زيارة المعرض' },
-  swApptShowroomSub:{ en:'See real finishes and hardware in one of our 4 showrooms.', ar:'شاهد التشطيبات والمقابض الحقيقية في أحد معارضنا الأربعة.' },
+  swApptShowroomSub:{ en:'See real finishes and hardware in one of our 2 branches.', ar:'شاهد التشطيبات والمقابض الحقيقية في أحد فرعينا.' },
   swApptMeasure:{ en:'Home measure', ar:'قياس منزلي' },
   swApptMeasureSub:{ en:'We come to you, measure up and talk through ideas — free.', ar:'نأتي إليك ونأخذ القياسات ونناقش الأفكار — مجاناً.' },
   swBookFree:{ en:'Book free →', ar:'← احجز مجاناً' },
@@ -1398,10 +1398,10 @@ const I18N = {
   swStatProjects:{ en:'Projects delivered', ar:'مشروع منجز' },
   swStatCraft:{ en:'Of craftsmanship', ar:'من الحرفية' },
   swStatYrs:{ en:' yrs', ar:' سنة' },
-  swStatShowrooms:{ en:'Showrooms', ar:'معارض' },
+  swStatShowrooms:{ en:'Branches', ar:'فروع' },
   swStatBespoke:{ en:'Bespoke & fitted', ar:'حسب الطلب ومركّب' },
   swBadgeWorkshop:{ en:'Our own workshop', ar:'ورشتنا الخاصة' },
-  swBadge15:{ en:'15 years of craft', ar:'15 عاماً من الحرفية' },
+  swBadge15:{ en:'20 years of craft', ar:'20 عاماً من الحرفية' },
   swBadge2yr:{ en:'10-year warranty', ar:'ضمان 10 سنوات' },
   swBadgeFreeDesign:{ en:'Free design service', ar:'خدمة تصميم مجانية' },
   // Process timeline
@@ -1419,8 +1419,8 @@ const I18N = {
   swMarqWorkshop:{ en:'Own Bahrain workshop', ar:'ورشة خاصة في البحرين' },
   swMarqConsult:{ en:'Free design consultation', ar:'استشارة تصميم مجانية' },
   swMarqHardware:{ en:'Premium European hardware', ar:'مقابض أوروبية فاخرة' },
-  swMarq15:{ en:'15 years of craft', ar:'15 عاماً من الحرفية' },
-  swMarq4:{ en:'4 showrooms', ar:'4 معارض' },
+  swMarq15:{ en:'20 years of craft', ar:'20 عاماً من الحرفية' },
+  swMarq4:{ en:'2 branches in Bahrain', ar:'فرعان في البحرين' },
   swMarq2yr:{ en:'10-year warranty', ar:'ضمان 10 سنوات' },
   swMarqInstall:{ en:'Installed by our own team', ar:'يركّبه فريقنا الخاص' },
   // AI designer band
@@ -1616,7 +1616,7 @@ const I18N = {
   swFootBadge2yr:{ en:'10-year warranty', ar:'ضمان 10 سنوات' },
   swFootBadgeFreeDesign:{ en:'Free design service', ar:'خدمة تصميم مجانية' },
   swFootBadgeInstall:{ en:'Installed by our team', ar:'يركّبه فريقنا' },
-  swFootBadge15:{ en:'15 years of craft', ar:'15 عاماً من الحرفية' },
+  swFootBadge15:{ en:'20 years of craft', ar:'20 عاماً من الحرفية' },
   // Footer link labels (rendered via trLabel)
   swFlHowItWorks:{ en:'How it works', ar:'كيف تعمل' },
   swFlFaq:{ en:'FAQ', ar:'الأسئلة الشائعة' },
@@ -7234,7 +7234,7 @@ function AboutPage({ setPage = () => {} }) {
     ['2010', cms('about.m1', 'Founded in Manama — one workshop, one fitted wardrobe at a time.')],
     ['2013', cms('about.m2', 'Opened our first flagship showroom.')],
     ['2016', cms('about.m3', 'Launched the bespoke design configurator.')],
-    ['2019', cms('about.m4', 'Grew to four showrooms across Bahrain.')],
+    ['2019', cms('about.m4', 'Grew to two branches in Bahrain.')],
     ['2022', cms('about.m5', 'Passed 500 homes fitted — kitchens, wardrobes and beyond.')],
     ['2024', cms('about.m6', 'Opened the digital hub: design, quote and track online.')],
   ];
@@ -7286,7 +7286,7 @@ function AboutPage({ setPage = () => {} }) {
               {cms('about.origin.p1', 'The Closets grew out of a small Manama workshop and a simple frustration: mass-made furniture never quite fit the room, and never quite lasted. So we did it the slow way — measuring each wall ourselves, cutting our own panels, and fitting every piece by hand.')}
             </p>
             <p style={{ fontSize: mobile?16.5:18, lineHeight:1.8, color:'var(--ink-soft)', marginTop:16 }}>
-              {cms('about.origin.p2', 'Word travelled the way it does in Bahrain — one satisfied home to the next. Two decades on, that workshop has become four showrooms and a team of designers, makers and installers, but the rule has not changed: if it would not fit our own home, it does not leave the floor.')}
+              {cms('about.origin.p2', 'Word travelled the way it does in Bahrain — one satisfied home to the next. Two decades on, that workshop has become two branches and a team of designers, makers and installers, but the rule has not changed: if it would not fit our own home, it does not leave the floor.')}
             </p>
           </div>
           <div className="rv-r tile-zoom zoomwrap" style={{ position:'relative', borderRadius:26, overflow:'hidden', minHeight: mobile?300:520, boxShadow:'0 40px 80px -34px rgba(33,28,24,.55)' }}>
@@ -8455,8 +8455,8 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </div>
         <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 28 : 20 }}>
           <Stat to={10} suffix="K+" label={t('swStatProjects')} />
-          <Stat to={19} suffix={t('swStatYrs')} label={t('swStatCraft')} />
-          <Stat to={4} label={t('swStatShowrooms')} />
+          <Stat to={20} suffix={t('swStatYrs')} label={t('swStatCraft')} />
+          <Stat to={2} label={t('swStatShowrooms')} />
           <Stat to={100} suffix="%" label={t('swStatBespoke')} />
         </div>
         <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: 12, marginTop: 44 }}>
@@ -8663,6 +8663,24 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
               <span style={{ position: 'absolute', top: 18, right: 18, background: 'rgba(20,16,12,.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', color: '#fff', fontSize: 11, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', padding: '5px 11px', borderRadius: 980, border: '1px solid rgba(255,255,255,.2)' }}>{t('swAiAfter')}</span>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* j. How can we help — 3 cards. [2026-11-09] kept on the page as "coming soon" (owner: keep the repeated sections, don't delete) */}
+      <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 88}px ${P} ${mobile ? 24 : 40}px` }}>
+        <div className="rv" style={{ textAlign: 'center', maxWidth: 600, margin: '0 auto 36px' }}>
+          <div className="eyebrow" style={{ marginBottom: 14, display: 'inline-flex', gap: 10, alignItems: 'center' }}>{t('swHelpEyebrow')}<span style={{ letterSpacing: 0, textTransform: 'none', fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)', background: 'var(--sand)', border: '1px solid var(--line)', borderRadius: 8, padding: '3px 10px' }}>{lang === 'ar' ? 'قريبًا' : 'Coming soon'}</span></div>
+          <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>{t('swHelpTitle')}</h2>
+        </div>
+        <div className="rv reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: mobile ? 14 : 20 }}>
+          {[[t('swHelpBrowse'), t('swHelpBrowseDesc'), 'browse', 'products'], [t('swHelpStudio'), t('swHelpStudioDesc'), 'design', 'planner'], [t('swHelpOffers'), t('swHelpOffersDesc'), 'offers', 'offers']].map(([title, desc, ic, route], i) => (
+            <button type="button" key={title} className="lift" onClick={() => setPage(route)} style={{ '--d': (i * 0.06) + 's', background: '#fff', border: '1px solid var(--line)', borderRadius: 20, padding: mobile ? '24px 20px' : '32px 26px', textAlign: 'left', cursor: 'pointer' }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, display: 'grid', placeItems: 'center', background: 'var(--sand)', color: 'var(--clay-deep)', marginBottom: 16 }}><Icon name={ic} size={24} /></div>
+              <div className="display" style={{ fontSize: mobile ? 19 : 22, color: 'var(--ink)', marginBottom: 8 }}>{title}</div>
+              <div style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 14 }}>{desc}</div>
+              <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--clay)' }}>{t('swGo')}</span>
+            </button>
+          ))}
         </div>
       </section>
 
