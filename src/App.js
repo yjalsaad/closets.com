@@ -7,7 +7,8 @@ import { fitModules, WARDROBE_WIDTHS } from './moduleFit';
 import { Barcode128 } from './barcode128';
 import { handleError } from './errors';
 import { BrowserRouter, useLocation, useNavigate, Link } from 'react-router-dom';
-import ShowroomTour from './home/ShowroomTour';   // [HOME 2026-11-09] scroll-driven showroom walk-through
+import ShowroomTour from './home/ShowroomTour';
+import Icon from './home/icons';   // [HOME 2026-11-09] scroll-driven showroom walk-through
 import { useIkhLanding, IkhtarhaSpotlight, IkhtarhaPrizes, BusinessBand, CampaignPill } from './campaign/HomeCampaign';   // [IKHTARHA 2026-11-09] home page campaign + business sections
 
 // Guarded polyfills for browser APIs absent in non-browser/test (jsdom) environments.
@@ -2315,10 +2316,10 @@ function Toasts() {
 }
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Kufam:wght@600;700;800&family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Kufam:wght@600;700;800&family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
   /* ── Typography [2026-10-31]: the platform UI font — SF Pro on Apple, Segoe UI on Windows, Roboto on Android / ChromeOS.
      One clear sans for body AND headings (Apple / Google style); Arabic uses SF Arabic on Apple, IBM Plex Sans Arabic elsewhere. ── */
-  :root { --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --font-ar-display: "Kufam", "Cairo", -apple-system, "SF Arabic", sans-serif; --font-ar: "Cairo", -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif; --font-display: var(--font-sans); --serif: var(--font-display); }
+  :root { --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --font-ar-display: "Kufam", "Cairo", -apple-system, "SF Arabic", sans-serif; --font-ar: "Cairo", -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif; --font-display: "Manrope", var(--font-sans); --serif: var(--font-display); }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   /* ── Arabic typography: Cairo for text; Kufam (close to the Ikhtarha logo lettering) for display headings, with room between lines ── */
   html[lang="ar"] body, [dir="rtl"] { font-family: var(--font-ar); }
@@ -2425,13 +2426,12 @@ const CSS = `
   body::before {
     content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
     background:
-      radial-gradient(1300px 640px at 50% -14%, rgba(255,255,255,.9), transparent 60%),
-      radial-gradient(900px 640px at 8% 4%, rgba(242,165,102,.12), transparent 55%),
-      radial-gradient(880px 620px at 92% 2%, rgba(198,93,46,.05), transparent 55%),
-      linear-gradient(180deg, #F6FAF9 0%, #F1F5F4 52%, #E7EEEB 100%);
+      radial-gradient(1300px 640px at 50% -14%, rgba(255,255,255,.85), transparent 60%),
+      radial-gradient(900px 640px at 8% 4%, rgba(242,165,102,.10), transparent 55%),
+      linear-gradient(180deg, #FAF7F3 0%, #F7F3EE 52%, #F1EBE3 100%);
   }
-  .band-soft { background: #EDF3F1; border-top: 1px solid #DCE7E3; border-bottom: 1px solid #DCE7E3; }
-  .panel-soft { background: #F7FBFA; border: 1px solid #E2ECE9; border-radius: 18px; }
+  .band-soft { background: var(--sand); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .panel-soft { background: #FBF9F6; border: 1px solid var(--line); border-radius: 18px; }
   ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 2px; }
   input, select, textarea, button { font-family: inherit; }
   @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -2457,7 +2457,9 @@ const CSS = `
        + coral-orange CTA (teal/orange complementary). Airy and bright, still
        luxury. Coral (--clay) AA-safe with #fff; teal for eyebrows/links/accents.
        See Decisions Log 2026-07-26 "Palette v3 — Summer Sea Breeze". */
-    --ink:#1b2a27; --ink-soft:#3d4f4b; --muted:#6d7c77; --cream:#f1f5f4; --sand:#e2ece9; --line:#d6e0dd; --clay:#C65D2E; --clay-deep:#A94A22;
+    /* Palette v4 (2026-11-09) — warm premium: ivory canvas, espresso ink, one clay accent (matches the Ikhtarha brand). See Decisions Log. */
+    --ink:#1F1A17; --ink-soft:#4A4038; --muted:#7B6F64; --cream:#F7F3EE; --sand:#EFE8DF; --line:#E3D9CD; --clay:#C65D2E; --clay-deep:#A94A22;
+    --shadow-soft:0 24px 48px -28px rgba(60,40,24,.28); --radius-card:20px; --radius-tile:24px;
     /* Fresh secondary — light orange accent (decorative washes / glows / rules) */
     --peach:#F2A566; --peach-deep:#E08A44;
     /* Editorial accents — warm metal bridge (sand/brass) + bronze */
@@ -2477,7 +2479,9 @@ const CSS = `
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
   }
-  .display { font-family:var(--font-display); font-weight:700; letter-spacing:-.025em; line-height:1.06; }
+  .display { font-family:var(--font-display); font-weight:700; letter-spacing:-.03em; line-height:1.06; text-wrap:balance; }
+  p { text-wrap:pretty; }
+  html { scroll-behavior:smooth; }
   .eyebrow { font-size:12px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--clay); }
   .btn-clay { background:var(--clay); color:#fff; border:none; border-radius:14px; padding:15px 26px; font-size:16px; font-weight:600; letter-spacing:.01em; cursor:pointer; transition:transform .15s, background .2s, box-shadow .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:50px; box-shadow:0 14px 30px -16px rgba(137,57,30,.55); }
   .btn-clay:active { transform:scale(.97); }
@@ -3197,7 +3201,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
 
   return (<>
     {/* Slim top bar — logo + actions */}
-    <nav onMouseLeave={scheduleClose} style={{ position:'fixed', top:0, left:0, right:0, zIndex:900, height:58, display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, padding: mobile?'0 16px':'0 24px', background: scrolled?'rgba(245,241,234,.92)':'rgba(245,241,234,.72)', backdropFilter:'blur(18px) saturate(180%)', borderBottom: scrolled?'1px solid var(--line)':'1px solid transparent', transition:'all .3s' }}>
+    <nav onMouseLeave={scheduleClose} style={{ position:'fixed', top:0, left:0, right:0, zIndex:900, height:58, display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, padding: mobile?'0 16px':'0 24px', background: scrolled?'rgba(250,247,243,.9)':'rgba(250,247,243,.66)', backdropFilter:'blur(20px) saturate(160%)', WebkitBackdropFilter:'blur(20px) saturate(160%)', borderBottom: scrolled?'1px solid var(--line)':'1px solid transparent', boxShadow: scrolled?'0 10px 30px -24px rgba(60,40,24,.35)':'none', transition:'background .3s, box-shadow .3s, border-color .3s' }}>
       <Link to="/" onClick={()=>{ setMenuOpen(false); }} aria-label="The Closets — home" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:8 }}>
         {(cms('header.logo', '') || siteLogo)
           ? <img src={cms('header.logo', '') || siteLogo} alt="The Closets" style={{ height:32, width:'auto', maxWidth:120, objectFit:'contain', borderRadius:6 }} />
@@ -3210,9 +3214,9 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
         <button type="button" onClick={()=>{ setOpenMega(null); setMenuOpen(false); navTo('planner'); }}
           title={lang==='ar' ? 'صمّم واحسب سعرك بنفسك' : 'Design & price your own'}
           style={{ flexShrink:0, cursor:'pointer', padding:'7px 14px', fontSize:13.5, fontWeight:700,
-                   color: page==='planner' ? '#fff' : 'var(--clay-deep)',
-                   background: page==='planner' ? 'var(--clay)' : 'var(--sand)',
-                   border:'1px solid ' + (page==='planner' ? 'var(--clay)' : 'rgba(168,75,41,.35)'),
+                   color: page==='planner' ? '#fff' : 'var(--ink)',
+                   background: page==='planner' ? 'var(--ink)' : 'transparent',
+                   border:'1px solid ' + (page==='planner' ? 'var(--ink)' : 'var(--line)'),
                    borderRadius:999, display:'inline-flex', alignItems:'center', gap:6, whiteSpace:'nowrap' }}>
           <span aria-hidden="true">🧩</span>
           {lang==='ar' ? 'صمّم بنفسك' : 'Design your own'}
@@ -3251,7 +3255,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
           {/* One accent pill — ✨ AI + Design Lab, opens a small dropdown */}
           <div onMouseEnter={()=>openMenu('ai')} style={{ position:'static', flexShrink:0 }}>
             <button type="button" onClick={()=>setOpenMega(openMega==='ai'?null:'ai')} aria-expanded={openMega==='ai'}
-              style={{ cursor:'pointer', padding:'6px 12px', fontSize:14, fontWeight:700, color:(page==='ai-yas'||page==='design-lab')?'#fff':'var(--clay-deep)', background:(page==='ai-yas'||page==='design-lab')?'var(--clay)':'var(--sand)', border:'1px solid '+((page==='ai-yas'||page==='design-lab')?'var(--clay)':'rgba(168,75,41,.35)'), borderRadius:999, display:'inline-flex', alignItems:'center', gap:6, whiteSpace:'nowrap', flexShrink:0 }}>
+              style={{ cursor:'pointer', padding:'6px 12px', fontSize:14, fontWeight:600, color:(page==='ai-yas'||page==='design-lab')?'#fff':'var(--ink)', background:(page==='ai-yas'||page==='design-lab')?'var(--ink)':'transparent', border:'1px solid '+((page==='ai-yas'||page==='design-lab')?'var(--ink)':'var(--line)'), borderRadius:999, display:'inline-flex', alignItems:'center', gap:6, whiteSpace:'nowrap', flexShrink:0 }}>
               {'✨ ' + tr('navAiDesignLab')}
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: openMega==='ai'?'rotate(180deg)':'none', transition:'transform .2s', opacity:.7 }}><polyline points="6 9 12 15 18 9"/></svg>
             </button>
@@ -3325,7 +3329,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
     {!mobile && <div style={{ height: 0 }} aria-hidden="true" />}
 
     {/* Floating bottom dock — hidden on the planner (all screen sizes) so it can't cover the planner's own Back/Close/CTA navigation */}
-    {!['planner','kitchen-planner','tv-planner','door-planner','wardrobe-planner','office-planner','cat:Doors'].includes(page) && (
+    {mobile && !['planner','kitchen-planner','tv-planner','door-planner','wardrobe-planner','office-planner','cat:Doors'].includes(page) && (
     <div style={{ position:'fixed', bottom: mobile?'calc(14px + env(safe-area-inset-bottom))':18, left:'50%', transform:'translateX(-50%)', zIndex:900, display:'flex', alignItems:'flex-end', gap: mobile?16:24, maxWidth:'calc(100vw - 24px)', background:'rgba(255,255,255,.92)', backdropFilter:'blur(18px) saturate(180%)', border:'1px solid rgba(0,0,0,.06)', borderRadius:999, padding: mobile?'7px 18px':'8px 24px', boxShadow:'0 10px 34px rgba(33,28,24,.16)' }}>
       {DOCK.map(d => {
         const active = page===d.id;
@@ -8366,10 +8370,10 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
 
   // c. Free appointment options.
   const appointments = [
-    [t('swApptMeasure'), t('swApptMeasureSub'), '📏'],
-    [t('swApptShowroom'), t('swApptShowroomSub'), '🏬'],
-    [t('swApptHome'), t('swApptHomeSub'), '🏡'],
-    [t('swApptOnline'), t('swApptOnlineSub'), '💻'],
+    [t('swApptMeasure'), t('swApptMeasureSub'), 'measure'],
+    [t('swApptShowroom'), t('swApptShowroomSub'), 'showroom'],
+    [t('swApptHome'), t('swApptHomeSub'), 'home'],
+    [t('swApptOnline'), t('swApptOnlineSub'), 'online'],
   ];
   // d. Room types — managed from Bonsai Hub (website_room_cards table), with a built-in fallback.
   const [roomCards, setRoomCards] = useState(null);
@@ -8406,12 +8410,6 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
     <div style={{ background: 'var(--cream)' }}>
       <div id="scrollProgress" />
       <Hero setPage={setPage} banners={banners} />
-      {/* [IKHTARHA 2026-11-09] live reward campaign — shows only while the campaign is live */}
-      <IkhtarhaSpotlight cfg={ikh} lang={lang} mobile={mobile} cms={cms} setPage={setPage} />
-      <IkhtarhaPrizes cfg={ikh} lang={lang} cms={cms} />
-      {/* [HOME 2026-11-09] walk into the showroom */}
-      <ShowroomTour lang={lang} setPage={setPage} img={{ walkin: cms('home.tour.walkin', TOUR_IMG.walkin), kitchen: cms('home.tour.kitchen', TOUR_IMG.kitchen), living: cms('home.tour.living', TOUR_IMG.living), wardrobe: cms('home.tour.wardrobe', TOUR_IMG.wardrobe), door: cms('home.tour.door', TOUR_IMG.door) }} fallback={{ walkin: HOME_IMG.walkin, kitchen: HOME_IMG.kitchen, living: HOME_IMG.living, wardrobe: HERO_IMG.wardrobe, door: HERO_IMG.door }} />
-
       {/* Trust marquee */}
       <div className="marquee-wrap" style={{ borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)', padding: '18px 0', background: 'var(--cream)' }}>
         <div className="marquee">
@@ -8421,25 +8419,9 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </div>
       </div>
 
-      {/* c. Choose a free appointment */}
-      <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 88}px ${P} ${mobile ? 8 : 24}px` }}>
-        <div className="rv" style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 40px' }}>
-          <div className="eyebrow" style={{ marginBottom: 14 }}>{cms('home.appt.eyebrow', 'It starts with a chat')}</div>
-          <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>{cms('home.appt.title', 'Choose a free appointment.')}</h2>
-          <p style={{ fontSize: mobile ? 15 : 17, color: 'var(--ink-soft)', lineHeight: 1.7, marginTop: 14 }}>{cms('home.appt.subtitle', 'However you like to plan, there’s no charge and no obligation — just expert ideas for your space.')}</p>
-        </div>
-        <div className="rv reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 12 : 18 }}>
-          {appointments.map(([title, desc, ic], i) => (
-            <button type="button" key={title} className="lift" onClick={() => setPage('booking')} style={{ '--d': (i * 0.06) + 's', background: '#fff', border: '1px solid var(--line)', borderRadius: 18, padding: mobile ? '20px 16px' : '28px 22px', textAlign: 'left', cursor: 'pointer' }}>
-              <div style={{ fontSize: 30, marginBottom: 12 }}>{ic}</div>
-              <div className="display" style={{ fontSize: mobile ? 17 : 20, color: 'var(--ink)', marginBottom: 6 }}>{title}</div>
-              <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, marginBottom: 12 }}>{desc}</div>
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--clay)' }}>{t('swBookFree')}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
+      {/* [IKHTARHA 2026-11-09] live reward campaign — shows only while the campaign is live */}
+      <IkhtarhaSpotlight cfg={ikh} lang={lang} mobile={mobile} cms={cms} setPage={setPage} />
+      <IkhtarhaPrizes cfg={ikh} lang={lang} cms={cms} />
       {/* d. Choose your room type */}
       <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 48 : 72}px ${P}` }}>
         <div className="rv" style={{ marginBottom: 32 }}>
@@ -8461,31 +8443,29 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </div>
       </section>
 
-      {/* e. Designs you'll love — split tiles + style quick-links */}
-      <section style={{ background: 'var(--sand)', padding: `${mobile ? 56 : 96}px ${P}` }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div className="rv" style={{ textAlign: 'center', maxWidth: 620, margin: '0 auto 40px' }}>
-            <div className="eyebrow" style={{ marginBottom: 14 }}>{cms('home.designs.eyebrow', 'Where to begin')}</div>
-            <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>{cms('home.designs.title', 'Designs you’ll love.')}</h2>
-          </div>
-          <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? 16 : 22, marginBottom: 28 }}>
-            {[[t('swRoomWardrobes'), t('swDesignWardrobesDesc'), '/layouts/wardrobe/wardrobe-walkin.jpg', 'wardrobes'], [t('swRoomKitchens'), t('swDesignKitchensDesc'), '/layouts/kitchen/island.jpg', 'kitchen']].map(([name, desc, img, route]) => (
-              <button type="button" key={name} className="tile-zoom lift" onClick={() => setPage(route)} style={{ position: 'relative', border: 'none', padding: 0, borderRadius: 24, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 300 : 420, background: '#15110e' }}>
-                <Photo src={img} alt={name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.05) 30%, rgba(20,16,12,.85) 100%)' }} />
-                <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: mobile ? 26 : 34, zIndex: 2 }}>
-                  <div className="display" style={{ color: '#fff', fontSize: mobile ? 28 : 36 }}>{name}</div>
-                  <div style={{ color: 'rgba(255,255,255,.85)', fontSize: mobile ? 14.5 : 16, marginTop: 8, lineHeight: 1.55, maxWidth: 380 }}>{desc}</div>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 18, background: 'var(--clay)', color: '#fff', borderRadius: 980, padding: '10px 20px', fontSize: 14, fontWeight: 600 }}>{lang==='ar' ? <>← {t('swView')} {name.toLowerCase()}</> : <>{t('swView')} {name.toLowerCase()} →</>}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-          <div className="rv" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
-            {styleLinks.map(([label, route]) => (
-              <button type="button" key={label} onClick={() => setPage(route)} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 980, padding: '9px 18px', fontSize: 13.5, fontWeight: 500, color: 'var(--ink)', cursor: 'pointer' }}>{label}</button>
-            ))}
-          </div>
+      {/* [HOME 2026-11-09] walk into the showroom */}
+      <ShowroomTour lang={lang} setPage={setPage} img={{ walkin: cms('home.tour.walkin', TOUR_IMG.walkin), kitchen: cms('home.tour.kitchen', TOUR_IMG.kitchen), living: cms('home.tour.living', TOUR_IMG.living), wardrobe: cms('home.tour.wardrobe', TOUR_IMG.wardrobe), door: cms('home.tour.door', TOUR_IMG.door) }} fallback={{ walkin: HOME_IMG.walkin, kitchen: HOME_IMG.kitchen, living: HOME_IMG.living, wardrobe: HERO_IMG.wardrobe, door: HERO_IMG.door }} />
+
+      {/* g. Why The Closets / value strip + animated counters */}
+      <section style={{ maxWidth: 1100, margin: '0 auto', padding: `${mobile ? 48 : 80}px ${P}` }}>
+        <div className="rv" style={{ textAlign: 'center', maxWidth: 700, margin: '0 auto 56px' }}>
+          <div className="eyebrow" style={{ marginBottom: 16 }}>{cms('home.why.eyebrow', 'Why The Closets')}</div>
+          <h2 className="display" style={{ fontSize: mobile ? 30 : 46, color: 'var(--ink)' }}>{cms('home.why.title', 'A workshop, not a warehouse.')}</h2>
+          <p style={{ fontSize: mobile ? 16 : 18, color: 'var(--ink-soft)', lineHeight: 1.7, marginTop: 18 }}>{cms('home.why.subtitle', 'Everything we make is designed, built and installed by our own people in Bahrain — so the piece you imagine is the piece you live with.')}</p>
+        </div>
+        <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 28 : 20 }}>
+          <Stat to={10} suffix="K+" label={t('swStatProjects')} />
+          <Stat to={19} suffix={t('swStatYrs')} label={t('swStatCraft')} />
+          <Stat to={4} label={t('swStatShowrooms')} />
+          <Stat to={100} suffix="%" label={t('swStatBespoke')} />
+        </div>
+        <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: 12, marginTop: 44 }}>
+          {[['workshop', t('swBadgeWorkshop')], ['craft', t('swBadge15')], ['warranty', t('swBadge2yr')], ['design', t('swBadgeFreeDesign')]].map(([ic, label]) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--sand)', border: '1px solid var(--line)', borderRadius: 14, padding: '14px 16px' }}>
+              <span style={{ color: 'var(--clay-deep)', display: 'grid' }}><Icon name={ic} size={22} /></span>
+              <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{label}</span>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -8529,26 +8509,31 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </section>
       )}
 
-      {/* g. Why The Closets / value strip + animated counters */}
-      <section style={{ maxWidth: 1100, margin: '0 auto', padding: `${mobile ? 48 : 80}px ${P}` }}>
-        <div className="rv" style={{ textAlign: 'center', maxWidth: 700, margin: '0 auto 56px' }}>
-          <div className="eyebrow" style={{ marginBottom: 16 }}>{cms('home.why.eyebrow', 'Why The Closets')}</div>
-          <h2 className="display" style={{ fontSize: mobile ? 30 : 46, color: 'var(--ink)' }}>{cms('home.why.title', 'A workshop, not a warehouse.')}</h2>
-          <p style={{ fontSize: mobile ? 16 : 18, color: 'var(--ink-soft)', lineHeight: 1.7, marginTop: 18 }}>{cms('home.why.subtitle', 'Everything we make is designed, built and installed by our own people in Bahrain — so the piece you imagine is the piece you live with.')}</p>
-        </div>
-        <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 28 : 20 }}>
-          <Stat to={10} suffix="K+" label={t('swStatProjects')} />
-          <Stat to={19} suffix={t('swStatYrs')} label={t('swStatCraft')} />
-          <Stat to={4} label={t('swStatShowrooms')} />
-          <Stat to={100} suffix="%" label={t('swStatBespoke')} />
-        </div>
-        <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: 12, marginTop: 44 }}>
-          {[['🏭', t('swBadgeWorkshop')], ['🛠️', t('swBadge15')], ['🛡️', t('swBadge2yr')], ['🎁', t('swBadgeFreeDesign')]].map(([ic, label]) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--sand)', border: '1px solid var(--line)', borderRadius: 14, padding: '14px 16px' }}>
-              <span style={{ fontSize: 20 }}>{ic}</span>
-              <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{label}</span>
-            </div>
-          ))}
+      {/* e. Designs you'll love — split tiles + style quick-links */}
+      <section style={{ background: 'var(--sand)', padding: `${mobile ? 56 : 96}px ${P}` }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <div className="rv" style={{ textAlign: 'center', maxWidth: 620, margin: '0 auto 40px' }}>
+            <div className="eyebrow" style={{ marginBottom: 14 }}>{cms('home.designs.eyebrow', 'Where to begin')}</div>
+            <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>{cms('home.designs.title', 'Designs you’ll love.')}</h2>
+          </div>
+          <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? 16 : 22, marginBottom: 28 }}>
+            {[[t('swRoomWardrobes'), t('swDesignWardrobesDesc'), '/layouts/wardrobe/wardrobe-walkin.jpg', 'wardrobes'], [t('swRoomKitchens'), t('swDesignKitchensDesc'), '/layouts/kitchen/island.jpg', 'kitchen']].map(([name, desc, img, route]) => (
+              <button type="button" key={name} className="tile-zoom lift" onClick={() => setPage(route)} style={{ position: 'relative', border: 'none', padding: 0, borderRadius: 24, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 300 : 420, background: '#15110e' }}>
+                <Photo src={img} alt={name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.05) 30%, rgba(20,16,12,.85) 100%)' }} />
+                <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: mobile ? 26 : 34, zIndex: 2 }}>
+                  <div className="display" style={{ color: '#fff', fontSize: mobile ? 28 : 36 }}>{name}</div>
+                  <div style={{ color: 'rgba(255,255,255,.85)', fontSize: mobile ? 14.5 : 16, marginTop: 8, lineHeight: 1.55, maxWidth: 380 }}>{desc}</div>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 18, background: 'var(--clay)', color: '#fff', borderRadius: 980, padding: '10px 20px', fontSize: 14, fontWeight: 600 }}>{lang==='ar' ? <>← {t('swView')} {name.toLowerCase()}</> : <>{t('swView')} {name.toLowerCase()} →</>}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+          <div className="rv" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
+            {styleLinks.map(([label, route]) => (
+              <button type="button" key={label} onClick={() => setPage(route)} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 980, padding: '9px 18px', fontSize: 13.5, fontWeight: 500, color: 'var(--ink)', cursor: 'pointer' }}>{label}</button>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -8571,60 +8556,6 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
           </div>
         </div>
       </section>
-
-      {/* [IKHTARHA 2026-11-09] The Closets for Business */}
-      <BusinessBand lang={lang} mobile={mobile} cms={cms} setPage={setPage} live={!!ikh} />
-
-      {/* AI designer band — editorial hero banner (safe-zone text left, photo right, single CTA) */}
-      <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 100}px ${P}` }}>
-        <div className="rv-sc" style={{ position: 'relative', borderRadius: 26, overflow: 'hidden', background: '#15110e', display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1.05fr .95fr', alignItems: 'stretch', minHeight: mobile ? 'auto' : 440 }}>
-          {mobile && <Photo src={HOME_IMG.living} alt="" par=".06" style={{ position: 'absolute', inset: 0, opacity: .32, zIndex: 0 }} />}
-          {mobile && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.55), rgba(20,16,12,.92))', zIndex: 1 }} />}
-          <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .06, mixBlendMode: 'overlay', backgroundImage: NOISE, zIndex: 1 }} />
-          <div style={{ position: 'relative', zIndex: 2, padding: mobile ? '40px 26px 44px' : '64px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <span className="floaty" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start', background: 'rgba(231,187,160,.14)', border: '1px solid rgba(231,187,160,.3)', color: '#E7BBA0', fontSize: 12, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 980, marginBottom: 18 }}>✦ {cms('home.ai.badge', t('swAiBadge'))}</span>
-            <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 30 : 46, lineHeight: 1.05, letterSpacing: '-.02em', marginBottom: 16 }}>{cms('home.ai.title1', t('swAiTitle1'))}<br />{cms('home.ai.title2', t('swAiTitle2'))}</h2>
-            <p style={{ color: 'rgba(255,255,255,.78)', fontSize: mobile ? 15 : 17, lineHeight: 1.65, marginBottom: 28, maxWidth: 440 }}>{cms('home.ai.desc', t('swAiDesc'))}</p>
-            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
-              <button type="button" className="btn-clay" onClick={() => setPage('ai')} style={{ fontSize: 15, padding: '14px 26px' }}>{cms('home.ai.cta', t('swAiTry'))}</button>
-              <span style={{ color: 'rgba(255,255,255,.6)', fontSize: 13 }}>{t('swAiFree')}</span>
-            </div>
-          </div>
-          {!mobile && (
-            <div style={{ position: 'relative', minHeight: 440 }}>
-              <Photo src={HOME_IMG.living} alt={t('swAiLivingAlt')} style={{ position: 'absolute', inset: 0 }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, #15110e 0%, rgba(21,17,14,.25) 24%, rgba(21,17,14,0) 52%)' }} />
-              <span style={{ position: 'absolute', top: 18, right: 18, background: 'rgba(20,16,12,.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', color: '#fff', fontSize: 11, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', padding: '5px 11px', borderRadius: 980, border: '1px solid rgba(255,255,255,.2)' }}>{t('swAiAfter')}</span>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* h. Offers strip — from store_offers / customer_offers */}
-      {offers.length > 0 && (
-        <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 48 : 80}px ${P}` }}>
-          <div className="rv" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
-            <div>
-              <div className="eyebrow" style={{ marginBottom: 14 }}>{t('swOffersEyebrow')}</div>
-              <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>{t('swOffersTitle')}</h2>
-            </div>
-            <button type="button" className="btn-line" onClick={() => setPage('offers')}>{t('swSeeAllOffers')}</button>
-          </div>
-          <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(' + Math.min(offers.length, 3) + ',1fr)', gap: mobile ? 14 : 20 }}>
-            {offers.slice(0, 3).map(o => (
-              <button type="button" key={o.id} className="lift" onClick={() => setPage('offers')} style={{ position: 'relative', overflow: 'hidden', border: '1px solid var(--line)', borderRadius: 18, cursor: 'pointer', textAlign: 'left', padding: 0, minHeight: 180, background: o.image_url ? '#15110e' : 'linear-gradient(135deg, var(--sand), #fff)' }}>
-                {o.image_url && <><Photo src={o.image_url} alt={o.title} style={{ position: 'absolute', inset: 0 }} /><div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.15), rgba(20,16,12,.82))' }} /></>}
-                <div style={{ position: 'relative', zIndex: 2, padding: 24, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'flex-end', minHeight: 180 }}>
-                  {o.badge && <span style={{ alignSelf: 'flex-start', background: 'var(--clay)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 11px', borderRadius: 980, marginBottom: 10 }}>{trMap(o.badge, OFFER_BADGE_KEY, lang)}</span>}
-                  <div className="display" style={{ fontSize: 22, color: o.image_url ? '#fff' : 'var(--ink)' }}>{trMap(o.title, OFFER_TITLE_KEY, lang)}</div>
-                  <div style={{ fontSize: 14, color: o.image_url ? 'rgba(255,255,255,.85)' : 'var(--ink-soft)', marginTop: 6, lineHeight: 1.5 }}>{trMap(o.subtitle, OFFER_SUB_KEY, lang)}</div>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: o.image_url ? '#E7BBA0' : 'var(--clay)', marginTop: 14 }}>{t('swClaimOffer')}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* i. Customer stories — gallery from website_projects */}
       {projects.length > 0 && (
@@ -8662,21 +8593,76 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </section>
       )}
 
-      {/* j. How can we help — 3 cards */}
-      <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 88}px ${P} ${mobile ? 24 : 40}px` }}>
-        <div className="rv" style={{ textAlign: 'center', maxWidth: 600, margin: '0 auto 36px' }}>
-          <div className="eyebrow" style={{ marginBottom: 14 }}>{t('swHelpEyebrow')}</div>
-          <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>{t('swHelpTitle')}</h2>
+      {/* [IKHTARHA 2026-11-09] The Closets for Business */}
+      <BusinessBand lang={lang} mobile={mobile} cms={cms} setPage={setPage} live={!!ikh} />
+
+      {/* h. Offers strip — from store_offers / customer_offers */}
+      {offers.length > 0 && (
+        <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 48 : 80}px ${P}` }}>
+          <div className="rv" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 14 }}>{t('swOffersEyebrow')}</div>
+              <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>{t('swOffersTitle')}</h2>
+            </div>
+            <button type="button" className="btn-line" onClick={() => setPage('offers')}>{t('swSeeAllOffers')}</button>
+          </div>
+          <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(' + Math.min(offers.length, 3) + ',1fr)', gap: mobile ? 14 : 20 }}>
+            {offers.slice(0, 3).map(o => (
+              <button type="button" key={o.id} className="lift" onClick={() => setPage('offers')} style={{ position: 'relative', overflow: 'hidden', border: '1px solid var(--line)', borderRadius: 18, cursor: 'pointer', textAlign: 'left', padding: 0, minHeight: 180, background: o.image_url ? '#15110e' : 'linear-gradient(135deg, var(--sand), #fff)' }}>
+                {o.image_url && <><Photo src={o.image_url} alt={o.title} style={{ position: 'absolute', inset: 0 }} /><div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.15), rgba(20,16,12,.82))' }} /></>}
+                <div style={{ position: 'relative', zIndex: 2, padding: 24, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'flex-end', minHeight: 180 }}>
+                  {o.badge && <span style={{ alignSelf: 'flex-start', background: 'var(--clay)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 11px', borderRadius: 980, marginBottom: 10 }}>{trMap(o.badge, OFFER_BADGE_KEY, lang)}</span>}
+                  <div className="display" style={{ fontSize: 22, color: o.image_url ? '#fff' : 'var(--ink)' }}>{trMap(o.title, OFFER_TITLE_KEY, lang)}</div>
+                  <div style={{ fontSize: 14, color: o.image_url ? 'rgba(255,255,255,.85)' : 'var(--ink-soft)', marginTop: 6, lineHeight: 1.5 }}>{trMap(o.subtitle, OFFER_SUB_KEY, lang)}</div>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: o.image_url ? '#E7BBA0' : 'var(--clay)', marginTop: 14 }}>{t('swClaimOffer')}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* c. Choose a free appointment */}
+      <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 88}px ${P} ${mobile ? 8 : 24}px` }}>
+        <div className="rv" style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 40px' }}>
+          <div className="eyebrow" style={{ marginBottom: 14 }}>{cms('home.appt.eyebrow', 'It starts with a chat')}</div>
+          <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>{cms('home.appt.title', 'Choose a free appointment.')}</h2>
+          <p style={{ fontSize: mobile ? 15 : 17, color: 'var(--ink-soft)', lineHeight: 1.7, marginTop: 14 }}>{cms('home.appt.subtitle', 'However you like to plan, there’s no charge and no obligation — just expert ideas for your space.')}</p>
         </div>
-        <div className="rv reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: mobile ? 14 : 20 }}>
-          {[[t('swHelpBrowse'), t('swHelpBrowseDesc'), '🛋️', 'products'], [t('swHelpStudio'), t('swHelpStudioDesc'), '✏️', 'planner'], [t('swHelpOffers'), t('swHelpOffersDesc'), '🏷️', 'offers']].map(([title, desc, ic, route], i) => (
-            <button type="button" key={title} className="lift" onClick={() => setPage(route)} style={{ '--d': (i * 0.06) + 's', background: '#fff', border: '1px solid var(--line)', borderRadius: 20, padding: mobile ? '24px 20px' : '32px 26px', textAlign: 'left', cursor: 'pointer' }}>
-              <div style={{ fontSize: 34, marginBottom: 14 }}>{ic}</div>
-              <div className="display" style={{ fontSize: mobile ? 19 : 22, color: 'var(--ink)', marginBottom: 8 }}>{title}</div>
-              <div style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 14 }}>{desc}</div>
-              <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--clay)' }}>{t('swGo')}</span>
+        <div className="rv reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 12 : 18 }}>
+          {appointments.map(([title, desc, ic], i) => (
+            <button type="button" key={title} className="lift" onClick={() => setPage('booking')} style={{ '--d': (i * 0.06) + 's', background: '#fff', border: '1px solid var(--line)', borderRadius: 18, padding: mobile ? '20px 16px' : '28px 22px', textAlign: 'left', cursor: 'pointer' }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, display: 'grid', placeItems: 'center', background: 'var(--sand)', color: 'var(--clay-deep)', marginBottom: 16 }}><Icon name={ic} size={24} /></div>
+              <div className="display" style={{ fontSize: mobile ? 17 : 20, color: 'var(--ink)', marginBottom: 6 }}>{title}</div>
+              <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, marginBottom: 12 }}>{desc}</div>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--clay)' }}>{t('swBookFree')}</span>
             </button>
           ))}
+        </div>
+      </section>
+
+      {/* AI designer band — editorial hero banner (safe-zone text left, photo right, single CTA) */}
+      <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 100}px ${P}` }}>
+        <div className="rv-sc" style={{ position: 'relative', borderRadius: 26, overflow: 'hidden', background: '#15110e', display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1.05fr .95fr', alignItems: 'stretch', minHeight: mobile ? 'auto' : 440 }}>
+          {mobile && <Photo src={HOME_IMG.living} alt="" par=".06" style={{ position: 'absolute', inset: 0, opacity: .32, zIndex: 0 }} />}
+          {mobile && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.55), rgba(20,16,12,.92))', zIndex: 1 }} />}
+          <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .06, mixBlendMode: 'overlay', backgroundImage: NOISE, zIndex: 1 }} />
+          <div style={{ position: 'relative', zIndex: 2, padding: mobile ? '40px 26px 44px' : '64px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <span className="floaty" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start', background: 'rgba(231,187,160,.14)', border: '1px solid rgba(231,187,160,.3)', color: '#E7BBA0', fontSize: 12, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 980, marginBottom: 18 }}>✦ {cms('home.ai.badge', t('swAiBadge'))}</span>
+            <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 30 : 46, lineHeight: 1.05, letterSpacing: '-.02em', marginBottom: 16 }}>{cms('home.ai.title1', t('swAiTitle1'))}<br />{cms('home.ai.title2', t('swAiTitle2'))}</h2>
+            <p style={{ color: 'rgba(255,255,255,.78)', fontSize: mobile ? 15 : 17, lineHeight: 1.65, marginBottom: 28, maxWidth: 440 }}>{cms('home.ai.desc', t('swAiDesc'))}</p>
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+              <button type="button" className="btn-clay" onClick={() => setPage('ai')} style={{ fontSize: 15, padding: '14px 26px' }}>{cms('home.ai.cta', t('swAiTry'))}</button>
+              <span style={{ color: 'rgba(255,255,255,.6)', fontSize: 13 }}>{t('swAiFree')}</span>
+            </div>
+          </div>
+          {!mobile && (
+            <div style={{ position: 'relative', minHeight: 440 }}>
+              <Photo src={HOME_IMG.living} alt={t('swAiLivingAlt')} style={{ position: 'absolute', inset: 0 }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, #15110e 0%, rgba(21,17,14,.25) 24%, rgba(21,17,14,0) 52%)' }} />
+              <span style={{ position: 'absolute', top: 18, right: 18, background: 'rgba(20,16,12,.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', color: '#fff', fontSize: 11, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', padding: '5px 11px', borderRadius: 980, border: '1px solid rgba(255,255,255,.2)' }}>{t('swAiAfter')}</span>
+            </div>
+          )}
         </div>
       </section>
 

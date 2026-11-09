@@ -103,6 +103,7 @@
   .hc-ikh-kv img { aspect-ratio: 4 / 5; max-height: 460px; }
   .hc-ikh-kv.is-poster img { aspect-ratio: auto; max-height: 560px; }
 }
+@media (max-width: 760px) { .hc-pill { display: none; } }   /* phones: the bottom dock + chat already crowd the corner; the campaign is right under the hero */
 @media (max-width: 560px) {
   .hc-sectors { grid-template-columns: 1fr; }
   .hc-btn { width: 100%; }
