@@ -47,7 +47,9 @@ export function IkhtarhaSpotlight({ cfg, lang, mobile, cms, setPage }) {
   const cd = useCountdown(cfg && cfg.ends);
   if (!cfg) return null;
   const b = cfg.brand || {};
-  const kv = (mobile ? b.hero_portrait || b.hero_wide : b.hero_wide || b.hero_portrait) || '/brand/ikhtarha/hero-wide.jpg';
+  // Arabic: the campaign poster (Arabic text baked in); English: the key visual
+  const poster = ar ? cms('home.ikh.poster', '/brand/ikhtarha/poster-ar.jpg') : '';
+  const kv = poster || (mobile ? b.hero_portrait || b.hero_wide : b.hero_wide || b.hero_portrait) || '/brand/ikhtarha/hero-wide.jpg';
   const name = ar ? (cfg.name_ar || 'اختارها') : (cfg.name_en || 'Ikhtarha');
   const steps = [
     [c('home.ikh.s1', 'Get your quotation', 'احصل على عرض السعر'), c('home.ikh.s1d', 'Visit a showroom or book a free home visit. Quotations from BD 1,300 qualify.', 'زر معرضنا أو احجز زيارة منزلية مجانية. عروض الأسعار من ١٬٣٠٠ د.ب مؤهلة.')],
@@ -78,9 +80,9 @@ export function IkhtarhaSpotlight({ cfg, lang, mobile, cms, setPage }) {
             </div>
           )}
         </div>
-        <button type="button" className="hc-ikh-kv rv" onClick={() => go(DEMO)} aria-label={c('home.ikh.cta3', 'Try a sample game', 'جرّب لعبة تجريبية')}>
-          <img src={kv} alt="" loading="lazy" />
-          <span className="hc-kv-play" aria-hidden="true">▶</span>
+        <button type="button" className={'hc-ikh-kv rv' + (poster ? ' is-poster' : '')} onClick={() => (poster ? setPage('planner') : go(DEMO))} aria-label={poster ? 'ابدأ تصميمك الآن' : c('home.ikh.cta3', 'Try a sample game', 'جرّب لعبة تجريبية')}>
+          <img src={kv} alt={poster ? 'اختارها — تصميمك المفضل وجائزتك باختيارك' : ''} loading="lazy" />
+          {!poster && <span className="hc-kv-play" aria-hidden="true">▶</span>}
         </button>
       </div>
       <p className="hc-fine">{c('home.ikh.fine', 'One game per eligible quotation. Prizes are drawn by our system and are subject to the Reward & Gift Card Policy.', 'لعبة واحدة لكل عرض سعر مؤهل. يتم سحب الجوائز آليًا وتخضع لسياسة الجوائز وبطاقات الهدايا.')}</p>

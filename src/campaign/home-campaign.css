@@ -38,6 +38,8 @@
 [dir="rtl"] .hc-ikh-kv { transform: perspective(1200px) rotateY(4deg); }
 .hc-ikh-kv:hover { transform: perspective(1200px) rotateY(0) scale(1.01); }
 .hc-ikh-kv img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; }
+.hc-ikh-kv.is-poster { width: auto; max-width: 100%; justify-self: center; }
+.hc-ikh-kv.is-poster img { aspect-ratio: auto; width: auto; max-width: 100%; max-height: min(720px, 82vh); object-fit: contain; }
 .hc-kv-play { position: absolute; inset-inline-end: 18px; bottom: 18px; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--hc-orange); color: #fff; font-size: 20px; box-shadow: 0 12px 30px -10px rgba(0,0,0,.6); }
 .hc-fine { position: relative; max-width: 1280px; margin: clamp(24px, 4vw, 40px) auto 0; font-size: 12px; opacity: .6; }
 
@@ -96,6 +98,7 @@
   .hc-ikh-kv { order: -1; transform: none; }
   [dir="rtl"] .hc-ikh-kv { transform: none; }
   .hc-ikh-kv img { aspect-ratio: 4 / 5; max-height: 460px; }
+  .hc-ikh-kv.is-poster img { aspect-ratio: auto; max-height: 560px; }
 }
 @media (max-width: 560px) {
   .hc-sectors { grid-template-columns: 1fr; }
