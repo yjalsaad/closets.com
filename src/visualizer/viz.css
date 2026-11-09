@@ -1,5 +1,5 @@
 /* Room Visualizer [ROOM-VIZ 2026-11-07] — website palette (ink / clay / cream), system font */
-:root { --vz-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --vz-font-ar: "Noto Sans Arabic", -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif; }
+:root { --vz-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --vz-font-ar: "Cairo", -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif; }
 .vz-root { --ink: #1b2a27; --ink2: #3d4f4b; --muted: #6d7c77; --cream: #f6f3ee; --line: #e3e0d8; --clay: #C65D2E; --clay2: #A94A22; --card: #fff; --head: 56px;
   min-height: 100dvh; background: var(--cream); color: var(--ink); font-family: var(--vz-font); font-size: 14px; -webkit-font-smoothing: antialiased; }
 .vz-root[dir="rtl"], .vz-scrim[dir="rtl"] { font-family: var(--vz-font-ar); }

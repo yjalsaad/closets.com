@@ -165,7 +165,7 @@ export default function IkhtarhaRoot() {
   }, [sound, takeDraws]);
   useEffect(() => { document.documentElement.lang = ar ? 'ar' : 'en'; document.documentElement.dir = ar ? 'rtl' : 'ltr'; document.title = gameName + (ar ? ' — الخزائن العالمية' : ' — The Closets International'); }, [ar, gameName]);
   useEffect(() => {
-    if (!document.getElementById('ik-font')) { const l = document.createElement('link'); l.id = 'ik-font'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap'; document.head.appendChild(l); }
+    if (!document.getElementById('ik-font')) { const l = document.createElement('link'); l.id = 'ik-font'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap'; document.head.appendChild(l); }
     api.landing(api.DEMO ? null : urlCode).then((c) => { if (c) setCfg((x) => ({ ...x, ...c, ...(api.DEMO ? { anim_ms: 3200, live: true } : {}) })); }).catch(() => {});
     const s = api.loadSession();
     if (s && s.token && phase !== 'verify') {

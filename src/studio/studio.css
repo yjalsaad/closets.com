@@ -3,7 +3,7 @@
  * The studios were built on Bonsai's token set (--space-*, --text-*, --bg-*, --brand …). They are defined here, scoped to .ws-root,
  * with the WEBSITE palette (DESIGN.md: ink, clay, cream) so the designers look like part of the site, not the admin app.
  * ===========================================================================*/
-:root { --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --font-ar: "Noto Sans Arabic", -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif; --font-display: var(--font-sans); }
+:root { --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --font-ar: "Cairo", -apple-system, BlinkMacSystemFont, "SF Arabic", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif; --font-display: var(--font-sans); }
 .ws-root {
   /* website palette */
   --ws-ink: #1b2a27; --ws-ink-2: #3d4f4b; --ws-muted: #6d7c77; --ws-cream: #f6f3ee; --ws-line: #d6e0dd; --ws-clay: #C65D2E; --ws-clay-deep: #A94A22;
