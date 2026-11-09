@@ -241,3 +241,8 @@
 .ik-next-btn { animation: ik-next-pulse 1.8s ease-in-out infinite; }
 @keyframes ik-next-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(217,105,47,.45); } 50% { box-shadow: 0 0 0 10px rgba(217,105,47,0); } }
 @media (prefers-reduced-motion: reduce) { .ik-next-btn { animation: none; } }
+
+/* [IKHTARHA 2026-11-09] Arabic headings in Kufam (close to the campaign logo lettering), with room between lines */
+.ik-root[dir="rtl"] h1, .ik-root[dir="rtl"] h2, .ik-root[dir="rtl"] .ik-title, .ik-root[dir="rtl"] .ik-congrats, .ik-root[dir="rtl"] .ik-value {
+  font-family: "Kufam", "Cairo", -apple-system, "SF Arabic", sans-serif; font-weight: 800; letter-spacing: 0; line-height: 1.4; }
+
