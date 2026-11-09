@@ -51,7 +51,9 @@
 .hc-tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 36px; }
 .hc-tier { border-radius: 18px; padding: 18px 20px; background: #fff; border: 1px solid rgba(91,21,32,.12); display: grid; gap: 2px; box-shadow: 0 14px 30px -24px rgba(91,21,32,.5); }
 .hc-tier b { font-size: clamp(30px, 3.4vw, 42px); font-weight: 800; color: var(--hc-burgundy); line-height: 1; }
+.hc-tier strong { font-size: 17px; color: var(--hc-burgundy); margin-top: 8px; }
 .hc-tier span { font-size: 13px; color: var(--muted, #6d7c77); }
+.hc-tier-franke strong { color: #fff; }
 .hc-tier-franke { background: linear-gradient(135deg, var(--hc-burgundy), var(--hc-wine)); border-color: transparent; }
 .hc-tier-franke b { color: var(--hc-orange-2); letter-spacing: .02em; }
 .hc-tier-franke span { color: rgba(247,242,236,.8); }

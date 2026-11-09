@@ -52,7 +52,7 @@ export function IkhtarhaSpotlight({ cfg, lang, mobile, cms, setPage }) {
   const kv = poster || (mobile ? b.hero_portrait || b.hero_wide : b.hero_wide || b.hero_portrait) || '/brand/ikhtarha/hero-wide.jpg';
   const name = ar ? (cfg.name_ar || 'اختارها') : (cfg.name_en || 'Ikhtarha');
   const steps = [
-    [c('home.ikh.s1', 'Get your quotation', 'احصل على عرض السعر'), c('home.ikh.s1d', 'Visit a showroom or book a free home visit. Quotations from BD 1,300 qualify.', 'زر معرضنا أو احجز زيارة منزلية مجانية. عروض الأسعار من ١٬٣٠٠ د.ب مؤهلة.')],
+    [c('home.ikh.s1', 'Get your quotation', 'احصل على عرض السعر'), c('home.ikh.s1d', 'Visit a showroom or book a free home visit — every quotation takes part.', 'زر معرضنا أو احجز زيارة منزلية مجانية — كل عروض الأسعار تشارك.')],
     [c('home.ikh.s2', 'Receive your code', 'استلم الكود'), c('home.ikh.s2d', 'Your quotation comes with a personal campaign code and link.', 'يصلك مع عرض السعر كود ورابط خاص بك للحملة.')],
     [c('home.ikh.s3', 'Choose your box & win', 'اختار صندوقك واربح'), c('home.ikh.s3d', 'Open your box in our 3D wardrobe — your prize is added to your quotation.', 'افتح صندوقك في خزانتنا ثلاثية الأبعاد — وتُضاف جائزتك إلى عرض السعر.')],
   ];
@@ -61,9 +61,9 @@ export function IkhtarhaSpotlight({ cfg, lang, mobile, cms, setPage }) {
     <section className="hc-ikh" dir={ar ? 'rtl' : 'ltr'} aria-labelledby="hc-ikh-h" data-testid="home-ikhtarha">
       <div className="hc-ikh-in">
         <div className="hc-ikh-copy rv">
-          <span className="hc-badge"><i aria-hidden="true" />{c('home.ikh.eyebrow', 'Live campaign · ' + name, 'حملة مباشرة · ' + name)}</span>
-          <h2 id="hc-ikh-h" className="display">{c('home.ikh.title', 'Every quotation is a chance to win.', 'كل عرض سعر فرصة للفوز.')}</h2>
-          <p className="hc-lead">{c('home.ikh.sub', 'Win up to 60% off your order — or a premium Franke appliance for your new kitchen.', 'اربح خصمًا يصل إلى ٦٠٪ على طلبك — أو جهاز فرانكي فاخر لمطبخك الجديد.')}</p>
+          <span className="hc-badge"><i aria-hidden="true" />{c('home.ikh.eyebrow', 'A first in Bahrain · ' + name, 'الأولى من نوعها في البحرين · ' + name)}</span>
+          <h2 id="hc-ikh-h" className="display">{c('home.ikh.title', 'For the first time in Bahrain — you choose your prize.', 'لأول مرة في البحرين… أنت تختار جائزتك!')}</h2>
+          <p className="hc-lead">{c('home.ikh.sub', 'Design your dream space with The Closets, open your box and reveal what you win — exclusive discounts, premium Franke appliances and signature designs. Every quotation gets its own game.', 'صمّم مساحتك المفضلة مع الخزائن العالمية، افتح صندوقك واكتشف جائزتك — خصومات حصرية وأجهزة فرانكي فاخرة وتصاميم مميزة. كل عرض سعر له لعبته الخاصة.')}</p>
           {extra && <p className="hc-extra">{extra}</p>}
           <ol className="hc-steps">
             {steps.map(([t, d], i) => <li key={i}><span className="hc-n">{(ar ? '١٢٣' : '123')[i]}</span><div><b>{t}</b><span>{d}</span></div></li>)}
@@ -85,7 +85,7 @@ export function IkhtarhaSpotlight({ cfg, lang, mobile, cms, setPage }) {
           {!poster && <span className="hc-kv-play" aria-hidden="true">▶</span>}
         </button>
       </div>
-      <p className="hc-fine">{c('home.ikh.fine', 'One game per eligible quotation. Prizes are drawn by our system and are subject to the Reward & Gift Card Policy.', 'لعبة واحدة لكل عرض سعر مؤهل. يتم سحب الجوائز آليًا وتخضع لسياسة الجوائز وبطاقات الهدايا.')}</p>
+      <p className="hc-fine">{c('home.ikh.fine', 'One game per quotation. Prizes are drawn by our system and are subject to the Reward & Gift Card Policy.', 'لعبة واحدة لكل عرض سعر. يتم سحب الجوائز آليًا وتخضع لسياسة الجوائز وبطاقات الهدايا.')}</p>
     </section>
   );
 }
@@ -94,17 +94,21 @@ export function IkhtarhaPrizes({ cfg, lang, cms }) {
   const ar = lang === 'ar';
   const c = (k, en, a) => (ar ? cms(k + '.ar', a) : cms(k, en));
   if (!cfg) return null;
-  const tiers = c('home.ikh.tiers', '20%,30%,40%,60%', '٢٠٪,٣٠٪,٤٠٪,٦٠٪').split(',').map((x) => x.trim()).filter(Boolean);
+  const tiles = [
+    ['%', c('home.ikh.pz.t1', 'Exclusive discounts', 'خصومات حصرية'), c('home.ikh.pz.t1d', 'off your order', 'على طلبك')],
+    ['🎁', c('home.ikh.pz.t2', 'Gifts in kind', 'جوائز عينية'), c('home.ikh.pz.t2d', 'for your new home', 'لبيتك الجديد')],
+    ['✦', c('home.ikh.pz.t3', 'Signature designs', 'تصاميم مميزة'), c('home.ikh.pz.t3d', 'made to fit your life', 'مصممة على ذوقك')],
+  ];
   const strip = [...PRIZES, ...PRIZES];
   return (
     <section className="hc-prizes" dir={ar ? 'rtl' : 'ltr'} aria-labelledby="hc-prizes-h" data-testid="home-ikh-prizes">
       <div className="hc-prizes-head rv">
         <span className="eyebrow">{c('home.ikh.pz.eyebrow', 'What you can win', 'ماذا يمكنك أن تربح')}</span>
-        <h2 id="hc-prizes-h" className="display">{c('home.ikh.pz.title', 'Discounts on your order. Premium Franke for your kitchen.', 'خصومات على طلبك. وأجهزة فرانكي الفاخرة لمطبخك.')}</h2>
+        <h2 id="hc-prizes-h" className="display">{c('home.ikh.pz.title', 'Discounts, gifts and signature designs — your box decides.', 'خصومات وجوائز عينية وتصاميم مميزة — وصندوقك يقرر.')}</h2>
       </div>
       <div className="hc-tiers rv">
-        {tiers.map((t) => <div key={t} className="hc-tier"><b dir="ltr">{t}</b><span>{c('home.ikh.pz.off', 'off your order', 'خصم على طلبك')}</span></div>)}
-        <div className="hc-tier hc-tier-franke"><b>Franke</b><span>{c('home.ikh.pz.franke', 'premium appliances', 'أجهزة فاخرة')}</span></div>
+        {tiles.map(([ic, t, d]) => <div key={t} className="hc-tier"><b aria-hidden="true">{ic}</b><strong>{t}</strong><span>{d}</span></div>)}
+        <div className="hc-tier hc-tier-franke"><b>Franke</b><strong>{c('home.ikh.pz.franke', 'Premium appliances', 'أجهزة فاخرة')}</strong><span>{c('home.ikh.pz.franked', 'Swiss quality for your kitchen', 'جودة سويسرية لمطبخك')}</span></div>
       </div>
       <div className="hc-strip" aria-label={c('home.ikh.pz.list', 'Prizes include', 'من الجوائز')}>
         <div className="hc-strip-track">
@@ -116,7 +120,7 @@ export function IkhtarhaPrizes({ cfg, lang, cms }) {
           ))}
         </div>
       </div>
-      <p className="hc-fine">{c('home.ikh.pz.fine', 'Prizes depend on the quotation value and stock. Pictures are for illustration.', 'تعتمد الجوائز على قيمة عرض السعر وتوفر المخزون. الصور للتوضيح.')}</p>
+      <p className="hc-fine">{c('home.ikh.pz.fine', 'Prizes depend on stock. Pictures are for illustration.', 'تعتمد الجوائز على توفر المخزون. الصور للتوضيح.')}</p>
     </section>
   );
 }
