@@ -11,7 +11,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './ikhtarha.css';
 import * as api from './api';
 import ScratchCard from './ScratchCard';
-import { certificateDocument, rewardSentence, rewardValueText } from './certificate';
+import { certificateDocument, rewardSentence, rewardValueText, kitColours } from './certificate';
 
 /* campaign identity — the اختارها brand pack; Bonsai (Ad Campaigns → campaign identity) overrides any key per campaign */
 const BRAND = { logo: '/brand/ikhtarha/logo.png', logo_light: '/brand/ikhtarha/logo-light.png', hero_wide: '/brand/ikhtarha/hero-wide.jpg', hero_portrait: '/brand/ikhtarha/hero-portrait.jpg',
@@ -20,7 +20,7 @@ const HEX = /^#[0-9A-Fa-f]{6}$/;
 const safeUrl = (u) => (typeof u === 'string' && /^(https:\/\/|\/brand\/)/.test(u) ? u : '');
 const shade = (hex, k) => { const n = parseInt(hex.slice(1), 16); const f = (x) => Math.max(0, Math.min(255, Math.round(k < 0 ? x * (1 + k) : x + (255 - x) * k))); return '#' + [n >> 16, (n >> 8) & 255, n & 255].map((x) => f(x).toString(16).padStart(2, '0')).join(''); };
 function brandOf(cfg) {
-  const b = { ...BRAND, ...((cfg && cfg.brand) || {}) };
+  const b = { ...BRAND, ...kitColours((cfg && cfg.brand) || {}) };
   ['primary', 'accent', 'sand', 'taupe', 'charcoal'].forEach((k) => { if (!HEX.test(b[k] || '')) b[k] = BRAND[k]; });
   ['logo', 'logo_light', 'hero_wide', 'hero_portrait'].forEach((k) => { b[k] = safeUrl(b[k]); });
   return b;
@@ -46,7 +46,8 @@ const S = {
   already: ['You have already discovered your reward.', 'لقد اكتشفت جائزتك مسبقًا.'],
   expired: ['This campaign has ended. Thank you for being with us.', 'انتهت هذه الحملة. شكرًا لوجودك معنا.'],
   closed: ['The campaign is not open right now.', 'الحملة غير متاحة حاليًا.'],
-  sold_out: ['All rewards have been claimed — our team will contact you.', 'تم توزيع جميع الجوائز — سيتواصل معك فريقنا.'],
+  sold_out: ['No reward is available for this quotation right now — our team will contact you.', 'لا توجد جائزة متاحة لعرض السعر هذا حاليًا — سيتواصل معك فريقنا.'],
+  home: ['Back to website', 'العودة للموقع'], restart: ['Back to start', 'العودة للبداية'],
   locked: ['Too many attempts. Please contact your sales consultant.', 'محاولات كثيرة. تواصل مع مستشار المبيعات.'],
   rate_limited: ['Too many attempts — please wait a few minutes.', 'محاولات كثيرة — انتظر بضع دقائق.'],
   session: ['Your session ended — please enter your details again.', 'انتهت الجلسة — أدخل بياناتك مرة أخرى.'],
@@ -214,6 +215,8 @@ export default function IkhtarhaRoot() {
     w.document.write(certificateDocument(list, { ar, title: list.map((x) => x.ref).join(' · '), totalDiscount })); w.document.close();
   };
   // next draw: a fresh wardrobe / scratch card with the same session (the server decides which prize types this draw can give)
+  // [2026-11-09] back from every screen: hero → website, any other screen → the start (the saved session brings the customer straight back)
+  const goBack = () => { if (phase === 'hero') { window.location.href = '/'; return; } setMsg(null); setBurst(false); setPhase(phase === 'reward' || phase === 'experience' || phase === 'error' ? 'hero' : 'hero'); };
   const nextDraw = () => { scratchReq.current = null; setSelected(null); setBurst(false); setReward(null); setMsg(null); setReady3d(false); setDrawKey((k) => k + 1); setPhase('experience'); };
   const drawLabel = draws.total > 1 && (phase === 'experience' || phase === 'revealing') ? T('drawOf', ar, { n: Math.min(draws.done + 1, draws.total), t: draws.total }) : '';
 
@@ -224,6 +227,8 @@ export default function IkhtarhaRoot() {
     <div className={'ik-root ik-phase-' + phase + ((B.hero_wide || B.hero_portrait) ? ' ik-kv-' + (B.hero_text_side === 'left' ? 'left' : 'right') : '')} dir={ar ? 'rtl' : 'ltr'} lang={ar ? 'ar' : 'en'} style={brandStyle(B)}>
       {api.DEMO && <div className="ik-demo" role="note">{ar ? 'معاينة تجريبية — الجوائز هنا ليست حقيقية' : 'Sample preview — prizes here are not real'}</div>}
       <header className="ik-head">
+        <button type="button" className="ik-back" onClick={goBack} disabled={phase === 'revealing' || phase === 'checking'} aria-label={phase === 'hero' ? T('home', ar) : T('back', ar)} data-testid="ik-back">
+          <span aria-hidden="true">{ar ? '→' : '←'}</span><em>{phase === 'hero' ? T('home', ar) : T('back', ar)}</em></button>
         <a href="/" className="ik-logo" aria-label={T('brand', ar)}><img src="/brand/closets-logo-white.png" alt={T('brand', ar)} /></a>
         {phase !== 'hero' && B.logo_light && <img className="ik-clogo-head" src={B.logo_light} alt={gameName} />}
         {step >= 0 && (
@@ -317,10 +322,12 @@ export default function IkhtarhaRoot() {
 
       {phase === 'error' && msg && (
         <main className="ik-panel-wrap"><div className="ik-panel" role="alert"><h2>{T(msg.key, ar)}</h2>
-          {cfg.whatsapp && <a className="ik-btn ik-btn-ghost ik-wide" href={'https://wa.me/' + String(cfg.whatsapp).replace(/\D/g, '')} target="_blank" rel="noopener noreferrer">{T('whatsapp', ar)}</a>}</div></main>
+          {cfg.whatsapp && <a className="ik-btn ik-btn-ghost ik-wide" href={'https://wa.me/' + String(cfg.whatsapp).replace(/\D/g, '')} target="_blank" rel="noopener noreferrer">{T('whatsapp', ar)}</a>}
+          <button type="button" className="ik-btn ik-btn-link ik-wide" onClick={goBack}>{T('restart', ar)}</button>
+          <a className="ik-btn ik-btn-link ik-wide" href="/">{T('home', ar)}</a></div></main>
       )}
 
-      {phase === 'reward' && reward && <RewardCard ar={ar} reward={reward} draws={draws} onNext={nextDraw} note={msg && msg.key === 'already' && !draws.remaining ? T('already', ar) : null} onPrint={printReward} whatsapp={cfg.whatsapp} logo={B.logo_light} />}
+      {phase === 'reward' && reward && <RewardCard ar={ar} reward={reward} draws={draws} onNext={nextDraw} note={msg && msg.key === 'already' && !draws.remaining ? T('already', ar) : null} onPrint={printReward} whatsapp={cfg.whatsapp} logo={B.logo || B.logo_light} onBack={goBack} />}
       <Confetti on={burst && phase === 'reward'} calm={cfg.reveal === 'glow'} />
 
       {how && (
@@ -337,7 +344,7 @@ export default function IkhtarhaRoot() {
   );
 }
 
-function RewardCard({ ar, reward: r, draws = { total: 1, remaining: 0, rewards: [] }, onNext, note, onPrint, whatsapp, logo }) {
+function RewardCard({ ar, reward: r, draws = { total: 1, remaining: 0, rewards: [] }, onNext, note, onPrint, whatsapp, logo, onBack }) {
   const many = draws.rewards.length > 1; const totalDisc = draws.rewards.reduce((n, x) => n + (Number(x.discount_amount) || 0), 0);
   const desc = ar ? (r.description_ar || r.description_en) : (r.description_en || r.description_ar);
   return (
@@ -381,6 +388,10 @@ function RewardCard({ ar, reward: r, draws = { total: 1, remaining: 0, rewards: 
         </div>
         {!r.quote_url && <p className="ik-small">{T('noQuoteLink', ar)}</p>}
         {whatsapp && <a className="ik-btn ik-btn-link" href={'https://wa.me/' + String(whatsapp).replace(/\D/g, '')} target="_blank" rel="noopener noreferrer">{T('whatsapp', ar)}</a>}
+        <div className="ik-backrow">
+          {onBack && <button type="button" className="ik-btn ik-btn-link" onClick={onBack} data-testid="ik-reward-back">{ar ? '→' : '←'} {T('restart', ar)}</button>}
+          <a className="ik-btn ik-btn-link" href="/">{T('home', ar)}</a>
+        </div>
       </article>
     </main>
   );
@@ -392,7 +403,7 @@ function Verify({ ar, setLang, q }) {
   const st = v && v.ok ? v.status : null;
   return (
     <div className="ik-root ik-phase-verify" dir={ar ? 'rtl' : 'ltr'}>
-      <header className="ik-head"><a href="/" className="ik-logo"><img src="/brand/closets-logo-white.png" alt={T('brand', ar)} /></a><span className="ik-grow" /><button type="button" className="ik-lang" onClick={() => setLang(ar ? 'en' : 'ar')}>{ar ? 'EN' : 'ع'}</button></header>
+      <header className="ik-head"><a href="/" className="ik-back" aria-label={T('home', ar)}><span aria-hidden="true">{ar ? '→' : '←'}</span><em>{T('home', ar)}</em></a><a href="/" className="ik-logo"><img src="/brand/closets-logo-white.png" alt={T('brand', ar)} /></a><span className="ik-grow" /><button type="button" className="ik-lang" onClick={() => setLang(ar ? 'en' : 'ar')}>{ar ? 'EN' : 'ع'}</button></header>
       <main className="ik-reward-wrap">
         <article className="ik-reward">
           <p className="ik-eyebrow">{T('verifyTitle', ar)}</p>

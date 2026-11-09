@@ -75,6 +75,7 @@ export default function GamesRoot() {
     <div className="ikg" dir={ar ? 'rtl' : 'ltr'} lang={ar ? 'ar' : 'en'}>
       {api.DEMO && <div className="ikg-demo" role="note">{t('sample', ar)}</div>}
       <header className="ikg-head">
+        {!game && <a href="/" className="ikg-home" data-testid="ikg-home"><span aria-hidden="true">{ar ? '→' : '←'}</span><em>{ar ? 'العودة للموقع' : 'Back to website'}</em></a>}
         <a href="/" className="ikg-logo" aria-label="The Closets"><img src="/brand/closets-logo-white.png" alt="The Closets" /></a>
         <button type="button" className="ikg-brand" onClick={() => nav(null)}><img src="/brand/ikhtarha/logo-light.png" alt={ar ? 'اختارها' : 'Ikhtarha'} /></button>
         <span className="ikg-grow" />

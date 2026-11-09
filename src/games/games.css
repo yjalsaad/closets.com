@@ -329,3 +329,8 @@
 /* scratch card reuses the campaign component + its styles (ikhtarha.css, tokens scoped to .ik-root) — give it the same tokens here */
 .g-scratch { --ik-orange: #3FB6B0; --ik-orange-2: #9FDDD8; --ik-burgundy: #4A2C82; --ik-wine: #2A1650; --ik-ink: #1A0D33; --ik-cream: #FFFFFF;
   --ik-grey: #F1ECF8; --ik-muted: rgba(247,242,236,.66); --ik-line: rgba(247,242,236,.14); --ik-gold: #3FB6B0; display: grid; justify-items: center; }
+
+/* [2026-11-09] back to the website from the entry / hub screens (game screens have their own back button) */
+.ikg-home { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.08); color: #fff; text-decoration: none; font-weight: 600; font-size: 14px; }
+.ikg-home:hover { background: rgba(255,255,255,.16); } .ikg-home em { font-style: normal; }
+@media (max-width: 600px) { .ikg-home em { display: none; } .ikg-home { width: 42px; padding: 0; justify-content: center; } }

@@ -42,7 +42,7 @@
 .ik-title { margin: 0; font-size: clamp(64px, 12vw, 148px); line-height: .95; font-weight: 700; letter-spacing: -.02em;
   color: #fff; }
 .ik-tag { margin: 18px 0 0; font-size: clamp(18px, 2.2vw, 24px); color: var(--ik-cream); max-width: 30ch; }
-.ik-tag-2 { margin-top: 6px; font-size: 13px; letter-spacing: .22em; color: var(--ik-muted); }
+.ik-tag-2 { margin-top: 6px; font-size: 14px; letter-spacing: .02em; color: var(--ik-muted); }
 .ik-muted { color: var(--ik-muted); margin: 0; }
 .ik-small { font-size: 13px; color: var(--ik-muted); margin: 14px 0 0; }
 
@@ -247,3 +247,30 @@
 .ik-root[dir="rtl"] h1, .ik-root[dir="rtl"] h2, .ik-root[dir="rtl"] .ik-title, .ik-root[dir="rtl"] .ik-congrats, .ik-root[dir="rtl"] .ik-value {
   font-family: var(--ik-font-d); font-weight: 900; letter-spacing: 0; line-height: 1.3; }
 
+
+/* [2026-11-09] back button on every screen (hero → website, others → start) */
+.ik-back { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--ik-line); background: rgba(255,255,255,.08); color: #fff;
+  font: inherit; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: background .2s ease-out; }
+.ik-back:hover { background: rgba(255,255,255,.16); }
+.ik-back:disabled { opacity: .4; cursor: default; }
+.ik-back em { font-style: normal; }
+.ik-back:focus-visible { outline: 3px solid var(--ik-orange-2); outline-offset: 3px; }
+.ik-backrow { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+@media (max-width: 760px) { .ik-back em { display: none; } .ik-back { padding: 0; width: 44px; justify-content: center; } }
+
+/* [2026-11-09 brand kit] the reward card is a white prize ticket: notch, purple ink, dashed tear line, turquoise value */
+.ik-reward { background: #fff; color: #3A1F6B; border: 0; position: relative; border-radius: 36px; padding-top: 48px; box-shadow: 0 40px 100px -30px rgba(16,8,32,.8); }
+.ik-reward::before { content: ""; position: absolute; top: -1px; left: 50%; width: 150px; height: 30px; transform: translateX(-50%); background: var(--ik-wine); border-radius: 0 0 20px 20px; }
+.ik-reward .ik-eyebrow { display: inline-block; color: #fff; background: #23807C; padding: 6px 14px; border-radius: 10px; transform: rotate(-6deg); letter-spacing: 0; text-transform: none; font-size: 14px; box-shadow: 0 10px 24px rgba(42,22,80,.3); }
+.ik-reward .ik-congrats, .ik-reward h2, .ik-reward h3 { color: #3A1F6B; }
+.ik-reward .ik-value { color: #23807C; text-shadow: none; }
+.ik-reward .ik-rname { color: #4A2C82; }
+.ik-reward .ik-muted, .ik-reward .ik-small, .ik-reward p { color: #6A4FA3; }
+.ik-reward .ik-facts { border-top: 4px dashed #CFC4E3; padding-top: 16px; }
+.ik-reward .ik-facts div { background: #F1ECF8; border: 0; }
+.ik-reward .ik-facts dt { color: #6A4FA3; } .ik-reward .ik-facts dd { color: #3A1F6B; }
+.ik-reward .ik-btn-ghost { background: #fff; color: #4A2C82; border-color: #CFC4E3; }
+.ik-reward .ik-btn-link { color: #4A2C82; }
+.ik-reward .ik-btn-primary { background: #23807C; box-shadow: none; }
+.ik-reward .ik-msg { color: #3A1F6B; }
+.ik-reward .ik-congrats { font-size: clamp(30px, 6.4vw, 56px); overflow-wrap: normal; word-break: keep-all; hyphens: none; }

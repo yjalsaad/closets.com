@@ -10,8 +10,18 @@ const ORIGIN = LOGO.replace(/\/brand\/.*$/, '');
 /** campaign asset URL: absolute https, or a /brand/… path served by this app */
 export const assetUrl = (u) => (!u ? '' : /^https:\/\//.test(u) ? u : ORIGIN + (u.startsWith('/') ? u : '/' + u));
 const HEX = /^#[0-9A-Fa-f]{6}$/;
+
+/** [2026-11-09 brand kit] campaigns saved before the Ekhtar-ha kit still carry the old default pack (burgundy #5B1520 / orange #FF7A00 / beige):
+ *  treat that pack as "not customised" and use the kit colours instead. Any other (custom) colour is kept. */
+export const KIT = { primary: '#4A2C82', accent: '#23807C', sand: '#F1ECF8', taupe: '#9FDDD8', charcoal: '#3A1F6B' };
+const LEGACY = { primary: '#5B1520', accent: '#FF7A00', sand: '#EFE8E0', taupe: '#B9ADA1', charcoal: '#2D2D2D' };
+export function kitColours(b) {
+  const o = { ...(b || {}) };
+  Object.keys(KIT).forEach((k) => { if (!o[k] || String(o[k]).toUpperCase() === LEGACY[k]) o[k] = KIT[k]; });
+  return o;
+}
 /** inline CSS variables from a campaign brand (only well-formed hex values are used) */
-export const brandVars = (b) => { b = b || {}; const v = []; if (HEX.test(b.primary || '')) v.push('--ikh-b:' + b.primary); if (HEX.test(b.accent || '')) v.push('--ikh-o:' + b.accent); if (HEX.test(b.sand || '')) v.push('--ikh-s:' + b.sand); return v.join(';'); };
+export const brandVars = (b) => { b = kitColours(b); const v = []; if (HEX.test(b.primary || '')) v.push('--ikh-b:' + b.primary); if (HEX.test(b.accent || '')) v.push('--ikh-o:' + b.accent); if (HEX.test(b.sand || '')) v.push('--ikh-s:' + b.sand); return v.join(';'); };
 export const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export function qrSvg(text, cell = 4) {
   const q = qrcode(0, 'M'); q.addData(String(text)); q.make();
