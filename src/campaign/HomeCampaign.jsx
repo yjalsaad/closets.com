@@ -76,7 +76,7 @@ export function IkhtarhaSpotlight({ cfg, lang, cms, setPage }) {
   ];
   return (
     <section ref={ref} className="hc-ekh" dir={ar ? 'rtl' : 'ltr'} aria-labelledby="hc-ikh-h" data-testid="home-ikhtarha">
-      <img className="hc-hills" src={ILL + 'scene-hills.svg'} alt="" aria-hidden="true" />
+      <img className="hc-hills" src={ILL + 'scene-hills-bare.svg'} alt="" aria-hidden="true" />
       <i className="hc-dot d1" aria-hidden="true" /><i className="hc-dot d2" aria-hidden="true" /><i className="hc-dot d3" aria-hidden="true" />
       <article className="hc-tk" {...tilt(2)}>
         <div className="hc-tk-top">
@@ -101,7 +101,7 @@ export function IkhtarhaSpotlight({ cfg, lang, cms, setPage }) {
               <a className="hc-link" href={DEMO}>{c('home.ikh.cta3', 'Try a sample game', 'جرّب لعبة تجريبية')}</a>
             </div>
           </div>
-          <div className="hc-stub-mid" aria-hidden="true"><img src="/brand/ikhtarha/logo.png" alt="" /></div>
+          <div className="hc-stub-mid" aria-hidden="true"><b className="hc-vert">اختارها</b></div>
           <div className="hc-stub-date">
             <b className="display">{c('home.ikh.dates1', 'From 10 November', 'من ١٠ نوفمبر')}</b>
             <b className="display">{c('home.ikh.dates2', 'to 10 January', 'حتى ١٠ يناير')}</b>

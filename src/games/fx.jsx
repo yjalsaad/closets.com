@@ -34,7 +34,7 @@ export function Confetti({ on }) {
     if (!on || reduced() || !cv.current) return undefined;
     const c = cv.current; const g = c.getContext('2d'); const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const W = (c.width = window.innerWidth * dpr), H = (c.height = window.innerHeight * dpr);
-    const cols = ['#D9692F', '#FFB066', '#4B1F24', '#F7F2EC', '#C9A35A'];
+    const cols = ['#3FB6B0', '#9FDDD8', '#4A2C82', '#FFFFFF', '#3FB6B0'];
     const ps = Array.from({ length: 150 }, () => ({ x: W / 2 + (Math.random() - 0.5) * W * 0.3, y: H * 0.45, vx: (Math.random() - 0.5) * 22 * dpr, vy: (-Math.random() * 20 - 8) * dpr,
       s: (4 + Math.random() * 6) * dpr, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.3, c: cols[Math.floor(Math.random() * cols.length)] }));
     let raf; let t = 0;
