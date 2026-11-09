@@ -15,21 +15,21 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 
 const THEMES = {
-  walnut:   { wood: ['#5b3a26', '#3b2416'], inner: '#e9dccb', accent: '#D9692F', rim: '#7a2633', handle: '#c9a35a', bg: '#120a0b', wall: '#2a1a17' },
-  oak:      { wood: ['#b88a58', '#8a6234'], inner: '#f1e6d6', accent: '#E07A3F', rim: '#6d2430', handle: '#c9a35a', bg: '#150d0b', wall: '#2e211a' },
-  ivory:    { wood: ['#efe8dc', '#d9cfbf'], inner: '#fbf7f1', accent: '#D9692F', rim: '#4B1F24', handle: '#b8924e', bg: '#110a0a', wall: '#2b1d1a', lacquer: true },
-  charcoal: { wood: ['#3a3634', '#262322'], inner: '#d8cdc0', accent: '#C9702E', rim: '#5a1d26', handle: '#b87333', bg: '#0d0909', wall: '#221816' },
+  walnut:   { wood: ['#5b3a26', '#3b2416'], inner: '#e9dccb', accent: '#3FB6B0', rim: '#4A2C82', handle: '#c9a35a', bg: '#1A0D33', wall: '#2A1650' },
+  oak:      { wood: ['#b88a58', '#8a6234'], inner: '#f1e6d6', accent: '#3FB6B0', rim: '#4A2C82', handle: '#c9a35a', bg: '#1A0D33', wall: '#2A1650' },
+  ivory:    { wood: ['#efe8dc', '#d9cfbf'], inner: '#fbf7f1', accent: '#3FB6B0', rim: '#4A2C82', handle: '#b8924e', bg: '#1A0D33', wall: '#2A1650', lacquer: true },
+  charcoal: { wood: ['#3a3634', '#262322'], inner: '#d8cdc0', accent: '#3FB6B0', rim: '#4A2C82', handle: '#b87333', bg: '#1A0D33', wall: '#2A1650' },
 };
-const BOX_PALETTE = [
-  { body: '#D9692F', ribbon: '#f6efe5', rough: 0.45 }, { body: '#4B1F24', ribbon: '#c9a35a', rough: 0.7 }, { body: '#f3ece2', ribbon: '#D9692F', rough: 0.5 },
-  { body: '#b8924e', ribbon: '#4B1F24', rough: 0.3, metal: 0.6 }, { body: '#6b2a33', ribbon: '#f3ece2', rough: 0.6 }, { body: '#e4884f', ribbon: '#4B1F24', rough: 0.45 },
+const BOX_PALETTE = [   // [2026-11-09 brand kit] purple · turquoise · white gift boxes (scene-gift-boxes.svg)
+  { body: '#3FB6B0', ribbon: '#4A2C82', rough: 0.45 }, { body: '#7B5BB5', ribbon: '#3FB6B0', rough: 0.6 }, { body: '#FFFFFF', ribbon: '#3FB6B0', rough: 0.5 },
+  { body: '#4A2C82', ribbon: '#9FDDD8', rough: 0.4 }, { body: '#23807C', ribbon: '#FFFFFF', rough: 0.5 }, { body: '#9A86C4', ribbon: '#4A2C82', rough: 0.45 },
 ];
 const HEX = /^#[0-9A-Fa-f]{6}$/;
 function brandPalette(b) {
   if (!b || !HEX.test(b.primary || '') || !HEX.test(b.accent || '')) return BOX_PALETTE;
   const sand = HEX.test(b.sand || '') ? b.sand : '#f3ece2'; const taupe = HEX.test(b.taupe || '') ? b.taupe : '#b8924e';
   return [
-    { body: b.accent, ribbon: sand, rough: 0.42 }, { body: b.primary, ribbon: '#c9a35a', rough: 0.68 }, { body: sand, ribbon: b.accent, rough: 0.5 },
+    { body: b.accent, ribbon: sand, rough: 0.42 }, { body: b.primary, ribbon: '#3FB6B0', rough: 0.68 }, { body: sand, ribbon: b.accent, rough: 0.5 },
     { body: taupe, ribbon: b.primary, rough: 0.35, metal: 0.3 }, { body: b.primary, ribbon: sand, rough: 0.6 }, { body: b.accent, ribbon: b.primary, rough: 0.4 },
   ];
 }
@@ -107,7 +107,7 @@ export function createWardrobe(host, opts = {}) {
   const bloomBase = bloom.strength;
 
   // ── lights ──
-  const hemi = new THREE.HemisphereLight('#ffe9d6', '#1b0f10', 0.32); scene.add(hemi);
+  const hemi = new THREE.HemisphereLight('#ffe9d6', '#1A0D33', 0.32); scene.add(hemi);
   const key = new THREE.SpotLight('#fff1e2', 20, 16, Math.PI / 7.5, 0.6, 1.6); key.position.set(-1.4, 5.6, 4.0); key.castShadow = !mobile; key.shadow.mapSize.set(1024, 1024); key.shadow.bias = -0.0004;
   key.target.position.set(0, 1.2, 0); scene.add(key, key.target);
   const accent = new THREE.PointLight(theme.accent, 7, 9, 2); accent.position.set(-3.2, 1.6, 1.4); scene.add(accent);
@@ -206,11 +206,11 @@ export function createWardrobe(host, opts = {}) {
     const bowGeo = new THREE.TorusGeometry(size * 0.15, size * 0.04, 12, 28);
     [-1, 1].forEach((s2) => { const b = new THREE.Mesh(bowGeo, rm); b.position.set(s2 * size * 0.13, size * 0.17, 0); b.rotation.set(Math.PI / 2.4, 0, s2 * 0.6); lid.add(b); });
     const knot = new THREE.Mesh(new THREE.SphereGeometry(size * 0.06, 16, 12), rm); knot.position.y = size * 0.14; lid.add(knot);
-    const inside = new THREE.Mesh(new THREE.PlaneGeometry(size * 0.86, size * 0.86), new THREE.MeshBasicMaterial({ map: glowTexture('#ffd28f'), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+    const inside = new THREE.Mesh(new THREE.PlaneGeometry(size * 0.86, size * 0.86), new THREE.MeshBasicMaterial({ map: glowTexture('#9FDDD8'), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
     inside.rotation.x = -Math.PI / 2; inside.position.y = size * 0.36; g.add(inside);
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(size * 0.78, size * 0.022, 8, 64), new THREE.MeshBasicMaterial({ color: '#ffb36b', transparent: true, opacity: 0 }));
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(size * 0.78, size * 0.022, 8, 64), new THREE.MeshBasicMaterial({ color: '#9FDDD8', transparent: true, opacity: 0 }));
     ring.rotation.x = Math.PI / 2; ring.position.y = -size * 0.5; g.add(ring);
-    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture('#ffb36b'), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture('#9FDDD8'), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
     halo.scale.set(size * 3, size * 3, 1); g.add(halo);
     g.add(body, rb1, rb2, lid); g.scale.setScalar(0.0001); wardrobe.add(g);
     boxes.push({ g, body, lid, ring, halo, inside, bodyMat, size });
@@ -227,13 +227,13 @@ export function createWardrobe(host, opts = {}) {
   column.visible = false; scene.add(column);
   const PN = mobile ? 180 : 360; const pGeo = new THREE.BufferGeometry(); const pPos = new Float32Array(PN * 3); const pVel = new Float32Array(PN * 3);
   pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-  const sparks = new THREE.Points(pGeo, new THREE.PointsMaterial({ map: glowTexture('#ffe2a8'), size: mobile ? 0.07 : 0.055, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const sparks = new THREE.Points(pGeo, new THREE.PointsMaterial({ map: glowTexture('#E2F5F3'), size: mobile ? 0.07 : 0.055, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
   scene.add(sparks);
   const CN = reduced ? 0 : mobile ? 70 : 150;
   const confetti = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.05, 0.11), new THREE.MeshStandardMaterial({ side: THREE.DoubleSide, roughness: 0.45, metalness: 0.35 }), Math.max(1, CN));
   confetti.instanceMatrix.setUsage(THREE.DynamicDrawUsage); confetti.frustumCulled = false; confetti.visible = false; scene.add(confetti);
   const cState = Array.from({ length: CN }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), r: new THREE.Euler(), w: new THREE.Vector3(), f: Math.random() * 6 }));
-  const confCols = [theme.accent, theme.rim, '#c9a35a', '#f6efe5', '#ffcf7a'].map((c) => new THREE.Color(c));
+  const confCols = [theme.accent, theme.rim, '#9FDDD8', '#FFFFFF', '#7B5BB5'].map((c) => new THREE.Color(c));
   for (let i = 0; i < CN; i++) confetti.setColorAt(i, confCols[i % confCols.length]);
   const dummy = new THREE.Object3D();
 

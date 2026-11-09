@@ -15,7 +15,7 @@ import { certificateDocument, rewardSentence, rewardValueText } from './certific
 
 /* campaign identity — the اختارها brand pack; Bonsai (Ad Campaigns → campaign identity) overrides any key per campaign */
 const BRAND = { logo: '/brand/ikhtarha/logo.png', logo_light: '/brand/ikhtarha/logo-light.png', hero_wide: '/brand/ikhtarha/hero-wide.jpg', hero_portrait: '/brand/ikhtarha/hero-portrait.jpg',
-  hero_has_logo: true, hero_text_side: 'right', primary: '#5B1520', accent: '#FF7A00', sand: '#EFE8E0', taupe: '#B9ADA1', charcoal: '#2D2D2D', slogan_ar: 'تصاميم جميلة. جاهزة لك.', slogan_en: 'Beautiful designs. Ready for you.' };
+  hero_has_logo: true, hero_text_side: 'right', primary: '#4A2C82', accent: '#23807C', sand: '#FFFFFF', taupe: '#9FDDD8', charcoal: '#3A1F6B', slogan_ar: 'تصاميم جميلة. جاهزة لك.', slogan_en: 'Beautiful designs. Ready for you.' };
 const HEX = /^#[0-9A-Fa-f]{6}$/;
 const safeUrl = (u) => (typeof u === 'string' && /^(https:\/\/|\/brand\/)/.test(u) ? u : '');
 const shade = (hex, k) => { const n = parseInt(hex.slice(1), 16); const f = (x) => Math.max(0, Math.min(255, Math.round(k < 0 ? x * (1 + k) : x + (255 - x) * k))); return '#' + [n >> 16, (n >> 8) & 255, n & 255].map((x) => f(x).toString(16).padStart(2, '0')).join(''); };
@@ -165,7 +165,7 @@ export default function IkhtarhaRoot() {
   }, [sound, takeDraws]);
   useEffect(() => { document.documentElement.lang = ar ? 'ar' : 'en'; document.documentElement.dir = ar ? 'rtl' : 'ltr'; document.title = gameName + (ar ? ' — الخزائن العالمية' : ' — The Closets International'); }, [ar, gameName]);
   useEffect(() => {
-    if (!document.getElementById('ik-font')) { const l = document.createElement('link'); l.id = 'ik-font'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Kufam:wght@600;700;800&family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap'; document.head.appendChild(l); }
+    if (!document.getElementById('ik-font')) { const l = document.createElement('link'); l.id = 'ik-font'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Alexandria:wght@500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap'; document.head.appendChild(l); }
     api.landing(api.DEMO ? null : urlCode).then((c) => { if (c) setCfg((x) => ({ ...x, ...c, ...(api.DEMO ? { anim_ms: 3200, live: true } : {}) })); }).catch(() => {});
     const s = api.loadSession();
     if (s && s.token && phase !== 'verify') {

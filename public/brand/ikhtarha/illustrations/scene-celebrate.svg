@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="صندوق هدية مفتوح يطلع منه ضوء ونجوم وقصاصات احتفال" width="872" height="400" viewBox="0 0 872 400">
+<rect width="872" height="400" fill="#F1ECF8"></rect>
+<path d="M436 210 L250 30 M436 210 L360 10 M436 210 L512 10 M436 210 L622 30 M436 210 L700 110 M436 210 L172 110" stroke="#9FDDD8" stroke-width="16" stroke-linecap="round"></path>
+<path d="M0 340 C200 310 330 360 436 345 C560 330 700 362 872 336 V400 H0Z" fill="#9FDDD8"></path>
+<rect x="346" y="220" width="180" height="128" rx="6" fill="#4A2C82"></rect>
+<rect x="426" y="220" width="20" height="128" fill="#3FB6B0"></rect>
+<rect x="320" y="150" width="204" height="42" rx="6" fill="#7B5BB5" transform="rotate(-18 320 192)"></rect>
+<path d="M436 110 l12 26 28 3 -21 19 6 28 -25 -14 -25 14 6 -28 -21 -19 28 -3z" fill="#3FB6B0"></path>
+<rect x="150" y="60" width="16" height="30" rx="3" fill="#7B5BB5" transform="rotate(30 150 60)"></rect>
+<rect x="700" y="50" width="16" height="30" rx="3" fill="#3FB6B0" transform="rotate(-25 700 50)"></rect>
+<rect x="230" y="170" width="14" height="26" rx="3" fill="#3FB6B0" transform="rotate(-40 230 170)"></rect>
+<rect x="640" y="180" width="14" height="26" rx="3" fill="#7B5BB5" transform="rotate(35 640 180)"></rect>
+<circle cx="110" cy="200" r="9" fill="#4A2C82"></circle><circle cx="780" cy="220" r="9" fill="#4A2C82"></circle><circle cx="300" cy="60" r="7" fill="#3FB6B0"></circle><circle cx="580" cy="70" r="7" fill="#7B5BB5"></circle>
+</svg>

@@ -50,7 +50,7 @@ export default function GamesRoot() {
   useEffect(() => { document.documentElement.lang = ar ? 'ar' : 'en'; document.documentElement.dir = ar ? 'rtl' : 'ltr'; document.title = (ar ? 'ألعاب اختارها' : 'Ikhtarha Games') + ' — The Closets'; }, [ar]);
   useEffect(() => {
     if (!document.getElementById('ikg-font')) { const l = document.createElement('link'); l.id = 'ikg-font'; l.rel = 'stylesheet';
-      l.href = 'https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Kufam:wght@600;700;800&family=Cairo:wght@400;500;600;700&display=swap'; document.head.appendChild(l); }
+      l.href = 'https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Alexandria:wght@500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap'; document.head.appendChild(l); }
     api.hub().then(setHub).catch(() => setHub(null));
     const onPop = () => setSlug(route()); window.addEventListener('popstate', onPop); return () => window.removeEventListener('popstate', onPop);
   }, []);
