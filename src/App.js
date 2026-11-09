@@ -7,6 +7,7 @@ import { fitModules, WARDROBE_WIDTHS } from './moduleFit';
 import { Barcode128 } from './barcode128';
 import { handleError } from './errors';
 import { BrowserRouter, useLocation, useNavigate, Link } from 'react-router-dom';
+import { useIkhLanding, IkhtarhaSpotlight, IkhtarhaPrizes, BusinessBand, CampaignPill } from './campaign/HomeCampaign';   // [IKHTARHA 2026-11-09] home page campaign + business sections
 
 // Guarded polyfills for browser APIs absent in non-browser/test (jsdom) environments.
 // Inert in real browsers (only defined when missing) — keeps the app rendering safely everywhere.
@@ -8324,6 +8325,7 @@ function DigitalCardCarousel({ user, setPage }) {
 function HomePage({ user, products, testimonials, banners, siteLogo, setPage, addToCart, setConfigProduct }) {
   const { t, lang } = useI18n();
   const mobile = useMobile();
+  const ikh = useIkhLanding();
   useReveal();
   useHomeFx();
   const P = mobile ? '24px' : '48px';
@@ -8395,6 +8397,9 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
     <div style={{ background: 'var(--cream)' }}>
       <div id="scrollProgress" />
       <Hero setPage={setPage} banners={banners} />
+      {/* [IKHTARHA 2026-11-09] live reward campaign — shows only while the campaign is live */}
+      <IkhtarhaSpotlight cfg={ikh} lang={lang} mobile={mobile} cms={cms} setPage={setPage} />
+      <IkhtarhaPrizes cfg={ikh} lang={lang} cms={cms} />
 
       {/* Trust marquee */}
       <div className="marquee-wrap" style={{ borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)', padding: '18px 0', background: 'var(--cream)' }}>
@@ -8556,6 +8561,9 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </div>
       </section>
 
+      {/* [IKHTARHA 2026-11-09] The Closets for Business */}
+      <BusinessBand lang={lang} mobile={mobile} cms={cms} setPage={setPage} live={!!ikh} />
+
       {/* AI designer band — editorial hero banner (safe-zone text left, photo right, single CTA) */}
       <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 100}px ${P}` }}>
         <div className="rv-sc" style={{ position: 'relative', borderRadius: 26, overflow: 'hidden', background: '#15110e', display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1.05fr .95fr', alignItems: 'stretch', minHeight: mobile ? 'auto' : 440 }}>
@@ -8703,6 +8711,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </div>
       </section>
 
+      <CampaignPill cfg={ikh} lang={lang} />
       {mobile && <div style={{ height: 80 }} />}
     </div>
   );
