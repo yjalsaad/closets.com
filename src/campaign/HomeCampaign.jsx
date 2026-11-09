@@ -5,7 +5,7 @@
  * - CampaignPill: small floating "🎁 Ikhtarha" shortcut while the campaign is live.
  * Campaign parts show only while ikh_landing says the campaign is live, so they switch off by themselves when it ends.
  * Every text can be overridden from the site CMS (key, and key + '.ar' for Arabic). */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { landing } from './api';
 import './home-campaign.css';
 
@@ -32,6 +32,39 @@ export function useIkhLanding() {
 
 const go = (url) => { window.location.href = url; };
 
+/* ── motion helpers ([2026-11-09] wow pass): sections animate in once when they scroll into view; all motion is off with reduced motion ── */
+const reducedMotion = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
+function useInView(ready = true) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current; if (!el) return undefined;
+    if (reducedMotion() || typeof IntersectionObserver === 'undefined') { el.classList.add('is-in'); return undefined; }
+    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { el.classList.add('is-in'); io.disconnect(); } }), { threshold: 0.18 });
+    io.observe(el); const t = setTimeout(() => el.classList.add('is-in'), 4000);   // never leave content hidden
+    return () => { io.disconnect(); clearTimeout(t); };
+  }, [ready]);
+  return ref;
+}
+/** pointer tilt for a card: sets --rx / --ry / --mx / --my on the element */
+const tilt = (max = 8) => ({
+  onPointerMove: (e) => { if (e.pointerType !== 'mouse' || reducedMotion()) return; const el = e.currentTarget; const r = el.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    el.style.setProperty('--ry', ((x - 0.5) * max * 2).toFixed(2) + 'deg'); el.style.setProperty('--rx', ((0.5 - y) * max * 2).toFixed(2) + 'deg'); el.style.setProperty('--mx', (x * 100).toFixed(1) + '%'); el.style.setProperty('--my', (y * 100).toFixed(1) + '%'); },
+  onPointerLeave: (e) => { const el = e.currentTarget; el.style.setProperty('--rx', '0deg'); el.style.setProperty('--ry', '0deg'); },
+  // entrance finished → hand the transform over to the pointer tilt (so hovering never replays the entrance)
+  onAnimationEnd: (e) => { if (e.target === e.currentTarget) e.currentTarget.classList.add('hc-done'); },
+});
+const SPARKS = Array.from({ length: 26 }, (_, i) => ({ l: (i * 37) % 100, d: ((i * 7) % 13) * 0.6, t: 7 + ((i * 5) % 7), s: 2 + ((i * 3) % 4) }));
+function Fx() {
+  return (
+    <div className="hc-fx" aria-hidden="true">
+      <i className="hc-beam" /><i className="hc-beam hc-beam-2" />
+      {SPARKS.map((p, i) => <span key={i} className="hc-spark" style={{ '--l': p.l + '%', '--d': p.d + 's', '--t': p.t + 's', '--s': p.s + 'px' }} />)}
+    </div>
+  );
+}
+const Words = ({ text }) => String(text).split(/\s+/).map((w, i) => <React.Fragment key={i}>{i > 0 ? ' ' : null}<span className="hc-w" style={{ '--i': i }}>{w}</span></React.Fragment>);
+const Gift = ({ cls }) => <span className={'hc-gift ' + cls} aria-hidden="true"><i /></span>;
+
 function useCountdown(ends) {
   const end = useMemo(() => (ends ? new Date(String(ends).slice(0, 10) + 'T23:59:59+03:00').getTime() : 0), [ends]);
   const [now, setNow] = useState(Date.now());
@@ -45,6 +78,7 @@ export function IkhtarhaSpotlight({ cfg, lang, mobile, cms, setPage }) {
   const ar = lang === 'ar';
   const c = (k, en, a) => (ar ? cms(k + '.ar', a) : cms(k, en));
   const cd = useCountdown(cfg && cfg.ends);
+  const ref = useInView(!!cfg);
   if (!cfg) return null;
   const b = cfg.brand || {};
   // Arabic: the campaign poster (Arabic text baked in); English: the key visual
@@ -58,15 +92,16 @@ export function IkhtarhaSpotlight({ cfg, lang, mobile, cms, setPage }) {
   ];
   const extra = c('home.ikh.extra', '', '');
   return (
-    <section className="hc-ikh" dir={ar ? 'rtl' : 'ltr'} aria-labelledby="hc-ikh-h" data-testid="home-ikhtarha">
+    <section ref={ref} className="hc-ikh" dir={ar ? 'rtl' : 'ltr'} aria-labelledby="hc-ikh-h" data-testid="home-ikhtarha">
+      <Fx />
       <div className="hc-ikh-in">
-        <div className="hc-ikh-copy rv">
+        <div className="hc-ikh-copy">
           <span className="hc-badge"><i aria-hidden="true" />{c('home.ikh.eyebrow', 'A first in Bahrain · ' + name, 'الأولى من نوعها في البحرين · ' + name)}</span>
-          <h2 id="hc-ikh-h" className="display">{c('home.ikh.title', 'For the first time in Bahrain — you choose your prize.', 'لأول مرة في البحرين… أنت تختار جائزتك!')}</h2>
+          <h2 id="hc-ikh-h" className="display hc-title"><Words text={c('home.ikh.title', 'For the first time in Bahrain — you choose your prize.', 'لأول مرة في البحرين… أنت تختار جائزتك!')} /></h2>
           <p className="hc-lead">{c('home.ikh.sub', 'Design your dream space with The Closets, open your box and reveal what you win — exclusive discounts, premium Franke appliances and signature designs. Every quotation gets its own game.', 'صمّم مساحتك المفضلة مع الخزائن العالمية، افتح صندوقك واكتشف جائزتك — خصومات حصرية وأجهزة فرانكي فاخرة وتصاميم مميزة. كل عرض سعر له لعبته الخاصة.')}</p>
           {extra && <p className="hc-extra">{extra}</p>}
           <ol className="hc-steps">
-            {steps.map(([t, d], i) => <li key={i}><span className="hc-n">{(ar ? '١٢٣' : '123')[i]}</span><div><b>{t}</b><span>{d}</span></div></li>)}
+            {steps.map(([t, d], i) => <li key={i} style={{ '--i': i }}><span className="hc-n">{(ar ? '١٢٣' : '123')[i]}</span><div><b>{t}</b><span>{d}</span></div></li>)}
           </ol>
           <div className="hc-ctas">
             <button type="button" className="hc-btn hc-btn-main" onClick={() => go(PLAY)} data-testid="home-ikh-play">🎁 {c('home.ikh.cta1', 'I have a code — play now', 'لدي كود — العب الآن')}</button>
@@ -76,14 +111,18 @@ export function IkhtarhaSpotlight({ cfg, lang, mobile, cms, setPage }) {
           {cd && (
             <div className="hc-count" aria-label={ar ? 'الوقت المتبقي على نهاية الحملة' : 'Time left in the campaign'}>
               <span>{c('home.ikh.ends', 'Ends in', 'تنتهي خلال')}</span>
-              {[[cd.d, ar ? 'يوم' : 'days'], [cd.h, ar ? 'ساعة' : 'hrs'], [cd.m, ar ? 'دقيقة' : 'min']].map(([n, l]) => <b key={l}><em>{n}</em>{l}</b>)}
+              {[[cd.d, ar ? 'يوم' : 'days'], [cd.h, ar ? 'ساعة' : 'hrs'], [cd.m, ar ? 'دقيقة' : 'min']].map(([n, l]) => <b key={l}><em key={n}>{n}</em>{l}</b>)}
             </div>
           )}
         </div>
-        <button type="button" className={'hc-ikh-kv rv' + (poster ? ' is-poster' : '')} onClick={() => (poster ? setPage('planner') : go(DEMO))} aria-label={poster ? 'ابدأ تصميمك الآن' : c('home.ikh.cta3', 'Try a sample game', 'جرّب لعبة تجريبية')}>
+        <div className="hc-kv-wrap">
+        <Gift cls="g1" /><Gift cls="g2" /><Gift cls="g3" />
+        <button type="button" {...tilt(7)} className={'hc-ikh-kv' + (poster ? ' is-poster' : '')} onClick={() => (poster ? setPage('planner') : go(DEMO))} aria-label={poster ? 'ابدأ تصميمك الآن' : c('home.ikh.cta3', 'Try a sample game', 'جرّب لعبة تجريبية')}>
           <img src={kv} alt={poster ? 'اختارها — تصميمك المفضل وجائزتك باختيارك' : ''} loading="lazy" />
+          <span className="hc-shine" aria-hidden="true" />
           {!poster && <span className="hc-kv-play" aria-hidden="true">▶</span>}
         </button>
+        </div>
       </div>
       <p className="hc-fine">{c('home.ikh.fine', 'One game per quotation. Prizes are drawn by our system and are subject to the Reward & Gift Card Policy.', 'لعبة واحدة لكل عرض سعر. يتم سحب الجوائز آليًا وتخضع لسياسة الجوائز وبطاقات الهدايا.')}</p>
     </section>
@@ -93,6 +132,7 @@ export function IkhtarhaSpotlight({ cfg, lang, mobile, cms, setPage }) {
 export function IkhtarhaPrizes({ cfg, lang, cms }) {
   const ar = lang === 'ar';
   const c = (k, en, a) => (ar ? cms(k + '.ar', a) : cms(k, en));
+  const ref = useInView(!!cfg);
   if (!cfg) return null;
   const tiles = [
     ['%', c('home.ikh.pz.t1', 'Exclusive discounts', 'خصومات حصرية'), c('home.ikh.pz.t1d', 'off your order', 'على طلبك')],
@@ -101,14 +141,14 @@ export function IkhtarhaPrizes({ cfg, lang, cms }) {
   ];
   const strip = [...PRIZES, ...PRIZES];
   return (
-    <section className="hc-prizes" dir={ar ? 'rtl' : 'ltr'} aria-labelledby="hc-prizes-h" data-testid="home-ikh-prizes">
-      <div className="hc-prizes-head rv">
+    <section ref={ref} className="hc-prizes" dir={ar ? 'rtl' : 'ltr'} aria-labelledby="hc-prizes-h" data-testid="home-ikh-prizes">
+      <div className="hc-prizes-head">
         <span className="eyebrow">{c('home.ikh.pz.eyebrow', 'What you can win', 'ماذا يمكنك أن تربح')}</span>
         <h2 id="hc-prizes-h" className="display">{c('home.ikh.pz.title', 'Discounts, gifts and signature designs — your box decides.', 'خصومات وجوائز عينية وتصاميم مميزة — وصندوقك يقرر.')}</h2>
       </div>
-      <div className="hc-tiers rv">
-        {tiles.map(([ic, t, d]) => <div key={t} className="hc-tier"><b aria-hidden="true">{ic}</b><strong>{t}</strong><span>{d}</span></div>)}
-        <div className="hc-tier hc-tier-franke"><b>Franke</b><strong>{c('home.ikh.pz.franke', 'Premium appliances', 'أجهزة فاخرة')}</strong><span>{c('home.ikh.pz.franked', 'Swiss quality for your kitchen', 'جودة سويسرية لمطبخك')}</span></div>
+      <div className="hc-tiers">
+        {tiles.map(([ic, t, d], i) => <div key={t} className="hc-tier" {...tilt(10)} style={{ '--i': i }}><b aria-hidden="true">{ic}</b><strong>{t}</strong><span>{d}</span></div>)}
+        <div className="hc-tier hc-tier-franke" {...tilt(10)} style={{ '--i': 3 }}><b>Franke</b><strong>{c('home.ikh.pz.franke', 'Premium appliances', 'أجهزة فاخرة')}</strong><span>{c('home.ikh.pz.franked', 'Swiss quality for your kitchen', 'جودة سويسرية لمطبخك')}</span></div>
       </div>
       <div className="hc-strip" aria-label={c('home.ikh.pz.list', 'Prizes include', 'من الجوائز')}>
         <div className="hc-strip-track">
@@ -128,6 +168,7 @@ export function IkhtarhaPrizes({ cfg, lang, cms }) {
 export function BusinessBand({ lang, mobile, cms, setPage, live }) {
   const ar = lang === 'ar';
   const c = (k, en, a) => (ar ? cms(k + '.ar', a) : cms(k, en));
+  const ref = useInView();
   const sectors = [
     ['🏢', c('home.biz.s1', 'Residential developers', 'المطورون العقاريون'), c('home.biz.s1d', 'Kitchens, wardrobes and doors for whole buildings and compounds.', 'مطابخ وخزائن وأبواب لمبانٍ ومجمعات كاملة.')],
     ['🏨', c('home.biz.s2', 'Hotels & serviced apartments', 'الفنادق والشقق الفندقية'), c('home.biz.s2d', 'Durable joinery built to a schedule, room after room.', 'نجارة متينة تُنفذ وفق جدول زمني، غرفة بعد غرفة.')],
@@ -141,13 +182,13 @@ export function BusinessBand({ lang, mobile, cms, setPage, live }) {
     c('home.biz.w4', 'Installation and after-sales care', 'التركيب وخدمة ما بعد البيع'),
   ];
   return (
-    <section className="hc-biz" dir={ar ? 'rtl' : 'ltr'} aria-labelledby="hc-biz-h" data-testid="home-business">
+    <section ref={ref} className="hc-biz" dir={ar ? 'rtl' : 'ltr'} aria-labelledby="hc-biz-h" data-testid="home-business">
       <div className="hc-biz-in">
-        <div className="hc-biz-copy rv">
+        <div className="hc-biz-copy">
           <span className="eyebrow">{c('home.biz.eyebrow', 'The Closets for Business', 'ذا كلوزتس للأعمال')}</span>
           <h2 id="hc-biz-h" className="display">{c('home.biz.title', 'Fit-outs for projects of every size.', 'تجهيزات لمشاريع بكل الأحجام.')}</h2>
           <p className="hc-lead">{c('home.biz.sub', 'From one office to a full residential tower — designed, manufactured and installed by our own team in Bahrain.', 'من مكتب واحد إلى برج سكني كامل — تصميم وتصنيع وتركيب بفريقنا في البحرين.')}</p>
-          <ul className="hc-why">{why.map((w) => <li key={w}>{w}</li>)}</ul>
+          <ul className="hc-why">{why.map((w, i) => <li key={w} style={{ '--i': i }}>{w}</li>)}</ul>
           {live && <p className="hc-biz-ikh">🎁 {c('home.biz.ikh', 'Business quotations take part in the Ikhtarha campaign too.', 'عروض أسعار الشركات تشارك أيضًا في حملة اختارها.')}</p>}
           <div className="hc-ctas">
             <button type="button" className="hc-btn hc-btn-dark" onClick={() => setPage('contact')} data-testid="home-biz-quote">{c('home.biz.cta', 'Request a business quotation', 'اطلب عرض سعر للشركات')}</button>
@@ -155,7 +196,7 @@ export function BusinessBand({ lang, mobile, cms, setPage, live }) {
           </div>
         </div>
         <div className={'hc-sectors' + (mobile ? ' is-m' : '')}>
-          {sectors.map(([i, t, d], n) => <div key={t} className="hc-sector rv" style={{ '--d': (n * 0.08) + 's' }}><span aria-hidden="true">{i}</span><b>{t}</b><p>{d}</p></div>)}
+          {sectors.map(([i, t, d], n) => <div key={t} className="hc-sector" {...tilt(6)} style={{ '--i': n }}><span aria-hidden="true">{i}</span><b>{t}</b><p>{d}</p></div>)}
         </div>
       </div>
     </section>
