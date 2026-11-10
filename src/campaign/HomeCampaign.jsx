@@ -7,11 +7,12 @@
  * Campaign parts show only while ikh_landing says the campaign is live, so they switch off by themselves when it ends.
  * Every text can be overridden from the site CMS (key, and key + '.ar' for Arabic). */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { landing } from './api';
+import { landing, gamesHub } from './api';
 import './home-campaign.css';
 
 const PLAY = '/campaign/ikhtarha';
 const DEMO = '/campaign/ikhtarha/demo';
+const GAMES_URL = '/ikhtarha/games';
 const ILL = '/brand/ikhtarha/illustrations/';
 const DESIGNS = [
   ['closets', 'Closets', 'خزائن', 'Organised inside, stunning outside.', 'مرتبة من الداخل… فخمة من الخارج'],
@@ -99,6 +100,7 @@ export function IkhtarhaSpotlight({ cfg, lang, cms, setPage }) {
               <button type="button" className="hc-btn hc-btn-teal" onClick={() => setPage('booking')} data-testid="home-ikh-price">{c('home.ikh.cta2', 'Price & pick your box', 'سعّر واختار صندوقك')}</button>
               <button type="button" className="hc-btn hc-btn-purple" onClick={() => go(PLAY)} data-testid="home-ikh-play">{c('home.ikh.cta1', 'I have a code — play', 'عندي كود — العب الآن')}</button>
               <a className="hc-link" href={DEMO}>{c('home.ikh.cta3', 'Try a sample game', 'جرّب لعبة تجريبية')}</a>
+              <a className="hc-link" href={GAMES_URL} data-testid="home-ikh-games-link">{c('home.ikh.cta4', 'Play the games — no quotation needed', 'العب الألعاب — بدون عرض سعر')}</a>
             </div>
           </div>
           <div className="hc-stub-mid" aria-hidden="true"><b className="hc-vert">اختارها</b></div>
@@ -115,6 +117,55 @@ export function IkhtarhaSpotlight({ cfg, lang, cms, setPage }) {
         </div>
       </article>
       <p className="hc-fine">{c('home.ikh.fine', 'One game per quotation. Prizes are drawn by our system. Terms & conditions apply.', 'لعبة واحدة لكل عرض سعر. يتم سحب الجوائز آليًا. تطبق الشروط والأحكام.')}</p>
+    </section>
+  );
+}
+
+/* [HOME-GAMES 2026-11-10] the Games Hub poster: «العب الآن» — the six quick games, name + mobile only.
+ * Shown while the campaign is live AND the Games Hub is open (ikg_hub); it never names a prize or a value (brand kit rule). */
+const GAME_TILES = [
+  ['mystery-boxes', 'Mystery Boxes', 'الصناديق الغامضة', 'M4 9h16v11H4zM4 9l2-4h12l2 4M12 5v15M9 5c0-2 3-2 3 0c0-2 3-2 3 0'],
+  ['spin-win', 'Spin & Win', 'لُف واربح', 'M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4'],
+  ['scratch-win', 'Scratch & Win', 'امسح واربح', 'M3 7h18v10H3zM7 14l3-4 2 3 2-2 3 3'],
+  ['lucky-key', 'Lucky Key', 'مفتاح الحظ', 'M8 14a4 4 0 1 1 3.5-6H21v3h-2v3h-3v-3h-4.5A4 4 0 0 1 8 14z'],
+  ['memory-match', 'Memory Match', 'طابق البطاقات', 'M4 4h7v9H4zM13 11h7v9h-7zM7.5 7v3M16.5 14v3'],
+  ['lucky-claw', 'Lucky Claw', 'المخلب المحظوظ', 'M12 3v7M8 10h8M8 10l-2 5 2 3M16 10l2 5-2 3M12 10v6'],
+];
+export function useGamesHub(on) {
+  const [hub, setHub] = useState(null);
+  useEffect(() => { if (!on) return undefined; let live = true; gamesHub().then((h) => { if (live) setHub(h && h.live !== false && Array.isArray(h.games) && h.games.length ? h : false); }).catch(() => live && setHub(false)); return () => { live = false; }; }, [on]);
+  return hub;   // null = loading / not asked, false = closed, object = open
+}
+export function IkhtarhaGames({ cfg, lang, cms }) {
+  const ar = lang === 'ar';
+  const c = (k, en, a) => (ar ? cms(k + '.ar', a) : cms(k, en));
+  const hub = useGamesHub(!!cfg);
+  const ref = useInView(!!hub);
+  if (!cfg || !hub) return null;
+  const open = new Set(hub.games.map((g) => (g && g.id) || g));
+  const tiles = GAME_TILES.filter((g) => open.has(g[0]));
+  return (
+    <section ref={ref} className="hc-ekh hc-games" dir={ar ? 'rtl' : 'ltr'} aria-labelledby="hc-games-h" data-testid="home-ikh-games">
+      <article className="hc-gp">
+        <div className="hc-gp-copy">
+          <span className="hc-chip">{c('home.games.eyebrow', 'Ikhtarha games', 'ألعاب اختارها')}</span>
+          <h2 id="hc-games-h" className="display">{c('home.games.title', 'Play now. Win now.', 'العب الآن… واربح الآن')}</h2>
+          <p className="hc-lead">{c('home.games.sub', 'Quick games, one minute on your phone. Just your name and mobile number — no quotation needed. The prize is a surprise, revealed the moment you play.', 'ألعاب سريعة، دقيقة وحدة من تلفونك. اسمك ورقم تلفونك بس — بدون عرض سعر. والجائزة مفاجأة تنكشف لحظة ما تلعب.')}</p>
+          <div className="hc-ctas">
+            <a className="hc-btn hc-btn-teal hc-btn-xl" href={GAMES_URL} data-testid="home-games-play">{c('home.games.cta', 'Play now', 'العب الآن')}</a>
+          </div>
+          <Stamp text={c('home.games.stamp', 'Play now!', 'العب الآن!')} cls="hc-gp-stamp" />
+        </div>
+        <ul className="hc-gp-grid" aria-label={ar ? 'الألعاب المتاحة' : 'Games available'}>
+          {tiles.map(([id, en, a, d], i) => (
+            <li key={id} style={{ '--i': i }}>
+              <a href={GAMES_URL + '/' + id} data-testid={'home-game-' + id}>
+                <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
+                <b>{ar ? a : en}</b>
+              </a>
+            </li>))}
+        </ul>
+      </article>
     </section>
   );
 }

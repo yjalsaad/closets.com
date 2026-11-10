@@ -8,7 +8,7 @@ import { Barcode128 } from './barcode128';
 import { handleError } from './errors';
 import { BrowserRouter, useLocation, useNavigate, Link } from 'react-router-dom';
 import ShowroomTour from './home/ShowroomTour';   // [HOME 2026-11-09] scroll-driven showroom walk-through
-import { useIkhLanding, IkhtarhaSpotlight, IkhtarhaDesigns, BusinessBand, CampaignPill } from './campaign/HomeCampaign';   // [IKHTARHA 2026-11-09] home page campaign + business sections
+import { useIkhLanding, IkhtarhaSpotlight, IkhtarhaGames, IkhtarhaDesigns, BusinessBand, CampaignPill } from './campaign/HomeCampaign';   // [IKHTARHA 2026-11-09] home page campaign + business sections
 
 // Guarded polyfills for browser APIs absent in non-browser/test (jsdom) environments.
 // Inert in real browsers (only defined when missing) — keeps the app rendering safely everywhere.
@@ -8408,6 +8408,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
       <Hero setPage={setPage} banners={banners} />
       {/* [IKHTARHA 2026-11-09] live reward campaign — shows only while the campaign is live */}
       <IkhtarhaSpotlight cfg={ikh} lang={lang} mobile={mobile} cms={cms} setPage={setPage} />
+      <IkhtarhaGames cfg={ikh} lang={lang} cms={cms} />{/* [HOME-GAMES 2026-11-10] «العب الآن» poster for the Games Hub */}
       <IkhtarhaDesigns cfg={ikh} lang={lang} cms={cms} setPage={setPage} />
       {/* [HOME 2026-11-09] walk into the showroom */}
       <ShowroomTour lang={lang} setPage={setPage} img={{ walkin: cms('home.tour.walkin', TOUR_IMG.walkin), kitchen: cms('home.tour.kitchen', TOUR_IMG.kitchen), living: cms('home.tour.living', TOUR_IMG.living), wardrobe: cms('home.tour.wardrobe', TOUR_IMG.wardrobe), door: cms('home.tour.door', TOUR_IMG.door) }} fallback={{ walkin: HOME_IMG.walkin, kitchen: HOME_IMG.kitchen, living: HOME_IMG.living, wardrobe: HERO_IMG.wardrobe, door: HERO_IMG.door }} />
