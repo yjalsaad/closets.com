@@ -140,32 +140,65 @@ export function IkhtarhaGames({ cfg, lang, cms }) {
   const ar = lang === 'ar';
   const c = (k, en, a) => (ar ? cms(k + '.ar', a) : cms(k, en));
   const hub = useGamesHub(!!cfg);
+  const cd = useCountdown(cfg && cfg.ends);
   const ref = useInView(!!hub);
   if (!cfg || !hub) return null;
+  const n = (x) => (ar ? arNum(x) : String(x));
   const open = new Set(hub.games.map((g) => (g && g.id) || g));
   const tiles = GAME_TILES.filter((g) => open.has(g[0]));
+  const steps = [
+    [c('home.games.s1', 'Enter your name and mobile', 'اكتب اسمك ورقم تلفونك'), c('home.games.s1d', 'That’s all — no quotation needed.', 'بس هذا — بدون عرض سعر.')],
+    [c('home.games.s2', 'Choose your game', 'اختار لعبتك'), c('home.games.s2d', 'Quick games, one minute on your phone.', 'ألعاب سريعة، دقيقة وحدة من تلفونك.')],
+    [c('home.games.s3', 'Play and reveal your prize', 'العب واكتشف جائزتك'), c('home.games.s3d', 'It’s a surprise — revealed the moment you play.', 'مفاجأة… تنكشف لحظة ما تلعب.')],
+  ];
+  /* same ticket as the prize-box poster above (IkhtarhaSpotlight): purple ground, white ticket, tear-off line, stub and stamp */
   return (
-    <section ref={ref} className="hc-ekh hc-games" dir={ar ? 'rtl' : 'ltr'} aria-labelledby="hc-games-h" data-testid="home-ikh-games">
-      <article className="hc-gp">
-        <div className="hc-gp-copy">
-          <span className="hc-chip">{c('home.games.eyebrow', 'Ikhtarha games', 'ألعاب اختارها')}</span>
-          <h2 id="hc-games-h" className="display">{c('home.games.title', 'Play now. Win now.', 'العب الآن… واربح الآن')}</h2>
-          <p className="hc-lead">{c('home.games.sub', 'Quick games, one minute on your phone. Just your name and mobile number — no quotation needed. The prize is a surprise, revealed the moment you play.', 'ألعاب سريعة، دقيقة وحدة من تلفونك. اسمك ورقم تلفونك بس — بدون عرض سعر. والجائزة مفاجأة تنكشف لحظة ما تلعب.')}</p>
-          <div className="hc-ctas">
-            <a className="hc-btn hc-btn-teal hc-btn-xl" href={GAMES_URL} data-testid="home-games-play">{c('home.games.cta', 'Play now', 'العب الآن')}</a>
+    <section ref={ref} className="hc-ekh hc-games" dir={ar ? 'rtl' : 'ltr'} aria-labelledby="hc-games-h" data-testid="home-ikh-games" style={{ backgroundImage: 'url(/brand/ikhtarha/banner.jpg)' }}>
+      <i className="hc-dot d1" aria-hidden="true" /><i className="hc-dot d2" aria-hidden="true" /><i className="hc-dot d3" aria-hidden="true" />
+      <article className="hc-tk" {...tilt(2)}>
+        <div className="hc-tk-top">
+          <div className="hc-tk-copy">
+            <span className="hc-chip">{c('home.games.eyebrow', 'Ikhtarha games · by The Closets', 'ألعاب اختارها · من الخزائن')}</span>
+            <h2 id="hc-games-h" className="display hc-title">{c('home.games.title', 'Play now… and win now.', 'العب الآن… واربح الآن')}</h2>
+            <p className="hc-lead">{c('home.games.sub', 'Quick games for everyone. Just your name and mobile number — no quotation needed.', 'ألعاب سريعة للكل. اسمك ورقم تلفونك بس — بدون عرض سعر.')}</p>
+            <ol className="hc-steps">
+              {steps.map(([t, d], i) => <li key={i} style={{ '--i': i }}><span className="hc-n">{n('0' + (i + 1))}</span><div><b>{t}</b><span>{d}</span></div></li>)}
+            </ol>
           </div>
-          <Stamp text={c('home.games.stamp', 'Play now!', 'العب الآن!')} cls="hc-gp-stamp" />
+          <ul className="hc-tk-art hc-gp-grid" aria-label={ar ? 'الألعاب المتاحة' : 'Games available'}>
+            {tiles.map(([id, en, a, d], i) => (
+              <li key={id} style={{ '--i': i }}>
+                <a href={GAMES_URL + '/' + id} data-testid={'home-game-' + id}>
+                  <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
+                  <b>{ar ? a : en}</b>
+                </a>
+              </li>))}
+          </ul>
         </div>
-        <ul className="hc-gp-grid" aria-label={ar ? 'الألعاب المتاحة' : 'Games available'}>
-          {tiles.map(([id, en, a, d], i) => (
-            <li key={id} style={{ '--i': i }}>
-              <a href={GAMES_URL + '/' + id} data-testid={'home-game-' + id}>
-                <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
-                <b>{ar ? a : en}</b>
-              </a>
-            </li>))}
-        </ul>
+        <div className="hc-tear" aria-hidden="true" />
+        <div className="hc-stub">
+          <div className="hc-stub-cta">
+            <b className="display">{c('home.games.cta.t', 'Play the games', 'العب الألعاب')}</b>
+            <span>{c('home.games.cta.s', 'and reveal your prize', 'واكتشف جائزتك')}</span>
+            <div className="hc-ctas">
+              <a className="hc-btn hc-btn-teal" href={GAMES_URL} data-testid="home-games-play">{c('home.games.cta', 'Play now', 'العب الآن')}</a>
+              <a className="hc-btn hc-btn-purple" href={GAMES_URL + '?demo=1'} data-testid="home-games-demo">{c('home.games.cta2', 'Try a sample game', 'جرّب لعبة تجريبية')}</a>
+            </div>
+          </div>
+          <div className="hc-stub-mid" aria-hidden="true"><b className="hc-vert">اختارها</b></div>
+          <div className="hc-stub-date">
+            <b className="display">{c('home.ikh.dates1', 'From 10 November', 'من ١٠ نوفمبر')}</b>
+            <b className="display">{c('home.ikh.dates2', 'to 10 January', 'حتى ١٠ يناير')}</b>
+            {cd && (
+              <div className="hc-count" aria-label={ar ? 'الوقت المتبقي على نهاية الحملة' : 'Time left in the campaign'}>
+                {[[cd.d, ar ? 'يوم' : 'days'], [cd.h, ar ? 'ساعة' : 'hrs'], [cd.m, ar ? 'دقيقة' : 'min']].map(([v, l]) => <span key={l}><em>{n(v)}</em>{l}</span>)}
+              </div>
+            )}
+          </div>
+          <Stamp text={c('home.games.stamp', 'Play now!', 'العب الآن!')} />
+        </div>
       </article>
+      <p className="hc-fine">{c('home.games.fine', 'Prizes are drawn by our system. Terms & conditions apply.', 'يتم سحب الجوائز آليًا. تطبق الشروط والأحكام.')}</p>
     </section>
   );
 }
