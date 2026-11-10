@@ -39,6 +39,8 @@ const demoReveal = (box) => {
 };
 const later = (ms, v) => new Promise((r) => setTimeout(() => r(v), ms));
 export const landing = (code) => rpc('ikh_landing', { p_code: code || null });
+/** [HOME-GAMES 2026-11-10] Games Hub state for the home-page poster: which games are open right now (public RPC, read only) */
+export const gamesHub = () => rpc('ikg_hub');
 export const validate = (p) => (DEMO ? later(700, { ok: true, state: 'ready', token: 'demo', first_name: String((p && p.name) || '').trim().split(/\s+/)[0] || 'Guest', boxes: 9, draws_total: DEMO_DRAWS, draws_done: 0 }) : rpc('ikh_validate', { p }));
 export const reveal = (token, box) => (DEMO ? later(400, demoReveal(box)) : rpc('ikh_reveal', { p: { token, box } }));
 export const reward = (token) => (DEMO ? Promise.resolve({ ok: false }) : rpc('ikh_reward', { p: { token } }));
