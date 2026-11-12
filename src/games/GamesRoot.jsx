@@ -3,6 +3,9 @@
  * Games Hub prize pool (separate from the campaign's main reward boxes) → result screen with the winning code.
  * Routes: /ikhtarha/games · /ikhtarha/games/<game> · /ikhtarha/games/verify?t=…   (?demo=1 = sample run, nothing saved) */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import FormNotice from '../privacy/FormNotice';
+import ConsentBanner from '../privacy/ConsentBanner';
+import { SkipLink } from '../a11y/RouteA11y';
 import * as api from './api';
 import { GAMES } from './Games';
 import { Confetti, isMuted, setMuted, sfx, valueText, money } from './fx';
@@ -73,6 +76,8 @@ export default function GamesRoot() {
 
   return (
     <div className="ikg" dir={ar ? 'rtl' : 'ltr'} lang={ar ? 'ar' : 'en'} style={{ backgroundImage: 'url(/brand/ikhtarha/banner.jpg)' }}>
+      <SkipLink lang={ar ? 'ar' : 'en'} />
+      <ConsentBanner lang={ar ? 'ar' : 'en'} />
       {api.DEMO && <div className="ikg-demo" role="note">{t('sample', ar)}</div>}
       <header className="ikg-head">
         {!game && <a href="/" className="ikg-home" data-testid="ikg-home"><span aria-hidden="true">{ar ? '→' : '←'}</span><em>{ar ? 'العودة للموقع' : 'Back to website'}</em></a>}
@@ -82,7 +87,7 @@ export default function GamesRoot() {
         <button type="button" className="ikg-icon" aria-pressed={!muted} onClick={toggleSound} title={t('sound', ar)} aria-label={t('sound', ar)}>{muted ? '🔈' : '🔊'}</button>
         <button type="button" className="ikg-lang" onClick={() => setLang(ar ? 'en' : 'ar')}>{ar ? 'EN' : 'ع'}</button>
       </header>
-      <main className="ikg-main">
+      <main id="main" tabIndex={-1} className="ikg-main">
         {hub === undefined ? <div className="ikg-center"><span className="ikg-spin" aria-label={t('loading', ar)} /></div>
           : !hub ? <Notice ar={ar} k="failed" onRetry={() => { setHub(undefined); api.hub().then(setHub).catch(() => setHub(null)); }} />
           : !hub.live ? <Notice ar={ar} k="closed" />
@@ -125,6 +130,7 @@ function Enter({ ar, msg, onIn, req }) {
         <label>{t('name', ar)}<input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} autoComplete="name" maxLength={120} required data-testid="ikg-name" /></label>
         {!req && <label>{t('phone', ar)}<input value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} type="tel" inputMode="tel" autoComplete="tel" dir="ltr" placeholder="3XXX XXXX" maxLength={20} required data-testid="ikg-phone" /></label>}
         <label>{t(req ? 'quote' : 'quoteOpt', ar)}<input value={f.quote_no} onChange={(e) => setF({ ...f, quote_no: e.target.value })} dir="ltr" autoCapitalize="characters" maxLength={40} required={req} data-testid="ikg-quote" /></label>
+        <FormNotice kind="request" lang={ar ? 'ar' : 'en'} />
         <input className="ikg-hp" tabIndex={-1} autoComplete="off" value={f.website} onChange={(e) => setF({ ...f, website: e.target.value })} aria-hidden="true" />
         {err && <div className="ikg-err" role="alert">{t(err, ar)}</div>}
         <button type="submit" className="ikg-btn ikg-btn-main ikg-wide" disabled={busy} data-testid="ikg-go">{busy ? t('checking', ar) : t('go', ar)}</button>
@@ -237,7 +243,7 @@ function Verify({ ar, setLang }) {
   return (
     <div className="ikg" dir={ar ? 'rtl' : 'ltr'}>
       <header className="ikg-head"><a href="/" className="ikg-logo"><img src="/brand/closets-logo-white.png" alt="The Closets" /></a><span className="ikg-grow" /><button type="button" className="ikg-lang" onClick={() => setLang(ar ? 'en' : 'ar')}>{ar ? 'EN' : 'ع'}</button></header>
-      <main className="ikg-main ikg-center"><div className="ikg-panel ikg-result-card">
+      <main id="main" tabIndex={-1} className="ikg-main ikg-center"><div className="ikg-panel ikg-result-card">
         <p className="ikg-eyebrow">{t('verifyT', ar)}</p>
         {v === undefined ? <span className="ikg-spin" /> : !v.ok ? <h2>{t('vBad', ar)}</h2> : <>
           <div className={'ikg-verify is-' + st}>{({ valid: '✓ ' + t('vValid', ar), redeemed: t('vRedeemed', ar), expired: t('vExpired', ar) })[st]}</div>
