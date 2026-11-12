@@ -1,5 +1,6 @@
 /* Room Visualizer — shared UI bits [ROOM-VIZ 2026-11-07] */
 import React, { useEffect, useMemo, useState } from 'react';
+import { ModalPanel } from '../a11y/dialog';
 import qrcode from 'qrcode-generator';
 import { swatch, displayName, isContinuous, defaultGrout } from './materials';
 import { layoutsFor, layoutName } from './layout';
@@ -49,13 +50,13 @@ export function qrDataUrl(text, px = 512, margin = 2) {
 }
 
 export function Modal({ title, sub, onClose, children, ar, wide }) {
-  useEffect(() => { const k = (e) => { if (e.key === 'Escape') onClose(); }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, [onClose]);
+  // [A11Y] real modal: focus trap, Esc, focus returns to the trigger, scroll lock (src/a11y/dialog.jsx)
   return (
     <div className="vz-scrim" dir={ar ? 'rtl' : 'ltr'} onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className={'vz-modal' + (wide ? ' vz-modal-wide' : '')} role="dialog" aria-modal="true" aria-label={title}>
+      <ModalPanel className={'vz-modal' + (wide ? ' vz-modal-wide' : '')} label={title} onClose={onClose}>
         <div className="vz-modal-h"><div><h2>{title}</h2>{sub && <p>{sub}</p>}</div><button type="button" className="vz-x" onClick={onClose} aria-label={T('close', ar)}>×</button></div>
         <div className="vz-modal-b">{children}</div>
-      </div>
+      </ModalPanel>
     </div>
   );
 }

@@ -30,6 +30,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { fitModules } from './moduleFit';
 
+import guard3D from './safety/guard3d';
 /**
  * TVUnit3D - standalone interactive, premium-looking 3D TV media wall.
  *
@@ -69,7 +70,7 @@ function mmToM(v, fallbackMm) {
   return Number.isFinite(m) && m > 0 ? m : fb;
 }
 
-export default function TVUnit3D({
+function TVUnit3D({
   materials = {},
   shape = 'floating',
   activeSurface = null,
@@ -657,3 +658,5 @@ function applyMaterials(materials, mats, disposables, onChange) {
   });
   if (onChange) onChange();
 }
+
+export default guard3D(TVUnit3D, 'tv3d');
