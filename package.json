@@ -11,6 +11,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^13.5.0",
+    "gsap": "3.13.0",
     "jspdf": "^2.5.2",
     "lucide-react": "^1.65.0",
     "qrcode-generator": "^1.5.2",
