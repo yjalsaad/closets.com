@@ -200,7 +200,7 @@ What is **not** there / placeholders (stated plainly):
 
 ## Testing
 
-`npx react-scripts test` : 209 tests pass (52 from Phases 0 to 2, 57 from Phase 3). Phase 0 to 2 suites cover timeline integrity, quality tier selection and adaptive scale,
+`npx react-scripts test` : **300 tests pass in 30 suites, whole repo** (Phase 4/5 adds animation state machine, finish config, quote URL builder + booking prefill round trip, pickable registry, catalog / EN-AR strings / campaign-copy-vs-source checks, geometry builders (bevel, grain UVs, fluted panel), the kit's drawer / hinge / slider transforms and LED, explorer focus / keyboard / pointer / touch, panels EN + AR, product colliders). Earlier: 209 tests (52 from Phases 0 to 2, 57 from Phase 3). Phase 0 to 2 suites cover timeline integrity, quality tier selection and adaptive scale,
 loading progress, department layout, strings (EN/AR parity), look-around maths, noise/tiling, GSAP director seek/finish/reset,
 route regex, loader / fallback UI. Phase 3 adds colliders (circle vs box / OBB / circle, sliding, corners, large dt, spawn validity, door states,
 fuzzed bounds), navgraph (every bay reachable, every edge clear, walked routes), walker (speeds, smoothing, bob, reduced motion), explorer (keys, pause,
@@ -208,10 +208,31 @@ pointer lock fallback, glide, interaction) and the overlays (focus trap, EN/AR, 
 Debug hooks: `?debug=1` exposes `window.__showroom` (`seek(t)`, `info()`, `state()`); `&at=SECONDS` holds the intro at a time;
 `&aa=0` disables MSAA (SwiftShader shows MSAA artefacts on the logo panel; they are absent with `aa=0` and on the low tier).
 
-## Not built (Phases 4 to 7)
+## Phase 4/5 measurements and QA (SwiftShader, CPU: say nothing about real GPUs)
 
-4 furnishing the departments, product interaction, customisation.
-5 favourites and quote workflow to the backend. 6 sound, analytics, deeper EN/AR review (Arabic copy needs native review).
+`scripts/showroom3d-qa/phase4.js` (Playwright + headless Chromium; flows, rest, reduced, mobile, ar, stats, gallery). Results this run: kitchen flow (9 parts opened individually, Close all, hover outline, click picking on the pulled-out drawer, keyboard, LED off, 4 finishes with 4 distinct material states, quotation link, real `/booking` page pre-filled) all passed; wardrobe + door + Ikhtarha flow 28/28; reduced motion 5/5; mobile 390x844 12/12; AR / RTL 7/7; gallery no page errors. One kitchen check ("no backend request") was mis-scoped (it counted the booking page's own reads after navigation) and was fixed to count only requests from the showroom page; the wardrobe / door / stage flow, mobile and AR runs assert **zero** supabase / rpc / rest requests and passed; the kitchen flow was not re-run after that fix. Flows run at `scale=0.5` (debug switch) because software GL is slow; the gallery and stats run at full resolution.
+Draw calls / triangles per frame (`renderer.info` summed over every pass incl. shadow + bloom, 1280x720):
+| tier | spawn | kitchen | wardrobe | door | stage |
+|---|---|---|---|---|---|
+| low | 293 / 99k | 369 / 149k | 374 / 149k | 272 / 96k | 289 / 113k |
+| medium | 331 / 135k | 442 / 198k | 436 / 202k | 316 / 135k | 327 / 149k |
+| high | 345 / 139k | 618 / 293k | 616 / 297k | 330 / 139k | 341 / 153k |
+(Phase 3 hall alone was about 116 calls / 53k triangles.) High is heavy because the key spot's shadow pass re-draws every caster and bloom adds passes; the 700-call budget check passes. These numbers are not a performance claim: real GPUs / phones are untested.
+Bundle (gzip): showroom chunk 66.2 kB (Phase 3 build: about 30 kB), lazy bloom chunks about 17 kB (loaded only on the high tier), main bundle unchanged (160.9 kB), BookingPage chunk 4.4 kB. `CI=true` build still fails only on the 12 pre-existing mini-css "Conflicting order" warnings (count unchanged, no new warnings).
+fps under SwiftShader at 1100x640 / 960x540 is 0.3 to 3 fps depending on tier; meaningless for real GPUs.
+
+## Honest visual assessment (Phase 4)
+
+Self-score against luxury archviz: **about 4 / 10**. What works: believable proportions, real opening drawers / doors / sliders with the right motion, readable grain direction, bevel highlights on pulls and edges, brushed brass, veined stone, fluted walls, lit interiors that respond to the LED switch, coherent staging. What is clearly not archviz: no global illumination or real AO (contact shadows are baked decals), flat procedural albedo, stylised plants and garments, the key-light pool and bloom can blow out brass up close, floor sun stripes from the Phase 1 facade dominate the kitchen, pale oak reads slightly yellow, no reflections of the products in the floor. Iterations done (about six passes on lighting and materials): oak desaturation and deeper walnut, interior environment contrast, wall-wash and key-light intensity per bay, canopy brightness, fluted-groove AO, neutral door wall, bloom threshold and strength, door close-up camera.
+
+## Unverified
+
+Real devices and GPUs (frame rate, thermals, memory, shader compile on iOS), screen readers (ARIA roles and live region are present but not tested with VoiceOver / NVDA / TalkBack), a native Arabic review of every new string, touch on real hardware (Playwright touch only), the Ikhtarha campaign being live, and any visual check on Safari / Firefox.
+
+## Not built (Phases 5 backend, 6, 7 and furnishing the other five departments)
+
+4 (continued) furnishing the other five departments (walk-in closets, bedrooms, living, custom studio, consultation lounge).
+5 (remaining) favourites and a quote workflow to the backend (today the quotation button only links to the booking page). 6 sound, analytics, deeper EN/AR review (Arabic copy needs native review).
 7 production assets (GLB, baked lighting), performance budget on real devices, a11y pass for 3D navigation.
 
 ## Known issues / risks
