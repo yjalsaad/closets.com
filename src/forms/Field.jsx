@@ -1,25 +1,25 @@
 // Field.jsx — accessible form field wrapper: a REAL <label htmlFor>, aria-invalid / aria-describedby / aria-required,
-// and a visible error text. The label is visually hidden by default (`hideLabel`) so existing placeholder-style
-// layouts do not change; pass hideLabel={false} for a visible label.
+// and a visible error text. [DESIGN] Labels are visible by default (no placeholder-only inputs); pass hideLabel for the rare icon-only search.
 import { useId } from 'react';
 import { HONEYPOT_NAME } from './validate';
 
-export default function Field({ label, error, hint, required, hideLabel = true, as = 'input', children, style, labelStyle, id: idProp, wrapStyle, ...rest }) {
+export default function Field({ label, error, hint, required, hideLabel = false, as = 'input', children, style, labelStyle, id: idProp, wrapStyle, ...rest }) {
   const auto = useId();
   const id = idProp || auto;
   const errId = id + '-err'; const hintId = id + '-hint';
   const describedBy = [error ? errId : null, hint ? hintId : null].filter(Boolean).join(' ') || undefined;
-  const common = { id, 'aria-invalid': error ? 'true' : undefined, 'aria-describedby': describedBy, 'aria-required': required ? 'true' : undefined, ...rest };
+  const ph = (!hideLabel && rest.placeholder === label) ? undefined : rest.placeholder;
+  const common = { id, 'aria-invalid': error ? 'true' : undefined, 'aria-describedby': describedBy, 'aria-required': required ? 'true' : undefined, ...rest, placeholder: ph, className: ('inp' + (rest.className ? ' ' + rest.className : '')) };
   let control;
   if (as === 'select') control = <select {...common} style={style}>{children}</select>;
   else if (as === 'textarea') control = <textarea {...common} style={style} />;
   else control = <input {...common} style={style} />;
   return (
     <div className="field" style={wrapStyle}>
-      <label htmlFor={id} className={hideLabel ? 'sr-only' : undefined} style={hideLabel ? undefined : labelStyle}>{label}{required ? <span aria-hidden="true"> *</span> : null}</label>
+      <label htmlFor={id} className={hideLabel ? 'sr-only' : 'field-label'} style={hideLabel ? undefined : labelStyle}>{String(label).replace(/\s*\*\s*$/, '')}{required ? <span aria-hidden="true" className="req"> *</span> : null}</label>
       {control}
-      {hint ? <div id={hintId} className="form-note">{hint}</div> : null}
-      {error ? <div id={errId} className="form-error" role="alert">{error}</div> : null}
+      {hint ? <div id={hintId} className="field-hint">{hint}</div> : null}
+      {error ? <div id={errId} className="field-error" role="alert">{error}</div> : null}
     </div>
   );
 }

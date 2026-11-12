@@ -4,21 +4,26 @@
 import { useState, useEffect } from 'react';
 import { OFFER_BADGE_KEY, OFFER_SUB_KEY, OFFER_TITLE_KEY, api, cms, trMap, useI18n } from '../App';
 import { PageWrap } from './shared_DirectoryPage_ShowroomsPage_plus10';
+import { EmptyState } from '../design/PageHeader';
 
 function OffersPage({ setPage }) {
   const { t, lang } = useI18n();
   const [rows,setRows]=useState([]);
   useEffect(()=>{ api('store_offers?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
-  return (<PageWrap title={cms('offers.hero.title','Offers & promotions')} sub={cms('offers.hero.subtitle','Current savings on bespoke kitchens, wardrobes and storage.')}>
-    <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
-      {rows.map(o=>(<div key={o.id} className="lift" style={{ background:'linear-gradient(135deg,var(--sand),#fff)', border:'1px solid var(--clay)33', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
-        {o.badge && <span style={{ display:'inline-block', background:'var(--clay)', color:'#fff', fontSize:12, fontWeight:700, padding:'5px 12px', borderRadius:980 }}>{trMap(o.badge, OFFER_BADGE_KEY, lang)}</span>}
-        <div style={{ fontSize:19, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginTop:12 }}>{trMap(o.title, OFFER_TITLE_KEY, lang)}</div>
-        <div style={{ fontSize:14, color:'var(--shop-muted, #86868b)', marginTop:6, lineHeight:1.6 }}>{trMap(o.subtitle, OFFER_SUB_KEY, lang)}</div>
-        <button type="button" onClick={()=>setPage('booking')} style={{ marginTop:16, background:'var(--shop-ink, #1d1d1f)', color:'#fff', border:'none', borderRadius:980, padding:'10px 18px', fontSize:13, fontWeight:600, cursor:'pointer' }}>{t('w4ClaimOffer')}</button>
-      </div>))}
-      {rows.length===0 && <div style={{ color:'#aaa' }}>{t('w4NoOffers')}</div>}
-    </div>
+  return (<PageWrap eyebrow={lang==='ar' ? 'العروض' : 'Offers'} title={cms('offers.hero.title','Offers & promotions')} sub={cms('offers.hero.subtitle','Current savings on bespoke kitchens, wardrobes and storage.')}>
+    {rows.length>0 ? (
+      <div className="reveal card-grid">
+        {rows.map(o=>(<div key={o.id} className="offer-card">
+          {o.badge && <span className="badge">{trMap(o.badge, OFFER_BADGE_KEY, lang)}</span>}
+          <h2 className="t-h3" style={{ margin:0 }}>{trMap(o.title, OFFER_TITLE_KEY, lang)}</h2>
+          <p style={{ margin:0, color:'var(--c-text-2)', lineHeight:1.65 }}>{trMap(o.subtitle, OFFER_SUB_KEY, lang)}</p>
+          <button type="button" className="btn-ink" style={{ justifySelf:'start', marginTop:8 }} onClick={()=>setPage('booking')}>{t('w4ClaimOffer')}</button>
+        </div>))}
+      </div>
+    ) : (
+      <EmptyState lang={lang} icon="sparkle" title={lang==='ar' ? 'لا توجد عروض معلنة حاليًا' : 'No seasonal offers are running right now'}
+        body={lang==='ar' ? 'نعلن عن العروض الموسمية هنا عند توفرها. احجز استشارة وسنخبرك بأي ميزة متاحة لمشروعك.' : 'Seasonal offers are published here when they run. Book a consultation and we will tell you what is available for your project.'} />
+    )}
   </PageWrap>);
 }
 

@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import './design/tokens.css';
 import './design/base.css';
+import './design/shell.css';
+import './design/home.css';
 import { applyTheme } from './design/theme';
 import App, { preloadRoute, ensureArabic } from './App';
 import ErrorBoundary from './ErrorBoundary';

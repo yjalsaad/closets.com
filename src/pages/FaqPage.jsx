@@ -5,21 +5,27 @@ import { useState, useEffect } from 'react';
 import { sanitizeRows } from '../safety/sanitize';
 import { api, cms, useI18n } from '../App';
 import { PageWrap } from './shared_DirectoryPage_ShowroomsPage_plus10';
+import { EmptyState } from '../design/PageHeader';
+import { Icon } from '../design/Icon';
 
 function FaqPage() {
-  const { t } = useI18n();
+  const { lang } = useI18n();
   const [rows,setRows]=useState([]); const [open,setOpen]=useState(null);
   useEffect(()=>{ api('website_faqs?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(sanitizeRows(d)); }).catch(()=>{}); },[]);
-  return (<PageWrap title={cms('faq.hero.title','Frequently asked questions')} sub={cms('faq.hero.subtitle','Everything you need to know about designing with us.')}>
-    <div className="reveal reveal-stagger" style={{ maxWidth:760, display:'flex', flexDirection:'column', gap:12 }}>
-      {rows.map(q=>(<div key={q.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:16, overflow:'hidden' }}>
-        <button type="button" onClick={()=>setOpen(open===q.id?null:q.id)} style={{ width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'18px 20px', fontSize:16, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', display:'flex', justifyContent:'space-between', gap:12 }}>
-          <span>{q.question}</span><span style={{ color:'var(--clay)', flexShrink:0 }}>{open===q.id?'–':'+'}</span>
-        </button>
-        {open===q.id && <div style={{ padding:'0 20px 18px', fontSize:15, color:'#555', lineHeight:1.65 }}>{q.answer}</div>}
-      </div>))}
-      {rows.length===0 && <div style={{ color:'#aaa' }}>{t('swFaqSoon')}</div>}
-    </div>
+  return (<PageWrap eyebrow={lang==='ar' ? 'مساعدة' : 'Help'} title={cms('faq.hero.title','Frequently asked questions')} sub={cms('faq.hero.subtitle','Everything you need to know about designing with us.')}>
+    {rows.length>0 ? (
+      <div className="reveal" style={{ maxWidth:820 }}>
+        {rows.map(q=>(<div key={q.id} className="faq-item">
+          <button type="button" className="faq-q" onClick={()=>setOpen(open===q.id?null:q.id)} aria-expanded={open===q.id} aria-controls={'faq-a-'+q.id} id={'faq-q-'+q.id}>
+            <span>{q.question}</span><Icon name="plus" />
+          </button>
+          {open===q.id && <div className="faq-a" id={'faq-a-'+q.id} role="region" aria-labelledby={'faq-q-'+q.id}>{q.answer}</div>}
+        </div>))}
+      </div>
+    ) : (
+      <EmptyState lang={lang} icon="chat" title={lang==='ar' ? 'اسألنا مباشرة' : 'Ask us directly'}
+        body={lang==='ar' ? 'يردّ فريق التصميم لدينا على أسئلتك عن المواد والمدّة والتركيب والضمان. اكتب لنا أو احجز استشارة.' : 'Our design team answers questions on materials, timelines, installation and warranty. Message us, or book a consultation.'} />
+    )}
   </PageWrap>);
 }
 
