@@ -81,9 +81,9 @@ export function buildKitchen({ M, tier, registry, reduced }) {
   fronts.forEach((g) => kit.addStatic(g, F)); pulls.forEach((g) => kit.addStatic(g, METAL));
 
   // ---- wall run: moving parts ----
-  const d1 = kit.drawer({ id: 'k-run-d1', x: RUN.x1 + T / 2 - 0.001, y: BASE.y0 + 0.008 + 0.375, z: uz(0), w: 0.894, h: 0.742, depth: 0.52, travel: 0.46, grainOff: [0.15, 0.3], frontMat: F, metalMat: METAL, bodyMat: M.interior });
-  const d3 = kit.drawer({ id: 'k-run-d3', x: RUN.x1 + T / 2 - 0.001, y: BASE.y0 + 0.008 + 0.375, z: uz(2), w: 0.894, h: 0.742, depth: 0.52, travel: 0.46, grainOff: [0.6, 0.1], frontMat: F, metalMat: METAL, bodyMat: M.interior });
-  const dh = kit.drawer({ id: 'k-run-hob', x: RUN.x1 + T / 2 - 0.001, y: BASE.y0 + 0.008 + 0.298, z: uz(3), w: 0.894, h: 0.596, depth: 0.52, travel: 0.46, grainOff: [0.9, 0.5], frontMat: F, metalMat: METAL, bodyMat: M.interior });
+  kit.drawer({ id: 'k-run-d1', x: RUN.x1 + T / 2 - 0.001, y: BASE.y0 + 0.008 + 0.375, z: uz(0), w: 0.894, h: 0.742, depth: 0.52, travel: 0.46, grainOff: [0.15, 0.3], frontMat: F, metalMat: METAL, bodyMat: M.interior });
+  kit.drawer({ id: 'k-run-d3', x: RUN.x1 + T / 2 - 0.001, y: BASE.y0 + 0.008 + 0.375, z: uz(2), w: 0.894, h: 0.742, depth: 0.52, travel: 0.46, grainOff: [0.6, 0.1], frontMat: F, metalMat: METAL, bodyMat: M.interior });
+  kit.drawer({ id: 'k-run-hob', x: RUN.x1 + T / 2 - 0.001, y: BASE.y0 + 0.008 + 0.298, z: uz(3), w: 0.894, h: 0.596, depth: 0.52, travel: 0.46, grainOff: [0.9, 0.5], frontMat: F, metalMat: METAL, bodyMat: M.interior });
   const hingeMat = M.steel;
   const sa = kit.hinged({ id: 'k-run-sink', x: RUN.x1 + T / 2, y: fy + fh / 2, z: uz(1) - 0.447, w: 0.444, h: fh, t: T, side: 1, maxDeg: 105, grainOff: [0.4, 0.7], pull: 'none', frontMat: F, metalMat: METAL, hingeMat });
   const sb = kit.hinged({ id: 'k-run-sink', x: RUN.x1 + T / 2, y: fy + fh / 2, z: uz(1) + 0.447, w: 0.444, h: fh, t: T, side: -1, maxDeg: 105, grainOff: [0.2, 0.2], pull: 'none', frontMat: F, metalMat: METAL, hingeMat });

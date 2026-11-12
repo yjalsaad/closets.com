@@ -75,6 +75,8 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       },
       onComplete: () => { if (!cancelled) handover(); },
     });
+    if (debug && q.get('scale')) engine.scale = Math.max(0.3, Math.min(1, parseFloat(q.get('scale')) || 1));   // QA: render at a fraction of the resolution (software GL is slow)
+    if (debug) engine.maxDt = 0.5;    // QA under software GL runs at ~1-2 fps: let animations (drawers, doors) finish in fewer frames
     api.current = { engine, director, progress };
     const explorer = new Explorer({ engine, canvas: canvasRef.current, reduced: reducedRef.current, bob: readFlag(BOB_KEY, '1') !== '0' && !reducedRef.current, onState: (p) => setSt((s) => ({ ...s, ...p })) });
     api.current.explorer = explorer; explorerRef.current = explorer;
@@ -85,6 +87,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
         await engine.init();
       } catch (e) { if (!cancelled) onFail && onFail(e); return; }
       if (cancelled) return;
+      if (engine.products) engine.products.setReduced(reducedRef.current);   // the products are built after the first render of this component: apply the reduced-motion setting now
       ro = new ResizeObserver(() => { const w = wrapRef.current; if (w) engine.setSize(w.clientWidth, w.clientHeight); });
       ro.observe(wrapRef.current);
       engine.setSize(wrapRef.current.clientWidth, wrapRef.current.clientHeight);

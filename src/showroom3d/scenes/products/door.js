@@ -38,7 +38,7 @@ export function buildDoor({ M, tier, registry, reduced }) {
   kit.addStatic(placed(fin(0.09, 0.012, 0.09, { b: 0.001 }), { x: WALL_X, y: OPEN_H - 0.014, z: PIV_Z }), METAL);
 
   // ---- the leaf (separate mesh, pivots about the off-centre axis) ----
-  const LW = OPEN_W - 0.03, LT = 0.045, LH = OPEN_H - 0.02, off = 0.5 * LW - 0.18 * 0 + (-0.0);
+  const LW = OPEN_W - 0.03, LT = 0.045, LH = OPEN_H - 0.02;
   const pivot = new THREE.Group(); pivot.position.set(WALL_X, 0.012 + LH / 2, PIV_Z); group.add(pivot);
   const zc = -0.0 - PIV_Z;                                        // leaf centre relative to the pivot axis
   const leaf = new THREE.Mesh(fin(LT, LH, LW, { b: 0.0025, grain: 'y', off: [0.2, 0.4] }), LEAF); leaf.position.z = zc; leaf.castShadow = leaf.receiveShadow = true; leaf.name = 'd-pivot:leaf'; pivot.add(leaf);

@@ -12,6 +12,7 @@ export const BOOKING_PATH = '/booking';
 export const IKHTARHA_PLAY = '/campaign/ikhtarha';
 export const IKHTARHA_DEMO = '/campaign/ikhtarha/demo';
 
+// eslint-disable-next-line no-control-regex
 const clean = (s) => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f<>]/g, ' ').replace(/\s+/g, ' ').trim();
 
 /**

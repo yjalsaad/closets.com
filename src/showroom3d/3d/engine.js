@@ -161,7 +161,7 @@ export class ShowroomEngine {
     if (this.running) return; this.running = true; let last = performance.now();
     const loop = (now) => {
       if (!this.running) return; this.raf = requestAnimationFrame(loop);
-      const dt = Math.min(0.1, (now - last) / 1000); last = now;
+      const dt = Math.min(this.maxDt || 0.1, (now - last) / 1000); last = now;
       if (this.onFrame) this.onFrame(dt, now);
       if (this.products) this.products.update(dt, this.camera);
       this.renderer.info.reset();

@@ -13,7 +13,7 @@ const X0 = -2.8, X1 = -2.18, Z0 = -2.4, Z1 = 2.4, Y0 = 0.06, Y1 = 2.62, T = 0.01
 
 export function buildWardrobe({ M, tier, registry, reduced }) {
   const kit = createKit({ product: 'wardrobe', M, tier, registry, reduced });
-  const { group, lod } = kit, F = M.front.wardrobe, C = M.carcass.wardrobe, METAL = M.metal.wardrobe, fin = bevelBox;
+  const { lod } = kit, F = M.front.wardrobe, C = M.carcass.wardrobe, METAL = M.metal.wardrobe, fin = bevelBox;
   const cx = (X0 + X1) / 2, d = X1 - X0, H = Y1 - Y0, cy = (Y0 + Y1) / 2;
 
   // ---- carcass: back, top, bottom, ends and three full-height dividers (static, one draw call) ----
@@ -33,7 +33,7 @@ export function buildWardrobe({ M, tier, registry, reduced }) {
   void s1; void s2;
 
   // interior of the sliding bays: long hang (left) and double hang (right), shelf above, edge-banded
-  const hardware = [], soft = [], matte = [], ceramic = [], metalP = [];
+  const hardware = [], soft = [], ceramic = [], metalP = [];
   const rail = (y, z0, z1) => hardware.push(prep(placed(new THREE.CylinderGeometry(0.0125, 0.0125, z1 - z0, 12), { x: -2.5, y, z: (z0 + z1) / 2, rx: Math.PI / 2 })), prep(placed(fin(0.04, 0.04, 0.012, { b: 0.001 }), { x: -2.5, y: y + 0.02, z: z0 })), prep(placed(fin(0.04, 0.04, 0.012, { b: 0.001 }), { x: -2.5, y: y + 0.02, z: z1 })));
   rail(2.02, -2.38, -1.22); rail(2.02, -1.18, -0.02); rail(1.08, -1.18, -0.02);
   const shelf = (y, z0, z1, depth = 0.58) => {

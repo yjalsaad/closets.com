@@ -1,8 +1,8 @@
-# Virtual Showroom 3D: architecture (Phases 0 to 3)
+# Virtual Showroom 3D: architecture (Phases 0 to 3, Phase 4 furnishing, Phase 5 interaction core)
 
 Route: `/showroom-3d` and `/ar/showroom-3d` (noindex, own lazy chunk, own full-screen shell like `/visualizer`).
-Status: **Phase 0 (this doc), Phase 1 (architectural environment), Phase 2 (cinematic intro, loader, hand-over), Phase 3 (first-person roaming, collision, department quick-nav).**
-Phases 4 to 7 are not built (see the end).
+Status: **Phase 0 (this doc), Phase 1 (architectural environment), Phase 2 (cinematic intro, loader, hand-over), Phase 3 (first-person roaming, collision, department quick-nav), Phase 4 (Kitchens, Wardrobes, Doors furnished as procedural, animated sample configurations + the Ikhtarha stage), Phase 5 interaction core (focus, picking, panel, finishes, LED, quotation hand-off).**
+The other five departments are still empty ("to be furnished"). Phases 5 (favourites / backend quote workflow), 6 and 7 are not built (see the end).
 
 ## Honest scope statement
 
@@ -10,7 +10,8 @@ Phases 4 to 7 are not built (see the end).
   from three.js primitives, PBR textures drawn on canvas from seeded noise (`src/showroom3d/3d/textures.js`).
 - It is **not photoreal** and should not be presented as such. It is a clean, lit, architecturally plausible stylised model.
   Swapping in authored GLBs later is a drop-in per scene module (see `assets/README`-style notes below).
-- The eight department bays are **empty and labelled "To be furnished"** on their signs and in the UI. Nothing is furnished.
+- **Phase 4 furnishes three bays only** (Kitchens, Wardrobes, Doors) with procedural, parametric, animated products labelled "Sample configuration" on the signs and in the panel. The other five bays are **still empty and labelled "To be furnished"**.
+- **Real photorealism needs authored GLBs with baked lighting** (Blender / DCC, baked AO + lightmaps, photographed or scanned materials, KTX2 textures). This build does not claim it and does not approximate it with tricks: it is a clean real-time PBR model. Two AI-generated single-mesh GLB models exist elsewhere in the project; they are **not used here** (a single fused mesh cannot open a drawer, swap a finish or switch an LED, which is the point of this phase).
 - The only non-procedural asset is the **owner-supplied official logo** (`assets/the-closets-logo-official.jpg`), used unaltered.
 
 ## Stack decisions
@@ -141,6 +142,52 @@ real key presses, 14 wall / bench / planter / post / glass / corner collisions, 
 glide to all 8 bays (from the spawn and from the street), pause menu focus trap, pointer lock denied / granted / real, 390x844 touch joystick with CDP
 multi-touch, pinch / swipe not zooming or scrolling, EN + AR layouts, reduced motion. Screenshots: `docs/showroom3d/screenshots/phase3-*`.
 
+
+## Phase 4: the furnished departments (what is built)
+
+Three bays are furnished as **sample configurations**: Kitchens (island + wall run), Wardrobes (sliding + hinged + smoked-glass doors, drawers), Doors (pivot door in a
+fluted wall with a swatch board). Everything is generated in code (no GLB, no photographs).
+
+**Parametric, separate meshes (`scenes/products/kit.js`).** Every part that can move is its own mesh in its own group, so it really moves:
+- *drawer*: bevelled front panel (grain along the width) + a separate body (sides, back, bottom, tray dividers) that slides out along +X on its own travel, brass L-profile finger pull on the front, in-drawer LED strip + light wash on the drawer floor.
+- *hinged door*: leaf swings about a vertical hinge axis (either hand, 105 to 112 degrees), concealed-hinge cups on the inside face, optional smoked glass in a bronze frame (frame + pane are separate meshes).
+- *sliding leaf*: translates along the front on its own track (two leaves on two rails, so they pass each other like the real thing).
+- *pivot door*: swings about an off-centre vertical axis (about 100 degrees), brass pull bars on both faces on stand-off posts, floor pivot plate and head cap.
+- static carcass, worktop, plinth, tracks and trims are merged **per material** (one draw call each).
+
+**Kitchen**: waterfall stone worktop as ONE U-profile extrusion with a continuous vein coordinate over the edge, sink cut-out (real hole in the slab) with steel basin and brass gooseneck tap, induction hob glass, brass hood, handleless fronts with slim brass finger pulls, fluted feature wall (real reeded geometry with baked groove darkening), under-cabinet LED + splashback wash, plinth LED, pendants, stools tucked under the overhang, 9 interactive parts (7 drawers, 2 pairs of doors).
+**Wardrobe**: 10 interactive parts (2 sliding, 2 hinged, 2 smoked-glass, 4 drawers), hanging rails with garment silhouettes on hangers, shelving with edge banding and folded linen, boxes, bags and shoes, vertical LED strips that fade up as each section opens, bronze or brass metal by finish.
+**Door**: pivot leaf, brass reveal around the opening, lit room beyond (console, lamp, art, plant), swatch board with the 4 finishes (static materials that never change, so a swatch always matches its label), rug, bench.
+Detail level: bevel on every edge (so highlights catch), grain direction chosen per panel (UV projection puts the grain along the long axis of drawer fronts and along the height of doors), edge-banding strips on shelves, hinge cups, runners are not modelled (not visible in a closed or open drawer).
+
+**Materials (`3d/pbr.js`, `scenes/products/materials.js`)**, all procedural and tileable: timber with the grain along U (oak: straight with open pores; walnut: denser, deeper), polished veined stone in three variants (white with grey + thin gold veins, dark, sand; domain-warped ridged noise on a diagonal), brushed brass / bronze (roughness streaks + normal along U, `MeshPhysicalMaterial.anisotropy`), matt lacquer orange-peel normal, woven rug, hob glass, smoked glass (**transmission on the high tier**, alpha-sorted depth-write-off glass on medium / low). Finishes swap **parameters** on existing materials (maps, colour, roughness), never the shader program, so there is no recompile hitch. Finish names are descriptive labels, not a catalogue.
+**Light**: a generated warm interior environment (ceiling strips, daylight window, bounce floor; PMREM) is the reflection source for furniture, so brass and stone reflect a room instead of the outdoor sky. ACES filmic, sRGB output (unchanged). Each bay has a lowered plaster canopy with a lit cove, recessed downlights and a wall wash. **One** moving key spot light follows the visitor to the nearest bay / the stage (shadow-casting on medium and high with tuned bias / normalBias), plus one fill point light; nothing else casts shadows beyond the existing sun. Baked contact-shadow decals sit under every piece, additive wash decals fake the light spill of LEDs. **Restrained bloom on the high tier only** (lazy chunk: half-float MSAA target, `UnrealBloomPass` strength 0.16, threshold 1.6, `OutputPass` for tone mapping). Not used: SSAO / GTAO, RectAreaLight, screen-space reflections (cost / compatibility), so contact darkening is baked decals and vertex-colour AO, not real.
+**Staging**: plinths, a fluted feature wall in each bay, canopy with cove and downlights, plants, vases, books, tableware, fruit, stools, garments, bags, shoes, boxes, a rug, a console with a lamp and art, signage ("Sample configuration" with a brass marker; the five other bays keep "To be furnished" with the orange marker).
+**Quality tiers** (`3d/quality.js`, products read `tier`): `high` = 1024 px timber, 512 px stone, anisotropic metal, clearcoat, key-light shadow 2048, point fill, transmission glass, bloom; `medium` = 512 px, shadow 1024, anisotropy on, no bloom, alpha glass; `low` = 256 px, no normal maps, no clearcoat, no anisotropy, no shadow-casting product light and no fill light (one spot only), alpha glass. Product groups hide when the visitor is outside the hall; props hide beyond 20 m from a bay.
+**Collision**: `navigation/productColliders.js` adds solid footprints for the kitchen run + island (the aisle is filled in), wardrobe, door wall + bench + plants, and the Ikhtarha platform + screen. Boxes run the full bay width (no gap narrower than the 0.7 m walker, which would jam the sliding circle); unit tests walk random long moves and every department stand point stays free.
+
+## Phase 5 (interaction core)
+
+Standing in a furnished bay (or at the Ikhtarha stage) shows "Press E" / "Tap Interact". **E / Interact** glides the camera (GSAP, 1.0 to 2.4 s, instant under reduced motion) to the product overview, suspends walking, shifts the view so the product stays centred in the part of the screen the panel leaves free (`camera.setViewOffset`; mirrored in RTL, vertical on phones), and opens the panel:
+- name, "sample configuration" kicker, honest spec lines (only existing site facts: made to measure, designed / made / fitted in Bahrain, the **10-year cabinetry and soft-close hardware warranty** from `content/facts.js`, the door FAQ hardware wording; **no prices, dimensions, lead times**), a note that final sizes, materials and price come from a quotation;
+- one button per part (`aria-pressed`, "open / closed"), Open all / Close all, an LED switch (`role="switch"`), 4 finish swatches (`radiogroup`, visible name), view chips (overview / island / inside the drawers / handle and LED close-up ...), a live region announcing each toggle;
+- **Request a quotation**: a plain link to the existing `/booking` page (or `/ar/booking`) built by `products/quote.js`: `?interest=Kitchen|Wardrobe|Doors&source=showroom-3d&finish=<id>&notes=<sample configuration, product, finish>`. `src/pages/BookingPage.jsx` now **pre-fills** its interest select and notes box from those two parameters (unknown interests are ignored, notes are sanitised and capped at 600 characters); the visitor still reviews and submits the form. **Nothing in the showroom writes to the backend**; a Playwright check asserts no supabase / rpc / rest request is made by any showroom interaction.
+- **Picking**: raycast against the registered hit meshes only (front + pull of each part). In focus mode: pointer hover outlines the part (one line-segments draw call) and a click / tap works it; a drag nudges the view a little. While walking: the crosshair (pointer lock) or the pointer (drag-look mode) hovers within 4.2 m and a click works the part; on touch, a quick tap on the scene works it within 4.6 m. Keyboard: Arrow keys move the focus ring between parts, Enter / Space works it, L = LED, F / Shift+F = finish, V = view, Esc = back (Esc closes the focus first, it does not also open the pause menu); keys that land on a panel button are left to the button.
+- Reduced motion: no glide, parts snap open / closed, LED switches instantly, no panel animation. EN / AR strings for everything (`strings.js`, `products/catalog.js`, `products/finishes.js`); RTL moves the panel to the left and mirrors the view shift.
+
+## Ikhtarha (اختارها) campaign integration
+
+What exists in the codebase (inspected): `src/campaign/IkhtarhaRoot.jsx` (the game: name + quotation number + code -> server validation -> 3D wardrobe -> choose a box -> server draws the reward; `BRAND` = purple `#4A2C82` / teal `#23807C` kit, slogans), `HomeCampaign.jsx` (home poster copy, steps, CTAs, fine print; "public materials never name prizes or values"), `wardrobe3d*.js` (the game's own renderer), `api.js` (Supabase RPCs `ikh_*`, plus a no-backend `/campaign/ikhtarha/demo` mode), public brand kit under `public/brand/ikhtarha/`.
+What the showroom does with it (**reuse only, nothing invented**):
+- A **hero stage in the middle of the nave** (the first thing in view from the hand-over pose): round platform with a teal LED ring, three closed gift boxes in white / teal / mint with ribbons (the campaign illustration's own motif, built procedurally), a suspended LED halo and a two-sided screen blade. Front: the campaign's own `hero-wide.jpg` + `logo-light.png` + slogan + title; back: the three "how it works" steps and the fine print. Colours are the kit's (`palette.js` `ik*`, mirrored from `BRAND`).
+- Copy lives in `products/campaignCopy.js` and is **copied verbatim from `HomeCampaign.jsx` / `IkhtarhaRoot.jsx`**; a unit test checks every EN and AR string against those source files and that the copy contains **no digits, prizes, values or dates**.
+- E at the stage opens the Ikhtarha panel (title, lead, three steps, fine print) with the campaign's CTAs: **Price & pick your box** -> the existing `/booking` page (the same destination as the home poster's button), **I have a code, play** -> `/campaign/ikhtarha`, **Try a sample game** -> `/campaign/ikhtarha/demo` (the campaign's own no-backend sample). The campaign shell is a separate app shell (not localised by URL), so those two links are not `/ar` prefixed; the page picks its language from `?lang=` / the stored language.
+What is **not** there / placeholders (stated plainly):
+1. The showroom does **not** call `ikh_landing`, so it does not know whether the campaign is live; the stage is always shown and the campaign page itself shows its closed / not-open messages. A one-line follow-up is to reuse `useIkhLanding()` from `HomeCampaign.jsx` to hide the stage when the campaign is not live (it is a read-only RPC; left out here to keep the showroom free of backend calls).
+2. **Dates and prizes are deliberately absent** (dates are a CMS-editable campaign setting; prizes are never public). Nothing marks a placeholder on screen because nothing is faked.
+3. The campaign uses the Alexandria font (Google Fonts) which the site does not self-host; the stage uses the site's IBM Plex Sans Arabic / Inter instead, so the type is close but not identical to the campaign page.
+4. No authored 3D gift-box model or vector logo exists in the repo; the boxes are procedural and the logo is the existing PNG (edges are as good as the PNG).
+5. A QR code for the showroom exists only as the placeholder box in the print poster; none is generated here.
 
 ## Integration touch points (outside `src/showroom3d`)
 

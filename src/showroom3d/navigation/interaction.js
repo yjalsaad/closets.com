@@ -2,6 +2,7 @@
  * visitor press E (or tap Interact). Phase 3 only highlights the zone and says what is coming; real product interaction is Phase 5. */
 import { HALL, BAY } from '../3d/dimensions';
 import { layoutBays } from '../scenes/main-hall/departments';
+import { STAGE } from '../products/catalog';
 
 const REACH = 4.6;   // metres of nave in front of the bay's floor inlay that still counts as "at the bay" (the glide stand point is 3.5 m out)
 
@@ -18,6 +19,5 @@ export function zoneAt(zones, x, z) {
 }
 
 /** the hall-wide Ikhtarha stage zone (centre of the nave) joins the bay zones for the explorer; the 8 bay zones above are unchanged */
-import { STAGE } from '../products/catalog';
 export const stageZone = () => ({ id: STAGE.id, en: 'Ikhtarha', ar: 'اختارها', index: 0, ...STAGE.zone, stage: true });
 export const allZones = (bays) => [...interactionZones(bays), stageZone()];

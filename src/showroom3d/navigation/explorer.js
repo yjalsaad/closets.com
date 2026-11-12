@@ -152,9 +152,9 @@ export class Explorer {
     if (this.focus) return;
     this.interactions++;
     const z = this.zone, P = this.products;
-    if (z && z.stage && P) { this.focusStage('overview'); this.emit({ interact: this.interactions, interactZone: z.id }); return; }
+    if (z && z.stage && P) { this.focusStage('overview'); return; }          // (no "later release" toast: the panel is the response)
     const pid = z && P ? P.productAt(z.id) : null;
-    if (pid) { this.focusProduct(pid, 'overview'); this.emit({ interact: this.interactions, interactZone: z.id }); return; }
+    if (pid) { this.focusProduct(pid, 'overview'); return; }
     if (z) { if (this.engine.bays) this.engine.bays.highlight.pulse(z.id); this.emit({ interact: this.interactions, interactZone: z.id }); }
     else this.emit({ interact: this.interactions, interactZone: null });
   }

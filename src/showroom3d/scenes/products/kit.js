@@ -10,7 +10,6 @@ import { stateDef, PRODUCTS } from '../../products/catalog';
 import { defaultFinish, finishIds } from '../../products/finishes';
 import { applyFinish } from './materials';
 
-const lerp = (a, b, t) => a + (b - a) * t;
 const _wash = { v: null, p: null };
 
 export function createKit({ product, M, tier, registry, reduced = false }) {
