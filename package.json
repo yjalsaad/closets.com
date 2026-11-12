@@ -20,13 +20,11 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "postbuild": "node scripts/prerender.js",
+    "postbuild": "node scripts/seo-build.js && node scripts/prerender.js",
     "prerender": "node scripts/prerender.js",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "devDependencies": {
-    "puppeteer": "^24.15.0"
+    "eject": "react-scripts eject",
+    "seo:check": "node scripts/seo-check.js"
   },
   "eslintConfig": {
     "extends": [
@@ -50,5 +48,9 @@
     "moduleNameMapper": {
       "^three/examples/jsm/.*$": "<rootDir>/src/testStubThreeJsm.js"
     }
+  },
+  "devDependencies": {
+    "@sparticuz/chromium": "153.0.0",
+    "puppeteer-core": "25.17.0"
   }
 }

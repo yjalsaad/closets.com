@@ -1,128 +1,202 @@
 /* eslint-disable */
 /**
- * Static prerender for the CRA SPA (SEO).
+ * Static prerender for the CRA SPA (SEO). Runs as `postbuild` (after scripts/seo-build.js).
  *
- * Runs as `postbuild`. Serves the freshly built app from a tiny in-process
- * static server (with SPA fallback), drives a headless Chromium over an
- * explicit list of marketing routes, and writes the fully-rendered HTML back
- * into <buildDir>/<route>/index.html. On load, src/index.js sees the prerendered
- * markup in #root and calls hydrateRoot, so crawlers get real text and users get
- * an instant first paint with no hydration flash.
+ * Serves the freshly built app from a tiny in-process static server, drives headless Chromium over every
+ * indexable route in BOTH languages (/kitchen and /ar/kitchen, ...) plus the NotFound page, and writes the
+ * rendered HTML to <build>/<route>/index.html (and <build>/404.html). The head (title, description, canonical,
+ * hreflang, og:*, twitter:*, robots, JSON-LD) is whatever src/seo/head.js wrote while the app rendered, so the
+ * static HTML and the client-side head can never disagree.
  *
- * DESIGN NOTES
- *  - Chosen over react-snap: react-snap (last release 2020) bundles an ancient
- *    puppeteer that will not run on Node 22 and breaks hydration on React 18+.
- *    This script uses modern puppeteer and works cleanly with React 19 / Node 22.
- *  - FAIL SOFT: if puppeteer or Chromium isn't available (e.g. a build container
- *    without a browser), we log a warning and exit 0. The site still deploys as a
- *    normal SPA — prerendering is progressive enhancement, never a build blocker.
- *  - Honors BUILD_PATH so it targets the same dir react-scripts wrote to (this is
- *    why it doesn't interfere with the `BUILD_PATH=/tmp/webbuild` compile gate).
- *  - Skips /cart and /signin (per spec) and the WebGL Design-Studio planner routes
- *    (interactive tools, no SEO value, and WebGL can hang/crash headless).
+ * BROWSER (first that works):
+ *   1. PUPPETEER_EXECUTABLE_PATH / CHROME_PATH  (+ puppeteer-core)   <- local dev, GitHub Actions, any image with Chrome
+ *   2. @sparticuz/chromium (+ puppeteer-core)                        <- Vercel / AWS-Lambda-like containers (no system Chrome)
+ *   3. puppeteer (if installed; needs its own Chrome download)       <- legacy fallback
+ *
+ * STRICTNESS
+ *   PRERENDER_REQUIRED=1 (or VERCEL set) => FAIL LOUDLY: non-zero exit if no browser can launch, or any route's output
+ *   lacks the expected <title>, canonical, or exactly one <h1>. Locally (neither set) it stays soft and exits 0.
+ *   PRERENDER_REQUIRED=0 forces soft mode even on Vercel (emergency switch).
+ *
+ * NETWORK: by default every non-local request is intercepted (CMS/API calls get `[]`, fonts/images are aborted) so the
+ * output is deterministic and the build never depends on a third party. PRERENDER_ALLOW_NETWORK=1 lets CMS calls through
+ * (bakes live CMS content into the HTML; it hydrates and refreshes on load).
+ *
+ * Also writes app-shell.html: the pristine SPA shell. vercel.json rewrites SPA-only routes (product pages, planners,
+ * account...) to it, because the prerender overwrites index.html with the prerendered home page.
  */
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
+const { SITE_URL, ENABLE_AR_URLS } = require('../src/seo/siteConfig');
+const { INDEXABLE, buildHead, withLang } = require('../src/seo/routes');
 
 const BUILD_DIR = path.resolve(process.cwd(), process.env.BUILD_PATH || 'build');
-
-// Explicit include list — canonical marketing routes worth indexing.
-// Keep in sync with ROUTE_TABLE in src/App.js (minus planners / cart / signin).
-const ROUTES = [
-  '/', '/kitchen', '/wardrobes', '/tv', '/doors', '/office', '/gallery',
-  '/offers', '/booking', '/projects', '/services', '/showrooms',
-  '/how-it-works', '/faq', '/about', '/contact', '/blog',
-  '/careers', '/warranty', '/maintenance', '/ai-lab',
-];
+const REQUIRED = process.env.PRERENDER_REQUIRED === '1' || (process.env.PRERENDER_REQUIRED !== '0' && !!process.env.VERCEL);
+const ALLOW_NETWORK = process.env.PRERENDER_ALLOW_NETWORK === '1';
+const CONCURRENCY = Math.max(1, parseInt(process.env.PRERENDER_CONCURRENCY || '2', 10));
+const ONLY = (process.env.PRERENDER_ONLY || '').split(',').map((s) => s.trim()).filter(Boolean); // e.g. "/,/kitchen,404" (debug)
 
 const MIME = {
-  '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css',
-  '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png',
-  '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.ico': 'image/x-icon',
-  '.woff': 'font/woff', '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.map': 'application/json',
-  '.webp': 'image/webp', '.avif': 'image/avif',
+  '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
+  '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif',
+  '.ico': 'image/x-icon', '.woff': 'font/woff', '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.map': 'application/json',
+  '.webp': 'image/webp', '.avif': 'image/avif', '.xml': 'application/xml', '.txt': 'text/plain',
 };
 
-function startServer(dir) {
+function fail(msg) {
+  if (REQUIRED) { console.error('[prerender] FAILED (PRERENDER_REQUIRED): ' + msg); process.exit(1); }
+  console.warn('[prerender] ' + msg + ' - skipping (soft mode; set PRERENDER_REQUIRED=1 to make this fatal).');
+  process.exit(0);
+}
+
+// The server always answers extensionless paths with the PRISTINE shell, so a half-written prerender is never re-read.
+function startServer(dir, shellFile) {
   const server = http.createServer((req, res) => {
     try {
       const urlPath = decodeURIComponent((req.url || '/').split('?')[0]);
       let filePath = path.join(dir, urlPath);
-      // Directory or unknown path → SPA fallback to index.html so BrowserRouter routes render.
-      if (!path.extname(filePath)) filePath = path.join(dir, 'index.html');
-      if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-        filePath = path.join(dir, 'index.html');
-      }
+      if (!path.extname(filePath) || !filePath.startsWith(dir) || /\/index\.html$/.test(urlPath)) filePath = shellFile;
+      if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) filePath = shellFile;
       const ext = path.extname(filePath).toLowerCase();
       res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
       fs.createReadStream(filePath).pipe(res);
-    } catch (e) {
-      res.writeHead(500); res.end('err');
-    }
+    } catch (e) { res.writeHead(500); res.end('err'); }
   });
   return new Promise((resolve) => server.listen(0, '127.0.0.1', () => resolve(server)));
 }
 
-(async () => {
-  const indexHtml = path.join(BUILD_DIR, 'index.html');
-  if (!fs.existsSync(indexHtml)) {
-    console.warn('[prerender] no build at ' + BUILD_DIR + ' — skipping (nothing to prerender).');
-    return; // exit 0
-  }
-
-  let puppeteer;
-  try {
-    puppeteer = require('puppeteer');
-  } catch (e) {
-    console.warn('[prerender] puppeteer not installed — skipping prerender (SPA still deploys).');
-    return; // exit 0
-  }
-
-  const server = await startServer(BUILD_DIR);
-  const port = server.address().port;
-  const base = 'http://127.0.0.1:' + port;
-
-  let browser;
-  try {
-    browser = await puppeteer.launch({
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--disable-dev-shm-usage'],
-    });
-  } catch (e) {
-    console.warn('[prerender] could not launch Chromium — skipping prerender (SPA still deploys).');
-    console.warn('           ' + (e && e.message ? e.message : e));
-    server.close();
-    return; // exit 0
-  }
-
-  let ok = 0;
-  for (const route of ROUTES) {
-    const page = await browser.newPage();
-    try {
-      await page.goto(base + route, { waitUntil: 'networkidle0', timeout: 45000 });
-      // Wait until React has actually painted content into #root.
-      await page.waitForFunction(
-        () => { const r = document.getElementById('root'); return r && r.children.length > 0; },
-        { timeout: 15000 }
-      ).catch(() => {});
-      const html = '<!DOCTYPE html>' + (await page.content()).replace(/^<!DOCTYPE html>/i, '');
-      const outDir = route === '/' ? BUILD_DIR : path.join(BUILD_DIR, route);
-      fs.mkdirSync(outDir, { recursive: true });
-      fs.writeFileSync(path.join(outDir, 'index.html'), html);
-      ok++;
-      console.log('[prerender] ' + route + ' → ' + path.relative(process.cwd(), path.join(outDir, 'index.html')));
-    } catch (e) {
-      console.warn('[prerender] skipped ' + route + ': ' + (e && e.message ? e.message : e));
-    } finally {
-      await page.close().catch(() => {});
+async function launchBrowser() {
+  let core = null;
+  try { core = require('puppeteer-core'); } catch (e) { /* maybe only full puppeteer exists */ }
+  const baseArgs = ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--hide-scrollbars', '--mute-audio'];
+  const errors = [];
+  const attempts = [];
+  const explicit = process.env.PUPPETEER_EXECUTABLE_PATH || process.env.CHROME_PATH;
+  if (core && explicit) attempts.push(['executable ' + explicit, () => core.launch({ executablePath: explicit, headless: true, args: baseArgs })]);
+  if (core) {
+    let sparticuz = null;
+    try { sparticuz = require('@sparticuz/chromium'); } catch (e) { errors.push('@sparticuz/chromium not installed'); }
+    if (sparticuz) {
+      attempts.push(['@sparticuz/chromium', async () => {
+        const chromium = sparticuz.default || sparticuz;
+        try { chromium.setGraphicsMode = false; } catch (e) { /* older versions */ }
+        const executablePath = await chromium.executablePath();
+        return core.launch({ executablePath, headless: 'shell', args: Array.from(new Set([...(chromium.args || []), ...baseArgs])) });
+      }]);
     }
   }
+  attempts.push(['puppeteer', async () => { const p = require('puppeteer'); return p.launch({ headless: true, args: baseArgs }); }]);
+  for (const [name, fn] of attempts) {
+    try { const b = await fn(); console.log('[prerender] browser: ' + name); return b; }
+    catch (e) { errors.push(name + ': ' + (e && e.message ? String(e.message).split('\n')[0] : e)); }
+  }
+  throw new Error('could not launch a browser. Tried: ' + (errors.join(' | ') || 'nothing available'));
+}
 
+function stripNoscript(html) { return html.replace(/<noscript[\s\S]*?<\/noscript>/gi, ''); }
+function attr(html, re) { const m = html.match(re); return m ? m[1] : null; }
+const decode = (s) => (s == null ? s : s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'"));
+
+// What a correct output must contain; returns a list of problems (empty = ok).
+function verifyOutput(html, job) {
+  const problems = [];
+  const head = stripNoscript(html);
+  const title = decode(attr(head, /<title[^>]*>([\s\S]*?)<\/title>/i));
+  if (title !== job.expect.title) problems.push('title "' + title + '" != expected "' + job.expect.title + '"');
+  const h1s = (head.match(/<h1[\s>]/gi) || []).length;
+  if (h1s !== 1) problems.push('expected exactly 1 <h1>, found ' + h1s);
+  const canon = decode(attr(head, /<link[^>]+rel="canonical"[^>]+href="([^"]*)"/i));
+  if (job.expect.canonical && canon !== job.expect.canonical) problems.push('canonical "' + canon + '" != "' + job.expect.canonical + '"');
+  if (!job.expect.canonical && canon) problems.push('noindex page must not carry a canonical (found ' + canon + ')');
+  if (job.expect.canonical && !/<script type="application\/ld\+json"/i.test(head)) problems.push('missing JSON-LD');
+  if (!new RegExp('<html[^>]*lang="' + job.lang + '"', 'i').test(head)) problems.push('<html lang="' + job.lang + '"> missing');
+  const robots = decode(attr(head, /<meta[^>]+name="robots"[^>]+content="([^"]*)"/i)) || '';
+  if (!job.expect.indexable && !/noindex/.test(robots)) problems.push('expected noindex robots meta, got "' + robots + '"');
+  if (job.expect.indexable && /noindex/.test(robots)) problems.push('indexable page has noindex robots meta');
+  return problems;
+}
+
+async function renderJob(browser, base, job) {
+  const page = await browser.newPage();
+  try {
+    await page.setViewport({ width: 1280, height: 900 });
+    await page.setRequestInterception(true);
+    const local = new URL(base).origin;
+    page.on('request', (req) => {
+      let origin = ''; try { origin = new URL(req.url()).origin; } catch (e) { /* data: etc. */ }
+      if (!origin || origin === local || req.url().startsWith('data:') || req.url().startsWith('blob:')) return req.continue();
+      if (ALLOW_NETWORK && ['fetch', 'xhr'].includes(req.resourceType())) return req.continue();
+      if (['fetch', 'xhr'].includes(req.resourceType())) {
+        return req.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: '[]' });
+      }
+      return req.abort();
+    });
+    await page.goto(base + job.url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.waitForFunction(() => { const r = document.getElementById('root'); return r && r.querySelector('h1'); }, { timeout: 30000 });
+    await new Promise((r) => setTimeout(r, 600)); // let effects (head manager, language redirect) settle
+    // React hydration needs "<!-- -->" between ADJACENT text nodes (what ReactDOMServer emits); a browser serialisation merges them
+    // into one text node and hydrateRoot then fails with error #418 and throws the markup away. Re-insert the separators.
+    await page.evaluate(() => {
+      const w = document.createTreeWalker(document.getElementById('root'), NodeFilter.SHOW_TEXT); const list = [];
+      while (w.nextNode()) list.push(w.currentNode);
+      list.forEach((n) => { if (n.nextSibling && n.nextSibling.nodeType === 3) n.parentNode.insertBefore(document.createComment(' '), n.nextSibling); });
+    });
+    let html = await page.content();
+    html = '<!DOCTYPE html>' + html.replace(/^<!DOCTYPE html>/i, '');
+    html = html.replace('<div id="root">', '<div id="root" data-prerender-path="' + job.marker + '" data-prerender-lang="' + job.lang + '">');
+    return html;
+  } finally { await page.close().catch(() => {}); }
+}
+
+(async () => {
+  const indexHtml = path.join(BUILD_DIR, 'index.html');
+  if (!fs.existsSync(indexHtml)) return fail('no build at ' + BUILD_DIR);
+  // keep the pristine shell BEFORE index.html is overwritten with the prerendered home page
+  const shellFile = path.join(BUILD_DIR, 'app-shell.html');
+  if (!fs.existsSync(shellFile)) fs.copyFileSync(indexHtml, shellFile);
+
+  // jobs: every indexable route x language, plus the 404 page
+  const jobs = [];
+  const langs = ENABLE_AR_URLS ? ['en', 'ar'] : ['en'];
+  for (const e of INDEXABLE) for (const L of langs) {
+    const url = withLang(e.path, L);
+    jobs.push({ url, marker: url, lang: L, out: url === '/' ? 'index.html' : path.join(url.slice(1), 'index.html'), expect: buildHead(e.page, L) });
+  }
+  jobs.push({ url: '/this-page-does-not-exist', marker: '*404*', lang: 'en', out: '404.html', expect: buildHead(null, 'en') });
+  const todo = ONLY.length ? jobs.filter((j) => ONLY.includes(j.url) || (j.out === '404.html' && ONLY.includes('404'))) : jobs;
+
+  let browser;
+  try { browser = await launchBrowser(); } catch (e) { return fail(e.message); }
+
+  const server = await startServer(BUILD_DIR, shellFile);
+  const base = 'http://127.0.0.1:' + server.address().port;
+  const failures = []; let ok = 0;
+  const queue = todo.slice();
+  async function worker() {
+    while (queue.length) {
+      const job = queue.shift();
+      try {
+        const html = await renderJob(browser, base, job);
+        const problems = verifyOutput(html, job);
+        if (problems.length) { failures.push(job.url + ': ' + problems.join('; ')); console.warn('[prerender] BAD ' + job.url + ': ' + problems.join('; ')); }
+        const outFile = path.join(BUILD_DIR, job.out);
+        fs.mkdirSync(path.dirname(outFile), { recursive: true });
+        fs.writeFileSync(outFile, html);
+        ok++;
+        console.log('[prerender] ' + job.url + ' -> ' + job.out + (problems.length ? '  (WITH PROBLEMS)' : ''));
+      } catch (e) {
+        failures.push(job.url + ': ' + (e && e.message ? e.message : e));
+        console.warn('[prerender] FAILED ' + job.url + ': ' + (e && e.message ? e.message : e));
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: CONCURRENCY }, worker));
   await browser.close().catch(() => {});
   server.close();
-  console.log('[prerender] done — ' + ok + '/' + ROUTES.length + ' routes prerendered.');
-})().catch((e) => {
-  // Never fail the build because of prerendering.
-  console.warn('[prerender] unexpected error — skipping: ' + (e && e.message ? e.message : e));
-});
+  console.log('[prerender] done: ' + ok + '/' + todo.length + ' pages written, ' + failures.length + ' problem(s). SITE_URL=' + SITE_URL);
+  if (failures.length) {
+    if (REQUIRED) { console.error('[prerender] FAILED (PRERENDER_REQUIRED):\n  ' + failures.join('\n  ')); process.exit(1); }
+    console.warn('[prerender] problems (soft mode, exit 0):\n  ' + failures.join('\n  '));
+  }
+})().catch((e) => fail('unexpected error: ' + (e && e.stack ? e.stack : e)));
