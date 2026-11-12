@@ -2,6 +2,7 @@
 // Loaded on demand by: CareersPage, BookingPage, MaintenancePage, WarrantyPage.
 // Shared app helpers (api, useI18n, AppCtx, …) are imported from ../App (live bindings; this chunk only loads after App has evaluated).
 
-const inp = { background:'var(--sand)', border:'1px solid var(--line)', borderRadius:12, padding:'11px 14px', fontSize:14, color:'var(--ink)', width:'100%' };
+// token-driven inline field style (for plain <input style={inp}>); <Field> uses the .inp class from src/design/base.css
+const inp = { background:'var(--c-surface)', border:'1px solid var(--c-line-strong)', borderRadius:'var(--radius-field)', padding:'12px 16px', fontSize:16, minHeight:48, color:'var(--c-text)', width:'100%' };
 
 export { inp };

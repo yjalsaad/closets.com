@@ -7,10 +7,10 @@ import { HOME_IMG, Photo, fmt, toast, trCat, useI18n } from '../App';
 function ProductCard({ product: p, setPage, addToCart, setConfigProduct }) {
   const { t, lang } = useI18n();
   return (
-    <div className="rv lift" onClick={() => setPage('product-' + p.id)} style={{ cursor: 'pointer', background: '#fff', borderRadius: 18, overflow: 'hidden', border: '1px solid var(--line)' }}>
+    <div className="rv lift" onClick={() => setPage('product-' + p.id)} style={{ cursor: 'pointer', background: 'var(--c-surface)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', border: '1px solid var(--line)' }}>
       <div className="tile-zoom zoomwrap" style={{ position: 'relative', aspectRatio: '4/5' }}>
         <Photo src={p.image_url || HOME_IMG.wardrobe} alt={p.name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
-        {p.badge && <span style={{ position: 'absolute', top: 12, left: 12, background: 'var(--clay)', color: '#fff', padding: '4px 11px', borderRadius: 980, fontSize: 11, fontWeight: 600, letterSpacing: '.02em' }}>{p.badge === 'Featured' ? t('cardFeatured') : p.badge}</span>}
+        {p.badge && <span style={{ position: 'absolute', top: 12, left: 12, background: 'var(--clay)', color: '#fff', padding: '4px 11px', borderRadius: 'var(--radius-pill)', fontSize: 11, fontWeight: 600, letterSpacing: '.02em' }}>{p.badge === 'Featured' ? t('cardFeatured') : p.badge}</span>}
       </div>
       <div style={{ padding: '16px' }}>
         <div style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 6 }}>{p.category ? trCat(p.category, lang) : t('w4PdBespoke')}</div>
@@ -25,8 +25,8 @@ function ProductCard({ product: p, setPage, addToCart, setConfigProduct }) {
           </div>
         )}
         <div style={{ display: 'flex', gap: 8 }}>
-          <button type="button" onClick={e => { e.stopPropagation(); addToCart(p); toast('Added to cart ✓', 'success'); }} style={{ flex: 1, background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 12, padding: '11px 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer', minHeight: 44 }}>{t('w4PdAddToCart')}</button>
-          <button type="button" title={t('w4PdCustomise')} aria-label={t('w4PdCustomise')} onClick={e => { e.stopPropagation(); setPage('planner'); }} style={{ background: 'var(--sand)', border: '1px solid var(--line)', borderRadius: 12, padding: '11px 14px', fontSize: 15, cursor: 'pointer', minHeight: 44, color: 'var(--ink)' }}>✦</button>
+          <button type="button" onClick={e => { e.stopPropagation(); addToCart(p); toast('Added to cart ✓', 'success'); }} style={{ flex: 1, background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 'var(--radius-md)', padding: '11px 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer', minHeight: 44 }}>{t('w4PdAddToCart')}</button>
+          <button type="button" title={t('w4PdCustomise')} aria-label={t('w4PdCustomise')} onClick={e => { e.stopPropagation(); setPage('planner'); }} style={{ background: 'var(--sand)', border: '1px solid var(--line)', borderRadius: 'var(--radius-md)', padding: '11px 14px', fontSize: 15, cursor: 'pointer', minHeight: 44, color: 'var(--ink)' }}>✦</button>
         </div>
       </div>
     </div>

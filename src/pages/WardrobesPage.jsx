@@ -109,11 +109,11 @@ function WardrobesPage({ setPage, products }) {
     /wardrobe|closet|walk\-?in|dress|storage/i.test(p.category||'') ||
     /wardrobe|closet|walk\-?in|dress/i.test(p.name||''));
   const heroImg = (dbLayouts.walkin && dbLayouts.walkin.hero_url) || HERO_IMG.wardrobe;
-  const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
+  const wrap = { maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding:'0 var(--gutter)' };
   const FAQS = t('sw2WardFaq');
 
   return (
-    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?56:64, paddingBottom:90 }}>
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop:'var(--nav-h)', paddingBottom:90 }}>
       {/* HERO */}
       <section style={{ position:'relative', minHeight: mobile?440:560, display:'flex', alignItems:'flex-end', backgroundImage:`linear-gradient(to top, rgba(20,16,12,.72), rgba(20,16,12,.15)), url('${cms('wardrobe.hero.image', heroImg)}')`, backgroundSize:'cover', backgroundPosition:'center' }}>
         <div style={{ ...wrap, paddingBottom: mobile?32:54, color:'#fff' }}>
@@ -121,8 +121,8 @@ function WardrobesPage({ setPage, products }) {
           <h1 className="display" style={{ fontSize: mobile?34:60, lineHeight:1.05, maxWidth:780, margin:0 }}>{cms('wardrobe.hero.title', t('wardrobeHeroTitle'))}</h1>
           <p style={{ fontSize: mobile?15:19, maxWidth:560, marginTop:14, opacity:.92, lineHeight:1.55 }}>{cms('wardrobe.hero.subtitle', t('wardrobeHeroSub'))}</p>
           <div style={{ display:'flex', gap:12, marginTop:24, flexWrap:'wrap' }}>
-            <button type="button" className="btn-clay" onClick={()=>setPage('wardrobe-planner')} style={{ borderRadius:14 }}>{cms('wardrobe.hero.cta', t('openDesignStudio'))}</button>
-            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.12)', color:'#fff', border:'1px solid rgba(255,255,255,.45)', borderRadius:14, padding:'15px 28px', fontSize:16, fontWeight:600, cursor:'pointer', backdropFilter:'blur(6px)' }}>{t('bookFreeVisit')}</button>
+            <button type="button" className="btn-clay" onClick={()=>setPage('wardrobe-planner')} style={{ borderRadius:'var(--radius-lg)' }}>{cms('wardrobe.hero.cta', t('openDesignStudio'))}</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.12)', color:'#fff', border:'1px solid rgba(255,255,255,.45)', borderRadius:'var(--radius-lg)', padding:'15px 28px', fontSize:16, fontWeight:600, cursor:'pointer', backdropFilter:'blur(6px)' }}>{t('bookFreeVisit')}</button>
           </div>
         </div>
       </section>
@@ -134,16 +134,16 @@ function WardrobesPage({ setPage, products }) {
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2WardTypesSub')}</p>
         <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
           {wTypes.map(wt=>(
-            <button key={wt.id} type="button" className="lift" onClick={()=>setPage('wardrobe-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+            <button key={wt.id} type="button" className="lift" onClick={()=>setPage('wardrobe-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', overflow:'hidden', background:'var(--c-surface)', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
               <div style={{ height: mobile?170:210, position:'relative', background: wt.img?`url('${wt.img}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }}>
-                <span style={{ position:'absolute', top:12, left:12, background:'rgba(20,16,12,.62)', color:'#fff', fontSize:12, fontWeight:600, borderRadius:999, padding:'5px 12px', backdropFilter:'blur(4px)' }}>From {fmt(wt.from)}</span>
+                <span style={{ position:'absolute', top:12, left:12, background:'rgba(20,16,12,.62)', color:'#fff', fontSize:12, fontWeight:600, borderRadius:'var(--radius-pill)', padding:'5px 12px', backdropFilter:'blur(4px)' }}>From {fmt(wt.from)}</span>
               </div>
               <div style={{ padding:'18px 20px' }}>
                 <div style={{ fontSize:20, fontWeight:600, color:'var(--ink)' }}>{wt.name}</div>
                 <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{wt.sub}</div>
                 <p style={{ fontSize:13.5, color:'var(--ink-soft)', margin:'10px 0', lineHeight:1.55 }}>{wt.desc}</p>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:12 }}>
-                  {(Array.isArray(wt.bullets)&&wt.bullets.length?wt.bullets:wt.chips).map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{c}</span>))}
+                  {(Array.isArray(wt.bullets)&&wt.bullets.length?wt.bullets:wt.chips).map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:'var(--radius-pill)', padding:'4px 10px' }}>{c}</span>))}
                 </div>
                 <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600 }}>{t('sw2DesignThis3d')}</div>
               </div>
@@ -159,7 +159,7 @@ function WardrobesPage({ setPage, products }) {
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2WardInteriorSub')}</p>
         <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
           {W_INTERIOR.map(f=>(
-            <div key={f.id} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'16px 14px', textAlign:'center' }}>
+            <div key={f.id} className="lift" style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-lg)', padding:'16px 14px', textAlign:'center' }}>
               <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.4" style={{ margin:'0 auto 8px' }}><path d={f.ic} /></svg>
               <div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{f.name}</div>
               <div style={{ fontSize:11, color:'var(--muted)', marginTop:3, lineHeight:1.35 }}>{f.sub}</div>
@@ -176,9 +176,9 @@ function WardrobesPage({ setPage, products }) {
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2WardFinishesSub')}</p>
         <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:14 }}>
           {W_FINISHES.map(w=>(
-            <div key={w.id} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'18px 20px' }}>
+            <div key={w.id} className="lift" style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-lg)', padding:'18px 20px' }}>
               <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:8 }}>
-                <span style={{ width:40, height:40, borderRadius:10, flexShrink:0, background:w.g, border:'1px solid var(--line)' }} />
+                <span style={{ width:40, height:40, borderRadius:'var(--radius-md)', flexShrink:0, background:w.g, border:'1px solid var(--line)' }} />
                 <div style={{ flex:1, display:'flex', justifyContent:'space-between', alignItems:'baseline', gap:8 }}>
                   <div>
                     <div style={{ fontSize:17, fontWeight:600, color:'var(--ink)' }}>{w.name}</div>
@@ -190,7 +190,7 @@ function WardrobesPage({ setPage, products }) {
               <p style={{ fontSize:13, color:'var(--ink-soft)', margin:'8px 0', lineHeight:1.55 }}>{w.desc}</p>
               <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
                 {[w.board, 'Durability '+w.durability, 'Scratch '+w.scratch, w.warranty+' warranty', w.lead].map(t=>(
-                  <span key={t} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{t}</span>
+                  <span key={t} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:'var(--radius-pill)', padding:'4px 10px' }}>{t}</span>
                 ))}
               </div>
             </div>
@@ -200,7 +200,7 @@ function WardrobesPage({ setPage, products }) {
 
       {/* SPEC & PRICING drawer */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', boxShadow:'var(--shadow)' }}>
+        <div style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', overflow:'hidden', boxShadow:'var(--shadow)' }}>
           <button type="button" onClick={()=>setSpecOpen(o=>!o)} style={{ width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding: mobile?'20px 20px':'24px 28px', display:'flex', justifyContent:'space-between', alignItems:'center', gap:12 }}>
             <div>
               <div className="eyebrow" style={{ marginBottom:6 }}>{t('sw2WardSpecEyebrow')}</div>
@@ -232,10 +232,10 @@ function WardrobesPage({ setPage, products }) {
               </div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:10, marginTop:18 }}>
                 {[`From ${fmt(WARDROBE_SPEC.cabinetRate)}/linear metre`, `Lead time · ${WARDROBE_SPEC.leadTime}`, WARDROBE_SPEC.warranty].map(t=>(
-                  <span key={t} style={{ fontSize:12.5, background:'var(--sand)', color:'var(--ink)', fontWeight:600, borderRadius:999, padding:'7px 14px' }}>{t}</span>
+                  <span key={t} style={{ fontSize:12.5, background:'var(--sand)', color:'var(--ink)', fontWeight:600, borderRadius:'var(--radius-pill)', padding:'7px 14px' }}>{t}</span>
                 ))}
               </div>
-              <button type="button" className="btn-clay" onClick={()=>setPage('wardrobe-planner')} style={{ marginTop:18, borderRadius:14 }}>{t('sw2WardBuild3d')}</button>
+              <button type="button" className="btn-clay" onClick={()=>setPage('wardrobe-planner')} style={{ marginTop:18, borderRadius:'var(--radius-lg)' }}>{t('sw2WardBuild3d')}</button>
             </div>
           )}
         </div>
@@ -249,7 +249,7 @@ function WardrobesPage({ setPage, products }) {
             [t('sw2WardF2'),t('sw2WardF2Desc'),'M4 7h16v10H4z M8 12h8'],
             [t('sw2OneTeam'),t('sw2OneTeamDesc'),'M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
           ].map(([ti,d,ic])=>(
-            <div key={ti} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+            <div key={ti} className="lift" style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', padding:'22px 22px' }}>
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5" style={{ marginBottom:12 }}><path d={ic} /></svg>
               <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{ti}</div>
               <p style={{ fontSize:14, color:'var(--ink-soft)', marginTop:6, lineHeight:1.55 }}>{d}</p>
@@ -265,7 +265,7 @@ function WardrobesPage({ setPage, products }) {
           <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>{t('sw2WardPopular')}</h2>
           <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
             {wardrobeProducts.map(p=>(
-              <button key={p.id} type="button" className="lift" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+              <button key={p.id} type="button" className="lift" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
                 <div style={{ height:160, background: p.image_url?`url('${p.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }} />
                 <div style={{ padding:'14px 16px' }}>
                   <div style={{ fontSize:16, fontWeight:600, color:'var(--ink)' }}>{p.name}</div>
@@ -279,16 +279,16 @@ function WardrobesPage({ setPage, products }) {
 
       {/* BEFORE / AFTER */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div style={{ background:'var(--ink)', borderRadius:22, padding: mobile?'28px 22px':'44px 48px', color:'#fff', display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:28, alignItems:'center' }}>
+        <div style={{ background:'var(--ink)', borderRadius:'var(--radius-xl)', padding: mobile?'28px 22px':'44px 48px', color:'#fff', display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:28, alignItems:'center' }}>
           <div>
             <div style={{ fontSize:12, letterSpacing:'.16em', textTransform:'uppercase', opacity:.7, marginBottom:10 }}>{t('sw2Transformations')}</div>
             <h2 className="display" style={{ fontSize: mobile?26:36, margin:'0 0 12px' }}>{t('sw2WardCluttered')}</h2>
             <p style={{ fontSize:15, opacity:.85, lineHeight:1.6, marginBottom:20 }}>{t('sw2WardTransDesc')}</p>
-            <button type="button" className="btn-clay" onClick={()=>setPage('projects')} style={{ borderRadius:14 }}>{t('sw2SeeProjects')}</button>
+            <button type="button" className="btn-clay" onClick={()=>setPage('projects')} style={{ borderRadius:'var(--radius-lg)' }}>{t('sw2SeeProjects')}</button>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-            <div style={{ height: mobile?120:170, borderRadius:14, background:`url('${HOME_IMG.walkin}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:999, padding:'3px 10px' }}>{t('sw2After')}</span></div>
-            <div style={{ height: mobile?120:170, borderRadius:14, background:`url('${HOME_IMG.detail}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:999, padding:'3px 10px' }}>{t('sw2Detail')}</span></div>
+            <div style={{ height: mobile?120:170, borderRadius:'var(--radius-lg)', background:`url('${HOME_IMG.walkin}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:'var(--radius-pill)', padding:'3px 10px' }}>{t('sw2After')}</span></div>
+            <div style={{ height: mobile?120:170, borderRadius:'var(--radius-lg)', background:`url('${HOME_IMG.detail}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:'var(--radius-pill)', padding:'3px 10px' }}>{t('sw2Detail')}</span></div>
           </div>
         </div>
       </section>
@@ -299,7 +299,7 @@ function WardrobesPage({ setPage, products }) {
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px', textAlign:'center' }}>{t('sw2WardFaqTitle')}</h2>
         <div style={{ display:'grid', gap:10 }}>
           {FAQS.map(([q,a],i)=>{ const on=faq===i; return (
-            <div key={i} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:14, overflow:'hidden' }}>
+            <div key={i} style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-lg)', overflow:'hidden' }}>
               <button type="button" onClick={()=>setFaq(on?-1:i)} style={{ width:'100%', textAlign:'left', background:'none', border:'none', padding:'16px 18px', fontSize:15.5, fontWeight:600, color:'var(--ink)', cursor:'pointer', display:'flex', justifyContent:'space-between', gap:12 }}>
                 <span>{q}</span><span style={{ color:'var(--clay)', flexShrink:0 }}>{on?'–':'+'}</span>
               </button>
@@ -311,12 +311,12 @@ function WardrobesPage({ setPage, products }) {
 
       {/* CTA */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div style={{ background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', borderRadius:22, padding: mobile?'32px 24px':'52px 48px', textAlign:'center', color:'#fff' }}>
+        <div style={{ background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', borderRadius:'var(--radius-xl)', padding: mobile?'32px 24px':'52px 48px', textAlign:'center', color:'#fff' }}>
           <h2 className="display" style={{ fontSize: mobile?28:42, margin:'0 0 10px' }}>{t('sw2WardDreamCta')}</h2>
           <p style={{ fontSize: mobile?15:18, opacity:.92, maxWidth:520, margin:'0 auto 22px' }}>{t('sw2WardDreamSub')}</p>
           <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-            <button type="button" onClick={()=>setPage('wardrobe-planner')} style={{ background:'#fff', color:'var(--clay-deep)', border:'none', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:700, cursor:'pointer' }}>{t('sw2OpenDesignStudioArrow')}</button>
-            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>{t('sw2BookFreeVisit')}</button>
+            <button type="button" onClick={()=>setPage('wardrobe-planner')} style={{ background:'var(--c-surface)', color:'var(--clay-deep)', border:'none', borderRadius:'var(--radius-lg)', padding:'15px 30px', fontSize:16, fontWeight:700, cursor:'pointer' }}>{t('sw2OpenDesignStudioArrow')}</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:'var(--radius-lg)', padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>{t('sw2BookFreeVisit')}</button>
           </div>
         </div>
       </section>

@@ -29,7 +29,7 @@ function ProductDetailPage({ productId, products, setPage, addToCart, setConfigP
   const related = aiRelated.length ? aiRelated.slice(0, mobile ? 2 : 3) : localRelated;
   const recLabel = aiRelated.length ? t('w4PdRecommended') : t('w4PdYouMayLike');
   return (
-    <div style={{ minHeight: '100dvh', paddingTop: mobile ? 0 : 96, paddingBottom: mobile ? 100 : 60, background: 'var(--cream)' }}>
+    <div style={{ minHeight: '100dvh', paddingTop:'calc(var(--nav-h) + var(--space-5))', paddingBottom: mobile ? 100 : 60, background: 'var(--cream)' }}>
       {mobile && (
         <div style={{ position: 'relative' }}>
           <Photo src={product.image_url || HOME_IMG.wardrobe} alt={product.name} style={{ aspectRatio: '1/1' }} />
@@ -38,11 +38,11 @@ function ProductDetailPage({ productId, products, setPage, addToCart, setConfigP
           </button>
         </div>
       )}
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: mobile ? '24px 16px' : '40px 40px 80px' }}>
-        {!mobile && <button type="button" onClick={() => setPage('products')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--shop-muted, #86868b)', marginBottom: 32, display: 'flex', alignItems: 'center', gap: 6 }}>{t('w4PdBack')}</button>}
+      <div style={{ maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding: mobile ? '24px var(--gutter)' : '40px var(--gutter) 80px' }}>
+        {!mobile && <button type="button" onClick={() => setPage('products')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--shop-muted)', marginBottom: 32, display: 'flex', alignItems: 'center', gap: 6 }}>{t('w4PdBack')}</button>}
         {!mobile ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.05fr', gap: 64, marginBottom: 90, alignItems: 'center' }}>
-            <Photo src={product.image_url || HOME_IMG.wardrobe} alt={product.name} className="rv-l tile-zoom zoomwrap" imgClass="tz" style={{ borderRadius: 24, aspectRatio: '1/1' }} />
+            <Photo src={product.image_url || HOME_IMG.wardrobe} alt={product.name} className="rv-l tile-zoom zoomwrap" imgClass="tz" style={{ borderRadius: 'var(--radius-xl)', aspectRatio: '1/1' }} />
             <ProductInfo product={product} qty={qty} setQty={setQty} addToCart={addToCart} setConfigProduct={setConfigProduct} setPage={setPage} mobile={false} />
           </div>
         ) : (
@@ -80,10 +80,10 @@ function ProductAR({ product, mobile }) {
         'shadow-softness': '1', 'ar-placement': 'floor', 'ar-scale': 'fixed', loading: 'eager',
         'camera-controls': true, 'auto-rotate': prefersReducedMotionNow() ? undefined : true, 'shadow-intensity': '1',
         poster: product.image_url || undefined, alt: product.name,
-        style: { width: '100%', height: mobile ? 320 : 480, background: 'var(--sand)', borderRadius: 20 },
+        style: { width: '100%', height: mobile ? 320 : 480, background: 'var(--sand)', borderRadius: 'var(--radius-xl)' },
       },
         // Clay-deep fill for white text = AA-safe (per Palette v2 / "orange never behind text").
-        createElement('button', { slot: 'ar-button', key: 'arbtn', style: { position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', background: 'var(--clay-deep)', color: '#fff', border: 'none', borderRadius: 980, padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 6px 20px rgba(137,57,30,.34)' } }, '📱 View in your room')
+        createElement('button', { slot: 'ar-button', key: 'arbtn', style: { position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', background: 'var(--clay-deep)', color: '#fff', border: 'none', borderRadius: 'var(--radius-pill)', padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 6px 20px rgba(137,57,30,.34)' } }, '📱 View in your room')
       )}
       <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 10 }}>{t('sw3ArHint')}</div>
     </div>
@@ -98,7 +98,7 @@ function ProductInfo({ product, qty, setQty, addToCart, setConfigProduct, setPag
       <h1 className="display" style={{ fontSize: mobile ? 30 : 46, color: 'var(--ink)', marginBottom: 12, lineHeight: 1.08 }}>{product.name}</h1>
       <div style={{ fontSize: mobile ? 24 : 30, fontWeight: 700, color: 'var(--clay)', marginBottom: 20 }}>{fmt(product.price)}</div>
       {product.description && <p style={{ fontSize: mobile ? 15 : 16.5, color: 'var(--ink-soft)', lineHeight: 1.75, marginBottom: 26 }}>{product.description}</p>}
-      <div style={{ background: 'var(--sand)', borderRadius: 16, marginBottom: 26, border: '1px solid var(--line)' }}>
+      <div style={{ background: 'var(--sand)', borderRadius: 'var(--radius-lg)', marginBottom: 26, border: '1px solid var(--line)' }}>
         {[[t('w4PdMaterials'), product.materials], [t('w4PdLeadTime'), product.lead_time], [t('w4PdSku'), product.sku]].filter(([,v]) => v).map(([k, v], i, arr) => (
           <div key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, padding: '14px 18px', borderBottom: i < arr.length - 1 ? '1px solid var(--line)' : 'none' }}>
             <span style={{ fontSize: 13, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--muted)' }}>{k}</span>
@@ -113,7 +113,7 @@ function ProductInfo({ product, qty, setQty, addToCart, setConfigProduct, setPag
         </div>
       )}
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', background: '#fff', border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', background: 'var(--c-surface)', border: '1px solid var(--line)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
           <button type="button" onClick={() => setQty(q => Math.max(1, q - 1))} style={{ background: 'none', border: 'none', padding: '13px 18px', fontSize: 20, cursor: 'pointer', color: 'var(--ink)', minWidth: 50 }}>−</button>
           <span style={{ padding: '13px 16px', fontSize: 16, fontWeight: 600, color: 'var(--ink)', borderLeft: '1px solid var(--line)', borderRight: '1px solid var(--line)', minWidth: 48, textAlign: 'center' }}>{qty}</span>
           <button type="button" onClick={() => setQty(q => q + 1)} style={{ background: 'none', border: 'none', padding: '13px 18px', fontSize: 20, cursor: 'pointer', color: 'var(--ink)', minWidth: 50 }}>+</button>

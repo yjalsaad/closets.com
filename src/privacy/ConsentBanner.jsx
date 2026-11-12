@@ -18,19 +18,19 @@ export default function ConsentBanner({ lang: langProp, linkAs: LinkAs }) {
   const decide = (analytics) => { setConsent({ analytics }); setShow(false); };
   const A = ({ to, children }) => (LinkAs ? <LinkAs to={to}>{children}</LinkAs> : <a href={to}>{children}</a>);
   return (
-    <section role="region" aria-label={tr('bannerTitle', lang)} dir={rtl ? 'rtl' : 'ltr'} data-testid="consent-banner" data-noprerender="1"
-      style={{ position: 'fixed', left: 16, right: 16, bottom: 16, zIndex: 9999, maxWidth: 560, margin: '0 auto', background: '#fff', color: '#1d1d1f',
-        border: '1px solid rgba(0,0,0,.14)', borderRadius: 16, boxShadow: '0 12px 40px rgba(0,0,0,.18)', padding: '18px 20px', textAlign: rtl ? 'right' : 'left' }}>
-      <h2 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 6px' }}>{tr('bannerTitle', lang)}</h2>
-      <p style={{ fontSize: 13.5, lineHeight: 1.6, margin: '0 0 14px' }}>
-        {tr('bannerBody', lang)}{' '}
-        <A to="/privacy"><span style={{ textDecoration: 'underline', fontWeight: 600 }}>{tr('privacyLink', lang)}</span></A>
-        {' · '}
-        <A to="/terms"><span style={{ textDecoration: 'underline', fontWeight: 600 }}>{tr('termsLink', lang)}</span></A>
-      </p>
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: rtl ? 'flex-start' : 'flex-end' }}>
-        <button type="button" onClick={() => decide(false)} style={{ background: '#fff', color: '#1d1d1f', border: '1px solid rgba(0,0,0,.3)', borderRadius: 980, padding: '10px 20px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', minHeight: 44 }}>{tr('decline', lang)}</button>
-        <button type="button" onClick={() => decide(true)} style={{ background: '#1d1d1f', color: '#fff', border: '1px solid #1d1d1f', borderRadius: 980, padding: '10px 22px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', minHeight: 44 }}>{tr('accept', lang)}</button>
+    <section role="region" aria-label={tr('bannerTitle', lang)} dir={rtl ? 'rtl' : 'ltr'} data-testid="consent-banner" data-noprerender="1" className="consent">
+      <div className="consent__inner">
+        <p className="consent__text">
+          <strong>{tr('bannerTitle', lang)}</strong>
+          {tr('bannerBody', lang)}{' '}
+          <A to="/privacy">{tr('privacyLink', lang)}</A>
+          {' · '}
+          <A to="/terms">{tr('termsLink', lang)}</A>
+        </p>
+        <div className="consent__actions">
+          <button type="button" className="btn-line" onClick={() => decide(false)}>{tr('decline', lang)}</button>
+          <button type="button" className="btn-ink" onClick={() => decide(true)}>{tr('accept', lang)}</button>
+        </div>
       </div>
     </section>
   );

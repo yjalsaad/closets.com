@@ -28,6 +28,9 @@ import { useIkhLanding, IkhtarhaSpotlight, IkhtarhaGames, IkhtarhaDesigns, Busin
 import lazyPage from './lazyPage';
 import { ensureBrandFonts } from './fonts';
 import { hydration } from './hydration';
+import { Icon } from './design/Icon';
+import { FACTS } from './content/facts';
+import { DESIGN_STRINGS } from './design/strings';
 import { fetchArabicDict } from './i18n/arabic';
 
 // Guarded polyfills for browser APIs absent in non-browser/test (jsdom) environments.
@@ -2077,6 +2080,7 @@ const I18N = {
 };
 // Arabic is loaded on demand (src/i18n/arabic.js): merge the dictionary into the English-keyed tables in place, so every existing
 // lookup (I18N[k][lang] || I18N[k].en, cms()) keeps working unchanged. Resolves immediately once loaded.
+Object.keys(DESIGN_STRINGS).forEach((k) => { I18N[k] = DESIGN_STRINGS[k]; });   // [DESIGN] new chrome strings (EN + authored AR)
 let AR_LOADED = false;
 function ensureArabic() {
   if (AR_LOADED) return Promise.resolve();
@@ -2086,10 +2090,13 @@ function ensureArabic() {
     AR_LOADED = true;
   });
 }
+// [DESIGN] UI chrome uses the line-icon set, never emoji: pictographs are stripped from translated strings at render time.
+const EMOJI_RE = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE0F}]/gu;
+const noEmoji = (v) => { if (typeof v !== 'string' || !EMOJI_RE.test(v)) return v; EMOJI_RE.lastIndex = 0; return v.replace(EMOJI_RE, '').replace(/ {2,}/g, ' ').trim(); };
 function useI18n() {
   const ctx = useContext(AppCtx);
   const lang = ctx?.lang || 'en';
-  const t = (key) => (I18N[key] ? (I18N[key][lang] || I18N[key].en) : key);
+  const t = (key) => (I18N[key] ? noEmoji(I18N[key][lang] || I18N[key].en) : key);
   return { lang, t, dir: lang === 'ar' ? 'rtl' : 'ltr' };
 }
 
@@ -2116,26 +2123,18 @@ function Toasts() {
   const [list, setList] = useState([]);
   const mobile = useMobile();
   _toast = setList;
-  const c = { success: '#1a7a40', error: '#d93025', info: '#1d1d1f' };
+  const c = { success: 'var(--c-ok)', error: 'var(--c-err)', info: 'var(--shop-ink)' };
   return (
     <div role="status" aria-live="polite" style={{ position: 'fixed', bottom: mobile ? 90 : 28, left: mobile ? 16 : 'auto', right: mobile ? 16 : 28, zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 8 }}>
       {list.map(t => (
-        <div key={t.id} role={t.type === 'error' ? 'alert' : undefined} style={{ background: c[t.type], color: '#fff', padding: '13px 18px', borderRadius: 14, fontSize: 14, boxShadow: '0 4px 24px rgba(0,0,0,.18)', animation: 'toastIn .25s ease' }}>{t.msg}</div>
+        <div key={t.id} role={t.type === 'error' ? 'alert' : undefined} style={{ background: c[t.type], color: '#fff', padding: '13px 18px', borderRadius: 'var(--radius-lg)', fontSize: 14, boxShadow: '0 4px 24px rgba(0,0,0,.18)', animation: 'toastIn .25s ease' }}>{t.msg}</div>
       ))}
     </div>
   );
 }
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
-  /* ── Typography [2026-10-31]: the platform UI font — SF Pro on Apple, Segoe UI on Windows, Roboto on Android / ChromeOS.
-     One clear sans for body AND headings (Apple / Google style); Arabic uses SF Arabic on Apple, IBM Plex Sans Arabic elsewhere. ── */
-  :root { --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --font-ar-display: "Alexandria", "IBM Plex Sans Arabic", -apple-system, "SF Arabic", sans-serif; --font-ar: "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "SF Arabic", "Segoe UI", Tahoma, sans-serif; --font-display: var(--font-sans); --serif: var(--font-display); }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  /* ── Arabic typography [2026-11-09 brand kit]: IBM Plex Sans Arabic for text; Alexandria (the Ikhtarha campaign display face) for headings ── */
-  html[lang="ar"] body, [dir="rtl"] { font-family: var(--font-ar); }
-  html[lang="ar"] .display, [dir="rtl"] .display { font-family: var(--font-ar-display); font-weight: 800; letter-spacing: 0; line-height: 1.3 !important; }
-  html[lang="ar"] .eyebrow, [dir="rtl"] .eyebrow { font-family: var(--font-ar); }
   html { -webkit-tap-highlight-color: transparent; }
   /* ── RTL logical fixes (reach what inline styles don't) ── */
   [dir="rtl"] input, [dir="rtl"] textarea, [dir="rtl"] select { text-align: right; }
@@ -2211,7 +2210,7 @@ const CSS = `
   }
   /* Banner strip */
   .banner-strip {
-    background: linear-gradient(90deg, var(--shop-ink, #1d1d1f), #2d2d2f, #1d1d1f);
+    background: linear-gradient(90deg, var(--shop-ink), #2d2d2f, #1d1d1f);
     color: #fff; font-size: 13px; font-weight: 500;
     display: flex; align-items: center; justify-content: center;
     gap: 20px; padding: 10px 20px;
@@ -2223,104 +2222,20 @@ const CSS = `
   }
   @keyframes bannerFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
   .hero-content { position: relative; z-index: 1; }
-  /* ── Premium canvas (IKEA-bright blend A+B+C) ──────────────────────────────
-     B (soft daylight): body sits on a fixed white→warm wash, lit from above.
-     A (section bands): the transparent maxWidth sections read against this
-        canvas; existing var(--sand)/#fff sections become the rhythm bands.
-     C (neutral panels): .card gets a soft resting shadow so it floats as a
-        panel on the bright canvas. Reusable .band-soft / .panel-soft below. */
-  html { background: #EEF3F1; }
-  body { background: transparent; color: var(--shop-ink, #1d1d1f); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
-  /* Fixed sea-mist daylight canvas — cool + airy summer base, lit from above,
-     with a faint teal wash and a warm coral corner so both accents live in the
-     background. White/sand sections ride on top as crisp floating panels. */
-  body::before {
-    content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-    background:
-      radial-gradient(1300px 640px at 50% -14%, rgba(255,255,255,.9), transparent 60%),
-      radial-gradient(900px 640px at 8% 4%, rgba(242,165,102,.12), transparent 55%),
-      radial-gradient(880px 620px at 92% 2%, rgba(198,93,46,.05), transparent 55%),
-      linear-gradient(180deg, #F6FAF9 0%, #F1F5F4 52%, #E7EEEB 100%);
-  }
-  .band-soft { background: #EDF3F1; border-top: 1px solid #DCE7E3; border-bottom: 1px solid #DCE7E3; }
-  .panel-soft { background: #F7FBFA; border: 1px solid #E2ECE9; border-radius: 18px; }
   ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 2px; }
   input, select, textarea, button { font-family: inherit; }
   @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .reveal { opacity: 0; transform: translateY(16px); transition: opacity .5s cubic-bezier(.25,.46,.45,.94), transform .5s cubic-bezier(.25,.46,.45,.94); }
-  .reveal.vis { opacity: 1; transform: translateY(0); }
-  .inp { background: var(--shop-fill, #f5f5f7); border: 1.5px solid transparent; border-radius: 12px; padding: 13px 16px; font-size: 16px; color: var(--shop-ink, #1d1d1f); width: 100%; transition: all .2s; -webkit-appearance: none; }
-  .inp:focus { outline: none; background: #fff; border-color: var(--clay); box-shadow: 0 0 0 4px rgba(168,75,41,.1); }
-  .inp::placeholder { color: var(--shop-muted, #86868b); }
-  .btn { background: var(--clay); color: #fff; border: none; border-radius: 14px; padding: 15px 24px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 50px; -webkit-tap-highlight-color: transparent; }
-  .btn:active { transform: scale(.97); background: var(--clay-deep); }
-  .btn-sm { background: var(--clay); color: #fff; border: none; border-radius: 12px; padding: 11px 18px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; }
-  .btn-sm:active { transform: scale(.97); background: var(--clay-deep); }
-  .btn-secondary { background: var(--shop-fill, #f5f5f7); color: var(--shop-ink, #1d1d1f); border: none; border-radius: 14px; padding: 15px 24px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all .15s; min-height: 50px; }
-  .btn-secondary:active { background: #e8e8ed; transform: scale(.97); }
-  .btn-ghost { background: transparent; border: 1.5px solid var(--shop-line, #e6e6e6); border-radius: 14px; padding: 14px 22px; font-size: 15px; font-weight: 500; cursor: pointer; color: var(--shop-ink, #1d1d1f); transition: all .15s; }
-  .card { background: #fff; border-radius: 20px; border: 1px solid var(--shop-line, #e6e6e6); overflow: hidden; box-shadow: 0 1px 2px rgba(31,25,19,.04), 0 12px 30px -22px rgba(31,25,19,.22); }
   /* ── Editorial-luxury design tokens (Home redesign) ── */
-  :root {
-    /* Palette v3 — Summer "Sea Breeze": cool sea-mist canvas + fresh teal accent
-       + coral-orange CTA (teal/orange complementary). Airy and bright, still
-       luxury. Coral (--clay) AA-safe with #fff; teal for eyebrows/links/accents.
-       See Decisions Log 2026-07-26 "Palette v3 — Summer Sea Breeze". */
-    --ink:#1b2a27; --ink-soft:#3d4f4b; --muted:#6d7c77; --cream:#f1f5f4; --sand:#e2ece9; --line:#d6e0dd; --clay:#C65D2E; --clay-deep:#A94A22;
-    /* Fresh secondary — light orange accent (decorative washes / glows / rules) */
-    --peach:#F2A566; --peach-deep:#E08A44;
-    /* Editorial accents — warm metal bridge (sand/brass) + bronze */
-    --bronze:#8f6338; --brass:#c29a5b;
-    /* Shop layer — the store/checkout surfaces use a cool neutral system
-       (distinct from the warm editorial layer, intentional). Tokenized so the
-       two gray families never mix mid-component. */
-    --shop-ink:#1d1d1f; --shop-ink-2:#6e6e73; --shop-muted:#86868b;
-    --shop-fill:#f5f5f7; --shop-line:#e6e6e6;
-    /* Semantic (site-wide) */
-    --ok:#16a34a; --err:#b91c1c;
-    --focus-ring:0 0 0 3px rgba(198,93,46,.35);
-  }
-  /* A11y: keyboard focus ring (mouse clicks unaffected) + reduced-motion */
-  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible,
-  textarea:focus-visible, [tabindex]:focus-visible { outline:none; box-shadow:var(--focus-ring); }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
   }
-  .display { font-family:var(--font-display); font-weight:700; letter-spacing:-.025em; line-height:1.06; }
-  .eyebrow { font-size:12px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--clay); }
-  .btn-clay { background:var(--clay); color:#fff; border:none; border-radius:14px; padding:15px 26px; font-size:16px; font-weight:600; letter-spacing:.01em; cursor:pointer; transition:transform .15s, background .2s, box-shadow .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:50px; box-shadow:0 14px 30px -16px rgba(137,57,30,.55); }
-  .btn-clay:active { transform:scale(.97); }
-  .btn-ink { background:var(--ink); color:#fff; border:none; border-radius:14px; padding:15px 26px; font-size:16px; font-weight:600; letter-spacing:.01em; cursor:pointer; transition:transform .15s, opacity .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:50px; }
-  .btn-ink:active { transform:scale(.97); }
-  .btn-line { background:transparent; color:var(--ink); border:1px solid var(--ink); border-radius:14px; padding:14px 24px; font-size:15px; font-weight:500; letter-spacing:.01em; cursor:pointer; transition:all .2s; min-height:50px; display:inline-flex; align-items:center; justify-content:center; gap:8px; }
-  .lift { transition: transform .45s cubic-bezier(.22,1,.36,1), box-shadow .45s; }
-  .tile-zoom { overflow:hidden; }
-  .tile-zoom > img, .tile-zoom > .tz { transition: transform .9s cubic-bezier(.22,1,.36,1); }
   @media (min-width:768px){
-    .btn-clay:hover { background:var(--clay-deep); box-shadow:0 18px 32px -14px rgba(143,76,45,.7); transform:translateY(-1px); }
-    .btn-ink:hover { opacity:.88; transform:translateY(-1px); }
-    .btn-line:hover { background:var(--ink); color:#fff; }
-    .lift:hover { transform:translateY(-4px); box-shadow:0 26px 52px -26px rgba(33,28,24,.38); }
-    .tile-zoom:hover > img, .tile-zoom:hover > .tz { transform:scale(1.06); }
   }
-  select.inp { background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%2386868b' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; appearance: none; -webkit-appearance: none; }
   /* ── Cinematic scroll animations (Home) ── */
   @media (prefers-reduced-motion: reduce){ .kenburns{ animation:none !important; } .marquee{ animation:none !important; } }
-  .rv { opacity:0; transform:translateY(34px); transition:opacity .9s cubic-bezier(.22,1,.36,1), transform .9s cubic-bezier(.22,1,.36,1); transition-delay:var(--d,0s); will-change:opacity,transform; }
-  .rv.vis { opacity:1; transform:none; }
-  .rv-l { opacity:0; transform:translateX(-44px); transition:opacity 1s cubic-bezier(.22,1,.36,1), transform 1s cubic-bezier(.22,1,.36,1); transition-delay:var(--d,0s); }
-  .rv-l.vis { opacity:1; transform:none; }
-  .rv-r { opacity:0; transform:translateX(44px); transition:opacity 1s cubic-bezier(.22,1,.36,1), transform 1s cubic-bezier(.22,1,.36,1); transition-delay:var(--d,0s); }
-  .rv-r.vis { opacity:1; transform:none; }
-  .rv-sc { opacity:0; transform:scale(.92); transition:opacity 1.1s cubic-bezier(.22,1,.36,1), transform 1.1s cubic-bezier(.22,1,.36,1); transition-delay:var(--d,0s); }
-  .rv-sc.vis { opacity:1; transform:none; }
-  .rv-words .w { display:inline-block; opacity:0; transform:translateY(42px); transition:opacity .8s cubic-bezier(.22,1,.36,1), transform .8s cubic-bezier(.22,1,.36,1); }
-  .rv-words.vis .w { opacity:1; transform:none; }
-  .kenburns { animation: kenburns 24s ease-in-out infinite alternate; will-change:transform; }
-  @keyframes kenburns { 0%{ transform:scale(1.05) translate(0,0);} 100%{ transform:scale(1.18) translate(-2%,-1.5%);} }
   .scroll-cue { width:26px; height:42px; border:1.5px solid rgba(255,255,255,.65); border-radius:16px; position:relative; }
   .scroll-cue::after { content:''; position:absolute; left:50%; top:7px; width:3px; height:8px; background:#fff; border-radius:2px; transform:translateX(-50%); animation:cue 1.9s ease-in-out infinite; }
   @keyframes cue { 0%,100%{ opacity:0; transform:translate(-50%,0);} 40%{ opacity:1;} 80%{ opacity:0; transform:translate(-50%,13px);} }
@@ -2329,9 +2244,6 @@ const CSS = `
   .marquee-wrap:hover .marquee { animation-play-state:paused; }
   @keyframes marquee { to { transform:translateX(-50%); } }
   .glass { background:rgba(245,241,234,.72); backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); }
-  .hscroll { display:flex; gap:22px; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding:4px 0 14px; scrollbar-width:none; }
-  .hscroll::-webkit-scrollbar{ display:none; }
-  .hscroll > * { scroll-snap-align:center; flex:0 0 auto; }
   #scrollProgress { position:fixed; top:0; left:0; height:3px; background:var(--clay); z-index:1200; width:0; transition:width .08s linear; }
   .par { will-change:transform; }
   @media (max-width: 767px) {
@@ -2349,22 +2261,13 @@ const CSS = `
   body { overflow-x: clip; }
   @media (min-width: 768px) {
     .hide-desktop { display: none !important; }
-    .btn:hover { background: var(--clay-deep); opacity: .9; }
-    .card:hover { box-shadow: 0 22px 46px -24px rgba(31,25,19,.28); transform: translateY(-2px); }
-    .card { transition: box-shadow .35s cubic-bezier(.22,1,.36,1), transform .35s cubic-bezier(.22,1,.36,1); }
   }
 
   /* ── ui-ux-pro-max: site-wide UX baseline ── */
   /* Accessibility: visible keyboard focus on every interactive element (CRITICAL) */
-  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
-  textarea:focus-visible, [role="button"]:focus-visible, [tabindex]:focus-visible {
-    outline: 2px solid var(--clay); outline-offset: 2px; border-radius: 4px;
-  }
-  :focus:not(:focus-visible) { outline: none; }
   /* Touch & interaction: remove 300ms tap delay, kill grey tap flash, comfortable targets */
   a, button, [role="button"], input[type="submit"], label { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   button:not(:disabled), a[href], [role="button"] { cursor: pointer; }
-  button:disabled { opacity: .5; cursor: not-allowed; }
   /* Anchor offset for the fixed header. (No global smooth-scroll — it can make
      wheel/trackpad scrolling feel laggy or "stuck" on some devices.) */
   :target { scroll-margin-top: 96px; }
@@ -2410,7 +2313,7 @@ const CSS = `
   .yas-chip { border-radius:999px; padding:8px 15px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .18s; border-width:1.5px; border-style:solid; }
   .yas-spark { display:inline-block; animation:yasSpin 4s linear infinite; }
   @keyframes yasSpin { from { transform:rotate(0); } to { transform:rotate(360deg); } }
-  .yas-shimmer-box { position:relative; overflow:hidden; background:linear-gradient(100deg,var(--sand, #ebe4d8) 30%,#f5f1ea 50%,#ebe4d8 70%); background-size:200% 100%; animation:yasShimmer 1.4s ease-in-out infinite; border-radius:12px; }
+  .yas-shimmer-box { position:relative; overflow:hidden; background:linear-gradient(100deg,var(--sand) 30%,#f5f1ea 50%,#ebe4d8 70%); background-size:200% 100%; animation:yasShimmer 1.4s ease-in-out infinite; border-radius:12px; }
   @keyframes yasShimmer { from { background-position:200% 0; } to { background-position:-200% 0; } }
   .yas-cap { display:inline-flex; align-items:center; gap:7px; background:var(--sand); border:1px solid var(--line); color:var(--clay-deep); border-radius:999px; padding:9px 15px; font-size:13px; font-weight:600; }
   /* AI YAS sub-brand lockup */
@@ -2430,8 +2333,6 @@ const CSS = `
      Scroll-reveal · staggered grids · hover micro-interactions · float
      Same easing (.22,.61,.36,1) / durations everywhere for consistency.
      ════════════════════════════════════════════════════════════ */
-  .reveal { opacity:0; transform:translateY(18px); transition:opacity .7s cubic-bezier(.22,.61,.36,1), transform .7s cubic-bezier(.22,.61,.36,1); }
-  .reveal.in { opacity:1; transform:none; }
   /* Staggered cascade: children stay hidden until the parent is .in */
   .reveal-stagger.in > * { animation:revealUp .6s cubic-bezier(.22,.61,.36,1) both; }
   @keyframes revealUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
@@ -2445,16 +2346,8 @@ const CSS = `
   .reveal-stagger.in > *:nth-child(8){ animation-delay:.46s; }
   .reveal-stagger.in > *:nth-child(n+9){ animation-delay:.52s; }
   /* Gentle premium lift on cards */
-  .lift { transition:transform .35s cubic-bezier(.22,.61,.36,1), box-shadow .35s; }
-  .lift:hover { transform:translateY(-4px); box-shadow:0 18px 40px rgba(20,16,12,.12); }
   /* Image zoom inside its own clipping wrapper */
-  .zoomwrap { overflow:hidden; }
-  .zoomwrap img { transition:transform .9s cubic-bezier(.22,.61,.36,1); }
-  .zoomwrap:hover img { transform:scale(1.06); }
   /* Tactile button feedback (append to existing styles, do not replace) */
-  .btn-clay, .btn-line { transition:transform .2s, box-shadow .2s, filter .2s; }
-  .btn-clay:hover, .btn-line:hover { transform:translateY(-2px); }
-  .btn-clay:active, .btn-line:active { transform:translateY(0) scale(.98); }
   /* Hero accent float */
   @keyframes floatY { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-10px); } }
   .floaty { animation:floatY 6s ease-in-out infinite; }
@@ -2463,30 +2356,14 @@ const CSS = `
     .reveal, .reveal.in, .reveal-stagger.in > *, .floaty {
       opacity:1 !important; transform:none !important; animation:none !important; transition:none !important;
     }
-    .lift:hover { transform:none; }
   }
   /* ─────────────  Apple-style site-wide polish  ───────────── */
-  html { scroll-behavior:smooth; }
-  body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; text-rendering:optimizeLegibility; }
-  ::selection { background:color-mix(in srgb, var(--clay,#C2410C) 22%, transparent); }
-  h1,h2 { letter-spacing:-.035em; }
-  h3 { letter-spacing:-.025em; }
   /* Deeper, softer, springier lift on every card */
-  .lift { transition:transform .4s cubic-bezier(.22,1,.36,1), box-shadow .4s cubic-bezier(.22,1,.36,1); will-change:transform; }
-  .lift:hover { transform:translateY(-6px); box-shadow:0 30px 62px -26px rgba(20,16,12,.28); }
-  .zoomwrap img { transition:transform 1s cubic-bezier(.22,1,.36,1); }
-  .zoomwrap:hover img { transform:scale(1.05); }
   /* Universal tactile press + smooth state transitions on buttons/links */
-  button, a[class*="btn"], [role="button"] { transition:transform .16s cubic-bezier(.22,1,.36,1), box-shadow .2s, filter .2s, background .2s, color .2s, border-color .2s; }
-  button:active, a[class*="btn"]:active, [role="button"]:active { transform:scale(.97); }
   /* Brand-coloured focus ring for accessibility */
-  a:focus-visible, button:focus-visible, [role="button"]:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-    outline:none; box-shadow:0 0 0 3px color-mix(in srgb, var(--clay,#C2410C) 34%, transparent);
-  }
   @media (prefers-reduced-motion: reduce){
     html{ scroll-behavior:auto; }
     .lift{ transition:none; } .lift:hover{ transform:none; box-shadow:0 18px 40px rgba(20,16,12,.12); }
-    button:active, a[class*="btn"]:active, [role="button"]:active { transform:none; }
   }
 `;
 
@@ -2758,27 +2635,27 @@ function NavTop({ to, children, style, ...rest }) {
   if (to) return <Link to={to} style={{ ...style, textDecoration:'none' }} {...rest}>{children}</Link>;
   return <button type="button" style={style} {...rest}>{children}</button>;
 }
+// [DESIGN 2026-11-12] Calm header: wordmark, 6 primary items, one CTA, language, account, cart. Tokens + classes only (src/design/shell.css).
+// "Design your own" and "AI + Design Lab" live inside the Design studio menu / drawer, not as header pills.
+const stripEmoji = (s) => String(s == null ? '' : s).replace(/^[^\p{L}\p{N}]+/u, '');
 function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang, setLang }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [openMega, setOpenMega] = useState(null);     // desktop hover/click dropdown key
   const [openAcc, setOpenAcc] = useState(null);       // mobile drawer accordion key
-  const mobile = useMobile();
-  const tr = (k) => (I18N[k] ? (I18N[k][lang] || I18N[k].en) : k);
-  useEffect(() => { const h = () => setScrolled(window.scrollY > 20); window.addEventListener('scroll', h); return () => window.removeEventListener('scroll', h); }, []);
-  useEffect(() => { const h = () => setOpenMega(null); window.addEventListener('scroll', h, { passive:true }); return () => window.removeEventListener('scroll', h); }, []);
+  const tr = (k) => (I18N[k] ? noEmoji(I18N[k][lang] || I18N[k].en) : k);
+  const L = (label) => stripEmoji(trLabel(label, lang));
+  useEffect(() => { const h = () => { setScrolled(window.scrollY > 24); setOpenMega(null); }; h(); window.addEventListener('scroll', h, { passive:true }); return () => window.removeEventListener('scroll', h); }, []);
   const closeTimer = useRef(null);
   const openMenu = (k) => { if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; } setOpenMega(k); };
   const scheduleClose = () => { if (closeTimer.current) clearTimeout(closeTimer.current); closeTimer.current = setTimeout(() => setOpenMega(null), 220); };
   useEffect(() => () => { if (closeTimer.current) clearTimeout(closeTimer.current); }, []);
-  // Navigate from any mega/drawer leaf — supports both plain page ids and `cat:` deep links.
   const navTo = (target) => {
-    setOpenMega(null); setMenuOpen(false);
+    setOpenMega(null); setMenuOpen(false); setOpenAcc(null);
     if (target === 'cat:Doors') { setPage('door-planner'); }
     else if (typeof target === 'string' && target.startsWith('cat:')) { setPage('products'); }
     else { setPage(target); }
   };
-
   // [A11Y] keyboard model for the mega menus: Enter/Space = button action, ArrowDown opens + enters the panel, Esc closes and
   // returns focus to the trigger, Left/Right move between triggers (mirrored in RTL), Up/Down move inside the panel.
   const focusTrigger = (k) => { const el = typeof document !== 'undefined' && document.querySelector('[data-mega-trigger="' + k + '"]'); if (el) el.focus(); };
@@ -2800,191 +2677,109 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
     }
   };
   const onPanelBlur = (e) => { const n = e.relatedTarget; if (n && !e.currentTarget.contains(n) && !(n.closest && n.closest('[data-mega-trigger]'))) setOpenMega(null); };
-  const DOCK = [
-    { id:'home', label:tr('home'), icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
-    { id:'products', label:tr('gallery'), icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
-    { id:'planner', label:tr('design'), fab:true, icon:<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg> },
-    { id:'services', label:tr('dockServices'), icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2-.5-.5-2z"/></svg> },
-    { id:'menu', label:tr('menu'), icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg> },
-  ];
-  const go = (id) => { if (id==='menu') setMenuOpen(true); else { setOpenAcc(null); navTo(id); } };
+
+  // Header groups. Design studio carries "Design your own" + the AI items as an extra column (demoted from header pills).
+  const aiCol = { title: tr('navAiLab'), items: [['AI YAS', 'ai-yas'], ['Design Lab', 'design-lab']] };
+  const studio = NAV_GROUPS.find(x => x.key === 'studio');
+  const studioG = studio ? { ...studio, columns: [{ title: studio.columns[0].title, items: [['Design your own', 'planner'], ...studio.columns[0].items.filter(([l]) => !/AI YAS/.test(l))] }, ...studio.columns.slice(1, 3), aiCol, ...studio.columns.slice(3)] } : null;
+  const groups = NAV_PRIMARY_KEYS.map(k => (k === 'studio' ? studioG : NAV_GROUPS.find(x => x.key === k))).filter(Boolean);
+  const labelFor = (l) => (l === 'Design your own' ? tr('navDesignYourOwn') : l === 'AI YAS' ? tr('navAiYas') : l === 'Design Lab' ? tr('navDesignLab') : L(l));
+  const colTitle = (t) => (t === aiCol.title ? t : L(t));
+  const activeMega = openMega === 'more' ? MORE_GROUP : groups.find(x => x.key === openMega);
+  const phone = FACTS.phoneHref;
 
   return (<>
-    {/* Slim top bar — logo + actions */}
-    <nav aria-label={lang==='ar' ? 'التنقل الرئيسي' : 'Main'} onMouseLeave={scheduleClose} style={{ position:'fixed', top:0, left:0, right:0, zIndex:900, height:58, display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, padding: mobile?'0 16px':'0 24px', background: scrolled?'rgba(245,241,234,.92)':'rgba(245,241,234,.72)', backdropFilter:'blur(18px) saturate(180%)', borderBottom: scrolled?'1px solid var(--line)':'1px solid transparent', transition:'all .3s' }}>
-      <Link to="/" className="hit44" onClick={()=>{ setMenuOpen(false); }} aria-label="The Closets — home" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:8 }}>
-        {(cms('header.logo', '') || siteLogo)
-          ? <img src={cms('header.logo', '') || siteLogo} alt="The Closets" style={{ height:32, width:'auto', maxWidth:120, objectFit:'contain', borderRadius:6 }} />
-          : <span style={{ fontFamily:'var(--font-sans)', fontSize:16, fontWeight:600, color:'var(--ink)', letterSpacing:'.02em' }}>{cms('header.brand', 'THE CLOSETS')}</span>}
-      </Link>
+    <header className="site-header" data-scrolled={scrolled ? 'true' : 'false'}>
+      <nav aria-label={lang==='ar' ? 'التنقل الرئيسي' : 'Main'} onMouseLeave={scheduleClose} className="site-header__bar">
+        <Link to="/" className="brand hit44" onClick={()=>{ setMenuOpen(false); }} aria-label="The Closets — home">
+          {(cms('header.logo', '') || siteLogo)
+            ? <img src={cms('header.logo', '') || siteLogo} alt="The Closets" />
+            : <span className="brand__word">{cms('header.brand', lang==='ar' ? 'ذا كلوزتس' : 'The Closets')}</span>}
+        </Link>
 
-      {/* 🧩 Design your own — pinned to the LEFT, right beside the logo.
-          Logged-out visitors land on the sign-in gate (PLANNER_PAGES is gated). */}
-      {!mobile && (
-        <button type="button" onClick={()=>{ setOpenMega(null); setMenuOpen(false); navTo('planner'); }}
-          title={lang==='ar' ? 'صمّم واحسب سعرك بنفسك' : 'Design & price your own'}
-          style={{ flexShrink:0, cursor:'pointer', padding:'7px 14px', fontSize:13.5, fontWeight:700,
-                   color: page==='planner' ? '#fff' : 'var(--clay-deep)',
-                   background: page==='planner' ? 'var(--clay)' : 'var(--sand)',
-                   border:'1px solid ' + (page==='planner' ? 'var(--clay)' : 'rgba(168,75,41,.35)'),
-                   borderRadius:999, display:'inline-flex', alignItems:'center', gap:6, whiteSpace:'nowrap' }}>
-          <span aria-hidden="true">🧩</span>
-          {lang==='ar' ? 'صمّم بنفسك' : 'Design your own'}
-        </button>
-      )}
-
-      {!mobile && (
-        <div onMouseLeave={scheduleClose} style={{ flex:1, minWidth:0, display:'flex', alignItems:'center', justifyContent:'center', gap:2, flexWrap:'nowrap', overflow:'visible' }}>
-          {NAV_PRIMARY_KEYS.map(key => {
-            const g = NAV_GROUPS.find(x=>x.key===key); if (!g) return null;
-            const on = openMega===g.key;
-            const active = (g.feature && page===g.feature);
+        <div className="nav-desk" onMouseLeave={scheduleClose}>
+          {groups.map(g => {
+            const on = openMega === g.key;
             return (
-              <div key={g.key} onMouseEnter={()=>openMenu(g.key)} style={{ position:'static', flexShrink:1, minWidth:0 }}>
-                <NavTop to={g.feature ? navToPath(g.feature) : null}
+              <div key={g.key} onMouseEnter={()=>openMenu(g.key)}>
+                <NavTop to={g.feature ? navToPath(g.feature) : null} className="nav-link"
                   onClick={()=> g.feature ? (setOpenMega(null), setMenuOpen(false)) : setOpenMega(on?null:g.key)}
                   aria-expanded={on} aria-haspopup="true" aria-controls={on ? 'mega-panel' : undefined} data-mega-trigger={g.key} onKeyDown={(e)=>onTriggerKey(e, g.key)}
-                  style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:4, padding:'8px 10px', fontSize:14, fontWeight: (on||active)?600:500, color:(on||active)?'var(--clay-deep)':'var(--ink)', borderRadius:10, whiteSpace:'nowrap' }}>
-                  {trLabel(g.label, lang)}
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: on?'rotate(180deg)':'none', transition:'transform .2s', opacity:.6 }}><polyline points="6 9 12 15 18 9"/></svg>
+                  aria-current={g.feature && page===g.feature ? 'page' : undefined}>
+                  {L(g.label)}<Icon name="chevron-down" />
                 </NavTop>
               </div>
             );
           })}
-          {/* Offers — direct visible link after Design studio */}
-          <Link to="/offers" onMouseEnter={()=>setOpenMega(null)} onClick={()=>{ setOpenMega(null); setMenuOpen(false); }}
-            style={{ textDecoration:'none', padding:'8px 10px', fontSize:14, fontWeight: page==='offers'?600:500, color: page==='offers'?'var(--clay-deep)':'var(--ink)', borderRadius:10, whiteSpace:'nowrap' }}>{trLabel('Offers', lang)}</Link>
-          {/* More ▾ — demoted groups + utility pages */}
-          <div onMouseEnter={()=>openMenu('more')} style={{ position:'static', flexShrink:0 }}>
-            <button type="button" onClick={()=>setOpenMega(openMega==='more'?null:'more')} aria-expanded={openMega==='more'} aria-haspopup="true" aria-controls={openMega==='more' ? 'mega-panel' : undefined} data-mega-trigger="more" onKeyDown={(e)=>onTriggerKey(e, 'more')}
-              style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:4, padding:'8px 10px', fontSize:14, fontWeight: openMega==='more'?600:500, color: openMega==='more'?'var(--clay-deep)':'var(--ink)', borderRadius:10, whiteSpace:'nowrap' }}>
-              {tr('navMore')}
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: openMega==='more'?'rotate(180deg)':'none', transition:'transform .2s', opacity:.6 }}><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-          </div>
-          {/* One accent pill — ✨ AI + Design Lab, opens a small dropdown */}
-          <div onMouseEnter={()=>openMenu('ai')} style={{ position:'static', flexShrink:0 }}>
-            <button type="button" onClick={()=>setOpenMega(openMega==='ai'?null:'ai')} aria-expanded={openMega==='ai'} aria-haspopup="true" aria-controls={openMega==='ai' ? 'mega-panel' : undefined} data-mega-trigger="ai" onKeyDown={(e)=>onTriggerKey(e, 'ai')}
-              style={{ cursor:'pointer', padding:'6px 12px', fontSize:14, fontWeight:700, color:(page==='ai-yas'||page==='design-lab')?'#fff':'var(--clay-deep)', background:(page==='ai-yas'||page==='design-lab')?'var(--clay)':'var(--sand)', border:'1px solid '+((page==='ai-yas'||page==='design-lab')?'var(--clay)':'rgba(168,75,41,.35)'), borderRadius:999, display:'inline-flex', alignItems:'center', gap:6, whiteSpace:'nowrap', flexShrink:0 }}>
-              <span aria-hidden="true">✨ </span>{tr('navAiDesignLab')}
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: openMega==='ai'?'rotate(180deg)':'none', transition:'transform .2s', opacity:.7 }}><polyline points="6 9 12 15 18 9"/></svg>
+          <Link to="/showrooms" className="nav-link" onMouseEnter={()=>setOpenMega(null)} onClick={()=>{ setOpenMega(null); setMenuOpen(false); }} aria-current={page==='showrooms' ? 'page' : undefined}>{L('Showrooms')}</Link>
+          <div onMouseEnter={()=>openMenu('more')}>
+            <button type="button" className="nav-link" onClick={()=>setOpenMega(openMega==='more'?null:'more')} aria-expanded={openMega==='more'} aria-haspopup="true" aria-controls={openMega==='more' ? 'mega-panel' : undefined} data-mega-trigger="more" onKeyDown={(e)=>onTriggerKey(e, 'more')}>
+              {tr('navMore')}<Icon name="chevron-down" />
             </button>
           </div>
         </div>
-      )}
-      <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
-        {!mobile && <Link to="/booking" style={{ textDecoration:'none', display:'inline-block', background:'var(--clay)', border:'none', borderRadius:980, padding:'8px 16px', fontSize:13, fontWeight:600, color:'#fff', cursor:'pointer' }}>{cms('header.cta.book', tr('bookVisit'))}</Link>}
-        <button type="button" onClick={()=>setLang(lang==='ar'?'en':'ar')} onPointerEnter={ensureArabic} aria-label={lang==='ar' ? 'English' : 'العربية'} lang={lang==='ar' ? 'en' : 'ar'} title={lang==='ar' ? 'English' : 'العربية'} className="hit44" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'7px 13px', fontSize:13, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{lang==='ar'?'EN':'ع'}</button>
-        {user ? <Link to="/portal" className="hit44" style={{ textDecoration:'none', display:'inline-block', background:'rgba(168,75,41,.12)', border:'none', borderRadius:980, padding:'7px 14px', fontSize:13, fontWeight:500, color:'var(--clay-deep)', cursor:'pointer' }}>{String(user.name || '').split(' ')[0]}</Link>
-          : <button type="button" className="hit44" onClick={()=>openAuth('login')} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'7px 14px', fontSize:13, fontWeight:500, color:'var(--ink)', cursor:'pointer' }}>{tr('signIn')}</button>}
-        <button type="button" onClick={()=>setCartOpen(true)} aria-label={tr('cart') + (cart.length>0 ? ' (' + cart.length + ')' : '')} className="hit44" style={{ position:'relative', background: cart.length>0?'var(--clay)':'#fff', border:'1px solid var(--line)', borderRadius:980, width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color: cart.length>0?'#fff':'var(--ink)' }}>
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-          {cart.length>0 && <span style={{ position:'absolute', top:-4, right:-4, background:'var(--ink)', color:'#fff', borderRadius:999, fontSize:10, fontWeight:700, minWidth:16, height:16, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px' }}>{cart.length}</span>}
-        </button>
-      </div>
-    </nav>
 
-    {/* Desktop AI + Design Lab pill dropdown — small two-row menu */}
-    {!mobile && openMega==='ai' && (
-      <div id="mega-panel" role="group" aria-label={tr('navAiDesignLab')} onKeyDown={onPanelKey} onBlur={onPanelBlur} onMouseEnter={()=>setOpenMega('ai')} onMouseLeave={()=>setOpenMega(null)} style={{ position:'fixed', top:58, left:0, right:0, zIndex:899, display:'flex', justifyContent:'flex-end', pointerEvents:'none' }}>
-        <div onMouseEnter={()=>openMenu('ai')} onMouseLeave={scheduleClose} style={{ pointerEvents:'auto', margin: lang==='ar' ? '10px auto 0 24px' : '10px 24px 0 auto', width:280, background:'var(--cream)', border:'1px solid var(--line)', borderRadius:14, boxShadow:'0 26px 48px -28px rgba(33,28,24,.4)', padding:8, animation:'fadeUp .2s both' }}>
-          {AI_PILL_ITEMS.map(it => {
-            const on = page===it.target;
-            const lbl = (lang==='ar' && it.labelAr) ? it.labelAr : it.label;
-            return (
-              <Link key={it.target} to={navToPath(it.target)} onClick={()=>{ setOpenMega(null); setMenuOpen(false); }} style={{ textDecoration:'none', display:'block', width:'100%', textAlign: lang==='ar'?'right':'left', background: on?'var(--sand)':'none', border:'none', cursor:'pointer', borderRadius:10, padding:'10px 12px', transition:'background .15s' }}
-                onMouseEnter={e=>e.currentTarget.style.background='var(--sand)'} onMouseLeave={e=>e.currentTarget.style.background=on?'var(--sand)':'transparent'}>
-                <div style={{ fontSize:14.5, fontWeight:700, color:'var(--clay-deep)' }}>{lbl}</div>
-                <div style={{ fontSize:12, color:'var(--muted)', marginTop:2 }}>{tr(it.subKey)}</div>
-              </Link>
-            );
-          })}
+        <div className="nav-actions">
+          <button type="button" onClick={()=>setLang(lang==='ar'?'en':'ar')} onPointerEnter={ensureArabic} aria-label={lang==='ar' ? 'English' : 'العربية'} lang={lang==='ar' ? 'en' : 'ar'} title={lang==='ar' ? 'English' : 'العربية'} className="nav-iconbtn lang-toggle">{lang==='ar' ? 'EN' : 'العربية'}</button>
+          {user
+            ? <Link to="/portal" className="nav-iconbtn" aria-label={tr('accountLabel')}><Icon name="user" /><span className="nav-iconbtn__label">{String(user.name || '').split(' ')[0]}</span></Link>
+            : <button type="button" className="nav-iconbtn" onClick={()=>openAuth('login')} aria-label={tr('signIn')}><Icon name="user" /><span className="nav-iconbtn__label">{tr('signIn')}</span></button>}
+          <button type="button" onClick={()=>setCartOpen(true)} aria-label={tr('cart') + (cart.length>0 ? ' (' + cart.length + ')' : '')} className="nav-iconbtn">
+            <Icon name="cart" />{cart.length>0 && <span className="cart-count" aria-hidden="true">{cart.length}</span>}
+          </button>
+          <Link to="/booking" className="btn-clay nav-cta"><span className="full">{cms('header.cta.book', tr('bookConsult'))}</span><span className="short">{tr('bookConsultShort')}</span></Link>
+          <button type="button" className="nav-iconbtn nav-burger" onClick={()=>setMenuOpen(true)} aria-label={tr('openMenu')} aria-haspopup="dialog"><Icon name="menu" /></button>
+        </div>
+      </nav>
+    </header>
+
+    {/* Desktop mega panel — fixed under the header */}
+    {activeMega && (
+      <div id="mega-panel" className="mega hide-mobile" role="group" aria-label={L(activeMega.label)} onKeyDown={onPanelKey} onBlur={onPanelBlur} onMouseEnter={()=>openMenu(openMega)} onMouseLeave={scheduleClose}>
+        <div className="mega__inner" style={{ gridTemplateColumns: (activeMega.feature ? '1.3fr ' : '') + 'repeat(' + activeMega.columns.length + ', 1fr)' }}>
+          {activeMega.feature && (
+            <Link to={navToPath(activeMega.feature)} onClick={()=>{ setOpenMega(null); setMenuOpen(false); }} className="mega__feature tile-zoom">
+              <Photo src={activeMega.feature==='kitchen'?HOME_IMG.kitchen:HOME_IMG.walkin} alt="" imgClass="tz" style={{ position:'absolute', inset:0 }} />
+              <div className="cap"><strong>{L(activeMega.label)}</strong><span>{L('Explore the range →')}</span></div>
+            </Link>
+          )}
+          {activeMega.columns.map((col, ci) => (
+            <div key={ci} className={'mega__col' + (col.accent ? ' is-accent' : '')}>
+              <h3>{colTitle(col.title)}</h3>
+              {col.items.map(([colLabel, target]) => (
+                <Link key={colLabel + target} to={navToPath(target)} onClick={()=>{ setOpenMega(null); setMenuOpen(false); }}>{labelFor(colLabel)}</Link>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
     )}
 
-    {/* Desktop mega dropdown panel — fixed under the single bar */}
-    {!mobile && openMega && openMega!=='ai' && (() => {
-      const g = openMega==='more' ? MORE_GROUP : NAV_GROUPS.find(x=>x.key===openMega); if (!g) return null;
-      return (
-        <div id="mega-panel" role="group" aria-label={trLabel(g.label, lang)} onKeyDown={onPanelKey} onBlur={onPanelBlur} onMouseEnter={()=>openMenu(openMega)} onMouseLeave={scheduleClose} style={{ position:'fixed', top:58, left:0, right:0, zIndex:899, background:'var(--cream)', borderBottom:'1px solid var(--line)', boxShadow:'0 26px 48px -28px rgba(33,28,24,.4)', animation:'fadeUp .22s both' }}>
-          <div style={{ maxWidth:1280, margin:'0 auto', padding:'30px 24px 34px', display:'grid', gridTemplateColumns: g.feature ? '1.3fr repeat('+g.columns.length+',1fr)' : 'repeat('+g.columns.length+',1fr)', gap:36 }}>
-            {g.feature && (
-              <Link to={navToPath(g.feature)} onClick={()=>{ setOpenMega(null); setMenuOpen(false); }} className="tile-zoom lift" style={{ display:'block', textDecoration:'none', position:'relative', border:'none', padding:0, borderRadius:16, overflow:'hidden', cursor:'pointer', textAlign:'left', minHeight:200, background:'#15110e' }}>
-                <Photo src={g.feature==='kitchen'?HOME_IMG.kitchen:HOME_IMG.walkin} alt={g.label} imgClass="tz" style={{ position:'absolute', inset:0 }} />
-                <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, rgba(20,16,12,0) 40%, rgba(20,16,12,.86) 100%)' }} />
-                <div style={{ position:'absolute', left:0, right:0, bottom:0, padding:18, zIndex:2 }}>
-                  <div className="display" style={{ color:'#fff', fontSize:22 }}>{trLabel(g.label, lang)}</div>
-                  <div style={{ color:'#E7BBA0', fontSize:12.5, fontWeight:600, marginTop:6, letterSpacing:'.04em' }}>{tr('navExploreRange')}</div>
-                </div>
-              </Link>
-            )}
-            {g.columns.map((col,ci) => (
-              <div key={ci}>
-                <div className="eyebrow" style={{ fontSize:11, letterSpacing:'.16em', marginBottom:14, color: col.accent?'var(--clay)':'var(--muted)' }}>{trLabel(col.title, lang)}</div>
-                <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
-                  {col.items.map(([colLabel,target]) => (
-                    <Link key={colLabel} to={navToPath(target)} onClick={()=>{ setOpenMega(null); setMenuOpen(false); }} style={{ display:'block', textDecoration:'none', background:'none', border:'none', cursor:'pointer', textAlign:'left', padding:'7px 0', fontSize:14, fontWeight: col.accent?600:500, color: col.accent?'var(--clay-deep)':'var(--ink-soft)', transition:'color .15s' }}
-                      onMouseEnter={e=>e.currentTarget.style.color='var(--clay)'} onMouseLeave={e=>e.currentTarget.style.color=col.accent?'var(--clay-deep)':'var(--ink-soft)'}>{trLabel(colLabel, lang)}</Link>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    })()}
-
-    {/* Spacer so fixed mega-nav doesn't overlap page content on desktop home/landing */}
-    {!mobile && <div style={{ height: 0 }} aria-hidden="true" />}
-
-    {/* Floating bottom dock — hidden on the planner (all screen sizes) so it can't cover the planner's own Back/Close/CTA navigation */}
-    {!['planner','kitchen-planner','tv-planner','door-planner','wardrobe-planner','office-planner','cat:Doors'].includes(page) && (
-    <div role="navigation" aria-label={lang==='ar' ? 'التنقل السريع' : 'Quick navigation'} style={{ position:'fixed', bottom: mobile?'calc(14px + env(safe-area-inset-bottom))':18, left:'50%', transform:'translateX(-50%)', zIndex:900, display:'flex', alignItems:'flex-end', gap: mobile?16:24, maxWidth:'calc(100vw - 24px)', background:'rgba(255,255,255,.92)', backdropFilter:'blur(18px) saturate(180%)', border:'1px solid rgba(0,0,0,.06)', borderRadius:999, padding: mobile?'7px 18px':'8px 24px', boxShadow:'0 10px 34px rgba(33,28,24,.16)' }}>
-      {DOCK.map(d => {
-        const active = page===d.id;
-        const fabInner = (<>
-          <span style={{ width:46, height:46, borderRadius:'50%', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center', marginTop:-24, border:'3px solid #fff', boxShadow:'0 6px 16px rgba(168,75,41,.45)' }}>{d.icon}</span>
-          <span style={{ fontSize:10.5, fontWeight:600, color:'var(--clay-deep)' }}>{d.label}</span>
-        </>);
-        const tabInner = (<>{d.icon}<span style={{ fontSize:10.5, fontWeight: active?600:400 }}>{d.label}</span></>);
-        const baseStyle = { background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3, textDecoration:'none', ...(d.fab?{}:{ color: active?'var(--clay)':'#86868b' }) };
-        // The Menu fab opens the drawer (not a page) — keep it a button.
-        if (d.id === 'menu') return <button type="button" key={d.id} className="hit44" onClick={()=>go(d.id)} aria-label={d.label} style={baseStyle}>{d.fab?fabInner:tabInner}</button>;
-        return <Link key={d.id} to={pageToPath(d.id)} className="hit44" onClick={()=>setOpenAcc(null)} aria-label={d.label} style={baseStyle}>{d.fab?fabInner:tabInner}</Link>;
-      })}
-    </div>
-    )}
-
-    {/* Mobile drawer menu — full grouped accordion mirroring the desktop mega-nav */}
+    {/* Mobile / tablet drawer — grouped accordions mirroring the desktop menu */}
     {menuOpen && (
-      <div onClick={()=>setMenuOpen(false)} style={{ position:'fixed', inset:0, zIndex:1000, background:'rgba(20,16,12,.55)', backdropFilter:'blur(3px)', display:'flex', alignItems:'flex-end', justifyContent:'center' }}>
-        <ModalPanel label={tr('menu')} onClose={()=>setMenuOpen(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', borderRadius:'22px 22px 0 0', width:'100%', maxWidth:560, padding:'18px 18px calc(22px + env(safe-area-inset-bottom))', maxHeight:'86vh', overflow:'auto' }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
-            <span className="display" style={{ fontSize:22, color:'var(--ink)' }}>{tr('menu')}</span>
-            <button type="button" aria-label={lang==='ar' ? 'إغلاق' : 'Close'} className="hit44" onClick={()=>setMenuOpen(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--muted)', fontSize:24 }}>✕</button>
+      <div className="drawer-back" onClick={()=>setMenuOpen(false)}>
+        <ModalPanel label={tr('menu')} onClose={()=>setMenuOpen(false)} onClick={e=>e.stopPropagation()} className="drawer">
+          <div className="drawer__head">
+            <span className="brand__word">{lang==='ar' ? 'ذا كلوزتس' : 'The Closets'}</span>
+            <button type="button" className="nav-iconbtn" onClick={()=>setMenuOpen(false)} aria-label={tr('closeMenu')}><Icon name="close" /></button>
           </div>
-          {/* Quick links */}
-          <Link to="/" onClick={()=>{ setMenuOpen(false); setOpenAcc(null); }} style={{ textDecoration:'none', display:'block', width:'100%', textAlign:'left', background: page==='home'?'var(--sand)':'#fff', border:'1px solid var(--line)', borderRadius:12, padding:'13px 15px', fontSize:15, fontWeight:600, color: page==='home'?'var(--clay-deep)':'var(--ink)', cursor:'pointer', marginBottom:8 }}>{tr('home')}</Link>
-          {/* Grouped accordions */}
-          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-            {NAV_PRIMARY_KEYS.map(key => {
-              const g = NAV_GROUPS.find(x=>x.key===key); if (!g) return null;
-              const open = openAcc===g.key;
+          <div className="drawer__body">
+            {[...groups, { ...MORE_GROUP, label: 'More' }].map(g => {
+              const open = openAcc === g.key;
+              const isMore = g.key === 'more';
               return (
-                <div key={g.key} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:12, overflow:'hidden' }}>
-                  <button type="button" onClick={()=>setOpenAcc(open?null:g.key)} aria-expanded={open} style={{ width:'100%', display:'flex', justifyContent:'space-between', alignItems:'center', background:'none', border:'none', cursor:'pointer', padding:'14px 15px', fontSize:15.5, fontWeight:600, color:'var(--ink)' }}>
-                    {trLabel(g.label, lang)}
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open?'rotate(180deg)':'none', transition:'transform .2s' }}><polyline points="6 9 12 15 18 9"/></svg>
+                <div key={g.key}>
+                  <button type="button" className="drawer__row" onClick={()=>setOpenAcc(open?null:g.key)} aria-expanded={open}>
+                    {isMore ? tr('navMore') : L(g.label)}<Icon name="chevron-down" />
                   </button>
                   {open && (
-                    <div style={{ padding:'0 15px 14px' }}>
-                      {g.feature && <Link to={navToPath(g.feature)} onClick={()=>{ setMenuOpen(false); setOpenAcc(null); }} style={{ textDecoration:'none', display:'block', width:'100%', textAlign:'left', background:'var(--sand)', border:'none', borderRadius:10, padding:'10px 12px', fontSize:14, fontWeight:600, color:'var(--clay-deep)', cursor:'pointer', marginBottom:8 }}>{tr('navlViewAll')} {trLabel(g.label, lang).toLowerCase()} {lang==='ar'?'←':'→'}</Link>}
-                      {g.columns.map((col,ci)=>(
-                        <div key={ci} style={{ marginBottom: ci<g.columns.length-1?10:0 }}>
-                          <div className="eyebrow" style={{ fontSize:10.5, letterSpacing:'.14em', margin:'4px 0 6px', color:'var(--muted)' }}>{trLabel(col.title, lang)}</div>
-                          {col.items.map(([label,target])=>(
-                            <Link key={label} to={navToPath(target)} onClick={()=>{ setMenuOpen(false); setOpenAcc(null); }} style={{ textDecoration:'none', display:'block', width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'7px 0', fontSize:14, color: col.accent?'var(--clay-deep)':'var(--ink-soft)', fontWeight: col.accent?600:400 }}>{trLabel(label, lang)}</Link>
+                    <div className="drawer__sub">
+                      {g.feature && <Link to={navToPath(g.feature)} onClick={()=>{ setMenuOpen(false); setOpenAcc(null); }} style={{ fontWeight: 600, color: 'var(--c-accent)' }}>{L(g.label)} — {L('Explore the range →')}</Link>}
+                      {g.columns.map((col, ci) => (
+                        <div key={ci}>
+                          <h3>{colTitle(col.title)}</h3>
+                          {col.items.map(([label, target]) => (
+                            <Link key={label + target} to={navToPath(target)} onClick={()=>{ setMenuOpen(false); setOpenAcc(null); }}>{labelFor(label)}</Link>
                           ))}
                         </div>
                       ))}
@@ -2993,61 +2788,26 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
                 </div>
               );
             })}
-            {/* Offers — direct link */}
-            <Link to="/offers" onClick={()=>{ setMenuOpen(false); setOpenAcc(null); }} style={{ textDecoration:'none', display:'block', width:'100%', textAlign:'left', background: page==='offers'?'var(--sand)':'#fff', border:'1px solid var(--line)', borderRadius:12, padding:'13px 15px', fontSize:15, fontWeight:600, color: page==='offers'?'var(--clay-deep)':'var(--ink)', cursor:'pointer' }}>{trLabel('Offers', lang)}</Link>
-            {/* More — demoted groups + utility pages, as an accordion */}
-            {(() => {
-              const open = openAcc==='more';
-              return (
-                <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:12, overflow:'hidden' }}>
-                  <button type="button" onClick={()=>setOpenAcc(open?null:'more')} aria-expanded={open} style={{ width:'100%', display:'flex', justifyContent:'space-between', alignItems:'center', background:'none', border:'none', cursor:'pointer', padding:'14px 15px', fontSize:15.5, fontWeight:600, color:'var(--ink)' }}>
-                    {tr('navMore')}
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open?'rotate(180deg)':'none', transition:'transform .2s' }}><polyline points="6 9 12 15 18 9"/></svg>
-                  </button>
-                  {open && (
-                    <div style={{ padding:'0 15px 14px' }}>
-                      {MORE_GROUP.columns.map((col,ci)=>(
-                        <div key={ci} style={{ marginBottom: ci<MORE_GROUP.columns.length-1?10:0 }}>
-                          <div className="eyebrow" style={{ fontSize:10.5, letterSpacing:'.14em', margin:'4px 0 6px', color:'var(--muted)' }}>{trLabel(col.title, lang)}</div>
-                          {col.items.map(([label,target])=>(
-                            <Link key={label+target} to={navToPath(target)} onClick={()=>{ setMenuOpen(false); setOpenAcc(null); }} style={{ textDecoration:'none', display:'block', width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'7px 0', fontSize:14, color: col.accent?'var(--clay-deep)':'var(--ink-soft)', fontWeight: col.accent?600:400 }}>{trLabel(label, lang)}</Link>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-            {/* ✨ AI + Design Lab — accent section */}
-            {(() => {
-              const open = openAcc==='ai';
-              const activeAi = page==='ai-yas' || page==='design-lab';
-              return (
-                <div style={{ background: activeAi?'var(--clay)':'var(--sand)', border:'1px solid '+(activeAi?'var(--clay)':'rgba(168,75,41,.35)'), borderRadius:12, overflow:'hidden' }}>
-                  <button type="button" onClick={()=>setOpenAcc(open?null:'ai')} aria-expanded={open} style={{ width:'100%', display:'flex', justifyContent:'space-between', alignItems:'center', background:'none', border:'none', cursor:'pointer', padding:'14px 15px', fontSize:15, fontWeight:700, color: activeAi?'#fff':'var(--clay-deep)' }}>
-                    <span aria-hidden="true">✨ </span>{tr('navAiDesignLab')}
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open?'rotate(180deg)':'none', transition:'transform .2s', opacity:.85 }}><polyline points="6 9 12 15 18 9"/></svg>
-                  </button>
-                  {open && (
-                    <div style={{ padding:'0 12px 12px', background:'var(--cream)' }}>
-                      {AI_PILL_ITEMS.map(it => {
-                        const lbl = (lang==='ar' && it.labelAr) ? it.labelAr : it.label;
-                        return (
-                          <Link key={it.target} to={navToPath(it.target)} onClick={()=>{ setMenuOpen(false); setOpenAcc(null); }} style={{ textDecoration:'none', display:'block', width:'100%', textAlign:'left', background: page===it.target?'var(--sand)':'none', border:'none', cursor:'pointer', borderRadius:10, padding:'10px 10px', marginTop:8 }}>
-                            <div style={{ fontSize:14.5, fontWeight:700, color:'var(--clay-deep)' }}>{lbl}</div>
-                            <div style={{ fontSize:12, color:'var(--muted)', marginTop:2 }}>{tr(it.subKey)}</div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
+            <Link to="/showrooms" className="drawer__row" onClick={()=>{ setMenuOpen(false); setOpenAcc(null); }}>{L('Showrooms')}</Link>
+            <Link to="/offers" className="drawer__row" onClick={()=>{ setMenuOpen(false); setOpenAcc(null); }}>{L('Offers')}</Link>
           </div>
-          <button type="button" onClick={()=>{ setPage('booking'); setMenuOpen(false); }} className="btn-clay" style={{ width:'100%', borderRadius:12, marginTop:14 }}>{tr('bookFreeVisit')}</button>
+          <div className="drawer__foot">
+            <Link to="/booking" className="btn-clay" onClick={()=>setMenuOpen(false)}>{tr('bookConsult')}</Link>
+            <div className="drawer__contact">
+              <a href={phone}><Icon name="phone" size={18} /><bdi dir="ltr">{FACTS.phone}</bdi></a>
+              <a href={FACTS.whatsappHref}><Icon name="chat" size={18} />{tr('whatsappShort')}</a>
+            </div>
+          </div>
         </ModalPanel>
+      </div>
+    )}
+
+    {/* Phones: one calm action bar (Book / WhatsApp / Call). Hidden inside the planners, which have their own navigation. */}
+    {!['planner','kitchen-planner','tv-planner','door-planner','wardrobe-planner','office-planner','cat:Doors','checkout','portal'].includes(page) && (
+      <div className="mbar" role="navigation" aria-label={lang==='ar' ? 'إجراءات سريعة' : 'Quick actions'}>
+        <Link to="/booking" className="btn-clay"><Icon name="calendar" size={18} />{tr('bookShort')}</Link>
+        <a href={FACTS.whatsappHref} className="btn-line" aria-label={tr('whatsappShort')}><Icon name="chat" size={20} /></a>
+        <a href={phone} className="btn-line" aria-label={tr('callUs')}><Icon name="phone" size={20} /></a>
       </div>
     )}
   </>);
@@ -3084,13 +2844,14 @@ const HERO_IMG = {
 // Image with graceful warm-gradient fallback (so a missing/blocked photo never looks broken).
 // `priority` = the LCP image: eager + fetchpriority=high (everything else stays lazy). The <img> fills an absolutely-sized
 // wrapper, so it cannot shift layout; decoding=async keeps big photos off the main thread.
-function Photo({ src, alt = '', style, className = '', imgClass = '', par, priority = false, onLoad, noPrerender = false }) {
+function Photo({ src, alt = '', style, className = '', imgClass = '', par, priority = false, onLoad, noPrerender = false, pos, w, h, sizes }) {
   const [err, setErr] = useState(false);
   const cls = (className + (par ? ' par' : '')).trim();
   const dpr = { ...(par ? { 'data-par': par } : {}), ...(noPrerender ? { 'data-noprerender': '1' } : {}) };   // data-noprerender: client-only node, stripped from the prerendered HTML
-  if (err) return <div className={cls} {...dpr} {...(alt ? { role: 'img', 'aria-label': alt } : { 'aria-hidden': 'true' })} style={{ ...style, background: 'linear-gradient(135deg,var(--sand),#d8ccbb)' }} />;
+  // [DESIGN] a missing / blocked photo falls back to a tonal placeholder (never a broken image or a flat grey block)
+  if (err) return <div className={(cls + ' ph').trim()} {...dpr} {...(alt ? { role: 'img', 'aria-label': alt } : { 'aria-hidden': 'true' })} style={style} />;
   return <div className={cls} {...dpr} style={{ ...style, overflow: 'hidden' }}>
-    <img src={src} alt={alt} loading={priority ? 'eager' : 'lazy'} {...(priority ? { fetchPriority: 'high' } : {})} decoding="async" onLoad={onLoad} onError={() => setErr(true)} className={imgClass} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+    <img src={src} alt={alt} loading={priority ? 'eager' : 'lazy'} {...(priority ? { fetchPriority: 'high' } : {})} {...(w ? { width: w } : {})} {...(h ? { height: h } : {})} {...(sizes ? { sizes } : {})} decoding="async" onLoad={onLoad} onError={() => setErr(true)} className={imgClass} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: pos || '50% 50%', display: 'block' }} />
   </div>;
 }
 // Animated count-up statistic.
@@ -3133,104 +2894,35 @@ function useHomeFx() {
   }, []);
 }
 // Rotating editorial testimonial.
-function TestiCarousel({ items }) {
-  const [i, setI] = useState(0);
-  useAutoAdvance(() => setI(x => (x + 1) % items.length), 5500, items.length >= 2);   // [A11Y] no auto-advance under prefers-reduced-motion
-  if (!items.length) return null;
-  const cur = items[i];
-  return <div style={{ maxWidth: 860, margin: '0 auto', textAlign: 'center' }}>
-    <div key={i} style={{ animation: 'fadeUp .7s both' }}>
-      <div style={{ display: 'flex', gap: 4, justifyContent: 'center', marginBottom: 22 }}>{Array.from({ length: cur.rating || 5 }).map((_, j) => <span key={j} style={{ color: 'var(--clay)', fontSize: 16 }}>★</span>)}</div>
-      <p className="display" style={{ fontWeight: 400, fontSize: 'clamp(22px,3vw,34px)', color: 'var(--ink)', lineHeight: 1.4 }}>“{cur.text}”</p>
-      <div style={{ marginTop: 26, fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}>{cur.name}</div>
-      <div style={{ fontSize: 13, color: 'var(--muted)' }}>{cur.role}</div>
-    </div>
-    {items.length > 1 && <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 30 }}>{items.map((_, j) => <button key={j} type="button" onClick={() => setI(j)} aria-label={'Go to slide ' + (j + 1)} style={{ width: j === i ? 22 : 8, height: 8, borderRadius: 8, border: 'none', background: j === i ? 'var(--clay)' : 'var(--line)', cursor: 'pointer', transition: 'all .3s', padding: 0 }} />)}</div>}
-  </div>;
-}
-
 function Hero({ setPage, banners }) {
-  const { t } = useI18n();
-  const mobile = useMobile();
+  const { t, lang } = useI18n();
   const [bannerIdx, setBannerIdx] = useState(0);
-  const [slideIdx, setSlideIdx] = useState(0);
-  const heroRef = useRef(null);
-  useAutoAdvance(() => setBannerIdx(i => (i + 1) % banners.length), 5000, !!banners && banners.length >= 2);   // [A11Y] reduced-motion aware
-  // Cross-fading multi-image hero — the site's own curated rooms.
-  const HERO_SLIDES = [cms('home.hero.image', HOME_IMG.hero), HOME_IMG.walkin, HOME_IMG.kitchen, HOME_IMG.living].filter(Boolean);
-  // Only the first slide (the LCP image) loads with the page. The other slides are mounted once the page has loaded and the browser
-  // is idle, and the carousel only advances to a slide that has finished loading, so the slides never pop in blank.
-  const [warm, setWarm] = useState(false);
-  const [slideLoaded, setSlideLoaded] = useState({});
-  useEffect(() => {
-    const go = () => { const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 300)); idle(() => setWarm(true)); };
-    if (document.readyState === 'complete') { go(); return undefined; }
-    window.addEventListener('load', go, { once: true });
-    return () => window.removeEventListener('load', go);
-  }, []);
-  const slideLoadedRef = useRef(slideLoaded); slideLoadedRef.current = slideLoaded;
-  useAutoAdvance(() => setSlideIdx(i => { const n = (i + 1) % HERO_SLIDES.length; return slideLoadedRef.current[n] ? n : i; }), 6000, HERO_SLIDES.length >= 2);
+  useAutoAdvance(() => setBannerIdx(i => (i + 1) % banners.length), 7000, !!banners && banners.length >= 2);   // [A11Y] reduced-motion aware
   const banner = banners?.[bannerIdx];
-  const onHeroMove = (e) => { const el = heroRef.current; if (!el || mobile) return; const r = el.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5; el.querySelectorAll('.hero-img').forEach(img => { img.style.transform = `scale(1.14) translate(${x * -16}px, ${y * -16}px)`; }); };
-  const HWORDS = cms('home.hero.title', 'Made to fit your life.').split(/\s+/);
-
   return (
     <>
-      {/* ── Banner strip ── */}
-      {banners.length > 0 && (
-        <div className="banner-strip" style={{ paddingTop: mobile ? 0 : 0, marginTop: mobile ? 0 : 56 }}>
-          <div className="banner-strip-inner" key={bannerIdx}>
-            {banner?.badge && (
-              <span style={{ background: 'var(--clay)', color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, letterSpacing: '.06em', textTransform: 'uppercase' }}>{banner.badge}</span>
-            )}
-            <span>{banner?.title}{banner?.subtitle ? ' — ' + banner.subtitle : ''}</span>
-            {banner?.cta_text && (
-              <button type="button" onClick={() => setPage('products')}
-                style={{ background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.25)', color: '#fff', borderRadius: 20, padding: '3px 12px', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>
-                {banner.cta_text} →
-              </button>
-            )}
-          </div>
-          {banners.length > 1 && (
-            <div style={{ display: 'flex', gap: 5, marginLeft: 12 }}>
-              {banners.map((_, i) => (
-                <button key={i} type="button" onClick={() => setBannerIdx(i)} aria-label={t('swShowAnnouncement') + ' ' + (i + 1)}
-                  style={{ width: i === bannerIdx ? 16 : 5, height: 5, borderRadius: 10, background: i === bannerIdx ? 'var(--clay)' : 'rgba(255,255,255,.3)', border: 'none', cursor: 'pointer', transition: 'all .3s', padding: 0 }} />
-              ))}
-            </div>
-          )}
+      {/* One quiet announcement slot (CMS banners), never a poster */}
+      {banners.length > 0 && banner && (
+        <div className="quiet-banner" role="region" aria-label={t('homeBanner')}>
+          <span>{banner.title}{banner.subtitle ? ' — ' + banner.subtitle : ''}</span>
+          {banner.cta_text && <Link to="/gallery" className="btn-text">{banner.cta_text}</Link>}
         </div>
       )}
-
-      {/* ── Cinematic hero ── */}
-      <section ref={heroRef} onMouseMove={onHeroMove} style={{ position: 'relative', minHeight: '100svh', display: 'flex', alignItems: 'flex-end', overflow: 'hidden', background: '#15110e' }}>
-        {HERO_SLIDES.map((src, i) => (i === 0 || warm) && (
-          <Photo key={i} src={src} alt={t('swHeroAlt')} priority={i === 0} noPrerender={i > 0} onLoad={() => setSlideLoaded(m => (m[i] ? m : { ...m, [i]: true }))} imgClass="hero-img kenburns" style={{ position: 'absolute', inset: 0, zIndex: 0, opacity: i === slideIdx ? 1 : 0, transition: 'opacity 1.4s ease' }} />
-        ))}
-        <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(180deg, rgba(20,16,12,.34) 0%, rgba(20,16,12,.12) 38%, rgba(20,16,12,.82) 100%)' }} />
-        <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', mixBlendMode: 'overlay', opacity: .07, backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
-        <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: 1280, margin: '0 auto', padding: mobile ? '120px 24px 72px' : '0 48px 88px' }}>
-          <div className="rv eyebrow" style={{ color: '#E7BBA0', marginBottom: 18 }}>{cms('home.hero.eyebrow', 'Bespoke furniture · Kingdom of Bahrain')}</div>
-          <h1 className="display rv-words" style={{ color: '#fff', fontSize: mobile ? 'clamp(42px,12.5vw,60px)' : 'clamp(64px,7.2vw,112px)', maxWidth: 1040, marginBottom: 24 }}>
-            {HWORDS.map((w, i) => <span key={i} className="w" style={{ transitionDelay: (.12 + i * .11) + 's', marginRight: '.26em' }}>{w}</span>)}
-          </h1>
-          <p className="rv" style={{ '--d': '.5s', color: 'rgba(255,255,255,.84)', fontSize: mobile ? 17 : 21, fontWeight: 300, lineHeight: 1.6, maxWidth: 540, marginBottom: 34 }}>
-            {cms('home.hero.subtitle', 'Walk-in closets, kitchens and storage — handcrafted in our own Bahrain workshop and designed around the way you live.')}
-          </p>
-          <div className="rv" style={{ '--d': '.66s', display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
-            <button type="button" className="btn-clay" onClick={() => setPage('planner')} style={{ fontSize: 16, padding: '16px 30px' }}>{cms('home.hero.cta', 'Design yours →')}</button>
-            <button type="button" onClick={() => setPage('products')} style={{ background: 'rgba(255,255,255,.1)', color: '#fff', border: '1px solid rgba(255,255,255,.45)', borderRadius: 14, padding: '15px 28px', fontSize: 16, fontWeight: 500, cursor: 'pointer', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', minHeight: 50 }}>{cms('home.hero.cta2', 'View collection')}</button>
+      {/* Editorial hero: one image, one headline, one primary action */}
+      <section className="hero-ed" style={banners.length > 0 ? { marginTop: 0 } : undefined}>
+        <div className="hero-ed__media">
+          <Photo src={cms('home.hero.image', HOME_IMG.hero)} alt={t('swHeroAlt')} priority pos="50% 45%" w={1600} h={1000} imgClass="hero-img" style={{ position: 'absolute', inset: 0 }} />
+        </div>
+        <div className="hero-ed__scrim" aria-hidden="true" />
+        <div className="container hero-ed__content">
+          <span className="eyebrow">{cms('home.hero.eyebrow', lang === 'ar' ? 'أثاث مصنوع حسب الطلب · مملكة البحرين' : 'Bespoke furniture · Kingdom of Bahrain')}</span>
+          <h1>{cms('home.hero.title', lang === 'ar' ? 'مصمَّم ليناسب حياتك.' : 'Made to fit your life.')}</h1>
+          <p className="lede">{cms('home.hero.subtitle', t('homeHeroSub'))}</p>
+          <div className="hero-ed__cta">
+            <Link to="/booking" className="btn-clay">{cms('home.hero.cta', t('bookConsult'))}</Link>
+            <a href="#collections" className="btn-text">{t('homeExploreColl')}</a>
           </div>
         </div>
-        {!mobile && HERO_SLIDES.length > 1 && (
-          <div style={{ position: 'absolute', bottom: 34, right: 48, zIndex: 2, display: 'flex', gap: 10 }}>
-            {HERO_SLIDES.map((src, i) => (
-              <button key={i} type="button" onClick={() => { setWarm(true); setSlideIdx(i); }} aria-label={'Show hero image ' + (i + 1)}
-                style={{ width: i === slideIdx ? 60 : 46, height: 46, borderRadius: 12, border: i === slideIdx ? '2px solid #fff' : '2px solid rgba(255,255,255,.4)', background: (i === 0 || warm) ? `url('${src}') center/cover, #2a221c` : '#2a221c', cursor: 'pointer', padding: 0, transition: 'width .4s cubic-bezier(.22,1,.36,1), border-color .3s', boxShadow: '0 10px 24px -10px rgba(0,0,0,.6)' }} />
-            ))}
-          </div>
-        )}
-        {!mobile && <div className="scroll-cue" style={{ position: 'absolute', bottom: 30, left: '50%', transform: 'translateX(-50%)', zIndex: 2 }} />}
       </section>
     </>
   );
@@ -3248,42 +2940,42 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
   return (
     <>
       <div aria-hidden="true" onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 1000, opacity: open ? 1 : 0, pointerEvents: open ? 'all' : 'none', transition: 'opacity .3s', backdropFilter: 'blur(4px)' }} />
-      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="cart-title" tabIndex={-1} inert={!open} aria-hidden={!open} style={mobile ? { outline: 'none', position: 'fixed', left: 0, right: 0, bottom: 0, background: '#fff', zIndex: 1001, transform: open ? 'translateY(0)' : 'translateY(100%)', transition: 'transform .4s cubic-bezier(.25,.46,.45,.94)', display: 'flex', flexDirection: 'column', maxHeight: '90svh', borderRadius: '24px 24px 0 0', paddingBottom: 'env(safe-area-inset-bottom)' }
-        : { outline: 'none', position: 'fixed', right: 0, top: 0, bottom: 0, width: 400, background: '#fff', zIndex: 1001, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform .35s cubic-bezier(.25,.46,.45,.94)', display: 'flex', flexDirection: 'column' }}>
-        {mobile && <div style={{ width: 36, height: 4, background: 'var(--shop-line, #e6e6e6)', borderRadius: 2, margin: '12px auto 0' }} />}
-        <div style={{ padding: mobile ? '16px 20px' : '22px 26px', borderBottom: '1px solid var(--shop-fill, #f5f5f7)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div id="cart-title" role="heading" aria-level={2} style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.02em' }}>{t('cart')} {cart.length > 0 && <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--shop-muted, #86868b)' }}>({cart.length})</span>}</div>
-          <button type="button" aria-label={t('closeCart')} className="hit44" onClick={() => setOpen(false)} style={{ background: 'var(--shop-fill, #f5f5f7)', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: 'var(--shop-muted, #86868b)', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="cart-title" tabIndex={-1} inert={!open} aria-hidden={!open} style={mobile ? { outline: 'none', position: 'fixed', left: 0, right: 0, bottom: 0, background: 'var(--c-surface)', zIndex: 1001, transform: open ? 'translateY(0)' : 'translateY(100%)', transition: 'transform .4s cubic-bezier(.25,.46,.45,.94)', display: 'flex', flexDirection: 'column', maxHeight: '90svh', borderRadius: '24px 24px 0 0', paddingBottom: 'env(safe-area-inset-bottom)' }
+        : { outline: 'none', position: 'fixed', right: 0, top: 0, bottom: 0, width: 400, background: 'var(--c-surface)', zIndex: 1001, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform .35s cubic-bezier(.25,.46,.45,.94)', display: 'flex', flexDirection: 'column' }}>
+        {mobile && <div style={{ width: 36, height: 4, background: 'var(--shop-line)', borderRadius: 'var(--radius-xs)', margin: '12px auto 0' }} />}
+        <div style={{ padding: mobile ? '16px 20px' : '22px 26px', borderBottom: '1px solid var(--shop-fill)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div id="cart-title" role="heading" aria-level={2} style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.02em' }}>{t('cart')} {cart.length > 0 && <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--shop-muted)' }}>({cart.length})</span>}</div>
+          <button type="button" aria-label={t('closeCart')} className="hit44" onClick={() => setOpen(false)} style={{ background: 'var(--shop-fill)', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: 'var(--shop-muted)', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: mobile ? '16px 20px' : '20px 26px', WebkitOverflowScrolling: 'touch' }}>
           {cart.length === 0
             ? <div style={{ textAlign: 'center', padding: '48px 0' }}>
-                <div style={{ fontSize: 48, opacity: .15, marginBottom: 12 }}>◻</div>
-                <div style={{ fontSize: 15, color: 'var(--shop-muted, #86868b)', marginBottom: 18 }}>{t('sw3CartEmpty')}</div>
+                <Icon name="cart" style={{ width: 40, height: 40, color: 'var(--c-metal-text)', marginBottom: 12 }} />
+                <div style={{ fontSize: 15, color: 'var(--shop-muted)', marginBottom: 18 }}>{t('sw3CartEmpty')}</div>
                 {/* Same trap as Checkout: setOpen(false) runs navigate(-1), which would
                     cancel the navigation. Navigating away closes the drawer by itself. */}
-                <button type="button" className="btn-secondary" style={{ borderRadius: 980 }} onClick={() => setPage('products')}>{t('browseCollection')}</button>
+                <button type="button" className="btn-line" onClick={() => setPage('products')}>{t('browseCollection')}</button>
               </div>
             : cart.map((item, idx) => (
-                <div key={idx} style={{ display: 'flex', gap: 14, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid var(--shop-fill, #f5f5f7)' }}>
-                  <div style={{ width: 64, height: 64, borderRadius: 12, background: 'var(--shop-fill, #f5f5f7)', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div key={idx} style={{ display: 'flex', gap: 14, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid var(--shop-fill)' }}>
+                  <div style={{ width: 64, height: 64, borderRadius: 'var(--radius-md)', background: 'var(--shop-fill)', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {item.image_url ? <img src={item.image_url} alt={safeStr(item.name || item.product_name, 'Cart item')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 22, opacity: .3 }}>◻</span>}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--shop-ink, #1d1d1f)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{safeStr(item.name)}</div>
-                    <div style={{ fontSize: 12, color: 'var(--shop-muted, #86868b)', marginBottom: 4 }}>{safeStr(item.category)}</div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--shop-ink, #1d1d1f)' }}>{fmt(item.price)}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--shop-ink)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{safeStr(item.name)}</div>
+                    <div style={{ fontSize: 12, color: 'var(--shop-muted)', marginBottom: 4 }}>{safeStr(item.category)}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--shop-ink)' }}>{fmt(item.price)}</div>
                   </div>
-                  <button type="button" aria-label={(lang === 'ar' ? 'إزالة ' : 'Remove ') + safeStr(item.name, 'item')} className="hit44" onClick={() => setCart(c => c.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--shop-muted, #86868b)', padding: '4px', alignSelf: 'flex-start', fontSize: 16 }}>✕</button>
+                  <button type="button" aria-label={(lang === 'ar' ? 'إزالة ' : 'Remove ') + safeStr(item.name, 'item')} className="hit44" onClick={() => setCart(c => c.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--shop-muted)', padding: '4px', alignSelf: 'flex-start', fontSize: 16 }}>✕</button>
                 </div>
               ))
           }
         </div>
         {cart.length > 0 && (
-          <div style={{ padding: mobile ? '16px 20px 24px' : '18px 26px', borderTop: '1px solid var(--shop-fill, #f5f5f7)' }}>
+          <div style={{ padding: mobile ? '16px 20px 24px' : '18px 26px', borderTop: '1px solid var(--shop-fill)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
-              <span style={{ fontSize: 16, color: 'var(--shop-ink-2, #6e6e73)' }}>{t('total')}</span>
-              <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--shop-ink, #1d1d1f)' }}>{fmt(total)}</span>
+              <span style={{ fontSize: 16, color: 'var(--shop-ink-2)' }}>{t('total')}</span>
+              <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--shop-ink)' }}>{fmt(total)}</span>
             </div>
             {/* Do NOT call setOpen(false) here.
                 The cart drawer is backed by a history entry (?cart=1), so closing it
@@ -3293,8 +2985,8 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
 
                 Navigating away closes the cart on its own: cartOpen is derived from
                 ?cart=1, and that param is gone the moment we leave the page. */}
-            <button type="button" className="btn" style={{ width: '100%', borderRadius: 16 }} onClick={() => setPage('checkout')}>Checkout</button>
-            <div style={{ fontSize: 12, color: 'var(--shop-muted, #86868b)', textAlign: 'center', marginTop: 10 }}>{t('sw3FreeDelivery')}</div>
+            <button type="button" className="btn" style={{ width: '100%', borderRadius: 'var(--radius-lg)' }} onClick={() => setPage('checkout')}>Checkout</button>
+            <div style={{ fontSize: 12, color: 'var(--shop-muted)', textAlign: 'center', marginTop: 10 }}>{t('sw3FreeDelivery')}</div>
           </div>
         )}
       </div>
@@ -3304,8 +2996,8 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
 
 function Row({ k, v, sub }) {
   return (
-    <div style={{ display:'flex', justifyContent:'space-between', padding: sub?'4px 0 4px 10px':'8px 0', borderBottom: sub?'none':'1px solid var(--shop-line, #e6e6e6)' }}>
-      <span style={{ fontSize: sub?12:13, color: sub?'var(--shop-muted, #86868b)':'#1d1d1f' }}>{k}</span>
+    <div style={{ display:'flex', justifyContent:'space-between', padding: sub?'4px 0 4px 10px':'8px 0', borderBottom: sub?'none':'1px solid var(--shop-line)' }}>
+      <span style={{ fontSize: sub?12:13, color: sub?'var(--shop-muted)':'var(--shop-ink)' }}>{k}</span>
       <span style={{ fontSize: sub?12:13, fontWeight: sub?400:500 }}>{v}</span>
     </div>
   );
@@ -3378,13 +3070,13 @@ function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
   return (
     <>
       <div aria-hidden="true" onClick={onClose} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.4)', zIndex:2000, backdropFilter:'blur(8px)', animation:'fadeIn .2s ease' }} />
-      <ModalPanel labelledBy="auth-title" onClose={onClose} style={mobile ? { position:'fixed', left:0, right:0, bottom:0, background:'#fff', zIndex:2001, borderRadius:'24px 24px 0 0', padding:'28px 20px 36px', animation:'slideUp .3s ease', paddingBottom:'calc(36px + env(safe-area-inset-bottom))', maxHeight:'92svh', overflowY:'auto', WebkitOverflowScrolling:'touch' }
-        : { position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', width:'min(390px,95vw)', maxHeight:'90svh', overflowY:'auto', background:'#fff', borderRadius:24, padding:'44px 40px', zIndex:2001, animation:'fadeUp .3s ease', boxShadow:'0 24px 64px rgba(0,0,0,.15)' }}>
-        {mobile && <div style={{ width:36, height:4, background:'var(--shop-line, #e6e6e6)', borderRadius:2, margin:'-12px auto 20px' }} />}
+      <ModalPanel labelledBy="auth-title" onClose={onClose} style={mobile ? { position:'fixed', left:0, right:0, bottom:0, background:'var(--c-surface)', zIndex:2001, borderRadius:'24px 24px 0 0', padding:'28px 20px 36px', animation:'slideUp .3s ease', paddingBottom:'calc(36px + env(safe-area-inset-bottom))', maxHeight:'92svh', overflowY:'auto', WebkitOverflowScrolling:'touch' }
+        : { position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', width:'min(390px,95vw)', maxHeight:'90svh', overflowY:'auto', background:'var(--c-surface)', borderRadius:'var(--radius-xl)', padding:'44px 40px', zIndex:2001, animation:'fadeUp .3s ease', boxShadow:'0 24px 64px rgba(0,0,0,.15)' }}>
+        {mobile && <div style={{ width:36, height:4, background:'var(--shop-line)', borderRadius:'var(--radius-xs)', margin:'-12px auto 20px' }} />}
         <div style={{ textAlign:'center', marginBottom:28 }}>
-          <div style={{ width:48, height:48, borderRadius:14, background:'rgba(168,75,41,.12)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px', fontSize:22 }}>◼</div>
-          <h2 id="auth-title" style={{ fontSize:22, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', letterSpacing:'-.02em', marginBottom:5 }}>{mode==='reset'?t('w4AuthReset'):mode==='login'?t('w4AuthWelcome'):t('w4AuthCreate')}</h2>
-          <div style={{ fontSize:14, color:'var(--shop-muted, #86868b)' }}>{mode==='reset'?t('w4AuthResetSub'):mode==='login'?t('w4AuthLoginSub'):t('w4AuthRegisterSub')}</div>
+          <div style={{ width:48, height:48, borderRadius:'var(--radius-lg)', background:'var(--c-accent-soft)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px', color:'var(--c-accent)' }}><Icon name="user" size={24} /></div>
+          <h2 id="auth-title" style={{ fontSize:22, fontWeight:700, color:'var(--shop-ink)', letterSpacing:'-.02em', marginBottom:5 }}>{mode==='reset'?t('w4AuthReset'):mode==='login'?t('w4AuthWelcome'):t('w4AuthCreate')}</h2>
+          <div style={{ fontSize:14, color:'var(--shop-muted)' }}>{mode==='reset'?t('w4AuthResetSub'):mode==='login'?t('w4AuthLoginSub'):t('w4AuthRegisterSub')}</div>
         </div>
         {mode!=='reset' && (<form noValidate onSubmit={e=>{ e.preventDefault(); submit(); }} style={{ display:'flex', flexDirection:'column', gap:12 }}>
           {mode==='register'&&<Field id="auth-name" className="inp" label={t('w4AuthFullName')} required error={errs.name} placeholder={t('w4AuthFullName')} autoComplete="name" maxLength={120} value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} />}
@@ -3394,15 +3086,15 @@ function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
           {mode==='register' && <Honeypot value={hp} onChange={setHp} />}
           {mode==='register' && <FormNotice kind="request" lang={lang} />}
           <div aria-live="polite" role="status">{formErr && <div className="form-banner form-banner--err" role="alert">{formErr}</div>}</div>
-          <button type="submit" className="btn" disabled={loading} aria-busy={loading} style={{ borderRadius:14, opacity:loading?.7:1 }}>{loading?t('w4AuthPleaseWait'):mode==='login'?t('w4AuthSignIn'):t('w4AuthCreateBtn')}</button>
+          <button type="submit" className="btn" disabled={loading} aria-busy={loading} style={{ borderRadius:'var(--radius-lg)', opacity:loading?.7:1 }}>{loading?t('w4AuthPleaseWait'):mode==='login'?t('w4AuthSignIn'):t('w4AuthCreateBtn')}</button>
         </form>)}
         {mode==='reset' && (<div style={{ display:'flex', flexDirection:'column', gap:12 }}>
           <input className="inp" placeholder={t("email")} aria-label={t("email")} type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} autoCapitalize="none" />
   {rstep==='request' && (<>
-            <button type="button" className="btn" onClick={()=>reqReset('email')} disabled={loading} style={{ borderRadius:14 }}>{t('w4AuthEmailLink')}</button>
-            <button type="button" onClick={()=>reqReset('otp')} disabled={loading} style={{ borderRadius:14, padding:'12px', background:'#fff', color:'var(--clay)', border:'1px solid var(--clay)', fontWeight:600, cursor:'pointer' }}>{t('w4AuthTextCode')}</button>
+            <button type="button" className="btn" onClick={()=>reqReset('email')} disabled={loading} style={{ borderRadius:'var(--radius-lg)' }}>{t('w4AuthEmailLink')}</button>
+            <button type="button" onClick={()=>reqReset('otp')} disabled={loading} style={{ borderRadius:'var(--radius-lg)', padding:'12px', background:'var(--c-surface)', color:'var(--clay)', border:'1px solid var(--clay)', fontWeight:600, cursor:'pointer' }}>{t('w4AuthTextCode')}</button>
           </>)}
-          {rstep==='emailsent' && (<div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', textAlign:'center' }}>{t('w4AuthCheckEmail')}</div>)}
+          {rstep==='emailsent' && (<div style={{ fontSize:13, color:'var(--shop-muted)', textAlign:'center' }}>{t('w4AuthCheckEmail')}</div>)}
           {rstep==='otp' && (<>
             <input className="inp" placeholder={t('w4AuthCode6')} aria-label={t('w4AuthCode6')} inputMode="numeric" value={rotp} onChange={e=>setRotp(e.target.value)} />
             <input className="inp" placeholder={t('w4AuthNewPassword')} aria-label={t('w4AuthNewPassword')} type="password" value={rnew} onChange={e=>setRnew(e.target.value)} />
@@ -3412,21 +3104,21 @@ function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
               const label=met>=4?'Strong':met===3?'Good':met===2?'Fair':'Weak';
               const color=met>=4?'#22c55e':met===3?'#84cc16':met===2?'#f59e0b':'#ef4444';
               const R=[['case','Lowercase & uppercase letters'],['number','At least one number (0–9)'],['special','One special character (!@#$%^&*)'],['length','At least 8 characters']];
-              return (<div style={{ marginTop:8, padding:'10px 12px', borderRadius:12, background:'rgba(0,0,0,.04)', border:'1px solid rgba(0,0,0,.08)' }}>
+              return (<div style={{ marginTop:8, padding:'10px 12px', borderRadius:'var(--radius-md)', background:'rgba(0,0,0,.04)', border:'1px solid rgba(0,0,0,.08)' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:12, marginBottom:6 }}><span style={{ color:'#6b7280' }}>Password strength</span><span style={{ fontWeight:700, color }}>{label}</span></div>
-                <div style={{ height:6, borderRadius:6, background:'#e5e7eb', overflow:'hidden', marginBottom:8 }}><div style={{ height:'100%', width:(met*25)+'%', background:color, transition:'width .2s' }}/></div>
+                <div style={{ height:6, borderRadius:'var(--radius-sm)', background:'#e5e7eb', overflow:'hidden', marginBottom:8 }}><div style={{ height:'100%', width:(met*25)+'%', background:color, transition:'width .2s' }}/></div>
                 {R.map(([k,l])=>(<div key={k} style={{ display:'flex', alignItems:'center', gap:8, fontSize:12.5, marginTop:4 }}><span style={{ width:18, height:18, borderRadius:'50%', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, background:c[k]?'#22c55e':'#e5e7eb', color:c[k]?'#fff':'#9ca3af' }}>{c[k]?'✓':''}</span><span style={{ color:c[k]?'#111827':'#6b7280' }}>{l}</span></div>))}
               </div>);
             })()}
-            <button type="button" className="btn" onClick={doResetOtp} disabled={loading} style={{ borderRadius:14 }}>{t('w4AuthSetNew')}</button>
+            <button type="button" className="btn" onClick={doResetOtp} disabled={loading} style={{ borderRadius:'var(--radius-lg)' }}>{t('w4AuthSetNew')}</button>
           </>)}
         </div>)}
         <div style={{ textAlign:'center', marginTop:16, display:'flex', flexDirection:'column', gap:8 }}>
           {mode!=='reset' && <button type="button" onClick={()=>setMode(mode==='login'?'register':'login')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:14, color:'var(--clay)', fontWeight:500 }}>{mode==='login'?t('w4AuthRegisterLink'):t('w4AuthLoginLink')}</button>}
-          {mode==='login' && <button type="button" onClick={()=>{ setRstep('request'); setMode('reset'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--shop-muted, #86868b)', fontWeight:500 }}>{t('w4AuthForgot')}</button>}
-          {mode==='reset' && <button type="button" onClick={()=>{ setMode('login'); setRstep('request'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--shop-muted, #86868b)', fontWeight:500 }}>{t('w4AuthBackToSignIn')}</button>}
+          {mode==='login' && <button type="button" onClick={()=>{ setRstep('request'); setMode('reset'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--shop-muted)', fontWeight:500 }}>{t('w4AuthForgot')}</button>}
+          {mode==='reset' && <button type="button" onClick={()=>{ setMode('login'); setRstep('request'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--shop-muted)', fontWeight:500 }}>{t('w4AuthBackToSignIn')}</button>}
         </div>
-        {!mobile && <button type="button" aria-label={lang==='ar' ? 'إغلاق' : 'Close'} className="hit44" onClick={onClose} style={{ position:'absolute', top:14, right:16, background:'var(--shop-fill, #f5f5f7)', border:'none', borderRadius:'50%', width:30, height:30, cursor:'pointer', color:'var(--shop-muted, #86868b)', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>}
+        {!mobile && <button type="button" aria-label={lang==='ar' ? 'إغلاق' : 'Close'} className="hit44" onClick={onClose} style={{ position:'absolute', top:14, right:16, background:'var(--shop-fill)', border:'none', borderRadius:'50%', width:30, height:30, cursor:'pointer', color:'var(--shop-muted)', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>}
       </ModalPanel>
     </>
   );
@@ -3439,22 +3131,22 @@ function HomeAIOffers({ setPage, mobile, P }) {
   useEffect(() => { api('store_offers?active=eq.true&order=sort_order.asc&limit=3').then(d => { if (Array.isArray(d)) setOffers(sanitizeRows(d)); }).catch(()=>{}); }, []);
   return (<>
     <section style={{ padding:`0 ${P}`, maxWidth:1200, margin:'28px auto 0' }}>
-      <div className="reveal" style={{ background:'linear-gradient(135deg,var(--shop-ink, #1d1d1f),#3a3530)', borderRadius:20, padding: mobile?24:36, color:'#fff', display:'flex', flexWrap:'wrap', gap:16, alignItems:'center', justifyContent:'space-between' }}>
+      <div className="reveal" style={{ background:'linear-gradient(135deg,var(--shop-ink),#3a3530)', borderRadius:'var(--radius-xl)', padding: mobile?24:36, color:'#fff', display:'flex', flexWrap:'wrap', gap:16, alignItems:'center', justifyContent:'space-between' }}>
         <div style={{ maxWidth:580 }}>
           <div style={{ fontSize:12, letterSpacing:'.15em', textTransform:'uppercase', color:'#F9A35C' }}>{t('sw3AiOffersBadge')}</div>
           <div style={{ fontSize: mobile?22:30, fontWeight:700, margin:'8px 0', lineHeight:1.15 }}>{t('sw3AiOffersTitle')}</div>
           <div style={{ fontSize:14, color:'#c9c7c3' }}>{t('sw3AiOffersSub')}</div>
         </div>
-        <button type="button" onClick={()=>setPage('ai')} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:980, padding:'13px 26px', fontSize:15, fontWeight:600, cursor:'pointer' }}>{t('sw3AiOffersTry')}</button>
+        <button type="button" onClick={()=>setPage('ai')} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:'var(--radius-pill)', padding:'13px 26px', fontSize:15, fontWeight:600, cursor:'pointer' }}>{t('sw3AiOffersTry')}</button>
       </div>
     </section>
     {offers.length>0 && (
       <section style={{ padding:`28px ${P} 0`, maxWidth:1200, margin:'0 auto' }}>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:12 }}>
-          {offers.map(o=>(<button type="button" key={o.id} onClick={()=>setPage('offers')} className="reveal" style={{ textAlign:'left', background:'var(--sand)', border:'1px solid var(--clay)22', borderRadius:16, padding:'16px 18px', cursor:'pointer' }}>
+          {offers.map(o=>(<button type="button" key={o.id} onClick={()=>setPage('offers')} className="reveal" style={{ textAlign:'left', background:'var(--sand)', border:'1px solid var(--clay)22', borderRadius:'var(--radius-lg)', padding:'16px 18px', cursor:'pointer' }}>
             {o.badge && <span style={{ fontSize:11, fontWeight:700, color:'var(--clay)' }}>{o.badge}</span>}
-            <div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginTop:4 }}>{o.title}</div>
-            <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', marginTop:3 }}>{o.subtitle}</div>
+            <div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink)', marginTop:4 }}>{o.title}</div>
+            <div style={{ fontSize:13, color:'var(--shop-muted)', marginTop:3 }}>{o.subtitle}</div>
           </button>))}
         </div>
       </section>
@@ -3484,57 +3176,20 @@ const CARD_DETAILS = [
   { name: 'RILEY STONE', number: '4127 6630 8845 1192', cvv: '751' },
 ];
 
+const FINISH_AR = { shaker_oak: 'بلوط شيكر', handleless_white: 'أبيض بلا مقابض', matt_graphite: 'جرافيت مطفي', sage_shaker: 'شيكر أخضر ميرمية', gloss_navy: 'كحلي لامع', walnut: 'جوز' };
+const FINISH_SUB_AR = { shaker_oak: 'كلاسيكي ودافئ', handleless_white: 'نقي وعصري', matt_graphite: 'جريء ومعاصر', sage_shaker: 'ناعم وذو شخصية', gloss_navy: 'لافت وفاخر', walnut: 'غني وفخم' };
 function HomePage({ user, products, testimonials, banners, siteLogo, setPage, addToCart, setConfigProduct }) {
   const { t, lang } = useI18n();
-  const mobile = useMobile();
   const ikh = useIkhLanding();
+  const mobile = useMobile();
   useReveal();
-  useHomeFx();
-  const P = mobile ? '24px' : '48px';
-  const NOISE = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
-  const activeProducts = products.filter(p => p.active !== false);
-  // Featured ranges — prefer badged products, then fill to 6 by sort order.
-  const featuredRanges = [...activeProducts].sort((a,b)=> (b.badge?1:0)-(a.badge?1:0)).slice(0, mobile ? 4 : 6);
-
-  // i. Offers strip — from store_offers (with customer_offers fallback).
-  const [offers, setOffers] = useState([]);
-  // i(stories). Customer stories — from website_projects.
   const [projects, setProjects] = useState([]);
-  const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
-  useEffect(() => {
-    api('store_offers?active=eq.true&order=sort_order.asc&limit=3').then(d => {
-      if (Array.isArray(d) && d.length) { setOffers(sanitizeRows(d)); return; }
-      api('customer_offers?active=eq.true&order=sort_order.asc&limit=3').then(c => { if (Array.isArray(c)) setOffers(sanitizeRows(c)); }).catch(()=>{});
-    }).catch(()=>{});
-    api('website_projects?active=eq.true&order=sort_order.asc&limit=6').then(d => { if (Array.isArray(d)) setProjects(sanitizeProjects(d)); }).catch(()=>{});
-  }, []);
-  const nlSub = useSubmit(); const [nlErr, setNlErr] = useState(''); const [nlHp, setNlHp] = useState('');
-  const subscribe = async () => {
-    setNlErr('');
-    if (isBot(nlHp)) { setSubscribed(true); return; }
-    const v = validateForm({ email }, { email: { type:'email', required:true } }, lang);
-    if (!v.ok) { setNlErr(v.errors.email); toast(t('swNlInvalid'), 'error'); return; }
-    // Goes through the audited, rate-limited public_lead_submit RPC (not a raw table insert). Success is shown ONLY once the server confirmed it.
-    const res = await nlSub.run((signal) => api('rpc/public_lead_submit', { method:'POST', signal, body: { p_name:'Newsletter subscriber', p_phone:null, p_email:v.clean.email, p_source:'Website newsletter', p_interest:'Newsletter', p_message:null, p_meta:{ type:'newsletter' } } }));
-    if (res.ok) { setSubscribed(true); setEmail(''); toast(t('swNlWelcome'), 'success'); }
-    else if (res.offline) setNlErr(vmsg('offline', lang));
-    else if (!res.skipped) setNlErr(vmsg('failed', lang));
-  };
-
-  // c. Free appointment options.
-  const appointments = [
-    [t('swApptMeasure'), t('swApptMeasureSub'), '📏'],
-    [t('swApptShowroom'), t('swApptShowroomSub'), '🏬'],
-    [t('swApptHome'), t('swApptHomeSub'), '🏡'],
-    [t('swApptOnline'), t('swApptOnlineSub'), '💻'],
-  ];
-  // d. Room types — managed from Bonsai Hub (website_room_cards table), with a built-in fallback.
   const [roomCards, setRoomCards] = useState(null);
-  useEffect(() => { let alive = true;
-    api('website_room_cards?active=eq.true&deleted_at=is.null&order=sort_order.asc')
-      .then(d => { if (alive && Array.isArray(d) && d.length) setRoomCards(d); })
-      .catch(() => {});
+  useEffect(() => {
+    let alive = true;
+    api('website_projects?active=eq.true&order=sort_order.asc&limit=6').then(d => { if (alive && Array.isArray(d)) setProjects(sanitizeProjects(d)); }).catch(()=>{});
+    // Room types are managed from the Hub (website_room_cards) with a built-in fallback.
+    api('website_room_cards?active=eq.true&deleted_at=is.null&order=sort_order.asc').then(d => { if (alive && Array.isArray(d) && d.length) setRoomCards(d); }).catch(() => {});
     return () => { alive = false; };
   }, []);
   const roomsFallback = [
@@ -3547,446 +3202,199 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
   const rooms = (roomCards && roomCards.length)
     ? roomCards.map(rc => [ (lang === 'ar' ? (rc.title_ar || rc.title_en) : rc.title_en), (lang === 'ar' ? (rc.sub_ar || rc.sub_en) : rc.sub_en), rc.image_url, rc.route ])
     : roomsFallback;
-  // e. Style quick-links.
-  const styleLinks = [
-    [t('swStyleWalkin'), 'wardrobes'], [t('swStyleSliding'), 'wardrobes'], [t('swStyleShaker'), 'kitchen'],
-    [t('swStyleHandleless'), 'kitchen'], [t('swRoomTv'), 'tv'], [t('swRoomOffice'), 'office'],
-  ];
   const steps = [
     ['01', t('swStep1Title'), t('swStep1Desc')],
     ['02', t('swStep2Title'), t('swStep2Desc')],
-    ['03', t('swStep3Title'), t('swStep3Desc')],
+    ['03', t('swStep3Title'), t('homeStep3Desc')],
     ['04', t('swStep4Title'), t('swStep4Desc')],
   ];
-  const finishDots = ['#5a3b26', '#caa472', '#e9e3d8', '#2b2b2b'];
-  const marqueeItems = [t('swMarqWorkshop'), t('swMarqConsult'), t('swMarqHardware'), t('swMarq15'), t('swMarq4'), t('swMarq2yr'), t('swMarqInstall')];
+  const ar = lang === 'ar';
   return (
-    <div style={{ background: 'var(--cream)' }}>
+    <div>
       <div id="scrollProgress" />
       <SectionBoundary name="home:hero" silent><Hero setPage={setPage} banners={banners} /></SectionBoundary>
-      {/* [IKHTARHA 2026-11-09] live reward campaign — shows only while the campaign is live */}
-      <IkhtarhaSpotlight cfg={ikh} lang={lang} mobile={mobile} cms={cms} setPage={setPage} />
-      <IkhtarhaGames cfg={ikh} lang={lang} cms={cms} />{/* [HOME-GAMES 2026-11-10] «العب الآن» poster for the Games Hub */}
-      <IkhtarhaDesigns cfg={ikh} lang={lang} cms={cms} setPage={setPage} />
-      {/* [HOME 2026-11-09] walk into the showroom */}
-      <ShowroomTour lang={lang} setPage={setPage} img={{ walkin: cms('home.tour.walkin', TOUR_IMG.walkin), kitchen: cms('home.tour.kitchen', TOUR_IMG.kitchen), living: cms('home.tour.living', TOUR_IMG.living), wardrobe: cms('home.tour.wardrobe', TOUR_IMG.wardrobe), door: cms('home.tour.door', TOUR_IMG.door) }} fallback={{ walkin: HOME_IMG.walkin, kitchen: HOME_IMG.kitchen, living: HOME_IMG.living, wardrobe: HERO_IMG.wardrobe, door: HERO_IMG.door }} />
 
-      {/* Trust marquee */}
-      <div className="marquee-wrap" style={{ borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)', padding: '18px 0', background: 'var(--cream)' }}>
-        <div className="marquee">
-          {[0, 1].flatMap(k => marqueeItems.map((s, idx) => (
-            <span key={k + '-' + idx} style={{ display: 'inline-flex', alignItems: 'center', gap: 56, color: 'var(--ink-soft)', fontSize: 14, letterSpacing: '.04em', whiteSpace: 'nowrap' }}>{s}<span style={{ color: 'var(--clay)' }}>✦</span></span>
-          )))}
-        </div>
+      {/* Campaigns are visible only while live; otherwise these render nothing. They never get poster scale on the editorial page. */}
+      <div className="campaign-slot">
+        <IkhtarhaSpotlight cfg={ikh} lang={lang} mobile={mobile} cms={cms} setPage={setPage} />
+        <IkhtarhaGames cfg={ikh} lang={lang} cms={cms} />
+        <IkhtarhaDesigns cfg={ikh} lang={lang} cms={cms} setPage={setPage} />
       </div>
 
-      {/* c. Choose a free appointment */}
-      <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 88}px ${P} ${mobile ? 8 : 24}px` }}>
-        <div className="rv" style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 40px' }}>
-          <div className="eyebrow" style={{ marginBottom: 14 }}>{cms('home.appt.eyebrow', 'It starts with a chat')}</div>
-          <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>{cms('home.appt.title', 'Choose a free appointment.')}</h2>
-          <p style={{ fontSize: mobile ? 15 : 17, color: 'var(--ink-soft)', lineHeight: 1.7, marginTop: 14 }}>{cms('home.appt.subtitle', 'However you like to plan, there’s no charge and no obligation — just expert ideas for your space.')}</p>
-        </div>
-        <div className="rv reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 12 : 18 }}>
-          {appointments.map(([title, desc, ic], i) => (
-            <Link to={navToPath('booking')} key={title} className="lift" style={{ textDecoration: 'none', color: 'inherit', display: 'block', '--d': (i * 0.06) + 's', background: '#fff', border: '1px solid var(--line)', borderRadius: 18, padding: mobile ? '20px 16px' : '28px 22px', textAlign: 'left', cursor: 'pointer' }}>
-              <div aria-hidden="true" style={{ fontSize: 30, marginBottom: 12 }}>{ic}</div>
-              <div className="display" style={{ fontSize: mobile ? 17 : 20, color: 'var(--ink)', marginBottom: 6 }}>{title}</div>
-              <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, marginBottom: 12 }}>{desc}</div>
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--clay)' }}>{t('swBookFree')}</span>
-            </Link>
-          ))}
-        </div>
+      {/* Positioning + credentials (only claims that exist, consistently, in the source: see src/content/facts.js) */}
+      <section className="statement container">
+        <p className="rv">{t('homeStatement')}</p>
+        <ul className="creds rv">
+          <li><strong>{ar ? FACTS.warrantyYears + ' سنوات' : FACTS.warrantyYears + ' years'}</strong>{t('homeCred1')}</li>
+          <li><strong>{ar ? 'مجانًا' : 'Free'}</strong>{t('homeCred2')}</li>
+          <li><strong>{ar ? 'البحرين' : 'Bahrain'}</strong>{t('homeCred3')}</li>
+        </ul>
       </section>
 
-      {/* d. Choose your room type */}
-      <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 48 : 72}px ${P}` }}>
-        <div className="rv" style={{ marginBottom: 32 }}>
-          <div className="eyebrow" style={{ marginBottom: 14 }}>{cms('home.rooms.eyebrow', 'What are you planning?')}</div>
-          <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>{cms('home.rooms.title', 'Choose your room.')}</h2>
+      {/* Collections — real links */}
+      <section id="collections" className="section container" style={{ paddingTop: 'var(--space-8)' }} aria-labelledby="coll-title">
+        <div className="sec-head rv">
+          <div><span className="eyebrow">{t('homeCollEyebrow')}</span><h2 id="coll-title">{cms('home.rooms.title', t('homeCollTitle'))}</h2></div>
         </div>
-        <div className="rv reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: mobile ? 16 : 20 }}>
+        <div className="collections">
           {rooms.map(([name, sub, img, route], i) => (
-            <Link to={navToPath(route)} key={name} className="tile-zoom lift" style={{ textDecoration: 'none', color: 'inherit', display: 'block', '--d': (i * 0.07) + 's', position: 'relative', border: 'none', padding: 0, borderRadius: 22, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 260 : 360, background: '#15110e' }}>
-              <Photo src={img} alt={name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,0) 38%, rgba(20,16,12,.86) 100%)' }} />
-              <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: 24, zIndex: 2 }}>
-                <div className="display" style={{ color: '#fff', fontSize: mobile ? 24 : 28 }}>{name}</div>
-                <div style={{ color: 'rgba(255,255,255,.82)', fontSize: 14, marginTop: 5 }}>{sub}</div>
-                <div style={{ color: '#E7BBA0', fontSize: 13, fontWeight: 600, marginTop: 14, letterSpacing: '.04em' }}>{t('swExplore')}</div>
-              </div>
+            <Link to={navToPath(route)} key={name + i} className="coll rv" style={{ '--d': (i * 0.06) + 's' }}>
+              <div className="img-frame tile-zoom"><Photo src={img} alt="" imgClass="tz" w={1200} h={900} pos="50% 50%" style={{ position: 'absolute', inset: 0 }} /></div>
+              <div className="coll__meta"><span className="coll__no" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span><h3>{name}</h3></div>
+              <p>{sub}</p>
+              <span className="go">{t('homeExplore')}<Icon name="arrow" flip={ar} size={16} /></span>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* e. Designs you'll love — split tiles + style quick-links */}
-      <section style={{ background: 'var(--sand)', padding: `${mobile ? 56 : 96}px ${P}` }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div className="rv" style={{ textAlign: 'center', maxWidth: 620, margin: '0 auto 40px' }}>
-            <div className="eyebrow" style={{ marginBottom: 14 }}>{cms('home.designs.eyebrow', 'Where to begin')}</div>
-            <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>{cms('home.designs.title', 'Designs you’ll love.')}</h2>
-          </div>
-          <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? 16 : 22, marginBottom: 28 }}>
-            {[[t('swRoomWardrobes'), t('swDesignWardrobesDesc'), '/layouts/wardrobe/wardrobe-walkin.jpg', 'wardrobes'], [t('swRoomKitchens'), t('swDesignKitchensDesc'), '/layouts/kitchen/island.jpg', 'kitchen']].map(([name, desc, img, route]) => (
-              <Link to={navToPath(route)} key={name} className="tile-zoom lift" style={{ textDecoration: 'none', color: 'inherit', display: 'block', position: 'relative', border: 'none', padding: 0, borderRadius: 24, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 300 : 420, background: '#15110e' }}>
-                <Photo src={img} alt={name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.05) 30%, rgba(20,16,12,.85) 100%)' }} />
-                <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: mobile ? 26 : 34, zIndex: 2 }}>
-                  <div className="display" style={{ color: '#fff', fontSize: mobile ? 28 : 36 }}>{name}</div>
-                  <div style={{ color: 'rgba(255,255,255,.85)', fontSize: mobile ? 14.5 : 16, marginTop: 8, lineHeight: 1.55, maxWidth: 380 }}>{desc}</div>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 18, background: 'var(--clay)', color: '#fff', borderRadius: 980, padding: '10px 20px', fontSize: 14, fontWeight: 600 }}>{lang==='ar' ? <>← {t('swView')} {name.toLowerCase()}</> : <>{t('swView')} {name.toLowerCase()} →</>}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-          <div className="rv" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
-            {styleLinks.map(([label, route]) => (
-              <Link to={navToPath(route)} key={label} style={{ textDecoration: 'none', display: 'inline-block', background: '#fff', border: '1px solid var(--line)', borderRadius: 980, padding: '9px 18px', fontSize: 13.5, fontWeight: 500, color: 'var(--ink)', cursor: 'pointer' }}>{label}</Link>
-            ))}
-          </div>
+      {/* Craft / process */}
+      <section className="band-sunken section" aria-labelledby="proc-title">
+        <div className="container">
+          <div className="sec-head rv"><div><span className="eyebrow">{t('homeProcEyebrow')}</span><h2 id="proc-title">{cms('home.process.title', t('homeProcTitle'))}</h2></div></div>
+          <ol className="process">
+            {steps.map(([n, title, desc]) => (<li key={n} className="rv"><span className="n" aria-hidden="true">{n}</span><h3>{title}</h3><p>{desc}</p></li>))}
+          </ol>
         </div>
       </section>
 
-      {/* f. Featured ranges — product cards from website_products */}
-      {featuredRanges.length > 0 && (
-        <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 96}px ${P}` }}>
-          <div className="rv" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 36 }}>
-            <div>
-              <div className="eyebrow" style={{ marginBottom: 14 }}>{t('swFeaturedEyebrow')}</div>
-              <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>{t('swFeaturedTitle')}</h2>
-            </div>
-            <button type="button" className="btn-line" onClick={() => setPage('products')}>{t('swViewAllArrow')}</button>
-          </div>
-          <div className="reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 12 : 20 }}>
-            {featuredRanges.map((p, i) => {
-              const hasSave = p.original_price && Number(p.original_price) > Number(p.price);
-              return (
-                <div key={p.id} className="rv lift" onClick={() => setPage('product-' + p.id)} style={{ '--d': (i * 0.05) + 's', cursor: 'pointer', background: '#fff', borderRadius: 18, overflow: 'hidden', border: '1px solid var(--line)' }}>
-                  <div className="tile-zoom zoomwrap" style={{ position: 'relative', aspectRatio: mobile ? '1/1' : '4/3' }}>
-                    <Photo src={p.image_url || HOME_IMG.wardrobe} alt={p.name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
-                    {p.badge && <span style={{ position: 'absolute', top: 12, left: 12, background: 'var(--clay)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 980 }}>{p.badge === 'Featured' ? t('cardFeatured') : p.badge}</span>}
-                    {hasSave && <span style={{ position: 'absolute', top: 12, right: 12, background: 'var(--ink)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 980 }}>{t('swSave')} {fmt(Number(p.original_price) - Number(p.price))}</span>}
-                  </div>
-                  <div style={{ padding: mobile ? 14 : 18 }}>
-                    <div style={{ fontSize: 11.5, color: 'var(--muted)', letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 5 }}>{p.category ? trCat(p.category, lang) : t('swCatBespoke')}</div>
-                    <div className="display" style={{ fontSize: mobile ? 15.5 : 18, color: 'var(--ink)', marginBottom: 8, lineHeight: 1.2 }}>{p.name}</div>
-                    <div style={{ display: 'flex', gap: 5, marginBottom: 10 }}>
-                      {finishDots.map((c, j) => <span key={j} style={{ width: 14, height: 14, borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,.1)' }} />)}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                      <span style={{ fontSize: 11, color: 'var(--muted)' }}>{t('swFrom')}</span>
-                      <span style={{ fontSize: mobile ? 16 : 18, fontWeight: 700, color: 'var(--ink)' }}>{fmt(p.price)}</span>
-                      {hasSave && <span style={{ fontSize: 13, color: 'var(--muted)', textDecoration: 'line-through' }}>{fmt(p.original_price)}</span>}
-                    </div>
-                    <span style={{ display: 'inline-block', marginTop: 12, fontSize: 13, fontWeight: 600, color: 'var(--clay)' }}>{t('swViewArrow')}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* g. Why The Closets / value strip + animated counters */}
-      <section style={{ maxWidth: 1100, margin: '0 auto', padding: `${mobile ? 48 : 80}px ${P}` }}>
-        <div className="rv" style={{ textAlign: 'center', maxWidth: 700, margin: '0 auto 56px' }}>
-          <div className="eyebrow" style={{ marginBottom: 16 }}>{cms('home.why.eyebrow', 'Why The Closets')}</div>
-          <h2 className="display" style={{ fontSize: mobile ? 30 : 46, color: 'var(--ink)' }}>{cms('home.why.title', 'A workshop, not a warehouse.')}</h2>
-          <p style={{ fontSize: mobile ? 16 : 18, color: 'var(--ink-soft)', lineHeight: 1.7, marginTop: 18 }}>{cms('home.why.subtitle', 'Everything we make is designed, built and installed by our own people in Bahrain — so the piece you imagine is the piece you live with.')}</p>
-        </div>
-        <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 28 : 20 }}>
-          <Stat to={10} suffix="K+" label={t('swStatProjects')} />
-          <Stat to={19} suffix={t('swStatYrs')} label={t('swStatCraft')} />
-          <Stat to={4} label={t('swStatShowrooms')} />
-          <Stat to={100} suffix="%" label={t('swStatBespoke')} />
-        </div>
-        <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: 12, marginTop: 44 }}>
-          {[['🏭', t('swBadgeWorkshop')], ['🛠️', t('swBadge15')], ['🛡️', t('swBadge2yr')], ['🎁', t('swBadgeFreeDesign')]].map(([ic, label]) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--sand)', border: '1px solid var(--line)', borderRadius: 14, padding: '14px 16px' }}>
-              <span style={{ fontSize: 20 }}>{ic}</span>
-              <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{label}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Process timeline */}
-      <section style={{ position: 'relative', overflow: 'hidden', background: 'var(--ink)', color: '#fff', padding: `${mobile ? 64 : 110}px ${P}` }}>
-        <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .05, mixBlendMode: 'overlay', backgroundImage: NOISE }} />
-        <div style={{ position: 'relative', maxWidth: 1180, margin: '0 auto' }}>
-          <div className="rv" style={{ maxWidth: 560, marginBottom: 56 }}>
-            <div className="eyebrow" style={{ color: '#E7BBA0', marginBottom: 14 }}>{t('swHowEyebrow')}</div>
-            <h2 className="display" style={{ fontSize: mobile ? 30 : 48 }}>{t('swHowTitle')}</h2>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(4,1fr)', gap: mobile ? 28 : 24 }}>
-            {steps.map(([n, title, desc], i) => (
-              <div key={n} className="rv" style={{ '--d': (i * 0.1) + 's', borderTop: '1px solid rgba(255,255,255,.18)', paddingTop: 22 }}>
-                <div className="display" style={{ fontSize: 34, color: '#E7BBA0' }}>{n}</div>
-                <div style={{ fontSize: 18, fontWeight: 600, margin: '10px 0 8px' }}>{title}</div>
-                <div style={{ fontSize: 14.5, color: 'rgba(255,255,255,.65)', lineHeight: 1.65 }}>{desc}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* [IKHTARHA 2026-11-09] The Closets for Business */}
-      <BusinessBand lang={lang} mobile={mobile} cms={cms} setPage={setPage} live={!!ikh} />
-
-      {/* AI designer band — editorial hero banner (safe-zone text left, photo right, single CTA) */}
-      <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 100}px ${P}` }}>
-        <div className="rv-sc" style={{ position: 'relative', borderRadius: 26, overflow: 'hidden', background: '#15110e', display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1.05fr .95fr', alignItems: 'stretch', minHeight: mobile ? 'auto' : 440 }}>
-          {mobile && <Photo src={HOME_IMG.living} alt="" par=".06" style={{ position: 'absolute', inset: 0, opacity: .32, zIndex: 0 }} />}
-          {mobile && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.55), rgba(20,16,12,.92))', zIndex: 1 }} />}
-          <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .06, mixBlendMode: 'overlay', backgroundImage: NOISE, zIndex: 1 }} />
-          <div style={{ position: 'relative', zIndex: 2, padding: mobile ? '40px 26px 44px' : '64px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <span className="floaty" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start', background: 'rgba(231,187,160,.14)', border: '1px solid rgba(231,187,160,.3)', color: '#E7BBA0', fontSize: 12, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 980, marginBottom: 18 }}>✦ {cms('home.ai.badge', t('swAiBadge'))}</span>
-            <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 30 : 46, lineHeight: 1.05, letterSpacing: '-.02em', marginBottom: 16 }}>{cms('home.ai.title1', t('swAiTitle1'))}<br />{cms('home.ai.title2', t('swAiTitle2'))}</h2>
-            <p style={{ color: 'rgba(255,255,255,.78)', fontSize: mobile ? 15 : 17, lineHeight: 1.65, marginBottom: 28, maxWidth: 440 }}>{cms('home.ai.desc', t('swAiDesc'))}</p>
-            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
-              <button type="button" className="btn-clay" onClick={() => setPage('ai')} style={{ fontSize: 15, padding: '14px 26px' }}>{cms('home.ai.cta', t('swAiTry'))}</button>
-              <span style={{ color: 'rgba(255,255,255,.6)', fontSize: 13 }}>{t('swAiFree')}</span>
-            </div>
-          </div>
-          {!mobile && (
-            <div style={{ position: 'relative', minHeight: 440 }}>
-              <Photo src={HOME_IMG.living} alt={t('swAiLivingAlt')} style={{ position: 'absolute', inset: 0 }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, #15110e 0%, rgba(21,17,14,.25) 24%, rgba(21,17,14,0) 52%)' }} />
-              <span style={{ position: 'absolute', top: 18, right: 18, background: 'rgba(20,16,12,.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', color: '#fff', fontSize: 11, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', padding: '5px 11px', borderRadius: 980, border: '1px solid rgba(255,255,255,.2)' }}>{t('swAiAfter')}</span>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* h. Offers strip — from store_offers / customer_offers */}
-      {offers.length > 0 && (
-<SectionBoundary name="home:offers" silent>
-        <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 48 : 80}px ${P}` }}>
-          <div className="rv" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
-            <div>
-              <div className="eyebrow" style={{ marginBottom: 14 }}>{t('swOffersEyebrow')}</div>
-              <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>{t('swOffersTitle')}</h2>
-            </div>
-            <button type="button" className="btn-line" onClick={() => setPage('offers')}>{t('swSeeAllOffers')}</button>
-          </div>
-          <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(' + Math.min(offers.length, 3) + ',1fr)', gap: mobile ? 14 : 20 }}>
-            {offers.slice(0, 3).map(o => (
-              <button type="button" key={o.id} className="lift" onClick={() => setPage('offers')} style={{ position: 'relative', overflow: 'hidden', border: '1px solid var(--line)', borderRadius: 18, cursor: 'pointer', textAlign: 'left', padding: 0, minHeight: 180, background: o.image_url ? '#15110e' : 'linear-gradient(135deg, var(--sand), #fff)' }}>
-                {o.image_url && <><Photo src={o.image_url} alt={o.title} style={{ position: 'absolute', inset: 0 }} /><div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.15), rgba(20,16,12,.82))' }} /></>}
-                <div style={{ position: 'relative', zIndex: 2, padding: 24, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'flex-end', minHeight: 180 }}>
-                  {o.badge && <span style={{ alignSelf: 'flex-start', background: 'var(--clay)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 11px', borderRadius: 980, marginBottom: 10 }}>{trMap(o.badge, OFFER_BADGE_KEY, lang)}</span>}
-                  <div className="display" style={{ fontSize: 22, color: o.image_url ? '#fff' : 'var(--ink)' }}>{trMap(o.title, OFFER_TITLE_KEY, lang)}</div>
-                  <div style={{ fontSize: 14, color: o.image_url ? 'rgba(255,255,255,.85)' : 'var(--ink-soft)', marginTop: 6, lineHeight: 1.5 }}>{trMap(o.subtitle, OFFER_SUB_KEY, lang)}</div>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: o.image_url ? '#E7BBA0' : 'var(--clay)', marginTop: 14 }}>{t('swClaimOffer')}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
+      {/* The ONE dark showroom band — static layout, scroll effect is progressive enhancement */}
+      <SectionBoundary name="home:showroom" silent>
+        <ShowroomTour lang={lang} LinkC={Link} pathOf={pageToPath} eyebrow={t('homeShowEyebrow')} title={t('homeShowTitle')} lede={t('homeShowLede')} fallback={HOME_IMG}
+          img={{ walkin: cms('home.tour.walkin', TOUR_IMG.walkin), kitchen: cms('home.tour.kitchen', TOUR_IMG.kitchen), living: cms('home.tour.living', TOUR_IMG.living), wardrobe: cms('home.tour.wardrobe', TOUR_IMG.wardrobe), door: cms('home.tour.door', TOUR_IMG.door) }} />
       </SectionBoundary>
-)}
 
-      {/* i. Customer stories — gallery from website_projects */}
+      {/* Materials & finishes — the six real door styles from the kitchen collection */}
+      <section className="section container" aria-labelledby="fin-title">
+        <div className="sec-head rv">
+          <div><span className="eyebrow">{t('homeFinEyebrow')}</span><h2 id="fin-title">{t('homeFinTitle')}</h2><p className="t-lede" style={{ marginTop: 'var(--space-3)' }}>{t('homeFinBody')}</p></div>
+          <Link to="/kitchen" className="btn-line">{t('homeFinCta')}</Link>
+        </div>
+        <ul className="swatches rv">
+          {KITCHEN_STYLES.map(s => (
+            <li key={s.id} className="swatch"><i style={{ background: s.g }} aria-hidden="true" /><b>{ar ? FINISH_AR[s.id] || s.name : s.name}</b><span>{ar ? FINISH_SUB_AR[s.id] || s.sub : s.sub}</span></li>
+          ))}
+        </ul>
+      </section>
+
+      {/* Projects — only when real projects exist */}
       {projects.length > 0 && (
-<SectionBoundary name="home:projects" silent>
-        <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 48 : 80}px ${P}` }}>
-          <div className="rv" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
-            <div>
-              <div className="eyebrow" style={{ marginBottom: 14 }}>{t('swStoriesEyebrow')}</div>
-              <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>{t('swStoriesTitle')}</h2>
+        <SectionBoundary name="home:projects" silent>
+          <section className="band-sunken section" aria-labelledby="proj-title">
+            <div className="container">
+              <div className="sec-head rv"><div><span className="eyebrow">{t('homeProjEyebrow')}</span><h2 id="proj-title">{t('homeProjTitle')}</h2></div><Link to="/projects" className="btn-line">{t('homeProjAll')}</Link></div>
+              <div className="proj-grid">
+                {projects.slice(0, 3).map(pr => (
+                  <Link to="/projects" key={pr.id} className="proj rv">
+                    <div className="img-frame tile-zoom"><Photo src={pr.cover_url || pr.after_url || HOME_IMG.walkin} alt={pr.name || ''} imgClass="tz" w={1200} h={900} style={{ position: 'absolute', inset: 0 }} /></div>
+                    <h3>{pr.name}</h3>{pr.location && <small>{pr.location}</small>}
+                  </Link>
+                ))}
+              </div>
             </div>
-            <button type="button" className="btn-line" onClick={() => setPage('projects')}>{t('swViewGallery')}</button>
-          </div>
-          <div className="rv reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 10 : 16 }}>
-            {projects.slice(0, 6).map((pr, i) => (
-              <button type="button" key={pr.id} className="tile-zoom lift" onClick={() => setPage('projects')} style={{ '--d': (i * 0.05) + 's', position: 'relative', border: 'none', padding: 0, borderRadius: 16, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', aspectRatio: '4/3', background: '#15110e' }}>
-                <Photo src={pr.cover_url || pr.after_url || HOME_IMG.walkin} alt={pr.name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,0) 45%, rgba(20,16,12,.82) 100%)' }} />
-                <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: mobile ? 12 : 16, zIndex: 2 }}>
-                  <div className="display" style={{ color: '#fff', fontSize: mobile ? 14 : 17 }}>{pr.name}</div>
-                  {pr.location && <div style={{ color: 'rgba(255,255,255,.78)', fontSize: 12, marginTop: 3 }}>{pr.location}</div>}
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-      </SectionBoundary>
-)}
-
-      {/* Testimonials carousel */}
-      {testimonials.length > 0 && (
-        <section style={{ background: 'var(--sand)', padding: `${mobile ? 64 : 104}px ${P}` }}>
-          <div className="rv" style={{ textAlign: 'center', marginBottom: 48 }}>
-            <div className="eyebrow" style={{ marginBottom: 14 }}>{t('swTestiEyebrow')}</div>
-            <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>{t('swTestiTitle')}</h2>
-          </div>
-          <div className="rv"><SectionBoundary name="home:testimonials" silent><TestiCarousel items={testimonials} /></SectionBoundary></div>
-        </section>
+          </section>
+        </SectionBoundary>
       )}
 
-      {/* j. How can we help — 3 cards */}
-      <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 56 : 88}px ${P} ${mobile ? 24 : 40}px` }}>
-        <div className="rv" style={{ textAlign: 'center', maxWidth: 600, margin: '0 auto 36px' }}>
-          <div className="eyebrow" style={{ marginBottom: 14 }}>{t('swHelpEyebrow')}</div>
-          <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>{t('swHelpTitle')}</h2>
-        </div>
-        <div className="rv reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: mobile ? 14 : 20 }}>
-          {[[t('swHelpBrowse'), t('swHelpBrowseDesc'), '🛋️', 'products'], [t('swHelpStudio'), t('swHelpStudioDesc'), '✏️', 'planner'], [t('swHelpOffers'), t('swHelpOffersDesc'), '🏷️', 'offers']].map(([title, desc, ic, route], i) => (
-            <Link to={navToPath(route)} key={title} className="lift" style={{ textDecoration: 'none', color: 'inherit', display: 'block', '--d': (i * 0.06) + 's', background: '#fff', border: '1px solid var(--line)', borderRadius: 20, padding: mobile ? '24px 20px' : '32px 26px', textAlign: 'left', cursor: 'pointer' }}>
-              <div style={{ fontSize: 34, marginBottom: 14 }}>{ic}</div>
-              <div className="display" style={{ fontSize: mobile ? 19 : 22, color: 'var(--ink)', marginBottom: 8 }}>{title}</div>
-              <div style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 14 }}>{desc}</div>
-              <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--clay)' }}>{t('swGo')}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
+      {/* Clients — only real testimonials */}
+      {testimonials.length > 0 && (
+        <SectionBoundary name="home:testimonials" silent>
+          <section className="section container" aria-labelledby="testi-title">
+            <div className="sec-head rv"><div><span className="eyebrow">{t('homeTestiEyebrow')}</span><h2 id="testi-title">{t('homeTestiTitle')}</h2></div></div>
+            <div className="quotes">
+              {testimonials.slice(0, 3).map((q, i) => (
+                <figure key={q.id || i} className="quote rv"><blockquote>“{q.text}”</blockquote><figcaption><strong>{q.name}</strong>{q.role}</figcaption></figure>
+              ))}
+            </div>
+          </section>
+        </SectionBoundary>
+      )}
 
-      {/* k. Newsletter signup */}
-      <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 24 : 40}px ${P} ${mobile ? 48 : 80}px` }}>
-        <div className="rv-sc" style={{ background: 'var(--ink)', borderRadius: 26, padding: mobile ? '36px 24px' : '56px 64px', display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1.1fr 1fr', gap: mobile ? 24 : 48, alignItems: 'center' }}>
-          <div>
-            <div className="eyebrow" style={{ color: '#E7BBA0', marginBottom: 14 }}>{t('swNlEyebrow')}</div>
-            <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 26 : 38, lineHeight: 1.1 }}>{t('swNlTitle')}</h2>
-            <p style={{ color: 'rgba(255,255,255,.7)', fontSize: mobile ? 14.5 : 16, lineHeight: 1.6, marginTop: 14 }}>{t('swNlDesc')}</p>
+      {/* Visit / booking CTA */}
+      <section className="visit-band" aria-labelledby="visit-title">
+        <div className="container inner">
+          <div style={{ display: 'grid', gap: 'var(--space-4)' }}>
+            <span className="eyebrow">{cms('home.cta.eyebrow', t('homeCtaEyebrow'))}</span>
+            <h2 id="visit-title">{cms('home.cta.title', t('homeCtaTitle'))}</h2>
+            <p>{cms('home.cta.subtitle', t('homeCtaBody'))}</p>
           </div>
-          <div>
-            {subscribed ? (
-              <div style={{ background: 'rgba(231,187,160,.14)', border: '1px solid rgba(231,187,160,.3)', borderRadius: 16, padding: '22px 24px', textAlign: 'center' }}>
-                <div style={{ fontSize: 28, marginBottom: 8 }}>✦</div>
-                <div className="display" style={{ color: '#fff', fontSize: 20 }}>{t('swNlOnList')}</div>
-                <div style={{ color: 'rgba(255,255,255,.7)', fontSize: 14, marginTop: 6 }}>{t('swNlThanks')}</div>
-              </div>
-            ) : (
-              <form noValidate onSubmit={e => { e.preventDefault(); subscribe(); }}>
-              <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', gap: 10 }}>
-                <input id="nl-email" type="email" inputMode="email" autoComplete="email" maxLength={254} value={email} onChange={e => setEmail(e.target.value)} aria-invalid={nlErr ? 'true' : undefined} aria-describedby={nlErr ? 'nl-err' : undefined} placeholder={t('swNlPlaceholder')} aria-label={t('swNlAria')} style={{ flex: 1, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.22)', borderRadius: 14, padding: '15px 18px', fontSize: 15, color: '#fff', outline: 'none' }} />
-                <button type="submit" className="btn-clay" disabled={nlSub.busy} aria-busy={nlSub.busy} style={{ flexShrink: 0 }}>{t('swNlSubscribe')}</button>
-              </div>
-              <Honeypot value={nlHp} onChange={setNlHp} />
-              {nlErr && <div id="nl-err" role="alert" className="form-error" style={{ color: '#ffd3c4' }}>{nlErr}</div>}
-              <FormNotice kind="newsletter" lang={lang} style={{ color: 'rgba(255,255,255,.7)', marginTop: 10 }} />
-              </form>
-            )}
+          <div className="visit-band__side">
+            <div className="visit-band__actions">
+              <Link to="/booking" className="btn-clay">{t('bookConsult')}</Link>
+              <a href={FACTS.whatsappHref} className="btn-line">{t('whatsappShort')}</a>
+            </div>
+            <div className="visit-band__meta">
+              <span><Icon name="phone" size={18} /><a href={FACTS.phoneHref} style={{ color: 'inherit' }}><bdi dir="ltr">{FACTS.phone}</bdi></a></span>
+              <span><Icon name="clock" size={18} />{FACTS.hours[ar ? 'ar' : 'en']}</span>
+            </div>
           </div>
-        </div>
-      </section>
-
-      {/* Cinematic CTA — full-width hero banner */}
-      <section style={{ position: 'relative', overflow: 'hidden', background: '#15110e' }}>
-        <Photo src={HOME_IMG.hero} alt="" par=".08" style={{ position: 'absolute', inset: '-10%', opacity: .42 }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(120% 90% at 50% 18%, rgba(20,16,12,.35), rgba(20,16,12,.9) 78%)' }} />
-        <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .07, mixBlendMode: 'overlay', backgroundImage: NOISE }} />
-        <div className="rv" style={{ position: 'relative', zIndex: 2, maxWidth: 720, margin: '0 auto', textAlign: 'center', padding: `${mobile ? 84 : 140}px ${P}` }}>
-          <div className="eyebrow" style={{ color: '#E7BBA0', marginBottom: 18, justifyContent: 'center' }}>{cms('home.cta.eyebrow', 'Start your project')}</div>
-          <h2 className="display" style={{ color: '#fff', fontSize: mobile ? 36 : 64, lineHeight: 1.05, letterSpacing: '-.02em', marginBottom: 18 }}>{cms('home.cta.title', 'Let’s design your space.')}</h2>
-          <p style={{ color: 'rgba(255,255,255,.82)', fontSize: mobile ? 16 : 19, lineHeight: 1.6, marginBottom: 34, maxWidth: 520, marginLeft: 'auto', marginRight: 'auto' }}>{cms('home.cta.subtitle', 'Book a free home consultation — no obligation, just ideas, measured and quoted by our own team.')}</p>
-          <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button type="button" className="btn-clay" onClick={() => setPage('contact')} style={{ fontSize: 16, padding: '16px 32px' }}>{cms('home.cta.button', 'Book a consultation →')}</button>
-            <button type="button" onClick={() => setPage('planner')} style={{ background: 'rgba(255,255,255,.1)', color: '#fff', border: '1px solid rgba(255,255,255,.45)', borderRadius: 14, padding: '15px 30px', fontSize: 16, fontWeight: 500, cursor: 'pointer', minHeight: 50, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>{t('swCtaDesignOnline')}</button>
-          </div>
-          <div style={{ marginTop: 26, color: 'rgba(255,255,255,.55)', fontSize: 13, letterSpacing: '.03em' }}>{t('swCtaTrust')}</div>
         </div>
       </section>
 
       <CampaignPill cfg={ikh} lang={lang} />
-      {mobile && <div style={{ height: 80 }} />}
     </div>
   );
 }
 
 const YAS_DISCLAIMER = 'AI impression — confirmed at your free design consultation.';
+// Newsletter: quiet one-line form in the footer (moved off the home page). Success is shown ONLY once the server confirmed it.
+function FooterNewsletter({ lang }) {
+  const { t } = useI18n();
+  const [email, setEmail] = useState(''); const [done, setDone] = useState(false);
+  const sub = useSubmit(); const [err, setErr] = useState(''); const [hp, setHp] = useState('');
+  const go = async () => {
+    setErr('');
+    if (isBot(hp)) { setDone(true); return; }
+    const v = validateForm({ email }, { email: { type:'email', required:true } }, lang);
+    if (!v.ok) { setErr(v.errors.email); toast(t('swNlInvalid'), 'error'); return; }
+    const res = await sub.run((signal) => api('rpc/public_lead_submit', { method:'POST', signal, body: { p_name:'Newsletter subscriber', p_phone:null, p_email:v.clean.email, p_source:'Website newsletter', p_interest:'Newsletter', p_message:null, p_meta:{ type:'newsletter' } } }));
+    if (res.ok) { setDone(true); setEmail(''); toast(t('swNlWelcome'), 'success'); }
+    else if (res.offline) setErr(vmsg('offline', lang));
+    else if (!res.skipped) setErr(vmsg('failed', lang));
+  };
+  if (done) return <p className="nl-done" role="status">{t('swNlOnList')} {t('swNlThanks')}</p>;
+  return (
+    <form noValidate onSubmit={e => { e.preventDefault(); go(); }} className="nl">
+      <label htmlFor="nl-email" className="field-label">{t('swNlTitle')}</label>
+      <div className="nl__row">
+        <input id="nl-email" aria-label={t('swNlPlaceholder')} className="inp" type="email" inputMode="email" autoComplete="email" maxLength={254} value={email} onChange={e => setEmail(e.target.value)} aria-invalid={err ? 'true' : undefined} aria-describedby={err ? 'nl-err' : undefined} placeholder={t('swNlPlaceholder')} />
+        <button type="submit" className="btn-ink" disabled={sub.busy} aria-busy={sub.busy}>{t('swNlSubscribe')}</button>
+      </div>
+      <Honeypot value={hp} onChange={setHp} />
+      {err && <div id="nl-err" role="alert" className="field-error">{err}</div>}
+      <FormNotice kind="newsletter" lang={lang} style={{ marginTop: 8 }} />
+    </form>
+  );
+}
 function SiteFooter({ setPage, siteLogo }) {
-  const mobile=useMobile();
   const { t, lang } = useI18n();
   const logo = cms('header.logo', '') || siteLogo;
-  const col=(title,items)=>(<div><div style={{ fontSize:12, fontWeight:700, color:'var(--ink)', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:14 }}>{title}</div>{items.map(([label,go])=>(<Link to={pageToPath(go)} key={label} style={{ display:'block', color:'var(--ink-soft)', fontSize:14, padding:'6px 0', textAlign:'left', textDecoration:'none' }}>{trLabel(label, lang)}</Link>))}</div>);
-  // Only verified profiles are linked. Instagram handle confirmed as @theclosets
-  // (business phone 17555095 matches this site). Facebook/Pinterest/YouTube were
-  // placeholder links to bare domains — removed until real profile URLs exist.
-  const social=[
-    ['Instagram','https://www.instagram.com/theclosets/','M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm5-2.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2z'],
-  ];
-  return (<footer style={{ borderTop:'1px solid var(--line)', background:'var(--sand)', padding: mobile?'48px 18px 132px':'72px 40px 116px' }}>
-    <div style={{ maxWidth:1280, margin:'0 auto' }}>
-      <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'2fr 1fr 1fr 1fr 1fr', gap: mobile?28:48 }}>
-        <div style={{ gridColumn: mobile?'1 / -1':'auto' }}>
-          <div className="display" style={{ fontSize:22, color:'var(--ink)' }}>{cms('footer.brand', 'The Closets Co.')}</div>
-          <div style={{ fontSize:14, color:'var(--ink-soft)', marginTop:12, lineHeight:1.65, maxWidth:300 }}>{cms('footer.blurb', t('footBlurb'))}</div>
-          <div style={{ display:'flex', gap:14, marginTop:18, flexWrap:'wrap' }}>
-            <button type="button" onClick={()=>setPage('booking')} className="btn-clay" style={{ padding:'12px 22px', fontSize:14 }}>{cms('footer.cta.book', t('bookFreeVisit'))}</button>
-            <a href="https://wa.me/97317555095" style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:980, padding:'11px 18px', fontSize:13.5, fontWeight:600, textDecoration:'none' }}>{cms('footer.cta.whatsapp', t('whatsappUs'))}</a>
-            <a href="https://closets-hub.vercel.app/team.html" target="_blank" rel="noreferrer" style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:980, padding:'11px 18px', fontSize:13.5, fontWeight:600, textDecoration:'none' }}>{cms('footer.cta.team', t('meetTeam'))}</a>
+  return (<footer className="site-footer">
+    <div className="container">
+      <div className="footer__grid">
+        <div className="footer__brand">
+          {logo ? <img src={logo} alt="The Closets" style={{ height: 28, width: 'auto' }} /> : <span className="brand__word">{cms('footer.brand', lang==='ar' ? 'ذا كلوزتس' : 'The Closets')}</span>}
+          <p>{cms('footer.blurb', t('footTagline'))}</p>
+          <div className="footer__contact">
+            <a href={FACTS.phoneHref}><Icon name="phone" /><bdi dir="ltr">{FACTS.phone}</bdi></a>
+            <a href={FACTS.whatsappHref}><Icon name="chat" />{t('whatsappShort')}</a>
+            <a href={'mailto:' + FACTS.email}><Icon name="mail" /><bdi dir="ltr">{FACTS.email}</bdi></a>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:8 }}><Icon name="clock" style={{ width:18, height:18, color:'var(--c-metal-text)' }} />{FACTS.hours[lang==='ar'?'ar':'en']}</span>
           </div>
+          <FooterNewsletter lang={lang} />
         </div>
-        {col(cms('footer.col1.title',t('footHelp')),[['✨ AI YAS','ai-yas'],['How it works','how-it-works'],['FAQ','faq'],['Delivery & install','contact'],['Warranty service','warranty'],['Maintenance','maintenance'],['Reviews','projects'],['Contact us','contact']])}
-        {col(cms('footer.col2.title',t('footWaysShop')),[['Book an appointment','booking'],['Request a brochure','contact'],['Finance & payment','booking'],['Find a showroom','showrooms'],['Recommend a friend','contact']])}
-        {col(cms('footer.col3.title',t('footAbout')),[['About The Closets','about'],['Why The Closets','about'],['Careers','careers'],['Offers','offers'],['Sitemap','products']])}
-        {/* My Closets — account column (parity with Customer Hub) */}
-        <div>
-          <div style={{ fontSize:12, fontWeight:700, color:'var(--ink)', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:14 }}>{t('footMyClosets')}</div>
-          {[['My account','portal'],['My orders','portal'],['My designs','portal'],['My rewards','portal'],['Track a request','portal'],['Book a visit','booking']].map(([label,go])=>(
-            <button type="button" key={label} onClick={()=>setPage(go)} style={{ display:'block', background:'none', border:'none', cursor:'pointer', color:'var(--ink-soft)', fontSize:14, padding:'6px 0', textAlign:'left' }}>{trLabel(label, lang)}</button>
-          ))}
-          <a href="https://closets-hub.vercel.app/customer.html" target="_blank" rel="noopener" style={{ display:'block', color:'var(--clay)', fontSize:14, fontWeight:600, padding:'8px 0 0', textDecoration:'none' }}>{t('footCustomerHub')} {lang==='ar' ? '←' : '→'}</a>
-        </div>
+        <FooterSitemap lang={lang} />
       </div>
-
-      <FooterSitemap lang={lang} />
-
-      {/* Support — external link (Staff login removed from public footer) */}
-      <div style={{ display:'flex', gap:18, marginTop:24, flexWrap:'wrap' }}>
-        <a href="https://closets-hub.vercel.app/form.html" target="_blank" rel="noopener" style={{ color:'var(--ink-soft)', fontSize:14, textDecoration:'none' }}>{t('footSupport')}</a>
-      </div>
-
-      {/* Social row */}
-      <div style={{ display:'flex', alignItems:'center', gap:12, marginTop:40, flexWrap:'wrap' }}>
-        <span style={{ fontSize:13, fontWeight:600, color:'var(--ink)' }}>{cms('footer.social.title', t('footFollow'))}</span>
-        {social.map(([name,href,d])=>(
-          <a key={name} href={href} aria-label={name} target="_blank" rel="noreferrer" style={{ width:38, height:38, borderRadius:'50%', background:'#fff', border:'1px solid var(--line)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--ink)' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={d}/></svg>
-          </a>
-        ))}
-      </div>
-
-      {/* Trust / accreditation badges */}
-      <div style={{ display:'flex', gap:10, marginTop:24, flexWrap:'wrap' }}>
-        {[t('swFootBadgeWorkshop'),t('swFootBadge2yr'),t('swFootBadgeFreeDesign'),t('swFootBadgeInstall'),t('swFootBadge15')].map(b=>(
-          <span key={b} style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'8px 14px', fontSize:12.5, fontWeight:600, color:'var(--ink-soft)' }}><span style={{ color:'var(--clay)' }}>✦</span>{b}</span>
-        ))}
-      </div>
-
-      {/* Slim glass bar — Option C · translucent one-line footer, clears the floating nav + AI button */}
-      <div style={{
-        marginTop:40,
-        display:'flex', alignItems:'center', justifyContent:'space-between',
-        flexDirection: mobile?'column':'row', gap: mobile?14:20,
-        background:'rgba(255,255,255,.72)',
-        backdropFilter:'blur(20px) saturate(180%)', WebkitBackdropFilter:'blur(20px) saturate(180%)',
-        border:'1px solid var(--line)', borderRadius:18,
-        padding: mobile?'16px 18px':'14px 22px',
-        boxShadow:'0 8px 30px rgba(0,0,0,.06)'
-      }}>
-        {/* Left — Closets logo + copyright + 365Neo credit */}
-        <div style={{ display:'flex', alignItems:'center', gap:12, flexWrap:'wrap', justifyContent: mobile?'center':'flex-start' }}>
-          {logo
-            ? <img src={logo} alt="The Closets" style={{ height:26, width:'auto', maxWidth:110, objectFit:'contain' }} />
-            : <span className="display" style={{ fontSize:16, color:'var(--ink)' }}>{cms('footer.brand', 'The Closets Co.')}</span>}
-          <span style={{ fontSize:12.5, color:'var(--muted)', lineHeight:1.5, textAlign: mobile?'center':'left' }}>
-            {cms('footer.copyright', '© 2026 The Closets Co. W.L.L. — Manama, Bahrain')}
-            <span style={{ margin:'0 8px', opacity:.45 }}>·</span>
-            {t('devBy')} <a href="https://www.365neo.com" target="_blank" rel="noopener" lang="en" dir="ltr" style={{ color:'var(--clay)', textDecoration:'none', fontWeight:600 }}>365Neo Digital Services</a>
-          </span>
-        </div>
-        {/* Right — contact + legal */}
-        <div style={{ display:'flex', alignItems:'center', gap:14, flexWrap:'wrap', justifyContent: mobile?'center':'flex-end', fontSize:12.5 }}>
-          <a href="tel:+97317555095" className="hit44" style={{ color:'var(--ink-soft)', textDecoration:'none' }}><bdi dir="ltr">+973 17555095</bdi></a>
-          <span style={{ opacity:.35 }}>·</span>
-          <Link to="/privacy" className="hit44" style={{ color:'var(--muted)', textDecoration:'none' }}>{t('legalPrivacy')}</Link>
-          <Link to="/terms" className="hit44" style={{ color:'var(--muted)', textDecoration:'none' }}>{t('legalTerms')}</Link>
-          <button type="button" className="hit44" onClick={openConsentSettings} style={{ background:'none', border:'none', padding:0, cursor:'pointer', font:'inherit', color:'var(--muted)', textDecoration:'none' }}>{lang==='ar' ? 'إعدادات الخصوصية' : 'Privacy settings'}</button>
-        </div>
+      <div className="footer__legal">
+        <span>{cms('footer.copyright', '© 2026 The Closets Co. W.L.L.')}</span>
+        <nav aria-label={lang==='ar' ? 'روابط قانونية' : 'Legal'}>
+          <Link to="/privacy">{t('legalPrivacy')}</Link>
+          <Link to="/terms">{t('legalTerms')}</Link>
+          <button type="button" onClick={openConsentSettings}>{t('footPrivacyChoices')}</button>
+          <Link to="/portal">{t('footAccount')}</Link>
+          <a href={FACTS.instagram} target="_blank" rel="noopener noreferrer">Instagram</a>
+        </nav>
+        <span className="footer__credit">{t('footCredit')} <a href="https://www.365neo.com" target="_blank" rel="noopener noreferrer" lang="en" dir="ltr">365Neo Digital Services</a></span>
       </div>
     </div>
   </footer>);
@@ -4000,6 +3408,9 @@ function ChatWidget({ setPage }) {
   const [msgs, setMsgs] = useState([{ role:'assistant', content:t('swChatHello') }]);
   const listRef = useRef(null);
   const btnRef = useRef(null);
+  // [DESIGN] the chat bubble never covers the hero: it appears only after the visitor has scrolled past the first screen.
+  const [seen, setSeen] = useState(false);
+  useEffect(() => { const h = () => { if (window.scrollY > Math.max(480, window.innerHeight * .6)) setSeen(true); }; h(); window.addEventListener('scroll', h, { passive:true }); return () => window.removeEventListener('scroll', h); }, []);
   useEffect(() => { if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight; }, [msgs, open, busy]);
   const send = async (text) => {
     const q = (text ?? input).trim(); if (!q || busy) return;
@@ -4019,26 +3430,23 @@ function ChatWidget({ setPage }) {
     { key:'showrooms', label:t('swChatChipShowrooms') },
   ];
   return (<aside aria-label={t('swChatAria')}>
-    <button type="button" ref={btnRef} onClick={()=>setOpen(o=>!o)} aria-expanded={open} aria-haspopup="dialog" aria-label={t('swChatAria')} style={{ position:'fixed', right: mobile?16:24, bottom: mobile?88:24, zIndex:1400, width:56, height:56, borderRadius:'50%', background:'var(--clay)', border:'none', boxShadow:'0 6px 20px rgba(168,75,41,.4)', cursor:'pointer', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center' }}>
-      {open
-        ? <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-        : <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5z"/></svg>}
-      {!open && <span style={{ position:'absolute', top:-3, right:-3, background:'var(--ink)', color:'#fff', fontSize:10, fontWeight:700, borderRadius:999, padding:'1px 6px', lineHeight:1.4 }}>AI</span>}
+    <button type="button" ref={btnRef} onClick={()=>setOpen(o=>!o)} aria-expanded={open} aria-haspopup="dialog" aria-label={t('swChatAria')} className={'chat-fab' + ((open || seen) ? ' is-in' : '')} tabIndex={(open || seen) ? 0 : -1}>
+      <Icon name={open ? 'close' : 'chat'} />
     </button>
     {open && (
-      <div role="dialog" aria-label={t('swChatTitle')} onKeyDown={e=>{ if (e.key==='Escape') { e.stopPropagation(); setOpen(false); if (btnRef.current) btnRef.current.focus(); } }} style={{ position:'fixed', right: mobile?10:24, bottom: mobile?150:92, zIndex:1400, width: mobile?'calc(100vw - 20px)':380, maxWidth:'calc(100vw - 20px)', height:520, maxHeight:'70vh', background:'#fff', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,.22)', border:'1px solid #ececec', display:'flex', flexDirection:'column', overflow:'hidden' }}>
-        <div style={{ background:'var(--shop-ink, #1d1d1f)', color:'#fff', padding:'14px 18px' }}>
+      <div role="dialog" aria-label={t('swChatTitle')} onKeyDown={e=>{ if (e.key==='Escape') { e.stopPropagation(); setOpen(false); if (btnRef.current) btnRef.current.focus(); } }} style={{ position:'fixed', right: mobile?10:24, bottom: mobile?150:92, zIndex:1400, width: mobile?'calc(100vw - 20px)':380, maxWidth:'calc(100vw - 20px)', height:520, maxHeight:'70vh', background:'var(--c-surface)', borderRadius:'var(--radius-xl)', boxShadow:'0 20px 60px rgba(0,0,0,.22)', border:'1px solid #ececec', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+        <div style={{ background:'var(--shop-ink)', color:'#fff', padding:'14px 18px' }}>
           <div style={{ fontWeight:600, fontSize:15, display:'flex', alignItems:'center', gap:8 }}><Spark size={16} color="#F9A35C" /> {t('swChatTitle')}</div>
           <div style={{ fontSize:12, color:'#bdbdbd', marginTop:2 }}>{t('swChatSubtitle')}</div>
           <AiNotice style={{ color:'#bdbdbd', marginTop:4, fontSize:11.5 }} />
         </div>
         <div ref={listRef} role="log" aria-live="polite" style={{ flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:10, background:'#fafafa' }}>
-          {msgs.map((m,i)=>(<div key={i} style={{ alignSelf: m.role==='user'?'flex-end':'flex-start', maxWidth:'85%', background: m.role==='user'?'var(--clay)':'#fff', color: m.role==='user'?'#fff':'var(--shop-ink, #1d1d1f)', border: m.role==='user'?'none':'1px solid #ececec', borderRadius:14, padding:'10px 13px', fontSize:14, lineHeight:1.5, whiteSpace:'pre-wrap' }}>{m.content}</div>))}
-          {busy && <div style={{ alignSelf:'flex-start', color:'#aaa', fontSize:13, padding:'4px 6px' }}>{t('swChatTyping')}</div>}
-          {msgs.length<=1 && <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>{chips.map(c=>(<button key={c.key} type="button" onClick={()=>{ if(c.key==='book'){ setOpen(false); setPage('booking'); } else send(c.label); }} style={{ fontSize:12, border:'1px solid #e0e0e0', borderRadius:16, padding:'6px 12px', background:'#fff', cursor:'pointer', color:'var(--shop-ink, #1d1d1f)' }}>{c.label}</button>))}</div>}
+          {msgs.map((m,i)=>(<div key={i} style={{ alignSelf: m.role==='user'?'flex-end':'flex-start', maxWidth:'85%', background: m.role==='user'?'var(--clay)':'#fff', color: m.role==='user'?'#fff':'var(--shop-ink)', border: m.role==='user'?'none':'1px solid #ececec', borderRadius:'var(--radius-lg)', padding:'10px 13px', fontSize:14, lineHeight:1.5, whiteSpace:'pre-wrap' }}>{m.content}</div>))}
+          {busy && <div style={{ alignSelf:'flex-start', color:'var(--c-text-3)', fontSize:13, padding:'4px 6px' }}>{t('swChatTyping')}</div>}
+          {msgs.length<=1 && <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>{chips.map(c=>(<button key={c.key} type="button" onClick={()=>{ if(c.key==='book'){ setOpen(false); setPage('booking'); } else send(c.label); }} style={{ fontSize:12, border:'1px solid #e0e0e0', borderRadius:'var(--radius-lg)', padding:'6px 12px', background:'var(--c-surface)', cursor:'pointer', color:'var(--shop-ink)' }}>{c.label}</button>))}</div>}
         </div>
         <div style={{ display:'flex', gap:8, padding:'12px', borderTop:'1px solid #ececec' }}>
-          <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter') send(); }} aria-label={t('swChatPlaceholder')} placeholder={t('swChatPlaceholder')} style={{ flex:1, border:'1px solid #e0e0e0', borderRadius:980, padding:'10px 16px', fontSize:14, outline:'none' }} />
+          <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter') send(); }} aria-label={t('swChatPlaceholder')} placeholder={t('swChatPlaceholder')} style={{ flex:1, border:'1px solid #e0e0e0', borderRadius:'var(--radius-pill)', padding:'10px 16px', fontSize:14, outline:'none' }} />
           <button type="button" onClick={()=>send()} disabled={busy||!input.trim()} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:'50%', width:40, height:40, cursor:'pointer', flexShrink:0, opacity:(busy||!input.trim())?0.5:1 }}><SendIcon size={18} color="#fff" /></button>
         </div>
       </div>
@@ -4059,7 +3467,7 @@ class PageBoundary extends Component {
       <div style={{ minHeight:'60vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'120px 24px', textAlign:'center' }}>
         <div style={{ fontSize:18, fontWeight:700, color:'var(--ink)', marginBottom:8 }}>{tr('swErrTitle')}</div>
         <div style={{ fontSize:14, color:'var(--ink-soft)', maxWidth:420, marginBottom:18 }}>{tr('swErrBody')}</div>
-        <button type="button" className="btn-clay" onClick={()=>this.setState({ err:null })} style={{ borderRadius:12 }}>{tr('swErrTryAgain')}</button>
+        <button type="button" className="btn-clay" onClick={()=>this.setState({ err:null })} style={{ borderRadius:'var(--radius-md)' }}>{tr('swErrTryAgain')}</button>
         <div style={{ marginTop:14, fontSize:11, color:'var(--muted)', maxWidth:520, wordBreak:'break-word' }}>{String((this.state.err&&(this.state.err.message||this.state.err))||'').slice(0,200)}</div>
       </div>
     );
@@ -4310,25 +3718,25 @@ function PlannerLoginGate({ openAuth, setPage, lang }) {
   return (
     <div style={{ minHeight:'70vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'60px 20px' }}>
       <div style={{ maxWidth:560, textAlign:'center' }}>
-        <div style={{ fontSize:52, marginBottom:18 }}>🧩</div>
-        <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(28px,4vw,42px)', lineHeight:1.15, margin:'0 0 14px', color:'var(--ink,#1a1a1a)' }}>
+        <Icon name="puzzle" style={{ width:48, height:48, color:'var(--c-metal-text)', marginBottom:18 }} />
+        <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(28px,4vw,42px)', lineHeight:1.15, margin:'0 0 14px', color:'var(--ink)' }}>
           {g('title')}
         </h1>
-        <p style={{ fontSize:16, lineHeight:1.7, color:'var(--muted,#6b6b6b)', margin:'0 0 12px' }}>{g('body')}</p>
-        <p style={{ fontSize:14, lineHeight:1.7, color:'var(--muted,#8a8a8a)', margin:'0 0 30px' }}>{g('why')}</p>
+        <p style={{ fontSize:16, lineHeight:1.7, color:'var(--muted)', margin:'0 0 12px' }}>{g('body')}</p>
+        <p style={{ fontSize:14, lineHeight:1.7, color:'var(--muted)', margin:'0 0 30px' }}>{g('why')}</p>
         <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
           <button type="button" className="btn-clay" onClick={() => openAuth('register')}
             style={{ fontSize:16, padding:'15px 30px' }}>
             {g('create')}
           </button>
           <button type="button" onClick={() => openAuth('login')}
-            style={{ background:'#fff', border:'1px solid var(--line,#e2e2e2)', borderRadius:980, padding:'15px 30px',
-                     fontSize:16, fontWeight:500, color:'var(--ink,#1a1a1a)', cursor:'pointer' }}>
+            style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-pill)', padding:'15px 30px',
+                     fontSize:16, fontWeight:500, color:'var(--ink)', cursor:'pointer' }}>
             {g('signIn')}
           </button>
         </div>
         <button type="button" onClick={() => setPage('home')}
-          style={{ marginTop:26, background:'none', border:'none', color:'var(--muted,#8a8a8a)',
+          style={{ marginTop:26, background:'none', border:'none', color:'var(--muted)',
                    fontSize:14, cursor:'pointer', textDecoration:'underline' }}>
           {g('back')}
         </button>
@@ -4540,7 +3948,7 @@ function AppInner() {
       {page==='home' && <HomePage user={user} banners={banners} siteLogo={siteLogo} products={products} testimonials={testimonials} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
       {page==='products' && <ProductsPage products={products} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
       {productId && <ProductDetailPage productId={productId} products={products} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
-      {page==='portal' && (user ? <HomeHub user={user} setUser={setUser} setPage={setPage} /> : <div style={{ paddingTop:120, textAlign:'center', padding:'120px 24px' }}><button type="button" className="btn" onClick={()=>openAuth('login')} style={{ borderRadius:14 }}>{I18N.signInHub[lang]||I18N.signInHub.en}</button></div>)}
+      {page==='portal' && (user ? <HomeHub user={user} setUser={setUser} setPage={setPage} /> : <div style={{ paddingTop:120, textAlign:'center', padding:'120px 24px' }}><button type="button" className="btn" onClick={()=>openAuth('login')} style={{ borderRadius:'var(--radius-lg)' }}>{I18N.signInHub[lang]||I18N.signInHub.en}</button></div>)}
       {page==='checkout' && <CheckoutPage cart={cart} setCart={setCart} user={user} setPage={setPage} />}
       {page==='about' && <AboutPage setPage={setPage} />}
       {page==='how-it-works' && <PlannerGuidePage setPage={setPage} />}

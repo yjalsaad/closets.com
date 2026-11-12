@@ -22,7 +22,7 @@ export default function NotFound({ lang }) {
         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
           {LINKS.map((k) => (
             <li key={k}>
-              <LangLink to={BY_PAGE[k].path} style={{ display: 'inline-block', padding: '9px 18px', border: '1px solid var(--line)', borderRadius: 980, background: '#fff', color: 'var(--ink)', textDecoration: 'none', fontSize: 14 }}>{BY_PAGE[k].label[L]}</LangLink>
+              <LangLink to={BY_PAGE[k].path} style={{ display: 'inline-block', padding: '9px 18px', border: '1px solid var(--line)', borderRadius: 'var(--radius-pill)', background: 'var(--c-surface)', color: 'var(--ink)', textDecoration: 'none', fontSize: 14 }}>{BY_PAGE[k].label[L]}</LangLink>
             </li>
           ))}
         </ul>

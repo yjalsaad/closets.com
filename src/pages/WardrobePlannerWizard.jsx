@@ -307,8 +307,8 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
 
   // ── styles (mirrors the kitchen / door wizards) ──
   const HEADER = mobile?72:104, BAR=52;
-  const inS = { width:'100%', padding:'9px 11px', border:'1px solid var(--line)', background:'#fff', borderRadius:10, fontSize:14, fontFamily:'inherit', color:'var(--ink)', boxSizing:'border-box' };
-  const card = (on) => ({ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'11px 13px', cursor:'pointer', fontFamily:'inherit' });
+  const inS = { width:'100%', padding:'9px 11px', border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', fontSize:14, fontFamily:'inherit', color:'var(--ink)', boxSizing:'border-box' };
+  const card = (on) => ({ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:'var(--radius-md)', padding:'11px 13px', cursor:'pointer', fontFamily:'inherit' });
   const labelS = { fontSize:11.5, fontWeight:600, color:'var(--ink-soft)', marginBottom:4, display:'block' };
   const sectionH = (n,t,s) => (<div style={{ marginBottom:14 }}><h3 className="display" style={{ fontSize:19, color:'var(--ink)', margin:'0 0 3px' }}>{n} · {t}</h3>{s&&<p style={{ fontSize:13, color:'var(--ink-soft)', margin:0 }}>{s}</p>}</div>);
   const numField = (lbl, val, set, min, max, unit='mm') => (
@@ -321,9 +321,9 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
   );
   const stepper = (val, set, min=0) => (
     <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-      <button type="button" onClick={()=>set(Math.max(min,val-1))} style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--line)', background:'#fff', cursor:'pointer' }}>−</button>
+      <button type="button" onClick={()=>set(Math.max(min,val-1))} style={{ width:26, height:26, borderRadius:'var(--radius-sm)', border:'1px solid var(--line)', background:'var(--c-surface)', cursor:'pointer' }}>−</button>
       <span style={{ minWidth:18, textAlign:'center', fontSize:13, fontWeight:600 }}>{val}</span>
-      <button type="button" onClick={()=>set(val+1)} style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--line)', background:'#fff', cursor:'pointer' }}>+</button>
+      <button type="button" onClick={()=>set(val+1)} style={{ width:26, height:26, borderRadius:'var(--radius-sm)', border:'1px solid var(--line)', background:'var(--c-surface)', cursor:'pointer' }}>+</button>
     </div>
   );
 
@@ -456,7 +456,7 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
       ...accItems.map(a=>`<tr><td>${a.name} ×${a.qty}</td><td style="text-align:right">${fmt(a.line)}</td></tr>`),
       ...lightItems.map(l=>`<tr><td>${l.name}</td><td style="text-align:right">${fmt(l.price)}</td></tr>`),
     ].join('');
-    w.document.write(`<html><head><title>Wardrobe Quotation</title><style>body{font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}.ai{background:#f6efe6;border-radius:10px;padding:10px 14px;margin:12px 0;font-size:12px;color:#6b5440}</style></head><body>
+    w.document.write(`<html><head><title>Wardrobe Quotation</title><style>body{font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}.ai{background:#f6efe6;border-radius:10px;padding:10px 14px;margin:12px 0;font-size:12px;color:#6b5440}</style></head><body>
       <h1>The Closets — Wardrobe Quotation</h1>
       <p class="muted">${room.name} · ${lay.name} layout · Room ${dims.width}×${dims.length}×${dims.height}mm · ${carc.name} carcass · ${fin.name} finish</p>
       <div class="ai"><b>AI storage allocation:</b> ${pctStr}</div>
@@ -472,10 +472,10 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
   const previewPane = (h3d, h2d) => (
     <div style={{ display:'flex', flexDirection:'column', gap:10, height:'100%' }}>
       <div style={{ display:'flex', gap:6 }}>
-        <button type="button" onClick={()=>setView3d(false)} style={{ flex:1, padding:'6px', borderRadius:9, fontSize:12, fontWeight:600, cursor:'pointer', border:'none', background:!view3d?'var(--clay)':'var(--sand)', color:!view3d?'#fff':'var(--ink-soft)' }}>{t('p2dPlan')}</button>
-        <button type="button" onClick={()=>setView3d(true)} style={{ flex:1, padding:'6px', borderRadius:9, fontSize:12, fontWeight:600, cursor:'pointer', border:'none', background:view3d?'var(--clay)':'var(--sand)', color:view3d?'#fff':'var(--ink-soft)' }}>{t('p3dView')}</button>
+        <button type="button" onClick={()=>setView3d(false)} style={{ flex:1, padding:'6px', borderRadius:'var(--radius-sm)', fontSize:12, fontWeight:600, cursor:'pointer', border:'none', background:!view3d?'var(--clay)':'var(--sand)', color:!view3d?'#fff':'var(--ink-soft)' }}>{t('p2dPlan')}</button>
+        <button type="button" onClick={()=>setView3d(true)} style={{ flex:1, padding:'6px', borderRadius:'var(--radius-sm)', fontSize:12, fontWeight:600, cursor:'pointer', border:'none', background:view3d?'var(--clay)':'var(--sand)', color:view3d?'#fff':'var(--ink-soft)' }}>{t('p3dView')}</button>
       </div>
-      <div style={{ background:'var(--sand)', borderRadius:12, overflow:'hidden', flex:1, minHeight:0 }}>
+      <div style={{ background:'var(--sand)', borderRadius:'var(--radius-md)', overflow:'hidden', flex:1, minHeight:0 }}>
         {view3d
           ? <div style={{ height:'100%', minHeight:h3d }}><Wardrobe3D product={view3dProduct||undefined} layout={view3dLayout} finishHex={finishHex} glass={hasGlass} handles={isHinged} led={lighting.length>0} widthCm={widthCm} heightCm={dims.height/10} depthCm={(lp.depth||dims.depth)/10} mobile={mobile} preset="iso" /></div>
           : planView(h2d)}
@@ -506,30 +506,30 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
           {numField(t('fCeilingHeight'), dims.height, v=>setDims(d=>({...d,height:v})), 2000, 4000)}
           {numField(t('fWardrobeDepth'), dims.depth, v=>setDims(d=>({...d,depth:v})), 400, 900)}
           {(dims.depth<500||dims.depth>700) && <div style={{ fontSize:12, color:'var(--muted)' }}>Recommended depth 550–650mm (hanging needs 600mm).</div>}
-          {(dims.width<600||dims.length<600||dims.height<2000||dims.depth<400) && <div style={{ fontSize:12, color:'var(--danger,#b91c1c)' }}>Width & length need ≥600mm, ceiling ≥2000mm, depth ≥400mm.</div>}
+          {(dims.width<600||dims.length<600||dims.height<2000||dims.depth<400) && <div style={{ fontSize:12, color:'var(--danger)' }}>Width & length need ≥600mm, ceiling ≥2000mm, depth ≥400mm.</div>}
         </div></>);
       case 2: return (<>{sectionH('3',t('shW2t'),t('shW2s'))}
         <div style={{ display:'grid', gap:9 }}>
           {cons.map((o)=>(
-            <div key={o.id} style={{ border:'1px solid var(--line)', borderRadius:11, padding:'9px 10px', background:'#fff' }}>
+            <div key={o.id} style={{ border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'9px 10px', background:'var(--c-surface)' }}>
               <div style={{ display:'grid', gridTemplateColumns:'1.2fr 1fr 1fr auto', gap:7, alignItems:'end' }}>
                 <label><span style={labelS}>{t('fType')}</span>
                   <select value={o.type} onChange={e=>setCons(cs=>cs.map(x=>x.id===o.id?{...x,type:e.target.value}:x))} style={inS}>{WW_CONSTRAINT_TYPES.map(t=><option key={t}>{t}</option>)}</select></label>
                 <label><span style={labelS}>{t('fPosition')}</span><input type="number" value={o.pos} onChange={e=>setCons(cs=>cs.map(x=>x.id===o.id?{...x,pos:Number(e.target.value)}:x))} style={inS} /></label>
                 <label><span style={labelS}>{t('fWidth')}</span><input type="number" value={o.width} onChange={e=>setCons(cs=>cs.map(x=>x.id===o.id?{...x,width:Number(e.target.value)}:x))} style={inS} /></label>
-                <button type="button" onClick={()=>setCons(cs=>cs.filter(x=>x.id!==o.id))} style={{ background:'none', border:'1px solid var(--line)', borderRadius:9, padding:'9px 11px', cursor:'pointer', color:'var(--muted)' }}>✕</button>
+                <button type="button" onClick={()=>setCons(cs=>cs.filter(x=>x.id!==o.id))} style={{ background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-sm)', padding:'9px 11px', cursor:'pointer', color:'var(--muted)' }}>✕</button>
               </div>
             </div>))}
-          <button type="button" onClick={()=>setCons(cs=>[...cs,{ id:uid(), type:'Window', pos:1500, width:1000 }])} style={{ border:'1px dashed var(--line)', borderRadius:11, padding:'10px', background:'var(--sand)', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--clay-deep)' }}>{t('vAddConstraint')}</button>
+          <button type="button" onClick={()=>setCons(cs=>[...cs,{ id:uid(), type:'Window', pos:1500, width:1000 }])} style={{ border:'1px dashed var(--line)', borderRadius:'var(--radius-md)', padding:'10px', background:'var(--sand)', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--clay-deep)' }}>{t('vAddConstraint')}</button>
         </div></>);
       case 3: return (<>{sectionH('4',t('shW3t'),t('shW3s'))}
-        <button type="button" onClick={()=>setRdOpen(true)} className="btn-clay" style={{ borderRadius:12, marginBottom:16, display:'inline-flex', alignItems:'center', gap:8 }}>{t('pOpenRoomDesigner')}</button>
+        <button type="button" onClick={()=>setRdOpen(true)} className="btn-clay" style={{ borderRadius:'var(--radius-md)', marginBottom:16, display:'inline-flex', alignItems:'center', gap:8 }}>{t('pOpenRoomDesigner')}</button>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?14:18, marginBottom:18 }}>
           {wwLayoutsView.map(l=>{ const on=layout===l.id; return (
-            <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:16, boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
-              <div style={{ position:'relative', width:'100%', aspectRatio:'1017 / 602', background:'var(--cream,#f5f1ea)', overflow:'hidden' }}>
+            <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:'var(--radius-lg)', boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
+              <div style={{ position:'relative', width:'100%', aspectRatio:'1017 / 602', background:'var(--cream)', overflow:'hidden' }}>
                 <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height:'100%', objectFit:'cover' }} />
-                {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:999, letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
+                {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:'var(--radius-pill)', letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
               </div>
               <div style={{ padding: mobile?'13px 15px':'15px 17px', borderTop:'1px solid var(--line)' }}>
                 <div style={{ fontSize: mobile?16:17, fontWeight:700, color:on?'var(--clay-deep)':'var(--ink)', lineHeight:1.22 }}>{trOpt(l.name, lang)}</div>
@@ -537,20 +537,20 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
               </div>
             </button>); })}
         </div>
-        <div style={{ background:'var(--sand)', borderRadius:12, padding:'13px 14px' }}>
+        <div style={{ background:'var(--sand)', borderRadius:'var(--radius-md)', padding:'13px 14px' }}>
           <div className="eyebrow" style={{ fontSize:11, marginBottom:10 }}>{lang==='ar'?`${t('gParameters')} ${lay.name}`:`${lay.name} ${t('gParameters')}`}</div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:11 }}>
             {layout==='straight' && <>{numField('Wall width', lp.wallWidth, v=>setLp(p=>({...p,wallWidth:v})), 600, 12000)}{numField('Ceiling height', lp.ceiling, v=>setLp(p=>({...p,ceiling:v})), 2000, 4000)}{numField('Depth', lp.depth, v=>setLp(p=>({...p,depth:v})), 400, 900)}{numField('Number of doors', lp.doors, v=>setLp(p=>({...p,doors:v})), 1, 8, 'doors')}</>}
             {layout==='l-shape' && <>{numField('Wall A length', lp.wallA, v=>setLp(p=>({...p,wallA:v})), 600, 9000)}{numField('Wall B length', lp.wallB, v=>setLp(p=>({...p,wallB:v})), 600, 9000)}<label style={{ gridColumn:'1/-1' }}><span style={labelS}>Corner solution</span><select value={lp.corner} onChange={e=>setLp(p=>({...p,corner:e.target.value}))} style={inS}>{['L-return','Diagonal corner','Rotating carousel','Blind corner pull-out'].map(o=><option key={o}>{o}</option>)}</select></label></>}
-            {(layout==='u-shape') && <>{numField('Room width', lp.roomW, v=>setLp(p=>({...p,roomW:v})), 1000, 9000)}{numField('Room length', lp.roomL, v=>setLp(p=>({...p,roomL:v})), 1000, 9000)}<label><span style={labelS}>Entrance location</span><select value={lp.entrance} onChange={e=>setLp(p=>({...p,entrance:e.target.value}))} style={inS}>{['centre','left','right'].map(o=><option key={o}>{o}</option>)}</select></label>{numField('Circulation space', lp.circulation, v=>setLp(p=>({...p,circulation:v})), 700, 2000)}{lp.circulation<900 && <div style={{ gridColumn:'1/-1', fontSize:12, color:'var(--danger,#b91c1c)' }}>{t('vCircTight')}</div>}</>}
+            {(layout==='u-shape') && <>{numField('Room width', lp.roomW, v=>setLp(p=>({...p,roomW:v})), 1000, 9000)}{numField('Room length', lp.roomL, v=>setLp(p=>({...p,roomL:v})), 1000, 9000)}<label><span style={labelS}>Entrance location</span><select value={lp.entrance} onChange={e=>setLp(p=>({...p,entrance:e.target.value}))} style={inS}>{['centre','left','right'].map(o=><option key={o}>{o}</option>)}</select></label>{numField('Circulation space', lp.circulation, v=>setLp(p=>({...p,circulation:v})), 700, 2000)}{lp.circulation<900 && <div style={{ gridColumn:'1/-1', fontSize:12, color:'var(--danger)' }}>{t('vCircTight')}</div>}</>}
             {layout==='walkin' && <>{numField('Room width', lp.roomW, v=>setLp(p=>({...p,roomW:v})), 1500, 9000)}{numField('Room length', lp.roomL, v=>setLp(p=>({...p,roomL:v})), 1500, 9000)}
               <div style={{ gridColumn:'1/-1', display:'grid', gap:7 }}>
                 {[['sections','Hanging sections',true],['island','Island dresser'],['shoeDisplay','Shoe display'],['vanity','Vanity'],['seating','Seating']].map(([k,lbl,isNum])=> isNum
                   ? <label key={k} style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}><span style={{ fontSize:13, color:'var(--ink)' }}>{lbl}</span>{stepper(lp.sections, v=>setLp(p=>({...p,sections:v})), 1)}</label>
-                  : <label key={k} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fff', border:'1px solid var(--line)', borderRadius:9, padding:'8px 11px', cursor:'pointer' }}><span style={{ fontSize:13, color:'var(--ink)' }}>{lbl}</span><input type="checkbox" checked={!!lp[k]} onChange={e=>setLp(p=>({...p,[k]:e.target.checked}))} /></label>)}
+                  : <label key={k} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-sm)', padding:'8px 11px', cursor:'pointer' }}><span style={{ fontSize:13, color:'var(--ink)' }}>{lbl}</span><input type="checkbox" checked={!!lp[k]} onChange={e=>setLp(p=>({...p,[k]:e.target.checked}))} /></label>)}
               </div></>}
-            {layout==='sliding' && <>{numField('Wall width', lp.wallWidth, v=>setLp(p=>({...p,wallWidth:v})), 1200, 12000)}<label><span style={labelS}>Number of doors</span><select value={lp.slideCount} onChange={e=>setLp(p=>({...p,slideCount:Number(e.target.value)}))} style={inS}>{WW_SLIDING_COUNTS.map(n=><option key={n} value={n}>{n} doors</option>)}</select></label><label style={{ gridColumn:'1/-1', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fff', border:'1px solid var(--line)', borderRadius:9, padding:'8px 11px' }}><span style={{ fontSize:13, color:'var(--ink)' }}>Mirror / glass panel</span><input type="checkbox" checked={!!lp.slideMirror} onChange={e=>setLp(p=>({...p,slideMirror:e.target.checked}))} /></label></>}
-            {layout==='hinged' && <>{numField('Wall width', lp.wallWidth, v=>setLp(p=>({...p,wallWidth:v})), 600, 12000)}<label><span style={labelS}>Door style</span><select value={lp.hingeCount} onChange={e=>setLp(p=>({...p,hingeCount:e.target.value}))} style={inS}>{WW_HINGED_COUNTS.map(n=><option key={n} value={n}>{n} door</option>)}</select></label><label style={{ gridColumn:'1/-1', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fff', border:'1px solid var(--line)', borderRadius:9, padding:'8px 11px' }}><span style={{ fontSize:13, color:'var(--ink)' }}>Integrated drawers</span><input type="checkbox" checked={!!lp.hingeDrawers} onChange={e=>setLp(p=>({...p,hingeDrawers:e.target.checked}))} /></label></>}
+            {layout==='sliding' && <>{numField('Wall width', lp.wallWidth, v=>setLp(p=>({...p,wallWidth:v})), 1200, 12000)}<label><span style={labelS}>Number of doors</span><select value={lp.slideCount} onChange={e=>setLp(p=>({...p,slideCount:Number(e.target.value)}))} style={inS}>{WW_SLIDING_COUNTS.map(n=><option key={n} value={n}>{n} doors</option>)}</select></label><label style={{ gridColumn:'1/-1', display:'flex', justifyContent:'space-between', alignItems:'center', background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-sm)', padding:'8px 11px' }}><span style={{ fontSize:13, color:'var(--ink)' }}>Mirror / glass panel</span><input type="checkbox" checked={!!lp.slideMirror} onChange={e=>setLp(p=>({...p,slideMirror:e.target.checked}))} /></label></>}
+            {layout==='hinged' && <>{numField('Wall width', lp.wallWidth, v=>setLp(p=>({...p,wallWidth:v})), 600, 12000)}<label><span style={labelS}>Door style</span><select value={lp.hingeCount} onChange={e=>setLp(p=>({...p,hingeCount:e.target.value}))} style={inS}>{WW_HINGED_COUNTS.map(n=><option key={n} value={n}>{n} door</option>)}</select></label><label style={{ gridColumn:'1/-1', display:'flex', justifyContent:'space-between', alignItems:'center', background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-sm)', padding:'8px 11px' }}><span style={{ fontSize:13, color:'var(--ink)' }}>Integrated drawers</span><input type="checkbox" checked={!!lp.hingeDrawers} onChange={e=>setLp(p=>({...p,hingeDrawers:e.target.checked}))} /></label></>}
           </div>
         </div></>);
       case 4: return (<>{sectionH('5',t('shW4t'),t('shW4s'))}
@@ -573,20 +573,20 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
             <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>Storage priorities <span style={{ color:'var(--muted)', fontWeight:400 }}>(tap to select, set counts where useful)</span></div>
             <div style={{ display:'grid', gap:8 }}>
               {WW_PRIORITIES.map(p=>{ const on=priorities.includes(p.id); return (
-                <div key={p.id} style={{ display:'flex', alignItems:'center', gap:9, border: on?'2px solid var(--clay)':'1px solid var(--line)', background:on?'var(--sand)':'#fff', borderRadius:11, padding:'8px 11px' }}>
+                <div key={p.id} style={{ display:'flex', alignItems:'center', gap:9, border: on?'2px solid var(--clay)':'1px solid var(--line)', background:on?'var(--sand)':'#fff', borderRadius:'var(--radius-md)', padding:'8px 11px' }}>
                   <button type="button" onClick={()=>togglePriority(p.id)} style={{ flex:1, textAlign:'left', background:'none', border:'none', cursor:'pointer', fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{on?'✓ ':''}{p.name}</button>
                   {on && p.count && <div style={{ display:'flex', alignItems:'center', gap:6 }}><input type="number" value={counts[p.id]||0} onChange={e=>setCounts(c=>({...c,[p.id]:Number(e.target.value)}))} style={{ ...inS, width:64, padding:'6px 8px' }} /><span style={{ fontSize:11, color:'var(--muted)' }}>{p.noun}</span></div>}
                 </div>); })}
             </div>
           </div>
-          <div style={{ background:'var(--sand)', borderRadius:12, padding:'13px 14px' }}>
+          <div style={{ background:'var(--sand)', borderRadius:'var(--radius-md)', padding:'13px 14px' }}>
             <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>AI recommended allocation</div>
-            <div style={{ display:'flex', height:18, borderRadius:6, overflow:'hidden', marginBottom:8 }}>
+            <div style={{ display:'flex', height:18, borderRadius:'var(--radius-sm)', overflow:'hidden', marginBottom:8 }}>
               {[['hanging',allocation.pct.hanging],['shelf',allocation.pct.shelf],['drawer',allocation.pct.drawer],['shoe',allocation.pct.shoe],['accessory',allocation.pct.accessory]].map(([z,v])=> v>0 && <div key={z} title={`${z} ${v}%`} style={{ width:v+'%', background:WW_ZONE_HEX[z] }} />)}
             </div>
             <div style={{ display:'flex', flexWrap:'wrap', gap:'4px 12px', fontSize:11.5, color:'var(--ink-soft)' }}>
               {[['Hanging',allocation.pct.hanging,'hanging'],['Shelves',allocation.pct.shelf,'shelf'],['Drawers',allocation.pct.drawer,'drawer'],['Shoe',allocation.pct.shoe,'shoe'],['Accessories',allocation.pct.accessory,'accessory']].map(([lbl,v,z])=>(
-                <span key={z}><span style={{ display:'inline-block', width:9, height:9, borderRadius:2, background:WW_ZONE_HEX[z], marginRight:4 }} />{lbl} {v}%</span>))}
+                <span key={z}><span style={{ display:'inline-block', width:9, height:9, borderRadius:'var(--radius-xs)', background:WW_ZONE_HEX[z], marginRight:4 }} />{lbl} {v}%</span>))}
             </div>
             <p style={{ fontSize:11.5, color:'var(--muted)', margin:'8px 0 0' }}>We'll seed your internal configuration from this — you can fine-tune it next.</p>
           </div>
@@ -594,17 +594,17 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
       case 5: return (<>{sectionH('6',t('shW5t'),t('shW5s'))}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
           {aiPct && <span style={{ fontSize:11.5, color:'var(--ink-soft)' }}>Seeded: {aiPct.hanging}% hang · {aiPct.shelf}% shelf · {aiPct.drawer}% drawer · {aiPct.shoe}% shoe</span>}
-          <button type="button" onClick={seedFromAI} style={{ border:'1px solid var(--line)', borderRadius:9, padding:'6px 10px', background:'#fff', cursor:'pointer', fontSize:11.5, fontWeight:600, color:'var(--clay-deep)' }}>↻ Re-run AI</button>
+          <button type="button" onClick={seedFromAI} style={{ border:'1px solid var(--line)', borderRadius:'var(--radius-sm)', padding:'6px 10px', background:'var(--c-surface)', cursor:'pointer', fontSize:11.5, fontWeight:600, color:'var(--clay-deep)' }}>↻ Re-run AI</button>
         </div>
         <div style={{ display:'grid', gap:8, marginBottom:14 }}>
           {modules.filter(m=>m.qty>0).map(m=>{ const u=findInt(m.id); if(!u) return null; return (
-            <div key={m.key} style={{ display:'flex', alignItems:'center', gap:9, background:'#fff', border:'1px solid var(--line)', borderRadius:10, padding:'8px 10px' }}>
-              <span style={{ width:10, height:10, borderRadius:2, background:WW_ZONE_HEX[u.zone] }} />
+            <div key={m.key} style={{ display:'flex', alignItems:'center', gap:9, background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'8px 10px' }}>
+              <span style={{ width:10, height:10, borderRadius:'var(--radius-xs)', background:WW_ZONE_HEX[u.zone] }} />
               <div style={{ flex:1 }}><div style={{ fontSize:13, fontWeight:600, color:'var(--ink)' }}>{u.name}</div><div style={{ fontSize:11, color:'var(--muted)' }}>{u.sub} · {u.depth}mm · {fmt(Math.round(u.price*matMult))}/unit</div></div>
               <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                <button type="button" onClick={()=>updMod(m.key,m.qty-1)} style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--line)', background:'#fff', cursor:'pointer' }}>−</button>
+                <button type="button" onClick={()=>updMod(m.key,m.qty-1)} style={{ width:26, height:26, borderRadius:'var(--radius-sm)', border:'1px solid var(--line)', background:'var(--c-surface)', cursor:'pointer' }}>−</button>
                 <span style={{ minWidth:18, textAlign:'center', fontSize:13, fontWeight:600 }}>{m.qty}</span>
-                <button type="button" onClick={()=>updMod(m.key,m.qty+1)} style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--line)', background:'#fff', cursor:'pointer' }}>+</button>
+                <button type="button" onClick={()=>updMod(m.key,m.qty+1)} style={{ width:26, height:26, borderRadius:'var(--radius-sm)', border:'1px solid var(--line)', background:'var(--c-surface)', cursor:'pointer' }}>+</button>
                 <button type="button" onClick={()=>rmMod(m.key)} style={{ marginLeft:4, background:'none', border:'none', color:'var(--muted)', cursor:'pointer' }}>✕</button>
               </div>
             </div>); })}
@@ -613,24 +613,24 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
           <div key={title} style={{ marginBottom:12 }}>
             <div className="eyebrow" style={{ fontSize:11, marginBottom:7 }}>{title}</div>
             <div style={{ display:'flex', flexWrap:'wrap', gap:7 }}>
-              {ids.map(id=>{ const u=findInt(id); return (<button key={id} type="button" onClick={()=>addMod(id)} style={{ border:'1px solid var(--line)', borderRadius:9, padding:'7px 10px', background:'#fff', cursor:'pointer', fontSize:12, color:'var(--ink-soft)' }}>+ {u.name}</button>); })}
+              {ids.map(id=>{ const u=findInt(id); return (<button key={id} type="button" onClick={()=>addMod(id)} style={{ border:'1px solid var(--line)', borderRadius:'var(--radius-sm)', padding:'7px 10px', background:'var(--c-surface)', cursor:'pointer', fontSize:12, color:'var(--ink-soft)' }}>+ {u.name}</button>); })}
             </div>
           </div>))}
         <div className="eyebrow" style={{ fontSize:11, marginBottom:7, marginTop:4 }}>Accessories</div>
         <div style={{ display:'grid', gap:8 }}>
           {WW_ACCESSORIES.map(a=>{ const q=acc[a.id]||0; const on=q>0; return (
-            <div key={a.id} style={{ display:'flex', alignItems:'center', gap:9, border: on?'2px solid var(--clay)':'1px solid var(--line)', background:on?'var(--sand)':'#fff', borderRadius:11, padding:'8px 11px' }}>
+            <div key={a.id} style={{ display:'flex', alignItems:'center', gap:9, border: on?'2px solid var(--clay)':'1px solid var(--line)', background:on?'var(--sand)':'#fff', borderRadius:'var(--radius-md)', padding:'8px 11px' }}>
               <div style={{ flex:1 }}><div style={{ fontSize:13, fontWeight:600, color:'var(--ink)' }}>{a.name}</div><div style={{ fontSize:11, color:'var(--muted)' }}>{fmt(a.price)} / {a.unit}</div></div>
               {stepper(q, v=>setAcc(s=>({...s,[a.id]:v})))}
             </div>); })}
         </div></>);
       case 6: return (<>{sectionH('7',t('shW6t'), activeDoor ? (lang==='ar'?`أبواب ${isSliding?'منزلقة':'مفصلية'} لخزانة ${lay.name}.`:`${isSliding?'Sliding':'Hinged'} doors for your ${lay.name} wardrobe.`) : t('shW6sOpen'))}
-        {!activeDoor && <div style={{ background:'var(--sand)', borderRadius:12, padding:'14px 16px', fontSize:13, color:'var(--ink-soft)' }}>The {lay.name} layout is open-fronted. Skip ahead — your hanging, shelving and drawer modules stay on show. Switch to a Sliding or Hinged layout in step 4 if you'd like doors.</div>}
+        {!activeDoor && <div style={{ background:'var(--sand)', borderRadius:'var(--radius-md)', padding:'14px 16px', fontSize:13, color:'var(--ink-soft)' }}>The {lay.name} layout is open-fronted. Skip ahead — your hanging, shelving and drawer modules stay on show. Switch to a Sliding or Hinged layout in step 4 if you'd like doors.</div>}
         {isSliding && <><div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>Sliding doors · {lp.slideCount} leaves</div>
           <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr', gap:9 }}>
             {WW_SLIDING_DOORS.map(d=>{ const on=slidingDoor===d.id; return (
               <button key={d.id} type="button" onClick={()=>setSlidingDoor(d.id)} style={card(on)}>
-                <div style={{ height:30, borderRadius:7, background:d.hex, marginBottom:6 }} />
+                <div style={{ height:30, borderRadius:'var(--radius-sm)', background:d.hex, marginBottom:6 }} />
                 <div style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{trOpt(d.name, lang)}</div>
                 <div style={{ fontSize:10.5, color:'var(--muted)' }}>×{d.mult.toFixed(2)}</div>
               </button>); })}
@@ -639,7 +639,7 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
           <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr', gap:9 }}>
             {WW_HINGED_DOORS.map(d=>{ const on=hingedDoor===d.id; return (
               <button key={d.id} type="button" onClick={()=>setHingedDoor(d.id)} style={card(on)}>
-                <div style={{ height:30, borderRadius:7, background:d.hex, marginBottom:6 }} />
+                <div style={{ height:30, borderRadius:'var(--radius-sm)', background:d.hex, marginBottom:6 }} />
                 <div style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{trOpt(d.name, lang)}</div>
                 <div style={{ fontSize:10.5, color:'var(--muted)' }}>×{d.mult.toFixed(2)}</div>
               </button>); })}
@@ -651,7 +651,7 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
             <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(3,1fr)', gap:8 }}>
               {list.map(o=>{ const on=mats[key]===o.id; return (
                 <button key={o.id} type="button" onClick={()=>setMats(m=>({...m,[key]:o.id}))} style={card(on)}>
-                  {o.hex && <div style={{ height:30, borderRadius:7, background:o.hex, marginBottom:6 }} />}
+                  {o.hex && <div style={{ height:30, borderRadius:'var(--radius-sm)', background:o.hex, marginBottom:6 }} />}
                   <div style={{ fontSize:13, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{trOpt(o.name, lang)}</div>
                   <div style={{ fontSize:10.5, color:'var(--muted)' }}>{o.sub||('×'+o.mult.toFixed(2))}</div>
                 </button>); })}
@@ -666,14 +666,14 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
             </button>); })}
         </div></>);
       case 9: return (<>{sectionH('10',t('shSummaryT'),t('shW9s'))}
-        {aiPct && <div style={{ background:'var(--sand)', borderRadius:12, padding:'12px 14px', marginBottom:12 }}>
+        {aiPct && <div style={{ background:'var(--sand)', borderRadius:'var(--radius-md)', padding:'12px 14px', marginBottom:12 }}>
           <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>AI storage allocation</div>
-          <div style={{ display:'flex', height:16, borderRadius:6, overflow:'hidden', marginBottom:8 }}>
+          <div style={{ display:'flex', height:16, borderRadius:'var(--radius-sm)', overflow:'hidden', marginBottom:8 }}>
             {[['hanging',aiPct.hanging],['shelf',aiPct.shelf],['drawer',aiPct.drawer],['shoe',aiPct.shoe],['accessory',aiPct.accessory]].map(([z,v])=> v>0 && <div key={z} style={{ width:v+'%', background:WW_ZONE_HEX[z] }} />)}
           </div>
           <div style={{ fontSize:11.5, color:'var(--ink-soft)' }}>{aiPct.hanging}% hanging · {aiPct.shelf}% shelves · {aiPct.drawer}% drawers · {aiPct.shoe}% shoe · {aiPct.accessory}% accessories</div>
         </div>}
-        <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:12, overflow:'hidden', marginBottom:12 }}>
+        <div style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', overflow:'hidden', marginBottom:12 }}>
           <div style={{ padding:'8px 12px', background:'var(--sand)', fontSize:11.5, fontWeight:700, color:'var(--ink-soft)' }}>{t('pBillOfMaterials')}</div>
           <div style={{ display:'flex', justifyContent:'space-between', padding:'7px 12px', fontSize:12.5, borderTop:'1px solid var(--line)' }}><span style={{ color:'var(--ink-soft)' }}>Carcass · {carc.name} ({(runMm/1000).toFixed(1)}m)</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(carcassTotal)}</span></div>
           {intBom.map(b=>(<div key={b.key} style={{ display:'flex', justifyContent:'space-between', padding:'7px 12px', fontSize:12.5, borderTop:'1px solid var(--line)' }}><span style={{ color:'var(--ink-soft)' }}>{b.name} ×{b.qty}</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(b.line)}</span></div>))}
@@ -682,16 +682,16 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
           {lightItems.map(l=>(<div key={l.id} style={{ display:'flex', justifyContent:'space-between', padding:'7px 12px', fontSize:12.5, borderTop:'1px solid var(--line)' }}><span style={{ color:'var(--ink-soft)' }}>{l.name}</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(l.price)}</span></div>))}
           <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 12px', borderTop:'2px solid var(--line)', background:'var(--sand)' }}><span style={{ fontWeight:700, color:'var(--ink)' }}>{t('pEstimatedTotal')}</span><span className="display" style={{ fontSize:19, color:'var(--clay-deep)' }}>{fmt(grandTotal)}</span></div>
         </div>
-        <div style={{ background:'rgba(154,106,60,.08)', borderRadius:10, padding:'9px 12px', fontSize:12, color:'var(--ink-soft)', marginBottom:12 }}>
+        <div style={{ background:'rgba(154,106,60,.08)', borderRadius:'var(--radius-md)', padding:'9px 12px', fontSize:12, color:'var(--ink-soft)', marginBottom:12 }}>
           <b>Work guidance:</b> hanging needs 600mm depth; long hanging drops 1600–1800mm, short 1000–1100mm; shelves 350–450mm; drawers 450–500mm; shoe shelves 300–350mm. We confirm exact internals on the free design visit.
         </div>
         <div style={{ display:'grid', gap:8 }}>
-          <button type="button" disabled={busy} onClick={saveDesign} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:11, padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{t('pSaveDesign')}</button>
-          <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:11 }}>{user?t('pGetQuoteArrow'):t('pSignInQuoteArrow')}</button>
-          <button type="button" onClick={downloadPDF} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:11, padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{t('pDownloadPdf')}</button>
+          <button type="button" disabled={busy} onClick={saveDesign} style={{ border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{t('pSaveDesign')}</button>
+          <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:'var(--radius-md)' }}>{user?t('pGetQuoteArrow'):t('pSignInQuoteArrow')}</button>
+          <button type="button" onClick={downloadPDF} style={{ border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{t('pDownloadPdf')}</button>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginTop:6 }}>
             {['2D manufacturing drawings','3D manufacturing drawings','Assembly drawings','Installation drawings','Material list export','Hardware list export','CNC cut list'].map((t)=>(
-              <button key={t} type="button" disabled title="Coming soon" style={{ border:'1px dashed var(--line)', background:'var(--sand)', borderRadius:10, padding:'9px', fontSize:11.5, color:'var(--muted)', cursor:'not-allowed' }}>{t} · soon</button>))}
+              <button key={t} type="button" disabled title="Coming soon" style={{ border:'1px dashed var(--line)', background:'var(--sand)', borderRadius:'var(--radius-md)', padding:'9px', fontSize:11.5, color:'var(--muted)', cursor:'not-allowed' }}>{t} · soon</button>))}
           </div>
         </div></>);
       default: return null;
@@ -702,7 +702,7 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
   return (
     <div style={{ height: mobile?'100dvh':`calc(100dvh - ${HEADER}px)`, marginTop: HEADER, display:'flex', flexDirection:'column', background:'var(--cream)', overflow:'hidden' }}>
       {/* step bar */}
-      <div style={{ height:BAR, flexShrink:0, display:'flex', alignItems:'center', gap:4, overflowX:'auto', padding:'0 12px', borderBottom:'1px solid var(--line)', background:'#fff' }}>
+      <div style={{ height:BAR, flexShrink:0, display:'flex', alignItems:'center', gap:4, overflowX:'auto', padding:'0 12px', borderBottom:'1px solid var(--line)', background:'var(--c-surface)' }}>
         {STEPS.map((s,i)=>{ const done=i<step, now=i===step; return (
           <button key={s} type="button" onClick={()=>i<=step&&setStep(i)} style={{ flexShrink:0, display:'flex', alignItems:'center', gap:5, background:'none', border:'none', cursor:i<=step?'pointer':'default', padding:'2px 6px' }}>
             <span style={{ width:20, height:20, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10.5, fontWeight:700, background: now?'var(--clay)':done?'var(--clay-deep)':'var(--sand)', color:(!now&&!done)?'var(--muted)':'#fff' }}>{done?'✓':i+1}</span>
@@ -719,14 +719,14 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
         {/* RIGHT — sticky preview (desktop) */}
         {!mobile && (
           <div style={{ flex:1, minWidth:0, padding:'18px 20px', display:'flex', flexDirection:'column' }}>
-            <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:14, boxShadow:'var(--shadow)', flex:1, display:'flex', flexDirection:'column', minHeight:0 }}>
+            <div style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', padding:14, boxShadow:'var(--shadow)', flex:1, display:'flex', flexDirection:'column', minHeight:0 }}>
               {previewPane(280, '100%')}
             </div>
           </div>
         )}
         {/* mobile collapsible preview */}
         {mobile && showPrev && (
-          <div style={{ flexShrink:0, padding:'10px 14px', borderTop:'1px solid var(--line)', background:'#fff' }}>
+          <div style={{ flexShrink:0, padding:'10px 14px', borderTop:'1px solid var(--line)', background:'var(--c-surface)' }}>
             <div style={{ height:200 }}>{previewPane(190,190)}</div>
           </div>
         )}
@@ -734,13 +734,13 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
 
       {/* bottom action bar */}
       <div style={{ flexShrink:0, display:'flex', alignItems:'center', gap:10, padding:'9px 14px calc(9px + env(safe-area-inset-bottom))', borderTop:'1px solid var(--line)', background:'rgba(255,255,255,.97)', backdropFilter:'blur(10px)' }}>
-        {step>0 ? <button type="button" onClick={back} style={{ background:'none', border:'1px solid var(--line)', borderRadius:11, padding:'10px 16px', fontSize:13.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pBack')}</button>
-          : <button type="button" onClick={()=>setPage('wardrobes')} style={{ background:'none', border:'1px solid var(--line)', borderRadius:11, padding:'10px 16px', fontSize:13, color:'var(--muted)', cursor:'pointer' }}>{t('pExit')}</button>}
-        {mobile && <button type="button" onClick={()=>setShowPrev(v=>!v)} style={{ background:'var(--sand)', border:'none', borderRadius:11, padding:'10px 12px', fontSize:12.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{showPrev?t('pHide'):t('pPreview')}</button>}
+        {step>0 ? <button type="button" onClick={back} style={{ background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'10px 16px', fontSize:13.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pBack')}</button>
+          : <button type="button" onClick={()=>setPage('wardrobes')} style={{ background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'10px 16px', fontSize:13, color:'var(--muted)', cursor:'pointer' }}>{t('pExit')}</button>}
+        {mobile && <button type="button" onClick={()=>setShowPrev(v=>!v)} style={{ background:'var(--sand)', border:'none', borderRadius:'var(--radius-md)', padding:'10px 12px', fontSize:12.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{showPrev?t('pHide'):t('pPreview')}</button>}
         <div style={{ flex:1, textAlign: mobile?'center':'right', minWidth:0 }}><span style={{ fontSize:10.5, color:'var(--muted)' }}>{t('pTotal')} </span><span className="display" style={{ fontSize:17, color:'var(--clay)' }}>{fmt(grandTotal)}</span></div>
         {step<STEPS.length-1
-          ? <button type="button" className="btn-clay" disabled={!canNext} onClick={next} style={{ borderRadius:11, minWidth:120, opacity:canNext?1:.55 }}>{t('pNextArrow')}</button>
-          : <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:11, minWidth:120 }}>{t('pGetQuoteArrow')}</button>}
+          ? <button type="button" className="btn-clay" disabled={!canNext} onClick={next} style={{ borderRadius:'var(--radius-md)', minWidth:120, opacity:canNext?1:.55 }}>{t('pNextArrow')}</button>
+          : <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:'var(--radius-md)', minWidth:120 }}>{t('pGetQuoteArrow')}</button>}
       </div>
 
       {rdOpen && (
@@ -759,10 +759,10 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
       {/* QUOTE modal */}
       {showQuote && (
         <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
-          <ModalPanel onClose={()=>!busy&&setShowQuote(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:420, width:'100%', padding:24 }}>
+          <ModalPanel onClose={()=>!busy&&setShowQuote(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', maxWidth:420, width:'100%', padding:24 }}>
             <div className="eyebrow" style={{ marginBottom:8 }}>{t('pAlmostThere')}</div>
             <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 6px' }}>{t('pQuoteTitleWardrobe')}</h3>
-            <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)' }}>{room.name} · {lay.name} · {fin.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(grandTotal)}</b></div>
+            <div style={{ background:'var(--sand)', borderRadius:'var(--radius-md)', padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)' }}>{room.name} · {lay.name} · {fin.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(grandTotal)}</b></div>
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
               <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} placeholder={t('pYourName')} style={inS} />
               <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} placeholder="Phone (+973…)" inputMode="tel" style={inS} />
@@ -771,8 +771,8 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
             </div>
             <FormNotice kind="request" style={{ marginTop:12 }} />
             <div style={{ display:'flex', gap:10, marginTop:16 }}>
-              <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pCancel')}</button>
-              <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submitQuote(contact)} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?t('pSending'):(user?t('pSendQuoteReq'):t('pSignInSend'))}</button>
+              <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pCancel')}</button>
+              <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submitQuote(contact)} style={{ flex:2, borderRadius:'var(--radius-md)', opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?t('pSending'):(user?t('pSendQuoteReq'):t('pSignInSend'))}</button>
             </div>
           </ModalPanel>
         </div>

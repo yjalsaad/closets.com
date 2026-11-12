@@ -613,8 +613,8 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
 
   // ── styles ──
   const HEADER = mobile?72:104, BAR=52;
-  const inS = { width:'100%', padding:'9px 11px', border:'1px solid var(--line)', background:'#fff', borderRadius:10, fontSize:14, fontFamily:'inherit', color:'var(--ink)', boxSizing:'border-box' };
-  const card = (on) => ({ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'11px 13px', cursor:'pointer', fontFamily:'inherit' });
+  const inS = { width:'100%', padding:'9px 11px', border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', fontSize:14, fontFamily:'inherit', color:'var(--ink)', boxSizing:'border-box' };
+  const card = (on) => ({ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:'var(--radius-md)', padding:'11px 13px', cursor:'pointer', fontFamily:'inherit' });
   const labelS = { fontSize:11.5, fontWeight:600, color:'var(--ink-soft)', marginBottom:4, display:'block' };
   const sectionH = (n,t,s) => (<div style={{ marginBottom:14 }}><h3 className="display" style={{ fontSize:19, color:'var(--ink)', margin:'0 0 3px' }}>{n} · {t}</h3>{s&&<p style={{ fontSize:13, color:'var(--ink-soft)', margin:0 }}>{s}</p>}</div>);
 
@@ -703,7 +703,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
     const applRows = (D.installation.appliances_to_connect||[]).map(a=>`<li>${esc(a.name)} ×${a.qty}</li>`).join('') || '<li class="muted">None flagged</li>';
     const accFitRows = (D.installation.handles_accessories_fit||[]).map(a=>`<li>${esc(a.name)} ×${a.qty}</li>`).join('') || '<li class="muted">None</li>';
 
-    w.document.write(`<html><head><title>Kitchen Quotation & Production Pack</title><style>body{font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;color:#2a1f16;padding:36px;max-width:760px;margin:0 auto}h1{font-size:24px}h2{font-size:17px;color:#9a3412;margin:30px 0 4px;border-top:2px solid #e3d6c6;padding-top:18px}table{width:100%;border-collapse:collapse;margin-top:10px}th{text-align:left;font-size:11px;color:#8a7a68;text-transform:uppercase;letter-spacing:.4px;padding:6px 4px;border-bottom:1px solid #cbb89f}td{padding:7px 4px;border-bottom:1px solid #e3d6c6;font-size:12.5px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}.tag{display:inline-block;background:#fdebd3;color:#9a3412;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;text-transform:uppercase;letter-spacing:.4px}ul{font-size:12.5px;margin:6px 0;padding-left:20px}.grid{display:flex;gap:24px;flex-wrap:wrap;font-size:12.5px;margin-top:8px}@media print{h2{page-break-after:avoid}}</style></head><body>
+    w.document.write(`<html><head><title>Kitchen Quotation & Production Pack</title><style>body{font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;color:#2a1f16;padding:36px;max-width:760px;margin:0 auto}h1{font-size:24px}h2{font-size:17px;color:#9a3412;margin:30px 0 4px;border-top:2px solid #e3d6c6;padding-top:18px}table{width:100%;border-collapse:collapse;margin-top:10px}th{text-align:left;font-size:11px;color:#8a7a68;text-transform:uppercase;letter-spacing:.4px;padding:6px 4px;border-bottom:1px solid #cbb89f}td{padding:7px 4px;border-bottom:1px solid #e3d6c6;font-size:12.5px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}.tag{display:inline-block;background:#fdebd3;color:#9a3412;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;text-transform:uppercase;letter-spacing:.4px}ul{font-size:12.5px;margin:6px 0;padding-left:20px}.grid{display:flex;gap:24px;flex-wrap:wrap;font-size:12.5px;margin-top:8px}@media print{h2{page-break-after:avoid}}</style></head><body>
       <h1>The Closets — Kitchen Quotation</h1>
       <p class="muted">${esc(lay.name)} layout · Room ${dims.length}×${dims.width}×${dims.ceiling}mm · ${esc(carc.name)} carcass · ${esc(door.name)} doors</p>
       <p class="muted">Work triangle: ${triOK?'within recommended guidelines':'review recommended'} — total ${triTotal.toFixed(1)}m</p>
@@ -748,11 +748,11 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
   const previewPane = (h3d, h2d) => (
     <div style={{ display:'flex', flexDirection:'column', gap:10, height:'100%' }}>
       <div style={{ display:'flex', gap:6 }}>
-        <button type="button" onClick={()=>setView3d(false)} style={{ flex:1, padding:'6px', borderRadius:9, fontSize:12, fontWeight:600, cursor:'pointer', border:'none', background:!view3d?'var(--clay)':'var(--sand)', color:!view3d?'#fff':'var(--ink-soft)' }}>{t('p2dPlan')}</button>
-        <button type="button" onClick={()=>setView3d(true)} style={{ flex:1, padding:'6px', borderRadius:9, fontSize:12, fontWeight:600, cursor:'pointer', border:'none', background:view3d?'var(--clay)':'var(--sand)', color:view3d?'#fff':'var(--ink-soft)' }}>{t('p3dView')}</button>
-        <button type="button" onClick={()=>setStudioRoomDesignerOpen(true)} style={{ flex:'1.4 1 0', padding:'6px', borderRadius:9, fontSize:12, fontWeight:700, cursor:'pointer', border:'none', background:'var(--clay)', color:'#fff', whiteSpace:'nowrap' }}>{t('pOpenRoomDesigner')}</button>
+        <button type="button" onClick={()=>setView3d(false)} style={{ flex:1, padding:'6px', borderRadius:'var(--radius-sm)', fontSize:12, fontWeight:600, cursor:'pointer', border:'none', background:!view3d?'var(--clay)':'var(--sand)', color:!view3d?'#fff':'var(--ink-soft)' }}>{t('p2dPlan')}</button>
+        <button type="button" onClick={()=>setView3d(true)} style={{ flex:1, padding:'6px', borderRadius:'var(--radius-sm)', fontSize:12, fontWeight:600, cursor:'pointer', border:'none', background:view3d?'var(--clay)':'var(--sand)', color:view3d?'#fff':'var(--ink-soft)' }}>{t('p3dView')}</button>
+        <button type="button" onClick={()=>setStudioRoomDesignerOpen(true)} style={{ flex:'1.4 1 0', padding:'6px', borderRadius:'var(--radius-sm)', fontSize:12, fontWeight:700, cursor:'pointer', border:'none', background:'var(--clay)', color:'#fff', whiteSpace:'nowrap' }}>{t('pOpenRoomDesigner')}</button>
       </div>
-      <div style={{ background:'var(--sand)', borderRadius:12, overflow:'hidden', flex:1, minHeight:0 }}>
+      <div style={{ background:'var(--sand)', borderRadius:'var(--radius-md)', overflow:'hidden', flex:1, minHeight:0 }}>
         {view3d
           ? <div style={{ height:'100%', minHeight:h3d }}><Wardrobe3D product="kitchen" layout={view3dLayout} finishHex={door.hex} handles={(acc.handles||0)>0} led={(acc.lighting||0)>0} glass={false} widthCm={Math.max(120,Math.round((baseRunMm||dims.length)/10))} heightCm={Math.max(200,Math.round((dims.ceiling||2700)/10))} depthCm={60} mobile={mobile} preset="iso" /></div>
           : planView(h2d)}
@@ -761,7 +761,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
         <span style={{ fontSize:11, color:'var(--muted)' }}>{lay.name} · {(baseRunMm/1000).toFixed(1)}m run</span>
         <span className="display" style={{ fontSize:20, color:'var(--clay)' }}>{fmt(grandTotal)}</span>
       </div>
-      {overCapacity && <div style={{ fontSize:11, color:'var(--danger,#b91c1c)', background:'rgba(220,38,38,.08)', borderRadius:8, padding:'6px 9px' }}>⚠ Modules ({(baseWallMm/1000).toFixed(1)}m) exceed available wall ({(availMm/1000).toFixed(1)}m).</div>}
+      {overCapacity && <div style={{ fontSize:11, color:'var(--danger)', background:'rgba(220,38,38,.08)', borderRadius:'var(--radius-sm)', padding:'6px 9px' }}>⚠ Modules ({(baseWallMm/1000).toFixed(1)}m) exceed available wall ({(availMm/1000).toFixed(1)}m).</div>}
     </div>
   );
 
@@ -782,29 +782,29 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
           {numField(t('fLength'), dims.length, v=>setDims(d=>({...d,length:v})), 1000, 12000)}
           {numField(t('fWidth'), dims.width, v=>setDims(d=>({...d,width:v})), 1000, 12000)}
           {numField(t('fCeilingHeight'), dims.ceiling, v=>setDims(d=>({...d,ceiling:v})), 2000, 4000)}
-          {(dims.length<1000||dims.width<1000||dims.ceiling<2000) && <div style={{ fontSize:12, color:'var(--danger,#b91c1c)' }}>Length & width need ≥1000mm and ceiling ≥2000mm.</div>}
+          {(dims.length<1000||dims.width<1000||dims.ceiling<2000) && <div style={{ fontSize:12, color:'var(--danger)' }}>Length & width need ≥1000mm and ceiling ≥2000mm.</div>}
         </div></>);
       case 2: return (<>{sectionH('3',t('shK2t'),t('shK2s'))}
         <div style={{ display:'grid', gap:9 }}>
           {openings.map((o)=>(
-            <div key={o.id} style={{ border:'1px solid var(--line)', borderRadius:11, padding:'9px 10px', background:'#fff' }}>
+            <div key={o.id} style={{ border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'9px 10px', background:'var(--c-surface)' }}>
               <div style={{ display:'grid', gridTemplateColumns:'1.2fr 1fr 1fr auto', gap:7, alignItems:'end' }}>
                 <label><span style={labelS}>Type</span>
                   <select value={o.type} onChange={e=>setOpenings(os=>os.map(x=>x.id===o.id?{...x,type:e.target.value}:x))} style={inS}>{KW_OPENING_TYPES.map(t=><option key={t}>{t}</option>)}</select></label>
                 <label><span style={labelS}>Position</span><input type="number" value={o.pos} onChange={e=>setOpenings(os=>os.map(x=>x.id===o.id?{...x,pos:Number(e.target.value)}:x))} style={inS} /></label>
                 <label><span style={labelS}>Width</span><input type="number" value={o.width} onChange={e=>setOpenings(os=>os.map(x=>x.id===o.id?{...x,width:Number(e.target.value)}:x))} style={inS} /></label>
-                <button type="button" onClick={()=>setOpenings(os=>os.filter(x=>x.id!==o.id))} style={{ background:'none', border:'1px solid var(--line)', borderRadius:9, padding:'9px 11px', cursor:'pointer', color:'var(--muted)' }}>✕</button>
+                <button type="button" onClick={()=>setOpenings(os=>os.filter(x=>x.id!==o.id))} style={{ background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-sm)', padding:'9px 11px', cursor:'pointer', color:'var(--muted)' }}>✕</button>
               </div>
             </div>))}
-          <button type="button" onClick={()=>setOpenings(os=>[...os,{ id:uid(), type:'Window', pos:1500, width:1000 }])} style={{ border:'1px dashed var(--line)', borderRadius:11, padding:'10px', background:'var(--sand)', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--clay-deep)' }}>{t('vAddOpening')}</button>
+          <button type="button" onClick={()=>setOpenings(os=>[...os,{ id:uid(), type:'Window', pos:1500, width:1000 }])} style={{ border:'1px dashed var(--line)', borderRadius:'var(--radius-md)', padding:'10px', background:'var(--sand)', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--clay-deep)' }}>{t('vAddOpening')}</button>
         </div></>);
       case 3: return (<>{sectionH('4',t('shK3t'),t('shK3s'))}
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?14:18, marginBottom:18 }}>
           {kwLayoutsView.map(l=>{ const on=layout===l.id; return (
-            <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:16, boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
-              <div style={{ position:'relative', width:'100%', background:'var(--cream,#f5f1ea)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
+            <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:'var(--radius-lg)', boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
+              <div style={{ position:'relative', width:'100%', background:'var(--cream)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
                 <img src={l.img} alt={l.name} {...layoutImgSize(l.img)} loading="lazy" decoding="async" style={{ display:'block', width:'100%', height:'auto' }} />
-                {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:999, letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
+                {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:'var(--radius-pill)', letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
               </div>
               <div style={{ padding: mobile?'13px 15px':'15px 17px', borderTop:'1px solid var(--line)' }}>
                 <div style={{ fontSize: mobile?16:17, fontWeight:700, color:on?'var(--clay-deep)':'var(--ink)', lineHeight:1.22 }}>{trOpt(l.name, lang)}</div>
@@ -812,11 +812,11 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
               </div>
             </button>); })}
         </div>
-        <div style={{ background:'var(--sand)', borderRadius:12, padding:'13px 14px' }}>
+        <div style={{ background:'var(--sand)', borderRadius:'var(--radius-md)', padding:'13px 14px' }}>
           <div className="eyebrow" style={{ fontSize:11, marginBottom:10 }}>{lang==='ar'?`${t('gParameters')} ${lay.name}`:`${lay.name} ${t('gParameters')}`}</div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:11 }}>
             {layout==='single' && <>{numField('Total wall length', lp.wallLen, v=>setLp(p=>({...p,wallLen:v})), 1000, 12000)}<div style={{ gridColumn:'1/-1', fontSize:12, color:'var(--ink-soft)' }}>Set fridge / sink / hob & tall-unit positions on the next step.</div></>}
-            {layout==='galley' && <>{numField('Run length', lp.wallLen, v=>setLp(p=>({...p,wallLen:v})), 1000, 12000)}{numField('Distance between runs', lp.galleyGap, v=>setLp(p=>({...p,galleyGap:v})), 800, 4000)}{lp.galleyGap<1200 && <div style={{ gridColumn:'1/-1', fontSize:12, color:'var(--danger,#b91c1c)' }}>⚠ Gap below 1200mm — two cooks can't pass comfortably.</div>}</>}
+            {layout==='galley' && <>{numField('Run length', lp.wallLen, v=>setLp(p=>({...p,wallLen:v})), 1000, 12000)}{numField('Distance between runs', lp.galleyGap, v=>setLp(p=>({...p,galleyGap:v})), 800, 4000)}{lp.galleyGap<1200 && <div style={{ gridColumn:'1/-1', fontSize:12, color:'var(--danger)' }}>⚠ Gap below 1200mm — two cooks can't pass comfortably.</div>}</>}
             {(layout==='l-shape'||layout==='peninsula') && <>{numField('Wall A length', lp.wallA, v=>setLp(p=>({...p,wallA:v})), 800, 9000)}{numField('Wall B length', lp.wallB, v=>setLp(p=>({...p,wallB:v})), 800, 9000)}<label style={{ gridColumn: layout==='peninsula'?'auto':'1/-1' }}><span style={labelS}>Corner type</span><select value={lp.corner} onChange={e=>setLp(p=>({...p,corner:e.target.value}))} style={inS}><option>L-return</option><option>Diagonal corner</option><option>Magic corner</option><option>Carousel</option></select></label>{layout==='peninsula' && numField('Access clearance', lp.clearance, v=>setLp(p=>({...p,clearance:v})), 800, 2000)}</>}
             {layout==='u-shape' && <>{numField('Wall A', lp.uA, v=>setLp(p=>({...p,uA:v})), 800, 9000)}{numField('Wall B', lp.uB, v=>setLp(p=>({...p,uB:v})), 800, 9000)}{numField('Wall C', lp.uC, v=>setLp(p=>({...p,uC:v})), 800, 9000)}{numField('Entrance opening', lp.entrance, v=>setLp(p=>({...p,entrance:v})), 700, 3000)}<label style={{ gridColumn:'1/-1' }}><span style={labelS}>Corner cabinet types</span><select value={lp.corner} onChange={e=>setLp(p=>({...p,corner:e.target.value}))} style={inS}><option>Magic corner</option><option>Carousel</option><option>Diagonal corner</option><option>L-return</option></select></label></>}
             {layout==='island' && <>{numField('Island width', lp.islandW, v=>setLp(p=>({...p,islandW:v})), 800, 4000)}{numField('Island depth', lp.islandD, v=>setLp(p=>({...p,islandD:v})), 600, 1600)}{numField('Run length', lp.wallLen, v=>setLp(p=>({...p,wallLen:v})), 1000, 12000)}{numField('Seating count', lp.seats, v=>setLp(p=>({...p,seats:v})), 0, 12, 'seats')}<label style={{ gridColumn:'1/-1' }}><span style={labelS}>Island function</span><select value={lp.islandFn} onChange={e=>setLp(p=>({...p,islandFn:e.target.value}))} style={inS}>{['Prep','Cooking','Sink','Dining','Multi-purpose'].map(f=><option key={f}>{f}</option>)}</select></label></>}
@@ -824,7 +824,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
           </div>
         </div></>);
       case 4: return (<>{sectionH('5',t('shK4t'),t('shK4s'))}
-        <div style={{ background:'var(--sand)', borderRadius:12, padding:10, marginBottom:12, touchAction:'none' }}
+        <div style={{ background:'var(--sand)', borderRadius:'var(--radius-md)', padding:10, marginBottom:12, touchAction:'none' }}
              ref={triSvgRef} onMouseMove={onTriMove} onMouseUp={()=>setDrag(null)} onMouseLeave={()=>setDrag(null)} onTouchMove={onTriMove} onTouchEnd={()=>setDrag(null)}>
           <svg viewBox="0 0 320 232" style={{ width:'100%', height:mobile?200:240, display:'block' }}>
             {(()=>{ const L=Math.max(1000,dims.length),W=Math.max(1000,dims.width),pad=26,vw=320,vh=232,sc=Math.min((vw-pad*2)/L,(vh-pad*2)/W),ox=pad+((vw-pad*2)-L*sc)/2,oy=pad+((vh-pad*2)-W*sc)/2;const X=mm=>ox+mm*sc,Y=mm=>oy+mm*sc;
@@ -839,24 +839,24 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
         </div>
         <div style={{ display:'grid', gap:7 }}>
           {[['Fridge → Sink',legFS],['Sink → Hob',legSH],['Hob → Fridge',legHF]].map(([l,v])=>(
-            <div key={l} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fff', border:'1px solid var(--line)', borderRadius:10, padding:'8px 11px' }}>
+            <div key={l} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'8px 11px' }}>
               <span style={{ fontSize:13, color:'var(--ink)' }}>{l}</span>
-              <span style={{ fontSize:13, fontWeight:600, color: kwLegOK(v)?'var(--ok, #16a34a)':'#d97706' }}>{v.toFixed(2)}m {kwLegOK(v)?'✓':'⚠'}</span>
+              <span style={{ fontSize:13, fontWeight:600, color: kwLegOK(v)?'var(--ok)':'#d97706' }}>{v.toFixed(2)}m {kwLegOK(v)?'✓':'⚠'}</span>
             </div>))}
           <div style={{ display:'flex', justifyContent:'space-between', padding:'8px 11px', fontWeight:700 }}>
             <span style={{ fontSize:13, color:'var(--ink)' }}>Total triangle</span>
-            <span style={{ fontSize:13, color: triOK?'var(--ok, #16a34a)':'#d97706' }}>{triTotal.toFixed(2)}m</span>
+            <span style={{ fontSize:13, color: triOK?'var(--ok)':'#d97706' }}>{triTotal.toFixed(2)}m</span>
           </div>
         </div></>);
       case 5: return (<>{sectionH('6',t('shK5t'),t('shK5s'))}
         <div style={{ display:'grid', gap:8, marginBottom:14 }}>
           {modules.filter(m=>m.qty>0).map(m=>{ const u=findU(m.id); if(!u) return null; return (
-            <div key={m.key} style={{ display:'flex', alignItems:'center', gap:9, background:'#fff', border:'1px solid var(--line)', borderRadius:10, padding:'8px 10px' }}>
+            <div key={m.key} style={{ display:'flex', alignItems:'center', gap:9, background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'8px 10px' }}>
               <div style={{ flex:1 }}><div style={{ fontSize:13, fontWeight:600, color:'var(--ink)' }}>{u.label} <span style={{ fontSize:11, color:'var(--muted)', textTransform:'capitalize' }}>· {m.kind}</span></div><div style={{ fontSize:11, color:'var(--muted)' }}>{u.w}mm · {fmt(Math.round(u.price*(m.kind==='tall'?carc.mult:matMult)))}/unit</div></div>
               <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                <button type="button" onClick={()=>updMod(m.key,m.qty-1)} style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--line)', background:'#fff', cursor:'pointer' }}>−</button>
+                <button type="button" onClick={()=>updMod(m.key,m.qty-1)} style={{ width:26, height:26, borderRadius:'var(--radius-sm)', border:'1px solid var(--line)', background:'var(--c-surface)', cursor:'pointer' }}>−</button>
                 <span style={{ minWidth:18, textAlign:'center', fontSize:13, fontWeight:600 }}>{m.qty}</span>
-                <button type="button" onClick={()=>updMod(m.key,m.qty+1)} style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--line)', background:'#fff', cursor:'pointer' }}>+</button>
+                <button type="button" onClick={()=>updMod(m.key,m.qty+1)} style={{ width:26, height:26, borderRadius:'var(--radius-sm)', border:'1px solid var(--line)', background:'var(--c-surface)', cursor:'pointer' }}>+</button>
                 <button type="button" onClick={()=>rmMod(m.key)} style={{ marginLeft:4, background:'none', border:'none', color:'var(--muted)', cursor:'pointer' }}>✕</button>
               </div>
             </div>); })}
@@ -865,7 +865,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
           <div key={kind} style={{ marginBottom:12 }}>
             <div className="eyebrow" style={{ fontSize:11, marginBottom:7 }}>{title}</div>
             <div style={{ display:'flex', flexWrap:'wrap', gap:7 }}>
-              {list.map(u=>(<button key={u.id} type="button" onClick={()=>addMod(u.id,kind)} style={{ border:'1px solid var(--line)', borderRadius:9, padding:'7px 10px', background:'#fff', cursor:'pointer', fontSize:12, color:'var(--ink-soft)' }}>+ {u.label}</button>))}
+              {list.map(u=>(<button key={u.id} type="button" onClick={()=>addMod(u.id,kind)} style={{ border:'1px solid var(--line)', borderRadius:'var(--radius-sm)', padding:'7px 10px', background:'var(--c-surface)', cursor:'pointer', fontSize:12, color:'var(--ink-soft)' }}>+ {u.label}</button>))}
             </div>
           </div>))}</>);
       case 6: return (<>{sectionH('7',t('shK6t'),t('shK6s'))}
@@ -875,7 +875,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
             <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(3,1fr)', gap:8 }}>
               {list.map(o=>{ const on=mats[key]===o.id; return (
                 <button key={o.id} type="button" onClick={()=>setMats(m=>({...m,[key]:o.id}))} style={card(on)}>
-                  {o.hex && <div style={{ height:30, borderRadius:7, background:o.hex, marginBottom:6 }} />}
+                  {o.hex && <div style={{ height:30, borderRadius:'var(--radius-sm)', background:o.hex, marginBottom:6 }} />}
                   <div style={{ fontSize:13, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{trOpt(o.name, lang)}</div>
                   <div style={{ fontSize:10.5, color:'var(--muted)' }}>{o.sub||('×'+o.mult.toFixed(2))}</div>
                 </button>); })}
@@ -892,17 +892,17 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
       case 7: return (<>{sectionH('8',t('shK7t'),t('shK7s'))}
         <div style={{ display:'grid', gap:9 }}>
           {KW_ACCESSORIES.map(a=>{ const q=acc[a.id]||0; const on=q>0; return (
-            <div key={a.id} style={{ display:'flex', alignItems:'center', gap:9, border: on?'2px solid var(--clay)':'1px solid var(--line)', background:on?'var(--sand)':'#fff', borderRadius:11, padding:'9px 11px' }}>
+            <div key={a.id} style={{ display:'flex', alignItems:'center', gap:9, border: on?'2px solid var(--clay)':'1px solid var(--line)', background:on?'var(--sand)':'#fff', borderRadius:'var(--radius-md)', padding:'9px 11px' }}>
               <div style={{ flex:1 }}><div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{a.name}</div><div style={{ fontSize:11, color:'var(--muted)' }}>{fmt(a.price)} / {a.unit}</div></div>
               <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                <button type="button" onClick={()=>setAcc(s=>({...s,[a.id]:Math.max(0,q-1)}))} style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--line)', background:'#fff', cursor:'pointer' }}>−</button>
+                <button type="button" onClick={()=>setAcc(s=>({...s,[a.id]:Math.max(0,q-1)}))} style={{ width:26, height:26, borderRadius:'var(--radius-sm)', border:'1px solid var(--line)', background:'var(--c-surface)', cursor:'pointer' }}>−</button>
                 <span style={{ minWidth:18, textAlign:'center', fontSize:13, fontWeight:600 }}>{q}</span>
-                <button type="button" onClick={()=>setAcc(s=>({...s,[a.id]:q+1}))} style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--line)', background:'#fff', cursor:'pointer' }}>+</button>
+                <button type="button" onClick={()=>setAcc(s=>({...s,[a.id]:q+1}))} style={{ width:26, height:26, borderRadius:'var(--radius-sm)', border:'1px solid var(--line)', background:'var(--c-surface)', cursor:'pointer' }}>+</button>
               </div>
             </div>); })}
         </div></>);
       case 8: return (<>{sectionH('9',t('shSummaryT'),t('shSummaryS'))}
-        <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:12, overflow:'hidden', marginBottom:12 }}>
+        <div style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', overflow:'hidden', marginBottom:12 }}>
           <div style={{ padding:'8px 12px', background:'var(--sand)', fontSize:11.5, fontWeight:700, color:'var(--ink-soft)' }}>{t('pBillOfMaterials')}</div>
           {bom.map(b=>(<div key={b.key} style={{ display:'flex', justifyContent:'space-between', padding:'7px 12px', fontSize:12.5, borderTop:'1px solid var(--line)' }}><span style={{ color:'var(--ink-soft)' }}>{b.name} ×{b.qty}</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(b.line)}</span></div>))}
           <div style={{ display:'flex', justifyContent:'space-between', padding:'7px 12px', fontSize:12.5, borderTop:'1px solid var(--line)' }}><span style={{ color:'var(--ink-soft)' }}>Countertop · {ctop.name} ({counterM.toFixed(1)}m)</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(counterTotal)}</span></div>
@@ -911,10 +911,10 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
         </div>
 
         {/* ── Production Specification (BOM / Manufacturing / Installation) ── */}
-        <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:12, overflow:'hidden', marginBottom:12 }}>
+        <div style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', overflow:'hidden', marginBottom:12 }}>
           <div style={{ display:'flex', gap:0, background:'var(--sand)', padding:4, borderBottom:'1px solid var(--line)' }}>
             {[['bom','Bill of materials'],['manufacturing','Manufacturing'],['installation','Installation']].map(([id,t])=>{ const on=specTab===id; return (
-              <button key={id} type="button" onClick={()=>setSpecTab(id)} style={{ flex:1, padding:'7px 6px', border:'none', borderRadius:8, cursor:'pointer', fontSize:11.5, fontWeight:on?700:600, background:on?'#fff':'transparent', color:on?'var(--clay-deep)':'var(--ink-soft)', boxShadow:on?'0 1px 4px rgba(33,28,24,.08)':'none' }}>{t}</button>); })}
+              <button key={id} type="button" onClick={()=>setSpecTab(id)} style={{ flex:1, padding:'7px 6px', border:'none', borderRadius:'var(--radius-sm)', cursor:'pointer', fontSize:11.5, fontWeight:on?700:600, background:on?'#fff':'transparent', color:on?'var(--clay-deep)':'var(--ink-soft)', boxShadow:on?'0 1px 4px rgba(33,28,24,.08)':'none' }}>{t}</button>); })}
           </div>
           <div style={{ padding:'4px 0 8px' }}>
             {specTab==='bom' && (<>
@@ -959,17 +959,17 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
           </div>
         </div>
 
-        <div style={{ background: triOK?'rgba(22,163,74,.08)':'rgba(217,119,6,.08)', borderRadius:10, padding:'9px 12px', fontSize:12.5, color: triOK?'#15803d':'#b45309', marginBottom:12 }}>
+        <div style={{ background: triOK?'rgba(22,163,74,.08)':'rgba(217,119,6,.08)', borderRadius:'var(--radius-md)', padding:'9px 12px', fontSize:12.5, color: triOK?'#15803d':'#b45309', marginBottom:12 }}>
           {t('vWorkTriangle')}: {triOK?t('vTriangleOk'):t('vTriangleBad')} · {lang==='ar'?'الإجمالي':'total'} {triTotal.toFixed(1)}m
         </div>
-        {overCapacity && <div style={{ fontSize:12.5, color:'var(--danger,#b91c1c)', marginBottom:12 }}>{t('w4SpecCabinetExceeds')}</div>}
+        {overCapacity && <div style={{ fontSize:12.5, color:'var(--danger)', marginBottom:12 }}>{t('w4SpecCabinetExceeds')}</div>}
         <div style={{ display:'grid', gap:8 }}>
-          <button type="button" disabled={busy} onClick={saveDesign} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:11, padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{t('pSaveDesign')}</button>
-          <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:11 }}>{user?t('pGetQuoteArrow'):t('pSignInQuoteArrow')}</button>
-          <button type="button" onClick={downloadPDF} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:11, padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{t('pDownloadPdf')}</button>
+          <button type="button" disabled={busy} onClick={saveDesign} style={{ border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{t('pSaveDesign')}</button>
+          <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:'var(--radius-md)' }}>{user?t('pGetQuoteArrow'):t('pSignInQuoteArrow')}</button>
+          <button type="button" onClick={downloadPDF} style={{ border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{t('pDownloadPdf')}</button>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginTop:6 }}>
             {[['w4SoonAiSuggestions'],['w4SoonMfgDrawings'],['w4SoonCncCut'],['w4SoonRevHistory'],['w4SoonApproval']].map(([k])=>(
-              <button key={k} type="button" disabled title="Coming soon" style={{ border:'1px dashed var(--line)', background:'var(--sand)', borderRadius:10, padding:'9px', fontSize:11.5, color:'var(--muted)', cursor:'not-allowed' }}>{t(k)} · {t('w4SoonSuffix')}</button>))}
+              <button key={k} type="button" disabled title="Coming soon" style={{ border:'1px dashed var(--line)', background:'var(--sand)', borderRadius:'var(--radius-md)', padding:'9px', fontSize:11.5, color:'var(--muted)', cursor:'not-allowed' }}>{t(k)} · {t('w4SoonSuffix')}</button>))}
           </div>
         </div></>);
       default: return null;
@@ -980,7 +980,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
   return (
     <div style={{ height: mobile?'100dvh':`calc(100dvh - ${HEADER}px)`, marginTop: HEADER, display:'flex', flexDirection:'column', background:'var(--cream)', overflow:'hidden' }}>
       {/* step bar */}
-      <div style={{ height:BAR, flexShrink:0, display:'flex', alignItems:'center', gap:4, overflowX:'auto', padding:'0 12px', borderBottom:'1px solid var(--line)', background:'#fff' }}>
+      <div style={{ height:BAR, flexShrink:0, display:'flex', alignItems:'center', gap:4, overflowX:'auto', padding:'0 12px', borderBottom:'1px solid var(--line)', background:'var(--c-surface)' }}>
         {STEPS.map((s,i)=>{ const done=i<step, now=i===step; return (
           <button key={s} type="button" onClick={()=>i<=step&&setStep(i)} style={{ flexShrink:0, display:'flex', alignItems:'center', gap:5, background:'none', border:'none', cursor:i<=step?'pointer':'default', padding:'2px 6px' }}>
             <span style={{ width:20, height:20, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10.5, fontWeight:700, background: now?'var(--clay)':done?'var(--clay-deep)':'var(--sand)', color:(!now&&!done)?'var(--muted)':'#fff' }}>{done?'✓':i+1}</span>
@@ -997,14 +997,14 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
         {/* RIGHT — sticky preview (desktop) */}
         {!mobile && (
           <div style={{ flex:1, minWidth:0, padding:'18px 20px', display:'flex', flexDirection:'column' }}>
-            <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:14, boxShadow:'var(--shadow)', flex:1, display:'flex', flexDirection:'column', minHeight:0 }}>
+            <div style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', padding:14, boxShadow:'var(--shadow)', flex:1, display:'flex', flexDirection:'column', minHeight:0 }}>
               {previewPane(280, '100%')}
             </div>
           </div>
         )}
         {/* mobile collapsible preview */}
         {mobile && showPrev && (
-          <div style={{ flexShrink:0, padding:'10px 14px', borderTop:'1px solid var(--line)', background:'#fff' }}>
+          <div style={{ flexShrink:0, padding:'10px 14px', borderTop:'1px solid var(--line)', background:'var(--c-surface)' }}>
             <div style={{ height:200 }}>{previewPane(190,190)}</div>
           </div>
         )}
@@ -1012,22 +1012,22 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
 
       {/* bottom action bar */}
       <div style={{ flexShrink:0, display:'flex', alignItems:'center', gap:10, padding:'9px 14px calc(9px + env(safe-area-inset-bottom))', borderTop:'1px solid var(--line)', background:'rgba(255,255,255,.97)', backdropFilter:'blur(10px)' }}>
-        {step>0 ? <button type="button" onClick={back} style={{ background:'none', border:'1px solid var(--line)', borderRadius:11, padding:'10px 16px', fontSize:13.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pBack')}</button>
-          : <button type="button" onClick={()=>setPage('kitchen')} style={{ background:'none', border:'1px solid var(--line)', borderRadius:11, padding:'10px 16px', fontSize:13, color:'var(--muted)', cursor:'pointer' }}>{t('pExit')}</button>}
-        {mobile && <button type="button" onClick={()=>setShowPrev(v=>!v)} style={{ background:'var(--sand)', border:'none', borderRadius:11, padding:'10px 12px', fontSize:12.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{showPrev?t('pHide'):t('pPreview')}</button>}
+        {step>0 ? <button type="button" onClick={back} style={{ background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'10px 16px', fontSize:13.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pBack')}</button>
+          : <button type="button" onClick={()=>setPage('kitchen')} style={{ background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'10px 16px', fontSize:13, color:'var(--muted)', cursor:'pointer' }}>{t('pExit')}</button>}
+        {mobile && <button type="button" onClick={()=>setShowPrev(v=>!v)} style={{ background:'var(--sand)', border:'none', borderRadius:'var(--radius-md)', padding:'10px 12px', fontSize:12.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{showPrev?t('pHide'):t('pPreview')}</button>}
         <div style={{ flex:1, textAlign: mobile?'center':'right', minWidth:0 }}><span style={{ fontSize:10.5, color:'var(--muted)' }}>{t('pTotal')} </span><span className="display" style={{ fontSize:17, color:'var(--clay)' }}>{fmt(grandTotal)}</span></div>
         {step<STEPS.length-1
-          ? <button type="button" className="btn-clay" disabled={!canNext} onClick={next} style={{ borderRadius:11, minWidth:120, opacity:canNext?1:.55 }}>{t('pNextArrow')}</button>
-          : <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:11, minWidth:120 }}>{t('pGetQuoteArrow')}</button>}
+          ? <button type="button" className="btn-clay" disabled={!canNext} onClick={next} style={{ borderRadius:'var(--radius-md)', minWidth:120, opacity:canNext?1:.55 }}>{t('pNextArrow')}</button>
+          : <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:'var(--radius-md)', minWidth:120 }}>{t('pGetQuoteArrow')}</button>}
       </div>
 
       {/* QUOTE modal */}
       {showQuote && (
         <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
-          <ModalPanel onClose={()=>!busy&&setShowQuote(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:420, width:'100%', padding:24 }}>
+          <ModalPanel onClose={()=>!busy&&setShowQuote(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', maxWidth:420, width:'100%', padding:24 }}>
             <div className="eyebrow" style={{ marginBottom:8 }}>{t('pAlmostThere')}</div>
             <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 6px' }}>{t('pQuoteTitleKitchen')}</h3>
-            <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)' }}>{lay.name} · {door.name} · {ctop.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(grandTotal)}</b></div>
+            <div style={{ background:'var(--sand)', borderRadius:'var(--radius-md)', padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)' }}>{lay.name} · {door.name} · {ctop.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(grandTotal)}</b></div>
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
               <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} placeholder={t('pYourName')} style={inS} />
               <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} placeholder="Phone (+973…)" inputMode="tel" style={inS} />
@@ -1036,8 +1036,8 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
             </div>
             <FormNotice kind="request" style={{ marginTop:12 }} />
             <div style={{ display:'flex', gap:10, marginTop:16 }}>
-              <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pCancel')}</button>
-              <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submitQuote(contact)} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?t('pSending'):(user?t('pSendQuoteReq'):t('pSignInSend'))}</button>
+              <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pCancel')}</button>
+              <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submitQuote(contact)} style={{ flex:2, borderRadius:'var(--radius-md)', opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?t('pSending'):(user?t('pSendQuoteReq'):t('pSignInSend'))}</button>
             </div>
           </ModalPanel>
         </div>

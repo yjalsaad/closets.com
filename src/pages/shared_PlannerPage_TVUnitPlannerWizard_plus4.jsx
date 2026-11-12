@@ -579,10 +579,10 @@ function Wardrobe3DInner({ finishHex, layout, glass, handles, led, mobile, fallb
   }, [ready]);
 
   if (failed && fallback) return <>{fallback}</>;
-  const ctrlBtn = { width: 34, height: 34, borderRadius: 8, border: '1px solid #e3e3e6', background: 'rgba(255,255,255,.92)', color: 'var(--shop-ink, #1d1d1f)', fontSize: 18, lineHeight: '1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 3px rgba(0,0,0,.08)' };
+  const ctrlBtn = { width: 34, height: 34, borderRadius: 'var(--radius-sm)', border: '1px solid #e3e3e6', background: 'rgba(255,255,255,.92)', color: 'var(--shop-ink)', fontSize: 18, lineHeight: '1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 3px rgba(0,0,0,.08)' };
   return (
     <div style={{ width: '100%', height: tall ? '100%' : (mobile ? 340 : 460), minHeight: tall ? (mobile?340:560) : undefined, position: 'relative' }} ref={mountRef}>
-      {!ready && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 13 }}>Loading 3D…</div>}
+      {!ready && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c-text-3)', fontSize: 13 }}>Loading 3D…</div>}
       {ready && tall && (
         <>
           <div style={{ position: 'absolute', right: 12, bottom: 12, display: 'flex', flexDirection: 'column', gap: 6, zIndex: 2 }}>
@@ -590,7 +590,7 @@ function Wardrobe3DInner({ finishHex, layout, glass, handles, led, mobile, fallb
             <button type="button" aria-label="Zoom out" style={ctrlBtn} onClick={() => sceneRef.current && sceneRef.current.zoomBy(1.2)}>−</button>
             <button type="button" aria-label="Reset view" style={{ ...ctrlBtn, fontSize: 14 }} onClick={() => sceneRef.current && sceneRef.current.reset()}>⟲</button>
           </div>
-          <div style={{ position: 'absolute', left: 12, bottom: 12, fontSize: 11, color: '#8a8a8e', background: 'rgba(255,255,255,.7)', padding: '4px 9px', borderRadius: 20, pointerEvents: 'none' }}>{t('sw3DragRotateZoom')}</div>
+          <div style={{ position: 'absolute', left: 12, bottom: 12, fontSize: 11, color: '#8a8a8e', background: 'rgba(255,255,255,.7)', padding: '4px 9px', borderRadius: 'var(--radius-xl)', pointerEvents: 'none' }}>{t('sw3DragRotateZoom')}</div>
         </>
       )}
     </div>
@@ -879,18 +879,18 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
     setPrBusy(false);
   };
 
-  const seg = (active) => ({ padding:'7px 16px', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', background: active?'var(--clay)':'transparent', color: active?'#fff':'var(--ink-soft)', borderRadius:8 });
+  const seg = (active) => ({ padding:'7px 16px', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', background: active?'var(--clay)':'transparent', color: active?'#fff':'var(--ink-soft)', borderRadius:'var(--radius-sm)' });
 
   // ── Scene stage (left) ──
   const scene3DHeight = mobile ? 360 : 560; // shared px height for every 3D scene (matches the stage container)
   const sceneStage = (
     <div style={{ position:'relative', width:'100%', maxWidth:880, margin:'0 auto' }}>
       <div style={ mode === '3d'
-        ? { position:'relative', width:'100%', height: mobile ? 360 : 560, minHeight: mobile ? 360 : 520, borderRadius:16, overflow:'hidden', background:'#f4f1ea', boxShadow:'0 6px 30px rgba(0,0,0,.14)' }
-        : { position:'relative', width:'100%', paddingTop:(aspect*100)+'%', borderRadius:16, overflow:'hidden', background:'#e9e4dc', boxShadow:'0 6px 30px rgba(0,0,0,.14)' } }>
+        ? { position:'relative', width:'100%', height: mobile ? 360 : 560, minHeight: mobile ? 360 : 520, borderRadius:'var(--radius-lg)', overflow:'hidden', background:'#f4f1ea', boxShadow:'0 6px 30px rgba(0,0,0,.14)' }
+        : { position:'relative', width:'100%', paddingTop:(aspect*100)+'%', borderRadius:'var(--radius-lg)', overflow:'hidden', background:'#e9e4dc', boxShadow:'0 6px 30px rgba(0,0,0,.14)' } }>
         {/* Reset View chip (best-effort remount of the scene) */}
         <button type="button" onClick={()=>setViewNonce(n=>n+1)} aria-label="Reset view"
-          style={{ position:'absolute', top:12, right:12, zIndex:4, display:'inline-flex', alignItems:'center', gap:6, padding:'6px 12px', borderRadius:999, border:'1px solid var(--line)', background:'rgba(245,241,234,.92)', color:'var(--ink)', fontSize:12, fontWeight:600, cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,.12)' }}>↻ Reset View</button>
+          style={{ position:'absolute', top:12, right:12, zIndex:4, display:'inline-flex', alignItems:'center', gap:6, padding:'6px 12px', borderRadius:'var(--radius-pill)', border:'1px solid var(--line)', background:'rgba(245,241,234,.92)', color:'var(--ink)', fontSize:12, fontWeight:600, cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,.12)' }}>↻ Reset View</button>
         <div key={'rd-scene-'+viewNonce} style={{ position:'absolute', inset:0 }}>
         {(mode === '3d' && is3DCapable) ? (
           <div style={{ position:'absolute', inset:0 }}>
@@ -998,7 +998,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
                     onMouseEnter={()=>setHoverKey(s.surface_key)} onMouseLeave={()=>setHoverKey(k=>k===s.surface_key?null:k)}
                     aria-label={trRd(s.label || s.surface_key, lang) + (chosen ? (' — ' + trRd(chosen.name, lang)) : '')} title={trRd(s.label || s.surface_key, lang)}
                     style={{ position:'relative', width:32, height:32, borderRadius:'50%', border:'none', cursor:'pointer',
-                      background:'#fff', color: chosen ? '#1D9E75' : 'var(--clay)', fontSize:17, fontWeight:800, lineHeight:'32px', textAlign:'center',
+                      background:'var(--c-surface)', color: chosen ? '#1D9E75' : 'var(--clay)', fontSize:17, fontWeight:800, lineHeight:'32px', textAlign:'center',
                       boxShadow: isActive ? '0 4px 16px rgba(0,0,0,.30)' : '0 2px 9px rgba(0,0,0,.24)',
                       outline: isActive ? '3px solid var(--clay)' : '2px solid rgba(255,255,255,.85)', outlineOffset:0,
                       transform: pulsing ? 'scale(1.28)' : (isActive ? 'scale(1.08)' : 'scale(1)'),
@@ -1007,7 +1007,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
                   </button>
                   {/* hover / active label with a tiny swatch */}
                   {showLabel && (
-                    <div aria-hidden="true" style={{ position:'absolute', left:'50%', top:-12, transform:'translate(-50%,-100%)', whiteSpace:'nowrap', background:'rgba(28,24,20,.92)', color:'#fff', fontSize:11.5, fontWeight:600, padding:'5px 9px', borderRadius:8, boxShadow:'0 4px 14px rgba(0,0,0,.28)', display:'flex', alignItems:'center', gap:6, pointerEvents:'none' }}>
+                    <div aria-hidden="true" style={{ position:'absolute', left:'50%', top:-12, transform:'translate(-50%,-100%)', whiteSpace:'nowrap', background:'rgba(28,24,20,.92)', color:'#fff', fontSize:11.5, fontWeight:600, padding:'5px 9px', borderRadius:'var(--radius-sm)', boxShadow:'0 4px 14px rgba(0,0,0,.28)', display:'flex', alignItems:'center', gap:6, pointerEvents:'none' }}>
                       <span style={{ width:11, height:11, borderRadius:'50%', flexShrink:0, background: chosen ? (chosen.hex || 'var(--sand)') : 'rgba(255,255,255,.35)', boxShadow:'inset 0 0 0 1px rgba(255,255,255,.4)' }} />
                       <span>{trRd(s.label || s.surface_key, lang)}{chosen ? ' · ' + trRd(chosen.name, lang) : ''}</span>
                     </div>
@@ -1020,13 +1020,13 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
         </div>
         {/* Floating surface toolbar — one button per clickable area, active one highlighted */}
         {surfaces.length > 0 && (
-          <div style={{ position:'absolute', left:'50%', bottom:14, transform:'translateX(-50%)', maxWidth:'calc(100% - 24px)', display:'flex', gap:6, padding:6, borderRadius:16, background:'rgba(245,241,234,.94)', border:'1px solid var(--line)', boxShadow:'0 6px 22px rgba(0,0,0,.18)', overflowX:'auto', zIndex:4 }}>
+          <div style={{ position:'absolute', left:'50%', bottom:14, transform:'translateX(-50%)', maxWidth:'calc(100% - 24px)', display:'flex', gap:6, padding:6, borderRadius:'var(--radius-lg)', background:'rgba(245,241,234,.94)', border:'1px solid var(--line)', boxShadow:'0 6px 22px rgba(0,0,0,.18)', overflowX:'auto', zIndex:4 }}>
             {surfaces.map(s => {
               const m = selections[s.surface_key];
               const on = activeSurface === s.surface_key;
               return (
                 <button key={'tb-'+s.id} type="button" onClick={()=>openPanelFor(s.surface_key)} title={surfaceLabel(s.surface_key)}
-                  style={{ display:'inline-flex', flexDirection:'column', alignItems:'center', gap:4, padding:'7px 12px', borderRadius:11, flexShrink:0, cursor:'pointer',
+                  style={{ display:'inline-flex', flexDirection:'column', alignItems:'center', gap:4, padding:'7px 12px', borderRadius:'var(--radius-md)', flexShrink:0, cursor:'pointer',
                     border:'1px solid ' + (on ? 'var(--clay)' : 'transparent'),
                     background: on ? 'var(--clay)' : 'transparent', transition:'all .18s ease' }}>
                   <span style={{ width:20, height:20, borderRadius:'50%', flexShrink:0, boxShadow:'inset 0 0 0 1px rgba(0,0,0,.18)',
@@ -1053,8 +1053,8 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
   const finishOpts = [['smooth','Smooth'],['matt','Matt'],['satin','Satin']];
   const materialPicker = (
     <div style={ mobile
-      ? { width:'100%', background:'var(--cream)', borderRadius:16, border:'1px solid var(--line)', display:'flex', flexDirection:'column', boxShadow:'0 6px 22px rgba(0,0,0,.08)' }
-      : { width:330, flexShrink:0, background:'var(--cream)', borderRadius:16, border:'1px solid var(--line)', display:'flex', flexDirection:'column', maxHeight:'calc(100vh - 150px)', position:'sticky', top:0, boxShadow:'0 6px 22px rgba(0,0,0,.08)' } }>
+      ? { width:'100%', background:'var(--cream)', borderRadius:'var(--radius-lg)', border:'1px solid var(--line)', display:'flex', flexDirection:'column', boxShadow:'0 6px 22px rgba(0,0,0,.08)' }
+      : { width:330, flexShrink:0, background:'var(--cream)', borderRadius:'var(--radius-lg)', border:'1px solid var(--line)', display:'flex', flexDirection:'column', maxHeight:'calc(100vh - 150px)', position:'sticky', top:0, boxShadow:'0 6px 22px rgba(0,0,0,.08)' } }>
       <div style={{ padding:'16px 18px 12px', borderBottom:'1px solid var(--line)' }}>
         <div style={{ fontSize:17, fontWeight:800, color:'var(--ink)', letterSpacing:'-.01em' }}>{activeSurface ? surfaceLabel(activeSurface) : t('rdChooseFinish')}</div>
         <div style={{ fontSize:12.5, color:'var(--muted)', marginTop:2 }}>{activeSurface ? ('Select a material for ' + surfaceLabel(activeSurface).toLowerCase()) : ''}</div>
@@ -1066,7 +1066,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
             const on = gname === currentGroupName;
             return (
               <button key={gname} type="button" onClick={()=>setActiveGroup(gname)}
-                style={{ flexShrink:0, padding:'7px 13px', borderRadius:999, cursor:'pointer', fontSize:12.5, fontWeight:700,
+                style={{ flexShrink:0, padding:'7px 13px', borderRadius:'var(--radius-pill)', cursor:'pointer', fontSize:12.5, fontWeight:700,
                   border:'1px solid ' + (on ? 'var(--clay)' : 'var(--line)'),
                   background: on ? 'var(--clay)' : '#fff', color: on ? 'var(--cream)' : 'var(--ink-soft)' }}>{trRd(gname, lang)}</button>
             );
@@ -1084,7 +1084,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
             return (
               <button key={m.id} type="button" onClick={()=>{ setPendingMaterial(m); chooseMaterial(activeSurface, m); }} title={trRd(m.name, lang)}
                 style={{ display:'flex', flexDirection:'column', alignItems:'stretch', gap:7, background:'none', border:'none', cursor:'pointer', padding:0 }}>
-                <span style={{ position:'relative', width:'100%', paddingTop:'86%', borderRadius:12, background: m.hex || 'var(--sand)', backgroundImage: m.swatch_url ? `url(${absUrl(m.swatch_url)})` : undefined, backgroundSize:'cover', backgroundPosition:'center',
+                <span style={{ position:'relative', width:'100%', paddingTop:'86%', borderRadius:'var(--radius-md)', background: m.hex || 'var(--sand)', backgroundImage: m.swatch_url ? `url(${absUrl(m.swatch_url)})` : undefined, backgroundSize:'cover', backgroundPosition:'center',
                   boxShadow: on ? '0 0 0 3px var(--cream), 0 0 0 5px var(--clay), 0 4px 12px rgba(168,75,41,.28)' : 'inset 0 0 0 1px rgba(0,0,0,.12)',
                   transition:'box-shadow .18s ease' }}>
                   {applied && <span style={{ position:'absolute', right:6, bottom:6, width:22, height:22, borderRadius:'50%', background:'var(--clay)', color:'var(--cream)', fontSize:12, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', border:'2px solid var(--cream)' }}>✓</span>}
@@ -1099,23 +1099,23 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
       {/* Finish + Apply pinned to the bottom */}
       <div style={{ padding:'12px 16px 16px', borderTop:'1px solid var(--line)', flexShrink:0 }}>
         <div style={{ fontSize:10.5, letterSpacing:'.12em', textTransform:'uppercase', color:'var(--muted)', fontWeight:700, marginBottom:7 }}>Finish</div>
-        <div style={{ display:'flex', gap:4, background:'var(--sand)', border:'1px solid var(--line)', borderRadius:10, padding:3, marginBottom:12 }}>
+        <div style={{ display:'flex', gap:4, background:'var(--sand)', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:3, marginBottom:12 }}>
           {finishOpts.map(([k,label]) => (
             <button key={k} type="button" onClick={()=>setFinish(k)}
-              style={{ flex:1, padding:'7px 0', fontSize:12.5, fontWeight:700, cursor:'pointer', border:'none', borderRadius:8,
+              style={{ flex:1, padding:'7px 0', fontSize:12.5, fontWeight:700, cursor:'pointer', border:'none', borderRadius:'var(--radius-sm)',
                 background: finish===k ? 'var(--clay)' : 'transparent', color: finish===k ? 'var(--cream)' : 'var(--ink-soft)' }}>{label}</button>
           ))}
         </div>
         <button type="button" disabled={!activeSurface || !highlightMat}
           onClick={()=>{ if (activeSurface && highlightMat) chooseMaterial(activeSurface, highlightMat); }}
-          style={{ width:'100%', padding:'12px 0', borderRadius:12, border:'none', cursor: (activeSurface && highlightMat) ? 'pointer' : 'not-allowed',
+          style={{ width:'100%', padding:'12px 0', borderRadius:'var(--radius-md)', border:'none', cursor: (activeSurface && highlightMat) ? 'pointer' : 'not-allowed',
             background: (activeSurface && highlightMat) ? 'var(--ink)' : 'var(--sand)', color: (activeSurface && highlightMat) ? 'var(--cream)' : 'var(--muted)', fontSize:14, fontWeight:800 }}>Apply Material</button>
       </div>
     </div>
   );
 
   // ── Left column cards (stacked below on mobile) ──
-  const rdCard = { background:'var(--cream)', border:'1px solid var(--line)', borderRadius:14, padding:'14px 16px' };
+  const rdCard = { background:'var(--cream)', border:'1px solid var(--line)', borderRadius:'var(--radius-lg)', padding:'14px 16px' };
   const rdCardLabel = { fontSize:10.5, letterSpacing:'.12em', textTransform:'uppercase', color:'var(--muted)', fontWeight:700, marginBottom:9 };
   const leftColumn = (
     <div style={{ width: mobile ? '100%' : 248, flexShrink:0, display:'flex', flexDirection:'column', gap:14 }}>
@@ -1123,15 +1123,15 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
         <div style={rdCardLabel}>{(productNoun.charAt(0).toUpperCase() + productNoun.slice(1))} Layout</div>
         <select value={scene ? scene.id : ''} onChange={e=>{ const sc = scenes.find(s=>s.id===e.target.value); if (sc) selectScene(sc); }}
           aria-label={t('rdSceneSwitcher')}
-          style={{ width:'100%', padding:'9px 11px', borderRadius:10, border:'1px solid var(--line)', background:'#fff', color:'var(--ink)', fontSize:13.5, fontWeight:600, cursor:'pointer' }}>
+          style={{ width:'100%', padding:'9px 11px', borderRadius:'var(--radius-md)', border:'1px solid var(--line)', background:'var(--c-surface)', color:'var(--ink)', fontSize:13.5, fontWeight:600, cursor:'pointer' }}>
           {scenes.length ? scenes.map(s => <option key={s.id} value={s.id}>{trRd(s.name, lang)}</option>) : <option>{productNounL}</option>}
         </select>
       </div>
       <div style={rdCard}>
         <div style={rdCardLabel}>View Mode</div>
-        <div style={{ display:'flex', gap:4, background:'var(--sand)', border:'1px solid var(--line)', borderRadius:10, padding:3 }}>
-          <button type="button" onClick={()=>setMode('live')} aria-pressed={mode==='live'} style={{ flex:1, padding:'8px 0', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', borderRadius:8, background: mode==='live'?'var(--clay)':'transparent', color: mode==='live'?'var(--cream)':'var(--ink-soft)' }}>2D</button>
-          <button type="button" onClick={()=>setMode('3d')} aria-pressed={mode==='3d'} style={{ flex:1, padding:'8px 0', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', borderRadius:8, background: mode==='3d'?'var(--clay)':'transparent', color: mode==='3d'?'var(--cream)':'var(--ink-soft)' }}>3D</button>
+        <div style={{ display:'flex', gap:4, background:'var(--sand)', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:3 }}>
+          <button type="button" onClick={()=>setMode('live')} aria-pressed={mode==='live'} style={{ flex:1, padding:'8px 0', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', borderRadius:'var(--radius-sm)', background: mode==='live'?'var(--clay)':'transparent', color: mode==='live'?'var(--cream)':'var(--ink-soft)' }}>2D</button>
+          <button type="button" onClick={()=>setMode('3d')} aria-pressed={mode==='3d'} style={{ flex:1, padding:'8px 0', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', borderRadius:'var(--radius-sm)', background: mode==='3d'?'var(--clay)':'transparent', color: mode==='3d'?'var(--cream)':'var(--ink-soft)' }}>3D</button>
         </div>
       </div>
       <div style={rdCard}>
@@ -1140,7 +1140,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
           {[['modern','Modern'],['classic','Classic'],['minimal','Minimal'],['luxury','Luxury']].map(([k,label]) => {
             const on = quickStyle===k;
             return <button key={k} type="button" onClick={()=>setQuickStyle(k)}
-              style={{ padding:'9px 0', borderRadius:999, cursor:'pointer', fontSize:12.5, fontWeight:700,
+              style={{ padding:'9px 0', borderRadius:'var(--radius-pill)', cursor:'pointer', fontSize:12.5, fontWeight:700,
                 border:'1px solid ' + (on ? 'var(--clay)' : 'var(--line)'), background: on ? 'var(--clay)' : '#fff', color: on ? 'var(--cream)' : 'var(--ink-soft)' }}>{label}</button>;
           })}
         </div>
@@ -1172,11 +1172,11 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
         @media (prefers-reduced-motion: reduce) { .rd-root *, .rd-root *::before, .rd-root *::after { animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; } }
       `}</style>
       {/* Top bar */}
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, padding:'10px 16px', borderBottom:'1px solid var(--line)', background:'#fff', flexShrink:0 }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, padding:'10px 16px', borderBottom:'1px solid var(--line)', background:'var(--c-surface)', flexShrink:0 }}>
         {/* left: back + title chip */}
         <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0 }}>
-          <button type="button" aria-label={t('rdClose')} onClick={onClose} style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:34, height:34, background:'#fff', border:'1px solid var(--line)', borderRadius:10, cursor:'pointer', fontSize:16, fontWeight:700, color:'var(--ink-soft)' }}>{lang==='ar'?'›':'‹'}</button>
-          <span style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'7px 12px', borderRadius:10, background:'var(--sand)', border:'1px solid var(--line)', fontSize:13.5, fontWeight:800, color:'var(--ink)', whiteSpace:'nowrap' }}>🎨 {t('rdRoomDesigner')}</span>
+          <button type="button" aria-label={t('rdClose')} onClick={onClose} style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:34, height:34, background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', cursor:'pointer', fontSize:16, fontWeight:700, color:'var(--ink-soft)' }}>{lang==='ar'?'›':'‹'}</button>
+          <span style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'7px 12px', borderRadius:'var(--radius-md)', background:'var(--sand)', border:'1px solid var(--line)', fontSize:13.5, fontWeight:800, color:'var(--ink)', whiteSpace:'nowrap' }}>🎨 {t('rdRoomDesigner')}</span>
         </div>
         {/* center: stepper */}
         {!mobile && (
@@ -1194,10 +1194,10 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
         )}
         {/* right: save / share / render */}
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          {!mobile && <button type="button" style={{ padding:'8px 14px', borderRadius:10, border:'1px solid var(--line)', background:'#fff', color:'var(--ink-soft)', fontSize:13, fontWeight:700, cursor:'pointer' }}>Save</button>}
-          {!mobile && <button type="button" style={{ padding:'8px 14px', borderRadius:10, border:'1px solid var(--line)', background:'#fff', color:'var(--ink-soft)', fontSize:13, fontWeight:700, cursor:'pointer' }}>Share</button>}
+          {!mobile && <button type="button" style={{ padding:'8px 14px', borderRadius:'var(--radius-md)', border:'1px solid var(--line)', background:'var(--c-surface)', color:'var(--ink-soft)', fontSize:13, fontWeight:700, cursor:'pointer' }}>Save</button>}
+          {!mobile && <button type="button" style={{ padding:'8px 14px', borderRadius:'var(--radius-md)', border:'1px solid var(--line)', background:'var(--c-surface)', color:'var(--ink-soft)', fontSize:13, fontWeight:700, cursor:'pointer' }}>Share</button>}
           <button type="button" onClick={renderPhotoreal} disabled={prBusy}
-            style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'9px 16px', borderRadius:10, border:'none', cursor: prBusy ? 'wait' : 'pointer', background:'var(--ink)', color:'var(--cream)', fontSize:13, fontWeight:800, whiteSpace:'nowrap' }}>
+            style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'9px 16px', borderRadius:'var(--radius-md)', border:'none', cursor: prBusy ? 'wait' : 'pointer', background:'var(--ink)', color:'var(--cream)', fontSize:13, fontWeight:800, whiteSpace:'nowrap' }}>
             <i className={prBusy ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" /> {prBusy ? t('rdRendering') : (mobile ? 'Render' : t('rdRenderPhotoreal'))}{!prBusy ? ' ✨' : ''}
           </button>
         </div>
@@ -1210,7 +1210,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
           <div style={{ textAlign:'center', padding:'70px 20px', color:'var(--muted)' }}>
             <div style={{ fontSize:15, fontWeight:700, color:'var(--ink)', marginBottom:6 }}>{t('rdUnavailable')}</div>
             <div style={{ fontSize:13.5, marginBottom:16 }}>{loadErr}</div>
-            <button type="button" className="btn-secondary" onClick={onClose} style={{ borderRadius:12 }}>{t('rdClose')}</button>
+            <button type="button" className="btn-secondary" onClick={onClose} style={{ borderRadius:'var(--radius-md)' }}>{t('rdClose')}</button>
           </div>
         )}
         {!loading && !loadErr && (
@@ -1219,16 +1219,16 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
             {/* Center stage */}
             <div style={{ flex:1, minWidth:0, width:'100%' }}>
               {sceneStage}
-              {prErr && <div role="alert" style={{ marginTop:14, maxWidth:540, marginLeft:'auto', marginRight:'auto', background:'#fff7f3', border:'1px solid var(--line)', color:'var(--clay-deep)', borderRadius:12, padding:'11px 16px', fontSize:13, textAlign:'center', animation:'rdFade .25s ease' }}>{prErr}</div>}
+              {prErr && <div role="alert" style={{ marginTop:14, maxWidth:540, marginLeft:'auto', marginRight:'auto', background:'#fff7f3', border:'1px solid var(--line)', color:'var(--clay-deep)', borderRadius:'var(--radius-md)', padding:'11px 16px', fontSize:13, textAlign:'center', animation:'rdFade .25s ease' }}>{prErr}</div>}
               {prUrl && (
-                <div style={{ marginTop:18, maxWidth:640, marginLeft:'auto', marginRight:'auto', background:'#fff', borderRadius:20, border:'1px solid var(--line)', boxShadow:'0 12px 40px rgba(0,0,0,.12)', overflow:'hidden', animation:'rdFade .35s ease' }}>
+                <div style={{ marginTop:18, maxWidth:640, marginLeft:'auto', marginRight:'auto', background:'var(--c-surface)', borderRadius:'var(--radius-xl)', border:'1px solid var(--line)', boxShadow:'0 12px 40px rgba(0,0,0,.12)', overflow:'hidden', animation:'rdFade .35s ease' }}>
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 18px', borderBottom:'1px solid var(--line)' }}>
                     <span style={{ fontSize:12.5, fontWeight:800, letterSpacing:'.04em', textTransform:'uppercase', color:'var(--clay-deep)' }}>{t('rdPhotorealRender')}</span>
                     <button type="button" onClick={()=>{ setPrUrl(null); setPrErr(''); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, fontWeight:700, color:'var(--ink-soft)' }}>{lang==='ar'?'→':'←'} {t('rdBackToDesign')}</button>
                   </div>
                   <img src={prUrl} alt={'Photoreal render of your ' + productNoun} style={{ display:'block', width:'100%' }} />
                   <div style={{ padding:'14px 18px 16px', textAlign:'center' }}>
-                    <a href={prUrl} download="closets-room.jpg" style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'9px 18px', borderRadius:11, background:'var(--clay)', color:'var(--cream)', fontSize:13, fontWeight:700, textDecoration:'none', boxShadow:'0 3px 12px rgba(168,75,41,.32)' }}>↓ {t('rdDownloadRender')}</a>
+                    <a href={prUrl} download="closets-room.jpg" style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'9px 18px', borderRadius:'var(--radius-md)', background:'var(--clay)', color:'var(--cream)', fontSize:13, fontWeight:700, textDecoration:'none', boxShadow:'0 3px 12px rgba(168,75,41,.32)' }}>↓ {t('rdDownloadRender')}</a>
                     <div style={{ fontSize:10.5, color:'var(--muted)', marginTop:10 }}>{t('rdAiDisclaimer')}</div>
                   </div>
                 </div>
@@ -1244,7 +1244,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
       {/* Photoreal pending overlay */}
       {prBusy && (
         <div style={{ position:'fixed', inset:0, zIndex:11050, background:'rgba(15,18,22,.74)', backdropFilter:'blur(2px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
-          <div style={{ background:'#fff', borderRadius:20, padding:'38px 48px', textAlign:'center', boxShadow:'0 20px 60px rgba(0,0,0,.4)', maxWidth:340 }}>
+          <div style={{ background:'var(--c-surface)', borderRadius:'var(--radius-xl)', padding:'38px 48px', textAlign:'center', boxShadow:'0 20px 60px rgba(0,0,0,.4)', maxWidth:340 }}>
             <span aria-hidden="true" style={{ display:'inline-block', width:38, height:38, borderRadius:'50%', border:'3px solid var(--sand)', borderTopColor:'var(--clay)', animation:'rdSpin .8s linear infinite' }} />
             <div style={{ marginTop:16, fontSize:15.5, fontWeight:800, color:'var(--ink)' }}>{t('rdRenderingYour')} {productNounL}…</div>
             <div style={{ marginTop:6, fontSize:13, color:'var(--muted)' }}>{t('rdCompositing')}</div>

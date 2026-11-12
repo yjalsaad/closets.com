@@ -235,8 +235,8 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
 
   // ── styles (mirror kitchen / tv wizards) ──
   const HEADER = mobile?72:104, BAR=52;
-  const inS = { width:'100%', padding:'9px 11px', border:'1px solid var(--line)', background:'#fff', borderRadius:10, fontSize:14, fontFamily:'inherit', color:'var(--ink)', boxSizing:'border-box' };
-  const card = (on) => ({ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'11px 13px', cursor:'pointer', fontFamily:'inherit' });
+  const inS = { width:'100%', padding:'9px 11px', border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', fontSize:14, fontFamily:'inherit', color:'var(--ink)', boxSizing:'border-box' };
+  const card = (on) => ({ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:'var(--radius-md)', padding:'11px 13px', cursor:'pointer', fontFamily:'inherit' });
   const labelS = { fontSize:11.5, fontWeight:600, color:'var(--ink-soft)', marginBottom:4, display:'block' };
   const sectionH = (n,t,s) => (<div style={{ marginBottom:14 }}><h3 className="display" style={{ fontSize:19, color:'var(--ink)', margin:'0 0 3px' }}>{n} · {t}</h3>{s&&<p style={{ fontSize:13, color:'var(--ink-soft)', margin:0 }}>{s}</p>}</div>);
   const numField = (lbl, val, set, min, max, unit='mm') => (
@@ -250,8 +250,8 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
   const toggleRow = (on, set, name, sub) => (
     <button type="button" onClick={set} style={{ ...card(on), display:'flex', alignItems:'center', justifyContent:'space-between', gap:9 }}>
       <span><span style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)', display:'block' }}>{name}</span>{sub&&<span style={{ fontSize:11, color:'var(--muted)' }}>{sub}</span>}</span>
-      <span style={{ width:38, height:22, borderRadius:11, background:on?'var(--clay)':'var(--line)', position:'relative', flexShrink:0, transition:'background .15s' }}>
-        <span style={{ position:'absolute', top:2, left:on?18:2, width:18, height:18, borderRadius:'50%', background:'#fff', transition:'left .15s' }} /></span>
+      <span style={{ width:38, height:22, borderRadius:'var(--radius-md)', background:on?'var(--clay)':'var(--line)', position:'relative', flexShrink:0, transition:'background .15s' }}>
+        <span style={{ position:'absolute', top:2, left:on?18:2, width:18, height:18, borderRadius:'50%', background:'var(--c-surface)', transition:'left .15s' }} /></span>
     </button>
   );
 
@@ -410,7 +410,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
       `<tr><td>Hardware — ${hg.name} hinges ×${hingeQty}, ${lk.name} lock, ${hd.name} handle</td><td style="text-align:right">${fmt(hardwareTotal)}</td></tr>`,
       ...accItems.map(a=>`<tr><td>${a.name}</td><td style="text-align:right">${fmt(a.line)}</td></tr>`),
     ].filter(Boolean).join('');
-    w.document.write(`<html><head><title>Wood Door Quotation</title><style>body{font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
+    w.document.write(`<html><head><title>Wood Door Quotation</title><style>body{font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
       <h1>The Closets — Wood Door Quotation</h1>
       <p class="muted">${dt.name} · ${loc.name} · ${dims.w}×${dims.h}mm · ${cr.name} core · ${fr.name} frame · ${st.name} style</p>
       <p class="muted">Finish: ${wd.name} ${sf.name} · Glass: ${gl.name} · Leaf weight ≈ ${leafWeight}kg · Direction: ${isSlide?slide.name:swing.name}</p>
@@ -426,12 +426,12 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
   const previewPane = (h) => (
     <div style={{ display:'flex', flexDirection:'column', gap:10, height:'100%' }}>
       <div style={{ fontSize:11, fontWeight:700, color:'var(--ink-soft)', textTransform:'uppercase', letterSpacing:'.05em' }}>Live elevation</div>
-      <div style={{ background:'var(--sand)', borderRadius:12, overflow:'hidden', flex:1, minHeight:0 }}>{elevation(h)}</div>
+      <div style={{ background:'var(--sand)', borderRadius:'var(--radius-md)', overflow:'hidden', flex:1, minHeight:0 }}>{elevation(h)}</div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
         <span style={{ fontSize:11, color:'var(--muted)' }}>{dt.name} · {st.name} · ≈{leafWeight}kg</span>
         <span className="display" style={{ fontSize:20, color:'var(--clay)' }}>{fmt(grandTotal)}</span>
       </div>
-      {isHeavy && <div style={{ fontSize:11, color:'#b45309', background:'rgba(217,119,6,.10)', borderRadius:8, padding:'6px 9px' }}>⚠ Heavy leaf — recommend {DOOR_HINGES.find(h=>h.id===recHinge)?.name} hinges + {DOOR_FRAMES.find(f=>f.id===recFrame)?.name} frame.</div>}
+      {isHeavy && <div style={{ fontSize:11, color:'#b45309', background:'rgba(217,119,6,.10)', borderRadius:'var(--radius-sm)', padding:'6px 9px' }}>⚠ Heavy leaf — recommend {DOOR_HINGES.find(h=>h.id===recHinge)?.name} hinges + {DOOR_FRAMES.find(f=>f.id===recFrame)?.name} frame.</div>}
     </div>
   );
 
@@ -439,7 +439,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
   const stepContent = () => {
     switch(step) {
       case 0: return (<>{sectionH('1',t('shD0t'),t('shD0s'))}
-        <button type="button" onClick={()=>setRdOpen(true)} className="btn-clay" style={{ borderRadius:12, marginBottom:16, display:'inline-flex', alignItems:'center', gap:8 }}>{t('pOpenRoomDesigner')}</button>
+        <button type="button" onClick={()=>setRdOpen(true)} className="btn-clay" style={{ borderRadius:'var(--radius-md)', marginBottom:16, display:'inline-flex', alignItems:'center', gap:8 }}>{t('pOpenRoomDesigner')}</button>
         <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>Quick start</div>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'1fr 1fr 1fr', gap:8, marginBottom:16 }}>
           {DOOR_PRESETS.map(p=>(
@@ -451,10 +451,10 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
         <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>Door type</div>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?14:18 }}>
           {doorTypesView.map(t=>{ const on=doorType===t.id; return (
-            <button key={t.id} type="button" onClick={()=>setDoorType(t.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:16, boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
-              <div style={{ position:'relative', width:'100%', background:'var(--cream,#f5f1ea)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
+            <button key={t.id} type="button" onClick={()=>setDoorType(t.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:'var(--radius-lg)', boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
+              <div style={{ position:'relative', width:'100%', background:'var(--cream)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
                 <img src={t.img} alt={t.name} {...layoutImgSize(t.img)} loading="lazy" decoding="async" style={{ display:'block', width:'100%', height:'auto' }} />
-                {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:999, letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
+                {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:'var(--radius-pill)', letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
               </div>
               <div style={{ padding: mobile?'13px 15px':'15px 17px', borderTop:'1px solid var(--line)' }}>
                 <div style={{ fontSize: mobile?16:17, fontWeight:700, color:on?'var(--clay-deep)':'var(--ink)', lineHeight:1.22 }}>{trOpt(t.name, lang)}</div>
@@ -479,7 +479,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
           {numField(t('fOpeningHeight'), dims.h, v=>setDims(d=>({...d,h:v})), 1800, 3600)}
           {numField(t('fWallThickness'), dims.wall, v=>setDims(d=>({...d,wall:v})), 70, 400)}
           {numField(t('fFloorFinish'), dims.floor, v=>setDims(d=>({...d,floor:v})), 0, 120)}
-          <div style={{ fontSize:12, color:'var(--ink-soft)', background:'var(--sand)', borderRadius:10, padding:'8px 11px' }}>Recommended for {loc.name}: {loc.wMin}–{loc.wMax}mm wide × {loc.hMin}–{loc.hMax}mm tall.</div>
+          <div style={{ fontSize:12, color:'var(--ink-soft)', background:'var(--sand)', borderRadius:'var(--radius-md)', padding:'8px 11px' }}>Recommended for {loc.name}: {loc.wMin}–{loc.wMax}mm wide × {loc.hMin}–{loc.hMax}mm tall.</div>
           {dimWarn.map((w,i)=><div key={i} style={{ fontSize:12, color:'#b45309' }}>⚠ {w}</div>)}
         </div></>);
       case 3: return (<>{sectionH('4',t('shD3t'), isSlide?t('shD3sSlide'):t('shD3sSwing'))}
@@ -508,7 +508,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
               <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>{trOpt(f.sub, lang)}</div>
             </button>); })}
         </div>
-        <div style={{ marginTop:14, background: isHeavy?'rgba(217,119,6,.08)':'rgba(22,163,74,.08)', borderRadius:10, padding:'9px 12px', fontSize:12.5, color: isHeavy?'#b45309':'#15803d' }}>
+        <div style={{ marginTop:14, background: isHeavy?'rgba(217,119,6,.08)':'rgba(22,163,74,.08)', borderRadius:'var(--radius-md)', padding:'9px 12px', fontSize:12.5, color: isHeavy?'#b45309':'#15803d' }}>
           Estimated leaf weight ≈ <b>{leafWeight} kg</b>{leaves>1?` (${leaves} leaves)`:''}. {isHeavy?`Recommend ${DOOR_HINGES.find(h=>h.id===recHinge)?.name} hinges and a ${DOOR_FRAMES.find(f=>f.id===recFrame)?.name} frame.`:'Standard hinges and frame are sufficient.'}
         </div>
         {frameLight && <div style={{ fontSize:12, color:'#b45309', marginTop:8 }}>⚠ A standard frame may not carry this leaf — consider a reinforced option.</div>}</>);
@@ -516,7 +516,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
         <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>Wood finish</div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(86px,1fr))', gap:10, marginBottom:16 }}>
           {DOOR_WOODS.map(o=>{ const on=wood===o.id; return (
-            <button key={o.id} type="button" onClick={()=>setWood(o.id)} style={{ border: on?'2px solid var(--clay)':'1px solid var(--line)', borderRadius:12, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0 }}>
+            <button key={o.id} type="button" onClick={()=>setWood(o.id)} style={{ border: on?'2px solid var(--clay)':'1px solid var(--line)', borderRadius:'var(--radius-md)', overflow:'hidden', background:'var(--c-surface)', cursor:'pointer', padding:0 }}>
               <div style={{ height:42, background:o.hex }} />
               <div style={{ fontSize:11.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)', padding:'7px 6px' }}>{trOpt(o.name, lang)}</div>
             </button>); })}
@@ -551,7 +551,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
             </button>); })}
         </div></>);
       case 8: return (<>{sectionH('9',t('shD8t'),t('shD8s'))}
-        <div style={{ background: hingeOK?'rgba(22,163,74,.08)':'rgba(217,119,6,.08)', borderRadius:10, padding:'9px 12px', fontSize:12.5, color: hingeOK?'#15803d':'#b45309', marginBottom:12 }}>
+        <div style={{ background: hingeOK?'rgba(22,163,74,.08)':'rgba(217,119,6,.08)', borderRadius:'var(--radius-md)', padding:'9px 12px', fontSize:12.5, color: hingeOK?'#15803d':'#b45309', marginBottom:12 }}>
           Recommended for ≈{leafWeight}kg: <b>{DOOR_HINGES.find(h=>h.id===recHinge)?.name} hinges</b>{isHeavy?` + ${DOOR_FRAMES.find(f=>f.id===recFrame)?.name} frame`:''}.{!hingeOK&&` Current ${hg.name} hinges are rated to ${hg.maxKg}kg — choose a stronger hinge.`}
         </div>
         {[['Hinges',DOOR_HINGES,hinge,setHinge,recHinge],['Locks',DOOR_LOCKS,lock,setLock,null],['Handles',DOOR_HANDLES,handle,setHandle,null]].map(([title,list,val,set,rec])=>(
@@ -570,7 +570,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
           {DOOR_ACCESSORIES.map(a=>toggleRow(!!acc[a.id], ()=>setAcc(s=>({...s,[a.id]:!s[a.id]})), a.name, fmt(a.price)))}
         </div></>);
       case 10: return (<>{sectionH('11',t('shSummaryT'),t('shDSummaryS'))}
-        <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:12, overflow:'hidden', marginBottom:12 }}>
+        <div style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', overflow:'hidden', marginBottom:12 }}>
           <div style={{ padding:'8px 12px', background:'var(--sand)', fontSize:11.5, fontWeight:700, color:'var(--ink-soft)' }}>{t('pBillOfMaterials')}</div>
           {[
             [`Door leaf · ${cr.name} core · ${wd.name} ${sf.name} ×${leaves}`, leafTotal],
@@ -582,19 +582,19 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
           ].map(([l,v],i)=>(<div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'7px 12px', fontSize:12.5, borderTop:'1px solid var(--line)' }}><span style={{ color:'var(--ink-soft)' }}>{l}</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(v)}</span></div>))}
           <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 12px', borderTop:'2px solid var(--line)', background:'var(--sand)' }}><span style={{ fontWeight:700, color:'var(--ink)' }}>{t('pEstimatedTotal')}</span><span className="display" style={{ fontSize:19, color:'var(--clay-deep)' }}>{fmt(grandTotal)}</span></div>
         </div>
-        <div style={{ background: isHeavy?'rgba(217,119,6,.08)':'rgba(22,163,74,.08)', borderRadius:10, padding:'9px 12px', fontSize:12.5, color: isHeavy?'#b45309':'#15803d', marginBottom:10 }}>
+        <div style={{ background: isHeavy?'rgba(217,119,6,.08)':'rgba(22,163,74,.08)', borderRadius:'var(--radius-md)', padding:'9px 12px', fontSize:12.5, color: isHeavy?'#b45309':'#15803d', marginBottom:10 }}>
           Smart recommendation: ≈{leafWeight}kg leaf → {DOOR_HINGES.find(h=>h.id===recHinge)?.name} hinges{isHeavy?` + ${DOOR_FRAMES.find(f=>f.id===recFrame)?.name} frame`:''} {hingeOK?'✓':'⚠ current hinge under-rated'}
         </div>
-        <div style={{ background: dimWarn.length?'rgba(217,119,6,.08)':'rgba(22,163,74,.08)', borderRadius:10, padding:'9px 12px', fontSize:12.5, color: dimWarn.length?'#b45309':'#15803d', marginBottom:12 }}>
+        <div style={{ background: dimWarn.length?'rgba(217,119,6,.08)':'rgba(22,163,74,.08)', borderRadius:'var(--radius-md)', padding:'9px 12px', fontSize:12.5, color: dimWarn.length?'#b45309':'#15803d', marginBottom:12 }}>
           {dimWarn.length? `Validation: ${dimWarn.length} note(s) — ${dimWarn[0]}` : 'Validation: opening within recommended ranges ✓'}
         </div>
         <div style={{ display:'grid', gap:8 }}>
-          <button type="button" disabled={busy} onClick={saveDesign} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:11, padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{t('pSaveDesign')}</button>
-          <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:11 }}>{user?t('pGetQuoteArrow'):t('pSignInQuoteArrow')}</button>
-          <button type="button" onClick={downloadPDF} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:11, padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{t('pDownloadPdf')}</button>
+          <button type="button" disabled={busy} onClick={saveDesign} style={{ border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{t('pSaveDesign')}</button>
+          <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:'var(--radius-md)' }}>{user?t('pGetQuoteArrow'):t('pSignInQuoteArrow')}</button>
+          <button type="button" onClick={downloadPDF} style={{ border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{t('pDownloadPdf')}</button>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginTop:6 }}>
             {[['Shop drawings'],['CNC cut list'],['Installation guide'],['Material / hardware export']].map(([t])=>(
-              <button key={t} type="button" disabled title="Coming soon" style={{ border:'1px dashed var(--line)', background:'var(--sand)', borderRadius:10, padding:'9px', fontSize:11.5, color:'var(--muted)', cursor:'not-allowed' }}>{t} · soon</button>))}
+              <button key={t} type="button" disabled title="Coming soon" style={{ border:'1px dashed var(--line)', background:'var(--sand)', borderRadius:'var(--radius-md)', padding:'9px', fontSize:11.5, color:'var(--muted)', cursor:'not-allowed' }}>{t} · soon</button>))}
           </div>
         </div></>);
       default: return null;
@@ -605,7 +605,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
   return (
     <div style={{ height: mobile?'100dvh':`calc(100dvh - ${HEADER}px)`, marginTop: HEADER, display:'flex', flexDirection:'column', background:'var(--cream)', overflow:'hidden' }}>
       {/* step bar */}
-      <div style={{ height:BAR, flexShrink:0, display:'flex', alignItems:'center', gap:4, overflowX:'auto', padding:'0 12px', borderBottom:'1px solid var(--line)', background:'#fff' }}>
+      <div style={{ height:BAR, flexShrink:0, display:'flex', alignItems:'center', gap:4, overflowX:'auto', padding:'0 12px', borderBottom:'1px solid var(--line)', background:'var(--c-surface)' }}>
         {STEPS.map((s,i)=>{ const done=i<step, now=i===step; return (
           <button key={s} type="button" onClick={()=>i<=step&&setStep(i)} style={{ flexShrink:0, display:'flex', alignItems:'center', gap:5, background:'none', border:'none', cursor:i<=step?'pointer':'default', padding:'2px 6px' }}>
             <span style={{ width:20, height:20, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10.5, fontWeight:700, background: now?'var(--clay)':done?'var(--clay-deep)':'var(--sand)', color:(!now&&!done)?'var(--muted)':'#fff' }}>{done?'✓':i+1}</span>
@@ -622,14 +622,14 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
         {/* RIGHT — sticky preview (desktop) */}
         {!mobile && (
           <div style={{ flex:1, minWidth:0, padding:'18px 20px', display:'flex', flexDirection:'column' }}>
-            <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:14, boxShadow:'var(--shadow)', flex:1, display:'flex', flexDirection:'column', minHeight:0 }}>
+            <div style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', padding:14, boxShadow:'var(--shadow)', flex:1, display:'flex', flexDirection:'column', minHeight:0 }}>
               {previewPane('100%')}
             </div>
           </div>
         )}
         {/* mobile collapsible preview */}
         {mobile && showPrev && (
-          <div style={{ flexShrink:0, padding:'10px 14px', borderTop:'1px solid var(--line)', background:'#fff' }}>
+          <div style={{ flexShrink:0, padding:'10px 14px', borderTop:'1px solid var(--line)', background:'var(--c-surface)' }}>
             <div style={{ height:210 }}>{previewPane(200)}</div>
           </div>
         )}
@@ -637,13 +637,13 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
 
       {/* bottom action bar */}
       <div style={{ flexShrink:0, display:'flex', alignItems:'center', gap:10, padding:'9px 14px calc(9px + env(safe-area-inset-bottom))', borderTop:'1px solid var(--line)', background:'rgba(255,255,255,.97)', backdropFilter:'blur(10px)' }}>
-        {step>0 ? <button type="button" onClick={back} style={{ background:'none', border:'1px solid var(--line)', borderRadius:11, padding:'10px 16px', fontSize:13.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pBack')}</button>
-          : <button type="button" onClick={()=>setPage('cat:Doors')} style={{ background:'none', border:'1px solid var(--line)', borderRadius:11, padding:'10px 16px', fontSize:13, color:'var(--muted)', cursor:'pointer' }}>{t('pExit')}</button>}
-        {mobile && <button type="button" onClick={()=>setShowPrev(v=>!v)} style={{ background:'var(--sand)', border:'none', borderRadius:11, padding:'10px 12px', fontSize:12.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{showPrev?t('pHide'):t('pPreview')}</button>}
+        {step>0 ? <button type="button" onClick={back} style={{ background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'10px 16px', fontSize:13.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pBack')}</button>
+          : <button type="button" onClick={()=>setPage('cat:Doors')} style={{ background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'10px 16px', fontSize:13, color:'var(--muted)', cursor:'pointer' }}>{t('pExit')}</button>}
+        {mobile && <button type="button" onClick={()=>setShowPrev(v=>!v)} style={{ background:'var(--sand)', border:'none', borderRadius:'var(--radius-md)', padding:'10px 12px', fontSize:12.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{showPrev?t('pHide'):t('pPreview')}</button>}
         <div style={{ flex:1, textAlign: mobile?'center':'right', minWidth:0 }}><span style={{ fontSize:10.5, color:'var(--muted)' }}>{t('pTotal')} </span><span className="display" style={{ fontSize:17, color:'var(--clay)' }}>{fmt(grandTotal)}</span></div>
         {step<STEPS.length-1
-          ? <button type="button" className="btn-clay" disabled={!canNext} onClick={next} style={{ borderRadius:11, minWidth:120, opacity:canNext?1:.55 }}>{t('pNextArrow')}</button>
-          : <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:11, minWidth:120 }}>{t('pGetQuoteArrow')}</button>}
+          ? <button type="button" className="btn-clay" disabled={!canNext} onClick={next} style={{ borderRadius:'var(--radius-md)', minWidth:120, opacity:canNext?1:.55 }}>{t('pNextArrow')}</button>
+          : <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:'var(--radius-md)', minWidth:120 }}>{t('pGetQuoteArrow')}</button>}
       </div>
 
       {rdOpen && (
@@ -662,10 +662,10 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
       {/* QUOTE modal */}
       {showQuote && (
         <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
-          <ModalPanel onClose={()=>!busy&&setShowQuote(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:420, width:'100%', padding:24 }}>
+          <ModalPanel onClose={()=>!busy&&setShowQuote(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', maxWidth:420, width:'100%', padding:24 }}>
             <div className="eyebrow" style={{ marginBottom:8 }}>{t('pAlmostThere')}</div>
             <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 6px' }}>{t('pQuoteTitleDoor')}</h3>
-            <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)' }}>{dt.name} · {wd.name} · {st.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(grandTotal)}</b></div>
+            <div style={{ background:'var(--sand)', borderRadius:'var(--radius-md)', padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)' }}>{dt.name} · {wd.name} · {st.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(grandTotal)}</b></div>
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
               <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} placeholder={t('pYourName')} style={inS} />
               <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} placeholder="Phone (+973…)" inputMode="tel" style={inS} />
@@ -674,8 +674,8 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
             </div>
             <FormNotice kind="request" style={{ marginTop:12 }} />
             <div style={{ display:'flex', gap:10, marginTop:16 }}>
-              <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pCancel')}</button>
-              <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submitQuote(contact)} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?t('pSending'):(user?t('pSendQuoteReq'):t('pSignInSend'))}</button>
+              <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pCancel')}</button>
+              <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submitQuote(contact)} style={{ flex:2, borderRadius:'var(--radius-md)', opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?t('pSending'):(user?t('pSendQuoteReq'):t('pSignInSend'))}</button>
             </div>
           </ModalPanel>
         </div>

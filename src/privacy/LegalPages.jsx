@@ -43,7 +43,7 @@ function LegalPage({ doc, lang = 'en' }) {
   return (
     <div dir={l === 'ar' ? 'rtl' : 'ltr'} style={{ maxWidth: 760, margin: '0 auto', padding: '120px 24px 80px' }}>
       <h1 style={{ fontSize: 'clamp(28px,4vw,40px)', margin: '0 0 16px' }}>{d.h1[l]}</h1>
-      <p role="note" data-testid="legal-placeholder" style={{ border: '2px dashed currentColor', borderRadius: 12, padding: '12px 16px', margin: '0 0 28px', fontWeight: 600 }}>{NOTICE[l]}</p>
+      <p role="note" data-testid="legal-placeholder" style={{ border: '2px dashed currentColor', borderRadius: 'var(--radius-md)', padding: '12px 16px', margin: '0 0 28px', fontWeight: 600 }}>{NOTICE[l]}</p>
       {d.sections.map((s, i) => (
         <section key={i} style={{ margin: '0 0 24px' }}>
           <h2 style={{ fontSize: 20, margin: '0 0 8px' }}>{s.h[l]}</h2>

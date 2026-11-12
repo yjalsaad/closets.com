@@ -43,7 +43,8 @@ describe('shell', () => {
   test('footer legal links point at this site, not the ERP host', async () => {
     mockNet(); go('/faq'); render(<App />);
     const footer = document.querySelector('footer');
-    expect(within(footer).getByRole('link', { name: /privacy/i })).toHaveAttribute('href', '/privacy');
+    const priv = within(footer).getAllByRole('link', { name: /privacy/i });   // legal row + the notice under the newsletter field
+    priv.forEach((a) => expect(a).toHaveAttribute('href', '/privacy'));
     expect(footer.innerHTML).not.toMatch(/closets-hub\.vercel\.app\/(privacy|terms)/);
   });
   test('the consent banner appears when nothing was chosen yet', async () => {
@@ -109,7 +110,7 @@ describe('booking form: labels, validation, honeypot, single submit, offline', (
   test('honeypot filled: no request is made', async () => {
     await open();
     userEvent.type(screen.getByLabelText(/full name/i), 'Amina'); userEvent.type(document.getElementById('bk-phone'), '36123456');
-    fireEvent.change(screen.getByLabelText(/leave this field empty/i), { target: { value: 'spam' } });
+    fireEvent.change(within(document.querySelector('main form')).getByLabelText(/leave this field empty/i), { target: { value: 'spam' } });
     userEvent.click(submitBtn());
     await act(async () => { await new Promise((r) => setTimeout(r, 20)); });
     expect(calls.filter((c) => c.url.includes('book_appointment'))).toHaveLength(0);

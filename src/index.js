@@ -1,6 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import './design/tokens.css';
+import './design/base.css';
+import './design/shell.css';
+import './design/home.css';
+import { applyTheme } from './design/theme';
 import App, { preloadRoute, ensureArabic } from './App';
 import ErrorBoundary from './ErrorBoundary';
 import reportWebVitals from './reportWebVitals';
@@ -10,6 +15,7 @@ import { ENABLE_AR_URLS } from './seo/siteConfig';
 import { splitLangPath } from './seo/routes';
 
 scheduleBrandFonts();   // non-blocking brand fonts (see src/fonts.js)
+applyTheme();   // data-theme on <html>: REACT_APP_THEME default, ?theme= preview override (src/design/theme.js)
 const container = document.getElementById('root');
 function HydrationDone() { React.useEffect(() => { hydration.active = false; }, []); return null; }
 
