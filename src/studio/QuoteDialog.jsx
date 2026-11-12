@@ -8,6 +8,8 @@
  * ===========================================================================*/
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ModalPanel } from '../a11y/dialog';
+import { validatePhone, normalizePhone } from '../forms/validate';
+import FormNotice from '../privacy/FormNotice';
 import { getStudio, setStudio, useStudio, fmtBD, indicative } from './studioStore';
 import { captureStorage, nameOf } from './designers';
 import { getSession, onSession, rpc, authError } from './customerAuth';
@@ -123,12 +125,12 @@ export default function QuoteDialog({ ctx, shot, lang = 'en', onClose }) {
   };
   const doRequest = async () => {
     setErr('');
-    if (phone && !/^[+()\d\s-]{7,}$/.test(phone.trim())) { setErr(L('Please enter a valid phone number.', 'يرجى إدخال رقم هاتف صحيح.')); return; }
+    if (phone && phone.trim() && !validatePhone(phone)) { setErr(L('Please enter a valid phone number.', 'يرجى إدخال رقم هاتف صحيح.')); return; }
     if (!(await ensureSignedIn())) return;
     setBusy('request');
     try {
       const row = await save();
-      const r = await rpc('cp_studio_request_quote', { p_id: row.id, p_note: note || null, p_phone: phone || null });
+      const r = await rpc('cp_studio_request_quote', { p_id: row.id, p_note: note || null, p_phone: phone ? normalizePhone(phone) : null });
       if (!r || !r.ok) { setErr(r && r.error === 'rate_limited' ? L('You have sent several requests today — our team will be in touch.', 'أرسلت عدة طلبات اليوم — سيتواصل معك فريقنا.') : L('Could not send your request — please try again.', 'تعذّر إرسال طلبك — حاول مرة أخرى.')); return; }
       setStudio({ status: 'requested' });
       setDone({ kind: 'requested', ref: r.ref });
@@ -202,6 +204,7 @@ export default function QuoteDialog({ ctx, shot, lang = 'en', onClose }) {
                 <textarea rows={3} value={note} maxLength={1000} onChange={(e) => setNote(e.target.value)} placeholder={L('Preferred colours, timing, site access…', 'الألوان المفضلة، التوقيت، الوصول إلى الموقع…')} /></label>
             </div>
 
+            <FormNotice kind="request" lang={ar ? 'ar' : 'en'} />
             {err && <div className="wsq-err" role="alert">{err}</div>}
             {!signedIn && <p className="wsq-fine">{L('You will sign in or create a free account first — it keeps your designs and quotes in one place.', 'ستسجّل الدخول أو تنشئ حسابًا مجانيًا أولًا — ليحفظ تصاميمك وعروض أسعارك في مكان واحد.')}</p>}
             <div className="wsq-actions">

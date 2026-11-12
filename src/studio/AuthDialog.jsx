@@ -2,6 +2,8 @@
  * body of /studio/account when signed out. E-mail + password on Supabase Auth (customerAuth.js). */
 import React, { useState } from 'react';
 import { signIn, signUp, resetPassword, authError } from './customerAuth';
+import { validateEmail, validatePhone, normalizePhone } from '../forms/validate';
+import FormNotice from '../privacy/FormNotice';
 
 export default function AuthForm({ lang = 'en', onDone, reason, initialMode = 'signin' }) {
   const ar = lang === 'ar';
@@ -15,14 +17,15 @@ export default function AuthForm({ lang = 'en', onDone, reason, initialMode = 's
 
   const submit = async (e) => {
     e.preventDefault(); setErr('');
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.trim())) { setErr(L('Please enter a valid e-mail.', 'يرجى إدخال بريد إلكتروني صحيح.')); return; }
+    if (!validateEmail(f.email)) { setErr(L('Please enter a valid e-mail.', 'يرجى إدخال بريد إلكتروني صحيح.')); return; }
+    if (mode === 'signup' && f.phone && f.phone.trim() && !validatePhone(f.phone)) { setErr(L('Please enter a valid phone number.', 'يرجى إدخال رقم هاتف صحيح.')); return; }
     setBusy(true);
     try {
       if (mode === 'signin') { await signIn(f); if (onDone) onDone(true); }
       else if (mode === 'signup') {
         if (!f.name.trim()) { setErr(L('Please enter your name.', 'يرجى إدخال اسمك.')); return; }
         if (!strong(f.password)) { setErr(L('Use 8+ characters with upper & lower case, a number and a symbol.', 'استخدم 8 أحرف على الأقل مع أحرف كبيرة وصغيرة ورقم ورمز.')); return; }
-        const r = await signUp(f);
+        const r = await signUp({ ...f, phone: f.phone ? normalizePhone(f.phone) : f.phone });
         if (r.signedIn) { if (onDone) onDone(true); } else setMode('sent');
       } else if (mode === 'reset') { await resetPassword(f.email); setMode('resetSent'); }
     } catch (e2) { setErr(authError(e2, ar)); } finally { setBusy(false); }
@@ -54,6 +57,7 @@ export default function AuthForm({ lang = 'en', onDone, reason, initialMode = 's
       <label className="wsq-field"><span>{L('E-mail', 'البريد الإلكتروني')}</span><input type="email" value={f.email} onChange={set('email')} autoComplete="email" dir="ltr" required /></label>
       {mode === 'signup' && <label className="wsq-field"><span>{L('Mobile (optional)', 'الجوال (اختياري)')}</span><input type="tel" value={f.phone} onChange={set('phone')} autoComplete="tel" dir="ltr" placeholder="+973" maxLength={30} /></label>}
       {mode !== 'reset' && <label className="wsq-field"><span>{L('Password', 'كلمة المرور')}</span><input type="password" value={f.password} onChange={set('password')} autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} required /></label>}
+      {mode === 'signup' && <FormNotice kind="request" lang={ar ? 'ar' : 'en'} />}
       {err && <div className="wsq-err" role="alert">{err}</div>}
       <button type="submit" className="wsq-btn wsq-primary wsa-go" disabled={busy}>
         {busy ? L('Please wait…', 'يرجى الانتظار…') : mode === 'signup' ? L('Create account', 'إنشاء الحساب') : mode === 'reset' ? L('Send reset link', 'أرسل رابط إعادة التعيين') : L('Sign in', 'تسجيل الدخول')}
