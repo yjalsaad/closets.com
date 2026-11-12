@@ -27,7 +27,7 @@ let n = 0;
   const report = [];
   for (const theme of THEMES) for (const lang of LANGS) for (const vp of VPS) {
     const W = vp === 'd' ? 1440 : 390, H = vp === 'd' ? 900 : 844;
-    const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 1, isMobile: vp === 'm', hasTouch: vp === 'm' });
+    const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 1, isMobile: vp === 'm', hasTouch: vp === 'm', reducedMotion: process.env.FAST ? 'reduce' : 'no-preference' });
     if (process.env.CONSENT === 'none') await ctx.addInitScript(() => { window.__NOCONSENT = true; });
     await ctx.addInitScript((l) => { try { localStorage.setItem('closets_lang', l); if (!window.__NOCONSENT) localStorage.setItem('closets_consent_v2', JSON.stringify({ v: 2, decided: true, analytics: false, ai: false, ts: 1 })); } catch (e) {} }, lang);
     await ctx.route((u) => !u.href.startsWith('http://localhost:' + PORT), (r) => {
@@ -43,9 +43,9 @@ let n = 0;
       pg.on('pageerror', (e) => rec.errs.push('PAGEERR ' + e.message.slice(0, 140)));
       try {
         const url = `http://localhost:${PORT}${lang === 'ar' && process.env.ARURL ? '/ar' + (r === '/' ? '' : r) : r}${r.includes('?') ? '&' : '?'}theme=${theme}`;
-        await pg.goto(url, { waitUntil: 'domcontentloaded', timeout: 25000 }); await pg.waitForTimeout(1800);
+        await pg.goto(url, { waitUntil: 'domcontentloaded', timeout: 25000 }); await pg.waitForTimeout(process.env.FAST ? 1000 : 1800);
         const h = await pg.evaluate(() => document.documentElement.scrollHeight);
-        for (let y = 0; y < Math.min(h, 14000); y += 600) { await pg.evaluate((y) => window.scrollTo(0, y), y); await pg.waitForTimeout(90); }
+        for (let y = 0; y < (process.env.FAST ? 0 : Math.min(h, 14000)); y += 600) { await pg.evaluate((y) => window.scrollTo(0, y), y); await pg.waitForTimeout(90); }
         await pg.evaluate(() => window.scrollTo(0, 0)); await pg.waitForTimeout(400);
         Object.assign(rec, await pg.evaluate(() => ({ h: document.documentElement.scrollHeight, sw: document.documentElement.scrollWidth, iw: innerWidth, theme: document.documentElement.dataset.theme, dir: document.documentElement.dir, h1: (document.querySelector('h1') || {}).innerText, font: getComputedStyle(document.querySelector('h1') || document.body).fontFamily.slice(0, 40) })));
         const fn = `${theme}-${lang}-${vp}-${r === '/' ? 'home' : r.slice(1).replace(/[\/?=&]/g, '_')}.png`; rec.shot = fn;

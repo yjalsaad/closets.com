@@ -2090,10 +2090,13 @@ function ensureArabic() {
     AR_LOADED = true;
   });
 }
+// [DESIGN] UI chrome uses the line-icon set, never emoji: pictographs are stripped from translated strings at render time.
+const EMOJI_RE = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE0F}]/gu;
+const noEmoji = (v) => { if (typeof v !== 'string' || !EMOJI_RE.test(v)) return v; EMOJI_RE.lastIndex = 0; return v.replace(EMOJI_RE, '').replace(/ {2,}/g, ' ').trim(); };
 function useI18n() {
   const ctx = useContext(AppCtx);
   const lang = ctx?.lang || 'en';
-  const t = (key) => (I18N[key] ? (I18N[key][lang] || I18N[key].en) : key);
+  const t = (key) => (I18N[key] ? noEmoji(I18N[key][lang] || I18N[key].en) : key);
   return { lang, t, dir: lang === 'ar' ? 'rtl' : 'ltr' };
 }
 
@@ -2640,7 +2643,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
   const [menuOpen, setMenuOpen] = useState(false);
   const [openMega, setOpenMega] = useState(null);     // desktop hover/click dropdown key
   const [openAcc, setOpenAcc] = useState(null);       // mobile drawer accordion key
-  const tr = (k) => (I18N[k] ? (I18N[k][lang] || I18N[k].en) : k);
+  const tr = (k) => (I18N[k] ? noEmoji(I18N[k][lang] || I18N[k].en) : k);
   const L = (label) => stripEmoji(trLabel(label, lang));
   useEffect(() => { const h = () => { setScrolled(window.scrollY > 24); setOpenMega(null); }; h(); window.addEventListener('scroll', h, { passive:true }); return () => window.removeEventListener('scroll', h); }, []);
   const closeTimer = useRef(null);
@@ -2914,7 +2917,7 @@ function Hero({ setPage, banners }) {
         <div className="container hero-ed__content">
           <span className="eyebrow">{cms('home.hero.eyebrow', lang === 'ar' ? 'أثاث مصنوع حسب الطلب · مملكة البحرين' : 'Bespoke furniture · Kingdom of Bahrain')}</span>
           <h1>{cms('home.hero.title', lang === 'ar' ? 'مصمَّم ليناسب حياتك.' : 'Made to fit your life.')}</h1>
-          <p className="lede">{cms('home.hero.subtitle', 'Walk-in closets, kitchens and storage — handcrafted in our own Bahrain workshop and designed around the way you live.')}</p>
+          <p className="lede">{cms('home.hero.subtitle', t('homeHeroSub'))}</p>
           <div className="hero-ed__cta">
             <Link to="/booking" className="btn-clay">{cms('home.hero.cta', t('bookConsult'))}</Link>
             <a href="#collections" className="btn-text">{t('homeExploreColl')}</a>
@@ -2947,11 +2950,11 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
         <div style={{ flex: 1, overflowY: 'auto', padding: mobile ? '16px 20px' : '20px 26px', WebkitOverflowScrolling: 'touch' }}>
           {cart.length === 0
             ? <div style={{ textAlign: 'center', padding: '48px 0' }}>
-                <div style={{ fontSize: 48, opacity: .15, marginBottom: 12 }}>◻</div>
+                <Icon name="cart" style={{ width: 40, height: 40, color: 'var(--c-metal-text)', marginBottom: 12 }} />
                 <div style={{ fontSize: 15, color: 'var(--shop-muted)', marginBottom: 18 }}>{t('sw3CartEmpty')}</div>
                 {/* Same trap as Checkout: setOpen(false) runs navigate(-1), which would
                     cancel the navigation. Navigating away closes the drawer by itself. */}
-                <button type="button" className="btn-secondary" style={{ borderRadius: 'var(--radius-pill)' }} onClick={() => setPage('products')}>{t('browseCollection')}</button>
+                <button type="button" className="btn-line" onClick={() => setPage('products')}>{t('browseCollection')}</button>
               </div>
             : cart.map((item, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: 14, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid var(--shop-fill)' }}>
@@ -3071,7 +3074,7 @@ function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
         : { position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', width:'min(390px,95vw)', maxHeight:'90svh', overflowY:'auto', background:'var(--c-surface)', borderRadius:'var(--radius-xl)', padding:'44px 40px', zIndex:2001, animation:'fadeUp .3s ease', boxShadow:'0 24px 64px rgba(0,0,0,.15)' }}>
         {mobile && <div style={{ width:36, height:4, background:'var(--shop-line)', borderRadius:'var(--radius-xs)', margin:'-12px auto 20px' }} />}
         <div style={{ textAlign:'center', marginBottom:28 }}>
-          <div style={{ width:48, height:48, borderRadius:'var(--radius-lg)', background:'rgba(168,75,41,.12)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px', fontSize:22 }}>◼</div>
+          <div style={{ width:48, height:48, borderRadius:'var(--radius-lg)', background:'var(--c-accent-soft)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px', color:'var(--c-accent)' }}><Icon name="user" size={24} /></div>
           <h2 id="auth-title" style={{ fontSize:22, fontWeight:700, color:'var(--shop-ink)', letterSpacing:'-.02em', marginBottom:5 }}>{mode==='reset'?t('w4AuthReset'):mode==='login'?t('w4AuthWelcome'):t('w4AuthCreate')}</h2>
           <div style={{ fontSize:14, color:'var(--shop-muted)' }}>{mode==='reset'?t('w4AuthResetSub'):mode==='login'?t('w4AuthLoginSub'):t('w4AuthRegisterSub')}</div>
         </div>
@@ -3202,7 +3205,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
   const steps = [
     ['01', t('swStep1Title'), t('swStep1Desc')],
     ['02', t('swStep2Title'), t('swStep2Desc')],
-    ['03', t('swStep3Title'), t('swStep3Desc')],
+    ['03', t('swStep3Title'), t('homeStep3Desc')],
     ['04', t('swStep4Title'), t('swStep4Desc')],
   ];
   const ar = lang === 'ar';
@@ -3715,7 +3718,7 @@ function PlannerLoginGate({ openAuth, setPage, lang }) {
   return (
     <div style={{ minHeight:'70vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'60px 20px' }}>
       <div style={{ maxWidth:560, textAlign:'center' }}>
-        <div style={{ fontSize:52, marginBottom:18 }}>🧩</div>
+        <Icon name="puzzle" style={{ width:48, height:48, color:'var(--c-metal-text)', marginBottom:18 }} />
         <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(28px,4vw,42px)', lineHeight:1.15, margin:'0 0 14px', color:'var(--ink)' }}>
           {g('title')}
         </h1>

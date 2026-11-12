@@ -16,7 +16,7 @@ export const FACTS = {
   whatsappHref: 'https://wa.me/97317555095',
   email: BUSINESS.email,
   instagram: 'https://www.instagram.com/theclosets/',
-  hours: { en: 'Sat–Thu · 9am–8pm', ar: 'السبت – الخميس · ٩ ص – ٨ م' },   // contact page: "Sat-Thu 9am-8pm"
+  hours: { en: 'Sat–Thu · 9am–8pm', ar: 'السبت – الخميس · 9 ص – 8 م' },   // contact page: "Sat-Thu 9am-8pm"
   registeredAddress: BUSINESS.address,             // invoice header (Hamala); NOT a showroom address
   warrantyYears: 10,                               // "10 years on cabinetry and soft-close hardware" (consistent everywhere)
 

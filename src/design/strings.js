@@ -49,6 +49,8 @@ export const DESIGN_STRINGS = {
   homeCtaBody: { en: 'Book a free consultation — no obligation, just ideas, measured and quoted by our own team.', ar: 'احجز استشارة مجانية دون أي التزام: أفكار ومقاسات وعرض سعر من فريقنا.' },
   homeExploreColl: { en: 'Explore the collections', ar: 'استكشف المجموعات' },
   homeExplore: { en: 'Explore', ar: 'استكشف' },
+  homeStep3Desc: { en: 'Made to your measurements with premium hardware and joinery.', ar: 'تُصنَّع على مقاساتك بأجهزة ونجارة فاخرة.' },
+  homeHeroSub: { en: 'Walk-in closets, kitchens and storage — handcrafted in Bahrain and designed around the way you live.', ar: 'غرف ملابس ومطابخ ووحدات تخزين، مصنوعة بإتقان في البحرين ومصمَّمة حول طريقة عيشك.' },
   homeBanner: { en: 'Announcement', ar: 'إعلان' },
   homeVisitHours: { en: 'Open', ar: 'ساعات العمل' },
   emptyCtaBook: { en: 'Book a design consultation', ar: 'احجز استشارة تصميم' },

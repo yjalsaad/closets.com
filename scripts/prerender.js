@@ -160,7 +160,7 @@ async function renderJob(browser, base, job) {
     // Preload ONLY the above-the-fold faces for this language (self-hosted fonts, src/design/tokens.css).
     {
       const media = path.join(BUILD_DIR, 'static', 'media');
-      const want = job.lang === 'ar' ? ['ibm-plex-sans-arabic-arabic-400-normal', 'noto-naskh-arabic-arabic-wght-normal'] : ['fraunces-latin-wght-normal', 'inter-latin-wght-normal'];
+      const want = job.lang === 'ar' ? ['noto-naskh-arabic-arabic-wght-normal'] : ['fraunces-latin-wght-normal'];   // the display face (headline = LCP text); body faces load normally, swap + metric-matched fallback = no shift
       let files = []; try { files = fs.readdirSync(media); } catch (e) { /* no media dir */ }
       const tags = want.map((w) => files.find((f) => f.startsWith(w + '.') && f.endsWith('.woff2'))).filter(Boolean).map((f) => '<link rel="preload" as="font" type="font/woff2" crossorigin href="/static/media/' + f + '">').join('');
       if (tags) html = html.replace('</head>', tags + '</head>');
