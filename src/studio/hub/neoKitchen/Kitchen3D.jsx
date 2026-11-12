@@ -1,4 +1,4 @@
-/* Neo Kitchen Designer - 3D viewport (Three.js r128, loaded on demand from the CDN like Cabinets3D).
+/* Neo Kitchen Designer - 3D viewport (Three.js r128, loaded on demand from /vendor like Cabinets3D).
  * Orbit / pan / pinch / keyboard camera, PBR materials with procedural wood + marble textures, layer toggles,
  * X-ray (translucent panels + edges + hinge cups / shelf pins / grooves), Explode (Levels | Fronts | Assembly with
  * joinery markers, % slider, leader-line diagram), animated door + drawer toggle (reduced-motion safe).
@@ -41,7 +41,7 @@ export function loadThree() {
   if (threeLoading) return threeLoading;
   threeLoading = new Promise((resolve, reject) => {
     const s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+    s.src = '/vendor/three-r128.min.js';
     s.onload = () => resolve(window.THREE);
     s.onerror = () => { threeLoading = null; reject(new Error('three')); };
     document.head.appendChild(s);

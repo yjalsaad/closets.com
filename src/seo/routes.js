@@ -90,6 +90,8 @@ const PAGES = [
   { page: 'portal', path: '/signin', index: false, meta: { en: ['My Closets — The Closets Co.', 'Sign in to your account.'], ar: ['حسابي — ذا كلوزتس', 'سجّل الدخول إلى حسابك.'] } },
   { page: 'checkout', path: '/checkout', index: false, meta: { en: ['Checkout — The Closets Co.', 'Complete your order.'], ar: ['إتمام الطلب — ذا كلوزتس', 'أكمل طلبك.'] } },
   { page: 'cart', path: '/cart', index: false, meta: { en: ['Your Cart — The Closets Co.', 'Review the items in your cart.'], ar: ['سلّتك — ذا كلوزتس', 'راجع المنتجات في سلّتك.'] } },
+  { page: 'privacy', path: '/privacy', index: false, meta: { en: ['Privacy Policy — The Closets Co.', 'How The Closets Co. collects and uses personal data.'], ar: ['سياسة الخصوصية — ذا كلوزتس', 'كيف تجمع ذا كلوزتس البيانات الشخصية وتستخدمها.'] } },
+  { page: 'terms', path: '/terms', index: false, meta: { en: ['Terms — The Closets Co.', 'Terms of use and sale.'], ar: ['الشروط والأحكام — ذا كلوزتس', 'شروط الاستخدام والبيع.'] } },
   { page: 'directory', path: '/directory', index: false, meta: { en: ['Directory — The Closets Co.', 'Pages directory.'], ar: ['الدليل — ذا كلوزتس', 'دليل الصفحات.'] } },
 ];
 

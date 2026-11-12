@@ -41,10 +41,11 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>The Closets Co. — Premium Bespoke Kitchens, Wardrobes & Storage | Bahrain</title>
+    <!-- Brand fonts (Alexandria / IBM Plex Sans Arabic) are no longer a render-blocking stylesheet: src/fonts.js adds it
+         after load (or right away for the Arabic UI). Preconnect so that request and the font files start fast. -->
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
-    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <!-- Lightweight 3D/AR viewer (Google model-viewer) -->
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <!-- Google model-viewer is loaded on demand by src/modelViewerLoader.js (product AR block only) -->
   </head>
   <body>
     <noscript>
