@@ -170,7 +170,7 @@ async function stats(b) {
 
 async function gallery(b) {
   const o = await L.openShowroom(b, { query: 'debug=1&quality=high&aa=0', viewport: { width: 1280, height: 720 } }); const page = o.page; await L.enterExplore(page); await dismissCoach(page);
-  const snap = async (name, wait = 7000, hud = false) => { await page.waitForTimeout(wait); await setHud(page, hud); await page.waitForTimeout(250); await shot(page, name, { quality: 66 }); await setHud(page, true); };
+  const snap = async (name, wait = 7000, hud = false) => { if (process.env.ONLY && !name.startsWith(process.env.ONLY)) return; await page.waitForTimeout(wait); await setHud(page, hud); await page.waitForTimeout(250); await shot(page, name, { quality: 66 }); await setHud(page, true); };
   const E = (fn) => page.evaluate(fn);
   const focus = async (pid, view) => { await E(`window.__showroom.explore.explorer.focusProduct('${pid}', '${view || 'overview'}')`); await settle(page, 0); };
   // department wide shots (visitor view, no panel)
@@ -200,7 +200,7 @@ async function gallery(b) {
   // doors
   await goto(page, DOOR); await focus('door', 'overview'); await snap('phase4-30-door-closed', 5000);
   await E(`window.__showroom.explore.explorer.togglePart('d-pivot')`); await snap('phase4-31-door-pivot-open', 9000);
-  await E(`window.__showroom.explore.explorer.setView('detail')`); await snap('phase4-32-door-brass-pull-pivot-closeup', 8000);
+  await E(`window.__showroom.explore.explorer.togglePart('d-pivot'); window.__showroom.explore.explorer.setView('detail')`); await snap('phase4-32-door-brass-pull-pivot-closeup', 9000);
   await E(`const x = window.__showroom.explore.explorer; x.setView('overview'); x.setFinish('ebony-paint')`); await snap('phase4-33-door-finish-charcoal-paint', 8000);
   await E(`window.__showroom.explore.explorer.exitFocus()`); await page.waitForTimeout(2500);
   // Ikhtarha stage

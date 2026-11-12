@@ -84,7 +84,7 @@ export const PRODUCTS = {
     parts: [P('d-pivot', 'pivot', 'Pivot door', 'الباب المحوري', { group: 'door' })],
     views: [
       { id: 'overview', label: { en: 'Overview', ar: 'نظرة عامة' }, pos: [3.4, 1.6, 0.0], look: [-2.3, 1.2, 0.0], fov: 52 },
-      { id: 'detail', label: { en: 'Handle and hinge close-up', ar: 'تفصيل المقبض والمفصلة' }, pos: [-1.2, 1.15, 0.45], look: [-2.3, 1.05, -0.25], fov: 38 },
+      { id: 'detail', label: { en: 'Handle and hinge close-up', ar: 'تفصيل المقبض والمفصلة' }, pos: [0.1, 1.22, 0.62], look: [-1.2, 1.1, 0.4], fov: 38 },
     ],
   },
 };
