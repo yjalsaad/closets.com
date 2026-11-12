@@ -6,7 +6,14 @@ import Office3D from './Office3D';
 import { fitModules, WARDROBE_WIDTHS } from './moduleFit';
 import { Barcode128 } from './barcode128';
 import { handleError } from './errors';
-import { BrowserRouter, useLocation, useNavigate, Link } from 'react-router-dom';
+import { BrowserRouter, useLocation, useNavigate } from 'react-router-dom';
+import { LangLink as Link, LangContext } from './seo/lang';   // [SEO] <Link> that keeps the /ar prefix
+import { useRouteHead } from './seo/head';
+import { ENABLE_AR_URLS } from './seo/siteConfig';
+import { splitLangPath, withLang, isKnownPage, LEGACY_REDIRECTS } from './seo/routes';
+import NotFound from './seo/NotFound';
+import FooterSitemap from './seo/FooterSitemap';
+import { formatBHD, formatBHDRange, formatDate, formatNumber } from './i18n/format';
 import ShowroomTour from './home/ShowroomTour';   // [HOME 2026-11-09] scroll-driven showroom walk-through
 import { useIkhLanding, IkhtarhaSpotlight, IkhtarhaGames, IkhtarhaDesigns, BusinessBand, CampaignPill } from './campaign/HomeCampaign';   // [IKHTARHA 2026-11-09] home page campaign + business sections
 
@@ -53,7 +60,7 @@ const api = async (path, opts = {}) => {
   if (r.status === 204) return true;
   try { return await r.json(); } catch (_) { return true; }
 };
-const fmt = n => 'BD ' + parseFloat(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+const fmt = n => formatBHD(n, CMS_LANG);   // [i18n] one BHD formatter (src/i18n/format.js)
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 // Merge two design lists by id (incoming entries override/add; existing kept), newest first
 const mergeDesigns = (existing, incoming) => {
@@ -2232,6 +2239,20 @@ const I18N = {
   sw3AiRedesigning:{ en:'Redesigning your room… ~15–25 seconds.', ar:'جارٍ إعادة تصميم غرفتك… نحو 15–25 ثانية.' },
   sw3AiSliderCompare:{ en:'Drag the slider to compare. AI impression — finishes confirmed at your visit.', ar:'اسحب الشريط للمقارنة. تصوّر بالذكاء الاصطناعي — تُعتمد التشطيبات في زيارتك.' },
   sw3AiIndicOnly:{ en:'Indicative only — your free design visit confirms an exact, itemised quote.', ar:'تقديري فقط — تؤكّد زيارة التصميم المجانية عرض سعر دقيق ومفصّل.' },
+  optBestStraight:{ en:'Compact kitchens & open-plan walls', ar:'للمطابخ الصغيرة والجدران المفتوحة' },
+  optBestGalley:{ en:'Narrow rooms, serious cooks', ar:'للغرف الضيقة وهواة الطبخ' },
+  optBestLShape:{ en:'The all-rounder — most popular', ar:'الخيار المتعدد الاستخدامات — الأكثر طلباً' },
+  optBestUShape:{ en:'Maximum storage & worktop', ar:'أقصى مساحة تخزين وسطح عمل' },
+  optBestIsland:{ en:'Sociable, open-plan entertaining', ar:'للضيافة والمساحات المفتوحة' },
+  optLead56:{ en:'5–6 weeks', ar:'5–6 أسابيع' },
+  optLead67:{ en:'6–7 weeks', ar:'6–7 أسابيع' },
+  optLead78:{ en:'7–8 weeks', ar:'7–8 أسابيع' },
+  optLead79:{ en:'7–9 weeks', ar:'7–9 أسابيع' },
+  // [SEO/i18n 2026-11-12] leaks found in the audit
+  closeCart:{ en:'Close cart', ar:'إغلاق السلة' },
+  meetTeam:{ en:'Meet our team', ar:'تعرّف على فريقنا' },
+  dockServices:{ en:'Services', ar:'خدماتنا' },
+  browseCollection:{ en:'Browse Collection', ar:'تصفّح المجموعة' },
 };
 function useI18n() {
   const ctx = useContext(AppCtx);
@@ -3038,6 +3059,9 @@ const OPT_KEY = {
   // Kitchen door styles
   'Shaker':'optShaker', 'Framed door, timeless':'optShakerSub',
   'Flat / slab':'optFlatSlab', 'Clean, handleless-ready':'optFlatSlabSub',
+  'Compact kitchens & open-plan walls':'optBestStraight', 'Narrow rooms, serious cooks':'optBestGalley',
+  'The all-rounder — most popular':'optBestLShape', 'Maximum storage & worktop':'optBestUShape', 'Sociable, open-plan entertaining':'optBestIsland',
+  '5–6 weeks':'optLead56', '6–7 weeks':'optLead67', '7–8 weeks':'optLead78', '7–9 weeks':'optLead79',
   'Handleless J-pull':'optHandleless', 'Seamless, contemporary':'optHandlelessSub',
   'In-frame':'optInframe', 'Heritage craftsmanship':'optInframeSub',
   'High-gloss':'optHighGloss',
@@ -3165,6 +3189,11 @@ const PLANNER_PROD_KEY = {
   'Storage / Office':'plProdStorageOffice',
 };
 
+// [SEO] Top-nav item: a REAL <a href> when it has a destination (keyboard, middle-click, crawlers), a button otherwise.
+function NavTop({ to, children, style, ...rest }) {
+  if (to) return <Link to={to} style={{ ...style, textDecoration:'none' }} {...rest}>{children}</Link>;
+  return <button type="button" style={style} {...rest}>{children}</button>;
+}
 function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang, setLang }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -3187,11 +3216,11 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
   };
 
   const DOCK = [
-    { id:'home', label:'Home', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
-    { id:'products', label:'Gallery', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
-    { id:'planner', label:'Design', fab:true, icon:<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg> },
-    { id:'services', label:'Services', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2-.5-.5-2z"/></svg> },
-    { id:'menu', label:'Menu', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg> },
+    { id:'home', label:tr('home'), icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
+    { id:'products', label:tr('gallery'), icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
+    { id:'planner', label:tr('design'), fab:true, icon:<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg> },
+    { id:'services', label:tr('dockServices'), icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2-.5-.5-2z"/></svg> },
+    { id:'menu', label:tr('menu'), icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg> },
   ];
   const go = (id) => { if (id==='menu') setMenuOpen(true); else { setOpenAcc(null); navTo(id); } };
 
@@ -3227,13 +3256,13 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
             const active = (g.feature && page===g.feature);
             return (
               <div key={g.key} onMouseEnter={()=>openMenu(g.key)} style={{ position:'static', flexShrink:1, minWidth:0 }}>
-                <button type="button"
-                  onClick={()=> g.feature ? navTo(g.feature) : setOpenMega(on?null:g.key)}
+                <NavTop to={g.feature ? navToPath(g.feature) : null}
+                  onClick={()=> g.feature ? (setOpenMega(null), setMenuOpen(false)) : setOpenMega(on?null:g.key)}
                   aria-expanded={on}
                   style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:4, padding:'8px 10px', fontSize:14, fontWeight: (on||active)?600:500, color:(on||active)?'var(--clay-deep)':'var(--ink)', borderRadius:10, whiteSpace:'nowrap' }}>
                   {trLabel(g.label, lang)}
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: on?'rotate(180deg)':'none', transition:'transform .2s', opacity:.6 }}><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
+                </NavTop>
               </div>
             );
           })}
@@ -3263,7 +3292,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
         <button type="button" onClick={()=>setLang(lang==='ar'?'en':'ar')} title="Language" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'7px 13px', fontSize:13, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{lang==='ar'?'EN':'ع'}</button>
         {user ? <Link to="/portal" style={{ textDecoration:'none', display:'inline-block', background:'rgba(168,75,41,.12)', border:'none', borderRadius:980, padding:'7px 14px', fontSize:13, fontWeight:500, color:'var(--clay-deep)', cursor:'pointer' }}>{user.name?.split(' ')[0]}</Link>
           : <button type="button" onClick={()=>openAuth('login')} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'7px 14px', fontSize:13, fontWeight:500, color:'var(--ink)', cursor:'pointer' }}>{tr('signIn')}</button>}
-        <button type="button" onClick={()=>setCartOpen(true)} aria-label="Cart" style={{ position:'relative', background: cart.length>0?'var(--clay)':'#fff', border:'1px solid var(--line)', borderRadius:980, width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color: cart.length>0?'#fff':'var(--ink)' }}>
+        <button type="button" onClick={()=>setCartOpen(true)} aria-label={tr('cart')} style={{ position:'relative', background: cart.length>0?'var(--clay)':'#fff', border:'1px solid var(--line)', borderRadius:980, width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color: cart.length>0?'#fff':'var(--ink)' }}>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
           {cart.length>0 && <span style={{ position:'absolute', top:-4, right:-4, background:'var(--ink)', color:'#fff', borderRadius:999, fontSize:10, fontWeight:700, minWidth:16, height:16, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px' }}>{cart.length}</span>}
         </button>
@@ -3809,8 +3838,8 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
         : { position: 'fixed', right: 0, top: 0, bottom: 0, width: 400, background: '#fff', zIndex: 1001, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform .35s cubic-bezier(.25,.46,.45,.94)', display: 'flex', flexDirection: 'column' }}>
         {mobile && <div style={{ width: 36, height: 4, background: 'var(--shop-line, #e6e6e6)', borderRadius: 2, margin: '12px auto 0' }} />}
         <div style={{ padding: mobile ? '16px 20px' : '22px 26px', borderBottom: '1px solid var(--shop-fill, #f5f5f7)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.02em' }}>Cart {cart.length > 0 && <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--shop-muted, #86868b)' }}>({cart.length})</span>}</div>
-          <button type="button" aria-label="Close cart" onClick={() => setOpen(false)} style={{ background: 'var(--shop-fill, #f5f5f7)', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: 'var(--shop-muted, #86868b)', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          <div style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.02em' }}>{t('cart')} {cart.length > 0 && <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--shop-muted, #86868b)' }}>({cart.length})</span>}</div>
+          <button type="button" aria-label={t('closeCart')} onClick={() => setOpen(false)} style={{ background: 'var(--shop-fill, #f5f5f7)', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: 'var(--shop-muted, #86868b)', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: mobile ? '16px 20px' : '20px 26px', WebkitOverflowScrolling: 'touch' }}>
           {cart.length === 0
@@ -3819,7 +3848,7 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
                 <div style={{ fontSize: 15, color: 'var(--shop-muted, #86868b)', marginBottom: 18 }}>{t('sw3CartEmpty')}</div>
                 {/* Same trap as Checkout: setOpen(false) runs navigate(-1), which would
                     cancel the navigation. Navigating away closes the drawer by itself. */}
-                <button type="button" className="btn-secondary" style={{ borderRadius: 980 }} onClick={() => setPage('products')}>Browse Collection</button>
+                <button type="button" className="btn-secondary" style={{ borderRadius: 980 }} onClick={() => setPage('products')}>{t('browseCollection')}</button>
               </div>
             : cart.map((item, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: 14, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid var(--shop-fill, #f5f5f7)' }}>
@@ -4963,7 +4992,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
   // Today's date, e.g. "27 Jun 2026" — for the branded design image.
-  const brandDateStr = () => { try { return new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }); } catch (e) { return ''; } };
+  const brandDateStr = () => { try { return formatDate(new Date(), 'en', 'medium'); } catch (e) { return ''; } };
   // Project / spec line for the branded image: "Walk-in Wardrobe — l-shape, 200+150 × 240 × 60 cm".
   const brandSpecLine = () => {
     const sizeString = (supportsSideAB && layout === 'l-shape')
@@ -5027,7 +5056,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
     const preparedFor = (user && user.name) || (qForm && qForm.name) || 'Valued client';
     const img = brandedImg || renderUrl || quoteImg || '';
     const esc = (s) => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    const money = (n) => 'BHD ' + Number(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    const money = (n) => formatBHD(n, 'en');   // printed quote is English; BHD has 3 decimals
     const rows = ld.items.map(li => (
       `<tr><td class="desc">${esc(li.label)}${li.detail ? `<span class="sub">${esc(li.detail)}</span>` : ''}</td>`
       + `<td class="amt">${li.price === 0 ? 'Included' : money(li.price)}</td></tr>`
@@ -6544,13 +6573,13 @@ function HomeHub({ user, setUser, setPage }) {
     return { name, qty, unit, total };
   };
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
-  const bd = (n) => 'BD ' + (parseFloat(n || 0)).toLocaleString('en-GB', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+  const bd = (n) => formatBHD(n, 'en');   // printed invoice is English
   const logoSrc = cms('header.logo', '') || '';
   const brandTxt = cms('header.brand', 'THE CLOSETS CO.');
   // Build a branded, print-clean A4 invoice HTML document for an order (or invoice row).
   const buildInvoiceHtml = (doc, items) => {
     const num = doc.order_number || doc.order_num || doc.invoice_number || doc.id || '';
-    const dateStr = doc.created_at ? new Date(doc.created_at).toLocaleDateString('en-GB') : '';
+    const dateStr = doc.created_at ? formatDate(doc.created_at, 'en') : '';
     const subtotal = doc.subtotal != null ? Number(doc.subtotal) : null;
     const discount = doc.discount != null ? Number(doc.discount) : (doc.discount_amount != null ? Number(doc.discount_amount) : null);
     const shipping = doc.shipping != null ? Number(doc.shipping) : (doc.shipping_amount != null ? Number(doc.shipping_amount) : null);
@@ -6770,7 +6799,7 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
               {!mobile && (
                 <div style={{ textAlign: rtl ? 'left' : 'right', lineHeight: 1.25 }}>
                   <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink, #1d1d1f)' }}>{user.name}</div>
-                  <div style={{ fontSize: 11.5, color: 'var(--muted, #86868b)' }}>{user.tier||'Bronze'} · {(user.points||0).toLocaleString()} pts</div>
+                  <div style={{ fontSize: 11.5, color: 'var(--muted, #86868b)' }}>{user.tier||'Bronze'} · {formatNumber(user.points||0, CMS_LANG)} pts</div>
                 </div>
               )}
               <button type="button" onClick={() => setPage('home')} style={{ background: '#fff', border: '1px solid var(--line, #ece6df)', borderRadius: 980, padding: '7px 13px', fontSize: 13, fontWeight: 500, color: 'var(--ink, #1f1913)', cursor: 'pointer', whiteSpace: 'nowrap' }}>{rtl ? '→ ' : '← '}{t('hubBackToSite')}</button>
@@ -6800,7 +6829,7 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
                   </div>
                   <div>
                     <div style={{ fontSize:18, fontWeight:700, color:'var(--shop-ink, #1d1d1f)' }}>{user.name}</div>
-                    <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)' }}>{(user.tier||'Bronze')} member · {(user.points||0).toLocaleString()} pts</div>
+                    <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)' }}>{(user.tier||'Bronze')} member · {formatNumber(user.points||0, CMS_LANG)} pts</div>
                   </div>
                 </div>
                 <input id="cust-photo-input" type="file" accept="image/*" style={{ display:'none' }} onChange={uploadPhoto} />
@@ -6822,7 +6851,7 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
           {tab === 'dashboard' && <>
             {!mobile && <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.02em', color: 'var(--shop-ink, #1d1d1f)', marginBottom: 20 }}>Home Hub</h2>}
             <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: 12, marginBottom: 16 }}>
-              {[['Total Invested', fmt(totalSpent), 'var(--clay)'], ['Active Orders', orders.filter(o=>!['Delivered','Cancelled'].includes(o.status)).length, '#1d1d1f'], ['Points', (user.points||0).toLocaleString(), '#b8860b'], ['Designs', designs.length, '#1d1d1f']].map(([label,val,color])=>(
+              {[['Total Invested', fmt(totalSpent), 'var(--clay)'], ['Active Orders', orders.filter(o=>!['Delivered','Cancelled'].includes(o.status)).length, '#1d1d1f'], ['Points', formatNumber(user.points||0, CMS_LANG), '#b8860b'], ['Designs', designs.length, '#1d1d1f']].map(([label,val,color])=>(
                 <div key={label} style={{ background: '#fff', borderRadius: 18, padding: '18px 16px', border: '1px solid var(--shop-line, #e6e6e6)' }}>
                   <div style={{ fontSize: mobile ? 18 : 22, fontWeight: 700, color, letterSpacing: '-.02em', marginBottom: 4 }}>{val}</div>
                   <div style={{ fontSize: 12, color: 'var(--shop-muted, #86868b)' }}>{label}</div>
@@ -6858,7 +6887,7 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
                     <div>
                       <div style={{ fontSize:14, fontWeight:600, color:'var(--clay)', marginBottom:2 }}>{order.order_number||order.order_num||order.id}</div>
-                      <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{order.notes||order.description||'Order'} · {order.created_at?new Date(order.created_at).toLocaleDateString('en-GB'):'—'}</div>
+                      <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{order.notes||order.description||'Order'} · {order.created_at?formatDate(order.created_at, CMS_LANG):'—'}</div>
                     </div>
                     <div style={{ textAlign: rtl ? 'left' : 'right' }}>
                       <div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginBottom:4 }}>{fmt(order.total||order.total_amount||order.amount)}</div>
@@ -6879,7 +6908,7 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
                       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
                         <div>
                           <div style={{ fontSize:14, fontWeight:500, color:'var(--clay)', marginBottom:2 }}>{inv.invoice_number||inv.id}</div>
-                          <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{inv.description||'Order'} · {inv.created_at?new Date(inv.created_at).toLocaleDateString('en-GB'):'—'}</div>
+                          <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{inv.description||'Order'} · {inv.created_at?formatDate(inv.created_at, CMS_LANG):'—'}</div>
                         </div>
                         <div style={{ textAlign: rtl ? 'left' : 'right' }}>
                           <div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginBottom:4 }}>{fmt(inv.total_amount||inv.amount)}</div>
@@ -6930,7 +6959,7 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
               return (
                 <div key={o.id} style={{ background:'#fff', borderRadius:16, padding:'16px 18px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:10 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
-                    <div><div style={{ fontSize:14, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', marginBottom:3 }}>{o.order_number||o.order_num||o.id}</div><div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{o.created_at?new Date(o.created_at).toLocaleDateString('en-GB'):'—'}</div></div>
+                    <div><div style={{ fontSize:14, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', marginBottom:3 }}>{o.order_number||o.order_num||o.id}</div><div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{o.created_at?formatDate(o.created_at, CMS_LANG):'—'}</div></div>
                     <div style={{ textAlign: rtl ? 'left' : 'right' }}><div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginBottom:6 }}>{fmt(o.total||o.total_amount||o.amount)}</div><Pill label={o.status||'Processing'} color="var(--clay)" bg="rgba(168,75,41,.1)" /></div>
                   </div>
                   <div style={{ display:'flex', gap:12, alignItems:'center', marginTop:8, flexWrap:'wrap' }}>
@@ -6976,7 +7005,7 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
                         </div>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                           <div style={{ fontSize:16, fontWeight:700, color:'var(--clay)' }}>{fmt(d.total_price)}</div>
-                          <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{d.created_at?new Date(d.created_at).toLocaleDateString('en-GB'):'—'}</div>
+                          <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{d.created_at?formatDate(d.created_at, CMS_LANG):'—'}</div>
                         </div>
                       </div>
                     </div>
@@ -6997,7 +7026,7 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:10, marginBottom:12 }}>
                       <div>
                         <div style={{ fontSize:19, fontWeight:700, color:'var(--shop-ink, #1d1d1f)' }}>{selectedDesign.product_name||'Design'}</div>
-                        <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)', marginTop:2 }}>{selectedDesign.created_at?new Date(selectedDesign.created_at).toLocaleDateString('en-GB'):''}</div>
+                        <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)', marginTop:2 }}>{selectedDesign.created_at?formatDate(selectedDesign.created_at, CMS_LANG):''}</div>
                       </div>
                       <Pill label={selectedDesign.status||'Saved'} color={/quote/.test((selectedDesign.status||'').toLowerCase())?'#1a7a40':'var(--clay)'} bg={(/quote/.test((selectedDesign.status||'').toLowerCase())?'#1a7a40':'var(--clay)')+'18'} />
                     </div>
@@ -7027,7 +7056,7 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
             <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>{t('w4PRewards')}</h2>
             <div style={{ background:'#fff', borderRadius:20, padding:24, marginBottom:14, border:'1px solid var(--shop-line, #e6e6e6)' }}>
               <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)', marginBottom:4 }}>{t('w4PBalance')}</div>
-              <div style={{ fontSize:44, fontWeight:700, color:'var(--clay)', letterSpacing:'-.03em', marginBottom:4 }}>{((rwInfo?rwInfo.points:user.points)||0).toLocaleString()}</div>
+              <div style={{ fontSize:44, fontWeight:700, color:'var(--clay)', letterSpacing:'-.03em', marginBottom:4 }}>{formatNumber((rwInfo?rwInfo.points:user.points)||0, CMS_LANG)}</div>
               <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', marginBottom:20 }}>{t('w4PPoints')} · {(rwInfo&&rwInfo.tier)||user.tier||'Bronze'} {t('w4PMember')}</div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8 }}>
                 {[['Bronze','0–999'],['Silver','1k–5k'],['Gold','5k–15k'],['Platinum','15k+']].map(([tier,range])=>{
@@ -7043,7 +7072,7 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
             </div>
             {rewards.map((r,i)=>(
               <div key={i} style={{ background:'#fff', borderRadius:14, padding:'14px 18px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <div><div style={{ fontSize:14, color:'var(--shop-ink, #1d1d1f)', marginBottom:2 }}>{r.description}</div><div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{r.created_at?new Date(r.created_at).toLocaleDateString('en-GB'):''}</div></div>
+                <div><div style={{ fontSize:14, color:'var(--shop-ink, #1d1d1f)', marginBottom:2 }}>{r.description}</div><div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{r.created_at?formatDate(r.created_at, CMS_LANG):''}</div></div>
                 <span style={{ fontSize:16, fontWeight:700, color:r.type==='earned'?'#1a7a40':'#d93025' }}>{r.type==='earned'?'+':'-'}{r.points}</span>
               </div>
             ))}
@@ -7935,7 +7964,7 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
                       {plans.map(m=>(
                         <button type="button" key={m} onClick={()=>setMonths(months===m?0:m)} style={{ padding:'10px 14px', borderRadius:12, border:`1.5px solid ${months===m?'var(--clay)':'#e6e6e6'}`, background:months===m?'rgba(168,75,41,.08)':'#fff', cursor:'pointer', textAlign:'left' }}>
                           <div style={{ fontSize:14, fontWeight:700, color:months===m?'var(--clay)':'#1d1d1f' }}>{m} {t('swCoMonths')}</div>
-                          <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>BHD {(total/m).toFixed(2)}/mo</div>
+                          <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{formatBHD(total/m, CMS_LANG)}{CMS_LANG==='ar' ? '/شهر' : '/mo'}</div>
                         </button>
                       ))}
                     </div>
@@ -8431,12 +8460,12 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </div>
         <div className="rv reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 12 : 18 }}>
           {appointments.map(([title, desc, ic], i) => (
-            <button type="button" key={title} className="lift" onClick={() => setPage('booking')} style={{ '--d': (i * 0.06) + 's', background: '#fff', border: '1px solid var(--line)', borderRadius: 18, padding: mobile ? '20px 16px' : '28px 22px', textAlign: 'left', cursor: 'pointer' }}>
+            <Link to={navToPath('booking')} key={title} className="lift" style={{ textDecoration: 'none', color: 'inherit', display: 'block', '--d': (i * 0.06) + 's', background: '#fff', border: '1px solid var(--line)', borderRadius: 18, padding: mobile ? '20px 16px' : '28px 22px', textAlign: 'left', cursor: 'pointer' }}>
               <div style={{ fontSize: 30, marginBottom: 12 }}>{ic}</div>
               <div className="display" style={{ fontSize: mobile ? 17 : 20, color: 'var(--ink)', marginBottom: 6 }}>{title}</div>
               <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, marginBottom: 12 }}>{desc}</div>
               <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--clay)' }}>{t('swBookFree')}</span>
-            </button>
+            </Link>
           ))}
         </div>
       </section>
@@ -8449,7 +8478,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </div>
         <div className="rv reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: mobile ? 16 : 20 }}>
           {rooms.map(([name, sub, img, route], i) => (
-            <button type="button" key={name} className="tile-zoom lift" onClick={() => setPage(route)} style={{ '--d': (i * 0.07) + 's', position: 'relative', border: 'none', padding: 0, borderRadius: 22, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 260 : 360, background: '#15110e' }}>
+            <Link to={navToPath(route)} key={name} className="tile-zoom lift" style={{ textDecoration: 'none', color: 'inherit', display: 'block', '--d': (i * 0.07) + 's', position: 'relative', border: 'none', padding: 0, borderRadius: 22, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 260 : 360, background: '#15110e' }}>
               <Photo src={img} alt={name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,0) 38%, rgba(20,16,12,.86) 100%)' }} />
               <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: 24, zIndex: 2 }}>
@@ -8457,7 +8486,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
                 <div style={{ color: 'rgba(255,255,255,.82)', fontSize: 14, marginTop: 5 }}>{sub}</div>
                 <div style={{ color: '#E7BBA0', fontSize: 13, fontWeight: 600, marginTop: 14, letterSpacing: '.04em' }}>{t('swExplore')}</div>
               </div>
-            </button>
+            </Link>
           ))}
         </div>
       </section>
@@ -8471,7 +8500,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
           </div>
           <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? 16 : 22, marginBottom: 28 }}>
             {[[t('swRoomWardrobes'), t('swDesignWardrobesDesc'), '/layouts/wardrobe/wardrobe-walkin.jpg', 'wardrobes'], [t('swRoomKitchens'), t('swDesignKitchensDesc'), '/layouts/kitchen/island.jpg', 'kitchen']].map(([name, desc, img, route]) => (
-              <button type="button" key={name} className="tile-zoom lift" onClick={() => setPage(route)} style={{ position: 'relative', border: 'none', padding: 0, borderRadius: 24, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 300 : 420, background: '#15110e' }}>
+              <Link to={navToPath(route)} key={name} className="tile-zoom lift" style={{ textDecoration: 'none', color: 'inherit', display: 'block', position: 'relative', border: 'none', padding: 0, borderRadius: 24, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', minHeight: mobile ? 300 : 420, background: '#15110e' }}>
                 <Photo src={img} alt={name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,.05) 30%, rgba(20,16,12,.85) 100%)' }} />
                 <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: mobile ? 26 : 34, zIndex: 2 }}>
@@ -8479,12 +8508,12 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
                   <div style={{ color: 'rgba(255,255,255,.85)', fontSize: mobile ? 14.5 : 16, marginTop: 8, lineHeight: 1.55, maxWidth: 380 }}>{desc}</div>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 18, background: 'var(--clay)', color: '#fff', borderRadius: 980, padding: '10px 20px', fontSize: 14, fontWeight: 600 }}>{lang==='ar' ? <>← {t('swView')} {name.toLowerCase()}</> : <>{t('swView')} {name.toLowerCase()} →</>}</span>
                 </div>
-              </button>
+              </Link>
             ))}
           </div>
           <div className="rv" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
             {styleLinks.map(([label, route]) => (
-              <button type="button" key={label} onClick={() => setPage(route)} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 980, padding: '9px 18px', fontSize: 13.5, fontWeight: 500, color: 'var(--ink)', cursor: 'pointer' }}>{label}</button>
+              <Link to={navToPath(route)} key={label} style={{ textDecoration: 'none', display: 'inline-block', background: '#fff', border: '1px solid var(--line)', borderRadius: 980, padding: '9px 18px', fontSize: 13.5, fontWeight: 500, color: 'var(--ink)', cursor: 'pointer' }}>{label}</Link>
             ))}
           </div>
         </div>
@@ -8671,12 +8700,12 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </div>
         <div className="rv reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: mobile ? 14 : 20 }}>
           {[[t('swHelpBrowse'), t('swHelpBrowseDesc'), '🛋️', 'products'], [t('swHelpStudio'), t('swHelpStudioDesc'), '✏️', 'planner'], [t('swHelpOffers'), t('swHelpOffersDesc'), '🏷️', 'offers']].map(([title, desc, ic, route], i) => (
-            <button type="button" key={title} className="lift" onClick={() => setPage(route)} style={{ '--d': (i * 0.06) + 's', background: '#fff', border: '1px solid var(--line)', borderRadius: 20, padding: mobile ? '24px 20px' : '32px 26px', textAlign: 'left', cursor: 'pointer' }}>
+            <Link to={navToPath(route)} key={title} className="lift" style={{ textDecoration: 'none', color: 'inherit', display: 'block', '--d': (i * 0.06) + 's', background: '#fff', border: '1px solid var(--line)', borderRadius: 20, padding: mobile ? '24px 20px' : '32px 26px', textAlign: 'left', cursor: 'pointer' }}>
               <div style={{ fontSize: 34, marginBottom: 14 }}>{ic}</div>
               <div className="display" style={{ fontSize: mobile ? 19 : 22, color: 'var(--ink)', marginBottom: 8 }}>{title}</div>
               <div style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 14 }}>{desc}</div>
               <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--clay)' }}>{t('swGo')}</span>
-            </button>
+            </Link>
           ))}
         </div>
       </section>
@@ -8890,7 +8919,7 @@ function ServicesPage({ user, setPage, openAuth }) {
     } catch (e) { alert('Could not send: ' + e.message); }
     setBusy(false);
   };
-  const price = (c) => c.pricing_model === 'fixed' ? ('From BD ' + c.base_price) : c.pricing_model === 'hourly' ? ('BD ' + c.base_price + '/hr') : 'Free quote';
+  const price = (c) => c.pricing_model === 'fixed' ? ((CMS_LANG==='ar' ? 'ابتداءً من ' : 'From ') + formatBHD(c.base_price, CMS_LANG, { whole:true })) : c.pricing_model === 'hourly' ? (formatBHD(c.base_price, CMS_LANG, { whole:true }) + (CMS_LANG==='ar' ? '/ساعة' : '/hr')) : (CMS_LANG==='ar' ? 'عرض سعر مجاني' : 'Free quote');
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--cream)', paddingTop: 64, paddingBottom: 90 }}>
       <div style={{ maxWidth: 1180, margin: '0 auto', padding: '0 24px' }}>
@@ -9145,7 +9174,7 @@ function YasConceptCard({ concept, setPage }) {
             {concept.packages.map((p, i) => (
               <div key={p.tier} style={{ border: '1px solid ' + (i === 1 ? 'var(--clay)' : 'var(--line)'), background: i === 1 ? 'var(--sand)' : '#fff', borderRadius: 12, padding: '12px 14px' }}>
                 <div style={{ fontSize: 12.5, fontWeight: 700, color: i === 1 ? 'var(--clay-deep)' : 'var(--ink)' }}>{p.tier}{i === 1 ? ' · recommended' : ''}</div>
-                <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--ink)', marginTop: 3 }}>BD {Number(p.price_from || 0).toLocaleString()}–{Number(p.price_to || 0).toLocaleString()}</div>
+                <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--ink)', marginTop: 3 }}>{formatBHDRange(p.price_from || 0, p.price_to || 0, CMS_LANG)}</div>
                 <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, lineHeight: 1.4 }}>{p.includes}</div>
               </div>
             ))}
@@ -9397,7 +9426,7 @@ function YasProductPicks({ setPage }) {
           {items.map((it, i) => (
             <button type="button" key={it.id || i} onClick={() => it.id && setPage('product-' + it.id)} style={{ textAlign: 'left', background: '#fff', border: '1px solid var(--line)', borderRadius: 14, padding: 14, cursor: 'pointer' }}>
               <div style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.25 }}>{it.name}</div>
-              <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 3 }}>{it.category}{it.price ? ' · BD ' + Number(it.price).toLocaleString() : ''}</div>
+              <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 3 }}>{it.category}{it.price ? ' · ' + formatBHD(it.price, CMS_LANG, { whole:true }) : ''}</div>
               {it.reason && <div style={{ fontSize: 12, color: 'var(--clay-deep)', marginTop: 8, fontStyle: 'italic' }}>{it.reason}</div>}
             </button>
           ))}
@@ -9767,7 +9796,7 @@ function AIDesignerPage({ setPage, user }) {
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
             {(concept.packages||[]).map((p,i)=>(<div key={p.tier} style={{ border:'1px solid '+(i===1?'var(--clay)':'var(--line)'), background:i===1?'var(--sand)':'#fff', borderRadius:12, padding:'12px 14px' }}>
               <div style={{ fontSize:13, fontWeight:700, color:i===1?'var(--clay-deep)':'var(--ink)' }}>{p.tier}{i===1?' · recommended':''}</div>
-              <div style={{ fontSize:15, fontWeight:700, color:'var(--ink)', marginTop:3 }}>BD {p.price_from.toLocaleString()}–{p.price_to.toLocaleString()}</div>
+              <div style={{ fontSize:15, fontWeight:700, color:'var(--ink)', marginTop:3 }}>{formatBHDRange(p.price_from, p.price_to, CMS_LANG)}</div>
               <div style={{ fontSize:11, color:'var(--muted)', marginTop:4, lineHeight:1.4 }}>{p.includes}</div>
             </div>))}
           </div>
@@ -9802,7 +9831,7 @@ function SiteFooter({ setPage, siteLogo }) {
           <div style={{ display:'flex', gap:14, marginTop:18, flexWrap:'wrap' }}>
             <button type="button" onClick={()=>setPage('booking')} className="btn-clay" style={{ padding:'12px 22px', fontSize:14 }}>{cms('footer.cta.book', t('bookFreeVisit'))}</button>
             <a href="https://wa.me/97317555095" style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:980, padding:'11px 18px', fontSize:13.5, fontWeight:600, textDecoration:'none' }}>{cms('footer.cta.whatsapp', t('whatsappUs'))}</a>
-            <a href="https://closets-hub.vercel.app/team.html" target="_blank" rel="noreferrer" style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:980, padding:'11px 18px', fontSize:13.5, fontWeight:600, textDecoration:'none' }}>{cms('footer.cta.team', t('meetTeam') || 'Meet our team')}</a>
+            <a href="https://closets-hub.vercel.app/team.html" target="_blank" rel="noreferrer" style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:980, padding:'11px 18px', fontSize:13.5, fontWeight:600, textDecoration:'none' }}>{cms('footer.cta.team', t('meetTeam'))}</a>
           </div>
         </div>
         {col(cms('footer.col1.title',t('footHelp')),[['✨ AI YAS','ai-yas'],['How it works','how-it-works'],['FAQ','faq'],['Delivery & install','contact'],['Warranty service','warranty'],['Maintenance','maintenance'],['Reviews','projects'],['Contact us','contact']])}
@@ -9817,6 +9846,8 @@ function SiteFooter({ setPage, siteLogo }) {
           <a href="https://closets-hub.vercel.app/customer.html" target="_blank" rel="noopener" style={{ display:'block', color:'var(--clay)', fontSize:14, fontWeight:600, padding:'8px 0 0', textDecoration:'none' }}>{t('footCustomerHub')} {lang==='ar' ? '←' : '→'}</a>
         </div>
       </div>
+
+      <FooterSitemap lang={lang} />
 
       {/* Support — external link (Staff login removed from public footer) */}
       <div style={{ display:'flex', gap:18, marginTop:24, flexWrap:'wrap' }}>
@@ -10042,7 +10073,7 @@ function CategoryPage({ category, products, setPage, addToCart }) {
           <div style={{ fontSize:16, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{p.name}</div>
           <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', marginTop:4 }}>{p.category}</div>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:12 }}>
-            <span style={{ fontSize:16, fontWeight:700, color:'var(--shop-ink, #1d1d1f)' }}>BD {Number(p.price||0).toLocaleString()}</span>
+            <span style={{ fontSize:16, fontWeight:700, color:'var(--shop-ink, #1d1d1f)' }}>{formatBHD(p.price||0, CMS_LANG, { whole:true })}</span>
             <button type="button" onClick={e=>{ e.stopPropagation(); addToCart&&addToCart(p); }} style={{ background:'var(--shop-fill, #f5f5f7)', border:'none', borderRadius:10, padding:'8px 14px', fontSize:13, fontWeight:600, cursor:'pointer', color:'var(--shop-ink, #1d1d1f)' }}>{t('add')}</button>
           </div>
         </div>
@@ -14051,7 +14082,7 @@ function KitchenStudio({ setPage, user, openAuth }) {
                       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.6"><path d={l.ic} /></svg>
                       <div><div style={{ fontSize:14.5, fontWeight:600, color: on?'var(--clay-deep)':'var(--ink)' }}>{trOpt(l.name, lang)}</div><div style={{ fontSize:11.5, color:'var(--muted)', marginTop:2 }}>{trOpt(l.sub, lang)}</div></div>
                     </div>
-                    <div style={{ fontSize:11, color:'var(--ink-soft)', marginTop:8, paddingTop:8, borderTop:'1px solid var(--line)' }}>{l.best} · ~{l.runM}m run</div>
+                    <div style={{ fontSize:11, color:'var(--ink-soft)', marginTop:8, paddingTop:8, borderTop:'1px solid var(--line)' }}>{trOpt(l.best, lang)} · ~{l.runM}m run</div>
                   </button>); })}
               </div>
             </>)}
@@ -14066,7 +14097,7 @@ function KitchenStudio({ setPage, user, openAuth }) {
                     <div style={{ padding:'9px 11px' }}>
                       <div style={{ fontSize:13, fontWeight:600, color: on?'var(--clay-deep)':'var(--ink)' }}>{trOpt(s.name, lang)}</div>
                       <div style={{ fontSize:10.5, color:'var(--muted)', marginTop:2 }}>{trOpt(s.sub, lang)}</div>
-                      <div style={{ fontSize:10.5, color:'var(--ink-soft)', marginTop:4 }}>×{s.mult.toFixed(2)} · {s.lead}</div>
+                      <div style={{ fontSize:10.5, color:'var(--ink-soft)', marginTop:4 }}>×{s.mult.toFixed(2)} · {trOpt(s.lead, lang)}</div>
                     </div>
                   </button>); })}
               </div>
@@ -14180,7 +14211,7 @@ function KitchenStudio({ setPage, user, openAuth }) {
               <button type="button" onClick={()=>setSpecOpen(false)} style={{ background:'none', border:'none', fontSize:20, color:'var(--muted)', cursor:'pointer' }}>✕</button>
             </div>
             {[
-              ['Cabinet style', cab.name, [['Construction',cab.constr],['Cabinetry rate','BD '+CABINET_RATE+'/m × '+cab.mult.toFixed(2)+' = '+fmt(Math.round(CABINET_RATE*cab.mult))+'/m'],['Lead time',cab.lead],['Warranty','10 years on cabinetry']]],
+              ['Cabinet style', cab.name, [['Construction',cab.constr],['Cabinetry rate',formatBHD(CABINET_RATE, CMS_LANG, { whole:true })+'/m × '+cab.mult.toFixed(2)+' = '+fmt(Math.round(CABINET_RATE*cab.mult))+'/m'],['Lead time',cab.lead],['Warranty','10 years on cabinetry']]],
               ['Worktop', wt.name, [['Description',wt.desc],['Thickness',wt.thick],['Price driver',fmt(wt.perM)+' per linear metre'],['Heat / scratch',wt.heat+' / '+wt.scratch],['Care',wt.care],['Lead time',wt.lead],['Warranty',wt.warranty]]],
               ['Finish & hardware', fin.name+' · '+hd[1], [['Colour',fin.name],['Handles',hd[1]+' '+(hd[3]>0?'(+'+fmt(hd[3])+' / set)':'(included)')],['Hinges','Soft-close Blum, included'],['Drawers','Soft-close runners, included']]],
             ].map(([title,head,rows])=>(
@@ -14453,7 +14484,7 @@ function WardrobesPage({ setPage, products }) {
 
 function KitchenPage({ setPage, products }) {
   const mobile = useMobile();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [faq, setFaq] = useState(-1);
   const { map: dbLayouts } = useLayouts('kitchen');
   const kLayouts = K_LAYOUTS.map(l => mergeLayout(l, dbLayouts));
@@ -14487,8 +14518,8 @@ function KitchenPage({ setPage, products }) {
             <button key={s.id} type="button" className="lift" onClick={()=>setPage('kitchen-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
               <div style={{ height: mobile?110:150, background:s.g }} />
               <div style={{ padding:'14px 16px' }}>
-                <div style={{ fontSize:17, fontWeight:600, color:'var(--ink)' }}>{s.name}</div>
-                <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{s.sub}</div>
+                <div style={{ fontSize:17, fontWeight:600, color:'var(--ink)' }}>{trOpt(s.name, lang)}</div>
+                <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{trOpt(s.sub, lang)}</div>
                 <div style={{ fontSize:12.5, color:'var(--clay)', marginTop:10, fontWeight:600 }}>{t('sw2KpDesignStyle')}</div>
               </div>
             </button>
@@ -14503,10 +14534,10 @@ function KitchenPage({ setPage, products }) {
         <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
           {kLayouts.map(l=>(
             <div key={l.id} className="lift zoomwrap" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, overflow:'hidden', textAlign:'center' }}>
-              <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?110:130, objectFit:'cover' }} />
+              <img src={l.img} alt={trOpt(l.name, lang)} loading="lazy" style={{ display:'block', width:'100%', height: mobile?110:130, objectFit:'cover' }} />
               <div style={{ padding:'14px 12px 16px' }}>
-                <div style={{ fontSize:14, fontWeight:600, color:'var(--ink)' }}>{l.name}</div>
-                <div style={{ fontSize:11.5, color:'var(--muted)', marginTop:4, lineHeight:1.4 }}>{l.sub}</div>
+                <div style={{ fontSize:14, fontWeight:600, color:'var(--ink)' }}>{trOpt(l.name, lang)}</div>
+                <div style={{ fontSize:11.5, color:'var(--muted)', marginTop:4, lineHeight:1.4 }}>{trOpt(l.sub, lang)}</div>
                 {Array.isArray(l.bullets) && l.bullets.length>0 && (
                   <div style={{ display:'flex', flexWrap:'wrap', gap:5, justifyContent:'center', marginTop:8 }}>
                     {l.bullets.slice(0,3).map(b=>(<span key={b} style={{ fontSize:10.5, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'3px 8px' }}>{b}</span>))}
@@ -15785,9 +15816,9 @@ function DesignBuilderPage({ setPage, user }) {
               </div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                 <div><div style={{ fontSize:11, color:'var(--muted)' }}>{t('sw2DbCurrentPrice')}</div><div className="display" style={{ fontSize:26, color:'var(--clay)' }}>{price?fmt(total):'—'}</div></div>
-                <div><div style={{ fontSize:11, color:'var(--muted)' }}>{t('sw2DbVariation')}</div><div style={{ fontSize:18, fontWeight:700, color: variation>0?'var(--clay-deep)':variation<0?'var(--clay)':'var(--muted)' }}>{prevTotal!=null?(variation>=0?'+':'')+fmt(Math.abs(variation)).replace('BD ', variation<0?'−BD ':'BD '):'—'}</div></div>
+                <div><div style={{ fontSize:11, color:'var(--muted)' }}>{t('sw2DbVariation')}</div><div style={{ fontSize:18, fontWeight:700, color: variation>0?'var(--clay-deep)':variation<0?'var(--clay)':'var(--muted)' }}>{prevTotal!=null?(variation>=0?'+':'')+(variation<0?'−':'')+fmt(Math.abs(variation)):'—'}</div></div>
                 <div><div style={{ fontSize:11, color:'var(--muted)' }}>{t('sw2DbMargin')}</div><div style={{ fontSize:18, fontWeight:700, color:'var(--ink)' }}>{price?Math.round(price.margin_pct||0)+'%':'—'}</div></div>
-                <div><div style={{ fontSize:11, color:'var(--muted)' }}>{t('sw2DbEstDelivery')}</div><div style={{ fontSize:14.5, fontWeight:700, color:'var(--ink)' }}>{price?.estimated_delivery?new Date(price.estimated_delivery).toLocaleDateString(lang==='ar'?'ar':'en-GB',{ day:'numeric', month:'short' }):'—'}</div></div>
+                <div><div style={{ fontSize:11, color:'var(--muted)' }}>{t('sw2DbEstDelivery')}</div><div style={{ fontSize:14.5, fontWeight:700, color:'var(--ink)' }}>{price?.estimated_delivery?new Date(price.estimated_delivery).toLocaleDateString(lang==='ar'?'ar-BH-u-ca-gregory-nu-latn':'en-GB',{ day:'numeric', month:'short' }):'—'}</div></div>
               </div>
               {price && <div style={{ marginTop:12, paddingTop:12, borderTop:'1px solid var(--line)', display:'grid', gridTemplateColumns:'1fr 1fr', gap:6, fontSize:12, color:'var(--ink-soft)' }}>
                 <span>{t('sw2DbMaterials')}</span><span style={{ textAlign:'right' }}>{fmt(price.material_cost)}</span>
@@ -16047,7 +16078,7 @@ function DesignBuilderPage({ setPage, user }) {
               {!price && <div style={{ fontSize:13.5, color:'var(--muted)' }}>{t('sw2DbAddPartsHint')}</div>}
               {price && (<Fragment>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
-                  {[[t('sw2DbCurrentPrice'), fmt(total), 'var(--clay)'],[t('sw2DbVariation'), prevTotal!=null?((variation>=0?'+':'−')+fmt(Math.abs(variation))):'—', variation<0?'var(--clay)':'var(--clay-deep)'],[t('sw2DbMargin'), Math.round(price.margin_pct||0)+'%', 'var(--ink)'],[t('sw2DbEstDelivery'), price.estimated_delivery?new Date(price.estimated_delivery).toLocaleDateString(lang==='ar'?'ar':'en-GB',{ day:'numeric', month:'short', year:'numeric' }):'—', 'var(--ink)']].map(([l, v, c]) => (
+                  {[[t('sw2DbCurrentPrice'), fmt(total), 'var(--clay)'],[t('sw2DbVariation'), prevTotal!=null?((variation>=0?'+':'−')+fmt(Math.abs(variation))):'—', variation<0?'var(--clay)':'var(--clay-deep)'],[t('sw2DbMargin'), Math.round(price.margin_pct||0)+'%', 'var(--ink)'],[t('sw2DbEstDelivery'), price.estimated_delivery?new Date(price.estimated_delivery).toLocaleDateString(lang==='ar'?'ar-BH-u-ca-gregory-nu-latn':'en-GB',{ day:'numeric', month:'short', year:'numeric' }):'—', 'var(--ink)']].map(([l, v, c]) => (
                     <div key={l} style={{ border:'1px solid var(--line)', borderRadius:12, padding:'12px 14px', background:'var(--cream)' }}><div style={{ fontSize:11, color:'var(--muted)' }}>{l}</div><div className="display" style={{ fontSize:20, color:c, marginTop:2 }}>{v}</div></div>
                   ))}
                 </div>
@@ -16259,7 +16290,7 @@ function DlGlowUp({ user, setPage, openAuth, referral }) {
   const [leadBusy, setLeadBusy] = useState(false);
   const [lf, setLf] = useState({ name: (user && user.name) || '', phone: (user && user.phone) || '', email: (user && user.email) || '', room: 'Wardrobe', budget: '' });
   const EST = { 'Wardrobe': [400, 1200], 'Walk-in Closet': [800, 2500], 'Kitchen': [1500, 5000], 'TV Unit': [300, 900], 'Home Office': [500, 1800], 'Full Fit-out': [3000, 15000], 'Other': [400, 3000] };
-  const estRange = () => { const e = EST[lf.room] || EST.Other; return 'BD ' + e[0].toLocaleString() + ' – ' + e[1].toLocaleString(); };
+  const estRange = () => { const e = EST[lf.room] || EST.Other; return formatBHDRange(e[0], e[1], CMS_LANG); };
   const glInp = { padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 10, fontSize: 14, fontFamily: 'inherit', width: '100%', boxSizing: 'border-box', background: '#fff', color: 'var(--ink)' };
   const sendLead = async () => {
     if (!lf.name.trim() || !lf.phone.trim()) { toast(lang === 'ar' ? 'أدخل الاسم ورقم الهاتف' : 'Enter your name and phone', 'error'); return; }
@@ -16753,47 +16784,7 @@ const ROUTE_TABLE = [
   '/ai-lab', '/ai-lab/yas', '/offers', '/booking', '/projects', '/services', '/showrooms',
   '/how-it-works', '/faq', '/about', '/contact', '/blog', '/careers', '/warranty', '/maintenance',
 ];
-// Per-route <title> + meta description, bilingual. [title, description] per lang. Falls back to a generic bilingual pair.
-const ROUTE_META = {
-  home:{ en:['The Closets Co. — Bespoke Kitchens, Wardrobes & Storage in Bahrain','Premium bespoke kitchens, wardrobes, walk-in closets and storage — designed, made and installed in the Kingdom of Bahrain.'],
-         ar:['ذا كلوزتس — مطابخ وخزائن وحلول تخزين مصمّمة خصيصاً في البحرين','مطابخ وخزائن وغرف ملابس وحلول تخزين فاخرة تُصمّم وتُصنّع وتُركّب في مملكة البحرين.'] },
-  kitchen:{ en:['Bespoke Kitchens — The Closets Co.','Handcrafted bespoke kitchens designed around how you cook — cabinetry, stone worktops and integrated appliances, made in Bahrain.'],
-            ar:['مطابخ مصمّمة خصيصاً — ذا كلوزتس','مطابخ فاخرة تُصمّم حسب أسلوب حياتك — خزائن وأسطح حجرية وأجهزة مدمجة، صناعة بحرينية.'] },
-  wardrobes:{ en:['Fitted Wardrobes — The Closets Co.','Sliding, hinged and handleless fitted wardrobes, floor to ceiling — bespoke storage handcrafted in Bahrain.'],
-              ar:['خزائن ملابس مدمجة — ذا كلوزتس','خزائن ملابس منزلقة ومفصّلية وبدون مقابض، من الأرض إلى السقف — تخزين مصمّم خصيصاً في البحرين.'] },
-  tv:{ en:['TV Units & Media Walls — The Closets Co.','Bespoke TV units, media walls and living-room storage that disappear into the architecture. Made in Bahrain.'],
-       ar:['وحدات تلفاز وجدران وسائط — ذا كلوزتس','وحدات تلفاز وجدران وسائط وحلول تخزين للمعيشة مصمّمة بإتقان. صناعة بحرينية.'] },
-  doors:{ en:['Wood Doors — The Closets Co.','Bespoke wooden doors and joinery, crafted to your home. Made in Bahrain.'],
-          ar:['أبواب خشبية — ذا كلوزتس','أبواب خشبية ونجارة مصمّمة خصيصاً لمنزلك. صناعة بحرينية.'] },
-  office:{ en:['Home Office & Study — The Closets Co.','Bespoke home-office joinery, desks and storage designed around the way you work. Made in Bahrain.'],
-           ar:['مكتب منزلي — ذا كلوزتس','أثاث ومكاتب وحلول تخزين للمكتب المنزلي مصمّمة حسب طريقة عملك. صناعة بحرينية.'] },
-  products:{ en:['Gallery — The Closets Co.','Browse our full collection of bespoke kitchens, wardrobes, closets and storage.'],
-             ar:['المعرض — ذا كلوزتس','تصفّح مجموعتنا الكاملة من المطابخ والخزائن وغرف الملابس وحلول التخزين المصمّمة خصيصاً.'] },
-  offers:{ en:['Offers — The Closets Co.','Current offers on bespoke kitchens, wardrobes and storage. Book a free design consultation.'],
-           ar:['العروض — ذا كلوزتس','عروضنا الحالية على المطابخ والخزائن وحلول التخزين. احجز استشارة تصميم مجانية.'] },
-  booking:{ en:['Book a Free Consultation — The Closets Co.','Book a free home design visit. We measure, design in 3D and install — one team, start to finish.'],
-            ar:['احجز استشارة مجانية — ذا كلوزتس','احجز زيارة تصميم منزلية مجانية. نقيس ونصمّم ثلاثي الأبعاد ونركّب — فريق واحد من البداية للنهاية.'] },
-  projects:{ en:['Our Work — The Closets Co.','Recent bespoke kitchen, wardrobe and closet projects delivered across Bahrain.'],
-             ar:['أعمالنا — ذا كلوزتس','أحدث مشاريع المطابخ والخزائن وغرف الملابس المصمّمة خصيصاً في مملكة البحرين.'] },
-  services:{ en:['Services — The Closets Co.','Design, manufacture, installation, maintenance and warranty — the full bespoke service, in-house.'],
-             ar:['خدماتنا — ذا كلوزتس','التصميم والتصنيع والتركيب والصيانة والضمان — خدمة متكاملة من فريقنا.'] },
-  showrooms:{ en:['Showrooms — The Closets Co.','Visit our showrooms in Bahrain to see the craftsmanship and materials up close.'],
-              ar:['صالات العرض — ذا كلوزتس','قم بزيارة صالات العرض في البحرين لترى الحرفية والخامات عن قرب.'] },
-  about:{ en:['About — The Closets Co.','Bespoke storage and kitchens, designed, manufactured and installed in the Kingdom of Bahrain.'],
-          ar:['من نحن — ذا كلوزتس','حلول تخزين ومطابخ مصمّمة ومصنّعة ومركّبة في مملكة البحرين.'] },
-  contact:{ en:['Contact — The Closets Co.','Get in touch with The Closets Co. in Bahrain — call, WhatsApp or book a free consultation.'],
-            ar:['اتصل بنا — ذا كلوزتس','تواصل مع ذا كلوزتس في البحرين — اتصال أو واتساب أو احجز استشارة مجانية.'] },
-  faq:{ en:['FAQ — The Closets Co.','Answers on pricing, timelines, materials and the bespoke process.'],
-        ar:['الأسئلة الشائعة — ذا كلوزتس','إجابات حول الأسعار والمدد والخامات وعملية التصميم المخصّص.'] },
-  'how-it-works':{ en:['How It Works — The Closets Co.','From consultation to installation in four considered steps — design, visualise, craft, install.'],
-                   ar:['كيف نعمل — ذا كلوزتس','من الاستشارة إلى التركيب في أربع خطوات — التصميم والتصوّر والصناعة والتركيب.'] },
-  planner:{ en:['Design Studio — The Closets Co.','Plan your room in 3D and get a live price estimate, then book a designer to make it real.'],
-            ar:['استوديو التصميم — ذا كلوزتس','صمّم غرفتك ثلاثية الأبعاد واحصل على تقدير سعر فوري، ثم احجز مصمّماً لتنفيذها.'] },
-  'ai-yas':{ en:['YAS — AI Interior Designer — The Closets Co.','Describe your space and let YAS, our AI designer, suggest a bespoke layout and finishes.'],
-             ar:['ياس — مصمّم داخلي بالذكاء الاصطناعي — ذا كلوزتس','صف مساحتك ودع ياس، مصمّمنا الذكي، يقترح تصميماً وتشطيبات مخصّصة.'] },
-  'design-lab':{ en:['AI Lab — The Closets Co.','Explore AI design tools to imagine and price your bespoke room.'],
-                 ar:['مختبر الذكاء الاصطناعي — ذا كلوزتس','استكشف أدوات التصميم بالذكاء الاصطناعي لتخيّل غرفتك المخصّصة وتسعيرها.'] },
-};
+// [SEO] ROUTE_META moved to src/seo/routes.js (single registry: meta, JSON-LD, sitemap, prerender).
 function pageToPath(p) {
   if (p == null || p === '' || p === 'home') return '/';
   if (typeof p === 'string' && p.startsWith('cat:')) return '/category/' + p.slice(4);
@@ -16888,23 +16879,52 @@ function AppInner() {
   // `page` is derived from the URL; `setPage(x)` navigates (keeps all existing setPage callers working).
   const location = useLocation();
   const navigate = useNavigate();
-  const page = pathToPage(location.pathname);
+  // [SEO] Language lives in the URL (/ar/...) when ENABLE_AR_URLS; the rest of the path is language-neutral.
+  const urlInfo = splitLangPath(location.pathname);
+  const barePath = urlInfo.path;
+  const page = pathToPage(barePath);
+  const notFound = !isKnownPage(page);
   useEffect(() => { if (/^\/(studio|visualizer)(\/|$)/i.test(location.pathname)) window.location.reload(); }, [location.pathname]); // [WEB-STUDIO] the studio is its own app shell (src/index.js)
+  const [legacyLang, setLegacyLang] = useState(() => { try { return localStorage.getItem('closets_lang') || 'en'; } catch { return 'en'; } });
+  const lang = ENABLE_AR_URLS ? urlInfo.lang : legacyLang;
+  // Navigate to a path in the CURRENT language (setPage / cart / redirects).
+  const goPath = useCallback((path, opts) => navigate(withLang(path, lang), opts), [navigate, lang]);
   const setPage = useCallback((p) => {
     if (typeof p === 'string' && p.startsWith('neo:')) { window.location.assign(neoStudioPath(p)); return; }   // [WEB-STUDIO] separate app shell
     if (typeof p === 'string' && p.startsWith('viz:')) { window.location.assign(vizPath(p)); return; }        // [ROOM-VIZ] separate app shell
-    if (p != null) navigate(pageToPath(p));
-  }, [navigate]);
+    if (p != null) goPath(pageToPath(p));
+  }, [goPath]);
+  // Language toggle: with /ar URLs it navigates to the sibling URL (and remembers the choice); otherwise legacy state.
+  const setLang = useCallback((l) => {
+    try { localStorage.setItem('closets_lang', l); } catch {}
+    if (ENABLE_AR_URLS) navigate({ pathname: withLang(barePath, l), search: location.search, hash: location.hash });
+    else setLegacyLang(l);
+  }, [navigate, barePath, location.search, location.hash]);
+  // Returning Arabic visitors (localStorage) who land on an English URL are sent once to the matching /ar URL.
+  // Crawlers have no localStorage, so they always get the URL they asked for. (Runs AFTER hydration so markup matches.)
+  const langRedirected = useRef(false);
+  useEffect(() => {
+    if (langRedirected.current) return; langRedirected.current = true;
+    if (!ENABLE_AR_URLS || urlInfo.lang === 'ar') return;
+    let stored = null; try { stored = localStorage.getItem('closets_lang'); } catch {}
+    if (stored === 'ar' && !/^\/(studio|visualizer|campaign|ikhtarha)(\/|$)/i.test(barePath)) navigate({ pathname: withLang(barePath, 'ar'), search: location.search, hash: location.hash }, { replace: true });
+    // eslint-disable-next-line
+  }, []);
+  // Legacy / duplicate paths (/kitchens, /wardrobe, /ai, ...) are 301'd by vercel.json; do the same client-side.
+  useEffect(() => {
+    const target = LEGACY_REDIRECTS[barePath.replace(/\/+$/, '').toLowerCase() || '/'];
+    if (target) navigate({ pathname: withLang(target, lang), search: location.search, hash: location.hash }, { replace: true });
+    // eslint-disable-next-line
+  }, [barePath]);
   // Scroll to top on route change
   useEffect(() => {
     try { const el = (typeof document !== 'undefined') && (document.scrollingElement || document.documentElement); if (el) el.scrollTop = 0; }
     catch (e) { /* unsupported env — ignore */ }
   }, [location.pathname]);
-  const [lang, setLang] = useState(() => { try { return localStorage.getItem('closets_lang') || 'en'; } catch { return 'en'; } });
   setCmsLang(lang);   // sync DURING render (before children render) so cms() resolves the current language without lagging a toggle
   useEffect(() => {
     setCmsLang(lang);   // keep module-global CMS language in sync so cms() resolves Arabic on re-render
-    try { localStorage.setItem('closets_lang', lang); } catch {}
+    if (!ENABLE_AR_URLS) { try { localStorage.setItem('closets_lang', lang); } catch {} }
     const dir = lang === 'ar' ? 'rtl' : 'ltr';
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('dir', dir);
@@ -16912,32 +16932,9 @@ function AppInner() {
       document.body.style.fontFamily = lang === 'ar' ? 'var(--font-ar)' : '';
     }
   }, [lang]);
-  // Per-route <title> + meta description, bilingual. Keeps deep links / prerender / share previews correct.
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    const brand = lang === 'ar' ? 'ذا كلوزتس' : 'The Closets Co.';
-    const entry = ROUTE_META[page];
-    let title, desc;
-    if (entry) { [title, desc] = entry[lang] || entry.en; }
-    else {
-      const name = String(page || 'home').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-      title = page === 'home' ? brand : `${name} — ${brand}`;
-      desc = lang === 'ar'
-        ? 'مطابخ وخزائن وحلول تخزين فاخرة مصمّمة خصيصاً في مملكة البحرين.'
-        : 'Premium bespoke kitchens, wardrobes and storage, handcrafted in the Kingdom of Bahrain.';
-    }
-    try {
-      document.title = title;
-      const set = (sel, attr, val, create) => {
-        let m = document.head.querySelector(sel);
-        if (!m && create) { m = document.createElement('meta'); create(m); document.head.appendChild(m); }
-        if (m) m.setAttribute(attr, val);
-      };
-      set('meta[name="description"]', 'content', desc, (m) => m.setAttribute('name', 'description'));
-      set('meta[property="og:title"]', 'content', title, (m) => m.setAttribute('property', 'og:title'));
-      set('meta[property="og:description"]', 'content', desc, (m) => m.setAttribute('property', 'og:description'));
-    } catch (e) { /* non-DOM env — ignore */ }
-  }, [page, lang]);
+  // [SEO] Per-route head (title, description, canonical, hreflang, og:*, twitter:*, robots, JSON-LD) — src/seo/head.js.
+  // The prerender snapshots exactly what this writes. Unknown URLs get the noindex NotFound head.
+  useRouteHead(notFound ? null : (barePath === '/cart' ? 'cart' : page), lang);
   // ── Global scroll-reveal observer (premium motion layer). Re-scans on route change.
   // Adds `.in` to `.reveal` elements as they enter the viewport; marks already-visible
   // ones immediately so above-the-fold content is never left hidden. Honours reduced-motion.
@@ -16967,17 +16964,17 @@ function AppInner() {
   const [testimonials, setTestimonials] = useState([]);
   const [cart, setCart] = useState([]);
   // Cart is a drawer backed by history (?cart=1) so refresh/back/deep-link work and Back closes it (never exits the site).
-  const cartOpen = new URLSearchParams(location.search).get('cart') === '1' || location.pathname === '/cart';
+  const cartOpen = new URLSearchParams(location.search).get('cart') === '1' || barePath === '/cart';
   const setCartOpen = useCallback((open) => {
     if (open) {
       if (new URLSearchParams(location.search).get('cart') === '1') return;
-      navigate({ pathname: location.pathname === '/cart' ? '/' : location.pathname, search: '?cart=1' });
+      navigate({ pathname: barePath === '/cart' ? withLang('/', lang) : location.pathname, search: '?cart=1' });
     } else if (typeof window !== 'undefined' && window.history.length > 1) {
       navigate(-1);   // pop the ?cart=1 entry — same as pressing Back
     } else {
-      navigate({ pathname: location.pathname === '/cart' ? '/' : location.pathname, search: '' }, { replace: true });
+      navigate({ pathname: barePath === '/cart' ? withLang('/', lang) : location.pathname, search: '' }, { replace: true });
     }
-  }, [navigate, location.pathname, location.search]);
+  }, [navigate, location.pathname, location.search, barePath, lang]);
   const [configProduct, setConfigProduct] = useState(null);
   const [user, setUser] = useState(() => { try { const u = localStorage.getItem('closets_user'); return u ? JSON.parse(u) : null; } catch { return null; } });
   const [authOpen, setAuthOpen] = useState(false);
@@ -17010,9 +17007,11 @@ function AppInner() {
   }, [plannerLocked]);
 
   return (
+    <LangContext.Provider value={lang}>
     <AppCtx.Provider value={{ user, setUser, cart, setCart, addToCart, setPage, lang, setLang }}>
       <style>{CSS}</style>
       {page!=='portal' && <Nav page={page} setPage={setPage} cart={cart} setCartOpen={setCartOpen} user={user} openAuth={openAuth} siteLogo={siteLogo} lang={lang} setLang={setLang} />}
+      {notFound && <NotFound lang={lang} />}
       {page==='home' && <HomePage user={user} banners={banners} siteLogo={siteLogo} products={products} testimonials={testimonials} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
       {page==='products' && <ProductsPage products={products} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
       {productId && <ProductDetailPage productId={productId} products={products} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
@@ -17060,5 +17059,6 @@ function AppInner() {
       <CookieConsent />
       <Toasts />
     </AppCtx.Provider>
+    </LangContext.Provider>
   );
 }

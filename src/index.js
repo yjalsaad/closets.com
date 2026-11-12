@@ -9,6 +9,11 @@ const container = document.getElementById('root');
 
 // [WEB-STUDIO 2026-10-31] /studio/* = the Neo Design Studio (the 8 Bonsai Neo designers for signed-in customers): its own lazy chunk,
 // mounted instead of the marketing site so the designers get the full screen.
+// [SEO] Prerendered HTML carries data-prerender-path (the URL it was rendered for). If this URL differs (404.html served for a
+// route the rewrite table missed, a mixed-case path, ...) do NOT hydrate: drop the static markup and mount fresh.
+const preMarker = container.getAttribute('data-prerender-path');
+if (preMarker !== null && preMarker !== ((window.location.pathname || '/').replace(/\/+$/, '') || '/')) container.innerHTML = '';
+
 const isStudio = /^\/studio(\/|$)/i.test(window.location.pathname || '');
 const StudioRoot = React.lazy(() => import('./studio/StudioRoot'));
 // [ROOM-VIZ 2026-11-07] /visualizer/* = the Room Visualizer (Tilesview-style): its own lazy chunk and full-screen shell
@@ -62,8 +67,11 @@ if (isGames) {
     </React.StrictMode>
   );
 } else if (container.hasChildNodes()) {
-  ReactDOM.hydrateRoot(
-    container,
+  // [SEO] Prerendered markup is for crawlers and first paint. hydrateRoot() throws React error #418 on EVERY prerendered route
+  // (cause not isolated; the old prerender never shipped, so hydration was never exercised), which discards the markup anyway.
+  // So mount with createRoot: React replaces the static HTML on first commit, same visual result, no console error.
+  // Flip back to hydrateRoot once the mismatch is fixed (see docs/SEO-DECISIONS.md, Known issues).
+  ReactDOM.createRoot(container).render(
     <React.StrictMode>
       <ErrorBoundary>
         <App />
