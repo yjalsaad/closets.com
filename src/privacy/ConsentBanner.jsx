@@ -3,9 +3,12 @@
 import { useEffect, useState } from 'react';
 import { getConsent, setConsent, onOpenConsentSettings } from './consent';
 import { tr, curLang } from './strings';
+import { hydration } from '../hydration';
 
 export default function ConsentBanner({ lang: langProp, linkAs: LinkAs }) {
-  const [show, setShow] = useState(() => !getConsent().decided);
+  // While hydrating prerendered HTML the banner is client-only (not in the snapshot): start hidden, show it right after mount.
+  const [show, setShow] = useState(() => (hydration.active ? false : !getConsent().decided));
+  useEffect(() => { if (hydration.active && !getConsent().decided) setShow(true); }, []);
   const [, force] = useState(0);
   useEffect(() => onOpenConsentSettings(() => setShow(true)), []);
   useEffect(() => { if (!langProp) { const h = () => force((n) => n + 1); window.addEventListener('storage', h); return () => window.removeEventListener('storage', h); } return undefined; }, [langProp]);
@@ -15,7 +18,7 @@ export default function ConsentBanner({ lang: langProp, linkAs: LinkAs }) {
   const decide = (analytics) => { setConsent({ analytics }); setShow(false); };
   const A = ({ to, children }) => (LinkAs ? <LinkAs to={to}>{children}</LinkAs> : <a href={to}>{children}</a>);
   return (
-    <section role="region" aria-label={tr('bannerTitle', lang)} dir={rtl ? 'rtl' : 'ltr'} data-testid="consent-banner"
+    <section role="region" aria-label={tr('bannerTitle', lang)} dir={rtl ? 'rtl' : 'ltr'} data-testid="consent-banner" data-noprerender="1"
       style={{ position: 'fixed', left: 16, right: 16, bottom: 16, zIndex: 9999, maxWidth: 560, margin: '0 auto', background: '#fff', color: '#1d1d1f',
         border: '1px solid rgba(0,0,0,.14)', borderRadius: 16, boxShadow: '0 12px 40px rgba(0,0,0,.18)', padding: '18px 20px', textAlign: rtl ? 'right' : 'left' }}>
       <h2 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 6px' }}>{tr('bannerTitle', lang)}</h2>

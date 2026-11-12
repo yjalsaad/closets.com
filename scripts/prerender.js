@@ -130,7 +130,16 @@ async function renderJob(browser, base, job) {
       if (['fetch', 'xhr'].includes(req.resourceType())) {
         return req.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: '[]' });
       }
+      // Third-party images: answer with a 1x1 GIF instead of aborting. An aborted <img> fires onError, <Photo> then swaps it for a
+      // fallback <div>, and that markup would not match the client's first render (hydration mismatch, React #418).
+      if (req.resourceType() === 'image') {
+        return req.respond({ status: 200, contentType: 'image/gif', headers: { 'access-control-allow-origin': '*' }, body: Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64') });
+      }
       return req.abort();
+    });
+    const chunkScripts = new Set();   // route chunks fetched while rendering -> <link rel=preload>, so they load in parallel with main.js
+    page.on('request', (req) => {
+      try { const u = new URL(req.url()); if (u.origin === local && req.resourceType() === 'script' && /^\/static\/js\/(?!main\.)/.test(u.pathname)) chunkScripts.add(u.pathname); } catch (e) { /* ignore */ }
     });
     await page.goto(base + job.url, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForFunction(() => { const r = document.getElementById('root'); return r && r.querySelector('h1'); }, { timeout: 30000 });
@@ -138,12 +147,16 @@ async function renderJob(browser, base, job) {
     // React hydration needs "<!-- -->" between ADJACENT text nodes (what ReactDOMServer emits); a browser serialisation merges them
     // into one text node and hydrateRoot then fails with error #418 and throws the markup away. Re-insert the separators.
     await page.evaluate(() => {
+      // Client-only / post-effect nodes must not be in the snapshot: the cookie banner and hero slides 2-4 (data-noprerender: not part of the
+      // first client render), the brand-font <link> and 3rd-party loaders injected by effects.
+      document.querySelectorAll('[data-noprerender], #brand-fonts, #model-viewer-script, #three-cdn').forEach((n) => n.remove());
       const w = document.createTreeWalker(document.getElementById('root'), NodeFilter.SHOW_TEXT); const list = [];
       while (w.nextNode()) list.push(w.currentNode);
       list.forEach((n) => { if (n.nextSibling && n.nextSibling.nodeType === 3) n.parentNode.insertBefore(document.createComment(' '), n.nextSibling); });
     });
     let html = await page.content();
     html = '<!DOCTYPE html>' + html.replace(/^<!DOCTYPE html>/i, '');
+    if (chunkScripts.size) html = html.replace('</head>', Array.from(chunkScripts).sort().map((u) => '<link rel="preload" as="script" href="' + u + '">').join('') + '</head>');
     html = html.replace('<div id="root">', '<div id="root" data-prerender-path="' + job.marker + '" data-prerender-lang="' + job.lang + '">');
     return html;
   } finally { await page.close().catch(() => {}); }

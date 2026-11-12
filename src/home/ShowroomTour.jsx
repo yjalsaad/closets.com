@@ -82,7 +82,7 @@ export default function ShowroomTour({ lang = 'en', img = {}, fallback = {}, set
           return (
             <div key={r.k} className={'st-room' + (i === cur ? ' is-cur' : '')} style={style} aria-hidden={i !== cur}>
               <div className="st-cam" style={{ transform: `scale(${scale.toFixed(4)})`, filter: blur > 0.2 ? `blur(${blur.toFixed(1)}px)` : 'none' }}>
-                <img src={r.src} alt="" draggable="false" onError={(e) => { const fb = fallback[r.k === 'doors' ? 'door' : r.k]; if (fb && e.currentTarget.src !== fb) e.currentTarget.src = fb; }} />
+                <img src={r.src} alt="" draggable="false" loading="lazy" decoding="async" onError={(e) => { const fb = fallback[r.k === 'doors' ? 'door' : r.k]; if (fb && e.currentTarget.src !== fb) e.currentTarget.src = fb; }} />
               </div>
               <div className="st-shade" />
               {r.doors === 'wood' && !rm && (() => {
