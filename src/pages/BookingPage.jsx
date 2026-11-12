@@ -10,6 +10,7 @@ import { api, cms, toast, trMap, useI18n } from '../App';
 import { PageWrap } from './shared_DirectoryPage_ShowroomsPage_plus10';
 import { Icon } from '../design/Icon';
 import { FACTS } from '../content/facts';
+import { parseBookingPrefill } from '../showroom3d/products/quote';
 
 // Booking form display maps. Keys map the saved/posted English value → an I18N key
 // for the DISPLAYED text only. The posted value (APPT_KINDS / APPT_SLOTS / interest)
@@ -39,7 +40,8 @@ const APPT_SLOTS = ['Morning (9–12)','Afternoon (12–4)','Evening (4–7)'];
 
 function BookingPage({ setPage }) {
   const { t, lang } = useI18n();
-  const [f,setF]=useState({ type:'Design Consultation', name:'', phone:'', email:'', date:'', slot:APPT_SLOTS[0], address:'', interest:'Kitchen', notes:'' });
+  // [SHOWROOM-3D] /booking?interest=Kitchen&notes=... (built by the virtual showroom's "Request a quotation") only PRE-FILLS the form; the visitor reviews and submits it
+  const [f,setF]=useState(() => { let pre = { interest:null, notes:null }; try { pre = parseBookingPrefill(window.location.search); } catch (e) {} return { type:'Design Consultation', name:'', phone:'', email:'', date:'', slot:APPT_SLOTS[0], address:'', interest:pre.interest || 'Kitchen', notes:pre.notes || '' }; });
   const [sent,setSent]=useState(false);
   const [errs,setErrs]=useState({}); const [formErr,setFormErr]=useState(''); const [hp,setHp]=useState('');
   const sub = useSubmit(); const busy = sub.busy;

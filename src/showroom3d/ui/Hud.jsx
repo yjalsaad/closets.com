@@ -3,9 +3,10 @@ import { t } from '../strings';
 import { DEPARTMENTS } from '../scenes/main-hall/departments';
 import LogoImg from './LogoImg';
 import TouchControls from './TouchControls';
+import { IK, ikt } from '../products/campaignCopy';
 
 const dept = (id) => DEPARTMENTS.find((d) => d.id === id);
-const dname = (id, lang) => { const d = dept(id); return d ? (lang === 'ar' ? d.ar : d.en) : ''; };
+const dname = (id, lang) => { if (id === 'ikhtarha') return ikt(IK.name, lang); const d = dept(id); return d ? (lang === 'ar' ? d.ar : d.en) : ''; };
 
 /** Exploration HUD: top bar (logo, Departments, Menu), fading guidance, the interaction prompt / stub toast, and the touch controls. */
 export default function Hud({ lang, tier, touch, st, explorerRef, homeHref, onDepts, onMenu, onInteract, coach }) {
@@ -30,7 +31,7 @@ export default function Hud({ lang, tier, touch, st, explorerRef, homeHref, onDe
 
   return (
     <div className="sr-hud" data-testid="sr-hud">
-      {touch && <TouchControls lang={lang} explorerRef={explorerRef} onInteract={onInteract} />}
+      {touch && !st.focus && <TouchControls lang={lang} explorerRef={explorerRef} onInteract={onInteract} />}
       <header className="sr-hud-top">
         <div className="sr-hud-brand">
           <a className="sr-pill sr-pill-logo" href={homeHref} aria-label={t('exit', lang)}><LogoImg alt="" width="77" height="44" /></a>
@@ -43,10 +44,10 @@ export default function Hud({ lang, tier, touch, st, explorerRef, homeHref, onDe
       </header>
       <footer className="sr-hud-bottom">
         <div className="sr-live" role="status" aria-live="polite">
-          {zoneName && !toast && <p className="sr-prompt" data-testid="sr-prompt"><b>{zoneName}</b><span>{touch ? t('tapInteract', lang) : t('pressE', lang)}</span></p>}
+          {zoneName && !toast && !st.focus && <p className="sr-prompt" data-testid="sr-prompt"><b>{zoneName}</b><span>{touch ? t('tapInteract', lang) : t('pressE', lang)}</span></p>}
           {toast && <p className="sr-toast" data-testid="sr-toast" key={toast.n}>{toastText}</p>}
         </div>
-        <p className={'sr-hint' + (fade || coach ? ' is-faded' : '')} data-testid="sr-hint">{t(hint, lang)}</p>
+        {!st.focus && <p className={'sr-hint' + (fade || coach ? ' is-faded' : '')} data-testid="sr-hint">{t(hint, lang)}</p>}
         {st.lockFailed && !fade && <p className="sr-hint-note">{t('dragLookNote', lang)}</p>}
         {!touch && <span className="sr-quality">{t('qualityLabel', lang)}: {t('quality' + tier.charAt(0).toUpperCase() + tier.slice(1), lang)}</span>}
       </footer>

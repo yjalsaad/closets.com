@@ -12,13 +12,15 @@ import { buildExterior } from '../scenes/exterior';
 import { buildEntrance } from '../scenes/entrance';
 import { buildHallShell } from '../scenes/main-hall/hall';
 import { buildBays } from '../scenes/main-hall/bays';
+import { layoutBays } from '../scenes/main-hall/departments';
+import { buildProducts } from '../scenes/products';
 import { ensureFonts } from '../scenes/main-hall/signs';
 
 const nextFrame = () => new Promise((r) => { let done = false; const f = () => { if (!done) { done = true; r(); } }; requestAnimationFrame(f); setTimeout(f, 40); });
 
 export class ShowroomEngine {
-  constructor(canvas, { tier = 'high', lang = 'en', progress, adaptive = true, aa = null } = {}) {
-    this.aaOverride = aa;
+  constructor(canvas, { tier = 'high', lang = 'en', progress, adaptive = true, aa = null, bloom = true } = {}) {
+    this.aaOverride = aa; this.noBloom = !bloom;
     this.canvas = canvas; this.tierId = tier; this.tier = TIERS[tier] || TIERS.low; this.lang = lang; this.progress = progress; this.adaptive = adaptive;
     this.scale = 1; this.frames = 0; this.fpsAcc = 0; this.fpsT = 0; this.fps = 0; this.running = false; this.disposed = false;
     this.state = { doorOpen: 0, led: 0.55 }; this.pointLights = []; this.glowMats = []; this.onFrame = null; this.stats = { gpu: '' };
@@ -31,6 +33,7 @@ export class ShowroomEngine {
     const renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: this.aaOverride == null ? tier.antialias : this.aaOverride, powerPreference: 'high-performance', alpha: false, stencil: false });
     this.renderer = renderer;
     try { const gl = renderer.getContext(); const e = gl.getExtension('WEBGL_debug_renderer_info'); this.stats.gpu = e ? String(gl.getParameter(e.UNMASKED_RENDERER_WEBGL)) : ''; this.stats.software = isSoftwareRenderer(this.stats.gpu); } catch (e) { /* ignore */ }
+    renderer.info.autoReset = false;      // draw calls / triangles are summed over every pass (scene + bloom) and reset once per frame
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.9;
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = tier.id === 'low' ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
@@ -63,7 +66,11 @@ export class ShowroomEngine {
     await nextFrame(); this.exterior = buildExterior(ctx); this.scene.add(this.exterior.group); this.report('exterior', 0.6);
     this.entrance = buildEntrance(ctx); this.scene.add(this.entrance.group); this.report('exterior', 1);
     await nextFrame(); this.hall = buildHallShell(ctx); this.scene.add(this.hall.group); this.report('hall', 0.6);
-    this.bays = buildBays(ctx); this.scene.add(this.bays.group); this.report('hall', 1);
+    this.report('hall', 1); await nextFrame();
+    // Phase 4: furnished departments (kitchens, wardrobes, doors) + the Ikhtarha stage; they build their own materials from the generated interior environment
+    this.products = buildProducts({ renderer, hallM: M, tier, lang: this.lang, bays: layoutBays(), reduced: !!this.reduced });
+    this.scene.add(this.products.group); this.products.lights.forEach((l) => this.scene.add(l)); this.report('products', 0.6);
+    this.bays = buildBays({ ...ctx, products: this.products }); this.scene.add(this.bays.group); this.report('products', 1);
     this.glowMats = [...this.hall.glows]; this.glowBase = this.glowMats.map((m) => m.opacity);
     this.setupLights();
     this.applyState(this.state);
@@ -73,6 +80,10 @@ export class ShowroomEngine {
     this.report('compile', 0.2);
     try { if (renderer.compileAsync) await renderer.compileAsync(this.scene, this.camera); else renderer.compile(this.scene, this.camera); } catch (e) { /* ignore: first render compiles */ }
     this.report('compile', 1);
+    // restrained bloom on the high tier only (lazy chunk); anything that goes wrong keeps the plain renderer
+    if (tier.id === 'high' && !this.noBloom) {
+      try { const { createBloom } = await import('./post'); this.post = await createBloom(renderer, this.scene, this.camera, { width: this.width, height: this.height, pixelRatio: effectivePixelRatio(this.tierId, window.devicePixelRatio, this.scale) }); } catch (e) { this.post = null; }
+    }
     this.renderOnce(); this.report('firstFrame', 1);
   }
 
@@ -104,6 +115,7 @@ export class ShowroomEngine {
     if (this.M) { this.M.led.color.copy(this.baseLed.warm).multiplyScalar(k); this.M.ledCool.color.copy(this.baseLed.cool).multiplyScalar(0.4 + 0.6 * k); }
     this.glowMats.forEach((m, i) => { m.opacity = this.glowBase[i] * k; });
     this.pointLights.forEach((l) => { l.intensity = l.userData.base * k; });
+    if (this.products) this.products.setLevel(k);
     if (this.hemi) this.hemi.intensity = 0.42 + 0.2 * k;
   }
 
@@ -120,7 +132,14 @@ export class ShowroomEngine {
     if (Math.abs(c.fov - f) > 1e-3) { c.fov = f; c.updateProjectionMatrix(); }
   }
 
-  setLanguage(lang) { this.lang = lang; if (this.bays) this.bays.relabel(lang); }
+  /** shift the rendered view by (x, y) pixels inside the canvas (used while a product panel covers part of the screen, so the product stays centred in what is left) */
+  setViewShift(x = 0, y = 0) {
+    const c = this.camera, w = this.width || 1, h = this.height || 1, key = x + ',' + y + ',' + w + ',' + h;
+    if (this._shiftKey === key) return; this._shiftKey = key;
+    if (!x && !y) { if (c.view && c.view.enabled) { c.clearViewOffset(); } return; }
+    c.setViewOffset(w, h, x, y, w, h);
+  }
+  setLanguage(lang) { this.lang = lang; if (this.bays) this.bays.relabel(lang); if (this.products) this.products.setLanguage(lang); }
 
   setSize(w, h) {
     this.width = Math.max(2, w); this.height = Math.max(2, h);
@@ -133,9 +152,10 @@ export class ShowroomEngine {
     const dpr = typeof window !== 'undefined' ? window.devicePixelRatio : 1;
     this.renderer.setPixelRatio(effectivePixelRatio(this.tierId, dpr, this.scale));
     this.renderer.setSize(this.width, this.height, false);
+    if (this.post) this.post.setSize(this.width, this.height, effectivePixelRatio(this.tierId, dpr, this.scale));
   }
 
-  renderOnce() { this.renderer.render(this.scene, this.camera); }
+  renderOnce() { this.renderer.info.reset(); if (this.post) this.post.render(); else this.renderer.render(this.scene, this.camera); }
 
   start() {
     if (this.running) return; this.running = true; let last = performance.now();
@@ -143,7 +163,9 @@ export class ShowroomEngine {
       if (!this.running) return; this.raf = requestAnimationFrame(loop);
       const dt = Math.min(0.1, (now - last) / 1000); last = now;
       if (this.onFrame) this.onFrame(dt, now);
-      this.renderer.render(this.scene, this.camera);
+      if (this.products) this.products.update(dt, this.camera);
+      this.renderer.info.reset();
+      if (this.post) this.post.render(); else this.renderer.render(this.scene, this.camera);
       this.measure(dt);
     };
     this.raf = requestAnimationFrame(loop);
@@ -166,6 +188,8 @@ export class ShowroomEngine {
   dispose() {
     this.disposed = true; this.stop();
     if (this.scene) disposeTree(this.scene);
+    if (this.post) { try { this.post.dispose(); } catch (e) { /* ignore */ } }
+    if (this.products) this.products.dispose();
     if (this.envMap) this.envMap.dispose();
     if (this.glowTex) this.glowTex.dispose();
     if (this.renderer) { this.renderer.dispose(); try { this.renderer.forceContextLoss(); } catch (e) { /* ignore */ } }

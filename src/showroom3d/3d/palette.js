@@ -42,6 +42,21 @@ export const PALETTE = {
   skyHorizon: 0xf5d8b0,
   sun: 0xffe2b0,
   fog: 0xe6d3b8,
+  // Phase 4: product finishes (sample configuration swatches, all procedural) + props + campaign
+  oakLight: 0xb89868, oakPale: 0xd2bb94, walnutDeep: 0x4a3426, smokedOak: 0x6e5440,
+  lacquerSage: 0x8f9a86, lacquerStone: 0xa7a199, lacquerIvory: 0xe9e3d6, lacquerCharcoal: 0x34332f, lacquerClay: 0xb08a72,
+  marbleWhite: 0xe8e4dc, marbleVeinGrey: 0x8d8a86, marbleVeinGold: 0xb89b63, marbleDark: 0x2c2a29, marbleDarkVein: 0xb9b2a6, marbleSand: 0xd7c6a8,
+  brassBrushed: 0xb8935a, bronzeDark: 0x3a2f27, steel: 0xa8aaab, glassSmoke: 0x2b2622,
+  hobGlass: 0x0d0d0e, interiorWarm: 0xefe3d0, interiorShade: 0x9c8b78,
+  fabricLinen: 0xd9cfbe, fabricSage: 0x7f8c76, fabricClay: 0x9a6a55, fabricNavy: 0x2e3a4d, fabricCream: 0xece4d4, fabricCharcoal: 0x3a3a3a, fabricBlush: 0xc9a79c,
+  ceramicWhite: 0xf1ede6, ceramicSand: 0xcbbba3, ceramicTerra: 0xb26a48, ceramicDark: 0x3b3430, bookA: 0x6b3a2e, bookB: 0x2f4a47, bookC: 0xd2c3a6, bookD: 0x4b4f6b, rugSand: 0xd6c7ac, rugBorder: 0x8c7658, potTerra: 0xb5805a, leafDeep: 0x3f5a2c,
+  fruitLemon: 0xd9c34c, fruitApple: 0x7d9a3a, fruitOrange: 0xd9822b, steelPot: 0xb8babb, woodSpoon: 0xb98d5c, brassLamp: 0xc9a25b, shadeLinen: 0xefe3cc,
+  artA: 0x8a5a44, artB: 0xd8c3a0, artC: 0x2f4a47, artD: 0xe9e2d6, artE: 0xb9873c,
+  ceilingLight: 0xf2ebdf, wallGreige: 0x6f685e,
+  focusRing: 0xffb067, hoverRing: 0xfff0d6,
+  // Ikhtarha campaign brand: mirrored from src/campaign/IkhtarhaRoot.jsx BRAND (primary / accent / sand / taupe / charcoal). The campaign
+  // page can override these per campaign from the Hub; the showroom mirrors the shipped defaults and does not read the live config.
+  ikPurple: 0x4a2c82, ikPurpleDeep: 0x3a1f6b, ikTeal: 0x23807c, ikTealBright: 0x40b5ad, ikMint: 0x9fddd8, ikWhite: 0xffffff,
   // overlay
   veil: 0xf6efe4,
   // material tints
@@ -57,7 +72,8 @@ export function cssVars() {
   return {
     '--sr-orange': hex(P.brandOrange), '--sr-grey': hex(P.brandGrey), '--sr-paper': hex(P.logoPaper), '--sr-brown': hex(P.brandBrown), '--sr-sand': hex(P.sand), '--sr-taupe': hex(P.taupe),
     '--sr-charcoal': hex(P.charcoal), '--sr-ink': hex(P.ink), '--sr-burgundy': hex(P.burgundy), '--sr-veil': hex(P.veil),
-    '--sr-brass': hex(P.brass),
+    '--sr-brass': hex(P.brass), '--sr-focus': hex(P.focusRing), '--sr-ik-purple': hex(P.ikPurple), '--sr-ik-teal': hex(P.ikTeal), '--sr-ik-mint': hex(P.ikMint),
+    '--sr-panel': rgba(P.ink, 0.82), '--sr-line': rgba(P.sand, 0.14),
     '--sr-glass': rgba(P.ink, 0.62), '--sr-glass-line': rgba(P.sand, 0.22), '--sr-scrim': rgba(P.ink, 0.55),
     '--sr-on-dark': hex(P.sand), '--sr-on-dark-2': hex(P.taupe),
   };

@@ -3,15 +3,18 @@
 import { HALL, BAY } from '../../3d/dimensions';
 
 export const DEPARTMENTS = [
-  { id: 'kitchens',  side: 'left',  en: 'Kitchens',            ar: 'المطابخ' },
-  { id: 'wardrobes', side: 'left',  en: 'Wardrobes',           ar: 'خزائن الملابس' },
+  { id: 'kitchens',  side: 'left',  en: 'Kitchens',            ar: 'المطابخ', product: 'kitchen' },
+  { id: 'wardrobes', side: 'left',  en: 'Wardrobes',           ar: 'خزائن الملابس', product: 'wardrobe' },
   { id: 'walkin',    side: 'left',  en: 'Walk-in Closets',     ar: 'غرف الملابس' },
   { id: 'bedroom',   side: 'left',  en: 'Bedrooms',            ar: 'غرف النوم' },
-  { id: 'doors',     side: 'right', en: 'Doors',               ar: 'الأبواب' },
+  { id: 'doors',     side: 'right', en: 'Doors',               ar: 'الأبواب', product: 'door' },
   { id: 'living',    side: 'right', en: 'Living',              ar: 'غرف المعيشة' },
   { id: 'studio',    side: 'right', en: 'Custom Studio',       ar: 'استوديو التصميم' },
   { id: 'lounge',    side: 'right', en: 'Consultation Lounge', ar: 'صالة الاستشارات' },
 ];
+
+/** departments furnished in Phase 4 (the other five stay empty and labelled 'to be furnished') */
+export const isFurnished = (d) => !!(d && d.product);
 
 /** world-space layout of every bay (centre x/z, size, which way the front faces) */
 export function layoutBays(departments = DEPARTMENTS) {

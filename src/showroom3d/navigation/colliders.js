@@ -11,6 +11,7 @@
  * circle on the far side of a wall. */
 import { HALL, SITE } from '../3d/dimensions';
 import { layoutBays } from '../scenes/main-hall/departments';
+import { productColliders } from './productColliders';
 
 export const PLAYER = { radius: 0.35, eye: HALL.eye };
 /** the sliding doors count as open (passable) once the leaves have cleared the opening */
@@ -55,6 +56,8 @@ export function buildColliders({ doorOpen = 1, oliveCount = 4 } = {}) {
     const s = b.side === 'left' ? -1 : 1, cx = s * W - s * 0.32;
     for (const dz of [-1, 1]) list.push(box('post-' + b.id + (dz < 0 ? '-a' : '-b'), cx - 0.17, cx + 0.17, b.z + dz * (b.width / 2 - 0.15) - 0.15, b.z + dz * (b.width / 2 - 0.15) + 0.15));
   }
+  // ---- Phase 4: furnished bays (kitchen run + island, wardrobe, door wall + bench, plants) and the Ikhtarha stage ----
+  list.push(...productColliders());
   // ---- exterior: building footprint is already solid; forecourt perimeter = hedge rows + kerbs + an end stop on the path ----
   const fx = WALK_RECTS.forecourt, px = WALK_RECTS.path;
   list.push(box('site-left', fx.minX - FAR, fx.minX, 0.35, fx.maxZ + 4));

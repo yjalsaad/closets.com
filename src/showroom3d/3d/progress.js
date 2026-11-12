@@ -3,11 +3,12 @@
 export const LOAD_STAGES = {
   logo: 4,
   fonts: 4,
-  textures: 28,
-  exterior: 16,
-  hall: 22,
-  environment: 10,
-  compile: 12,
+  textures: 22,
+  exterior: 14,
+  hall: 18,
+  environment: 8,
+  products: 12,
+  compile: 14,
   firstFrame: 4,
 };
 

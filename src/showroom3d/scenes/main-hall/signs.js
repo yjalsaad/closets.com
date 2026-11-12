@@ -12,7 +12,7 @@ export async function ensureFonts() {
     .map((f) => document.fonts.load(f, sample).catch(() => null)));
 }
 
-export function drawBaySign(canvas, { index, name, lang }) {
+export function drawBaySign(canvas, { index, name, lang, furnished = false }) {
   const w = canvas.width, h = canvas.height, g = canvas.getContext('2d'), ar = lang === 'ar';
   g.clearRect(0, 0, w, h);
   g.fillStyle = hex(PALETTE.charcoal); g.fillRect(0, 0, w, h);
@@ -25,21 +25,21 @@ export function drawBaySign(canvas, { index, name, lang }) {
   g.fillStyle = hex(PALETTE.sand);
   g.font = ar ? `600 84px "Noto Naskh Arabic", "IBM Plex Sans Arabic", serif` : `400 78px "Fraunces", Georgia, serif`;
   g.fillText(name, tx, h * 0.4, w - pad * 2 - 140);
-  // pending marker: this bay is an empty, to-be-furnished zone in this build
-  g.fillStyle = hex(PALETTE.brandOrange); g.beginPath(); g.arc(tx + dir * 9, h * 0.74, 9, 0, Math.PI * 2); g.fill();
+  // marker: orange = empty / to be furnished, brass = furnished with a sample configuration
+  g.fillStyle = hex(furnished ? PALETTE.brass : PALETTE.brandOrange); g.beginPath(); g.arc(tx + dir * 9, h * 0.74, 9, 0, Math.PI * 2); g.fill();
   g.fillStyle = rgba(PALETTE.sand, 0.78);
   g.font = ar ? `500 38px "IBM Plex Sans Arabic", sans-serif` : `500 34px "Inter", sans-serif`;
-  g.fillText(t('bayPending', lang), tx + dir * 34, h * 0.74);
+  g.fillText(t(furnished ? 'baySample' : 'bayPending', lang), tx + dir * 34, h * 0.74);
 }
 
 export function makeSignTexture(bay, lang) {
   const c = document.createElement('canvas'); c.width = 1024; c.height = 256;
-  drawBaySign(c, { index: bay.index, name: lang === 'ar' ? bay.ar : bay.en, lang });
+  drawBaySign(c, { index: bay.index, name: lang === 'ar' ? bay.ar : bay.en, lang, furnished: !!bay.product });
   const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
   return tex;
 }
 
 export function redrawSign(tex, bay, lang) {
-  drawBaySign(tex.image, { index: bay.index, name: lang === 'ar' ? bay.ar : bay.en, lang });
+  drawBaySign(tex.image, { index: bay.index, name: lang === 'ar' ? bay.ar : bay.en, lang, furnished: !!bay.product });
   tex.needsUpdate = true;
 }

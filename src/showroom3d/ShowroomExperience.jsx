@@ -13,6 +13,7 @@ import LoadingScreen from './ui/LoadingScreen';
 import IntroLayer from './ui/IntroLayer';
 import Hud from './ui/Hud';
 import { DeptMenu, PauseMenu, CoachMarks } from './ui/Menus';
+import { ProductPanel, CampaignPanel } from './ui/ProductPanel';
 import { withLang } from '../seo/routes';
 
 const COACH_KEY = 'closets_showroom_coach', BOB_KEY = 'closets_showroom_bob';
@@ -67,7 +68,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
     const sig = readSignals(); sig.softwareRenderer = isSoftwareRenderer(probeRenderer());
     const tier = pickTier(sig); setTierId(tier);
     const progress = createProgress(); const unsub = progress.subscribe((v) => setPct(v));
-    const engine = new ShowroomEngine(canvasRef.current, { tier, lang: langRef.current, progress, adaptive: !sig.override && !debug, aa: debug && q.get('aa') === '0' ? false : null });
+    const engine = new ShowroomEngine(canvasRef.current, { tier, lang: langRef.current, progress, adaptive: !sig.override && !debug, aa: debug && q.get('aa') === '0' ? false : null, bloom: !(debug && q.get('bloom') === '0') });
     const director = createDirector({
       onUpdate: (s) => {
         engine.setPose(s.cam.p, s.cam.l, s.cam.fov); engine.applyState({ doorOpen: s.doorOpen, led: s.led }); paintOverlay(s);
@@ -120,7 +121,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   useEffect(() => { api.current.phaseNow = phase; }, [phase]);
 
   // keep the explorer in sync with the UI
-  useEffect(() => { const x = explorerRef.current; if (x) { x.setReduced(reduced); x.setBob(bob && !reduced); } }, [reduced, bob]);
+  useEffect(() => { const x = explorerRef.current; if (x) { x.setReduced(reduced); x.setBob(bob && !reduced); } const e = api.current.engine; if (e && e.products) e.products.setReduced(reduced); }, [reduced, bob]);
   useEffect(() => { const x = explorerRef.current; if (x) x.setUiOpen(deptOpen || !!st.paused); }, [deptOpen, st.paused]);
   // the control scheme follows the last input device (touch overlay for fingers, keyboard + mouse otherwise)
   useEffect(() => {
@@ -146,11 +147,12 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   const home = withLang('/', lang);
 
   return (
-    <div className="sr-stage" ref={wrapRef} data-phase={phase} data-touch={touch ? "1" : "0"} data-loaded={loaded ? '1' : '0'}>
+    <div className="sr-stage" ref={wrapRef} data-phase={phase} data-touch={touch ? "1" : "0"} data-loaded={loaded ? '1' : '0'} data-focus={st.focus ? '1' : '0'}>
       <canvas ref={canvasRef} className="sr-canvas" tabIndex={-1} aria-label={t('pageTitle', lang)} role="img" />
       <IntroLayer ref={{ veil: veilRef, logo: logoRef, bars: barsRef }} lang={lang} caption={intro ? caption : null} onSkip={onSkip} active={intro} />
       {showHud && <Hud lang={lang} tier={tierId} touch={touch} st={st} explorerRef={explorerRef} homeHref={home} onDepts={() => setDeptOpen(true)} onMenu={() => explorerRef.current && explorerRef.current.pause()} onInteract={onInteract} coach={coach} />}
-      {showHud && coach && !st.paused && !deptOpen && <CoachMarks lang={lang} touch={touch} onDone={closeCoach} />}
+      {showHud && st.focus && (st.focusKind === 'stage' ? <CampaignPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} /> : <ProductPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} />)}
+      {showHud && coach && !st.paused && !deptOpen && !st.focus && <CoachMarks lang={lang} touch={touch} onDone={closeCoach} />}
       {showHud && deptOpen && <DeptMenu lang={lang} touch={touch} onPick={onPick} onClose={() => setDeptOpen(false)} fallbackFocus={canvasFocus} />}
       {showHud && st.paused && <PauseMenu lang={lang} touch={touch} reduced={reduced} bob={bob} homeHref={home} onResume={onResume} onDepts={() => { onResume(false); setDeptOpen(true); }} onReplay={onReplay} onLang={onLang} onBob={onBob} onTips={() => { onResume(false); setCoach(true); }} fallbackFocus={canvasFocus} />}
       {loaderOn ? <LoadingScreen pct={pct} lang={lang} leaving={leaving} /> : null}

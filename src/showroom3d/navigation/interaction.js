@@ -16,3 +16,8 @@ export function zoneAt(zones, x, z) {
   for (const q of zones) if (x >= q.minX && x <= q.maxX && z >= q.minZ && z <= q.maxZ) return q;
   return null;
 }
+
+/** the hall-wide Ikhtarha stage zone (centre of the nave) joins the bay zones for the explorer; the 8 bay zones above are unchanged */
+import { STAGE } from '../products/catalog';
+export const stageZone = () => ({ id: STAGE.id, en: 'Ikhtarha', ar: 'اختارها', index: 0, ...STAGE.zone, stage: true });
+export const allZones = (bays) => [...interactionZones(bays), stageZone()];

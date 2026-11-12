@@ -72,8 +72,8 @@ describe('the showroom obstacle set', () => {
     expect(p[1]).toBeCloseTo(-14.25 + R, 3);
   });
   test('every wall of the hall stops the walker', () => {
-    expect(moveCircle([0, -9], 99, 0, R, open)[0]).toBeCloseTo(22 - R, 3);
-    expect(moveCircle([0, -9], -99, 0, R, open)[0]).toBeCloseTo(-22 + R, 3);
+    expect(moveCircle([0, -30.7], 99, 0, R, open)[0]).toBeCloseTo(22 - R, 3);          // z = -30.7: an EMPTY bay (the Phase 4 bays at z = -7.9 / -15.5 are now furnished and solid)
+    expect(moveCircle([0, -30.7], -99, 0, R, open)[0]).toBeCloseTo(-22 + R, 3);
     expect(moveCircle([10, -9], 0, -99, R, open)[1]).toBeCloseTo(-36 + R, 3);
     expect(moveCircle([10, -9], 0, 99, R, open)[1]).toBeCloseTo(-0.2 - R, 3);        // glass facade (not the door)
     expect(moveCircle([-18, -9], 0, 99, R, open)[1]).toBeCloseTo(-0.8 - R, 3);       // solid wing is thicker
@@ -86,7 +86,9 @@ describe('the showroom obstacle set', () => {
     const z = -7.9 - (6.8 / 2 - 0.15); const p = moveCircle([-15, z], -9, 0, R, open); expect(p[0]).toBeGreaterThan(-21.5 - R - 0.01);
   });
   test('the bay alcoves themselves are open floor: a visitor can stand in every bay centre', () => {
-    for (const x of [-20, 20]) for (const z of [-7.9, -15.5, -23.1, -30.7]) expect(isFree(x, z, R, open)).toBe(true);
+    for (const x of [-20, 20]) for (const z of [-23.1, -30.7]) expect(isFree(x, z, R, open)).toBe(true);                    // the five empty bays are open floor
+    expect([isFree(-20, -7.9, R, open), isFree(-21.6, -15.5, R, open), isFree(20, -7.9, R, open)]).toEqual([false, false, false]);   // kitchens, wardrobes, doors are furnished (solid at the wall, open in front)
+    for (const [x, z] of [[-16.5, -7.9], [-16.5, -15.5], [16.5, -7.9]]) expect(isFree(x, z, R, open)).toBe(true);
   });
   test('closed doors block both ways; open doors let you through and back', () => {
     expect(DOOR_OPEN_AT).toBeLessThan(1);

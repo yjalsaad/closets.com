@@ -1,4 +1,4 @@
-/* Eight EMPTY department bays: floor inlay, brass zone border, timber portal, back-lit alcove wall and a sign.
+/* Eight department bays (Phase 4: kitchens, wardrobes and doors are furnished by scenes/products; the other five stay EMPTY): floor inlay, brass zone border, timber portal, back-lit alcove wall and a sign.
  * Nothing is furnished here in Phase 1/2 and the sign says so ("To be furnished"). */
 import * as THREE from 'three';
 import { HALL, BAY } from '../../3d/dimensions';
@@ -7,11 +7,11 @@ import { box, mesh, worldUV } from '../../3d/geom';
 import { layoutBays } from './departments';
 import { makeSignTexture, redrawSign, SIGN_W, SIGN_H } from './signs';
 
-export function buildBays({ M, lang }) {
+export function buildBays({ M, lang, products = null }) {
   const g = new THREE.Group(); g.name = 'bays';
   const bays = layoutBays();
   const signs = [], glows = new Map();
-  const alcove = new THREE.MeshStandardMaterial({ color: PALETTE.plaster, roughness: 0.9, emissive: new THREE.Color(PALETTE.ledWarm), emissiveIntensity: 0.16 });
+  const alcove = new THREE.MeshStandardMaterial({ color: PALETTE.stoneMid, roughness: 0.9, emissive: new THREE.Color(PALETTE.ledWarm), emissiveIntensity: 0.07 });
   for (const b of bays) {
     const s = b.side === 'left' ? -1 : 1, wallX = s * HALL.halfWidth, inward = -s;   // inward: direction toward the nave
     const grp = new THREE.Group(); grp.position.set(b.x, 0, b.z); g.add(grp);
@@ -28,7 +28,8 @@ export function buildBays({ M, lang }) {
     glows.set(b.id, { mesh: hl, mat: hm, near: 0, nearGoal: 0, pulse: 0 });
     // alcove: lit back wall + timber portal on the side wall
     const lx = wallX - b.x + inward * 0.15;   // in front of the wall slats
-    grp.add(mesh(new THREE.PlaneGeometry(b.width - 0.5, 3.8), alcove, { x: lx, y: 2.5, z: 0, ry: inward * Math.PI / 2 }));
+    const furnished = !!(products && products.attach(b, grp));      // Phase 4: a furnished bay brings its own feature wall; the plain lit alcove plane is only for empty bays
+    if (!furnished) grp.add(mesh(new THREE.PlaneGeometry(b.width - 0.5, 3.8), alcove, { x: lx, y: 2.5, z: 0, ry: inward * Math.PI / 2 }));
     for (const dz of [-1, 1]) grp.add(mesh(box(0.34, 4.7, 0.3, 1.2), M.walnut, { x: lx + inward * 0.17, y: 2.35, z: dz * (b.width / 2 - 0.15), cast: true, receive: true }));
     grp.add(mesh(box(0.34, 0.32, b.width, 1.2), M.walnut, { x: lx + inward * 0.17, y: 4.56, z: 0, cast: true, receive: true }));
     // sign
