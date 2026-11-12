@@ -1,0 +1,32 @@
+/* Art library styles: classes used by Scenes.jsx / Swatches.jsx. Reads --art-* tokens only (defined per direction in src/design/directions.css). */
+.art { display: block; width: 100%; height: 100%; }
+.art .glow { fill: var(--art-glow); }
+.art .edge { stroke: var(--art-edge); stroke-opacity: .55; stroke-width: 1; }
+.art .shade { fill: var(--art-shade); }
+.art .hl { fill: var(--art-shine); opacity: .55; }
+.art .groove { fill: var(--art-shade); opacity: .55; }
+.art .hk { stroke: var(--art-m-3); stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.art .stem { stroke: var(--art-stem); stroke-width: 2.4; fill: none; stroke-linecap: round; }
+.art .inlay { stroke: url(#ag-m); stroke-width: 3; fill: none; }
+.art .floorline { stroke: var(--art-shade); stroke-opacity: .5; stroke-width: 1.5; fill: none; }
+.art .dim { display: none; stroke: var(--art-line); fill: none; stroke-width: 1; }
+
+/* architectural line-drawing mode */
+.art--line .room { fill: var(--art-paper); }
+.art--line .f { fill: none !important; stroke: var(--art-line); stroke-width: 1.1px; vector-effect: non-scaling-stroke; filter: none !important; }
+.art--line .fx { display: none; }
+.art--line .hk, .art--line .stem, .art--line .inlay { stroke: var(--art-line); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.art--line .floorline { stroke: var(--art-line); stroke-opacity: 1; stroke-width: 1.4px; vector-effect: non-scaling-stroke; }
+.art--line .dim { display: block; vector-effect: non-scaling-stroke; }
+.art--line .dim path { vector-effect: non-scaling-stroke; }
+.art--fill { position: absolute; inset: 0; }
+
+/* line mode keeps a pale wash of the real materials so it reads as a rendered drawing, not a wireframe */
+.art--line .f[fill="url(#ag-p)"] { fill: var(--art-p-2) !important; fill-opacity: .5; }
+.art--line .f[fill="url(#ag-s)"] { fill: var(--art-s-2) !important; fill-opacity: .9; }
+.art--line .f[fill="url(#ag-k)"] { fill: var(--art-k-1) !important; fill-opacity: .7; }
+.art--line .f[fill="url(#ag-m)"] { fill: var(--art-m-2) !important; fill-opacity: .85; }
+.art--line .f[fill="url(#ag-g)"] { fill: var(--art-g-1) !important; fill-opacity: .45; }
+.art--line .f[fill="url(#ag-st)"] { fill: var(--art-st-2) !important; fill-opacity: .55; }
+.art--line .f.hatch, .art--line .fx.hatch { display: block; }
+.art--dims .dim { display: block; stroke-opacity: .7; }

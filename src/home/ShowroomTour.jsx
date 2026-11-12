@@ -6,7 +6,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../design/Icon';
 
-export default function ShowroomTour({ lang = 'en', img = {}, fallback = {}, LinkC, pathOf, title, eyebrow, lede }) {
+export default function ShowroomTour({ lang = 'en', img = {}, fallback = {}, LinkC, pathOf, title, eyebrow, lede, art }) {
+  // art: optional (key) => node. When given (art-direction preview) the stage and inline media render that instead of photographs.
   const ar = lang === 'ar';
   const L = (en, a) => (ar ? a : en);
   const ROOMS = useMemo(() => [
@@ -15,7 +16,7 @@ export default function ShowroomTour({ lang = 'en', img = {}, fallback = {}, Lin
     { k: 'living', src: img.living, page: 'tv', no: L('Living & TV walls', 'الصالات وجدران التلفاز'), sub: L('Media walls and shelving made to the centimetre.', 'جدران تلفاز ورفوف مصنوعة بدقة السنتيمتر.'), tags: [L('Hidden cable channels', 'قنوات مخفية للأسلاك'), L('Floating shelves', 'رفوف معلّقة'), L('Fluted panels', 'ألواح مضلّعة')] },
     { k: 'wardrobe', src: img.wardrobe, page: 'wardrobes', no: L('Wardrobes', 'الخزائن'), sub: L('Open the doors — every hanger, drawer and shoe rack is planned.', 'افتح الأبواب — كل علاقة ودرج ورف أحذية مخطط له.'), tags: [L('Soft-close hinges', 'مفصلات هادئة الإغلاق'), L('Pull-out shoe racks', 'رفوف أحذية منزلقة'), L('Full-height mirrors', 'مرايا بطول كامل')] },
     { k: 'doors', src: img.door, page: 'doors', no: L('Doors', 'الأبواب'), sub: L('Flush, tall and quiet — doors that finish the room.', 'أبواب مستوية وطويلة وهادئة — تكمل جمال المكان.'), tags: [L('Floor-to-ceiling doors', 'أبواب من الأرض للسقف'), L('Hidden frames', 'إطارات مخفية'), L('Magnetic locks', 'أقفال مغناطيسية')] },
-  ].filter((r) => r.src), [img, ar]); // eslint-disable-line react-hooks/exhaustive-deps
+  ].filter((r) => r.src || art), [img, ar, art]); // eslint-disable-line react-hooks/exhaustive-deps
   const [cur, setCur] = useState(0);
   const refs = useRef([]);
   useEffect(() => {
@@ -39,13 +40,15 @@ export default function ShowroomTour({ lang = 'en', img = {}, fallback = {}, Lin
         <div className="showroom__grid">
           <div className="showroom__stage" aria-hidden="true">
             {ROOMS.map((r, i) => (
-              <img key={r.k} src={r.src} alt="" className={i === cur ? 'is-on' : ''} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" width="1600" height="1000" onError={onErr(r.k)} />
+              art ? <div key={r.k} className={'showroom__art' + (i === cur ? ' is-on' : '')}>{art(r.k)}</div>
+                : <img key={r.k} src={r.src} alt="" className={i === cur ? 'is-on' : ''} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" width="1600" height="1000" onError={onErr(r.k)} />
             ))}
           </div>
           <ol className="showroom__list">
             {ROOMS.map((r, i) => (
               <li key={r.k} data-i={i} ref={(el) => { refs.current[i] = el; }} className={i === cur ? 'is-on' : ''}>
-                <img className="showroom__inline" src={r.src} alt="" loading="lazy" decoding="async" width="1600" height="1000" onError={onErr(r.k)} />
+                {art ? <div className="showroom__inline showroom__inline--art">{art(r.k)}</div>
+                  : <img className="showroom__inline" src={r.src} alt="" loading="lazy" decoding="async" width="1600" height="1000" onError={onErr(r.k)} />}
                 <span className="showroom__no">{String(i + 1).padStart(2, '0')}</span>
                 <h3>{r.no}</h3>
                 <p>{r.sub}</p>

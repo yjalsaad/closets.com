@@ -1,0 +1,122 @@
+/* =============================================================================
+ * ART DIRECTIONS (exploration): ?direction=a|b|c on the home page. Loaded after tokens.css, so :root[data-direction] overrides the
+ * theme tokens with the same names; every existing component re-themes without per-component edits.
+ *
+ *   a  NOIR & CHAMPAGNE   dark cinematic: near-black warm canvas, champagne metal, large high-contrast serif (Cormorant)
+ *   b  WASHI & OAK        light gallery: bone paper, hairlines, thin serif (Fraunces light), line drawings + tactile swatches
+ *   c  FOREST & BRASS     bold modern: deep forest/ink, brass, big grotesque (Bricolage), asymmetric grid, one brass band
+ *
+ * This file is the SCOPED PALETTE: the only place colour literals live for the directions (rule from DESIGN.md: components read
+ * var(--*) only). Text/background pairs below were checked >= 4.5:1 (docs/design/directions/CONTRAST.md).
+ * ===========================================================================*/
+
+@font-face { font-family: "Cormorant"; font-style: normal; font-weight: 300 700; font-display: swap;
+  src: url("~@fontsource-variable/cormorant/files/cormorant-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Cormorant"; font-style: italic; font-weight: 300 700; font-display: swap;
+  src: url("~@fontsource-variable/cormorant/files/cormorant-latin-wght-italic.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-weight: 200 800; font-display: swap;
+  src: url("~@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+/* ---------- shared: finish swatch colours (same six styles as KITCHEN_STYLES) ---------- */
+:root[data-direction] {
+  --sw-oak-1: #c89b5e; --sw-oak-2: #9c6b34;
+  --sw-white-1: #f3f3f1; --sw-white-2: #d6cfc4;
+  --sw-graphite-1: #3a3a3c; --sw-graphite-2: #171717;
+  --sw-sage-1: #9aa88a; --sw-sage-2: #6f7d60;
+  --sw-navy-1: #2c3e57; --sw-navy-2: #16243a;
+  --sw-walnut-1: #6b4423; --sw-walnut-2: #3f2a17;
+  --radius-xs: 0; --radius-sm: 0; --radius-md: 0; --radius-lg: 0; --radius-xl: 0;
+  --radius-btn: 0; --radius-field: 0; --radius-card: 0; --radius-img: 0;
+  --tracking-eyebrow: .3em;
+}
+
+/* =============================== A: NOIR & CHAMPAGNE =============================== */
+:root[data-direction="a"] {
+  color-scheme: dark;
+  --font-display: "Cormorant", "Fraunces", "Fraunces Fallback", Georgia, serif;
+  --fw-display: 400; --fw-display-strong: 400; --tracking-display: -.012em; --lh-head: 1.04; --lh-tight: .98;
+  --fs-2xl: clamp(34px, 3.4vw + 14px, 68px); --fs-3xl: clamp(42px, 5vw + 12px, 92px); --fs-4xl: clamp(56px, 9vw + 4px, 164px);
+  --c-canvas: #0c0a08; --c-surface: #141110; --c-sunken: #12100d; --c-line: #2b251d; --c-line-strong: #8a7e68;
+  --c-text: #f2eadb; --c-text-2: #d3c8b4; --c-text-3: #ab9f89;
+  --c-accent: #dcc08c; --c-accent-hover: #ecd6a9; --c-on-accent: #14100b; --c-accent-soft: #2a2218;
+  --c-metal: #c9a96a; --c-metal-text: #dcc08c; --c-wood: #8a6a45;
+  --c-dark: #070605; --c-dark-2: #100d0a; --c-on-dark: #f2eadb; --c-on-dark-2: #d3c8b4; --c-gold: #dcc08c; --c-dark-line: rgba(242,234,219,.16);
+  --c-ok: #5fcf9d; --c-warn: #e6b05c; --c-err: #ff8f86; --c-info: #8cc0f0;
+  --c-scrim: rgba(7,6,5,.6); --shadow-color: 0, 0, 0; --theme-color: #0c0a08;
+  /* art */
+  --art-wall-1: #1b1611; --art-wall-2: #0f0c09; --art-floor-1: #0c0a08; --art-floor-2: #060504; --art-glow: #f3d39a; --art-shade: #030201;
+  --art-shine: #fff3dc; --art-reflect: #e8c98f; --art-edge: #f4e3c0; --art-line: #dcc08c; --art-paper: #14100c;
+  --art-p-1: #66442c; --art-p-2: #46301f; --art-p-3: #2c1d12;
+  --art-s-1: #34302a; --art-s-2: #25221e; --art-s-3: #191714;
+  --art-m-1: #8a6e3e; --art-m-2: #c9a96a; --art-m-3: #f2dca8;
+  --art-k-1: #1a140e; --art-k-2: #0a0806;
+  --art-g-1: #4a4338; --art-g-2: #15110d;
+  --art-st-1: #403c36; --art-st-2: #1f1d1a;
+  --art-cloth-1: #bfae90; --art-cloth-2: #4c4237; --art-cloth-3: #ddd1ba; --art-cloth-4: #76604a;
+  --art-ceramic: #d2c4aa; --art-stem: #8d7c5c;
+}
+
+/* =============================== B: WASHI & OAK =============================== */
+:root[data-direction="b"] {
+  color-scheme: light;
+  --font-display: "Fraunces", "Fraunces Fallback", Georgia, serif;
+  --fw-display: 300; --fw-display-strong: 300; --fw-body: 400; --fw-ui: 500; --fw-strong: 500; --tracking-display: -.03em; --lh-head: 1.08; --lh-tight: 1.02;
+  --fs-2xl: clamp(30px, 2.8vw + 14px, 54px); --fs-3xl: clamp(38px, 4vw + 12px, 76px); --fs-4xl: clamp(46px, 6vw + 8px, 112px);
+  --tracking-eyebrow: .34em;
+  --c-canvas: #f6f4ef; --c-surface: #fbfaf7; --c-sunken: #eeebe3; --c-line: #dcd7cb; --c-line-strong: #8a8472;
+  --c-text: #22211e; --c-text-2: #4a4741; --c-text-3: #66625a;
+  --c-accent: #4f5f4b; --c-accent-hover: #3d4b3a; --c-on-accent: #ffffff; --c-accent-soft: #e4e8de;
+  --c-metal: #a8926a; --c-metal-text: #6c5a36; --c-wood: #b99a70;
+  /* the "dark" band is a light stone band here: no dark surface in this direction */
+  --c-dark: #ebe7dd; --c-dark-2: #e0dbcf; --c-on-dark: #22211e; --c-on-dark-2: #4a4741; --c-gold: #6c5a36; --c-dark-line: rgba(34,33,30,.2);
+  --c-ok: #1b6b4a; --c-warn: #8a5a0b; --c-err: #b3261e; --c-info: #1f5f99;
+  --c-scrim: rgba(34,33,30,.45); --shadow-color: 58, 54, 45; --theme-color: #f6f4ef;
+  /* art */
+  --art-wall-1: #f3f0ea; --art-wall-2: #e7e3d9; --art-floor-1: #d9d0c0; --art-floor-2: #cabfad; --art-glow: #fff1cf; --art-shade: #3f3a30;
+  --art-shine: #ffffff; --art-reflect: #ffffff; --art-edge: #ffffff; --art-line: #3b3830; --art-paper: #f8f6f1;
+  --art-p-1: #d6b88e; --art-p-2: #c6a475; --art-p-3: #b38f62;
+  --art-s-1: #f5f3ee; --art-s-2: #eae7df; --art-s-3: #ddd9cf;
+  --art-m-1: #a58d5f; --art-m-2: #cdb982; --art-m-3: #efe3bf;
+  --art-k-1: #e6e0d3; --art-k-2: #d2cab8;
+  --art-g-1: #c4ccc8; --art-g-2: #929e99;
+  --art-st-1: #ebe8e1; --art-st-2: #d5d1c7;
+  --art-cloth-1: #cdc6b6; --art-cloth-2: #8b9482; --art-cloth-3: #e8e3d6; --art-cloth-4: #a5866b;
+  --art-ceramic: #f4f0e7; --art-stem: #7b7b64;
+}
+
+/* =============================== C: FOREST & BRASS =============================== */
+:root[data-direction="c"] {
+  color-scheme: dark;
+  --font-display: "Bricolage Grotesque", "Inter", "Inter Fallback", Arial, sans-serif;
+  --fw-display: 600; --fw-display-strong: 600; --tracking-display: -.04em; --lh-head: 1.02; --lh-tight: .94;
+  --fs-2xl: clamp(32px, 3.4vw + 14px, 66px); --fs-3xl: clamp(42px, 5.4vw + 12px, 100px); --fs-4xl: clamp(54px, 10.6vw + 4px, 188px);
+  --tracking-eyebrow: .22em;
+  --c-canvas: #0e271f; --c-surface: #143328; --c-sunken: #0a1e17; --c-line: #24473a; --c-line-strong: #78a08f;
+  --c-text: #f4efe1; --c-text-2: #d4dacb; --c-text-3: #a8bab0;
+  --c-accent: #d0a04c; --c-accent-hover: #e2b967; --c-on-accent: #0b1712; --c-accent-soft: #1c3b30;
+  --c-metal: #c79a4a; --c-metal-text: #dcb468; --c-wood: #8a6a45;
+  --c-dark: #07130e; --c-dark-2: #0c1d16; --c-on-dark: #f4efe1; --c-on-dark-2: #c9d3c7; --c-gold: #e0b869; --c-dark-line: rgba(244,239,225,.16);
+  --c-ok: #5fcf9d; --c-warn: #e6b05c; --c-err: #ff9b92; --c-info: #8cc0f0;
+  --c-scrim: rgba(5,16,11,.6); --shadow-color: 0, 8, 4; --theme-color: #0e271f;
+  /* the single brass tone-block (used as a band background, text on it is ink) */
+  --c-brass-bg: #c79a4a; --c-brass-ink: #0b1712; --c-brass-ink-2: #2a2412;
+  /* art */
+  --art-wall-1: #123027; --art-wall-2: #091812; --art-floor-1: #08150f; --art-floor-2: #040b08; --art-glow: #f4d28c; --art-shade: #020806;
+  --art-shine: #fff1d0; --art-reflect: #d9b36a; --art-edge: #f2d9a0; --art-line: #dcb468; --art-paper: #0e271f;
+  --art-p-1: #6e4829; --art-p-2: #4f321b; --art-p-3: #35210f;
+  --art-s-1: #2f6452; --art-s-2: #235044; --art-s-3: #1a3d33;
+  --art-m-1: #987030; --art-m-2: #d0a24e; --art-m-3: #f6da94;
+  --art-k-1: #0d1f18; --art-k-2: #060f0b;
+  --art-g-1: #3a5c4f; --art-g-2: #0e211a;
+  --art-st-1: #d6ceba; --art-st-2: #a69d88;
+  --art-cloth-1: #d8cfb8; --art-cloth-2: #8fa396; --art-cloth-3: #c4a15a; --art-cloth-4: #3f6e5d;
+  --art-ceramic: #e9e0ca; --art-stem: #a9b6a0;
+}
+
+/* Arabic: headings use the Arabic families (see tokens.css); C uses the sans family at semi-bold, A/B keep Naskh / Plex */
+html[lang="ar"][data-direction="c"] { --font-head: var(--font-ar); --fw-display-strong: 600; }
+html[lang="ar"][data-direction="b"] { --font-head: var(--font-ar); --fw-display-strong: 500; }
+html[lang="ar"][data-direction] { --tracking-eyebrow: 0; }

@@ -5,7 +5,10 @@ import './design/tokens.css';
 import './design/base.css';
 import './design/shell.css';
 import './design/home.css';
+import './design/directions.css';   // [DIRECTIONS] ?direction=a|b|c art-direction preview (exploration)
+import './home/direction-home.css';
 import { applyTheme } from './design/theme';
+import { applyDirection } from './design/direction';
 import App, { preloadRoute, ensureArabic } from './App';
 import ErrorBoundary from './ErrorBoundary';
 import reportWebVitals from './reportWebVitals';
@@ -15,6 +18,7 @@ import { ENABLE_AR_URLS } from './seo/siteConfig';
 import { splitLangPath } from './seo/routes';
 
 scheduleBrandFonts();   // non-blocking brand fonts (see src/fonts.js)
+const directionOn = applyDirection();   // [DIRECTIONS] data-direction on <html> (null unless ?direction= is given)
 applyTheme();   // data-theme on <html>: REACT_APP_THEME default, ?theme= preview override (src/design/theme.js)
 const container = document.getElementById('root');
 function HydrationDone() { React.useEffect(() => { hydration.active = false; }, []); return null; }
@@ -24,7 +28,7 @@ function HydrationDone() { React.useEffect(() => { hydration.active = false; }, 
 // [SEO] Prerendered HTML carries data-prerender-path (the URL it was rendered for). If this URL differs (404.html served for a
 // route the rewrite table missed, a mixed-case path, ...) do NOT hydrate: drop the static markup and mount fresh.
 const preMarker = container.getAttribute('data-prerender-path');
-if (preMarker !== null && preMarker !== ((window.location.pathname || '/').replace(/\/+$/, '') || '/')) container.innerHTML = '';
+if (preMarker !== null && (directionOn || preMarker !== ((window.location.pathname || '/').replace(/\/+$/, '') || '/'))) container.innerHTML = '';
 
 const isStudio = /^\/studio(\/|$)/i.test(window.location.pathname || '');
 const StudioRoot = React.lazy(() => import('./studio/StudioRoot'));

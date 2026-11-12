@@ -23,6 +23,11 @@ import { validateForm, msg as vmsg, isBot } from './forms/validate';
 import { useSubmit } from './forms/useSubmit';
 import * as acct from './account/api'; // [IDENTITY] every account / loyalty / order RPC lives here
 import { computeTotal } from './checkout/checkout';
+import { currentDirection } from './design/direction'; // [DIRECTIONS] ?direction=a|b|c art-direction preview
+import ArtDefs from './home/art/ArtDefs';
+import { Scene } from './home/art/Scenes';
+import Swatch from './home/art/Swatches';
+import DirectionHero from './home/DirectionHero';
 import ShowroomTour from './home/ShowroomTour'; // [HOME 2026-11-09] scroll-driven showroom walk-through
 import { useIkhLanding, IkhtarhaSpotlight, IkhtarhaGames, IkhtarhaDesigns, BusinessBand, CampaignPill } from './campaign/HomeCampaign'; // [IKHTARHA 2026-11-09] home page campaign + business sections
 import lazyPage from './lazyPage';
@@ -3209,10 +3214,17 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
     ['04', t('swStep4Title'), t('swStep4Desc')],
   ];
   const ar = lang === 'ar';
+  const dir = currentDirection();   // null on the live site; 'a'|'b'|'c' only with ?direction=
+  const ROOM_KIND = { wardrobes: 'wardrobe', kitchen: 'kitchen', office: 'office', doors: 'door', tv: 'tv' };
+  const FOCUS = ['c', 'c', 'c', 'c', 'c'];
+  const TOUR_ART = { walkin: ['wardrobe', 'l'], wardrobe: ['wardrobe', 'r'], kitchen: ['kitchen', 'c'], living: ['tv', 'c'], doors: ['door', 'c'] };
   return (
     <div>
+      {dir && <ArtDefs />}
       <div id="scrollProgress" />
-      <SectionBoundary name="home:hero" silent><Hero setPage={setPage} banners={banners} /></SectionBoundary>
+      {dir
+        ? <DirectionHero dir={dir} Link={Link} finishes={KITCHEN_STYLES} eyebrow={cms('home.hero.eyebrow', ar ? 'أثاث مصنوع حسب الطلب · مملكة البحرين' : 'Bespoke furniture · Kingdom of Bahrain')} title={cms('home.hero.title', ar ? 'مصمَّم ليناسب حياتك.' : 'Made to fit your life.')} lede={cms('home.hero.subtitle', t('homeHeroSub'))} cta={cms('home.hero.cta', t('bookConsult'))} exploreLabel={t('homeExploreColl')} />
+        : <SectionBoundary name="home:hero" silent><Hero setPage={setPage} banners={banners} /></SectionBoundary>}
 
       {/* Campaigns are visible only while live; otherwise these render nothing. They never get poster scale on the editorial page. */}
       <div className="campaign-slot">
@@ -3239,7 +3251,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         <div className="collections">
           {rooms.map(([name, sub, img, route], i) => (
             <Link to={navToPath(route)} key={name + i} className="coll rv" style={{ '--d': (i * 0.06) + 's' }}>
-              <div className="img-frame tile-zoom"><Photo src={img} alt="" imgClass="tz" w={1200} h={900} pos="50% 50%" style={{ position: 'absolute', inset: 0 }} /></div>
+              <div className="img-frame tile-zoom">{dir ? <Scene kind={ROOM_KIND[route] || ['wardrobe', 'kitchen', 'office', 'door', 'tv'][i % 5]} fill focus={FOCUS[i % 5]} className="tz" /> : <Photo src={img} alt="" imgClass="tz" w={1200} h={900} pos="50% 50%" style={{ position: 'absolute', inset: 0 }} />}</div>
               <div className="coll__meta"><span className="coll__no" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span><h3>{name}</h3></div>
               <p>{sub}</p>
               <span className="go">{t('homeExplore')}<Icon name="arrow" flip={ar} size={16} /></span>
@@ -3252,6 +3264,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
       <section className="band-sunken section" aria-labelledby="proc-title">
         <div className="container">
           <div className="sec-head rv"><div><span className="eyebrow">{t('homeProcEyebrow')}</span><h2 id="proc-title">{cms('home.process.title', t('homeProcTitle'))}</h2></div></div>
+          {dir === 'b' && <figure className="dh-plate" aria-hidden="true"><Scene kind="kitchen" line fill focus="c" crop="20 10 1160 650" /></figure>}
           <ol className="process">
             {steps.map(([n, title, desc]) => (<li key={n} className="rv"><span className="n" aria-hidden="true">{n}</span><h3>{title}</h3><p>{desc}</p></li>))}
           </ol>
@@ -3260,7 +3273,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
 
       {/* The ONE dark showroom band — static layout, scroll effect is progressive enhancement */}
       <SectionBoundary name="home:showroom" silent>
-        <ShowroomTour lang={lang} LinkC={Link} pathOf={pageToPath} eyebrow={t('homeShowEyebrow')} title={t('homeShowTitle')} lede={t('homeShowLede')} fallback={HOME_IMG}
+        <ShowroomTour lang={lang} LinkC={Link} pathOf={pageToPath} eyebrow={t('homeShowEyebrow')} title={t('homeShowTitle')} lede={t('homeShowLede')} fallback={HOME_IMG} art={dir ? (k) => { const [kind, f] = TOUR_ART[k] || ['wardrobe', 'c']; return <Scene kind={kind} fill focus={f} />; } : undefined}
           img={{ walkin: cms('home.tour.walkin', TOUR_IMG.walkin), kitchen: cms('home.tour.kitchen', TOUR_IMG.kitchen), living: cms('home.tour.living', TOUR_IMG.living), wardrobe: cms('home.tour.wardrobe', TOUR_IMG.wardrobe), door: cms('home.tour.door', TOUR_IMG.door) }} />
       </SectionBoundary>
 
@@ -3272,7 +3285,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </div>
         <ul className="swatches rv">
           {KITCHEN_STYLES.map(s => (
-            <li key={s.id} className="swatch"><i style={{ background: s.g }} aria-hidden="true" /><b>{ar ? FINISH_AR[s.id] || s.name : s.name}</b><span>{ar ? FINISH_SUB_AR[s.id] || s.sub : s.sub}</span></li>
+            <li key={s.id} className="swatch"><i style={dir ? undefined : { background: s.g }} aria-hidden="true">{dir && <Swatch id={s.id} />}</i><b>{ar ? FINISH_AR[s.id] || s.name : s.name}</b><span>{ar ? FINISH_SUB_AR[s.id] || s.sub : s.sub}</span></li>
           ))}
         </ul>
       </section>
