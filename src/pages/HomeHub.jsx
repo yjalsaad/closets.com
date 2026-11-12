@@ -40,7 +40,7 @@ function HomeHub({ user, setUser, setPage }) {
   const [cmpForm, setCmpForm] = useState({ category: 'Quality Issue', description: '' });
   const [tktForm, setTktForm] = useState({ subject: '', description: '', priority: 'Medium' });
   const mobile = useMobile();
-  const tierC = { Bronze: '#9c6f2e', Silver: '#6e6e73', Gold: '#b8860b', Platinum: '#6e3fa3' };
+  const tierC = { Bronze: '#9c6f2e', Silver: 'var(--shop-ink-2)', Gold: '#b8860b', Platinum: '#6e3fa3' };
   useEffect(() => {
     if (!user?.email) return;
     // Scoped SECURITY DEFINER RPCs — direct anon reads on sales_orders/invoices are 403 (RLS)
@@ -246,11 +246,11 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
     return (
       <div style={{ marginTop:12 }}>
         {items === 'loading'
-          ? <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', padding:'8px 0' }}>…</div>
+          ? <div style={{ fontSize:13, color:'var(--shop-muted)', padding:'8px 0' }}>…</div>
           : rows.length === 0
-            ? <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', padding:'8px 0' }}>{t('hubNoItems')}</div>
+            ? <div style={{ fontSize:13, color:'var(--shop-muted)', padding:'8px 0' }}>{t('hubNoItems')}</div>
             : (
-              <div style={{ border:'1px solid #ececec', borderRadius:12, overflow:'hidden' }}>
+              <div style={{ border:'1px solid #ececec', borderRadius:'var(--radius-md)', overflow:'hidden' }}>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr auto auto auto', gap:0, fontSize:11.5, textTransform:'uppercase', letterSpacing:'.04em', color:'#9a948d', background:'#faf6f1', padding:'8px 12px' }}>
                   <span>{t('hubItems')}</span>
                   <span style={{ textAlign:'center', minWidth:42 }}>{t('hubQty')}</span>
@@ -259,17 +259,17 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
                 </div>
                 {rows.map((row, ri) => (
                   <div key={ri} style={{ display:'grid', gridTemplateColumns:'1fr auto auto auto', gap:0, fontSize:13, padding:'10px 12px', borderTop:'1px solid #f2efe9', alignItems:'center' }}>
-                    <span style={{ color:'var(--shop-ink, #1d1d1f)' }}>{row.name}</span>
-                    <span style={{ textAlign:'center', minWidth:42, color:'var(--shop-ink-2, #6e6e73)' }}>{row.qty}</span>
-                    <span style={{ textAlign: rtl ? 'left' : 'right', minWidth:80, color:'var(--shop-ink-2, #6e6e73)' }}>{bd(row.unit)}</span>
-                    <span style={{ textAlign: rtl ? 'left' : 'right', minWidth:90, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{bd(row.total)}</span>
+                    <span style={{ color:'var(--shop-ink)' }}>{row.name}</span>
+                    <span style={{ textAlign:'center', minWidth:42, color:'var(--shop-ink-2)' }}>{row.qty}</span>
+                    <span style={{ textAlign: rtl ? 'left' : 'right', minWidth:80, color:'var(--shop-ink-2)' }}>{bd(row.unit)}</span>
+                    <span style={{ textAlign: rtl ? 'left' : 'right', minWidth:90, fontWeight:600, color:'var(--shop-ink)' }}>{bd(row.total)}</span>
                   </div>
                 ))}
               </div>
             )}
         {withInvoice && (
           <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginTop:12, alignItems:'center' }}>
-            <span style={{ fontSize:12.5, fontWeight:600, color:'var(--shop-muted, #86868b)' }}>{t('hubInvoice')}:</span>
+            <span style={{ fontSize:12.5, fontWeight:600, color:'var(--shop-muted)' }}>{t('hubInvoice')}:</span>
             <button type="button" onClick={()=>invoiceView(doc, key)} style={invBtn}>{t('hubView')}</button>
             <button type="button" onClick={()=>invoiceView(doc, key)} style={invBtn}>{t('hubPrint')}</button>
             <button type="button" onClick={()=>invoiceDownload(doc, key)} style={invBtn}>{t('hubDownload')}</button>
@@ -278,7 +278,7 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
       </div>
     );
   };
-  const invBtn = { background:'#fff', border:'1px solid var(--line, #e6e6e6)', borderRadius:980, padding:'6px 14px', fontSize:13, fontWeight:600, color:'var(--clay)', cursor:'pointer' };
+  const invBtn = { background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-pill)', padding:'6px 14px', fontSize:13, fontWeight:600, color:'var(--clay)', cursor:'pointer' };
   const cardUrl = cardSlug ? `${HUB_ORIGIN}/card.html?c=${encodeURIComponent(cardSlug)}` : null;
   const shareCard = async () => {
     if (!cardUrl) return;
@@ -306,46 +306,46 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
     setPhotoBusy(false);
     e.target.value = '';
   };
-  const Pill = ({ label, color, bg }) => <span style={{ display: 'inline-flex', padding: '4px 10px', borderRadius: 980, background: bg, color, fontSize: 12, fontWeight: 500 }}>{label}</span>;
+  const Pill = ({ label, color, bg }) => <span style={{ display: 'inline-flex', padding: '4px 10px', borderRadius: 'var(--radius-pill)', background: bg, color, fontSize: 12, fontWeight: 500 }}>{label}</span>;
   const tabLabel = (key, fallback) => {
     const map = { dashboard:'w4PDashboardTab', ledger:'w4PLedgerTab', orders:'w4POrdersTab', rewards:'w4PRewards', requests:'w4PServiceRequests', support:'w4PSupport', profile:'w4PProfile', designs:'w4PMyDesigns' };
     return map[key] && I18N[map[key]] ? t(map[key]) : fallback;
   };
   return (
-    <div dir={dir} style={{ minHeight: '100dvh', paddingBottom: mobile ? 80 : 0, background: 'var(--shop-fill, #f5f5f7)' }}>
+    <div dir={dir} style={{ minHeight: '100dvh', paddingBottom: mobile ? 80 : 0, background: 'var(--shop-fill)' }}>
       {/* ── Single cohesive account bar (logo + account + back/sign-out, with tab row) ── */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 50, background: 'var(--cream, #f5f1ea)', borderBottom: '1px solid var(--line, #ece6df)' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: mobile ? '12px 16px 0' : '12px 32px 0' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 50, background: 'var(--cream)', borderBottom: '1px solid var(--line)' }}>
+        <div style={{ maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding: mobile ? '12px 16px 0' : '12px 32px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
             <button type="button" onClick={() => setPage('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, padding: 0 }}>
               {logoSrc
-                ? <img src={logoSrc} alt={brandTxt} style={{ height: 30, width: 'auto', maxWidth: 120, objectFit: 'contain', borderRadius: 6 }} />
-                : <span style={{ fontFamily: 'var(--font-sans)', fontSize: 16, fontWeight: 600, color: 'var(--ink, #1f1913)', letterSpacing: '.02em' }}>{brandTxt}</span>}
+                ? <img src={logoSrc} alt={brandTxt} style={{ height: 30, width: 'auto', maxWidth: 120, objectFit: 'contain', borderRadius: 'var(--radius-sm)' }} />
+                : <span style={{ fontFamily: 'var(--font-sans)', fontSize: 16, fontWeight: 600, color: 'var(--ink)', letterSpacing: '.02em' }}>{brandTxt}</span>}
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: mobile ? 8 : 12 }}>
               {!mobile && (
                 <div style={{ textAlign: rtl ? 'left' : 'right', lineHeight: 1.25 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink, #1d1d1f)' }}>{user.name}</div>
-                  <div style={{ fontSize: 11.5, color: 'var(--muted, #86868b)' }}>{user.tier||'Bronze'} · {formatNumber(user.points||0, CMS_LANG)} pts</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{user.name}</div>
+                  <div style={{ fontSize: 11.5, color: 'var(--muted)' }}>{user.tier||'Bronze'} · {formatNumber(user.points||0, CMS_LANG)} pts</div>
                 </div>
               )}
-              <button type="button" onClick={() => setPage('home')} style={{ background: '#fff', border: '1px solid var(--line, #ece6df)', borderRadius: 980, padding: '7px 13px', fontSize: 13, fontWeight: 500, color: 'var(--ink, #1f1913)', cursor: 'pointer', whiteSpace: 'nowrap' }}>{rtl ? '→ ' : '← '}{t('hubBackToSite')}</button>
-              <button type="button" onClick={() => { setUser(null); acct.clearUser(); setPage('home'); }} style={{ background: 'rgba(217,48,37,.08)', border: 'none', borderRadius: 980, padding: '7px 13px', fontSize: 13, fontWeight: 500, color: '#d93025', cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('hubSignOut')}</button>
+              <button type="button" onClick={() => setPage('home')} style={{ background: 'var(--c-surface)', border: '1px solid var(--line)', borderRadius: 'var(--radius-pill)', padding: '7px 13px', fontSize: 13, fontWeight: 500, color: 'var(--ink)', cursor: 'pointer', whiteSpace: 'nowrap' }}>{rtl ? '→ ' : '← '}{t('hubBackToSite')}</button>
+              <button type="button" onClick={() => { setUser(null); acct.clearUser(); setPage('home'); }} style={{ background: 'rgba(217,48,37,.08)', border: 'none', borderRadius: 'var(--radius-pill)', padding: '7px 13px', fontSize: 13, fontWeight: 500, color: 'var(--c-err)', cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('hubSignOut')}</button>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6, overflowX: 'auto', padding: '12px 0 0', scrollbarWidth: 'none' }}>
             {tabs.map(([key, label]) => (
-              <button type="button" key={key} onClick={() => setTab(key)} style={{ padding: '8px 14px', borderRadius: '12px 12px 0 0', border: 'none', borderBottom: tab === key ? '2px solid var(--clay)' : '2px solid transparent', background: 'transparent', color: tab === key ? 'var(--clay-deep, var(--clay))' : 'var(--ink-soft, #6e6e73)', fontSize: 13.5, fontWeight: tab === key ? 600 : 500, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>{tabLabel(key, label)}</button>
+              <button type="button" key={key} onClick={() => setTab(key)} style={{ padding: '8px 14px', borderRadius: '12px 12px 0 0', border: 'none', borderBottom: tab === key ? '2px solid var(--clay)' : '2px solid transparent', background: 'transparent', color: tab === key ? 'var(--clay-deep, var(--clay))' : 'var(--ink-soft)', fontSize: 13.5, fontWeight: tab === key ? 600 : 500, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>{tabLabel(key, label)}</button>
             ))}
           </div>
         </div>
       </div>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: mobile ? '16px 16px' : '32px 40px', display: 'block' }}>
+      <div style={{ maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding: mobile ? '16px var(--gutter)' : '32px var(--gutter)', display: 'block' }}>
         {/* Content */}
         <div style={{ maxWidth: 980, margin: '0 auto' }}>
           {tab === 'card' && <>
-            {!mobile && <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.02em', color: 'var(--shop-ink, #1d1d1f)', marginBottom: 20 }}>My Digital Card</h2>}
-            <div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:28, maxWidth:560 }}>
+            {!mobile && <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.02em', color: 'var(--shop-ink)', marginBottom: 20 }}>My Digital Card</h2>}
+            <div style={{ background:'var(--c-surface)', border:'1px solid #ececec', borderRadius:'var(--radius-xl)', padding:28, maxWidth:560 }}>
               {cardSlug ? <>
                 <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:18 }}>
                   <div style={{ position:'relative', width:64, height:64 }}>
@@ -355,33 +355,33 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
                     <button type="button" onClick={()=>document.getElementById('cust-photo-input').click()} title="Change photo" style={{ position:'absolute', right:-2, bottom:-2, width:24, height:24, borderRadius:'50%', border:'2px solid #fff', background:'var(--clay)', color:'#fff', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>✎</button>
                   </div>
                   <div>
-                    <div style={{ fontSize:18, fontWeight:700, color:'var(--shop-ink, #1d1d1f)' }}>{user.name}</div>
-                    <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)' }}>{(user.tier||'Bronze')} member · {formatNumber(user.points||0, CMS_LANG)} pts</div>
+                    <div style={{ fontSize:18, fontWeight:700, color:'var(--shop-ink)' }}>{user.name}</div>
+                    <div style={{ fontSize:13, color:'var(--shop-muted)' }}>{(user.tier||'Bronze')} member · {formatNumber(user.points||0, CMS_LANG)} pts</div>
                   </div>
                 </div>
                 <input id="cust-photo-input" type="file" accept="image/*" style={{ display:'none' }} onChange={uploadPhoto} />
                 <div style={{ fontSize:12, color:'var(--muted)', marginBottom:10 }}>{t('imgHintAvatar')}</div>
-                <p style={{ fontSize:14, color:'var(--shop-ink-2, #6e6e73)', lineHeight:1.6, marginBottom:18 }}>{t('sw3HubCardLive')}</p>
+                <p style={{ fontSize:14, color:'var(--shop-ink-2)', lineHeight:1.6, marginBottom:18 }}>{t('sw3HubCardLive')}</p>
                 <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-                  <a href={cardUrl} target="_blank" rel="noreferrer" className="btn" style={{ borderRadius:14, textDecoration:'none' }}>Open my card ↗</a>
-                  <button type="button" className="btn-secondary" onClick={shareCard} style={{ borderRadius:14 }}>Share</button>
-                  <button type="button" className="btn-secondary" onClick={()=>document.getElementById('cust-photo-input').click()} disabled={photoBusy} style={{ borderRadius:14 }}>{photoBusy ? 'Uploading…' : (cardPhoto ? 'Change photo' : 'Upload photo')}</button>
+                  <a href={cardUrl} target="_blank" rel="noreferrer" className="btn" style={{ borderRadius:'var(--radius-lg)', textDecoration:'none' }}>Open my card ↗</a>
+                  <button type="button" className="btn-secondary" onClick={shareCard} style={{ borderRadius:'var(--radius-lg)' }}>Share</button>
+                  <button type="button" className="btn-secondary" onClick={()=>document.getElementById('cust-photo-input').click()} disabled={photoBusy} style={{ borderRadius:'var(--radius-lg)' }}>{photoBusy ? 'Uploading…' : (cardPhoto ? 'Change photo' : 'Upload photo')}</button>
                 </div>
               </> : <>
                 <div style={{ fontSize:40, marginBottom:10 }}>🪪</div>
-                <div style={{ fontSize:17, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{t('sw3HubNoCard')}</div>
-                <p style={{ fontSize:14, color:'var(--shop-muted, #86868b)', marginTop:8 }}>{t('sw3HubNoCardSub')}</p>
-                <button type="button" className="btn" onClick={()=>setPage('contact')} style={{ borderRadius:14, marginTop:14 }}>Contact us</button>
+                <div style={{ fontSize:17, fontWeight:600, color:'var(--shop-ink)' }}>{t('sw3HubNoCard')}</div>
+                <p style={{ fontSize:14, color:'var(--shop-muted)', marginTop:8 }}>{t('sw3HubNoCardSub')}</p>
+                <button type="button" className="btn" onClick={()=>setPage('contact')} style={{ borderRadius:'var(--radius-lg)', marginTop:14 }}>Contact us</button>
               </>}
             </div>
           </>}
           {tab === 'dashboard' && <>
-            {!mobile && <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.02em', color: 'var(--shop-ink, #1d1d1f)', marginBottom: 20 }}>Home Hub</h2>}
+            {!mobile && <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.02em', color: 'var(--shop-ink)', marginBottom: 20 }}>Home Hub</h2>}
             <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: 12, marginBottom: 16 }}>
               {[['Total Invested', fmt(totalSpent), 'var(--clay)'], ['Active Orders', orders.filter(o=>!['Delivered','Cancelled'].includes(o.status)).length, '#1d1d1f'], ['Points', formatNumber(user.points||0, CMS_LANG), '#b8860b'], ['Designs', designs.length, '#1d1d1f']].map(([label,val,color])=>(
-                <div key={label} style={{ background: '#fff', borderRadius: 18, padding: '18px 16px', border: '1px solid var(--shop-line, #e6e6e6)' }}>
+                <div key={label} style={{ background: 'var(--c-surface)', borderRadius: 'var(--radius-xl)', padding: '18px 16px', border: '1px solid var(--shop-line)' }}>
                   <div style={{ fontSize: mobile ? 18 : 22, fontWeight: 700, color, letterSpacing: '-.02em', marginBottom: 4 }}>{val}</div>
-                  <div style={{ fontSize: 12, color: 'var(--shop-muted, #86868b)' }}>{label}</div>
+                  <div style={{ fontSize: 12, color: 'var(--shop-muted)' }}>{label}</div>
                 </div>
               ))}
             </div>
@@ -389,15 +389,15 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
               const steps=['Confirmed','Materials','Production','Quality','Ready','Delivered'];
               const idx=Math.max(0,steps.findIndex(s=>(order.status||'').toLowerCase().startsWith(s.toLowerCase().slice(0,4))));
               const pct=Math.round(((idx+1)/steps.length)*100);
-              return <div key={order.id} style={{ background:'#fff', borderRadius:16, padding:'18px 20px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:10 }}>
+              return <div key={order.id} style={{ background:'var(--c-surface)', borderRadius:'var(--radius-lg)', padding:'18px 20px', border:'1px solid var(--shop-line)', marginBottom:10 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', marginBottom:10, alignItems:'center' }}>
-                  <span style={{ fontSize:14, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{order.order_number||order.id}</span>
+                  <span style={{ fontSize:14, fontWeight:600, color:'var(--shop-ink)' }}>{order.order_number||order.id}</span>
                   <span style={{ fontSize:14, fontWeight:700, color:'var(--clay)' }}>{pct}%</span>
                 </div>
-                <div style={{ background:'var(--shop-fill, #f5f5f7)', borderRadius:980, height:6, overflow:'hidden' }}>
-                  <div style={{ width:`${pct}%`, height:'100%', background:'linear-gradient(90deg,var(--clay),#ea6c0a)', borderRadius:980, transition:'width 1s ease' }} />
+                <div style={{ background:'var(--shop-fill)', borderRadius:'var(--radius-pill)', height:6, overflow:'hidden' }}>
+                  <div style={{ width:`${pct}%`, height:'100%', background:'linear-gradient(90deg,var(--clay),#ea6c0a)', borderRadius:'var(--radius-pill)', transition:'width 1s ease' }} />
                 </div>
-                <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)', marginTop:6 }}>{order.status||'In Progress'}</div>
+                <div style={{ fontSize:12, color:'var(--shop-muted)', marginTop:6 }}>{order.status||'In Progress'}</div>
               </div>;
             })}
           </>}
@@ -407,17 +407,17 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
               <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em' }}>{t('w4PLedgerTab')}</h2>
               <span style={{ fontSize:18, fontWeight:700, color:'var(--clay)' }}>{fmt(totalSpent)}</span>
             </div>
-            {orders.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'var(--shop-muted, #86868b)', background:'#fff', borderRadius:16, fontSize:14 }}>{t('hubNoItems')}</div> : orders.map(order=>{
+            {orders.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'var(--shop-muted)', background:'var(--c-surface)', borderRadius:'var(--radius-lg)', fontSize:14 }}>{t('hubNoItems')}</div> : orders.map(order=>{
               const open = expandedOrder === ('ledger-'+order.id);
               return (
-                <div key={order.id} style={{ background:'#fff', borderRadius:16, padding:'16px 18px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:10 }}>
+                <div key={order.id} style={{ background:'var(--c-surface)', borderRadius:'var(--radius-lg)', padding:'16px 18px', border:'1px solid var(--shop-line)', marginBottom:10 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
                     <div>
                       <div style={{ fontSize:14, fontWeight:600, color:'var(--clay)', marginBottom:2 }}>{order.order_number||order.order_num||order.id}</div>
-                      <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{order.notes||order.description||'Order'} · {order.created_at?formatDate(order.created_at, CMS_LANG):'—'}</div>
+                      <div style={{ fontSize:12, color:'var(--shop-muted)' }}>{order.notes||order.description||'Order'} · {order.created_at?formatDate(order.created_at, CMS_LANG):'—'}</div>
                     </div>
                     <div style={{ textAlign: rtl ? 'left' : 'right' }}>
-                      <div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginBottom:4 }}>{fmt(order.total||order.total_amount||order.amount)}</div>
+                      <div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink)', marginBottom:4 }}>{fmt(order.total||order.total_amount||order.amount)}</div>
                       <Pill label={order.status||'Processing'} color="var(--clay)" bg="rgba(168,75,41,.1)" />
                     </div>
                   </div>
@@ -428,22 +428,22 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
             })}
             {invoices.length>0 && (
               <div style={{ marginTop:24 }}>
-                <h3 style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginBottom:10 }}>{t('hubInvoice')}</h3>
-                <div style={{ background:'#fff', borderRadius:16, overflow:'hidden', border:'1px solid var(--shop-line, #e6e6e6)' }}>
+                <h3 style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink)', marginBottom:10 }}>{t('hubInvoice')}</h3>
+                <div style={{ background:'var(--c-surface)', borderRadius:'var(--radius-lg)', overflow:'hidden', border:'1px solid var(--shop-line)' }}>
                   {invoices.map((inv,i)=>(
-                    <div key={inv.id} style={{ padding:'14px 18px', borderBottom:i<invoices.length-1?'1px solid var(--shop-fill, #f5f5f7)':'none' }}>
+                    <div key={inv.id} style={{ padding:'14px 18px', borderBottom:i<invoices.length-1?'1px solid var(--shop-fill)':'none' }}>
                       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
                         <div>
                           <div style={{ fontSize:14, fontWeight:500, color:'var(--clay)', marginBottom:2 }}>{inv.invoice_number||inv.id}</div>
-                          <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{inv.description||'Order'} · {inv.created_at?formatDate(inv.created_at, CMS_LANG):'—'}</div>
+                          <div style={{ fontSize:12, color:'var(--shop-muted)' }}>{inv.description||'Order'} · {inv.created_at?formatDate(inv.created_at, CMS_LANG):'—'}</div>
                         </div>
                         <div style={{ textAlign: rtl ? 'left' : 'right' }}>
-                          <div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginBottom:4 }}>{fmt(inv.total_amount||inv.amount)}</div>
+                          <div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink)', marginBottom:4 }}>{fmt(inv.total_amount||inv.amount)}</div>
                           <Pill label={inv.status||'Pending'} color={inv.status==='Paid'?'#1a7a40':'#b8860b'} bg={inv.status==='Paid'?'rgba(26,122,64,.1)':'rgba(184,134,11,.1)'} />
                         </div>
                       </div>
                       <div style={{ display:'flex', gap:6, alignItems:'center', marginTop:10, flexWrap:'wrap' }}>
-                        <span style={{ fontSize:12.5, fontWeight:600, color:'var(--shop-muted, #86868b)' }}>{t('hubInvoice')}:</span>
+                        <span style={{ fontSize:12.5, fontWeight:600, color:'var(--shop-muted)' }}>{t('hubInvoice')}:</span>
                         <button type="button" onClick={()=>invoiceView(inv, 'inv-'+inv.id)} style={invBtn}>{t('hubView')}</button>
                         <button type="button" onClick={()=>invoiceView(inv, 'inv-'+inv.id)} style={invBtn}>{t('hubPrint')}</button>
                         <button type="button" onClick={()=>invoiceDownload(inv, 'inv-'+inv.id)} style={invBtn}>{t('hubDownload')}</button>
@@ -458,22 +458,22 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
           {tab === 'svcbookings' && <>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:18 }}>
               <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', margin:0 }}>Service bookings</h2>
-              <button type="button" className="btn" onClick={()=>setPage('services')} style={{ borderRadius:12, padding:'8px 16px', fontSize:14 }}>+ Book a service</button>
+              <button type="button" className="btn" onClick={()=>setPage('services')} style={{ borderRadius:'var(--radius-md)', padding:'8px 16px', fontSize:14 }}>+ Book a service</button>
             </div>
-            {svcBookings.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'var(--shop-muted, #86868b)', background:'#fff', borderRadius:16, fontSize:14 }}>{t('sw3HubNoBookings')}</div> : svcBookings.map(b=>{
+            {svcBookings.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'var(--shop-muted)', background:'var(--c-surface)', borderRadius:'var(--radius-lg)', fontSize:14 }}>{t('sw3HubNoBookings')}</div> : svcBookings.map(b=>{
               const s=(b.status||'').toLowerCase();
               const col = /complet/.test(s)?'#16a34a' : /cancel|disput/.test(s)?'#dc2626' : /request/.test(s)?'var(--clay)' : '#3b82f6';
               return (
-                <div key={b.id} style={{ background:'#fff', borderRadius:16, padding:'16px 18px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:10 }}>
+                <div key={b.id} style={{ background:'var(--c-surface)', borderRadius:'var(--radius-lg)', padding:'16px 18px', border:'1px solid var(--shop-line)', marginBottom:10 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                    <div style={{ fontSize:15, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{b.category_name||'Service'}</div>
+                    <div style={{ fontSize:15, fontWeight:600, color:'var(--shop-ink)' }}>{b.category_name||'Service'}</div>
                     <Pill label={b.status||'Requested'} color={col} bg={col+'18'} />
                   </div>
-                  <div style={{ fontSize:12.5, color:'var(--shop-muted, #86868b)', marginTop:5 }}>
+                  <div style={{ fontSize:12.5, color:'var(--shop-muted)', marginTop:5 }}>
                     {b.provider_name?('👷 '+b.provider_name):(b.mode==='on_demand'?'ASAP':'Scheduled')}{b.area?(' · '+b.area):''}{b.slot?(' · '+b.slot):''}
                     {b.price_approval_status==='pending'?'  ·  ⏳ price approval needed':''}
                   </div>
-                  {!!b.notes && <div style={{ fontSize:12.5, color:'var(--shop-ink-2, #6e6e73)', marginTop:6 }}>{b.notes}</div>}
+                  {!!b.notes && <div style={{ fontSize:12.5, color:'var(--shop-ink-2)', marginTop:6 }}>{b.notes}</div>}
                 </div>
               );
             })}
@@ -481,18 +481,18 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
 
           {tab === 'orders' && <>
             <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>{t('w4POrdersTab')}</h2>
-            {orders.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'var(--shop-muted, #86868b)', background:'#fff', borderRadius:16, fontSize:14 }}>{t('hubNoItems')}</div> : orders.map(o=>{
+            {orders.length===0 ? <div style={{ textAlign:'center', padding:'40px', color:'var(--shop-muted)', background:'var(--c-surface)', borderRadius:'var(--radius-lg)', fontSize:14 }}>{t('hubNoItems')}</div> : orders.map(o=>{
               const open = expandedOrder === ('orders-'+o.id);
               return (
-                <div key={o.id} style={{ background:'#fff', borderRadius:16, padding:'16px 18px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:10 }}>
+                <div key={o.id} style={{ background:'var(--c-surface)', borderRadius:'var(--radius-lg)', padding:'16px 18px', border:'1px solid var(--shop-line)', marginBottom:10 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
-                    <div><div style={{ fontSize:14, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', marginBottom:3 }}>{o.order_number||o.order_num||o.id}</div><div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{o.created_at?formatDate(o.created_at, CMS_LANG):'—'}</div></div>
-                    <div style={{ textAlign: rtl ? 'left' : 'right' }}><div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginBottom:6 }}>{fmt(o.total||o.total_amount||o.amount)}</div><Pill label={o.status||'Processing'} color="var(--clay)" bg="rgba(168,75,41,.1)" /></div>
+                    <div><div style={{ fontSize:14, fontWeight:600, color:'var(--shop-ink)', marginBottom:3 }}>{o.order_number||o.order_num||o.id}</div><div style={{ fontSize:12, color:'var(--shop-muted)' }}>{o.created_at?formatDate(o.created_at, CMS_LANG):'—'}</div></div>
+                    <div style={{ textAlign: rtl ? 'left' : 'right' }}><div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink)', marginBottom:6 }}>{fmt(o.total||o.total_amount||o.amount)}</div><Pill label={o.status||'Processing'} color="var(--clay)" bg="rgba(168,75,41,.1)" /></div>
                   </div>
                   <div style={{ display:'flex', gap:12, alignItems:'center', marginTop:8, flexWrap:'wrap' }}>
                     <button type="button" onClick={()=>{ const k='orders-'+o.id; if(open){setExpandedOrder(null);} else {setExpandedOrder(k); loadOrderItems(o.id);} }} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--clay)', fontSize:13, fontWeight:600, padding:0, display:'inline-flex', gap:5 }}>{open ? t('hubHideItems') : t('hubViewItems')} {open ? '▴' : '▾'}</button>
                     <div style={{ display:'flex', gap:6, alignItems:'center' }}>
-                      <span style={{ fontSize:12.5, fontWeight:600, color:'var(--shop-muted, #86868b)' }}>{t('hubInvoice')}:</span>
+                      <span style={{ fontSize:12.5, fontWeight:600, color:'var(--shop-muted)' }}>{t('hubInvoice')}:</span>
                       <button type="button" onClick={()=>invoiceView(o, o.id)} style={invBtn}>{t('hubView')}</button>
                       <button type="button" onClick={()=>invoiceView(o, o.id)} style={invBtn}>{t('hubPrint')}</button>
                       <button type="button" onClick={()=>invoiceDownload(o, o.id)} style={invBtn}>{t('hubDownload')}</button>
@@ -507,11 +507,11 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
           {tab === 'designs' && <>
             <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>{t('w4PMyDesigns')}</h2>
             {designs.length===0 ? (
-              <div style={{ textAlign:'center', padding:'48px 24px', color:'var(--shop-muted, #86868b)', background:'#fff', borderRadius:16, border:'1px solid var(--shop-line, #e6e6e6)' }}>
+              <div style={{ textAlign:'center', padding:'48px 24px', color:'var(--shop-muted)', background:'var(--c-surface)', borderRadius:'var(--radius-lg)', border:'1px solid var(--shop-line)' }}>
                 <div style={{ fontSize:40, marginBottom:10 }}>🪟</div>
-                <div style={{ fontSize:15, color:'var(--shop-ink, #1d1d1f)', fontWeight:600, marginBottom:6 }}>{t('w4PNoDesigns')}</div>
+                <div style={{ fontSize:15, color:'var(--shop-ink)', fontWeight:600, marginBottom:6 }}>{t('w4PNoDesigns')}</div>
                 <p style={{ fontSize:13.5, marginBottom:16 }}>{t('w4PStartStudio')}</p>
-                <button type="button" className="btn" onClick={()=>setPage('planner')} style={{ borderRadius:14 }}>{t('w4POpenStudio')}</button>
+                <button type="button" className="btn" onClick={()=>setPage('planner')} style={{ borderRadius:'var(--radius-lg)' }}>{t('w4POpenStudio')}</button>
               </div>
             ) : (
               <div style={{ display:'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap:14 }}>
@@ -519,20 +519,20 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
                   const s=(d.status||'saved').toLowerCase();
                   const sCol = /quote/.test(s)?'#1a7a40' : 'var(--clay)';
                   return (
-                    <div key={d.id} onClick={()=>setSelectedDesign(d)} style={{ background:'#fff', borderRadius:16, border:'1px solid var(--shop-line, #e6e6e6)', overflow:'hidden', cursor:'pointer', transition:'box-shadow .15s' }}>
-                      <div style={{ width:'100%', height:160, background:'var(--shop-fill, #f5f5f7)', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
+                    <div key={d.id} onClick={()=>setSelectedDesign(d)} style={{ background:'var(--c-surface)', borderRadius:'var(--radius-lg)', border:'1px solid var(--shop-line)', overflow:'hidden', cursor:'pointer', transition:'box-shadow .15s' }}>
+                      <div style={{ width:'100%', height:160, background:'var(--shop-fill)', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
                         {d.render_url
                           ? <img src={d.render_url} alt={d.product_name||'Design'} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                           : <span style={{ fontSize:38, opacity:.45 }}>🪟</span>}
                       </div>
                       <div style={{ padding:16 }}>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:8 }}>
-                          <div style={{ fontSize:15, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{d.product_name||'Design'}</div>
+                          <div style={{ fontSize:15, fontWeight:600, color:'var(--shop-ink)' }}>{d.product_name||'Design'}</div>
                           <Pill label={d.status||'Saved'} color={sCol} bg={sCol+'18'} />
                         </div>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                           <div style={{ fontSize:16, fontWeight:700, color:'var(--clay)' }}>{fmt(d.total_price)}</div>
-                          <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{d.created_at?formatDate(d.created_at, CMS_LANG):'—'}</div>
+                          <div style={{ fontSize:12, color:'var(--shop-muted)' }}>{d.created_at?formatDate(d.created_at, CMS_LANG):'—'}</div>
                         </div>
                       </div>
                     </div>
@@ -542,8 +542,8 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
             )}
             {selectedDesign && (
               <div onClick={()=>setSelectedDesign(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.45)', display:'flex', alignItems:'center', justifyContent:'center', padding:16, zIndex:1000 }}>
-                <ModalPanel onClose={()=>setSelectedDesign(null)} onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:20, maxWidth:520, width:'100%', maxHeight:'90vh', overflow:'auto', border:'1px solid var(--shop-line, #e6e6e6)' }}>
-                  <div style={{ position:'relative', width:'100%', height:220, background:'var(--shop-fill, #f5f5f7)', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
+                <ModalPanel onClose={()=>setSelectedDesign(null)} onClick={e=>e.stopPropagation()} style={{ background:'var(--c-surface)', borderRadius:'var(--radius-xl)', maxWidth:520, width:'100%', maxHeight:'90vh', overflow:'auto', border:'1px solid var(--shop-line)' }}>
+                  <div style={{ position:'relative', width:'100%', height:220, background:'var(--shop-fill)', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
                     {selectedDesign.render_url
                       ? <img src={selectedDesign.render_url} alt={selectedDesign.product_name||'Design'} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                       : <span style={{ fontSize:54, opacity:.45 }}>🪟</span>}
@@ -552,27 +552,27 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
                   <div style={{ padding:22 }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:10, marginBottom:12 }}>
                       <div>
-                        <div style={{ fontSize:19, fontWeight:700, color:'var(--shop-ink, #1d1d1f)' }}>{selectedDesign.product_name||'Design'}</div>
-                        <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)', marginTop:2 }}>{selectedDesign.created_at?formatDate(selectedDesign.created_at, CMS_LANG):''}</div>
+                        <div style={{ fontSize:19, fontWeight:700, color:'var(--shop-ink)' }}>{selectedDesign.product_name||'Design'}</div>
+                        <div style={{ fontSize:12, color:'var(--shop-muted)', marginTop:2 }}>{selectedDesign.created_at?formatDate(selectedDesign.created_at, CMS_LANG):''}</div>
                       </div>
                       <Pill label={selectedDesign.status||'Saved'} color={/quote/.test((selectedDesign.status||'').toLowerCase())?'#1a7a40':'var(--clay)'} bg={(/quote/.test((selectedDesign.status||'').toLowerCase())?'#1a7a40':'var(--clay)')+'18'} />
                     </div>
                     {selectedDesign.configuration && typeof selectedDesign.configuration==='object' && (
-                      <div style={{ background:'#f8f8f8', borderRadius:14, padding:'14px 16px', marginBottom:16 }}>
-                        <div style={{ fontSize:12, fontWeight:600, color:'var(--shop-muted, #86868b)', marginBottom:8, textTransform:'uppercase', letterSpacing:'.04em' }}>{t('w4PSpecification')}</div>
+                      <div style={{ background:'#f8f8f8', borderRadius:'var(--radius-lg)', padding:'14px 16px', marginBottom:16 }}>
+                        <div style={{ fontSize:12, fontWeight:600, color:'var(--shop-muted)', marginBottom:8, textTransform:'uppercase', letterSpacing:'.04em' }}>{t('w4PSpecification')}</div>
                         {Object.entries(selectedDesign.configuration).filter(([,v])=>v!=null && typeof v!=='object').map(([k,v])=>(
                           <div key={k} style={{ display:'flex', justifyContent:'space-between', fontSize:13, padding:'4px 0', borderBottom:'1px solid #efefef' }}>
-                            <span style={{ color:'var(--shop-muted, #86868b)', textTransform:'capitalize' }}>{k.replace(/_/g,' ')}</span>
-                            <span style={{ color:'var(--shop-ink, #1d1d1f)', fontWeight:500, textAlign:'right' }}>{String(v)}</span>
+                            <span style={{ color:'var(--shop-muted)', textTransform:'capitalize' }}>{k.replace(/_/g,' ')}</span>
+                            <span style={{ color:'var(--shop-ink)', fontWeight:500, textAlign:'right' }}>{String(v)}</span>
                           </div>
                         ))}
                       </div>
                     )}
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:18 }}>
-                      <span style={{ fontSize:13, color:'var(--shop-muted, #86868b)' }}>{t('w4PTotal')}</span>
+                      <span style={{ fontSize:13, color:'var(--shop-muted)' }}>{t('w4PTotal')}</span>
                       <span style={{ fontSize:22, fontWeight:700, color:'var(--clay)' }}>{fmt(selectedDesign.total_price)}</span>
                     </div>
-                    <button type="button" className="btn" onClick={()=>{ setSelectedDesign(null); setPage('planner'); }} style={{ borderRadius:14, width:'100%' }}>{t('w4PDesignAgain')}</button>
+                    <button type="button" className="btn" onClick={()=>{ setSelectedDesign(null); setPage('planner'); }} style={{ borderRadius:'var(--radius-lg)', width:'100%' }}>{t('w4PDesignAgain')}</button>
                   </div>
                 </ModalPanel>
               </div>
@@ -581,42 +581,42 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
 
           {tab === 'rewards' && <>
             <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>{t('w4PRewards')}</h2>
-            <div style={{ background:'#fff', borderRadius:20, padding:24, marginBottom:14, border:'1px solid var(--shop-line, #e6e6e6)' }}>
-              <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)', marginBottom:4 }}>{t('w4PBalance')}</div>
+            <div style={{ background:'var(--c-surface)', borderRadius:'var(--radius-xl)', padding:24, marginBottom:14, border:'1px solid var(--shop-line)' }}>
+              <div style={{ fontSize:12, color:'var(--shop-muted)', marginBottom:4 }}>{t('w4PBalance')}</div>
               <div style={{ fontSize:44, fontWeight:700, color:'var(--clay)', letterSpacing:'-.03em', marginBottom:4 }}>{formatNumber((rwInfo?rwInfo.points:user.points)||0, CMS_LANG)}</div>
-              <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', marginBottom:20 }}>{t('w4PPoints')} · {(rwInfo&&rwInfo.tier)||user.tier||'Bronze'} {t('w4PMember')}</div>
+              <div style={{ fontSize:13, color:'var(--shop-muted)', marginBottom:20 }}>{t('w4PPoints')} · {(rwInfo&&rwInfo.tier)||user.tier||'Bronze'} {t('w4PMember')}</div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8 }}>
                 {[['Bronze','0–999'],['Silver','1k–5k'],['Gold','5k–15k'],['Platinum','15k+']].map(([tier,range])=>{
                   const curTier=(rwInfo&&rwInfo.tier)||user.tier;
                   return (
-                  <div key={tier} style={{ background:curTier===tier?`${tierC[tier]}15`:'#f5f5f7', borderRadius:12, padding:'10px 8px', opacity:curTier===tier?1:.4, border:curTier===tier?`1.5px solid ${tierC[tier]}`:'1.5px solid transparent' }}>
+                  <div key={tier} style={{ background:curTier===tier?`${tierC[tier]}15`:'var(--shop-fill)', borderRadius:'var(--radius-md)', padding:'10px 8px', opacity:curTier===tier?1:.4, border:curTier===tier?`1.5px solid ${tierC[tier]}`:'1.5px solid transparent' }}>
                     <div style={{ fontSize:12, fontWeight:600, color:tierC[tier], marginBottom:1 }}>{tier}</div>
-                    <div style={{ fontSize:10, color:'var(--shop-muted, #86868b)' }}>{range}</div>
+                    <div style={{ fontSize:10, color:'var(--shop-muted)' }}>{range}</div>
                   </div>
                   );
                 })}
               </div>
             </div>
             {rewards.map((r,i)=>(
-              <div key={i} style={{ background:'#fff', borderRadius:14, padding:'14px 18px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <div><div style={{ fontSize:14, color:'var(--shop-ink, #1d1d1f)', marginBottom:2 }}>{r.description}</div><div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{r.created_at?formatDate(r.created_at, CMS_LANG):''}</div></div>
-                <span style={{ fontSize:16, fontWeight:700, color:r.type==='earned'?'#1a7a40':'#d93025' }}>{r.type==='earned'?'+':'-'}{r.points}</span>
+              <div key={i} style={{ background:'var(--c-surface)', borderRadius:'var(--radius-lg)', padding:'14px 18px', border:'1px solid var(--shop-line)', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <div><div style={{ fontSize:14, color:'var(--shop-ink)', marginBottom:2 }}>{r.description}</div><div style={{ fontSize:12, color:'var(--shop-muted)' }}>{r.created_at?formatDate(r.created_at, CMS_LANG):''}</div></div>
+                <span style={{ fontSize:16, fontWeight:700, color:r.type==='earned'?'#1a7a40':'var(--c-err)' }}>{r.type==='earned'?'+':'-'}{r.points}</span>
               </div>
             ))}
           </>}
 
           {tab === 'requests' && <>
             <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>{t('w4PServiceRequests')}</h2>
-            <div style={{ background:'#fff', borderRadius:20, padding:20, border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:14 }}>
+            <div style={{ background:'var(--c-surface)', borderRadius:'var(--radius-xl)', padding:20, border:'1px solid var(--shop-line)', marginBottom:14 }}>
               <select className="inp" value={cmpForm.category} onChange={e=>setCmpForm(p=>({...p,category:e.target.value}))} style={{ marginBottom:10 }}>
                 {['Quality Issue','Delivery Problem','Incomplete Install','Design Discrepancy','Maintenance','Other'].map(c=><option key={c}>{c}</option>)}
               </select>
               <textarea className="inp" rows={3} aria-label={t('w4PDescribeIssue')} placeholder={t('w4PDescribeIssue')} value={cmpForm.description} onChange={e=>setCmpForm(p=>({...p,description:e.target.value}))} style={{ marginBottom:12, resize:'vertical' }} />
-              <button type="button" className="btn" onClick={submitComplaint} style={{ borderRadius:12 }}>{t('w4PSubmitRequest')}</button>
+              <button type="button" className="btn" onClick={submitComplaint} style={{ borderRadius:'var(--radius-md)' }}>{t('w4PSubmitRequest')}</button>
             </div>
             {complaints.map(c=>(
-              <div key={c.id} style={{ background:'#fff', borderRadius:14, padding:'14px 18px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <div><div style={{ fontSize:14, fontWeight:500, color:'var(--shop-ink, #1d1d1f)', marginBottom:2 }}>{c.category}</div><div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{c.id}</div></div>
+              <div key={c.id} style={{ background:'var(--c-surface)', borderRadius:'var(--radius-lg)', padding:'14px 18px', border:'1px solid var(--shop-line)', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <div><div style={{ fontSize:14, fontWeight:500, color:'var(--shop-ink)', marginBottom:2 }}>{c.category}</div><div style={{ fontSize:12, color:'var(--shop-muted)' }}>{c.id}</div></div>
                 <Pill label={c.status||'Open'} color={c.status==='Resolved'?'#1a7a40':'#b8860b'} bg={c.status==='Resolved'?'rgba(26,122,64,.1)':'rgba(184,134,11,.1)'} />
               </div>
             ))}
@@ -624,17 +624,17 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
 
           {tab === 'support' && <>
             <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>{t('w4PSupport')}</h2>
-            <div style={{ background:'#fff', borderRadius:20, padding:20, border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:14 }}>
+            <div style={{ background:'var(--c-surface)', borderRadius:'var(--radius-xl)', padding:20, border:'1px solid var(--shop-line)', marginBottom:14 }}>
               <input className="inp" placeholder={t('w4PSubject')} aria-label={t('w4PSubject')} value={tktForm.subject} onChange={e=>setTktForm(p=>({...p,subject:e.target.value}))} style={{ marginBottom:10 }} />
               <textarea className="inp" rows={3} placeholder={t('w4PDescription')} aria-label={t('w4PDescription')} value={tktForm.description} onChange={e=>setTktForm(p=>({...p,description:e.target.value}))} style={{ marginBottom:10, resize:'vertical' }} />
               <select className="inp" value={tktForm.priority} onChange={e=>setTktForm(p=>({...p,priority:e.target.value}))} style={{ marginBottom:12 }}>
                 {['Low','Medium','High','Urgent'].map(p=><option key={p}>{p}</option>)}
               </select>
-              <button type="button" className="btn" onClick={submitTicket} style={{ borderRadius:12 }}>{t('w4PSubmitTicket')}</button>
+              <button type="button" className="btn" onClick={submitTicket} style={{ borderRadius:'var(--radius-md)' }}>{t('w4PSubmitTicket')}</button>
             </div>
             {tickets.map(t=>(
-              <div key={t.id} style={{ background:'#fff', borderRadius:14, padding:'14px 18px', border:'1px solid var(--shop-line, #e6e6e6)', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <div><div style={{ fontSize:14, fontWeight:500, color:'var(--shop-ink, #1d1d1f)', marginBottom:2 }}>{t.subject}</div><div style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>{t.id} · {t.priority}</div></div>
+              <div key={t.id} style={{ background:'var(--c-surface)', borderRadius:'var(--radius-lg)', padding:'14px 18px', border:'1px solid var(--shop-line)', marginBottom:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <div><div style={{ fontSize:14, fontWeight:500, color:'var(--shop-ink)', marginBottom:2 }}>{t.subject}</div><div style={{ fontSize:12, color:'var(--shop-muted)' }}>{t.id} · {t.priority}</div></div>
                 <Pill label={t.status||'Open'} color="var(--clay)" bg="rgba(168,75,41,.1)" />
               </div>
             ))}
@@ -642,12 +642,12 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
 
           {tab === 'profile' && <>
             <h2 style={{ fontSize:22, fontWeight:700, letterSpacing:'-.02em', marginBottom:18 }}>{t('w4PProfile')}</h2>
-            <div style={{ background:'#fff', borderRadius:20, padding:24, border:'1px solid var(--shop-line, #e6e6e6)' }}>
+            <div style={{ background:'var(--c-surface)', borderRadius:'var(--radius-xl)', padding:24, border:'1px solid var(--shop-line)' }}>
               <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-                <div><label style={{ fontSize:13, fontWeight:500, color:'var(--shop-muted, #86868b)', display:'block', marginBottom:6 }}>{t('w4PFullName')}</label><input className="inp" value={editForm.name} onChange={e=>setEditForm(p=>({...p,name:e.target.value}))} /></div>
-                <div><label style={{ fontSize:13, fontWeight:500, color:'var(--shop-muted, #86868b)', display:'block', marginBottom:6 }}>{t('w4PEmail')}</label><input className="inp" value={user.email} disabled style={{ opacity:.5 }} /></div>
-                <div><label style={{ fontSize:13, fontWeight:500, color:'var(--shop-muted, #86868b)', display:'block', marginBottom:6 }}>{t('w4PPhone')}</label><input className="inp" value={editForm.phone} onChange={e=>setEditForm(p=>({...p,phone:e.target.value}))} /></div>
-                <button type="button" className="btn" onClick={saveProfile} style={{ borderRadius:14, marginTop:4 }}>{t('w4PSaveChanges')}</button>
+                <div><label style={{ fontSize:13, fontWeight:500, color:'var(--shop-muted)', display:'block', marginBottom:6 }}>{t('w4PFullName')}</label><input className="inp" value={editForm.name} onChange={e=>setEditForm(p=>({...p,name:e.target.value}))} /></div>
+                <div><label style={{ fontSize:13, fontWeight:500, color:'var(--shop-muted)', display:'block', marginBottom:6 }}>{t('w4PEmail')}</label><input className="inp" value={user.email} disabled style={{ opacity:.5 }} /></div>
+                <div><label style={{ fontSize:13, fontWeight:500, color:'var(--shop-muted)', display:'block', marginBottom:6 }}>{t('w4PPhone')}</label><input className="inp" value={editForm.phone} onChange={e=>setEditForm(p=>({...p,phone:e.target.value}))} /></div>
+                <button type="button" className="btn" onClick={saveProfile} style={{ borderRadius:'var(--radius-lg)', marginTop:4 }}>{t('w4PSaveChanges')}</button>
               </div>
             </div>
           </>}

@@ -59,11 +59,11 @@ function KitchenPage({ setPage, products }) {
   const kLayouts = K_LAYOUTS.map(l => mergeLayout(l, dbLayouts));
   const kitchenProducts = (products||[]).filter(p => /kitchen/i.test(p.category||'') || /kitchen/i.test(p.name||''));
   const heroImg = HERO_IMG.kitchen;
-  const wrap = { maxWidth:1180, margin:'0 auto', padding: mobile?'0 16px':'0 28px' };
+  const wrap = { maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding:'0 var(--gutter)' };
   const FAQS = t('sw2KpFaq');
 
   return (
-    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?56:64, paddingBottom:90 }}>
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop:'var(--nav-h)', paddingBottom:90 }}>
       {/* HERO */}
       <section style={{ position:'relative', minHeight: mobile?440:560, display:'flex', alignItems:'flex-end', backgroundImage:`linear-gradient(to top, rgba(20,16,12,.72), rgba(20,16,12,.15)), url('${cms('kitchen.hero.image', heroImg)}')`, backgroundSize:'cover', backgroundPosition:'center' }}>
         <div style={{ ...wrap, paddingBottom: mobile?32:54, color:'#fff' }}>
@@ -71,8 +71,8 @@ function KitchenPage({ setPage, products }) {
           <h1 className="display" style={{ fontSize: mobile?34:60, lineHeight:1.05, maxWidth:760, margin:0 }}>{cms('kitchen.hero.title', t('kitchenHeroTitle'))}</h1>
           <p style={{ fontSize: mobile?15:19, maxWidth:540, marginTop:14, opacity:.92, lineHeight:1.55 }}>{cms('kitchen.hero.subtitle', t('kitchenHeroSub'))}</p>
           <div style={{ display:'flex', gap:12, marginTop:24, flexWrap:'wrap' }}>
-            <button type="button" className="btn-clay" onClick={()=>setPage('kitchen-planner')} style={{ borderRadius:14 }}>{cms('kitchen.hero.cta', t('openDesignStudio'))}</button>
-            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.12)', color:'#fff', border:'1px solid rgba(255,255,255,.45)', borderRadius:14, padding:'15px 28px', fontSize:16, fontWeight:600, cursor:'pointer', backdropFilter:'blur(6px)' }}>{t('bookFreeVisit')}</button>
+            <button type="button" className="btn-clay" onClick={()=>setPage('kitchen-planner')} style={{ borderRadius:'var(--radius-lg)' }}>{cms('kitchen.hero.cta', t('openDesignStudio'))}</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.12)', color:'#fff', border:'1px solid rgba(255,255,255,.45)', borderRadius:'var(--radius-lg)', padding:'15px 28px', fontSize:16, fontWeight:600, cursor:'pointer', backdropFilter:'blur(6px)' }}>{t('bookFreeVisit')}</button>
           </div>
         </div>
       </section>
@@ -84,7 +84,7 @@ function KitchenPage({ setPage, products }) {
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:560, marginBottom:22 }}>{t('sw2KpStylesSub')}</p>
         <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(3,1fr)', gap:16 }}>
           {K_CAB_STYLES.map(s=>(
-            <button key={s.id} type="button" className="lift" onClick={()=>setPage('kitchen-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+            <button key={s.id} type="button" className="lift" onClick={()=>setPage('kitchen-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', overflow:'hidden', background:'var(--c-surface)', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
               <div style={{ height: mobile?110:150, background:s.g }} />
               <div style={{ padding:'14px 16px' }}>
                 <div style={{ fontSize:17, fontWeight:600, color:'var(--ink)' }}>{trOpt(s.name, lang)}</div>
@@ -102,14 +102,14 @@ function KitchenPage({ setPage, products }) {
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>{t('sw2KpFitRoom')}</h2>
         <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
           {kLayouts.map(l=>(
-            <div key={l.id} className="lift zoomwrap" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, overflow:'hidden', textAlign:'center' }}>
+            <div key={l.id} className="lift zoomwrap" style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-lg)', overflow:'hidden', textAlign:'center' }}>
               <img src={l.img} alt={trOpt(l.name, lang)} loading="lazy" style={{ display:'block', width:'100%', height: mobile?110:130, objectFit:'cover' }} />
               <div style={{ padding:'14px 12px 16px' }}>
                 <div style={{ fontSize:14, fontWeight:600, color:'var(--ink)' }}>{trOpt(l.name, lang)}</div>
                 <div style={{ fontSize:11.5, color:'var(--muted)', marginTop:4, lineHeight:1.4 }}>{trOpt(l.sub, lang)}</div>
                 {Array.isArray(l.bullets) && l.bullets.length>0 && (
                   <div style={{ display:'flex', flexWrap:'wrap', gap:5, justifyContent:'center', marginTop:8 }}>
-                    {l.bullets.slice(0,3).map(b=>(<span key={b} style={{ fontSize:10.5, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'3px 8px' }}>{b}</span>))}
+                    {l.bullets.slice(0,3).map(b=>(<span key={b} style={{ fontSize:10.5, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:'var(--radius-pill)', padding:'3px 8px' }}>{b}</span>))}
                   </div>
                 )}
               </div>
@@ -125,7 +125,7 @@ function KitchenPage({ setPage, products }) {
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:560, marginBottom:22 }}>{t('sw2KpWorktopsSub')}</p>
         <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:14 }}>
           {K_WORKTOPS.map(w=>(
-            <div key={w.id} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'18px 20px' }}>
+            <div key={w.id} className="lift" style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-lg)', padding:'18px 20px' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
                 <span style={{ fontSize:17, fontWeight:600, color:'var(--ink)' }}>{w.name}</span>
                 <span style={{ fontSize:14, fontWeight:700, color:'var(--clay)' }}>{fmt(w.perM)}/m</span>
@@ -133,7 +133,7 @@ function KitchenPage({ setPage, products }) {
               <p style={{ fontSize:13, color:'var(--ink-soft)', margin:'8px 0', lineHeight:1.55 }}>{w.desc}</p>
               <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
                 {[w.thick, 'Heat '+w.heat, 'Scratch '+w.scratch, w.warranty+' warranty', w.lead].map(t=>(
-                  <span key={t} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{t}</span>
+                  <span key={t} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:'var(--radius-pill)', padding:'4px 10px' }}>{t}</span>
                 ))}
               </div>
             </div>
@@ -149,7 +149,7 @@ function KitchenPage({ setPage, products }) {
             [t('sw2KpF2'),t('sw2KpF2Desc'),'M4 7h16v10H4z M8 12h8'],
             [t('sw2OneTeam'),t('sw2KpF3Desc'),'M12 2a5 5 0 015 5c0 3-5 9-5 9S7 10 7 7a5 5 0 015-5z'],
           ].map(([ti,d,ic])=>(
-            <div key={ti} className="lift" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+            <div key={ti} className="lift" style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', padding:'22px 22px' }}>
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5" style={{ marginBottom:12 }}><path d={ic} /></svg>
               <div style={{ fontSize:18, fontWeight:600, color:'var(--ink)' }}>{ti}</div>
               <p style={{ fontSize:14, color:'var(--ink-soft)', marginTop:6, lineHeight:1.55 }}>{d}</p>
@@ -165,7 +165,7 @@ function KitchenPage({ setPage, products }) {
           <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>{t('sw2KpPopular')}</h2>
           <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:18 }}>
             {kitchenProducts.map(p=>(
-              <button key={p.id} type="button" className="lift" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'#fff', border:'1px solid var(--line)', borderRadius:18, overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
+              <button key={p.id} type="button" className="lift" onClick={()=>setPage('product-'+p.id)} style={{ textAlign:'left', background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', overflow:'hidden', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
                 <div style={{ height:160, background: p.image_url?`url('${p.image_url}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }} />
                 <div style={{ padding:'14px 16px' }}>
                   <div style={{ fontSize:16, fontWeight:600, color:'var(--ink)' }}>{p.name}</div>
@@ -179,16 +179,16 @@ function KitchenPage({ setPage, products }) {
 
       {/* BEFORE / AFTER */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div style={{ background:'var(--ink)', borderRadius:22, padding: mobile?'28px 22px':'44px 48px', color:'#fff', display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:28, alignItems:'center' }}>
+        <div style={{ background:'var(--ink)', borderRadius:'var(--radius-xl)', padding: mobile?'28px 22px':'44px 48px', color:'#fff', display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:28, alignItems:'center' }}>
           <div>
             <div style={{ fontSize:12, letterSpacing:'.16em', textTransform:'uppercase', opacity:.7, marginBottom:10 }}>{t('sw2Transformations')}</div>
             <h2 className="display" style={{ fontSize: mobile?26:36, margin:'0 0 12px' }}>{t('sw2KpTiredTimeless')}</h2>
             <p style={{ fontSize:15, opacity:.85, lineHeight:1.6, marginBottom:20 }}>{t('sw2KpTransDesc')}</p>
-            <button type="button" className="btn-clay" onClick={()=>setPage('projects')} style={{ borderRadius:14 }}>{t('sw2SeeProjects')}</button>
+            <button type="button" className="btn-clay" onClick={()=>setPage('projects')} style={{ borderRadius:'var(--radius-lg)' }}>{t('sw2SeeProjects')}</button>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-            <div style={{ height: mobile?120:170, borderRadius:14, background:`url('${HOME_IMG.kitchen}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:999, padding:'3px 10px' }}>{t('sw2After')}</span></div>
-            <div style={{ height: mobile?120:170, borderRadius:14, background:`url('${HOME_IMG.living}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:999, padding:'3px 10px' }}>{t('sw2Detail')}</span></div>
+            <div style={{ height: mobile?120:170, borderRadius:'var(--radius-lg)', background:`url('${HOME_IMG.kitchen}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:'var(--radius-pill)', padding:'3px 10px' }}>{t('sw2After')}</span></div>
+            <div style={{ height: mobile?120:170, borderRadius:'var(--radius-lg)', background:`url('${HOME_IMG.living}') center/cover`, position:'relative' }}><span style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,.6)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:'var(--radius-pill)', padding:'3px 10px' }}>{t('sw2Detail')}</span></div>
           </div>
         </div>
       </section>
@@ -199,7 +199,7 @@ function KitchenPage({ setPage, products }) {
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px', textAlign:'center' }}>{t('sw2KpFaqTitle')}</h2>
         <div style={{ display:'grid', gap:10 }}>
           {FAQS.map(([q,a],i)=>{ const on=faq===i; return (
-            <div key={i} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:14, overflow:'hidden' }}>
+            <div key={i} style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-lg)', overflow:'hidden' }}>
               <button type="button" onClick={()=>setFaq(on?-1:i)} style={{ width:'100%', textAlign:'left', background:'none', border:'none', padding:'16px 18px', fontSize:15.5, fontWeight:600, color:'var(--ink)', cursor:'pointer', display:'flex', justifyContent:'space-between', gap:12 }}>
                 <span>{q}</span><span style={{ color:'var(--clay)', flexShrink:0 }}>{on?'–':'+'}</span>
               </button>
@@ -211,12 +211,12 @@ function KitchenPage({ setPage, products }) {
 
       {/* CTA */}
       <section style={{ ...wrap, marginTop: mobile?40:64 }}>
-        <div style={{ background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', borderRadius:22, padding: mobile?'32px 24px':'52px 48px', textAlign:'center', color:'#fff' }}>
+        <div style={{ background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', borderRadius:'var(--radius-xl)', padding: mobile?'32px 24px':'52px 48px', textAlign:'center', color:'#fff' }}>
           <h2 className="display" style={{ fontSize: mobile?28:42, margin:'0 0 10px' }}>{t('sw2KpDreamCta')}</h2>
           <p style={{ fontSize: mobile?15:18, opacity:.92, maxWidth:520, margin:'0 auto 22px' }}>{t('sw2KpDreamSub')}</p>
           <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-            <button type="button" onClick={()=>setPage('kitchen-planner')} style={{ background:'#fff', color:'var(--clay-deep)', border:'none', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:700, cursor:'pointer' }}>{t('sw2OpenDesignStudioArrow')}</button>
-            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:14, padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>{t('sw2BookFreeVisit')}</button>
+            <button type="button" onClick={()=>setPage('kitchen-planner')} style={{ background:'var(--c-surface)', color:'var(--clay-deep)', border:'none', borderRadius:'var(--radius-lg)', padding:'15px 30px', fontSize:16, fontWeight:700, cursor:'pointer' }}>{t('sw2OpenDesignStudioArrow')}</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'rgba(255,255,255,.15)', color:'#fff', border:'1px solid rgba(255,255,255,.5)', borderRadius:'var(--radius-lg)', padding:'15px 30px', fontSize:16, fontWeight:600, cursor:'pointer' }}>{t('sw2BookFreeVisit')}</button>
           </div>
         </div>
       </section>

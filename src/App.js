@@ -2120,11 +2120,11 @@ function Toasts() {
   const [list, setList] = useState([]);
   const mobile = useMobile();
   _toast = setList;
-  const c = { success: '#1a7a40', error: '#d93025', info: '#1d1d1f' };
+  const c = { success: 'var(--c-ok)', error: 'var(--c-err)', info: 'var(--shop-ink)' };
   return (
     <div role="status" aria-live="polite" style={{ position: 'fixed', bottom: mobile ? 90 : 28, left: mobile ? 16 : 'auto', right: mobile ? 16 : 28, zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 8 }}>
       {list.map(t => (
-        <div key={t.id} role={t.type === 'error' ? 'alert' : undefined} style={{ background: c[t.type], color: '#fff', padding: '13px 18px', borderRadius: 14, fontSize: 14, boxShadow: '0 4px 24px rgba(0,0,0,.18)', animation: 'toastIn .25s ease' }}>{t.msg}</div>
+        <div key={t.id} role={t.type === 'error' ? 'alert' : undefined} style={{ background: c[t.type], color: '#fff', padding: '13px 18px', borderRadius: 'var(--radius-lg)', fontSize: 14, boxShadow: '0 4px 24px rgba(0,0,0,.18)', animation: 'toastIn .25s ease' }}>{t.msg}</div>
       ))}
     </div>
   );
@@ -2207,7 +2207,7 @@ const CSS = `
   }
   /* Banner strip */
   .banner-strip {
-    background: linear-gradient(90deg, var(--shop-ink, #1d1d1f), #2d2d2f, #1d1d1f);
+    background: linear-gradient(90deg, var(--shop-ink), #2d2d2f, #1d1d1f);
     color: #fff; font-size: 13px; font-weight: 500;
     display: flex; align-items: center; justify-content: center;
     gap: 20px; padding: 10px 20px;
@@ -2310,7 +2310,7 @@ const CSS = `
   .yas-chip { border-radius:999px; padding:8px 15px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .18s; border-width:1.5px; border-style:solid; }
   .yas-spark { display:inline-block; animation:yasSpin 4s linear infinite; }
   @keyframes yasSpin { from { transform:rotate(0); } to { transform:rotate(360deg); } }
-  .yas-shimmer-box { position:relative; overflow:hidden; background:linear-gradient(100deg,var(--sand, #ebe4d8) 30%,#f5f1ea 50%,#ebe4d8 70%); background-size:200% 100%; animation:yasShimmer 1.4s ease-in-out infinite; border-radius:12px; }
+  .yas-shimmer-box { position:relative; overflow:hidden; background:linear-gradient(100deg,var(--sand) 30%,#f5f1ea 50%,#ebe4d8 70%); background-size:200% 100%; animation:yasShimmer 1.4s ease-in-out infinite; border-radius:12px; }
   @keyframes yasShimmer { from { background-position:200% 0; } to { background-position:-200% 0; } }
   .yas-cap { display:inline-flex; align-items:center; gap:7px; background:var(--sand); border:1px solid var(--line); color:var(--clay-deep); border-radius:999px; padding:9px 15px; font-size:13px; font-weight:600; }
   /* AI YAS sub-brand lockup */
@@ -2937,42 +2937,42 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
   return (
     <>
       <div aria-hidden="true" onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 1000, opacity: open ? 1 : 0, pointerEvents: open ? 'all' : 'none', transition: 'opacity .3s', backdropFilter: 'blur(4px)' }} />
-      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="cart-title" tabIndex={-1} inert={!open} aria-hidden={!open} style={mobile ? { outline: 'none', position: 'fixed', left: 0, right: 0, bottom: 0, background: '#fff', zIndex: 1001, transform: open ? 'translateY(0)' : 'translateY(100%)', transition: 'transform .4s cubic-bezier(.25,.46,.45,.94)', display: 'flex', flexDirection: 'column', maxHeight: '90svh', borderRadius: '24px 24px 0 0', paddingBottom: 'env(safe-area-inset-bottom)' }
-        : { outline: 'none', position: 'fixed', right: 0, top: 0, bottom: 0, width: 400, background: '#fff', zIndex: 1001, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform .35s cubic-bezier(.25,.46,.45,.94)', display: 'flex', flexDirection: 'column' }}>
-        {mobile && <div style={{ width: 36, height: 4, background: 'var(--shop-line, #e6e6e6)', borderRadius: 2, margin: '12px auto 0' }} />}
-        <div style={{ padding: mobile ? '16px 20px' : '22px 26px', borderBottom: '1px solid var(--shop-fill, #f5f5f7)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div id="cart-title" role="heading" aria-level={2} style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.02em' }}>{t('cart')} {cart.length > 0 && <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--shop-muted, #86868b)' }}>({cart.length})</span>}</div>
-          <button type="button" aria-label={t('closeCart')} className="hit44" onClick={() => setOpen(false)} style={{ background: 'var(--shop-fill, #f5f5f7)', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: 'var(--shop-muted, #86868b)', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="cart-title" tabIndex={-1} inert={!open} aria-hidden={!open} style={mobile ? { outline: 'none', position: 'fixed', left: 0, right: 0, bottom: 0, background: 'var(--c-surface)', zIndex: 1001, transform: open ? 'translateY(0)' : 'translateY(100%)', transition: 'transform .4s cubic-bezier(.25,.46,.45,.94)', display: 'flex', flexDirection: 'column', maxHeight: '90svh', borderRadius: '24px 24px 0 0', paddingBottom: 'env(safe-area-inset-bottom)' }
+        : { outline: 'none', position: 'fixed', right: 0, top: 0, bottom: 0, width: 400, background: 'var(--c-surface)', zIndex: 1001, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform .35s cubic-bezier(.25,.46,.45,.94)', display: 'flex', flexDirection: 'column' }}>
+        {mobile && <div style={{ width: 36, height: 4, background: 'var(--shop-line)', borderRadius: 'var(--radius-xs)', margin: '12px auto 0' }} />}
+        <div style={{ padding: mobile ? '16px 20px' : '22px 26px', borderBottom: '1px solid var(--shop-fill)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div id="cart-title" role="heading" aria-level={2} style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.02em' }}>{t('cart')} {cart.length > 0 && <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--shop-muted)' }}>({cart.length})</span>}</div>
+          <button type="button" aria-label={t('closeCart')} className="hit44" onClick={() => setOpen(false)} style={{ background: 'var(--shop-fill)', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: 'var(--shop-muted)', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: mobile ? '16px 20px' : '20px 26px', WebkitOverflowScrolling: 'touch' }}>
           {cart.length === 0
             ? <div style={{ textAlign: 'center', padding: '48px 0' }}>
                 <div style={{ fontSize: 48, opacity: .15, marginBottom: 12 }}>◻</div>
-                <div style={{ fontSize: 15, color: 'var(--shop-muted, #86868b)', marginBottom: 18 }}>{t('sw3CartEmpty')}</div>
+                <div style={{ fontSize: 15, color: 'var(--shop-muted)', marginBottom: 18 }}>{t('sw3CartEmpty')}</div>
                 {/* Same trap as Checkout: setOpen(false) runs navigate(-1), which would
                     cancel the navigation. Navigating away closes the drawer by itself. */}
-                <button type="button" className="btn-secondary" style={{ borderRadius: 980 }} onClick={() => setPage('products')}>{t('browseCollection')}</button>
+                <button type="button" className="btn-secondary" style={{ borderRadius: 'var(--radius-pill)' }} onClick={() => setPage('products')}>{t('browseCollection')}</button>
               </div>
             : cart.map((item, idx) => (
-                <div key={idx} style={{ display: 'flex', gap: 14, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid var(--shop-fill, #f5f5f7)' }}>
-                  <div style={{ width: 64, height: 64, borderRadius: 12, background: 'var(--shop-fill, #f5f5f7)', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div key={idx} style={{ display: 'flex', gap: 14, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid var(--shop-fill)' }}>
+                  <div style={{ width: 64, height: 64, borderRadius: 'var(--radius-md)', background: 'var(--shop-fill)', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {item.image_url ? <img src={item.image_url} alt={safeStr(item.name || item.product_name, 'Cart item')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 22, opacity: .3 }}>◻</span>}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--shop-ink, #1d1d1f)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{safeStr(item.name)}</div>
-                    <div style={{ fontSize: 12, color: 'var(--shop-muted, #86868b)', marginBottom: 4 }}>{safeStr(item.category)}</div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--shop-ink, #1d1d1f)' }}>{fmt(item.price)}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--shop-ink)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{safeStr(item.name)}</div>
+                    <div style={{ fontSize: 12, color: 'var(--shop-muted)', marginBottom: 4 }}>{safeStr(item.category)}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--shop-ink)' }}>{fmt(item.price)}</div>
                   </div>
-                  <button type="button" aria-label={(lang === 'ar' ? 'إزالة ' : 'Remove ') + safeStr(item.name, 'item')} className="hit44" onClick={() => setCart(c => c.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--shop-muted, #86868b)', padding: '4px', alignSelf: 'flex-start', fontSize: 16 }}>✕</button>
+                  <button type="button" aria-label={(lang === 'ar' ? 'إزالة ' : 'Remove ') + safeStr(item.name, 'item')} className="hit44" onClick={() => setCart(c => c.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--shop-muted)', padding: '4px', alignSelf: 'flex-start', fontSize: 16 }}>✕</button>
                 </div>
               ))
           }
         </div>
         {cart.length > 0 && (
-          <div style={{ padding: mobile ? '16px 20px 24px' : '18px 26px', borderTop: '1px solid var(--shop-fill, #f5f5f7)' }}>
+          <div style={{ padding: mobile ? '16px 20px 24px' : '18px 26px', borderTop: '1px solid var(--shop-fill)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
-              <span style={{ fontSize: 16, color: 'var(--shop-ink-2, #6e6e73)' }}>{t('total')}</span>
-              <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--shop-ink, #1d1d1f)' }}>{fmt(total)}</span>
+              <span style={{ fontSize: 16, color: 'var(--shop-ink-2)' }}>{t('total')}</span>
+              <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--shop-ink)' }}>{fmt(total)}</span>
             </div>
             {/* Do NOT call setOpen(false) here.
                 The cart drawer is backed by a history entry (?cart=1), so closing it
@@ -2982,8 +2982,8 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
 
                 Navigating away closes the cart on its own: cartOpen is derived from
                 ?cart=1, and that param is gone the moment we leave the page. */}
-            <button type="button" className="btn" style={{ width: '100%', borderRadius: 16 }} onClick={() => setPage('checkout')}>Checkout</button>
-            <div style={{ fontSize: 12, color: 'var(--shop-muted, #86868b)', textAlign: 'center', marginTop: 10 }}>{t('sw3FreeDelivery')}</div>
+            <button type="button" className="btn" style={{ width: '100%', borderRadius: 'var(--radius-lg)' }} onClick={() => setPage('checkout')}>Checkout</button>
+            <div style={{ fontSize: 12, color: 'var(--shop-muted)', textAlign: 'center', marginTop: 10 }}>{t('sw3FreeDelivery')}</div>
           </div>
         )}
       </div>
@@ -2993,8 +2993,8 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
 
 function Row({ k, v, sub }) {
   return (
-    <div style={{ display:'flex', justifyContent:'space-between', padding: sub?'4px 0 4px 10px':'8px 0', borderBottom: sub?'none':'1px solid var(--shop-line, #e6e6e6)' }}>
-      <span style={{ fontSize: sub?12:13, color: sub?'var(--shop-muted, #86868b)':'#1d1d1f' }}>{k}</span>
+    <div style={{ display:'flex', justifyContent:'space-between', padding: sub?'4px 0 4px 10px':'8px 0', borderBottom: sub?'none':'1px solid var(--shop-line)' }}>
+      <span style={{ fontSize: sub?12:13, color: sub?'var(--shop-muted)':'var(--shop-ink)' }}>{k}</span>
       <span style={{ fontSize: sub?12:13, fontWeight: sub?400:500 }}>{v}</span>
     </div>
   );
@@ -3067,13 +3067,13 @@ function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
   return (
     <>
       <div aria-hidden="true" onClick={onClose} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.4)', zIndex:2000, backdropFilter:'blur(8px)', animation:'fadeIn .2s ease' }} />
-      <ModalPanel labelledBy="auth-title" onClose={onClose} style={mobile ? { position:'fixed', left:0, right:0, bottom:0, background:'#fff', zIndex:2001, borderRadius:'24px 24px 0 0', padding:'28px 20px 36px', animation:'slideUp .3s ease', paddingBottom:'calc(36px + env(safe-area-inset-bottom))', maxHeight:'92svh', overflowY:'auto', WebkitOverflowScrolling:'touch' }
-        : { position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', width:'min(390px,95vw)', maxHeight:'90svh', overflowY:'auto', background:'#fff', borderRadius:24, padding:'44px 40px', zIndex:2001, animation:'fadeUp .3s ease', boxShadow:'0 24px 64px rgba(0,0,0,.15)' }}>
-        {mobile && <div style={{ width:36, height:4, background:'var(--shop-line, #e6e6e6)', borderRadius:2, margin:'-12px auto 20px' }} />}
+      <ModalPanel labelledBy="auth-title" onClose={onClose} style={mobile ? { position:'fixed', left:0, right:0, bottom:0, background:'var(--c-surface)', zIndex:2001, borderRadius:'24px 24px 0 0', padding:'28px 20px 36px', animation:'slideUp .3s ease', paddingBottom:'calc(36px + env(safe-area-inset-bottom))', maxHeight:'92svh', overflowY:'auto', WebkitOverflowScrolling:'touch' }
+        : { position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', width:'min(390px,95vw)', maxHeight:'90svh', overflowY:'auto', background:'var(--c-surface)', borderRadius:'var(--radius-xl)', padding:'44px 40px', zIndex:2001, animation:'fadeUp .3s ease', boxShadow:'0 24px 64px rgba(0,0,0,.15)' }}>
+        {mobile && <div style={{ width:36, height:4, background:'var(--shop-line)', borderRadius:'var(--radius-xs)', margin:'-12px auto 20px' }} />}
         <div style={{ textAlign:'center', marginBottom:28 }}>
-          <div style={{ width:48, height:48, borderRadius:14, background:'rgba(168,75,41,.12)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px', fontSize:22 }}>◼</div>
-          <h2 id="auth-title" style={{ fontSize:22, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', letterSpacing:'-.02em', marginBottom:5 }}>{mode==='reset'?t('w4AuthReset'):mode==='login'?t('w4AuthWelcome'):t('w4AuthCreate')}</h2>
-          <div style={{ fontSize:14, color:'var(--shop-muted, #86868b)' }}>{mode==='reset'?t('w4AuthResetSub'):mode==='login'?t('w4AuthLoginSub'):t('w4AuthRegisterSub')}</div>
+          <div style={{ width:48, height:48, borderRadius:'var(--radius-lg)', background:'rgba(168,75,41,.12)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px', fontSize:22 }}>◼</div>
+          <h2 id="auth-title" style={{ fontSize:22, fontWeight:700, color:'var(--shop-ink)', letterSpacing:'-.02em', marginBottom:5 }}>{mode==='reset'?t('w4AuthReset'):mode==='login'?t('w4AuthWelcome'):t('w4AuthCreate')}</h2>
+          <div style={{ fontSize:14, color:'var(--shop-muted)' }}>{mode==='reset'?t('w4AuthResetSub'):mode==='login'?t('w4AuthLoginSub'):t('w4AuthRegisterSub')}</div>
         </div>
         {mode!=='reset' && (<form noValidate onSubmit={e=>{ e.preventDefault(); submit(); }} style={{ display:'flex', flexDirection:'column', gap:12 }}>
           {mode==='register'&&<Field id="auth-name" className="inp" label={t('w4AuthFullName')} required error={errs.name} placeholder={t('w4AuthFullName')} autoComplete="name" maxLength={120} value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} />}
@@ -3083,15 +3083,15 @@ function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
           {mode==='register' && <Honeypot value={hp} onChange={setHp} />}
           {mode==='register' && <FormNotice kind="request" lang={lang} />}
           <div aria-live="polite" role="status">{formErr && <div className="form-banner form-banner--err" role="alert">{formErr}</div>}</div>
-          <button type="submit" className="btn" disabled={loading} aria-busy={loading} style={{ borderRadius:14, opacity:loading?.7:1 }}>{loading?t('w4AuthPleaseWait'):mode==='login'?t('w4AuthSignIn'):t('w4AuthCreateBtn')}</button>
+          <button type="submit" className="btn" disabled={loading} aria-busy={loading} style={{ borderRadius:'var(--radius-lg)', opacity:loading?.7:1 }}>{loading?t('w4AuthPleaseWait'):mode==='login'?t('w4AuthSignIn'):t('w4AuthCreateBtn')}</button>
         </form>)}
         {mode==='reset' && (<div style={{ display:'flex', flexDirection:'column', gap:12 }}>
           <input className="inp" placeholder={t("email")} aria-label={t("email")} type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} autoCapitalize="none" />
   {rstep==='request' && (<>
-            <button type="button" className="btn" onClick={()=>reqReset('email')} disabled={loading} style={{ borderRadius:14 }}>{t('w4AuthEmailLink')}</button>
-            <button type="button" onClick={()=>reqReset('otp')} disabled={loading} style={{ borderRadius:14, padding:'12px', background:'#fff', color:'var(--clay)', border:'1px solid var(--clay)', fontWeight:600, cursor:'pointer' }}>{t('w4AuthTextCode')}</button>
+            <button type="button" className="btn" onClick={()=>reqReset('email')} disabled={loading} style={{ borderRadius:'var(--radius-lg)' }}>{t('w4AuthEmailLink')}</button>
+            <button type="button" onClick={()=>reqReset('otp')} disabled={loading} style={{ borderRadius:'var(--radius-lg)', padding:'12px', background:'var(--c-surface)', color:'var(--clay)', border:'1px solid var(--clay)', fontWeight:600, cursor:'pointer' }}>{t('w4AuthTextCode')}</button>
           </>)}
-          {rstep==='emailsent' && (<div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', textAlign:'center' }}>{t('w4AuthCheckEmail')}</div>)}
+          {rstep==='emailsent' && (<div style={{ fontSize:13, color:'var(--shop-muted)', textAlign:'center' }}>{t('w4AuthCheckEmail')}</div>)}
           {rstep==='otp' && (<>
             <input className="inp" placeholder={t('w4AuthCode6')} aria-label={t('w4AuthCode6')} inputMode="numeric" value={rotp} onChange={e=>setRotp(e.target.value)} />
             <input className="inp" placeholder={t('w4AuthNewPassword')} aria-label={t('w4AuthNewPassword')} type="password" value={rnew} onChange={e=>setRnew(e.target.value)} />
@@ -3101,21 +3101,21 @@ function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
               const label=met>=4?'Strong':met===3?'Good':met===2?'Fair':'Weak';
               const color=met>=4?'#22c55e':met===3?'#84cc16':met===2?'#f59e0b':'#ef4444';
               const R=[['case','Lowercase & uppercase letters'],['number','At least one number (0–9)'],['special','One special character (!@#$%^&*)'],['length','At least 8 characters']];
-              return (<div style={{ marginTop:8, padding:'10px 12px', borderRadius:12, background:'rgba(0,0,0,.04)', border:'1px solid rgba(0,0,0,.08)' }}>
+              return (<div style={{ marginTop:8, padding:'10px 12px', borderRadius:'var(--radius-md)', background:'rgba(0,0,0,.04)', border:'1px solid rgba(0,0,0,.08)' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:12, marginBottom:6 }}><span style={{ color:'#6b7280' }}>Password strength</span><span style={{ fontWeight:700, color }}>{label}</span></div>
-                <div style={{ height:6, borderRadius:6, background:'#e5e7eb', overflow:'hidden', marginBottom:8 }}><div style={{ height:'100%', width:(met*25)+'%', background:color, transition:'width .2s' }}/></div>
+                <div style={{ height:6, borderRadius:'var(--radius-sm)', background:'#e5e7eb', overflow:'hidden', marginBottom:8 }}><div style={{ height:'100%', width:(met*25)+'%', background:color, transition:'width .2s' }}/></div>
                 {R.map(([k,l])=>(<div key={k} style={{ display:'flex', alignItems:'center', gap:8, fontSize:12.5, marginTop:4 }}><span style={{ width:18, height:18, borderRadius:'50%', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, background:c[k]?'#22c55e':'#e5e7eb', color:c[k]?'#fff':'#9ca3af' }}>{c[k]?'✓':''}</span><span style={{ color:c[k]?'#111827':'#6b7280' }}>{l}</span></div>))}
               </div>);
             })()}
-            <button type="button" className="btn" onClick={doResetOtp} disabled={loading} style={{ borderRadius:14 }}>{t('w4AuthSetNew')}</button>
+            <button type="button" className="btn" onClick={doResetOtp} disabled={loading} style={{ borderRadius:'var(--radius-lg)' }}>{t('w4AuthSetNew')}</button>
           </>)}
         </div>)}
         <div style={{ textAlign:'center', marginTop:16, display:'flex', flexDirection:'column', gap:8 }}>
           {mode!=='reset' && <button type="button" onClick={()=>setMode(mode==='login'?'register':'login')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:14, color:'var(--clay)', fontWeight:500 }}>{mode==='login'?t('w4AuthRegisterLink'):t('w4AuthLoginLink')}</button>}
-          {mode==='login' && <button type="button" onClick={()=>{ setRstep('request'); setMode('reset'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--shop-muted, #86868b)', fontWeight:500 }}>{t('w4AuthForgot')}</button>}
-          {mode==='reset' && <button type="button" onClick={()=>{ setMode('login'); setRstep('request'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--shop-muted, #86868b)', fontWeight:500 }}>{t('w4AuthBackToSignIn')}</button>}
+          {mode==='login' && <button type="button" onClick={()=>{ setRstep('request'); setMode('reset'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--shop-muted)', fontWeight:500 }}>{t('w4AuthForgot')}</button>}
+          {mode==='reset' && <button type="button" onClick={()=>{ setMode('login'); setRstep('request'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--shop-muted)', fontWeight:500 }}>{t('w4AuthBackToSignIn')}</button>}
         </div>
-        {!mobile && <button type="button" aria-label={lang==='ar' ? 'إغلاق' : 'Close'} className="hit44" onClick={onClose} style={{ position:'absolute', top:14, right:16, background:'var(--shop-fill, #f5f5f7)', border:'none', borderRadius:'50%', width:30, height:30, cursor:'pointer', color:'var(--shop-muted, #86868b)', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>}
+        {!mobile && <button type="button" aria-label={lang==='ar' ? 'إغلاق' : 'Close'} className="hit44" onClick={onClose} style={{ position:'absolute', top:14, right:16, background:'var(--shop-fill)', border:'none', borderRadius:'50%', width:30, height:30, cursor:'pointer', color:'var(--shop-muted)', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>}
       </ModalPanel>
     </>
   );
@@ -3128,22 +3128,22 @@ function HomeAIOffers({ setPage, mobile, P }) {
   useEffect(() => { api('store_offers?active=eq.true&order=sort_order.asc&limit=3').then(d => { if (Array.isArray(d)) setOffers(sanitizeRows(d)); }).catch(()=>{}); }, []);
   return (<>
     <section style={{ padding:`0 ${P}`, maxWidth:1200, margin:'28px auto 0' }}>
-      <div className="reveal" style={{ background:'linear-gradient(135deg,var(--shop-ink, #1d1d1f),#3a3530)', borderRadius:20, padding: mobile?24:36, color:'#fff', display:'flex', flexWrap:'wrap', gap:16, alignItems:'center', justifyContent:'space-between' }}>
+      <div className="reveal" style={{ background:'linear-gradient(135deg,var(--shop-ink),#3a3530)', borderRadius:'var(--radius-xl)', padding: mobile?24:36, color:'#fff', display:'flex', flexWrap:'wrap', gap:16, alignItems:'center', justifyContent:'space-between' }}>
         <div style={{ maxWidth:580 }}>
           <div style={{ fontSize:12, letterSpacing:'.15em', textTransform:'uppercase', color:'#F9A35C' }}>{t('sw3AiOffersBadge')}</div>
           <div style={{ fontSize: mobile?22:30, fontWeight:700, margin:'8px 0', lineHeight:1.15 }}>{t('sw3AiOffersTitle')}</div>
           <div style={{ fontSize:14, color:'#c9c7c3' }}>{t('sw3AiOffersSub')}</div>
         </div>
-        <button type="button" onClick={()=>setPage('ai')} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:980, padding:'13px 26px', fontSize:15, fontWeight:600, cursor:'pointer' }}>{t('sw3AiOffersTry')}</button>
+        <button type="button" onClick={()=>setPage('ai')} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:'var(--radius-pill)', padding:'13px 26px', fontSize:15, fontWeight:600, cursor:'pointer' }}>{t('sw3AiOffersTry')}</button>
       </div>
     </section>
     {offers.length>0 && (
       <section style={{ padding:`28px ${P} 0`, maxWidth:1200, margin:'0 auto' }}>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(3,1fr)', gap:12 }}>
-          {offers.map(o=>(<button type="button" key={o.id} onClick={()=>setPage('offers')} className="reveal" style={{ textAlign:'left', background:'var(--sand)', border:'1px solid var(--clay)22', borderRadius:16, padding:'16px 18px', cursor:'pointer' }}>
+          {offers.map(o=>(<button type="button" key={o.id} onClick={()=>setPage('offers')} className="reveal" style={{ textAlign:'left', background:'var(--sand)', border:'1px solid var(--clay)22', borderRadius:'var(--radius-lg)', padding:'16px 18px', cursor:'pointer' }}>
             {o.badge && <span style={{ fontSize:11, fontWeight:700, color:'var(--clay)' }}>{o.badge}</span>}
-            <div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginTop:4 }}>{o.title}</div>
-            <div style={{ fontSize:13, color:'var(--shop-muted, #86868b)', marginTop:3 }}>{o.subtitle}</div>
+            <div style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink)', marginTop:4 }}>{o.title}</div>
+            <div style={{ fontSize:13, color:'var(--shop-muted)', marginTop:3 }}>{o.subtitle}</div>
           </button>))}
         </div>
       </section>
@@ -3431,19 +3431,19 @@ function ChatWidget({ setPage }) {
       <Icon name={open ? 'close' : 'chat'} />
     </button>
     {open && (
-      <div role="dialog" aria-label={t('swChatTitle')} onKeyDown={e=>{ if (e.key==='Escape') { e.stopPropagation(); setOpen(false); if (btnRef.current) btnRef.current.focus(); } }} style={{ position:'fixed', right: mobile?10:24, bottom: mobile?150:92, zIndex:1400, width: mobile?'calc(100vw - 20px)':380, maxWidth:'calc(100vw - 20px)', height:520, maxHeight:'70vh', background:'#fff', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,.22)', border:'1px solid #ececec', display:'flex', flexDirection:'column', overflow:'hidden' }}>
-        <div style={{ background:'var(--shop-ink, #1d1d1f)', color:'#fff', padding:'14px 18px' }}>
+      <div role="dialog" aria-label={t('swChatTitle')} onKeyDown={e=>{ if (e.key==='Escape') { e.stopPropagation(); setOpen(false); if (btnRef.current) btnRef.current.focus(); } }} style={{ position:'fixed', right: mobile?10:24, bottom: mobile?150:92, zIndex:1400, width: mobile?'calc(100vw - 20px)':380, maxWidth:'calc(100vw - 20px)', height:520, maxHeight:'70vh', background:'var(--c-surface)', borderRadius:'var(--radius-xl)', boxShadow:'0 20px 60px rgba(0,0,0,.22)', border:'1px solid #ececec', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+        <div style={{ background:'var(--shop-ink)', color:'#fff', padding:'14px 18px' }}>
           <div style={{ fontWeight:600, fontSize:15, display:'flex', alignItems:'center', gap:8 }}><Spark size={16} color="#F9A35C" /> {t('swChatTitle')}</div>
           <div style={{ fontSize:12, color:'#bdbdbd', marginTop:2 }}>{t('swChatSubtitle')}</div>
           <AiNotice style={{ color:'#bdbdbd', marginTop:4, fontSize:11.5 }} />
         </div>
         <div ref={listRef} role="log" aria-live="polite" style={{ flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:10, background:'#fafafa' }}>
-          {msgs.map((m,i)=>(<div key={i} style={{ alignSelf: m.role==='user'?'flex-end':'flex-start', maxWidth:'85%', background: m.role==='user'?'var(--clay)':'#fff', color: m.role==='user'?'#fff':'var(--shop-ink, #1d1d1f)', border: m.role==='user'?'none':'1px solid #ececec', borderRadius:14, padding:'10px 13px', fontSize:14, lineHeight:1.5, whiteSpace:'pre-wrap' }}>{m.content}</div>))}
-          {busy && <div style={{ alignSelf:'flex-start', color:'#aaa', fontSize:13, padding:'4px 6px' }}>{t('swChatTyping')}</div>}
-          {msgs.length<=1 && <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>{chips.map(c=>(<button key={c.key} type="button" onClick={()=>{ if(c.key==='book'){ setOpen(false); setPage('booking'); } else send(c.label); }} style={{ fontSize:12, border:'1px solid #e0e0e0', borderRadius:16, padding:'6px 12px', background:'#fff', cursor:'pointer', color:'var(--shop-ink, #1d1d1f)' }}>{c.label}</button>))}</div>}
+          {msgs.map((m,i)=>(<div key={i} style={{ alignSelf: m.role==='user'?'flex-end':'flex-start', maxWidth:'85%', background: m.role==='user'?'var(--clay)':'#fff', color: m.role==='user'?'#fff':'var(--shop-ink)', border: m.role==='user'?'none':'1px solid #ececec', borderRadius:'var(--radius-lg)', padding:'10px 13px', fontSize:14, lineHeight:1.5, whiteSpace:'pre-wrap' }}>{m.content}</div>))}
+          {busy && <div style={{ alignSelf:'flex-start', color:'var(--c-text-3)', fontSize:13, padding:'4px 6px' }}>{t('swChatTyping')}</div>}
+          {msgs.length<=1 && <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>{chips.map(c=>(<button key={c.key} type="button" onClick={()=>{ if(c.key==='book'){ setOpen(false); setPage('booking'); } else send(c.label); }} style={{ fontSize:12, border:'1px solid #e0e0e0', borderRadius:'var(--radius-lg)', padding:'6px 12px', background:'var(--c-surface)', cursor:'pointer', color:'var(--shop-ink)' }}>{c.label}</button>))}</div>}
         </div>
         <div style={{ display:'flex', gap:8, padding:'12px', borderTop:'1px solid #ececec' }}>
-          <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter') send(); }} aria-label={t('swChatPlaceholder')} placeholder={t('swChatPlaceholder')} style={{ flex:1, border:'1px solid #e0e0e0', borderRadius:980, padding:'10px 16px', fontSize:14, outline:'none' }} />
+          <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter') send(); }} aria-label={t('swChatPlaceholder')} placeholder={t('swChatPlaceholder')} style={{ flex:1, border:'1px solid #e0e0e0', borderRadius:'var(--radius-pill)', padding:'10px 16px', fontSize:14, outline:'none' }} />
           <button type="button" onClick={()=>send()} disabled={busy||!input.trim()} style={{ background:'var(--clay)', color:'#fff', border:'none', borderRadius:'50%', width:40, height:40, cursor:'pointer', flexShrink:0, opacity:(busy||!input.trim())?0.5:1 }}><SendIcon size={18} color="#fff" /></button>
         </div>
       </div>
@@ -3464,7 +3464,7 @@ class PageBoundary extends Component {
       <div style={{ minHeight:'60vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'120px 24px', textAlign:'center' }}>
         <div style={{ fontSize:18, fontWeight:700, color:'var(--ink)', marginBottom:8 }}>{tr('swErrTitle')}</div>
         <div style={{ fontSize:14, color:'var(--ink-soft)', maxWidth:420, marginBottom:18 }}>{tr('swErrBody')}</div>
-        <button type="button" className="btn-clay" onClick={()=>this.setState({ err:null })} style={{ borderRadius:12 }}>{tr('swErrTryAgain')}</button>
+        <button type="button" className="btn-clay" onClick={()=>this.setState({ err:null })} style={{ borderRadius:'var(--radius-md)' }}>{tr('swErrTryAgain')}</button>
         <div style={{ marginTop:14, fontSize:11, color:'var(--muted)', maxWidth:520, wordBreak:'break-word' }}>{String((this.state.err&&(this.state.err.message||this.state.err))||'').slice(0,200)}</div>
       </div>
     );
@@ -3716,24 +3716,24 @@ function PlannerLoginGate({ openAuth, setPage, lang }) {
     <div style={{ minHeight:'70vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'60px 20px' }}>
       <div style={{ maxWidth:560, textAlign:'center' }}>
         <div style={{ fontSize:52, marginBottom:18 }}>🧩</div>
-        <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(28px,4vw,42px)', lineHeight:1.15, margin:'0 0 14px', color:'var(--ink,#1a1a1a)' }}>
+        <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(28px,4vw,42px)', lineHeight:1.15, margin:'0 0 14px', color:'var(--ink)' }}>
           {g('title')}
         </h1>
-        <p style={{ fontSize:16, lineHeight:1.7, color:'var(--muted,#6b6b6b)', margin:'0 0 12px' }}>{g('body')}</p>
-        <p style={{ fontSize:14, lineHeight:1.7, color:'var(--muted,#8a8a8a)', margin:'0 0 30px' }}>{g('why')}</p>
+        <p style={{ fontSize:16, lineHeight:1.7, color:'var(--muted)', margin:'0 0 12px' }}>{g('body')}</p>
+        <p style={{ fontSize:14, lineHeight:1.7, color:'var(--muted)', margin:'0 0 30px' }}>{g('why')}</p>
         <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
           <button type="button" className="btn-clay" onClick={() => openAuth('register')}
             style={{ fontSize:16, padding:'15px 30px' }}>
             {g('create')}
           </button>
           <button type="button" onClick={() => openAuth('login')}
-            style={{ background:'#fff', border:'1px solid var(--line,#e2e2e2)', borderRadius:980, padding:'15px 30px',
-                     fontSize:16, fontWeight:500, color:'var(--ink,#1a1a1a)', cursor:'pointer' }}>
+            style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-pill)', padding:'15px 30px',
+                     fontSize:16, fontWeight:500, color:'var(--ink)', cursor:'pointer' }}>
             {g('signIn')}
           </button>
         </div>
         <button type="button" onClick={() => setPage('home')}
-          style={{ marginTop:26, background:'none', border:'none', color:'var(--muted,#8a8a8a)',
+          style={{ marginTop:26, background:'none', border:'none', color:'var(--muted)',
                    fontSize:14, cursor:'pointer', textDecoration:'underline' }}>
           {g('back')}
         </button>
@@ -3945,7 +3945,7 @@ function AppInner() {
       {page==='home' && <HomePage user={user} banners={banners} siteLogo={siteLogo} products={products} testimonials={testimonials} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
       {page==='products' && <ProductsPage products={products} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
       {productId && <ProductDetailPage productId={productId} products={products} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
-      {page==='portal' && (user ? <HomeHub user={user} setUser={setUser} setPage={setPage} /> : <div style={{ paddingTop:120, textAlign:'center', padding:'120px 24px' }}><button type="button" className="btn" onClick={()=>openAuth('login')} style={{ borderRadius:14 }}>{I18N.signInHub[lang]||I18N.signInHub.en}</button></div>)}
+      {page==='portal' && (user ? <HomeHub user={user} setUser={setUser} setPage={setPage} /> : <div style={{ paddingTop:120, textAlign:'center', padding:'120px 24px' }}><button type="button" className="btn" onClick={()=>openAuth('login')} style={{ borderRadius:'var(--radius-lg)' }}>{I18N.signInHub[lang]||I18N.signInHub.en}</button></div>)}
       {page==='checkout' && <CheckoutPage cart={cart} setCart={setCart} user={user} setPage={setPage} />}
       {page==='about' && <AboutPage setPage={setPage} />}
       {page==='how-it-works' && <PlannerGuidePage setPage={setPage} />}

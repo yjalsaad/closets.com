@@ -56,7 +56,7 @@ function YasModal({ title, subtitle, onClose, children }) {
             <h3 className="display" style={{ fontSize: 24, color: 'var(--ink)' }}>{title}</h3>
             {subtitle && <div style={{ fontSize: 13.5, color: 'var(--muted)', marginTop: 4 }}>{subtitle}</div>}
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" className="hit44" style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '50%', width: 38, height: 38, fontSize: 20, cursor: 'pointer', color: 'var(--ink-soft)', flexShrink: 0 }}>×</button>
+          <button type="button" onClick={onClose} aria-label="Close" className="hit44" style={{ background: 'var(--c-surface)', border: '1px solid var(--line)', borderRadius: '50%', width: 38, height: 38, fontSize: 20, cursor: 'pointer', color: 'var(--ink-soft)', flexShrink: 0 }}>×</button>
         </div>
         <div style={{ padding: '20px 24px 26px' }}>{children}</div>
       </ModalPanel>
@@ -72,9 +72,9 @@ function YasNote({ children }) {
 // ── Reusable concept-result card (shared by hero + Text-to-Design tool) ──
 function YasConceptCard({ concept, setPage }) {
   const { t } = useI18n();
-  const chip = (val, i) => <span key={i} style={{ background: 'var(--sand)', color: 'var(--clay-deep)', borderRadius: 999, padding: '6px 12px', fontSize: 13, fontWeight: 500 }}>{val}</span>;
+  const chip = (val, i) => <span key={i} style={{ background: 'var(--sand)', color: 'var(--clay-deep)', borderRadius: 'var(--radius-pill)', padding: '6px 12px', fontSize: 13, fontWeight: 500 }}>{val}</span>;
   return (
-    <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 18, padding: 22, marginTop: 16 }}>
+    <div style={{ background: 'var(--c-surface)', border: '1px solid var(--line)', borderRadius: 'var(--radius-xl)', padding: 22, marginTop: 16 }}>
       <div className="eyebrow">AI concept</div>
       <h3 className="display" style={{ fontSize: 24, color: 'var(--ink)', margin: '6px 0 4px' }}>{concept.title}</h3>
       <div style={{ fontSize: 13, color: 'var(--muted)' }}>{concept.product} · {concept.layout} · {concept.finish_id} finish · {concept.width_cm}×{concept.height_cm}cm</div>
@@ -95,7 +95,7 @@ function YasConceptCard({ concept, setPage }) {
         <><h4 style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink)', marginTop: 18, marginBottom: 8, letterSpacing: '.06em' }}>PACKAGES (indicative)</h4>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 10 }}>
             {concept.packages.map((p, i) => (
-              <div key={p.tier} style={{ border: '1px solid ' + (i === 1 ? 'var(--clay)' : 'var(--line)'), background: i === 1 ? 'var(--sand)' : '#fff', borderRadius: 12, padding: '12px 14px' }}>
+              <div key={p.tier} style={{ border: '1px solid ' + (i === 1 ? 'var(--clay)' : 'var(--line)'), background: i === 1 ? 'var(--sand)' : '#fff', borderRadius: 'var(--radius-md)', padding: '12px 14px' }}>
                 <div style={{ fontSize: 12.5, fontWeight: 700, color: i === 1 ? 'var(--clay-deep)' : 'var(--ink)' }}>{p.tier}{i === 1 ? ' · recommended' : ''}</div>
                 <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--ink)', marginTop: 3 }}>{formatBHDRange(p.price_from || 0, p.price_to || 0, CMS_LANG)}</div>
                 <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, lineHeight: 1.4 }}>{p.includes}</div>
@@ -104,8 +104,8 @@ function YasConceptCard({ concept, setPage }) {
           </div></>
       )}
       <div style={{ display: 'flex', gap: 10, marginTop: 18, flexWrap: 'wrap' }}>
-        <button type="button" className="btn-clay" onClick={() => setPage('planner')} style={{ borderRadius: 999, padding: '11px 20px', fontSize: 14 }}>{t('sw3YasRefine3D')}</button>
-        <button type="button" onClick={() => setPage('booking')} style={{ background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 999, padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>{t('bookFreeVisit')}</button>
+        <button type="button" className="btn-clay" onClick={() => setPage('planner')} style={{ borderRadius: 'var(--radius-pill)', padding: '11px 20px', fontSize: 14 }}>{t('sw3YasRefine3D')}</button>
+        <button type="button" onClick={() => setPage('booking')} style={{ background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 'var(--radius-pill)', padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>{t('bookFreeVisit')}</button>
       </div>
       <YasNote />
     </div>
@@ -165,7 +165,7 @@ function YasTextToDesign({ initialPrompt, initialProduct, setPage }) {
         <button type="button" className="btn-clay" disabled={busy} onClick={run} style={{ opacity: busy ? .6 : 1 }}>{busy ? 'Designing…' : '✨ Generate concept'}</button>
       </div>
       {busy && <div className="yas-shimmer-box" style={{ height: 120, marginTop: 16 }} />}
-      {warm && concept && <div style={{ fontSize: 12.5, color: 'var(--clay-deep)', marginTop: 14, background: 'var(--sand)', padding: '9px 12px', borderRadius: 10 }}>{t('sw3YasWarming')} <button type="button" onClick={() => setPage('booking')} style={{ background: 'none', border: 'none', color: 'var(--clay-deep)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>{t('bookFreeDesignConsult')}</button> {t('sw3YasForTailored')}</div>}
+      {warm && concept && <div style={{ fontSize: 12.5, color: 'var(--clay-deep)', marginTop: 14, background: 'var(--sand)', padding: '9px 12px', borderRadius: 'var(--radius-md)' }}>{t('sw3YasWarming')} <button type="button" onClick={() => setPage('booking')} style={{ background: 'none', border: 'none', color: 'var(--clay-deep)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>{t('bookFreeDesignConsult')}</button> {t('sw3YasForTailored')}</div>}
       {concept && <YasConceptCard concept={concept} setPage={setPage} />}
     </div>
   );
@@ -192,8 +192,8 @@ function YasRoomRedesign({ setPage }) {
   return (
     <div>
       <AiNotice style={{ margin: '0 0 8px' }} />
-      <label style={{ display: 'flex', alignItems: 'center', gap: 12, border: '1.5px dashed var(--line)', background: '#fff', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', marginBottom: 14 }}>
-        {image ? <img src={image.dataUrl} alt="your room" style={{ width: 64, height: 48, objectFit: 'cover', borderRadius: 9 }} /> : <Spark size={24} color="var(--clay)" />}
+      <label style={{ display: 'flex', alignItems: 'center', gap: 12, border: '1.5px dashed var(--line)', background: 'var(--c-surface)', borderRadius: 'var(--radius-lg)', padding: '14px 16px', cursor: 'pointer', marginBottom: 14 }}>
+        {image ? <img src={image.dataUrl} alt="your room" style={{ width: 64, height: 48, objectFit: 'cover', borderRadius: 'var(--radius-sm)' }} /> : <Spark size={24} color="var(--clay)" />}
         <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)' }}>{image ? 'Photo added — tap to change' : 'Upload a photo of your room'}</span>
         <input type="file" accept="image/*" onChange={e => yasReadImage(e.target.files && e.target.files[0], img => { if (img) { setImage(img); setUrl(null); setErr(''); } })} style={{ display: 'none' }} />
       </label>
@@ -204,20 +204,20 @@ function YasRoomRedesign({ setPage }) {
       </div>
       <button type="button" className="btn-clay" disabled={busy} onClick={() => run()} style={{ opacity: busy ? .6 : 1 }}>{busy ? 'Redesigning…' : '✨ Redesign my room'}</button>
       {busy && <div className="yas-shimmer-box" style={{ height: 240, marginTop: 16 }} />}
-      {!busy && err && <div style={{ marginTop: 16, padding: '16px', background: 'var(--sand)', borderRadius: 12, color: 'var(--clay-deep)', fontSize: 14 }}>{err}</div>}
+      {!busy && err && <div style={{ marginTop: 16, padding: '16px', background: 'var(--sand)', borderRadius: 'var(--radius-md)', color: 'var(--clay-deep)', fontSize: 14 }}>{err}</div>}
       {!busy && url && image && (
         <div style={{ marginTop: 16 }}>
-          <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', aspectRatio: '4 / 3', background: '#000' }}>
+          <div style={{ position: 'relative', borderRadius: 'var(--radius-lg)', overflow: 'hidden', aspectRatio: '4 / 3', background: '#000' }}>
             <img src={url} alt="After — AI redesign" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
             <img src={image.dataUrl} alt="Before — your room" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', clipPath: 'inset(0 ' + (100 - pos) + '% 0 0)' }} />
-            <div style={{ position: 'absolute', top: 0, bottom: 0, left: pos + '%', width: 2, background: '#fff', boxShadow: '0 0 8px rgba(0,0,0,.4)' }} />
-            <span style={{ position: 'absolute', top: 10, left: 10, background: 'rgba(20,16,12,.7)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 99 }}>BEFORE</span>
-            <span style={{ position: 'absolute', top: 10, right: 10, background: 'var(--clay)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 99 }}>AFTER ✦</span>
+            <div style={{ position: 'absolute', top: 0, bottom: 0, left: pos + '%', width: 2, background: 'var(--c-surface)', boxShadow: '0 0 8px rgba(0,0,0,.4)' }} />
+            <span style={{ position: 'absolute', top: 10, left: 10, background: 'rgba(20,16,12,.7)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 'var(--radius-pill)' }}>BEFORE</span>
+            <span style={{ position: 'absolute', top: 10, right: 10, background: 'var(--clay)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 'var(--radius-pill)' }}>AFTER ✦</span>
             <input type="range" min={0} max={100} value={pos} onChange={e => setPos(Number(e.target.value))} aria-label="Compare before and after" style={{ position: 'absolute', left: '6%', right: '6%', bottom: 12, width: '88%', accentColor: 'var(--clay)' }} />
           </div>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12 }}>
-            <a href={url} download="closets-ai-redesign.jpg" target="_blank" rel="noreferrer" style={{ padding: '8px 14px', borderRadius: 99, background: 'var(--ink)', color: '#fff', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>Download</a>
-            <button type="button" onClick={() => setPage('booking')} className="btn-clay" style={{ padding: '8px 14px', borderRadius: 99, fontSize: 13 }}>Make it real →</button>
+            <a href={url} download="closets-ai-redesign.jpg" target="_blank" rel="noreferrer" style={{ padding: '8px 14px', borderRadius: 'var(--radius-pill)', background: 'var(--ink)', color: '#fff', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>Download</a>
+            <button type="button" onClick={() => setPage('booking')} className="btn-clay" style={{ padding: '8px 14px', borderRadius: 'var(--radius-pill)', fontSize: 13 }}>Make it real →</button>
           </div>
           <YasNote />
         </div>
@@ -267,24 +267,24 @@ function YasStyleFinder({ setPage }) {
       <button type="button" className="btn-clay" disabled={busy} onClick={run} style={{ opacity: busy ? .6 : 1 }}>{busy ? 'Curating…' : '✨ Build my moodboard'}</button>
       {busy && <div className="yas-shimmer-box" style={{ height: 140, marginTop: 16 }} />}
       {board && (
-        <div style={{ marginTop: 18, background: '#fff', border: '1px solid var(--line)', borderRadius: 16, padding: 20 }}>
+        <div style={{ marginTop: 18, background: 'var(--c-surface)', border: '1px solid var(--line)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
           <div className="eyebrow">Your AI moodboard</div>
           <h3 className="display" style={{ fontSize: 22, color: 'var(--ink)', margin: '6px 0 12px' }}>{board.style}</h3>
           {board.summary && <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 14 }}>{board.summary}</p>}
-          <div style={{ display: 'flex', gap: 0, borderRadius: 12, overflow: 'hidden', marginBottom: 14 }}>
+          <div style={{ display: 'flex', gap: 0, borderRadius: 'var(--radius-md)', overflow: 'hidden', marginBottom: 14 }}>
             {board.colors.map(([name, hex], i) => (
               <div key={i} style={{ flex: 1, textAlign: 'center' }}>
                 <div style={{ height: 56, background: hex }} />
-                <div style={{ fontSize: 10.5, color: 'var(--muted)', padding: '5px 2px', background: '#fff' }}>{name}</div>
+                <div style={{ fontSize: 10.5, color: 'var(--muted)', padding: '5px 2px', background: 'var(--c-surface)' }}>{name}</div>
               </div>
             ))}
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {board.materials.map((m, i) => <span key={i} style={{ background: 'var(--sand)', color: 'var(--clay-deep)', borderRadius: 999, padding: '6px 12px', fontSize: 13, fontWeight: 500 }}>{m}</span>)}
+            {board.materials.map((m, i) => <span key={i} style={{ background: 'var(--sand)', color: 'var(--clay-deep)', borderRadius: 'var(--radius-pill)', padding: '6px 12px', fontSize: 13, fontWeight: 500 }}>{m}</span>)}
           </div>
           <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
-            <button type="button" className="btn-clay" onClick={() => setPage('planner')} style={{ borderRadius: 999, padding: '10px 18px', fontSize: 13.5 }}>{t('sw3YasUse3D')}</button>
-            <button type="button" onClick={() => setPage('booking')} style={{ background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 999, padding: '10px 18px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>{t('bookFreeVisit')}</button>
+            <button type="button" className="btn-clay" onClick={() => setPage('planner')} style={{ borderRadius: 'var(--radius-pill)', padding: '10px 18px', fontSize: 13.5 }}>{t('sw3YasUse3D')}</button>
+            <button type="button" onClick={() => setPage('booking')} style={{ background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 'var(--radius-pill)', padding: '10px 18px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>{t('bookFreeVisit')}</button>
           </div>
           <YasNote />
         </div>
@@ -350,7 +350,7 @@ function YasProductPicks({ setPage }) {
       {items && items.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12, marginTop: 16 }}>
           {items.map((it, i) => (
-            <button type="button" key={it.id || i} onClick={() => it.id && setPage('product-' + it.id)} style={{ textAlign: 'left', background: '#fff', border: '1px solid var(--line)', borderRadius: 14, padding: 14, cursor: 'pointer' }}>
+            <button type="button" key={it.id || i} onClick={() => it.id && setPage('product-' + it.id)} style={{ textAlign: 'left', background: 'var(--c-surface)', border: '1px solid var(--line)', borderRadius: 'var(--radius-lg)', padding: 14, cursor: 'pointer' }}>
               <div style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.25 }}>{it.name}</div>
               <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 3 }}>{it.category}{it.price ? ' · ' + formatBHD(it.price, CMS_LANG, { whole:true }) : ''}</div>
               {it.reason && <div style={{ fontSize: 12, color: 'var(--clay-deep)', marginTop: 8, fontStyle: 'italic' }}>{it.reason}</div>}
@@ -359,7 +359,7 @@ function YasProductPicks({ setPage }) {
         </div>
       )}
       {items && items.length === 0 && warm && (
-        <div style={{ marginTop: 16, padding: 16, background: 'var(--sand)', borderRadius: 12, color: 'var(--clay-deep)', fontSize: 14 }}>{t('sw3YasRecWarming')} <button type="button" onClick={() => setPage('products')} style={{ background: 'none', border: 'none', color: 'var(--clay-deep)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>{t('sw3YasBrowseAll')}</button>.</div>
+        <div style={{ marginTop: 16, padding: 16, background: 'var(--sand)', borderRadius: 'var(--radius-md)', color: 'var(--clay-deep)', fontSize: 14 }}>{t('sw3YasRecWarming')} <button type="button" onClick={() => setPage('products')} style={{ background: 'none', border: 'none', color: 'var(--clay-deep)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>{t('sw3YasBrowseAll')}</button>.</div>
       )}
     </div>
   );
@@ -384,11 +384,11 @@ function YasChat() {
   };
   return (
     <div>
-      <div ref={endRef} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 16, padding: 16, height: 320, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div ref={endRef} style={{ background: 'var(--c-surface)', border: '1px solid var(--line)', borderRadius: 'var(--radius-lg)', padding: 16, height: 320, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {msgs.map((m, i) => (
-          <div key={i} style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '82%', background: m.role === 'user' ? 'var(--clay)' : 'var(--sand)', color: m.role === 'user' ? '#fff' : 'var(--ink)', padding: '10px 14px', borderRadius: 14, fontSize: 14, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{m.content}</div>
+          <div key={i} style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '82%', background: m.role === 'user' ? 'var(--clay)' : 'var(--sand)', color: m.role === 'user' ? '#fff' : 'var(--ink)', padding: '10px 14px', borderRadius: 'var(--radius-lg)', fontSize: 14, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{m.content}</div>
         ))}
-        {busy && <div style={{ alignSelf: 'flex-start', background: 'var(--sand)', padding: '12px 16px', borderRadius: 14 }}><span className="yas-typing"><span /><span /><span /></span></div>}
+        {busy && <div style={{ alignSelf: 'flex-start', background: 'var(--sand)', padding: '12px 16px', borderRadius: 'var(--radius-lg)' }}><span className="yas-typing"><span /><span /><span /></span></div>}
       </div>
       <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
         <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') send(); }} className="inp" placeholder="Ask YAS anything…" />
@@ -444,7 +444,7 @@ function AiYasPage({ setPage }) {
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--cream)' }}>
       {/* ── HERO ── */}
-      <section className="yas-hero" style={{ paddingTop: mobile ? 96 : 130, paddingBottom: mobile ? 56 : 84 }}>
+      <section className="yas-hero" style={{ paddingTop:'var(--page-top)', paddingBottom: mobile ? 56 : 84 }}>
         <div className="yas-aurora" />
         <div className="yas-gridlines" />
         <div className="yas-noise" />
@@ -479,7 +479,7 @@ function AiYasPage({ setPage }) {
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
                 {YAS_PRODUCTS.filter(p => p.id).map(p => <YasChip key={p.id} active={heroProduct === p.id} onClick={() => setHeroProduct(heroProduct === p.id ? '' : p.id)}>{p.label}</YasChip>)}
               </div>
-              <button type="button" className="btn-clay" onClick={launchHero} style={{ borderRadius: 14, padding: '12px 22px', fontSize: 15, flexShrink: 0 }}>{t('yasGenerate')}</button>
+              <button type="button" className="btn-clay" onClick={launchHero} style={{ borderRadius: 'var(--radius-lg)', padding: '12px 22px', fontSize: 15, flexShrink: 0 }}>{t('yasGenerate')}</button>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 18, justifyContent: 'center', marginTop: 26, flexWrap: 'wrap', fontSize: 13, color: 'var(--muted)' }}>
@@ -489,7 +489,7 @@ function AiYasPage({ setPage }) {
       </section>
 
       {/* ── AI TOOLS GRID ── */}
-      <section className="reveal" style={{ maxWidth: 1180, margin: '0 auto', padding: mobile ? '56px 22px' : '88px 32px' }}>
+      <section className="reveal" style={{ maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding: mobile ? '56px var(--gutter)' : '88px var(--gutter)' }}>
         <div className="rv" style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 44px' }}>
           <div className="eyebrow" style={{ marginBottom: 12 }}>{t('yasHubEyebrow')}</div>
           <h2 className="display" style={{ fontSize: mobile ? 32 : 46, color: 'var(--ink)' }}>{t('yasHubTitle')}</h2>
@@ -498,18 +498,18 @@ function AiYasPage({ setPage }) {
         <div className="reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(auto-fit,minmax(270px,1fr))', gap: 18 }}>
           {TOOLS.map((tool, i) => (
             <div key={tool.id} className="yas-glass yas-int rv lift" style={{ '--d': (i * 0.05) + 's', padding: 24, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ width: 50, height: 50, borderRadius: 14, background: 'linear-gradient(135deg,var(--sand),#fff)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: 'var(--clay)', marginBottom: 16 }}>{tool.icon}</div>
+              <div style={{ width: 50, height: 50, borderRadius: 'var(--radius-lg)', background: 'linear-gradient(135deg,var(--sand),#fff)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: 'var(--clay)', marginBottom: 16 }}>{tool.icon}</div>
               <h3 className="display" style={{ fontSize: 20, color: 'var(--ink)', marginBottom: 8 }}>{tool.title}</h3>
               <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55, flex: 1, marginBottom: 18 }}>{tool.value}</p>
-              <button type="button" onClick={() => tool.action ? tool.action() : setOpenTool(tool.id)} style={{ alignSelf: 'flex-start', background: 'var(--sand)', color: 'var(--clay-deep)', border: '1px solid var(--line)', borderRadius: 999, padding: '10px 18px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>{tool.cta} {arrow}</button>
+              <button type="button" onClick={() => tool.action ? tool.action() : setOpenTool(tool.id)} style={{ alignSelf: 'flex-start', background: 'var(--sand)', color: 'var(--clay-deep)', border: '1px solid var(--line)', borderRadius: 'var(--radius-pill)', padding: '10px 18px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>{tool.cta} {arrow}</button>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── HOW AI YAS WORKS ── */}
-      <section className="reveal" style={{ background: '#fff', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
-        <div style={{ maxWidth: 1180, margin: '0 auto', padding: mobile ? '56px 22px' : '88px 32px' }}>
+      <section className="reveal" style={{ background: 'var(--c-surface)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+        <div style={{ maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding: mobile ? '56px var(--gutter)' : '88px var(--gutter)' }}>
           <div className="rv" style={{ textAlign: 'center', marginBottom: 44 }}>
             <div className="eyebrow" style={{ marginBottom: 12 }}>{t('yasHowTitle')}</div>
             <h2 className="display" style={{ fontSize: mobile ? 32 : 46, color: 'var(--ink)' }}>{t('yasHowHeadline')}</h2>
@@ -517,7 +517,7 @@ function AiYasPage({ setPage }) {
           <div className="reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: 20 }}>
             {STEPS.map((s, i) => (
               <div key={s.n} className="rv" style={{ '--d': (i * 0.08) + 's' }}>
-                <div className="zoomwrap" style={{ position: 'relative', borderRadius: 18, overflow: 'hidden', aspectRatio: '4 / 3', marginBottom: 16 }}>
+                <div className="zoomwrap" style={{ position: 'relative', borderRadius: 'var(--radius-xl)', overflow: 'hidden', aspectRatio: '4 / 3', marginBottom: 16 }}>
                   <Photo src={s.img} alt={s.t} style={{ position: 'absolute', inset: 0 }} />
                   <div style={{ position: 'absolute', top: 14, left: 14, width: 44, height: 44, borderRadius: '50%', background: 'var(--clay)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 15, boxShadow: '0 8px 20px -8px rgba(176,97,59,.8)' }}>{s.n}</div>
                 </div>
@@ -532,18 +532,18 @@ function AiYasPage({ setPage }) {
       {/* ── CAPABILITIES STRIP ── */}
       <section className="reveal" style={{ background: 'var(--sand)', position: 'relative', overflow: 'hidden', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
         <div className="yas-aurora" style={{ opacity: .8 }} />
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 1100, margin: '0 auto', padding: mobile ? '50px 22px' : '70px 32px', textAlign: 'center' }}>
+        <div style={{ position: 'relative', zIndex: 1, maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding: mobile ? '50px var(--gutter)' : '70px var(--gutter)', textAlign: 'center' }}>
           <div className="eyebrow" style={{ marginBottom: 18 }}>{t('yasCapsTitle')}</div>
           <h2 className="display" style={{ fontSize: mobile ? 28 : 40, color: 'var(--ink)', marginBottom: 26 }}>{t('yasCapsHeadline')}</h2>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
-            {CAPS.map(c => <span key={c} className="yas-cap" style={{ background: '#fff' }}><Spark size={13} color="var(--clay)" /> {c}</span>)}
+            {CAPS.map(c => <span key={c} className="yas-cap" style={{ background: 'var(--c-surface)' }}><Spark size={13} color="var(--clay)" /> {c}</span>)}
           </div>
         </div>
       </section>
 
       {/* ── CTA BAND ── */}
-      <section className="reveal" style={{ maxWidth: 1180, margin: '0 auto', padding: mobile ? '56px 22px' : '88px 32px' }}>
-        <div className="rv" style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 28, padding: mobile ? '40px 26px' : '64px 56px', textAlign: 'center', position: 'relative', overflow: 'hidden', boxShadow: '0 30px 70px -40px rgba(33,28,24,.45)' }}>
+      <section className="reveal" style={{ maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding: mobile ? '56px var(--gutter)' : '88px var(--gutter)' }}>
+        <div className="rv" style={{ background: 'var(--c-surface)', border: '1px solid var(--line)', borderRadius: 'var(--radius-xl)', padding: mobile ? '40px 26px' : '64px 56px', textAlign: 'center', position: 'relative', overflow: 'hidden', boxShadow: '0 30px 70px -40px rgba(33,28,24,.45)' }}>
           <div className="yas-aurora" style={{ opacity: .9 }} />
           <div style={{ position: 'relative', zIndex: 1 }}>
             <div className="yas-cap" style={{ marginBottom: 18 }}><Spark size={14} color="var(--clay)" /> {t('yasByClosets')}</div>

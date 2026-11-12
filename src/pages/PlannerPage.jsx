@@ -644,29 +644,29 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
       + `<title>Quotation ${esc(quoteRef)} — The Closets</title>`
       + `<style>`
       + `*{box-sizing:border-box;margin:0;padding:0}`
-      + `body{font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;color:var(--ink, #1f1913);background:#f3f3f3;padding:28px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}`
+      + `body{font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;color:var(--ink);background:#f3f3f3;padding:28px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}`
       + `.sheet{max-width:820px;margin:0 auto;background:#ffffff;padding:48px 52px;box-shadow:0 6px 30px rgba(0,0,0,.12)}`
-      + `.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid var(--clay, #A84B29);padding-bottom:18px;margin-bottom:24px}`
-      + `.wordmark{font-size:24px;font-weight:800;letter-spacing:.02em;color:var(--ink, #1f1913)}`
-      + `.tag{font-size:12px;color:var(--muted, #8a7f72);margin-top:3px}`
+      + `.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid var(--clay);padding-bottom:18px;margin-bottom:24px}`
+      + `.wordmark{font-size:24px;font-weight:800;letter-spacing:.02em;color:var(--ink)}`
+      + `.tag{font-size:12px;color:var(--muted);margin-top:3px}`
       + `.qbox{text-align:right}`
-      + `.qbox .t{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted, #8a7f72)}`
-      + `.qbox .ref{font-size:16px;font-weight:800;color:var(--clay-deep, #89391E);margin-top:2px}`
-      + `.qbox .date{font-size:12px;color:var(--ink-soft, #4a423b);margin-top:2px}`
-      + `.prepared{font-size:13px;color:var(--ink-soft, #4a423b);margin-bottom:4px}`
-      + `.prepared b{color:var(--ink, #1f1913)}`
-      + `.spec{font-size:12.5px;color:var(--ink-soft, #4a423b);background:var(--cream, #f5f1ea);border:1px solid var(--line, #e2d9cc);border-radius:8px;padding:10px 14px;margin:14px 0 20px}`
-      + `.img{width:100%;border:1px solid var(--line, #e2d9cc);border-radius:8px;display:block;margin-bottom:22px}`
+      + `.qbox .t{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}`
+      + `.qbox .ref{font-size:16px;font-weight:800;color:var(--clay-deep);margin-top:2px}`
+      + `.qbox .date{font-size:12px;color:var(--ink-soft);margin-top:2px}`
+      + `.prepared{font-size:13px;color:var(--ink-soft);margin-bottom:4px}`
+      + `.prepared b{color:var(--ink)}`
+      + `.spec{font-size:12.5px;color:var(--ink-soft);background:var(--cream);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:14px 0 20px}`
+      + `.img{width:100%;border:1px solid var(--line);border-radius:8px;display:block;margin-bottom:22px}`
       + `table{width:100%;border-collapse:collapse;margin-bottom:6px}`
-      + `th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted, #8a7f72);border-bottom:2px solid var(--ink, #1f1913);padding:8px 0}`
+      + `th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--ink);padding:8px 0}`
       + `th.amt,td.amt{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}`
-      + `td{padding:9px 0;border-bottom:1px solid var(--line, #e2d9cc);font-size:13.5px;vertical-align:top}`
-      + `td.desc .sub{display:block;font-size:11px;color:var(--muted, #8a7f72);margin-top:2px}`
-      + `tr.sum td{border-bottom:none;padding:6px 0;color:var(--ink-soft, #4a423b);font-size:13px}`
-      + `tr.total td{border-top:2px solid var(--ink, #1f1913);padding-top:12px;font-size:17px;font-weight:800;color:var(--ink, #1f1913)}`
-      + `tr.total td.amt{color:var(--clay-deep, #89391E)}`
-      + `.foot{margin-top:28px;padding-top:16px;border-top:1px solid var(--line, #e2d9cc);font-size:11.5px;color:var(--muted, #8a7f72)}`
-      + `.foot .contact{color:var(--clay-deep, #89391E);font-weight:700;margin-top:6px}`
+      + `td{padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:top}`
+      + `td.desc .sub{display:block;font-size:11px;color:var(--muted);margin-top:2px}`
+      + `tr.sum td{border-bottom:none;padding:6px 0;color:var(--ink-soft);font-size:13px}`
+      + `tr.total td{border-top:2px solid var(--ink);padding-top:12px;font-size:17px;font-weight:800;color:var(--ink)}`
+      + `tr.total td.amt{color:var(--clay-deep)}`
+      + `.foot{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted)}`
+      + `.foot .contact{color:var(--clay-deep);font-weight:700;margin-top:6px}`
       + `@page{size:A4;margin:14mm}`
       + `@media print{body{background:#fff;padding:0}.sheet{box-shadow:none;max-width:none;padding:0}}`
       + `</style></head><body><div class="sheet">`
@@ -711,7 +711,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                   background: now?'var(--clay)':done?'var(--clay-deep)':'var(--sand)', color: (!now&&!done)?'var(--muted)':'#fff' }}>{done?'✓':i+1}</span>
                 <span style={{ fontWeight: now?700:500, color: now?'var(--ink)':done?'var(--ink-soft)':'var(--muted)' }}>{labels[k]}</span>
               </span>
-              {i<order.length-1 && <span style={{ width:18, height:2, background:'var(--line)', borderRadius:2 }} />}
+              {i<order.length-1 && <span style={{ width:18, height:2, background:'var(--line)', borderRadius:'var(--radius-xs)' }} />}
             </Fragment>
           );
         })}
@@ -720,13 +720,13 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   };
 
   if (!settings) return (
-    <div style={{ minHeight:'70vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'140px 24px', textAlign:'center', color:'var(--shop-muted, #86868b)' }}>
+    <div style={{ minHeight:'70vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'140px 24px', textAlign:'center', color:'var(--shop-muted)' }}>
       {loadError ? (<>
-        <div style={{ fontSize:17, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', marginBottom:8 }}>{t('sw3PlannerLoadErr')}</div>
+        <div style={{ fontSize:17, fontWeight:600, color:'var(--shop-ink)', marginBottom:8 }}>{t('sw3PlannerLoadErr')}</div>
         <div style={{ fontSize:14, marginBottom:20, maxWidth:360 }}>{t('sw3PlannerLoadErrSub')}</div>
         <div style={{ display:'flex', gap:10 }}>
-          <button type="button" className="btn" onClick={()=>{ setLoadError(false); setLoadAttempt(a=>a+1); }} style={{ borderRadius:14 }}>Try again</button>
-          <button type="button" className="btn-secondary" onClick={()=>setPage('contact')} style={{ borderRadius:14 }}>Contact us</button>
+          <button type="button" className="btn" onClick={()=>{ setLoadError(false); setLoadAttempt(a=>a+1); }} style={{ borderRadius:'var(--radius-lg)' }}>Try again</button>
+          <button type="button" className="btn-secondary" onClick={()=>setPage('contact')} style={{ borderRadius:'var(--radius-lg)' }}>Contact us</button>
         </div>
       </>) : <div>Loading planner…</div>}
     </div>
@@ -749,10 +749,10 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
             const pc = settings?.products?.[p.id];
             const ready = p.id === 'wardrobe' ? true : !!(pc && pc.enabled !== false && !pc.placeholder_prices);
             return (
-              <div key={p.id} className="lift" onClick={()=>setSelProduct({ id:p.id, name:p.name, ready })} style={{ cursor:'pointer', border: on?'2px solid var(--clay)':'1px solid var(--line)', borderRadius:16, background:'#fff', textAlign:'left', position:'relative', padding:'16px 16px 14px' }}>
+              <div key={p.id} className="lift" onClick={()=>setSelProduct({ id:p.id, name:p.name, ready })} style={{ cursor:'pointer', border: on?'2px solid var(--clay)':'1px solid var(--line)', borderRadius:'var(--radius-lg)', background:'var(--c-surface)', textAlign:'left', position:'relative', padding:'16px 16px 14px' }}>
                 {on && <span style={{ position:'absolute', top:12, right:12, width:22, height:22, borderRadius:'50%', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center' }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 6"/></svg></span>}
-                {!ready && !on && <span style={{ position:'absolute', top:12, right:12, fontSize:10, fontWeight:600, color:'var(--muted)', background:'var(--sand)', padding:'2px 8px', borderRadius:6 }}>{t('quoteOnly')}</span>}
-                <div style={{ width:42, height:42, borderRadius:11, background: on?'var(--clay)':'rgba(168,75,41,.1)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 }}>
+                {!ready && !on && <span style={{ position:'absolute', top:12, right:12, fontSize:10, fontWeight:600, color:'var(--muted)', background:'var(--sand)', padding:'2px 8px', borderRadius:'var(--radius-sm)' }}>{t('quoteOnly')}</span>}
+                <div style={{ width:42, height:42, borderRadius:'var(--radius-md)', background: on?'var(--clay)':'rgba(168,75,41,.1)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 }}>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={on?'#fff':'var(--clay)'} strokeWidth="1.6" aria-hidden="true"><path d={p.icon}/></svg>
                 </div>
                 <div className="display" style={{ fontSize:17, color:'var(--ink)' }}>{p.name}</div>
@@ -763,7 +763,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           })}
         </div>
         {selProduct && !selProduct.ready && (
-          <div style={{ maxWidth:520, margin:'24px auto 0', padding:'18px 22px', background:'#fff', border:'1px solid var(--line)', borderLeft:'3px solid var(--clay)', borderRadius:14, textAlign:'center' }}>
+          <div style={{ maxWidth:520, margin:'24px auto 0', padding:'18px 22px', background:'var(--c-surface)', border:'1px solid var(--line)', borderLeft:'3px solid var(--clay)', borderRadius:'var(--radius-lg)', textAlign:'center' }}>
             <div className="display" style={{ fontSize:18, color:'var(--ink)', marginBottom:6 }}>{selProduct.name} — request a quote</div>
             <div style={{ fontSize:14, color:'var(--ink-soft)', marginBottom:14 }}>Online design for {selProduct.name.toLowerCase()} is coming soon. Our team will design it with you.</div>
             <button type="button" className="btn-clay" onClick={()=>setPage('contact')}>{t('requestQuote')}</button>
@@ -785,10 +785,10 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   if (stage === 'ai') return (
     <div style={{ minHeight:'100dvh', background:'var(--cream)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'104px 24px 80px' }}>
       <div style={{ width:'100%', maxWidth:640 }}>{planSteps('ai')}</div>
-      <div style={{ maxWidth:580, width:'100%', background:'#fff', border:'1px solid var(--line)', borderRadius:22, padding: mobile?22:30 }}>
+      <div style={{ maxWidth:580, width:'100%', background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', padding: mobile?22:30 }}>
         {(() => { const pp = PLANNER_PRODUCTS.find(p=>p.id===(selProduct?.id||'wardrobe')); return (
-          <div style={{ display:'inline-flex', alignItems:'center', gap:10, padding:'7px 14px 7px 7px', background:'var(--sand)', border:'1px solid var(--line)', borderRadius:999, marginBottom:16 }}>
-            <span style={{ width:30, height:30, borderRadius:9, background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+          <div style={{ display:'inline-flex', alignItems:'center', gap:10, padding:'7px 14px 7px 7px', background:'var(--sand)', border:'1px solid var(--line)', borderRadius:'var(--radius-pill)', marginBottom:16 }}>
+            <span style={{ width:30, height:30, borderRadius:'var(--radius-sm)', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.6" aria-hidden="true"><path d={pp?.icon || ''}/></svg>
             </span>
             <span style={{ fontSize:13, color:'var(--ink-soft)' }}>{t('plDesigning')} <strong style={{ color:'var(--ink)' }}>{trMap(selProduct?.name || pp?.name || 'Wardrobe', PLANNER_PROD_KEY, lang)}</strong></span>
@@ -799,16 +799,16 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           <span className="display" style={{ fontSize:20, color:'var(--ink)' }}>{t('plDescribeSpace')}</span>
         </div>
         <p style={{ fontSize:14, color:'var(--ink-soft)', marginBottom:16, lineHeight:1.6 }}>{t('sw3PlannerTailored')}</p>
-        <textarea value={aiText} onChange={e=>setAiText(e.target.value)} aria-label={t('plDescribeSpace')} placeholder={t('plDescribePh')} rows={3} style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'var(--cream)', borderRadius:12, fontSize:15, fontFamily:'inherit', resize:'vertical', marginBottom:12 }} />
+        <textarea value={aiText} onChange={e=>setAiText(e.target.value)} aria-label={t('plDescribeSpace')} placeholder={t('plDescribePh')} rows={3} style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'var(--cream)', borderRadius:'var(--radius-md)', fontSize:15, fontFamily:'inherit', resize:'vertical', marginBottom:12 }} />
         <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:14 }}>
           {[['Small bedroom, sliding doors, white', t('plChipSmallBedroom')],['Walk-in, oak, lots of shoes', t('plChipWalkInOak')],['Modern L-shape kitchen, white, quartz', t('plChipLShapeKitchen')]].map(([val,label])=>(
-            <button key={val} type="button" onClick={()=>setAiText(val)} style={{ fontSize:12, border:'1px solid var(--line)', borderRadius:16, padding:'6px 13px', background:'var(--cream)', color:'var(--ink-soft)', cursor:'pointer' }}>{label}</button>
+            <button key={val} type="button" onClick={()=>setAiText(val)} style={{ fontSize:12, border:'1px solid var(--line)', borderRadius:'var(--radius-lg)', padding:'6px 13px', background:'var(--cream)', color:'var(--ink-soft)', cursor:'pointer' }}>{label}</button>
           ))}
         </div>
         {/* Room photo (vision) */}
-        <label style={{ display:'flex', alignItems:'center', gap:12, background:'var(--cream)', border:'1px dashed var(--line)', borderRadius:12, padding:'12px 14px', cursor:'pointer', marginBottom:16 }}>
+        <label style={{ display:'flex', alignItems:'center', gap:12, background:'var(--cream)', border:'1px dashed var(--line)', borderRadius:'var(--radius-md)', padding:'12px 14px', cursor:'pointer', marginBottom:16 }}>
           {aiImage
-            ? <img src={aiImage.dataUrl} alt="room" style={{ width:54, height:42, objectFit:'cover', borderRadius:8 }} />
+            ? <img src={aiImage.dataUrl} alt="room" style={{ width:54, height:42, objectFit:'cover', borderRadius:'var(--radius-sm)' }} />
             : <i className="ti ti-camera" style={{ fontSize:22, color:'var(--clay)' }} aria-hidden="true" />}
           <span style={{ fontSize:14, color:'var(--ink)', fontWeight:500 }}>{aiImage ? t('plPhotoAdded') : t('plAddPhoto')}</span>
           <input type="file" accept="image/*" onChange={e=>onAiPhoto(e.target.files?.[0])} style={{ display:'none' }} />
@@ -844,35 +844,35 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
           {/* ── OPTION B: visual hero (left) + on-screen quotation (right) ── */}
           <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1.25fr 1fr', gap:20, alignItems:'start' }}>
             {/* LEFT — branded design image / live 3D hero with a quotation chip overlaid */}
-            <div style={{ background:'var(--shop-fill, #f5f5f7)', borderRadius:20, position:'relative', minHeight: mobile?300:560, overflow:'hidden' }}>
+            <div style={{ background:'var(--shop-fill)', borderRadius:'var(--radius-xl)', position:'relative', minHeight: mobile?300:560, overflow:'hidden' }}>
               {(renderUrl || brandedImg)
                 ? <img src={renderUrl || brandedImg} alt="Your design" style={{ width:'100%', display:'block' }} />
                 : (quoteImg
                     ? <img src={quoteImg} alt="Your design" style={{ width:'100%', display:'block' }} />
                     : <Wardrobe3D apiRef={plannerApi} finishHex={finishHex} layout={layout} glass={hasGlass} handles={hasHandles} led={hasLed} mobile={mobile} tall product={prodKey} widthCm={sizeW} heightCm={dims.height} depthCm={dims.depth} sideACm={dims.sideA} sideBCm={dims.sideB} unit={unit} />)}
               {/* Quotation #ref · date chip (top-left so it clears the photoreal CTA top-right) */}
-              <div style={{ position:'absolute', top:12, left:12, zIndex:3, display:'inline-flex', alignItems:'center', gap:7, padding:'7px 12px', borderRadius:999, background:'rgba(33,28,24,.82)', color:'#fff', fontSize:11.5, fontWeight:600, letterSpacing:'.02em', backdropFilter:'blur(4px)' }}>
+              <div style={{ position:'absolute', top:12, left:12, zIndex:3, display:'inline-flex', alignItems:'center', gap:7, padding:'7px 12px', borderRadius:'var(--radius-pill)', background:'rgba(33,28,24,.82)', color:'#fff', fontSize:11.5, fontWeight:600, letterSpacing:'.02em', backdropFilter:'blur(4px)' }}>
                 <i className="ti ti-file-invoice" aria-hidden="true" /> #{quoteRef} · {brandDateStr()}
               </div>
               {/* Top-right so it never overlaps the 3D zoom controls (bottom-right) or the drag-to-rotate hint (bottom-left). */}
-              <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', top:12, right:12, zIndex:3, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,var(--clay, #A84B29),#89391E)', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(168,75,41,.4)' }}>
+              <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', top:12, right:12, zIndex:3, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:'var(--radius-md)', border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,var(--clay),#89391E)', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(168,75,41,.4)' }}>
                 <i className={rendering ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" />
                 {rendering ? 'Rendering…' : (renderUrl ? 'Regenerate' : 'Make it photorealistic')}
               </button>
               {(renderUrl || brandedImg || quoteImg) && (
-                <a href={renderUrl || brandedImg || quoteImg} download="closets-design.jpg" style={{ position:'absolute', bottom:12, right:12, zIndex:3, display:'inline-flex', alignItems:'center', gap:6, padding:'8px 13px', borderRadius:10, background:'rgba(33,28,24,.82)', color:'#fff', textDecoration:'none', fontSize:12, fontWeight:700, backdropFilter:'blur(4px)' }}>
+                <a href={renderUrl || brandedImg || quoteImg} download="closets-design.jpg" style={{ position:'absolute', bottom:12, right:12, zIndex:3, display:'inline-flex', alignItems:'center', gap:6, padding:'8px 13px', borderRadius:'var(--radius-md)', background:'rgba(33,28,24,.82)', color:'#fff', textDecoration:'none', fontSize:12, fontWeight:700, backdropFilter:'blur(4px)' }}>
                   <i className="ti ti-download" aria-hidden="true" /> Save image
                 </a>
               )}
               {isKitchen && (
-                <button type="button" onClick={()=>setRoomDesignerOpen(true)} style={{ position:'absolute', bottom:12, left:12, zIndex:3, display:'inline-flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor:'pointer', background:'rgba(255,255,255,.95)', color:'var(--clay-deep)', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(0,0,0,.18)' }}>
+                <button type="button" onClick={()=>setRoomDesignerOpen(true)} style={{ position:'absolute', bottom:12, left:12, zIndex:3, display:'inline-flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:'var(--radius-md)', border:'none', cursor:'pointer', background:'rgba(255,255,255,.95)', color:'var(--clay-deep)', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(0,0,0,.18)' }}>
                   {t('pOpenRoomDesigner')}
                 </button>
               )}
             </div>
             {/* RIGHT — on-screen quotation */}
             <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-              <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'20px 20px 18px' }}>
+              <div style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', padding:'20px 20px 18px' }}>
                 {/* Quote header: ref + date prominent */}
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:10, paddingBottom:14, borderBottom:'2px solid var(--ink)', marginBottom:14 }}>
                   <div>
@@ -894,7 +894,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                 ))}
               </div>
               {/* Itemized quotation */}
-              <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'16px 20px' }}>
+              <div style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', padding:'16px 20px' }}>
                 <div onClick={()=>setShowItemized(s=>!s)} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', cursor:'pointer' }}>
                   <span style={{ fontSize:15, fontWeight:700, color:'var(--ink)' }}>Itemized quotation</span>
                   <i className={`ti ti-chevron-${showItemized?'up':'down'}`} style={{ color:'var(--muted)' }} aria-hidden="true" />
@@ -927,14 +927,14 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                 )}
                 <div style={{ fontSize:10.5, color:'var(--muted)', marginTop:10 }}>{t('sw3PlannerIndic30')}</div>
               </div>
-              {quoteErr && <div role="alert" style={{ background:'#fdecea', border:'1px solid #f5c6c0', color:'#b3261e', borderRadius:12, padding:'10px 14px', fontSize:13 }}>{quoteErr}</div>}
+              {quoteErr && <div role="alert" style={{ background:'#fdecea', border:'1px solid #f5c6c0', color:'#b3261e', borderRadius:'var(--radius-md)', padding:'10px 14px', fontSize:13 }}>{quoteErr}</div>}
               {/* CTAs — primary (quote) + secondary (download PDF). Edit + PDF on one row, primary below. */}
               <div style={{ display:'flex', gap:8 }}>
-                <button type="button" className="btn-secondary" disabled={busy} onClick={()=>setStage('config')} style={{ flex:1, borderRadius:12, color:'var(--ink-soft)' }}>‹ Edit</button>
-                <button type="button" className="btn-secondary" onClick={downloadQuotePdf} style={{ flex:2, borderRadius:12, color:'var(--ink-soft)', display:'inline-flex', alignItems:'center', justifyContent:'center', gap:7 }}><i className="ti ti-download" aria-hidden="true" /> Download quotation (PDF)</button>
+                <button type="button" className="btn-secondary" disabled={busy} onClick={()=>setStage('config')} style={{ flex:1, borderRadius:'var(--radius-md)', color:'var(--ink-soft)' }}>‹ Edit</button>
+                <button type="button" className="btn-secondary" onClick={downloadQuotePdf} style={{ flex:2, borderRadius:'var(--radius-md)', color:'var(--ink-soft)', display:'inline-flex', alignItems:'center', justifyContent:'center', gap:7 }}><i className="ti ti-download" aria-hidden="true" /> Download quotation (PDF)</button>
               </div>
               {!mobile && (
-                <button type="button" className="btn-clay" disabled={busy} onClick={requestQuote} style={{ width:'100%', borderRadius:12 }}>{busy?t('pSending'):(user?t('pGetMyQuoteArrow'):t('pgSignInQuoteArrow'))}</button>
+                <button type="button" className="btn-clay" disabled={busy} onClick={requestQuote} style={{ width:'100%', borderRadius:'var(--radius-md)' }}>{busy?t('pSending'):(user?t('pGetMyQuoteArrow'):t('pgSignInQuoteArrow'))}</button>
               )}
             </div>
           </div>
@@ -946,29 +946,29 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
               <div style={{ fontSize:10.5, color:'var(--ink-soft)' }}>Total</div>
               <div style={{ fontSize:18, fontWeight:800, color:'var(--clay)', fontVariantNumeric:'tabular-nums' }}>{fmt(lineData.total)}</div>
             </div>
-            <button type="button" className="btn-clay" disabled={busy} onClick={requestQuote} style={{ flex:1, borderRadius:12, minHeight:46 }}>{busy?t('pSending'):(user?t('pGetMyQuoteArrow'):t('pgSignInQuoteArrow'))}</button>
+            <button type="button" className="btn-clay" disabled={busy} onClick={requestQuote} style={{ flex:1, borderRadius:'var(--radius-md)', minHeight:46 }}>{busy?t('pSending'):(user?t('pGetMyQuoteArrow'):t('pgSignInQuoteArrow'))}</button>
           </div>
         )}
         {/* photoreal modal (shared) */}
         {(rendering || renderUrl || renderErr) && (
           <div onClick={()=>{ if(!rendering){ setRenderErr(''); } }} style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(15,18,22,.72)', display: renderErr?'flex':'none', alignItems:'center', justifyContent:'center', padding:20 }}>
-            {renderErr && !rendering && <div onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:18, maxWidth:420, padding:'24px', textAlign:'center', color:'#c0392b', fontSize:14 }}>{renderErr}<div style={{ marginTop:14 }}><button type="button" onClick={()=>setRenderErr('')} className="btn-secondary" style={{ borderRadius:12 }}>OK</button></div></div>}
+            {renderErr && !rendering && <div onClick={e=>e.stopPropagation()} style={{ background:'var(--c-surface)', borderRadius:'var(--radius-xl)', maxWidth:420, padding:'24px', textAlign:'center', color:'#c0392b', fontSize:14 }}>{renderErr}<div style={{ marginTop:14 }}><button type="button" onClick={()=>setRenderErr('')} className="btn-secondary" style={{ borderRadius:'var(--radius-md)' }}>OK</button></div></div>}
           </div>
         )}
         {rendering && (
           <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(15,18,22,.72)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
-            <div style={{ background:'#fff', borderRadius:18, padding:'40px 50px', textAlign:'center', color:'var(--shop-ink-2, #6e6e73)', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>{t('sw3PlannerRendering')}</div></div>
+            <div style={{ background:'var(--c-surface)', borderRadius:'var(--radius-xl)', padding:'40px 50px', textAlign:'center', color:'var(--shop-ink-2)', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>{t('sw3PlannerRendering')}</div></div>
           </div>
         )}
         {roomDesignerOverlay}
         {/* guest quote success → account invite */}
         {quoteSent && (
           <div style={{ position:'fixed', inset:0, zIndex:10000, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
-            <ModalPanel onClose={()=>{ setQuoteSent(false); setPage('home'); }} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:28, textAlign:'center' }}>
+            <ModalPanel onClose={()=>{ setQuoteSent(false); setPage('home'); }} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', maxWidth:440, width:'100%', padding:28, textAlign:'center' }}>
               <div style={{ width:54, height:54, borderRadius:'50%', background:'#1D9E7522', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px' }}><i className="ti ti-check" style={{ color:'#1D9E75', fontSize:28 }} aria-hidden="true" /></div>
               <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 8px' }}>Quote sent!</h3>
               <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 20px', lineHeight:1.6 }}>{t('sw3PlannerCreateAcct')}</p>
-              <button type="button" className="btn-clay" onClick={()=>{ const c = quoteSent; if (openAuth) openAuth('register', c && typeof c==='object' ? c : undefined); else setPage('portal'); }} style={{ width:'100%', borderRadius:12, marginBottom:10 }}>Create my account</button>
+              <button type="button" className="btn-clay" onClick={()=>{ const c = quoteSent; if (openAuth) openAuth('register', c && typeof c==='object' ? c : undefined); else setPage('portal'); }} style={{ width:'100%', borderRadius:'var(--radius-md)', marginBottom:10 }}>Create my account</button>
               <button type="button" onClick={()=>{ setQuoteSent(false); setPage('home'); }} style={{ background:'none', border:'none', fontSize:13.5, color:'var(--muted)', cursor:'pointer' }}>Maybe later</button>
             </ModalPanel>
           </div>
@@ -989,7 +989,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
 
         {isKitchen && (
           <div style={{ display:'flex', justifyContent:'center', marginBottom:14 }}>
-            <button type="button" onClick={()=>setRoomDesignerOpen(true)} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'9px 18px', borderRadius:999, border:'1px solid var(--clay)', cursor:'pointer', background:'var(--sand)', color:'var(--clay-deep)', fontSize:13.5, fontWeight:700 }}>
+            <button type="button" onClick={()=>setRoomDesignerOpen(true)} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'9px 18px', borderRadius:'var(--radius-pill)', border:'1px solid var(--clay)', cursor:'pointer', background:'var(--sand)', color:'var(--clay-deep)', fontSize:13.5, fontWeight:700 }}>
               🎨 Open Room Designer
             </button>
           </div>
@@ -997,14 +997,14 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
 
         {(() => {
           // toolbar pill styles (literal hex / tokens only)
-          const seg = (active) => ({ padding:'6px 11px', fontSize:12, fontWeight:600, cursor:'pointer', border:'none', background: active?'var(--clay)':'transparent', color: active?'#fff':'var(--ink-soft)', borderRadius:8 });
-          const segWrap = { display:'flex', gap:2, background:'rgba(255,255,255,.92)', border:'1px solid var(--line)', borderRadius:10, padding:3, boxShadow:'0 1px 3px rgba(0,0,0,.08)' };
+          const seg = (active) => ({ padding:'6px 11px', fontSize:12, fontWeight:600, cursor:'pointer', border:'none', background: active?'var(--clay)':'transparent', color: active?'#fff':'var(--ink-soft)', borderRadius:'var(--radius-sm)' });
+          const segWrap = { display:'flex', gap:2, background:'rgba(255,255,255,.92)', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:3, boxShadow:'0 1px 3px rgba(0,0,0,.08)' };
           return (<>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':(railCollapsed?'1fr 0px':'1.9fr 1fr'), gap: railCollapsed?0:20, alignItems:'stretch', transition:'grid-template-columns .35s ease, gap .35s ease' }}>
           {/* BIG 3D STAGE */}
-          <div style={{ background:'var(--shop-fill, #f5f5f7)', borderRadius:20, minHeight: mobile?'46vh':(railCollapsed?720:640), height: mobile?'46vh':undefined, position: mobile?'sticky':'relative', top: mobile?64:undefined, zIndex: mobile?5:undefined, overflow:'hidden' }}>
+          <div style={{ background:'var(--shop-fill)', borderRadius:'var(--radius-xl)', minHeight: mobile?'46vh':(railCollapsed?720:640), height: mobile?'46vh':undefined, position: mobile?'sticky':'relative', top: mobile?64:undefined, zIndex: mobile?5:undefined, overflow:'hidden' }}>
             <Wardrobe3D apiRef={plannerApi} finishHex={finishHex} layout={layout} glass={hasGlass} handles={hasHandles} led={hasLed} mobile={mobile} tall product={prodKey} widthCm={sizeW} heightCm={dims.height} depthCm={dims.depth} sideACm={dims.sideA} sideBCm={dims.sideB} unit={unit} preset={camPreset} scaleMode={scaleMode} />
-            {aiSummary && <div style={{ position:'absolute', top:54, left:12, right:12, fontSize:12, background:'var(--sand)', color:'var(--clay-deep)', padding:'8px 12px', borderRadius:12 }}><Spark size={12} color="var(--clay-deep)" style={{ verticalAlign:'-1px' }} /> {aiSummary}</div>}
+            {aiSummary && <div style={{ position:'absolute', top:54, left:12, right:12, fontSize:12, background:'var(--sand)', color:'var(--clay-deep)', padding:'8px 12px', borderRadius:'var(--radius-md)' }}><Spark size={12} color="var(--clay-deep)" style={{ verticalAlign:'-1px' }} /> {aiSummary}</div>}
             {/* 3D TOOLBAR — units · presets · true-scale · expand rail */}
             <div style={{ position:'absolute', top:12, left:12, right:12, display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
               <div style={segWrap} role="group" aria-label="Units">
@@ -1021,16 +1021,16 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                 <button type="button" style={seg(scaleMode==='true')} onClick={()=>setScaleMode('true')}>True scale</button>
               </div>
               {!mobile && (
-                <button type="button" aria-label={railCollapsed?'Show options':'Expand 3D'} onClick={()=>setRailCollapsed(c=>!c)} style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:6, padding:'6px 12px', fontSize:12, fontWeight:600, cursor:'pointer', border:'1px solid var(--line)', background:'rgba(255,255,255,.92)', color:'var(--ink-soft)', borderRadius:10, boxShadow:'0 1px 3px rgba(0,0,0,.08)' }}>
+                <button type="button" aria-label={railCollapsed?'Show options':'Expand 3D'} onClick={()=>setRailCollapsed(c=>!c)} style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:6, padding:'6px 12px', fontSize:12, fontWeight:600, cursor:'pointer', border:'1px solid var(--line)', background:'rgba(255,255,255,.92)', color:'var(--ink-soft)', borderRadius:'var(--radius-md)', boxShadow:'0 1px 3px rgba(0,0,0,.08)' }}>
                   <i className={`ti ti-${railCollapsed?'layout-sidebar-right-expand':'arrows-maximize'}`} aria-hidden="true" /> {railCollapsed?'Show options':'Expand 3D'}
                 </button>
               )}
             </div>
-            <div style={{ position:'absolute', bottom:12, left:12, display:'flex', gap:6, alignItems:'center', fontSize:12, color:'var(--shop-ink-2, #6e6e73)', background:'rgba(255,255,255,.85)', padding:'5px 10px', borderRadius:10 }}>
+            <div style={{ position:'absolute', bottom:12, left:12, display:'flex', gap:6, alignItems:'center', fontSize:12, color:'var(--shop-ink-2)', background:'rgba(255,255,255,.85)', padding:'5px 10px', borderRadius:'var(--radius-md)' }}>
               <i className="ti ti-ruler-2" aria-hidden="true" />
               {(() => { const cv = (cm)=> unit==='in' ? (Math.round((cm/2.54)*10)/10)+' in' : cm+' cm'; return (supportsSideAB&&layout==='l-shape') ? `${cv(dims.sideA)} + ${cv(dims.sideB)} × ${cv(dims.height)} × ${cv(dims.depth)}` : `${cv(dims.width)} × ${cv(dims.height)} × ${cv(dims.depth)}`; })()}
             </div>
-            <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', bottom:12, right:12, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:12, border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(168,75,41,.4)' }}>
+            <button type="button" onClick={doPhotoreal} disabled={rendering} style={{ position:'absolute', bottom:12, right:12, display:'flex', alignItems:'center', gap:7, padding:'9px 14px', borderRadius:'var(--radius-md)', border:'none', cursor: rendering?'wait':'pointer', background:'linear-gradient(135deg,var(--clay),var(--clay-deep))', color:'#fff', fontSize:13, fontWeight:700, boxShadow:'0 4px 14px rgba(168,75,41,.4)' }}>
               <i className={rendering ? 'ti ti-loader-2' : 'ti ti-sparkles'} aria-hidden="true" />
               {rendering ? 'Rendering…' : 'Make it photorealistic'}
             </button>
@@ -1038,21 +1038,21 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
 
           {(rendering || renderUrl || renderErr) && (
             <div onClick={()=>{ if(!rendering){ setRenderUrl(null); setRenderErr(''); } }} style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(15,18,22,.72)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
-              <ModalPanel onClose={()=>{ if(!rendering){ setRenderUrl(null); setRenderErr(''); } }} onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:18, maxWidth:880, width:'100%', maxHeight:'90vh', overflow:'auto', boxShadow:'0 20px 60px rgba(0,0,0,.4)' }}>
+              <ModalPanel onClose={()=>{ if(!rendering){ setRenderUrl(null); setRenderErr(''); } }} onClick={e=>e.stopPropagation()} style={{ background:'var(--c-surface)', borderRadius:'var(--radius-xl)', maxWidth:880, width:'100%', maxHeight:'90vh', overflow:'auto', boxShadow:'0 20px 60px rgba(0,0,0,.4)' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 18px', borderBottom:'1px solid #eee' }}>
-                  <span style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)' }}><Spark size={15} style={{ verticalAlign:'-2px' }} /> Photorealistic render</span>
-                  <button type="button" aria-label="Close" onClick={()=>{ if(!rendering){ setRenderUrl(null); setRenderErr(''); } }} style={{ background:'none', border:'none', cursor:'pointer', color:'#999', fontSize:18 }}>✕</button>
+                  <span style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink)' }}><Spark size={15} style={{ verticalAlign:'-2px' }} /> Photorealistic render</span>
+                  <button type="button" aria-label="Close" onClick={()=>{ if(!rendering){ setRenderUrl(null); setRenderErr(''); } }} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--c-text-3)', fontSize:18 }}>✕</button>
                 </div>
                 <div style={{ padding:18, textAlign:'center' }}>
-                  {rendering && <div style={{ padding:'50px 0', color:'var(--shop-ink-2, #6e6e73)', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>{t('sw3PlannerRendering')}</div></div>}
+                  {rendering && <div style={{ padding:'50px 0', color:'var(--shop-ink-2)', fontSize:14 }}><i className="ti ti-loader-2" aria-hidden="true" style={{ fontSize:26 }} /><div style={{ marginTop:10 }}>{t('sw3PlannerRendering')}</div></div>}
                   {!rendering && renderErr && <div style={{ padding:'40px 10px', color:'#c0392b', fontSize:14 }}>{renderErr}</div>}
                   {!rendering && renderUrl && (<>
-                    <img src={renderUrl} alt="Photorealistic render of your design" style={{ width:'100%', borderRadius:12, display:'block' }} />
+                    <img src={renderUrl} alt="Photorealistic render of your design" style={{ width:'100%', borderRadius:'var(--radius-md)', display:'block' }} />
                     <div style={{ display:'flex', gap:10, justifyContent:'center', marginTop:14, flexWrap:'wrap' }}>
-                      <a href={renderUrl} download="closets-render.jpg" target="_blank" rel="noreferrer" style={{ padding:'10px 18px', borderRadius:12, background:'var(--shop-ink, #1d1d1f)', color:'#fff', textDecoration:'none', fontSize:13, fontWeight:700 }}>Download</a>
-                      <button type="button" onClick={doPhotoreal} style={{ padding:'10px 18px', borderRadius:12, border:'1px solid #ddd', background:'#fff', color:'var(--shop-ink, #1d1d1f)', cursor:'pointer', fontSize:13, fontWeight:700 }}>Regenerate</button>
+                      <a href={renderUrl} download="closets-render.jpg" target="_blank" rel="noreferrer" style={{ padding:'10px 18px', borderRadius:'var(--radius-md)', background:'var(--shop-ink)', color:'#fff', textDecoration:'none', fontSize:13, fontWeight:700 }}>Download</a>
+                      <button type="button" onClick={doPhotoreal} style={{ padding:'10px 18px', borderRadius:'var(--radius-md)', border:'1px solid #ddd', background:'var(--c-surface)', color:'var(--shop-ink)', cursor:'pointer', fontSize:13, fontWeight:700 }}>Regenerate</button>
                     </div>
-                    <div style={{ marginTop:10, fontSize:11, color:'#aaa' }}>{t('w4AiImpression')}</div>
+                    <div style={{ marginTop:10, fontSize:11, color:'var(--c-text-3)' }}>{t('w4AiImpression')}</div>
                   </>)}
                 </div>
               </ModalPanel>
@@ -1066,9 +1066,9 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
               const layoutBody = (
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                   {lay.map(l=>{ const on = layout===l.id; return (
-                    <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ display:'flex', alignItems:'center', gap:10, padding:'12px', border: on?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:12, background: on?'var(--sand)':'#fff', cursor:'pointer', textAlign:'left' }}>
+                    <button key={l.id} type="button" onClick={()=>setLayout(l.id)} style={{ display:'flex', alignItems:'center', gap:10, padding:'12px', border: on?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:'var(--radius-md)', background: on?'var(--sand)':'#fff', cursor:'pointer', textAlign:'left' }}>
                       {layoutIcon(l.id, on)}
-                      <span style={{ fontSize:13, fontWeight:on?600:500, color:'var(--shop-ink, #1d1d1f)' }}>{l.label}{(l.price>0)&&<span style={{ display:'block', fontSize:11, color:'var(--clay-deep)', fontWeight:400 }}>+{fmt(l.price)}</span>}</span>
+                      <span style={{ fontSize:13, fontWeight:on?600:500, color:'var(--shop-ink)' }}>{l.label}{(l.price>0)&&<span style={{ display:'block', fontSize:11, color:'var(--clay-deep)', fontWeight:400 }}>+{fmt(l.price)}</span>}</span>
                     </button> ); })}
                 </div>
               );
@@ -1084,7 +1084,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                   {spec.allowed && spec.allowed.length ? (
                     <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
                       {spec.allowed.map(v=>{ const on = Number(dims[key])===v; return (
-                        <button key={v} type="button" onClick={()=>setDims(c=>({ ...c, [key]: snapDim(spec, v) }))} style={{ minWidth:52, padding:'7px 10px', borderRadius:9, border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', fontSize:13, fontWeight: on?700:500, color: on?'var(--clay)':'var(--ink)', cursor:'pointer' }}>{v}</button>
+                        <button key={v} type="button" onClick={()=>setDims(c=>({ ...c, [key]: snapDim(spec, v) }))} style={{ minWidth:52, padding:'7px 10px', borderRadius:'var(--radius-sm)', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', fontSize:13, fontWeight: on?700:500, color: on?'var(--clay)':'var(--ink)', cursor:'pointer' }}>{v}</button>
                       ); })}
                     </div>
                   ) : (
@@ -1100,7 +1100,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                     <input type="number" min={spec.min} max={spec.max} defaultValue={dims[key]} key={dims[key]}
                       onBlur={e=>setDims(c=>({ ...c, [key]: snapDim(spec, e.target.value) }))}
                       onKeyDown={e=>{ if(e.key==='Enter') e.currentTarget.blur(); }}
-                      style={{ flex:1, padding:'10px 12px', border:'1px solid var(--line)', background:'#fff', borderRadius:10, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
+                      style={{ flex:1, padding:'10px 12px', border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
                     <span style={{ fontSize:13, color:'var(--muted)' }}>cm</span>
                   </div>
                 </div>
@@ -1108,9 +1108,9 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
               const sizeBody = (
                 <div>
                   {/* Standard / Custom segmented toggle */}
-                  <div style={{ display:'flex', gap:2, background:'var(--sand)', border:'1px solid var(--line)', borderRadius:10, padding:3, marginBottom:14 }} role="group" aria-label="Size mode">
-                    <button type="button" onClick={()=>setCustomSize(false)} style={{ flex:1, padding:'8px 10px', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', borderRadius:8, background: !customSize?'var(--clay)':'transparent', color: !customSize?'#fff':'var(--ink-soft)' }}>Standard sizes</button>
-                    <button type="button" onClick={()=>setCustomSize(true)} style={{ flex:1, padding:'8px 10px', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', borderRadius:8, background: customSize?'var(--clay)':'transparent', color: customSize?'#fff':'var(--ink-soft)' }}>Custom size</button>
+                  <div style={{ display:'flex', gap:2, background:'var(--sand)', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:3, marginBottom:14 }} role="group" aria-label="Size mode">
+                    <button type="button" onClick={()=>setCustomSize(false)} style={{ flex:1, padding:'8px 10px', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', borderRadius:'var(--radius-sm)', background: !customSize?'var(--clay)':'transparent', color: !customSize?'#fff':'var(--ink-soft)' }}>Standard sizes</button>
+                    <button type="button" onClick={()=>setCustomSize(true)} style={{ flex:1, padding:'8px 10px', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', borderRadius:'var(--radius-sm)', background: customSize?'var(--clay)':'transparent', color: customSize?'#fff':'var(--ink-soft)' }}>Custom size</button>
                   </div>
                   {useAB && <div style={{ fontSize:11.5, color:'var(--muted)', marginBottom:10 }}>{t('sw3PlannerLShape')}</div>}
                   {!useAB && isKitchen && KITCHEN_RUN_LAYOUTS.includes(layout) && <div style={{ fontSize:11.5, color:'var(--muted)', marginBottom:10 }}>Total run length across all sides of your {layout} kitchen.</div>}
@@ -1129,9 +1129,9 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
               const finishBody = (
                 <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
                   {FINISHES.map(f=>(
-                    <button key={f.id} type="button" onClick={()=>setFinishId(f.id)} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5, padding:7, border: finishId===f.id?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:10, background:'#fff', cursor:'pointer' }}>
-                      <span style={{ width:44, height:44, borderRadius:7, background:f.hex, border:'0.5px solid rgba(0,0,0,.12)' }} />
-                      <span style={{ fontSize:11, color:'var(--shop-ink-2, #6e6e73)' }}>{f.name}</span>
+                    <button key={f.id} type="button" onClick={()=>setFinishId(f.id)} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5, padding:7, border: finishId===f.id?'2px solid var(--clay)':'0.5px solid #e6e6e6', borderRadius:'var(--radius-md)', background:'var(--c-surface)', cursor:'pointer' }}>
+                      <span style={{ width:44, height:44, borderRadius:'var(--radius-sm)', background:f.hex, border:'0.5px solid rgba(0,0,0,.12)' }} />
+                      <span style={{ fontSize:11, color:'var(--shop-ink-2)' }}>{f.name}</span>
                     </button>
                   ))}
                 </div>
@@ -1159,7 +1159,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                   return (
                     <div style={{ display:'grid', gridTemplateColumns:`repeat(${cols},1fr)`, gap:8 }}>
                       {items.map(it=>{ const on=isOn(ck,it.id,multi); const incl=inclOf(it); return (
-                        <div key={it.id} onClick={()=>pick(ck,it.id,multi)} style={{ cursor:'pointer', border: on?'2px solid var(--clay)':'0.5px solid var(--line)', borderRadius:10, overflow:'hidden', background: on?'var(--sand)':'#fff' }}>
+                        <div key={it.id} onClick={()=>pick(ck,it.id,multi)} style={{ cursor:'pointer', border: on?'2px solid var(--clay)':'0.5px solid var(--line)', borderRadius:'var(--radius-md)', overflow:'hidden', background: on?'var(--sand)':'#fff' }}>
                           <div style={{ height:72, background:cardBg(it), position:'relative', display:'flex', alignItems:'center', justifyContent:'center' }}>
                             {!it.image_url && !it.swatch && <i className="ti ti-photo" style={{ fontSize:20, color:'rgba(0,0,0,.22)' }} aria-hidden="true" />}
                             {on && <span style={{ position:'absolute', top:6, right:6, width:22, height:22, borderRadius:'50%', background:'var(--clay)', display:'flex', alignItems:'center', justifyContent:'center' }}><i className="ti ti-check" style={{ color:'#fff', fontSize:14 }} aria-hidden="true" /></span>}
@@ -1177,7 +1177,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                   return (
                     <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                       {items.map(it=>{ const on=isOn(ck,it.id,multi); const incl=inclOf(it); return (
-                        <button key={it.id} type="button" onClick={()=>pick(ck,it.id,multi)} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', borderRadius:999, cursor:'pointer', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--clay)':'#fff' }}>
+                        <button key={it.id} type="button" onClick={()=>pick(ck,it.id,multi)} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', borderRadius:'var(--radius-pill)', cursor:'pointer', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--clay)':'#fff' }}>
                           <span style={{ width:14, height:14, borderRadius:'50%', flexShrink:0, background:cardBg(it), border:'0.5px solid rgba(0,0,0,.15)' }} />
                           <span style={{ fontSize:13, fontWeight:600, color: on?'#fff':'var(--ink)' }}>{it.name}</span>
                           <span style={{ fontSize:11.5, color: on?'rgba(255,255,255,.85)':(incl?'var(--muted)':'var(--clay-deep)') }}>{incl?'Included':'+ '+fmt(it.price)}</span>
@@ -1190,8 +1190,8 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                 return (
                   <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                     {items.map(it=>{ const on=isOn(ck,it.id,multi); const incl=inclOf(it); return (
-                      <div key={it.id} onClick={()=>pick(ck,it.id,multi)} style={{ display:'flex', alignItems:'center', gap:12, padding:'9px 11px', cursor:'pointer', borderRadius:12, border: on?'2px solid var(--clay)':'0.5px solid var(--line)', background: on?'var(--sand)':'#fff' }}>
-                        <span style={{ width:42, height:42, borderRadius:9, flexShrink:0, background:cardBg(it), border:'0.5px solid rgba(0,0,0,.1)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                      <div key={it.id} onClick={()=>pick(ck,it.id,multi)} style={{ display:'flex', alignItems:'center', gap:12, padding:'9px 11px', cursor:'pointer', borderRadius:'var(--radius-md)', border: on?'2px solid var(--clay)':'0.5px solid var(--line)', background: on?'var(--sand)':'#fff' }}>
+                        <span style={{ width:42, height:42, borderRadius:'var(--radius-sm)', flexShrink:0, background:cardBg(it), border:'0.5px solid rgba(0,0,0,.1)', display:'flex', alignItems:'center', justifyContent:'center' }}>
                           {!it.image_url && !it.swatch && <i className="ti ti-photo" style={{ fontSize:18, color:'rgba(0,0,0,.22)' }} aria-hidden="true" />}
                         </span>
                         <span style={{ flex:1, minWidth:0 }}>
@@ -1229,7 +1229,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                 {/* Header + Ready-for-a-quote pill */}
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:2 }}>
                   <span className="eyebrow" style={{ fontSize:12 }}>Your design · step {curIdx+1} of {steps.length}</span>
-                  <span style={{ fontSize:12, fontWeight:700, padding:'4px 12px', borderRadius:999, transition:'all .25s',
+                  <span style={{ fontSize:12, fontWeight:700, padding:'4px 12px', borderRadius:'var(--radius-pill)', transition:'all .25s',
                     color: readyForQuote?'#1D9E75':'var(--muted)', background: readyForQuote?'#1D9E7522':'var(--sand)' }}>
                     {readyForQuote ? '✓ Ready for a quote' : 'Set layout · size · finish'}
                   </span>
@@ -1238,7 +1238,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                 {steps.slice(0, curIdx).map(st => {
                   const done = stepIsDone(st);
                   return (
-                    <button key={st.id} type="button" onClick={()=>goStep(steps.indexOf(st))} style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'11px 14px', borderRadius:12, border:'0.5px solid var(--line)', background:'#fff', cursor:'pointer', textAlign:'left', flexShrink:0 }}>
+                    <button key={st.id} type="button" onClick={()=>goStep(steps.indexOf(st))} style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'11px 14px', borderRadius:'var(--radius-md)', border:'0.5px solid var(--line)', background:'var(--c-surface)', cursor:'pointer', textAlign:'left', flexShrink:0 }}>
                       <span style={{ width:22, height:22, borderRadius:'50%', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', background: done?'#1D9E75':'var(--sand)' }}>
                         {done ? <i className="ti ti-check" style={{ color:'#fff', fontSize:14 }} aria-hidden="true" /> : <span style={{ fontSize:11, fontWeight:700, color:'var(--muted)' }}>–</span>}
                       </span>
@@ -1249,11 +1249,11 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                   );
                 })}
                 {/* CURRENT step — expanded */}
-                <div style={{ border:'2px solid var(--clay)', borderRadius:14, overflow:'hidden', flexShrink:0, background:'#fff' }}>
+                <div style={{ border:'2px solid var(--clay)', borderRadius:'var(--radius-lg)', overflow:'hidden', flexShrink:0, background:'var(--c-surface)' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:9, padding:'14px 16px 6px' }}>
                     <span style={{ width:24, height:24, borderRadius:'50%', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', background:'var(--clay)', color:'#fff', fontSize:12, fontWeight:700 }}>{curIdx+1}</span>
                     <span style={{ fontSize:16, fontWeight:700, color:'var(--ink)' }}>{cur.title}</span>
-                    {!cur.essential && <span style={{ fontSize:10.5, fontWeight:600, color:'var(--muted)', background:'var(--sand)', padding:'2px 8px', borderRadius:6 }}>optional</span>}
+                    {!cur.essential && <span style={{ fontSize:10.5, fontWeight:600, color:'var(--muted)', background:'var(--sand)', padding:'2px 8px', borderRadius:'var(--radius-sm)' }}>optional</span>}
                   </div>
                   <div style={{ padding:'6px 16px 16px' }}>{cur.body}</div>
                   {/* Step nav */}
@@ -1261,8 +1261,8 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                     {curIdx>0 && <button type="button" onClick={()=>goStep(curIdx-1)} style={{ background:'none', border:'none', fontSize:13.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer', padding:'8px 4px' }}>‹ Back</button>}
                     {!cur.essential && !isLast && <button type="button" onClick={()=>goStep(curIdx+1)} style={{ background:'none', border:'none', fontSize:13, fontWeight:600, color:'var(--muted)', cursor:'pointer', padding:'8px 4px' }}>Skip</button>}
                     {isLast
-                      ? <button type="button" className="btn-clay" disabled={busy} onClick={goVisualise} style={{ marginLeft:'auto', borderRadius:12, padding:'10px 20px', fontSize:14.5 }}>{t('w4VisualiseDesign')}</button>
-                      : <button type="button" className="btn-clay" disabled={cur.essential && !cur.done} onClick={()=>goStep(curIdx+1)} style={{ marginLeft:'auto', borderRadius:12, padding:'10px 22px', fontSize:14.5, opacity:(cur.essential && !cur.done)?0.55:1 }}>Next →</button>}
+                      ? <button type="button" className="btn-clay" disabled={busy} onClick={goVisualise} style={{ marginLeft:'auto', borderRadius:'var(--radius-md)', padding:'10px 20px', fontSize:14.5 }}>{t('w4VisualiseDesign')}</button>
+                      : <button type="button" className="btn-clay" disabled={cur.essential && !cur.done} onClick={()=>goStep(curIdx+1)} style={{ marginLeft:'auto', borderRadius:'var(--radius-md)', padding:'10px 22px', fontSize:14.5, opacity:(cur.essential && !cur.done)?0.55:1 }}>Next →</button>}
                   </div>
                 </div>
                 {/* UPCOMING steps — muted/locked rows below (clickable-forward only if essentials before are done) */}
@@ -1272,10 +1272,10 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                   const blockingEssential = steps.slice(0, absIdx).some(s => s.essential && !s.done);
                   const locked = blockingEssential;
                   return (
-                    <button key={st.id} type="button" disabled={locked} onClick={()=>{ if(!locked) goStep(absIdx); }} style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'11px 14px', borderRadius:12, border:'0.5px solid var(--line)', background: locked?'transparent':'#fff', cursor: locked?'default':'pointer', textAlign:'left', flexShrink:0, opacity: locked?0.55:1 }}>
+                    <button key={st.id} type="button" disabled={locked} onClick={()=>{ if(!locked) goStep(absIdx); }} style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'11px 14px', borderRadius:'var(--radius-md)', border:'0.5px solid var(--line)', background: locked?'transparent':'#fff', cursor: locked?'default':'pointer', textAlign:'left', flexShrink:0, opacity: locked?0.55:1 }}>
                       <span style={{ width:22, height:22, borderRadius:'50%', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', border:'1.5px solid var(--line)', color:'var(--muted)', fontSize:11, fontWeight:700 }}>{locked ? <i className="ti ti-lock" style={{ fontSize:12 }} aria-hidden="true" /> : absIdx+1}</span>
                       <span style={{ fontSize:14, fontWeight:600, color:'var(--ink-soft)' }}>{st.title}</span>
-                      {!st.essential && <span style={{ fontSize:10.5, fontWeight:600, color:'var(--muted)', background:'var(--sand)', padding:'2px 8px', borderRadius:6 }}>optional</span>}
+                      {!st.essential && <span style={{ fontSize:10.5, fontWeight:600, color:'var(--muted)', background:'var(--sand)', padding:'2px 8px', borderRadius:'var(--radius-sm)' }}>optional</span>}
                     </button>
                   );
                 })}
@@ -1284,25 +1284,25 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
 
             {/* STICKY SUMMARY — single primary CTA */}
             {!mobile && (
-              <div style={{ marginTop:6, background:'#fff', border:'0.5px solid var(--shop-line, #e6e6e6)', borderRadius:14, padding:'16px', position:'sticky', bottom:0, boxShadow:'0 -2px 12px rgba(0,0,0,.04)' }}>
+              <div style={{ marginTop:6, background:'var(--c-surface)', border:'0.5px solid var(--shop-line)', borderRadius:'var(--radius-lg)', padding:'16px', position:'sticky', bottom:0, boxShadow:'0 -2px 12px rgba(0,0,0,.04)' }}>
                 <div style={{ fontSize:13, color:'var(--ink-soft)', marginBottom:10, lineHeight:1.5 }}>
                   <strong style={{ color:'var(--ink)' }}>{selProduct?.name || 'Wardrobe'}</strong> · {((prodLayouts||LAYOUTS).find(l=>l.id===layout)||{}).label || layout} · {(() => { const cv = (cm)=> unit==='in' ? (Math.round((cm/2.54)*10)/10)+'"' : cm+'cm'; return (supportsSideAB&&layout==='l-shape') ? `${cv(dims.sideA)}+${cv(dims.sideB)}` : `${cv(dims.width)}×${cv(dims.height)}`; })()} · {(FINISHES.find(f=>f.id===finishId)||{}).name || finishId}
                 </div>
                 {total>0 && !pricing && (
                   <div style={{ marginBottom:12 }}>
-                    <div style={{ fontSize:11, color:'var(--shop-muted, #86868b)', marginBottom:6 }}>Package</div>
+                    <div style={{ fontSize:11, color:'var(--shop-muted)', marginBottom:6 }}>Package</div>
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6 }}>
                       {PACKAGES.map((p,i)=>{ const on = i===pkg; return (
-                        <button key={p.name} type="button" onClick={()=>setPkg(i)} style={{ border:'1px solid '+(on?'var(--clay)':'#e6e6e6'), background:on?'var(--sand)':'#fff', borderRadius:10, padding:'8px 6px', textAlign:'center', cursor:'pointer' }}>
-                          <div style={{ fontSize:11, fontWeight:700, color:on?'var(--clay)':'#1d1d1f' }}>{p.name}</div>
-                          <div style={{ fontSize:12, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginTop:3 }}>{fmt(Math.round(total*p.mult))}</div>
+                        <button key={p.name} type="button" onClick={()=>setPkg(i)} style={{ border:'1px solid '+(on?'var(--clay)':'var(--shop-line)'), background:on?'var(--sand)':'#fff', borderRadius:'var(--radius-md)', padding:'8px 6px', textAlign:'center', cursor:'pointer' }}>
+                          <div style={{ fontSize:11, fontWeight:700, color:on?'var(--clay)':'var(--shop-ink)' }}>{p.name}</div>
+                          <div style={{ fontSize:12, fontWeight:700, color:'var(--shop-ink)', marginTop:3 }}>{fmt(Math.round(total*p.mult))}</div>
                         </button>
                       ); })}
                     </div>
                   </div>
                 )}
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6 }}>
-                  <span style={{ fontSize:12, color:'var(--shop-muted, #86868b)' }}>Estimated total · {selPkg.name}</span>
+                  <span style={{ fontSize:12, color:'var(--shop-muted)' }}>Estimated total · {selPkg.name}</span>
                   <span style={{ fontSize:24, fontWeight:700, color:'var(--clay)' }}>{pricing?'…':fmt(pkgTotal)}</span>
                 </div>
                 {total>0 && !pricing && (
@@ -1326,14 +1326,14 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                 )}
                 <div style={{ fontSize:11.5, color:'var(--muted)', marginBottom:12 }}>{t('sw3PlannerIndic')}</div>
                 {/* Secondary: save the design (quote/visualise handled by guided steps + sticky bar) */}
-                <button type="button" className="btn-secondary" disabled={busy} onClick={save} style={{ width:'100%', borderRadius:12, color: saved?'var(--good)':'var(--ink-soft)' }}>{saved?'✓ Saved':'Save my design'}</button>
+                <button type="button" className="btn-secondary" disabled={busy} onClick={save} style={{ width:'100%', borderRadius:'var(--radius-md)', color: saved?'var(--good)':'var(--ink-soft)' }}>{saved?'✓ Saved':'Save my design'}</button>
               </div>
             )}
           </div>
         </div>
         {/* FULL-WIDTH STICKY ACTION BAR — live total (left) + one big quote button (right).
             Desktop: spans the config area. Mobile: fixed bottom with safe-area. Always visible. */}
-        <div style={{ position:'fixed', left:0, right:0, bottom:0, zIndex:40, background:'#fff', borderTop:'1px solid var(--line)', boxShadow:'0 -4px 18px rgba(0,0,0,.08)', padding:`12px 0 calc(12px + env(safe-area-inset-bottom))` }}>
+        <div style={{ position:'fixed', left:0, right:0, bottom:0, zIndex:40, background:'var(--c-surface)', borderTop:'1px solid var(--line)', boxShadow:'0 -4px 18px rgba(0,0,0,.08)', padding:`12px 0 calc(12px + env(safe-area-inset-bottom))` }}>
           <div style={{ maxWidth:1560, margin:'0 auto', padding: mobile?'0 14px':'0 32px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:14 }}>
             <div style={{ minWidth:0 }}>
               <div style={{ display:'flex', alignItems:'baseline', gap:8 }}>
@@ -1344,7 +1344,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                 <span style={{ fontSize:11, color:'var(--muted)' }}>incl. VAT</span>
               </div>
             </div>
-            <button type="button" className="btn-clay" disabled={busy} onClick={requestQuote} style={{ borderRadius:14, padding: mobile?'13px 20px':'14px 34px', fontSize: mobile?14.5:16, fontWeight:700, whiteSpace:'nowrap', flexShrink:0 }}>
+            <button type="button" className="btn-clay" disabled={busy} onClick={requestQuote} style={{ borderRadius:'var(--radius-lg)', padding: mobile?'13px 20px':'14px 34px', fontSize: mobile?14.5:16, fontWeight:700, whiteSpace:'nowrap', flexShrink:0 }}>
               {busy ? t('pSending') : (user ? t('pGetMyQuoteArrow') : t('pgSignInQuoteArrow'))}
             </button>
           </div>
@@ -1357,20 +1357,20 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
       {/* Inline branded quote contact form (replaces window.prompt) */}
       {showQuote && (
         <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10000, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
-          <ModalPanel onClose={()=>!busy&&setShowQuote(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:26 }}>
+          <ModalPanel onClose={()=>!busy&&setShowQuote(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', maxWidth:440, width:'100%', padding:26 }}>
             <div className="eyebrow" style={{ marginBottom:8 }}>{t('pAlmostThere')}</div>
             <h3 className="display" style={{ fontSize:24, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw3PlannerSendQuote')}</h3>
             <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 18px', lineHeight:1.6 }}>Our design team will review your {selProduct?.name?.toLowerCase()||'design'} and get back with an exact, itemised quote.</p>
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-              <input value={qForm.name} onChange={e=>setQForm(s=>({...s,name:e.target.value}))} aria-label="Your name" placeholder="Your name" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
-              <input value={qForm.phone} onChange={e=>setQForm(s=>({...s,phone:e.target.value}))} aria-label="Phone (+973…)" placeholder="Phone (+973…)" inputMode="tel" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
-              <input value={qForm.email} onChange={e=>setQForm(s=>({...s,email:e.target.value}))} aria-label="Email (optional)" placeholder="Email (optional)" inputMode="email" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
+              <input value={qForm.name} onChange={e=>setQForm(s=>({...s,name:e.target.value}))} aria-label="Your name" placeholder="Your name" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
+              <input value={qForm.phone} onChange={e=>setQForm(s=>({...s,phone:e.target.value}))} aria-label="Phone (+973…)" placeholder="Phone (+973…)" inputMode="tel" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
+              <input value={qForm.email} onChange={e=>setQForm(s=>({...s,email:e.target.value}))} aria-label="Email (optional)" placeholder="Email (optional)" inputMode="email" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
             </div>
-            {quoteErr && <div role="alert" style={{ marginTop:12, background:'#fdecea', border:'1px solid #f5c6c0', color:'#b3261e', borderRadius:12, padding:'10px 14px', fontSize:13 }}>{quoteErr}</div>}
+            {quoteErr && <div role="alert" style={{ marginTop:12, background:'#fdecea', border:'1px solid #f5c6c0', color:'#b3261e', borderRadius:'var(--radius-md)', padding:'10px 14px', fontSize:13 }}>{quoteErr}</div>}
             <FormNotice kind="request" style={{ marginTop:12 }} />
             <div style={{ display:'flex', gap:10, marginTop:18 }}>
-              <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>Cancel</button>
-              <button type="button" className="btn-clay" disabled={busy || !qForm.name.trim() || !qForm.phone.trim()} onClick={()=>submitQuote(qForm)} style={{ flex:2, borderRadius:12, opacity:(busy||!qForm.name.trim()||!qForm.phone.trim())?.6:1 }}>{busy?'Sending…':'Send my quote request'}</button>
+              <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>Cancel</button>
+              <button type="button" className="btn-clay" disabled={busy || !qForm.name.trim() || !qForm.phone.trim()} onClick={()=>submitQuote(qForm)} style={{ flex:2, borderRadius:'var(--radius-md)', opacity:(busy||!qForm.name.trim()||!qForm.phone.trim())?.6:1 }}>{busy?'Sending…':'Send my quote request'}</button>
             </div>
           </ModalPanel>
         </div>
@@ -1380,11 +1380,11 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
       {/* guest quote success → account invite (also reachable from config-direct quote) */}
       {quoteSent && (
         <div style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
-          <ModalPanel onClose={()=>{ setQuoteSent(false); setPage('home'); }} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:28, textAlign:'center' }}>
+          <ModalPanel onClose={()=>{ setQuoteSent(false); setPage('home'); }} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', maxWidth:440, width:'100%', padding:28, textAlign:'center' }}>
             <div style={{ width:54, height:54, borderRadius:'50%', background:'#1D9E7522', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px' }}><i className="ti ti-check" style={{ color:'#1D9E75', fontSize:28 }} aria-hidden="true" /></div>
             <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 8px' }}>Quote sent!</h3>
             <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 20px', lineHeight:1.6 }}>{t('sw3PlannerCreateAcct')}</p>
-            <button type="button" className="btn-clay" onClick={()=>{ const c = quoteSent; if (openAuth) openAuth('register', c && typeof c==='object' ? c : undefined); else setPage('portal'); }} style={{ width:'100%', borderRadius:12, marginBottom:10 }}>Create my account</button>
+            <button type="button" className="btn-clay" onClick={()=>{ const c = quoteSent; if (openAuth) openAuth('register', c && typeof c==='object' ? c : undefined); else setPage('portal'); }} style={{ width:'100%', borderRadius:'var(--radius-md)', marginBottom:10 }}>Create my account</button>
             <button type="button" onClick={()=>{ setQuoteSent(false); setPage('home'); }} style={{ background:'none', border:'none', fontSize:13.5, color:'var(--muted)', cursor:'pointer' }}>Maybe later</button>
           </ModalPanel>
         </div>

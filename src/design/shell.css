@@ -37,7 +37,7 @@ html[lang="ar"] .nav-link { font-size: var(--fs-base); }
   .nav-burger { display: none; }
   .nav-cta { display: inline-flex; }
 }
-@media (min-width: 1080px) and (max-width: 1399px) { .nav-cta .full { display: none; } .nav-cta .short { display: inline; } .site-header__bar { gap: var(--space-3); } .nav-link { padding: 0 var(--space-2); } }
+@media (min-width: 1080px) and (max-width: 1599px) { .nav-cta .full { display: none; } .nav-cta .short { display: inline; } .site-header__bar { gap: var(--space-3); } .nav-link { padding: 0 var(--space-2); } }
 
 /* ---------- mega menu ---------- */
 .mega { position: fixed; inset-inline: 0; top: var(--nav-h); z-index: calc(var(--z-nav) - 1); background: var(--c-canvas); border-bottom: 1px solid var(--c-line); box-shadow: var(--shadow-2); animation: cl-mega var(--dur-base) var(--ease-out) both; }

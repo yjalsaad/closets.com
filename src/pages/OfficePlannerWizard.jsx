@@ -157,8 +157,8 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
 
   // ── styles (mirror TV wizard) ──
   const HEADER = mobile?72:104, BAR=52;
-  const inS = { width:'100%', padding:'9px 11px', border:'1px solid var(--line)', background:'#fff', borderRadius:10, fontSize:14, fontFamily:'inherit', color:'var(--ink)', boxSizing:'border-box' };
-  const card = (on) => ({ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'11px 13px', cursor:'pointer', fontFamily:'inherit' });
+  const inS = { width:'100%', padding:'9px 11px', border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', fontSize:14, fontFamily:'inherit', color:'var(--ink)', boxSizing:'border-box' };
+  const card = (on) => ({ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:'var(--radius-md)', padding:'11px 13px', cursor:'pointer', fontFamily:'inherit' });
   const labelS = { fontSize:11.5, fontWeight:600, color:'var(--ink-soft)', marginBottom:4, display:'block' };
   const sectionH = (n,t,s) => (<div style={{ marginBottom:14 }}><h3 className="display" style={{ fontSize:19, color:'var(--ink)', margin:'0 0 3px' }}>{n} · {t}</h3>{s&&<p style={{ fontSize:13, color:'var(--ink-soft)', margin:0 }}>{s}</p>}</div>);
   const numField = (lbl, val, set, min, max, unit='mm') => (
@@ -171,16 +171,16 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
   );
   const stepper = (val, set, min=0) => (
     <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-      <button type="button" onClick={()=>set(Math.max(min,val-1))} style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--line)', background:'#fff', cursor:'pointer' }}>−</button>
+      <button type="button" onClick={()=>set(Math.max(min,val-1))} style={{ width:26, height:26, borderRadius:'var(--radius-sm)', border:'1px solid var(--line)', background:'var(--c-surface)', cursor:'pointer' }}>−</button>
       <span style={{ minWidth:18, textAlign:'center', fontSize:13, fontWeight:600 }}>{val}</span>
-      <button type="button" onClick={()=>set(val+1)} style={{ width:26, height:26, borderRadius:7, border:'1px solid var(--line)', background:'#fff', cursor:'pointer' }}>+</button>
+      <button type="button" onClick={()=>set(val+1)} style={{ width:26, height:26, borderRadius:'var(--radius-sm)', border:'1px solid var(--line)', background:'var(--c-surface)', cursor:'pointer' }}>+</button>
     </div>
   );
   const toggleRow = (on, set, name, sub) => (
     <button type="button" onClick={set} style={{ ...card(on), display:'flex', alignItems:'center', justifyContent:'space-between', gap:9 }}>
       <span><span style={{ fontSize:13.5, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)', display:'block' }}>{name}</span>{sub&&<span style={{ fontSize:11, color:'var(--muted)' }}>{sub}</span>}</span>
-      <span style={{ width:38, height:22, borderRadius:11, background:on?'var(--clay)':'var(--line)', position:'relative', flexShrink:0, transition:'background .15s' }}>
-        <span style={{ position:'absolute', top:2, left:on?18:2, width:18, height:18, borderRadius:'50%', background:'#fff', transition:'left .15s' }} /></span>
+      <span style={{ width:38, height:22, borderRadius:'var(--radius-md)', background:on?'var(--clay)':'var(--line)', position:'relative', flexShrink:0, transition:'background .15s' }}>
+        <span style={{ position:'absolute', top:2, left:on?18:2, width:18, height:18, borderRadius:'50%', background:'var(--c-surface)', transition:'left .15s' }} /></span>
     </button>
   );
 
@@ -313,7 +313,7 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
       ...storeItems.map(s=>`<tr><td>${s.name} ×${s.qty}</td><td style="text-align:right">${fmt(s.line)}</td></tr>`),
       ...lightItems.map(l=>`<tr><td>${l.name}</td><td style="text-align:right">${fmt(l.line)}</td></tr>`),
     ].join('');
-    w.document.write(`<html><head><title>Home Office Quotation</title><style>body{font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep, #89391E);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
+    w.document.write(`<html><head><title>Home Office Quotation</title><style>body{font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;color:#2a1f16;padding:36px;max-width:720px;margin:0 auto}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px 4px;border-bottom:1px solid #e3d6c6;font-size:13px}.tot{font-size:20px;font-weight:700;color:var(--clay-deep);text-align:right;margin-top:16px}.muted{color:#8a7a68;font-size:12px}</style></head><body>
       <h1>The Closets — Home Office Quotation</h1>
       <p class="muted">${room.name} · ${lay.name} layout · Wall ${dims.wallW}×${dims.wallH}mm · ${carc.name} carcass · ${fin.name} finish · ${wtop.name} worktop</p>
       <p class="muted">Desk ${desk.length}×${desk.depth}mm · ${desk.shape}</p>
@@ -342,31 +342,31 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
           {numField(t('fWallWidth'), dims.wallW, v=>setDims(d=>({...d,wallW:v})), 1000, 12000)}
           {numField(t('fWallHeight'), dims.wallH, v=>setDims(d=>({...d,wallH:v})), 2000, 5000)}
           {numField(t('fCeilingHeight'), dims.ceiling, v=>setDims(d=>({...d,ceiling:v})), 2000, 5000)}
-          {!dimsOK && <div style={{ fontSize:12, color:'var(--danger,#b91c1c)' }}>Wall ≥1000mm wide, ≥2000mm tall, and ceiling ≥ wall height.</div>}
-          <div style={{ fontSize:12, color:'var(--ink-soft)', background:'var(--sand)', borderRadius:10, padding:'8px 11px' }}>Recommended: worktop at 720–760mm, desk depth 600–700mm, knee clearance ≥600mm wide.</div>
+          {!dimsOK && <div style={{ fontSize:12, color:'var(--danger)' }}>Wall ≥1000mm wide, ≥2000mm tall, and ceiling ≥ wall height.</div>}
+          <div style={{ fontSize:12, color:'var(--ink-soft)', background:'var(--sand)', borderRadius:'var(--radius-md)', padding:'8px 11px' }}>Recommended: worktop at 720–760mm, desk depth 600–700mm, knee clearance ≥600mm wide.</div>
         </div></>);
       case 2: return (<>{sectionH('3',t('shOpeningsT'),t('shOpeningsS'))}
         <div style={{ display:'grid', gap:9 }}>
           {openings.map(o=>(
-            <div key={o.id} style={{ border:'1px solid var(--line)', borderRadius:11, padding:'9px 10px', background:'#fff' }}>
+            <div key={o.id} style={{ border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'9px 10px', background:'var(--c-surface)' }}>
               <div style={{ display:'grid', gridTemplateColumns:'1.3fr 1fr 1fr auto', gap:7, alignItems:'end' }}>
                 <label><span style={labelS}>{t('fType')}</span>
                   <select value={o.type} onChange={e=>setOpenings(os=>os.map(x=>x.id===o.id?{...x,type:e.target.value}:x))} style={inS}>{OFFICE_OPENING_TYPES.map(t=><option key={t}>{t}</option>)}</select></label>
                 <label><span style={labelS}>{t('fPosition')}</span><input type="number" value={o.pos} onChange={e=>setOpenings(os=>os.map(x=>x.id===o.id?{...x,pos:Number(e.target.value)}:x))} style={inS} /></label>
                 <label><span style={labelS}>{t('fWidth')}</span><input type="number" value={o.width} onChange={e=>setOpenings(os=>os.map(x=>x.id===o.id?{...x,width:Number(e.target.value)}:x))} style={inS} /></label>
-                <button type="button" onClick={()=>setOpenings(os=>os.filter(x=>x.id!==o.id))} style={{ background:'none', border:'1px solid var(--line)', borderRadius:9, padding:'9px 11px', cursor:'pointer', color:'var(--muted)' }}>✕</button>
+                <button type="button" onClick={()=>setOpenings(os=>os.filter(x=>x.id!==o.id))} style={{ background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-sm)', padding:'9px 11px', cursor:'pointer', color:'var(--muted)' }}>✕</button>
               </div>
             </div>))}
-          <button type="button" onClick={()=>setOpenings(os=>[...os,{ id:uid(), type:'Electrical outlet', pos:1900, width:150 }])} style={{ border:'1px dashed var(--line)', borderRadius:11, padding:'10px', background:'var(--sand)', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--clay-deep)' }}>{t('vAddOpeningConstraint')}</button>
+          <button type="button" onClick={()=>setOpenings(os=>[...os,{ id:uid(), type:'Electrical outlet', pos:1900, width:150 }])} style={{ border:'1px dashed var(--line)', borderRadius:'var(--radius-md)', padding:'10px', background:'var(--sand)', cursor:'pointer', fontSize:13, fontWeight:600, color:'var(--clay-deep)' }}>{t('vAddOpeningConstraint')}</button>
         </div></>);
       case 3: return (<>{sectionH('4',t('shOf3t'),t('shOf3s'))}
-        <button type="button" onClick={()=>setRdOpen(true)} className="btn-clay" style={{ borderRadius:12, marginBottom:16, display:'inline-flex', alignItems:'center', gap:8 }}>{t('pOpenRoomDesigner')}</button>
+        <button type="button" onClick={()=>setRdOpen(true)} className="btn-clay" style={{ borderRadius:'var(--radius-md)', marginBottom:16, display:'inline-flex', alignItems:'center', gap:8 }}>{t('pOpenRoomDesigner')}</button>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?14:18, marginBottom:18 }}>
           {officeLayoutsView.map(l=>{ const on=layout===l.id; return (
-            <button key={l.id} type="button" onClick={()=>pickLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:16, boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
-              <div style={{ position:'relative', width:'100%', background:'var(--cream,#f5f1ea)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
+            <button key={l.id} type="button" onClick={()=>pickLayout(l.id)} style={{ ...card(on), padding:0, overflow:'hidden', textAlign:'left', borderRadius:'var(--radius-lg)', boxShadow: on?'0 12px 32px rgba(194,65,28,.18)':'0 2px 14px rgba(33,28,24,.07)', transform: on?'translateY(-2px)':'none', transition:'transform .18s ease, box-shadow .18s ease' }}>
+              <div style={{ position:'relative', width:'100%', background:'var(--cream)', overflow:'hidden', borderTopLeftRadius:16, borderTopRightRadius:16 }}>
                 <img src={l.img} alt={l.name} {...layoutImgSize(l.img)} loading="lazy" decoding="async" style={{ display:'block', width:'100%', height:'auto' }} />
-                {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:999, letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
+                {on && <div style={{ position:'absolute', top:10, right:10, background:'var(--clay)', color:'#fff', fontSize:11, fontWeight:700, padding:'4px 11px', borderRadius:'var(--radius-pill)', letterSpacing:.3, boxShadow:'0 2px 8px rgba(0,0,0,.18)' }}>✓ Selected</div>}
               </div>
               <div style={{ padding: mobile?'13px 15px':'15px 17px', borderTop:'1px solid var(--line)' }}>
                 <div style={{ fontSize: mobile?16:17, fontWeight:700, color:on?'var(--clay-deep)':'var(--ink)', lineHeight:1.22 }}>{trOpt(l.name, lang)}</div>
@@ -374,7 +374,7 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
               </div>
             </button>); })}
         </div>
-        <div style={{ background:'var(--sand)', borderRadius:12, padding:'13px 14px', marginBottom:12 }}>
+        <div style={{ background:'var(--sand)', borderRadius:'var(--radius-md)', padding:'13px 14px', marginBottom:12 }}>
           <div className="eyebrow" style={{ fontSize:11, marginBottom:6 }}>{lay.name}</div>
           <div style={{ fontSize:11.5, color:'var(--ink-soft)' }}>Includes: {lay.feats.join(' · ')}</div>
         </div>
@@ -382,7 +382,7 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
         <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>{t('pModularBlocks')}</div>
         <div style={{ display:'grid', gap:8 }}>
           {OFFICE_BLOCKS.map(b=>{ const q=blocks[b.id]||0; const on=q>0; const unit=carcassBlocks.includes(b.id)?Math.round(b.price*matMult):deskBlocks.includes(b.id)?Math.round(b.price*wtop.mult*carc.mult):b.price; return (
-            <div key={b.id} style={{ display:'flex', alignItems:'center', gap:9, border:on?'2px solid var(--clay)':'1px solid var(--line)', background:on?'var(--sand)':'#fff', borderRadius:11, padding:'8px 11px' }}>
+            <div key={b.id} style={{ display:'flex', alignItems:'center', gap:9, border:on?'2px solid var(--clay)':'1px solid var(--line)', background:on?'var(--sand)':'#fff', borderRadius:'var(--radius-md)', padding:'8px 11px' }}>
               <div style={{ flex:1 }}><div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{trOpt(b.name, lang)}</div><div style={{ fontSize:11, color:'var(--muted)' }}>{fmt(unit)} / unit</div></div>
               {stepper(q, v=>setBlock(b.id,v))}
             </div>); })}
@@ -393,14 +393,14 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
           {numField(t('fDeskDepth'), desk.depth, v=>setDesk(d=>({...d,depth:v})), 400, 900)}
           <label style={{ gridColumn:'1/-1' }}><span style={labelS}>{t('fDeskShape')}</span>
             <select value={desk.shape} onChange={e=>setDesk(d=>({...d,shape:e.target.value}))} style={inS}>{OFFICE_DESK_SHAPES.map(s=><option key={s}>{s}</option>)}</select></label>
-          {!deskOK && <div style={{ gridColumn:'1/-1', fontSize:11.5, color:'var(--danger,#b91c1c)' }}>⚠ Aim for desk depth 450–800mm and length ≥900mm.</div>}
-          {deskOverWall && <div style={{ gridColumn:'1/-1', fontSize:11.5, color:'var(--danger,#b91c1c)' }}>⚠ Desk length exceeds wall width ({(dims.wallW/1000).toFixed(1)}m).</div>}
+          {!deskOK && <div style={{ gridColumn:'1/-1', fontSize:11.5, color:'var(--danger)' }}>⚠ Aim for desk depth 450–800mm and length ≥900mm.</div>}
+          {deskOverWall && <div style={{ gridColumn:'1/-1', fontSize:11.5, color:'var(--danger)' }}>⚠ Desk length exceeds wall width ({(dims.wallW/1000).toFixed(1)}m).</div>}
         </div>
         <div className="eyebrow" style={{ fontSize:11, marginBottom:8 }}>{t('gWorktopMaterial')}</div>
         <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(4,1fr)', gap:8 }}>
           {OFFICE_WORKTOPS.map(o=>{ const on=desk.worktop===o.id; return (
             <button key={o.id} type="button" onClick={()=>setDesk(d=>({...d,worktop:o.id}))} style={card(on)}>
-              <div style={{ height:30, borderRadius:7, background:o.hex, marginBottom:6 }} />
+              <div style={{ height:30, borderRadius:'var(--radius-sm)', background:o.hex, marginBottom:6 }} />
               <div style={{ fontSize:13, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{trOpt(o.name, lang)}</div>
               <div style={{ fontSize:10.5, color:'var(--muted)' }}>{trOpt(o.sub, lang)}</div>
             </button>); })}
@@ -408,7 +408,7 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
       case 5: return (<>{sectionH('6',t('shOf5t'),t('shOf5s'))}
         <div style={{ display:'grid', gap:9 }}>
           {OFFICE_STORAGE.map(s=>{ const q=store[s.id]||0; const on=q>0; return (
-            <div key={s.id} style={{ display:'flex', alignItems:'center', gap:9, border:on?'2px solid var(--clay)':'1px solid var(--line)', background:on?'var(--sand)':'#fff', borderRadius:11, padding:'9px 11px' }}>
+            <div key={s.id} style={{ display:'flex', alignItems:'center', gap:9, border:on?'2px solid var(--clay)':'1px solid var(--line)', background:on?'var(--sand)':'#fff', borderRadius:'var(--radius-md)', padding:'9px 11px' }}>
               <div style={{ flex:1 }}><div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{trOpt(s.name, lang)}</div><div style={{ fontSize:11, color:'var(--muted)' }}>{fmt(s.price)} / {s.unit}</div></div>
               {stepper(q, v=>setStore(st=>({...st,[s.id]:v})))}
             </div>); })}
@@ -420,7 +420,7 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
             <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(3,1fr)', gap:8 }}>
               {list.map(o=>{ const on=mats[key]===o.id; return (
                 <button key={o.id} type="button" onClick={()=>setMats(m=>({...m,[key]:o.id}))} style={card(on)}>
-                  {o.hex && <div style={{ height:30, borderRadius:7, background:o.hex, marginBottom:6 }} />}
+                  {o.hex && <div style={{ height:30, borderRadius:'var(--radius-sm)', background:o.hex, marginBottom:6 }} />}
                   <div style={{ fontSize:13, fontWeight:600, color:on?'var(--clay-deep)':'var(--ink)' }}>{trOpt(o.name, lang)}</div>
                   <div style={{ fontSize:10.5, color:'var(--muted)' }}>{o.sub||('×'+o.mult.toFixed(2))}</div>
                 </button>); })}
@@ -431,24 +431,24 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
           {OFFICE_LIGHTING.map(l=>toggleRow(light[l.id], ()=>setLight(s=>({...s,[l.id]:!s[l.id]})), l.name, `adds ${fmt(l.price)}`))}
         </div></>);
       case 8: return (<>{sectionH('9',t('shSummaryT'),t('shSummaryS'))}
-        <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:12, overflow:'hidden', marginBottom:12 }}>
+        <div style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', overflow:'hidden', marginBottom:12 }}>
           <div style={{ padding:'8px 12px', background:'var(--sand)', fontSize:11.5, fontWeight:700, color:'var(--ink-soft)' }}>{t('pBillOfMaterials')}</div>
           {bom.map(b=>(<div key={b.id} style={{ display:'flex', justifyContent:'space-between', padding:'7px 12px', fontSize:12.5, borderTop:'1px solid var(--line)' }}><span style={{ color:'var(--ink-soft)' }}>{b.name} ×{b.qty}</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(b.line)}</span></div>))}
           {storeItems.map(s=>(<div key={s.id} style={{ display:'flex', justifyContent:'space-between', padding:'7px 12px', fontSize:12.5, borderTop:'1px solid var(--line)' }}><span style={{ color:'var(--ink-soft)' }}>{s.name} ×{s.qty}</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(s.line)}</span></div>))}
           {lightItems.map(l=>(<div key={l.id} style={{ display:'flex', justifyContent:'space-between', padding:'7px 12px', fontSize:12.5, borderTop:'1px solid var(--line)' }}><span style={{ color:'var(--ink-soft)' }}>{l.name}</span><span style={{ fontWeight:600, color:'var(--ink)' }}>{fmt(l.line)}</span></div>))}
           <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 12px', borderTop:'2px solid var(--line)', background:'var(--sand)' }}><span style={{ fontWeight:700, color:'var(--ink)' }}>{t('pEstimatedTotal')}</span><span className="display" style={{ fontSize:19, color:'var(--clay-deep)' }}>{fmt(grandTotal)}</span></div>
         </div>
-        <div style={{ background:'rgba(8,145,178,.08)', borderRadius:10, padding:'9px 12px', fontSize:12.5, color:'#0e7490', marginBottom:12 }}>
+        <div style={{ background:'rgba(8,145,178,.08)', borderRadius:'var(--radius-md)', padding:'9px 12px', fontSize:12.5, color:'#0e7490', marginBottom:12 }}>
           Work guidance: set the worktop at 720–760mm, allow ≥600mm knee clearance, and run a dedicated outlet + cable tray behind the desk. Tall units fix to a timber sub-frame.
         </div>
-        {deskOverWall && <div style={{ fontSize:12.5, color:'var(--danger,#b91c1c)', marginBottom:12 }}>⚠ Desk length exceeds the wall — reduce length or widen the wall.</div>}
+        {deskOverWall && <div style={{ fontSize:12.5, color:'var(--danger)', marginBottom:12 }}>⚠ Desk length exceeds the wall — reduce length or widen the wall.</div>}
         <div style={{ display:'grid', gap:8 }}>
-          <button type="button" disabled={busy} onClick={saveDesign} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:11, padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{t('pSaveDesign')}</button>
-          <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:11 }}>{user?t('pGetQuoteArrow'):t('pSignInQuoteArrow')}</button>
-          <button type="button" onClick={downloadPDF} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:11, padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{t('pDownloadPdf')}</button>
+          <button type="button" disabled={busy} onClick={saveDesign} style={{ border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{t('pSaveDesign')}</button>
+          <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:'var(--radius-md)' }}>{user?t('pGetQuoteArrow'):t('pSignInQuoteArrow')}</button>
+          <button type="button" onClick={downloadPDF} style={{ border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', padding:'11px', fontSize:13.5, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{t('pDownloadPdf')}</button>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginTop:6 }}>
             {[['AI layout suggestions'],['Drag-and-drop modules'],['Ergonomic check'],['AR room preview'],['Manufacturing drawings'],['CNC cut list export']].map(([t])=>(
-              <button key={t} type="button" disabled title="Coming soon" style={{ border:'1px dashed var(--line)', background:'var(--sand)', borderRadius:10, padding:'9px', fontSize:11.5, color:'var(--muted)', cursor:'not-allowed' }}>{t} · soon</button>))}
+              <button key={t} type="button" disabled title="Coming soon" style={{ border:'1px dashed var(--line)', background:'var(--sand)', borderRadius:'var(--radius-md)', padding:'9px', fontSize:11.5, color:'var(--muted)', cursor:'not-allowed' }}>{t} · soon</button>))}
           </div>
         </div></>);
       default: return null;
@@ -462,12 +462,12 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
         <span style={{ fontSize:12, fontWeight:600, color:'var(--ink-soft)' }}>{t('p2dElevation')}</span>
         <span style={{ fontSize:11, color:'var(--muted)' }}>{room.name}</span>
       </div>
-      <div style={{ background:'var(--sand)', borderRadius:12, overflow:'hidden', flex:1, minHeight:0 }}>{elevation(h)}</div>
+      <div style={{ background:'var(--sand)', borderRadius:'var(--radius-md)', overflow:'hidden', flex:1, minHeight:0 }}>{elevation(h)}</div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
         <span style={{ fontSize:11, color:'var(--muted)' }}>{lay.name} · {desk.shape} desk · {(dims.wallW/1000).toFixed(1)}m wall</span>
         <span className="display" style={{ fontSize:20, color:'var(--clay)' }}>{fmt(grandTotal)}</span>
       </div>
-      {deskOverWall && <div style={{ fontSize:11, color:'var(--danger,#b91c1c)', background:'rgba(220,38,38,.08)', borderRadius:8, padding:'6px 9px' }}>⚠ Desk wider than the wall.</div>}
+      {deskOverWall && <div style={{ fontSize:11, color:'var(--danger)', background:'rgba(220,38,38,.08)', borderRadius:'var(--radius-sm)', padding:'6px 9px' }}>⚠ Desk wider than the wall.</div>}
     </div>
   );
 
@@ -475,7 +475,7 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
   return (
     <div style={{ height: mobile?'100dvh':`calc(100dvh - ${HEADER}px)`, marginTop: HEADER, display:'flex', flexDirection:'column', background:'var(--cream)', overflow:'hidden' }}>
       {/* step bar */}
-      <div style={{ height:BAR, flexShrink:0, display:'flex', alignItems:'center', gap:4, overflowX:'auto', padding:'0 12px', borderBottom:'1px solid var(--line)', background:'#fff' }}>
+      <div style={{ height:BAR, flexShrink:0, display:'flex', alignItems:'center', gap:4, overflowX:'auto', padding:'0 12px', borderBottom:'1px solid var(--line)', background:'var(--c-surface)' }}>
         {STEPS.map((s,i)=>{ const done=i<step, now=i===step; return (
           <button key={s} type="button" onClick={()=>i<=step&&setStep(i)} style={{ flexShrink:0, display:'flex', alignItems:'center', gap:5, background:'none', border:'none', cursor:i<=step?'pointer':'default', padding:'2px 6px' }}>
             <span style={{ width:20, height:20, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10.5, fontWeight:700, background: now?'var(--clay)':done?'var(--clay-deep)':'var(--sand)', color:(!now&&!done)?'var(--muted)':'#fff' }}>{done?'✓':i+1}</span>
@@ -492,14 +492,14 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
         {/* RIGHT — sticky preview (desktop) */}
         {!mobile && (
           <div style={{ flex:1, minWidth:0, padding:'18px 20px', display:'flex', flexDirection:'column' }}>
-            <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:14, boxShadow:'var(--shadow)', flex:1, display:'flex', flexDirection:'column', minHeight:0 }}>
+            <div style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', padding:14, boxShadow:'var(--shadow)', flex:1, display:'flex', flexDirection:'column', minHeight:0 }}>
               {previewPane('100%')}
             </div>
           </div>
         )}
         {/* mobile collapsible preview */}
         {mobile && showPrev && (
-          <div style={{ flexShrink:0, padding:'10px 14px', borderTop:'1px solid var(--line)', background:'#fff' }}>
+          <div style={{ flexShrink:0, padding:'10px 14px', borderTop:'1px solid var(--line)', background:'var(--c-surface)' }}>
             <div style={{ height:210 }}>{previewPane(200)}</div>
           </div>
         )}
@@ -507,13 +507,13 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
 
       {/* bottom action bar */}
       <div style={{ flexShrink:0, display:'flex', alignItems:'center', gap:10, padding:'9px 14px calc(9px + env(safe-area-inset-bottom))', borderTop:'1px solid var(--line)', background:'rgba(255,255,255,.97)', backdropFilter:'blur(10px)' }}>
-        {step>0 ? <button type="button" onClick={back} style={{ background:'none', border:'1px solid var(--line)', borderRadius:11, padding:'10px 16px', fontSize:13.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pBack')}</button>
-          : <button type="button" onClick={()=>setPage('office')} style={{ background:'none', border:'1px solid var(--line)', borderRadius:11, padding:'10px 16px', fontSize:13, color:'var(--muted)', cursor:'pointer' }}>{t('pExit')}</button>}
-        {mobile && <button type="button" onClick={()=>setShowPrev(v=>!v)} style={{ background:'var(--sand)', border:'none', borderRadius:11, padding:'10px 12px', fontSize:12.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{showPrev?t('pHide'):t('pPreview')}</button>}
+        {step>0 ? <button type="button" onClick={back} style={{ background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'10px 16px', fontSize:13.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pBack')}</button>
+          : <button type="button" onClick={()=>setPage('office')} style={{ background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'10px 16px', fontSize:13, color:'var(--muted)', cursor:'pointer' }}>{t('pExit')}</button>}
+        {mobile && <button type="button" onClick={()=>setShowPrev(v=>!v)} style={{ background:'var(--sand)', border:'none', borderRadius:'var(--radius-md)', padding:'10px 12px', fontSize:12.5, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{showPrev?t('pHide'):t('pPreview')}</button>}
         <div style={{ flex:1, textAlign: mobile?'center':'right', minWidth:0 }}><span style={{ fontSize:10.5, color:'var(--muted)' }}>{t('pTotal')} </span><span className="display" style={{ fontSize:17, color:'var(--clay)' }}>{fmt(grandTotal)}</span></div>
         {step<STEPS.length-1
-          ? <button type="button" className="btn-clay" disabled={!canNext} onClick={next} style={{ borderRadius:11, minWidth:120, opacity:canNext?1:.55 }}>{t('pNextArrow')}</button>
-          : <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:11, minWidth:120 }}>{t('pGetQuoteArrow')}</button>}
+          ? <button type="button" className="btn-clay" disabled={!canNext} onClick={next} style={{ borderRadius:'var(--radius-md)', minWidth:120, opacity:canNext?1:.55 }}>{t('pNextArrow')}</button>
+          : <button type="button" className="btn-clay" onClick={()=>setShowQuote(true)} style={{ borderRadius:'var(--radius-md)', minWidth:120 }}>{t('pGetQuoteArrow')}</button>}
       </div>
 
       {rdOpen && (
@@ -531,10 +531,10 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
       {/* QUOTE modal */}
       {showQuote && (
         <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
-          <ModalPanel onClose={()=>!busy&&setShowQuote(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:420, width:'100%', padding:24 }}>
+          <ModalPanel onClose={()=>!busy&&setShowQuote(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', maxWidth:420, width:'100%', padding:24 }}>
             <div className="eyebrow" style={{ marginBottom:8 }}>{t('pAlmostThere')}</div>
             <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 6px' }}>{t('pQuoteTitleOffice')}</h3>
-            <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)' }}>{lay.name} · {desk.shape} desk · {fin.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(grandTotal)}</b></div>
+            <div style={{ background:'var(--sand)', borderRadius:'var(--radius-md)', padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)' }}>{lay.name} · {desk.shape} desk · {fin.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(grandTotal)}</b></div>
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
               <input value={contact.name} onChange={e=>setContact(c=>({...c,name:e.target.value}))} placeholder={t('pYourName')} style={inS} />
               <input value={contact.phone} onChange={e=>setContact(c=>({...c,phone:e.target.value}))} placeholder="Phone (+973…)" inputMode="tel" style={inS} />
@@ -543,8 +543,8 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
             </div>
             <FormNotice kind="request" style={{ marginTop:12 }} />
             <div style={{ display:'flex', gap:10, marginTop:16 }}>
-              <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pCancel')}</button>
-              <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submitQuote(contact)} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?t('pSending'):(user?t('pSendQuoteReq'):t('pSignInSend'))}</button>
+              <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pCancel')}</button>
+              <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submitQuote(contact)} style={{ flex:2, borderRadius:'var(--radius-md)', opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?t('pSending'):(user?t('pSendQuoteReq'):t('pSignInSend'))}</button>
             </div>
           </ModalPanel>
         </div>

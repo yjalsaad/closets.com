@@ -85,8 +85,8 @@ function PlannerGuidePage({ setPage }) {
   return (
     <div style={{ minHeight:'100dvh', background:'var(--cream)' }}>
       {/* HERO */}
-      <section style={{ position:'relative', overflow:'hidden', paddingTop: mobile?96:64 }}>
-        <div style={{ maxWidth:1280, margin:'0 auto', padding: mobile?'0 22px':'0 40px', display:'grid', gridTemplateColumns: mobile?'1fr':'1.05fr 1fr', gap: mobile?28:56, alignItems:'center', paddingBottom: mobile?44:72 }}>
+      <section style={{ position:'relative', overflow:'hidden', paddingTop:'calc(var(--nav-h) + var(--space-6))' }}>
+        <div style={{ maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding: mobile?'0 var(--gutter)':'0 var(--gutter)', display:'grid', gridTemplateColumns: mobile?'1fr':'1.05fr 1fr', gap: mobile?28:56, alignItems:'center', paddingBottom: mobile?44:72 }}>
           <div className="rv">
             <div className="eyebrow" style={{ marginBottom:16 }}>{t('guideEyebrow')}</div>
             <h1 className="display" style={{ fontSize: mobile?40:68, lineHeight:1.03, color:'var(--ink)', letterSpacing:'-.03em' }}>{t('guideHeadline')}</h1>
@@ -95,7 +95,7 @@ function PlannerGuidePage({ setPage }) {
             </p>
             <div style={{ display:'flex', flexWrap:'wrap', gap:14, marginTop:28 }}>
               <button type="button" className="btn-clay" onClick={()=>setPage('planner')} style={{ fontSize:16 }}>{t('startDesigningArrow')}</button>
-              <button type="button" onClick={()=>setPage('booking')} style={{ background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:14, padding:'15px 26px', fontSize:16, fontWeight:600, cursor:'pointer', minHeight:50 }}>{t('bookFreeVisit')}</button>
+              <button type="button" onClick={()=>setPage('booking')} style={{ background:'var(--c-surface)', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:'var(--radius-lg)', padding:'15px 26px', fontSize:16, fontWeight:600, cursor:'pointer', minHeight:50 }}>{t('bookFreeVisit')}</button>
             </div>
             <div style={{ display:'flex', flexWrap:'wrap', gap:18, marginTop:30, fontSize:13.5, color:'var(--muted)', fontWeight:600 }}>
               <span style={{ display:'inline-flex', alignItems:'center', gap:7 }}><span style={{ color:'var(--clay)' }}>✦</span>Free to use</span>
@@ -103,7 +103,7 @@ function PlannerGuidePage({ setPage }) {
               <span style={{ display:'inline-flex', alignItems:'center', gap:7 }}><span style={{ color:'var(--clay)' }}>✦</span>10-year warranty</span>
             </div>
           </div>
-          <div className="rv tile-zoom zoomwrap" style={{ position:'relative', borderRadius:24, overflow:'hidden', minHeight: mobile?260:440, boxShadow:'0 30px 60px -28px rgba(33,28,24,.5)' }}>
+          <div className="rv tile-zoom zoomwrap" style={{ position:'relative', borderRadius:'var(--radius-xl)', overflow:'hidden', minHeight: mobile?260:440, boxShadow:'0 30px 60px -28px rgba(33,28,24,.5)' }}>
             <Photo src={HERO_IMG} alt="Designing a bespoke kitchen with an island" imgClass="tz" style={{ position:'absolute', inset:0 }} />
             <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, rgba(20,16,12,0) 55%, rgba(20,16,12,.45) 100%)' }} />
           </div>
@@ -111,8 +111,8 @@ function PlannerGuidePage({ setPage }) {
       </section>
 
       {/* HOW IT WORKS — 4 steps */}
-      <section style={{ background:'#fff', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
-        <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'56px 22px':'88px 40px' }}>
+      <section style={{ background:'var(--c-surface)', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
+        <div style={{ maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding: mobile?'56px var(--gutter)':'88px var(--gutter)' }}>
           <div className="rv" style={{ maxWidth:680, marginBottom: mobile?40:64 }}>
             <div className="eyebrow" style={{ marginBottom:14 }}>{t('guideHowEyebrow')}</div>
             <h2 className="display" style={{ fontSize: mobile?32:48, color:'var(--ink)', lineHeight:1.08 }}>{t('guideHowTitle')}</h2>
@@ -123,7 +123,7 @@ function PlannerGuidePage({ setPage }) {
               const flip = i % 2 === 1;
               return (
                 <div key={s.n} className="rv" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?22:56, alignItems:'center' }}>
-                  <div className="tile-zoom" style={{ position:'relative', borderRadius:20, overflow:'hidden', minHeight: mobile?220:340, order: (!mobile && flip)?2:1, boxShadow:'0 22px 44px -26px rgba(33,28,24,.45)' }}>
+                  <div className="tile-zoom" style={{ position:'relative', borderRadius:'var(--radius-xl)', overflow:'hidden', minHeight: mobile?220:340, order: (!mobile && flip)?2:1, boxShadow:'0 22px 44px -26px rgba(33,28,24,.45)' }}>
                     <Photo src={s.img} alt={s.alt} imgClass="tz" style={{ position:'absolute', inset:0 }} />
                   </div>
                   <div style={{ order: (!mobile && flip)?1:2 }}>
@@ -140,11 +140,11 @@ function PlannerGuidePage({ setPage }) {
 
       {/* THE ROOM DESIGNER */}
       <section>
-        <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'56px 22px':'88px 40px' }}>
+        <div style={{ maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding: mobile?'56px var(--gutter)':'88px var(--gutter)' }}>
           <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?28:56, alignItems:'center' }}>
-            <div className="rv tile-zoom" style={{ position:'relative', borderRadius:24, overflow:'hidden', minHeight: mobile?260:420, boxShadow:'0 30px 60px -30px rgba(33,28,24,.5)' }}>
+            <div className="rv tile-zoom" style={{ position:'relative', borderRadius:'var(--radius-xl)', overflow:'hidden', minHeight: mobile?260:420, boxShadow:'0 30px 60px -30px rgba(33,28,24,.5)' }}>
               <Photo src="/layouts/kitchen/island.jpg" alt={t('swGuideRdAlt')} imgClass="tz" style={{ position:'absolute', inset:0 }} />
-              <span style={{ position:'absolute', top:16, left:16, background:'rgba(255,255,255,.95)', color:'var(--clay-deep)', fontSize:12.5, fontWeight:800, borderRadius:999, padding:'7px 14px', boxShadow:'0 4px 14px rgba(0,0,0,.16)' }}>{t('swGuideRdBadge')}</span>
+              <span style={{ position:'absolute', top:16, left:16, background:'rgba(255,255,255,.95)', color:'var(--clay-deep)', fontSize:12.5, fontWeight:800, borderRadius:'var(--radius-pill)', padding:'7px 14px', boxShadow:'0 4px 14px rgba(0,0,0,.16)' }}>{t('swGuideRdBadge')}</span>
             </div>
             <div className="rv">
               <div className="eyebrow" style={{ marginBottom:14 }}>{t('swGuideRdEyebrow')}</div>
@@ -154,7 +154,7 @@ function PlannerGuidePage({ setPage }) {
               </p>
               <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:14, marginTop:26 }}>
                 {DESIGNER_FEATURES.map(f => (
-                  <div key={f.title} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'18px 18px' }}>
+                  <div key={f.title} style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-lg)', padding:'18px 18px' }}>
                     <div style={{ fontSize:22, marginBottom:8 }} aria-hidden="true">{f.icon}</div>
                     <div style={{ fontSize:15.5, fontWeight:700, color:'var(--ink)' }}>{f.title}</div>
                     <div style={{ fontSize:13.5, color:'var(--ink-soft)', marginTop:6, lineHeight:1.6 }}>{f.body}</div>
@@ -168,8 +168,8 @@ function PlannerGuidePage({ setPage }) {
       </section>
 
       {/* PLAN ANY PRODUCT */}
-      <section style={{ background:'#fff', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
-        <div style={{ maxWidth:1280, margin:'0 auto', padding: mobile?'56px 22px':'88px 40px' }}>
+      <section style={{ background:'var(--c-surface)', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
+        <div style={{ maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding: mobile?'56px var(--gutter)':'88px var(--gutter)' }}>
           <div className="rv" style={{ maxWidth:680, marginBottom: mobile?32:48 }}>
             <div className="eyebrow" style={{ marginBottom:14 }}>{t('swGuidePlanEyebrow')}</div>
             <h2 className="display" style={{ fontSize: mobile?32:48, color:'var(--ink)', lineHeight:1.08 }}>{t('swGuidePlanTitle')}</h2>
@@ -179,10 +179,10 @@ function PlannerGuidePage({ setPage }) {
             {CATEGORIES.map(c => (
               <button type="button" key={c.name} onClick={()=>setPage(c.page)}
                 className="rv lift"
-                style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', cursor:'pointer', textAlign:'left', padding:0, display:'flex', flexDirection:'column' }}>
+                style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', overflow:'hidden', cursor:'pointer', textAlign:'left', padding:0, display:'flex', flexDirection:'column' }}>
                 <div className="tile-zoom zoomwrap" style={{ position:'relative', height:180 }}>
                   <Photo src={c.img} alt={c.name} imgClass="tz" style={{ position:'absolute', inset:0 }} />
-                  <span style={{ position:'absolute', top:12, right:12, background:'rgba(255,255,255,.94)', color:'var(--clay-deep)', fontSize:11.5, fontWeight:700, borderRadius:999, padding:'5px 11px' }}>{c.steps} {t('swGuideStepsLabel')}</span>
+                  <span style={{ position:'absolute', top:12, right:12, background:'rgba(255,255,255,.94)', color:'var(--clay-deep)', fontSize:11.5, fontWeight:700, borderRadius:'var(--radius-pill)', padding:'5px 11px' }}>{c.steps} {t('swGuideStepsLabel')}</span>
                 </div>
                 <div style={{ padding:'20px 20px 22px', flex:1, display:'flex', flexDirection:'column' }}>
                   <div className="display" style={{ fontSize:21, color:'var(--ink)' }}>{c.name}</div>
@@ -197,14 +197,14 @@ function PlannerGuidePage({ setPage }) {
 
       {/* TIPS */}
       <section>
-        <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'56px 22px':'88px 40px' }}>
+        <div style={{ maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding: mobile?'56px var(--gutter)':'88px var(--gutter)' }}>
           <div className="rv" style={{ maxWidth:680, marginBottom: mobile?32:48 }}>
             <div className="eyebrow" style={{ marginBottom:14 }}>{t('swGuideTipsEyebrow')}</div>
             <h2 className="display" style={{ fontSize: mobile?32:48, color:'var(--ink)', lineHeight:1.08 }}>{t('swGuideTipsTitle')}</h2>
           </div>
           <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'repeat(auto-fill,minmax(330px,1fr))', gap:18 }}>
             {TIPS.map((tip, i) => (
-              <div key={tip.t} className="rv lift" style={{ display:'flex', gap:16, background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding:'22px 22px' }}>
+              <div key={tip.t} className="rv lift" style={{ display:'flex', gap:16, background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', padding:'22px 22px' }}>
                 <div style={{ flexShrink:0, width:38, height:38, borderRadius:'50%', background:'var(--sand)', color:'var(--clay-deep)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:800 }}>{i+1}</div>
                 <div>
                   <div style={{ fontSize:16.5, fontWeight:700, color:'var(--ink)' }}>{tip.t}</div>
@@ -217,7 +217,7 @@ function PlannerGuidePage({ setPage }) {
       </section>
 
       {/* FAQ */}
-      <section style={{ background:'#fff', borderTop:'1px solid var(--line)' }}>
+      <section style={{ background:'var(--c-surface)', borderTop:'1px solid var(--line)' }}>
         <div style={{ maxWidth:900, margin:'0 auto', padding: mobile?'56px 22px':'88px 40px' }}>
           <div className="rv" style={{ marginBottom: mobile?24:36 }}>
             <div className="eyebrow" style={{ marginBottom:14 }}>{t('guideQuestions')}</div>
@@ -233,14 +233,14 @@ function PlannerGuidePage({ setPage }) {
 
       {/* CTA BAND */}
       <section style={{ background:'var(--ink)', color:'#fff' }}>
-        <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'56px 22px':'80px 40px', textAlign:'center' }}>
+        <div style={{ maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding: mobile?'56px var(--gutter)':'80px var(--gutter)', textAlign:'center' }}>
           <h2 className="display" style={{ fontSize: mobile?32:48, color:'#fff', lineHeight:1.08 }}>{t('guideReady')}</h2>
           <p style={{ fontSize: mobile?16:18, color:'rgba(255,255,255,.78)', marginTop:14, maxWidth:560, marginLeft:'auto', marginRight:'auto', lineHeight:1.7 }}>
             Design your space in minutes, or book a free visit and a designer will plan it with you.
           </p>
           <div style={{ display:'flex', flexWrap:'wrap', gap:14, justifyContent:'center', marginTop:28 }}>
             <button type="button" className="btn-clay" onClick={()=>setPage('planner')} style={{ fontSize:16 }}>{t('startDesigningArrow')}</button>
-            <button type="button" onClick={()=>setPage('booking')} style={{ background:'transparent', color:'#fff', border:'1px solid rgba(255,255,255,.4)', borderRadius:14, padding:'15px 26px', fontSize:16, fontWeight:600, cursor:'pointer', minHeight:50 }}>{t('bookVisit')}</button>
+            <button type="button" onClick={()=>setPage('booking')} style={{ background:'transparent', color:'#fff', border:'1px solid rgba(255,255,255,.4)', borderRadius:'var(--radius-lg)', padding:'15px 26px', fontSize:16, fontWeight:600, cursor:'pointer', minHeight:50 }}>{t('bookVisit')}</button>
           </div>
         </div>
       </section>

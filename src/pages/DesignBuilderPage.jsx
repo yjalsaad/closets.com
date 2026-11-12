@@ -249,23 +249,23 @@ function DesignBuilderPage({ setPage, user }) {
   };
 
   // ── shared field styles ──
-  const inS = { width:'100%', padding:'11px 13px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:14.5, fontFamily:'inherit', color:'var(--ink)' };
+  const inS = { width:'100%', padding:'11px 13px', border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', fontSize:14.5, fontFamily:'inherit', color:'var(--ink)' };
   const lblS = { fontSize:12.5, fontWeight:600, color:'var(--ink-soft)', marginBottom:6, display:'block' };
-  const card = { background:'#fff', border:'1px solid var(--line)', borderRadius:18, padding: mobile?16:22, boxShadow:'var(--shadow)' };
-  const chip = (on) => ({ padding:'8px 14px', borderRadius:99, border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', color: on?'var(--clay-deep)':'var(--ink-soft)', fontSize:13, fontWeight: on?700:500, cursor:'pointer' });
+  const card = { background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', padding: mobile?16:22, boxShadow:'var(--shadow)' };
+  const chip = (on) => ({ padding:'8px 14px', borderRadius:'var(--radius-pill)', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', color: on?'var(--clay-deep)':'var(--ink-soft)', fontSize:13, fontWeight: on?700:500, cursor:'pointer' });
 
   const Toggle = ({ label, val, set }) => (
-    <button type="button" onClick={() => set(!val)} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%', padding:'10px 13px', border:'1px solid var(--line)', background: val?'var(--sand)':'#fff', borderRadius:12, cursor:'pointer', fontSize:14, color:'var(--ink)' }}>
-      <span>{label}</span><span style={{ width:18, height:18, borderRadius:6, border:'2px solid '+(val?'var(--clay)':'var(--line)'), background: val?'var(--clay)':'#fff', color:'#fff', fontSize:12, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700 }}>{val?'✓':''}</span>
+    <button type="button" onClick={() => set(!val)} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%', padding:'10px 13px', border:'1px solid var(--line)', background: val?'var(--sand)':'#fff', borderRadius:'var(--radius-md)', cursor:'pointer', fontSize:14, color:'var(--ink)' }}>
+      <span>{label}</span><span style={{ width:18, height:18, borderRadius:'var(--radius-sm)', border:'2px solid '+(val?'var(--clay)':'var(--line)'), background: val?'var(--clay)':'#fff', color:'#fff', fontSize:12, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700 }}>{val?'✓':''}</span>
     </button>
   );
   const Counter = ({ label, k }) => (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 0' }}>
       <span style={{ fontSize:14, color:'var(--ink)' }}>{label}</span>
       <span style={{ display:'flex', alignItems:'center', gap:10 }}>
-        <button type="button" onClick={() => setReq(r => ({ ...r, [k]: Math.max(0, (r[k]||0) - 1) }))} style={{ width:30, height:30, borderRadius:8, border:'1px solid var(--line)', background:'#fff', fontSize:16, cursor:'pointer', color:'var(--ink)' }}>−</button>
+        <button type="button" onClick={() => setReq(r => ({ ...r, [k]: Math.max(0, (r[k]||0) - 1) }))} style={{ width:30, height:30, borderRadius:'var(--radius-sm)', border:'1px solid var(--line)', background:'var(--c-surface)', fontSize:16, cursor:'pointer', color:'var(--ink)' }}>−</button>
         <span style={{ minWidth:22, textAlign:'center', fontWeight:700, color:'var(--clay-deep)' }}>{req[k]||0}</span>
-        <button type="button" onClick={() => setReq(r => ({ ...r, [k]: (r[k]||0) + 1 }))} style={{ width:30, height:30, borderRadius:8, border:'1px solid var(--line)', background:'#fff', fontSize:16, cursor:'pointer', color:'var(--ink)' }}>+</button>
+        <button type="button" onClick={() => setReq(r => ({ ...r, [k]: (r[k]||0) + 1 }))} style={{ width:30, height:30, borderRadius:'var(--radius-sm)', border:'1px solid var(--line)', background:'var(--c-surface)', fontSize:16, cursor:'pointer', color:'var(--ink)' }}>+</button>
       </span>
     </div>
   );
@@ -276,8 +276,8 @@ function DesignBuilderPage({ setPage, user }) {
   const dbFeatureLabels = { windows:t('sw2DbFeatWindows'), doors:t('sw2DbFeatDoors'), outlets:t('sw2DbFeatOutlets'), ac:t('sw2DbFeatAc'), columns:t('sw2DbFeatColumns'), beams:t('sw2DbFeatBeams'), plumbing:t('sw2DbFeatPlumbing'), lighting:t('sw2DbFeatLighting') };
 
   return (
-    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?86:64, paddingBottom:90 }}>
-      <div style={{ maxWidth:1200, margin:'0 auto', padding: mobile?'0 16px':'0 28px' }}>
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop:'var(--page-top)', paddingBottom:90 }}>
+      <div style={{ maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding: mobile?'0 var(--gutter)':'0 var(--gutter)' }}>
         <div style={{ textAlign:'center', marginBottom:18 }}>
           <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2DbEyebrow')}</div>
           <h1 className="display" style={{ fontSize: mobile?28:44, color:'var(--ink)' }}>{t('sw2DbTitle')}</h1>
@@ -289,8 +289,8 @@ function DesignBuilderPage({ setPage, user }) {
         {/* step tabs */}
         <div style={{ display:'flex', gap:6, overflowX:'auto', marginBottom:18, paddingBottom:4 }}>
           {DB_STEPS.map(([id, label], i) => { const on = step === id; return (
-            <button key={id} type="button" onClick={() => setStep(id)} style={{ flexShrink:0, display:'flex', alignItems:'center', gap:7, padding:'8px 14px', borderRadius:99, border:'none', cursor:'pointer', fontSize:13, fontWeight:600, background: on?'var(--clay)':'var(--sand)', color: on?'#fff':'var(--ink-soft)' }}>
-              <span style={{ width:18, height:18, borderRadius:99, fontSize:11, display:'flex', alignItems:'center', justifyContent:'center', background: on?'rgba(255,255,255,.25)':'var(--line)', color: on?'#fff':'var(--muted)' }}>{i+1}</span>{dbStepLabels[id]||label}
+            <button key={id} type="button" onClick={() => setStep(id)} style={{ flexShrink:0, display:'flex', alignItems:'center', gap:7, padding:'8px 14px', borderRadius:'var(--radius-pill)', border:'none', cursor:'pointer', fontSize:13, fontWeight:600, background: on?'var(--clay)':'var(--sand)', color: on?'#fff':'var(--ink-soft)' }}>
+              <span style={{ width:18, height:18, borderRadius:'var(--radius-pill)', fontSize:11, display:'flex', alignItems:'center', justifyContent:'center', background: on?'rgba(255,255,255,.25)':'var(--line)', color: on?'#fff':'var(--muted)' }}>{i+1}</span>{dbStepLabels[id]||label}
             </button>); })}
         </div>
 
@@ -298,7 +298,7 @@ function DesignBuilderPage({ setPage, user }) {
           {/* LEFT: live canvas + cost rail (sticky) */}
           <div style={{ position: mobile?'static':'sticky', top:96, display:'flex', flexDirection:'column', gap:16 }}>
             <div style={card}>
-              <div style={{ background:'var(--sand)', borderRadius:14, padding:10 }}>
+              <div style={{ background:'var(--sand)', borderRadius:'var(--radius-lg)', padding:10 }}>
                 <svg ref={svgRef} viewBox={`0 0 ${VW} ${VH}`} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp} onPointerDown={() => setSelId(null)} style={{ width:'100%', height:'auto', display:'block', touchAction:'none', cursor: drag.current?'grabbing':'default' }} aria-label="Design canvas">
                   <defs>
                     <pattern id="dbgrid" width={GRID} height={GRID} patternUnits="userSpaceOnUse"><path d={`M ${GRID} 0 L 0 0 0 ${GRID}`} fill="none" stroke="rgba(0,0,0,.05)" strokeWidth="1" /></pattern>
@@ -316,8 +316,8 @@ function DesignBuilderPage({ setPage, user }) {
               </div>
               {selId && (() => { const p = parts.find(x => x.id === selId); if (!p) return null; return (
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:10, fontSize:12.5, color:'var(--ink-soft)' }}>
-                  <span>{t('sw2DbSelected')}: <b style={{ color:'var(--ink)' }}>{p.name}</b> · {fmt(p.unit_cost)}{overlapSet.has(p.id) && <span style={{ color:'#d93025', marginLeft:8 }}>{t('sw2DbOverlapping')}</span>}</span>
-                  <button type="button" onClick={() => removePart(p.id)} style={{ background:'none', border:'1px solid var(--line)', borderRadius:99, padding:'4px 12px', fontSize:12, cursor:'pointer', color:'var(--clay)' }}>{t('sw2DbRemove')}</button>
+                  <span>{t('sw2DbSelected')}: <b style={{ color:'var(--ink)' }}>{p.name}</b> · {fmt(p.unit_cost)}{overlapSet.has(p.id) && <span style={{ color:'var(--c-err)', marginLeft:8 }}>{t('sw2DbOverlapping')}</span>}</span>
+                  <button type="button" onClick={() => removePart(p.id)} style={{ background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-pill)', padding:'4px 12px', fontSize:12, cursor:'pointer', color:'var(--clay)' }}>{t('sw2DbRemove')}</button>
                 </div>); })()}
             </div>
 
@@ -351,7 +351,7 @@ function DesignBuilderPage({ setPage, user }) {
               <p style={{ fontSize:13, color:'var(--muted)', margin:'0 0 14px' }}>{t('sw2DbPickType')}</p>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:18 }}>
                 {DB_PROJECT_TYPES.map(t => { const on = ptype === t.id; return (
-                  <button key={t.id} type="button" onClick={() => { setPtype(t.id); setReq({}); }} style={{ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:14, padding:'11px 12px', cursor:'pointer' }}>
+                  <button key={t.id} type="button" onClick={() => { setPtype(t.id); setReq({}); }} style={{ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:'var(--radius-lg)', padding:'11px 12px', cursor:'pointer' }}>
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.5" aria-hidden="true"><path d={t.ic} /></svg>
                     <div style={{ fontSize:13.5, fontWeight:700, color: on?'var(--clay-deep)':'var(--ink)', marginTop:6 }}>{trOpt(t.name, lang)}</div>
                     <div style={{ fontSize:10.5, color:'var(--muted)' }}>{trOpt(t.sub, lang)}</div>
@@ -439,13 +439,13 @@ function DesignBuilderPage({ setPage, user }) {
               <div style={{ fontSize:12, color:'var(--muted)', margin:'2px 0 8px' }}>{t('imgHintRoomPhoto')}</div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                 {survey.media.photos.map((src, i) => (
-                  <div key={i} style={{ position:'relative', width:78, height:78, borderRadius:12, overflow:'hidden', border:'1px solid var(--line)' }}>
+                  <div key={i} style={{ position:'relative', width:78, height:78, borderRadius:'var(--radius-md)', overflow:'hidden', border:'1px solid var(--line)' }}>
                     <img src={src} alt={'room '+(i+1)} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-                    <button type="button" onClick={() => setSurvey(s => ({ ...s, media: { ...s.media, photos: s.media.photos.filter((_, j) => j !== i) } }))} style={{ position:'absolute', top:3, right:3, width:20, height:20, borderRadius:99, border:'none', background:'rgba(0,0,0,.55)', color:'#fff', fontSize:12, cursor:'pointer', lineHeight:1 }}>×</button>
+                    <button type="button" onClick={() => setSurvey(s => ({ ...s, media: { ...s.media, photos: s.media.photos.filter((_, j) => j !== i) } }))} style={{ position:'absolute', top:3, right:3, width:20, height:20, borderRadius:'var(--radius-pill)', border:'none', background:'rgba(0,0,0,.55)', color:'#fff', fontSize:12, cursor:'pointer', lineHeight:1 }}>×</button>
                   </div>
                 ))}
                 {survey.media.photos.length < 8 && (
-                  <label style={{ width:78, height:78, borderRadius:12, border:'1.5px dashed var(--line)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'var(--muted)', fontSize:24, background:'var(--cream)' }}>+
+                  <label style={{ width:78, height:78, borderRadius:'var(--radius-md)', border:'1.5px dashed var(--line)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'var(--muted)', fontSize:24, background:'var(--cream)' }}>+
                     <input type="file" accept="image/*" onChange={e => onSurveyPhoto(e.target.files?.[0])} style={{ display:'none' }} />
                   </label>
                 )}
@@ -461,7 +461,7 @@ function DesignBuilderPage({ setPage, user }) {
               <span style={lblS}>{t('sw2DbAddPart')}</span>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:14 }}>
                 {DB_PART_KINDS.map(d => (
-                  <button key={d.kind} type="button" onClick={() => { setActiveKind(d.kind); addPart(d); }} style={{ display:'flex', alignItems:'center', gap:9, textAlign:'left', border: activeKind===d.kind?'1.5px solid var(--clay)':'1px solid var(--line)', background:'var(--cream)', borderRadius:12, padding:'9px 11px', cursor:'pointer' }}>
+                  <button key={d.kind} type="button" onClick={() => { setActiveKind(d.kind); addPart(d); }} style={{ display:'flex', alignItems:'center', gap:9, textAlign:'left', border: activeKind===d.kind?'1.5px solid var(--clay)':'1px solid var(--line)', background:'var(--cream)', borderRadius:'var(--radius-md)', padding:'9px 11px', cursor:'pointer' }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" strokeWidth="1.6" aria-hidden="true"><path d={d.ic} /></svg>
                     <span style={{ lineHeight:1.2 }}><span style={{ display:'block', fontSize:13, fontWeight:600, color:'var(--ink)' }}>{d.name}</span><span style={{ fontSize:11, color:'var(--muted)' }}>{d.w}×{d.h}cm · {fmt(d.cost)}</span></span>
                   </button>
@@ -473,7 +473,7 @@ function DesignBuilderPage({ setPage, user }) {
               </div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
                 {parts.length === 0 && <span style={{ fontSize:13, color:'var(--muted)' }}>{t('sw2DbNoParts')}</span>}
-                {parts.map(p => <button key={p.id} type="button" onClick={() => setSelId(p.id)} style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, border: selId===p.id?'1.5px solid var(--clay)':'1px solid var(--line)', background:'#fff', borderRadius:99, padding:'5px 10px', cursor:'pointer', color:'var(--ink)' }}>{p.name} <span onClick={e => { e.stopPropagation(); removePart(p.id); }} style={{ color:'var(--muted)' }}>×</span></button>)}
+                {parts.map(p => <button key={p.id} type="button" onClick={() => setSelId(p.id)} style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, border: selId===p.id?'1.5px solid var(--clay)':'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-pill)', padding:'5px 10px', cursor:'pointer', color:'var(--ink)' }}>{p.name} <span onClick={e => { e.stopPropagation(); removePart(p.id); }} style={{ color:'var(--muted)' }}>×</span></button>)}
               </div>
             </Fragment>)}
 
@@ -484,7 +484,7 @@ function DesignBuilderPage({ setPage, user }) {
               {catalog.styles.length === 0 && <div style={{ fontSize:13, color:'var(--muted)' }}>{t('sw2DbStylesLoading')}</div>}
               <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:12 }}>
                 {catalog.styles.map(s => { const on = styleId === s.id; return (
-                  <div key={s.id} style={{ border: on?'2px solid var(--clay)':'1px solid var(--line)', borderRadius:14, overflow:'hidden', background:'#fff' }}>
+                  <div key={s.id} style={{ border: on?'2px solid var(--clay)':'1px solid var(--line)', borderRadius:'var(--radius-lg)', overflow:'hidden', background:'var(--c-surface)' }}>
                     <button type="button" onClick={() => applyStyle(s)} style={{ width:'100%', textAlign:'left', border:'none', background:'none', cursor:'pointer', padding:0 }}>
                       <div style={{ display:'flex', height:46 }}>{(s.colors && s.colors.length ? s.colors : ['#b0613b','#ebe4d8','#1f1913']).slice(0,5).map((c, i) => <div key={i} style={{ flex:1, background: c }} />)}</div>
                       <div style={{ padding:'10px 12px' }}>
@@ -513,7 +513,7 @@ function DesignBuilderPage({ setPage, user }) {
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                     {list.length === 0 && <span style={{ fontSize:12.5, color:'var(--muted)' }}>{t('sw2DbLoading')}</span>}
                     {list.map(m => { const on = sel === m.id; return (
-                      <button key={m.id} type="button" onClick={() => setSel(m.id)} style={{ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:12, padding:'10px 12px', cursor:'pointer' }}>
+                      <button key={m.id} type="button" onClick={() => setSel(m.id)} style={{ textAlign:'left', border: on?'2px solid var(--clay)':'1px solid var(--line)', background: on?'var(--sand)':'#fff', borderRadius:'var(--radius-md)', padding:'10px 12px', cursor:'pointer' }}>
                         <div style={{ fontSize:13.5, fontWeight:600, color:'var(--ink)' }}>{m.name}</div>
                         <div style={{ fontSize:11, color:'var(--muted)' }}>{m.sub||''} · {fmt(m.cost)}/{m.unit||'unit'}</div>
                       </button>); })}
@@ -524,12 +524,12 @@ function DesignBuilderPage({ setPage, user }) {
                 <div style={{ marginBottom:14 }}>
                   <span style={lblS}>{t('sw2DbHardwareAccessories')}</span>
                   <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                    {[...hardwares, ...accessories].map(m => <span key={m.id} style={{ fontSize:11.5, border:'1px solid var(--line)', borderRadius:99, padding:'5px 11px', color:'var(--ink-soft)', background:'#fff' }}>{m.name} · {fmt(m.cost)}</span>)}
+                    {[...hardwares, ...accessories].map(m => <span key={m.id} style={{ fontSize:11.5, border:'1px solid var(--line)', borderRadius:'var(--radius-pill)', padding:'5px 11px', color:'var(--ink-soft)', background:'var(--c-surface)' }}>{m.name} · {fmt(m.cost)}</span>)}
                   </div>
                 </div>
               )}
               {(boards.length + finishes.length) > 0 && (
-                <div style={{ marginTop:8, border:'1px solid var(--line)', borderRadius:12, overflowX:'auto' }}>
+                <div style={{ marginTop:8, border:'1px solid var(--line)', borderRadius:'var(--radius-md)', overflowX:'auto' }}>
                   <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11.5, minWidth:560 }}>
                     <thead><tr style={{ background:'var(--sand)' }}>{[t('sw2DbThMaterial'),t('sw2DbThCost'),t('sw2DbThWarranty'),t('sw2DbThDurability'),t('sw2DbThScratch'),t('sw2DbThWater'),t('sw2DbThLead'),t('sw2DbThSupplier'),t('sw2DbThMaint')].map(h => <th key={h} style={{ textAlign:'left', padding:'8px 10px', color:'var(--ink-soft)', fontWeight:700, whiteSpace:'nowrap' }}>{h}</th>)}</tr></thead>
                     <tbody>
@@ -559,26 +559,26 @@ function DesignBuilderPage({ setPage, user }) {
               <span style={lblS}>{t('sw2DbInspoUrl')}</span>
               <div style={{ display:'flex', gap:8, marginBottom:14 }}>
                 <input value={moodUrl} onChange={e => setMoodUrl(e.target.value)} aria-label={t('sw2DbInspoUrl')} placeholder="https://…" style={inS} />
-                <button type="button" onClick={() => { if (!moodUrl.trim()) return; setMood(m => [...m, { id:uid(), kind:'image', url:moodUrl.trim() }]); setMoodUrl(''); }} className="btn-clay" style={{ borderRadius:12, padding:'0 16px', whiteSpace:'nowrap' }}>{t('sw2DbAdd')}</button>
+                <button type="button" onClick={() => { if (!moodUrl.trim()) return; setMood(m => [...m, { id:uid(), kind:'image', url:moodUrl.trim() }]); setMoodUrl(''); }} className="btn-clay" style={{ borderRadius:'var(--radius-md)', padding:'0 16px', whiteSpace:'nowrap' }}>{t('sw2DbAdd')}</button>
               </div>
               <span style={lblS}>{t('sw2DbColourPalette')}</span>
               <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:14 }}>
-                <input type="color" value={swatch} onChange={e => setSwatch(e.target.value)} style={{ width:44, height:40, border:'1px solid var(--line)', borderRadius:10, background:'#fff', cursor:'pointer' }} />
-                <button type="button" onClick={() => setMood(m => [...m, { id:uid(), kind:'color', note:swatch }])} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:12, padding:'10px 16px', fontSize:13, fontWeight:600, cursor:'pointer', color:'var(--ink)' }}>{t('sw2DbAddSwatch')}</button>
+                <input type="color" value={swatch} onChange={e => setSwatch(e.target.value)} style={{ width:44, height:40, border:'1px solid var(--line)', borderRadius:'var(--radius-md)', background:'var(--c-surface)', cursor:'pointer' }} />
+                <button type="button" onClick={() => setMood(m => [...m, { id:uid(), kind:'color', note:swatch }])} style={{ border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', padding:'10px 16px', fontSize:13, fontWeight:600, cursor:'pointer', color:'var(--ink)' }}>{t('sw2DbAddSwatch')}</button>
               </div>
               <span style={lblS}>{t('sw2DbSampleNote')}</span>
               <div style={{ display:'flex', gap:8, marginBottom:16 }}>
                 <input value={moodNote} onChange={e => setMoodNote(e.target.value)} aria-label={t('sw2DbInspoNoteAria')} placeholder={t('sw2DbMoodNotePh')} style={inS} />
-                <button type="button" onClick={() => { if (!moodNote.trim()) return; setMood(m => [...m, { id:uid(), kind:'note', note:moodNote.trim() }]); setMoodNote(''); }} style={{ border:'1px solid var(--line)', background:'#fff', borderRadius:12, padding:'0 16px', fontSize:13, fontWeight:600, cursor:'pointer', color:'var(--ink)', whiteSpace:'nowrap' }}>{t('sw2DbAdd')}</button>
+                <button type="button" onClick={() => { if (!moodNote.trim()) return; setMood(m => [...m, { id:uid(), kind:'note', note:moodNote.trim() }]); setMoodNote(''); }} style={{ border:'1px solid var(--line)', background:'var(--c-surface)', borderRadius:'var(--radius-md)', padding:'0 16px', fontSize:13, fontWeight:600, cursor:'pointer', color:'var(--ink)', whiteSpace:'nowrap' }}>{t('sw2DbAdd')}</button>
               </div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:10 }}>
                 {mood.length === 0 && <span style={{ fontSize:13, color:'var(--muted)' }}>{t('sw2DbNothingPinned')}</span>}
                 {mood.map(m => (
-                  <div key={m.id} style={{ position:'relative', borderRadius:12, overflow:'hidden', border:'1px solid var(--line)' }}>
+                  <div key={m.id} style={{ position:'relative', borderRadius:'var(--radius-md)', overflow:'hidden', border:'1px solid var(--line)' }}>
                     {m.kind === 'image' && <img src={m.url} alt="inspiration" style={{ width:96, height:96, objectFit:'cover', display:'block' }} onError={e => { e.target.style.display='none'; }} />}
                     {m.kind === 'color' && <div style={{ width:96, height:96, background:m.note }} />}
                     {m.kind === 'note' && <div style={{ width:140, height:96, padding:10, fontSize:12, color:'var(--ink-soft)', background:'var(--cream)', overflow:'hidden' }}>{m.note}</div>}
-                    <button type="button" onClick={() => setMood(x => x.filter(p => p.id !== m.id))} style={{ position:'absolute', top:4, right:4, width:20, height:20, borderRadius:99, border:'none', background:'rgba(0,0,0,.55)', color:'#fff', fontSize:12, cursor:'pointer', lineHeight:1 }}>×</button>
+                    <button type="button" onClick={() => setMood(x => x.filter(p => p.id !== m.id))} style={{ position:'absolute', top:4, right:4, width:20, height:20, borderRadius:'var(--radius-pill)', border:'none', background:'rgba(0,0,0,.55)', color:'#fff', fontSize:12, cursor:'pointer', lineHeight:1 }}>×</button>
                   </div>
                 ))}
               </div>
@@ -592,10 +592,10 @@ function DesignBuilderPage({ setPage, user }) {
               {price && (<Fragment>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
                   {[[t('sw2DbCurrentPrice'), fmt(total), 'var(--clay)'],[t('sw2DbVariation'), prevTotal!=null?((variation>=0?'+':'−')+fmt(Math.abs(variation))):'—', variation<0?'var(--clay)':'var(--clay-deep)'],[t('sw2DbMargin'), Math.round(price.margin_pct||0)+'%', 'var(--ink)'],[t('sw2DbEstDelivery'), price.estimated_delivery?new Date(price.estimated_delivery).toLocaleDateString(lang==='ar'?'ar-BH-u-ca-gregory-nu-latn':'en-GB',{ day:'numeric', month:'short', year:'numeric' }):'—', 'var(--ink)']].map(([l, v, c]) => (
-                    <div key={l} style={{ border:'1px solid var(--line)', borderRadius:12, padding:'12px 14px', background:'var(--cream)' }}><div style={{ fontSize:11, color:'var(--muted)' }}>{l}</div><div className="display" style={{ fontSize:20, color:c, marginTop:2 }}>{v}</div></div>
+                    <div key={l} style={{ border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'12px 14px', background:'var(--cream)' }}><div style={{ fontSize:11, color:'var(--muted)' }}>{l}</div><div className="display" style={{ fontSize:20, color:c, marginTop:2 }}>{v}</div></div>
                   ))}
                 </div>
-                <div style={{ border:'1px solid var(--line)', borderRadius:12, overflow:'hidden' }}>
+                <div style={{ border:'1px solid var(--line)', borderRadius:'var(--radius-md)', overflow:'hidden' }}>
                   {[[t('sw2DbMaterialCost'), price.material_cost,'mat'],[t('sw2DbLabour'), price.labor_cost,'lab'],[t('sw2DbDelivery'), price.delivery_cost,'del'],[t('sw2DbInstallation'), price.install_cost,'ins'],[t('sw2DbSubtotal'), price.subtotal,'sub']].map(([l, v, kk], i, a) => (
                     <div key={kk} style={{ display:'flex', justifyContent:'space-between', padding:'11px 14px', fontSize:13.5, borderBottom: i<a.length-1?'1px solid var(--line)':'none', fontWeight: kk==='sub'?700:500, color: kk==='sub'?'var(--ink)':'var(--ink-soft)', background: kk==='sub'?'var(--sand)':'#fff' }}><span>{l}</span><span>{fmt(v)}</span></div>
                   ))}
@@ -611,12 +611,12 @@ function DesignBuilderPage({ setPage, user }) {
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
                 {aiSuggestions.length === 0 && <div style={{ fontSize:13.5, color:'var(--muted)' }}>{t('sw2DbAiNone')}</div>}
                 {aiSuggestions.map(s => (
-                  <div key={s.id} style={{ display:'flex', alignItems:'center', gap:12, justifyContent:'space-between', border:'1px solid var(--line)', borderRadius:14, padding:'12px 14px', background:'var(--cream)' }}>
+                  <div key={s.id} style={{ display:'flex', alignItems:'center', gap:12, justifyContent:'space-between', border:'1px solid var(--line)', borderRadius:'var(--radius-lg)', padding:'12px 14px', background:'var(--cream)' }}>
                     <div style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
                       <span style={{ fontSize:18 }}>✨</span>
                       <span style={{ fontSize:13.5, color:'var(--ink)', lineHeight:1.45 }}>{s.label}</span>
                     </div>
-                    <button type="button" onClick={s.apply} className="btn-clay" style={{ borderRadius:99, padding:'8px 16px', flexShrink:0 }}>{t('sw2DbApply')}</button>
+                    <button type="button" onClick={s.apply} className="btn-clay" style={{ borderRadius:'var(--radius-pill)', padding:'8px 16px', flexShrink:0 }}>{t('sw2DbApply')}</button>
                   </div>
                 ))}
               </div>
@@ -637,13 +637,13 @@ function DesignBuilderPage({ setPage, user }) {
             {/* step nav + footer actions */}
             <div style={{ display:'flex', gap:10, marginTop:18 }}>
               {(() => { const i = DB_STEPS.findIndex(s => s[0] === step); return (<Fragment>
-                <button type="button" disabled={i===0} onClick={() => setStep(DB_STEPS[Math.max(0, i-1)][0])} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor: i===0?'default':'pointer', opacity:i===0?.5:1 }}>{t('sw2DbBack')}</button>
-                <button type="button" disabled={i===DB_STEPS.length-1} onClick={() => setStep(DB_STEPS[Math.min(DB_STEPS.length-1, i+1)][0])} className="btn-clay" style={{ flex:1, borderRadius:12, opacity:i===DB_STEPS.length-1?.5:1 }}>{t('sw2DbNext')}</button>
+                <button type="button" disabled={i===0} onClick={() => setStep(DB_STEPS[Math.max(0, i-1)][0])} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor: i===0?'default':'pointer', opacity:i===0?.5:1 }}>{t('sw2DbBack')}</button>
+                <button type="button" disabled={i===DB_STEPS.length-1} onClick={() => setStep(DB_STEPS[Math.min(DB_STEPS.length-1, i+1)][0])} className="btn-clay" style={{ flex:1, borderRadius:'var(--radius-md)', opacity:i===DB_STEPS.length-1?.5:1 }}>{t('sw2DbNext')}</button>
               </Fragment>); })()}
             </div>
             <div style={{ display:'flex', gap:10, marginTop:10 }}>
-              <button type="button" disabled={busy} onClick={saveDraft} style={{ flex:1, background:'#fff', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink)', cursor:'pointer', opacity:busy?.6:1 }}>{busy?t('sw2DbSaving'):(savedId?t('sw2DbUpdateDraft'):t('sw2DbSaveDraft'))}</button>
-              <button type="button" disabled={busy} onClick={submitApproval} className="btn-clay" style={{ flex:1.4, borderRadius:12, opacity:busy?.6:1 }}>{busy?t('sw2DbSubmitting'):t('sw2DbSubmitApproval')}</button>
+              <button type="button" disabled={busy} onClick={saveDraft} style={{ flex:1, background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-md)', padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink)', cursor:'pointer', opacity:busy?.6:1 }}>{busy?t('sw2DbSaving'):(savedId?t('sw2DbUpdateDraft'):t('sw2DbSaveDraft'))}</button>
+              <button type="button" disabled={busy} onClick={submitApproval} className="btn-clay" style={{ flex:1.4, borderRadius:'var(--radius-md)', opacity:busy?.6:1 }}>{busy?t('sw2DbSubmitting'):t('sw2DbSubmitApproval')}</button>
             </div>
             <div style={{ marginTop:14, textAlign:'center' }}><button type="button" aria-label={t('pgClose')} onClick={() => setPage('home')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--muted)' }}>{t('pgClose')}</button></div>
           </div>

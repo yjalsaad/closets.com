@@ -100,8 +100,8 @@ html[lang="ar"] .process p { font-size: var(--fs-base); }
   .showroom__stage img.is-on { opacity: 1; }
   .showroom__inline { display: none; }
   .showroom__list { gap: 0; }
-  .showroom__list > li { min-height: 44svh; padding-block: var(--space-7); align-content: center; opacity: .45; transition: opacity var(--dur-slow); }
-  .showroom__list > li.is-on { opacity: 1; }
+  .showroom__list > li { min-height: 44svh; padding-block: var(--space-7); align-content: center; transition: border-color var(--dur-slow); }
+  .showroom__list > li.is-on { border-top-color: var(--c-gold); }
 }
 @media (prefers-reduced-motion: reduce) { .showroom__stage img, .showroom__list > li { transition: none; } }
 

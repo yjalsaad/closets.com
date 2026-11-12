@@ -4,10 +4,11 @@
 import { useState, useEffect } from 'react';
 import { formatBHD } from '../i18n/format';
 import { ModalPanel } from '../a11y/dialog';
+import PageHeader, { EmptyState } from '../design/PageHeader';
 import { CMS_LANG, HOME_IMG, Photo, api, cms, useI18n, useReveal } from '../App';
 
 function ServicesPage({ user, setPage, openAuth }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [cats, setCats] = useState([]);
   const [sel, setSel] = useState(null);
   const [mode, setMode] = useState('scheduled');
@@ -37,16 +38,12 @@ function ServicesPage({ user, setPage, openAuth }) {
   };
   const price = (c) => c.pricing_model === 'fixed' ? ((CMS_LANG==='ar' ? 'ابتداءً من ' : 'From ') + formatBHD(c.base_price, CMS_LANG, { whole:true })) : c.pricing_model === 'hourly' ? (formatBHD(c.base_price, CMS_LANG, { whole:true }) + (CMS_LANG==='ar' ? '/ساعة' : '/hr')) : (CMS_LANG==='ar' ? 'عرض سعر مجاني' : 'Free quote');
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--cream)', paddingTop: 64, paddingBottom: 90 }}>
-      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '0 24px' }}>
-        <div className="rv" style={{ maxWidth: 680, marginBottom: 36 }}>
-          <div className="eyebrow" style={{ marginBottom: 14 }}>{cms('services.hero.eyebrow', 'Home services')}</div>
-          <h1 className="display" style={{ fontSize: 'clamp(36px,5vw,56px)', color: 'var(--ink)', marginBottom: 14 }}>{cms('services.hero.title', 'Help around the home, on demand.')}</h1>
-          <p style={{ fontSize: 17, color: 'var(--ink-soft)', lineHeight: 1.7 }}>{cms('services.hero.subtitle', 'Carpentry, repairs, cleaning, AC and more — scheduled or ASAP, by vetted providers.')}{user ? '' : t('swSvcSignInToBook')}</p>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(250px,1fr))', gap: 18 }}>
+    <div className="page">
+      <PageHeader lang={lang} eyebrow={cms('services.hero.eyebrow', lang==='ar' ? 'خدمات المنزل' : 'Home services')} title={cms('services.hero.title', 'Help around the home, on demand.')} sub={<>{cms('services.hero.subtitle', 'Carpentry, repairs, cleaning, AC and more — scheduled or ASAP, by vetted providers.')}{user ? '' : t('swSvcSignInToBook')}</>} />
+      <div className="container page-body">
+        {cats.length === 0 ? <EmptyState lang={lang} icon="tools" title={lang==='ar' ? 'لا توجد خدمات متاحة للحجز حاليًا' : 'No services are open for booking right now'} body={lang==='ar' ? 'تتجدد قائمة الخدمات باستمرار. تواصل معنا وسنرشدك إلى الخدمة المناسبة.' : 'The service list updates regularly. Get in touch and we will point you to the right one.'} /> : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(250px,1fr))', gap: 18 }}>
           {cats.map(c => (
-            <div key={c.id} className="rv lift" onClick={() => open(c)} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 18, overflow: 'hidden', cursor: 'pointer' }}>
+            <div key={c.id} className="rv lift" onClick={() => open(c)} style={{ background: 'var(--c-surface)', border: '1px solid var(--line)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', cursor: 'pointer' }}>
               <div className="tile-zoom" style={{ position: 'relative', height: 140 }}>
                 <Photo src={c.image_url || HOME_IMG.detail} alt={c.name_en} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
               </div>
@@ -54,19 +51,19 @@ function ServicesPage({ user, setPage, openAuth }) {
                 <div className="display" style={{ fontWeight: 600, fontSize: 18, color: 'var(--ink)' }}>{c.name_en}</div>
                 <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 6 }}>{price(c)} · ~{c.est_minutes}m{Number(c.points) > 0 ? ' · ★ ' + c.points + ' pts' : ''}</div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
-                  {Number(c.discount_pct) > 0 && <span style={{ background: 'rgba(176,97,59,.1)', color: 'var(--clay)', borderRadius: 99, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>−{c.discount_pct}%</span>}
-                  {Number(c.warranty_months) > 0 && <span style={{ background: '#e7f0e9', color: '#3f7a52', borderRadius: 99, padding: '2px 10px', fontSize: 12, fontWeight: 600 }}>{c.warranty_months}-mo warranty</span>}
+                  {Number(c.discount_pct) > 0 && <span style={{ background: 'rgba(176,97,59,.1)', color: 'var(--clay)', borderRadius: 'var(--radius-pill)', padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>−{c.discount_pct}%</span>}
+                  {Number(c.warranty_months) > 0 && <span style={{ background: '#e7f0e9', color: '#3f7a52', borderRadius: 'var(--radius-pill)', padding: '2px 10px', fontSize: 12, fontWeight: 600 }}>{c.warranty_months}-mo warranty</span>}
                 </div>
               </div>
             </div>
           ))}
-          {cats.length === 0 && <div style={{ color: 'var(--muted)' }}>{t('swServicesSoon')}</div>}
-        </div>
+          
+        </div>}
       </div>
 
       {sel && (
         <div onClick={() => setSel(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,16,12,.55)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 18 }}>
-          <ModalPanel onClose={() => setSel(null)} onClick={e => e.stopPropagation()} style={{ background: 'var(--cream)', borderRadius: 22, maxWidth: 480, width: '100%', padding: 26, maxHeight: '90vh', overflow: 'auto' }}>
+          <ModalPanel onClose={() => setSel(null)} onClick={e => e.stopPropagation()} style={{ background: 'var(--cream)', borderRadius: 'var(--radius-xl)', maxWidth: 480, width: '100%', padding: 26, maxHeight: '90vh', overflow: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
               <h2 className="display" style={{ fontSize: 24, color: 'var(--ink)', margin: 0 }}>{sel.name_en}</h2>
               <button type="button" aria-label="Close" onClick={() => setSel(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: 'var(--muted)' }}>✕</button>
@@ -80,22 +77,22 @@ function ServicesPage({ user, setPage, openAuth }) {
               </div>
             ) : (
               <>
-                <div style={{ display: 'flex', background: 'var(--sand)', borderRadius: 12, padding: 4, marginBottom: 16 }}>
+                <div style={{ display: 'flex', background: 'var(--sand)', borderRadius: 'var(--radius-md)', padding: 4, marginBottom: 16 }}>
                   {[['scheduled', t('swSvcSchedule')], ['on_demand', t('swSvcAsap')]].map(([m, l]) => (
-                    <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: 10, borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 600, background: mode === m ? '#fff' : 'transparent', color: mode === m ? 'var(--clay)' : 'var(--muted)' }}>{l}</button>
+                    <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: 10, borderRadius: 'var(--radius-sm)', border: 'none', cursor: 'pointer', fontWeight: 600, background: mode === m ? '#fff' : 'transparent', color: mode === m ? 'var(--clay)' : 'var(--muted)' }}>{l}</button>
                   ))}
                 </div>
                 {mode === 'scheduled' && (
                   <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-                    <input type="date" className="inp" value={date} onChange={e => setDate(e.target.value)} style={{ flex: 1, background: '#fff', border: '1px solid var(--line)' }} />
-                    <select className="inp" value={slot} onChange={e => setSlot(e.target.value)} style={{ flex: 1, background: '#fff', border: '1px solid var(--line)' }}>
+                    <input type="date" className="inp" value={date} onChange={e => setDate(e.target.value)} style={{ flex: 1, background: 'var(--c-surface)', border: '1px solid var(--line)' }} />
+                    <select className="inp" value={slot} onChange={e => setSlot(e.target.value)} style={{ flex: 1, background: 'var(--c-surface)', border: '1px solid var(--line)' }}>
                       {(sel.slots || ['Morning', 'Afternoon', 'Evening']).map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                 )}
-                <input className="inp" value={area} onChange={e => setArea(e.target.value)} aria-label="Area (e.g. Riffa)" placeholder="Area (e.g. Riffa)" style={{ background: '#fff', border: '1px solid var(--line)', marginBottom: 10 }} />
-                <input className="inp" value={address} onChange={e => setAddress(e.target.value)} aria-label="Address / building, road, block" placeholder="Address / building, road, block" style={{ background: '#fff', border: '1px solid var(--line)', marginBottom: 10 }} />
-                <textarea className="inp" value={notes} onChange={e => setNotes(e.target.value)} aria-label="What do you need? Describe the job" placeholder="What do you need? Describe the job…" rows={3} style={{ background: '#fff', border: '1px solid var(--line)', marginBottom: 14, resize: 'vertical' }} />
+                <input className="inp" value={area} onChange={e => setArea(e.target.value)} aria-label="Area (e.g. Riffa)" placeholder="Area (e.g. Riffa)" style={{ background: 'var(--c-surface)', border: '1px solid var(--line)', marginBottom: 10 }} />
+                <input className="inp" value={address} onChange={e => setAddress(e.target.value)} aria-label="Address / building, road, block" placeholder="Address / building, road, block" style={{ background: 'var(--c-surface)', border: '1px solid var(--line)', marginBottom: 10 }} />
+                <textarea className="inp" value={notes} onChange={e => setNotes(e.target.value)} aria-label="What do you need? Describe the job" placeholder="What do you need? Describe the job…" rows={3} style={{ background: 'var(--c-surface)', border: '1px solid var(--line)', marginBottom: 14, resize: 'vertical' }} />
                 <button className="btn-clay" disabled={busy} onClick={submit} style={{ width: '100%' }}>{busy ? 'Sending…' : 'Send request'}</button>
               </>
             )}
