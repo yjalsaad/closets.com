@@ -9,6 +9,9 @@
  * ===========================================================================*/
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import './studio.css';
+import { ModalPanel } from '../a11y/dialog';
+import { SkipLink } from '../a11y/RouteA11y';
+import ConsentBanner from '../privacy/ConsentBanner';
 import { DESIGNERS, byKind, designerComponent, restoreStorage, nameOf } from './designers';
 import { setStudio, useStudio, fmtBD, indicative } from './studioStore';
 import { getSession, onSession, signOut, rpc, publicRpc, consumeUrlSession, setNewPassword, authError } from './customerAuth';
@@ -70,6 +73,7 @@ export default function StudioRoot() {
 
   return (
     <div className={`ws-root ws-price-${st.settings.price_mode || 'indicative'}${st.settings.show_exports ? ' ws-exports' : ''}`} dir={ar ? 'rtl' : 'ltr'} lang={lang}>
+      <SkipLink lang={lang} />
       <header className="ws-bar">
         <a className="ws-brand" href="/" aria-label="The Closets — home">THE CLOSETS</a>
         <button type="button" className="ws-crumb" onClick={() => go('/studio')}>{L('Neo Design Studio', 'استوديو نيو للتصميم')}</button>
@@ -85,7 +89,7 @@ export default function StudioRoot() {
         </button>
       </header>
 
-      <main className="ws-main">
+      <main id="main" tabIndex={-1} className="ws-main" style={{ outline: 'none' }}>
         {kind ? (enabled(kind) ? <DesignerPage key={kind + (route.q.get('design') || '') + (route.q.get('new') || '')} kind={kind} q={route.q} lang={lang} toast={toast} />
           : <div className="ws-page"><p>{L('This designer is not available right now.', 'هذا المصمم غير متاح حاليًا.')}</p><button type="button" className="wsq-btn" onClick={() => go('/studio')}>{L('All designers', 'جميع المصممين')}</button></div>)
           : route.seg === 'account' ? <AccountPage lang={lang} session={session} toast={toast} />
@@ -94,12 +98,13 @@ export default function StudioRoot() {
 
       {authAsk && (
         <div className="wsq-scrim wsq-scrim-top" dir={ar ? 'rtl' : 'ltr'} onMouseDown={(e) => { if (e.target === e.currentTarget) closeAuth(false); }}>
-          <div className="wsq wsq-narrow" role="dialog" aria-modal="true">
+          <ModalPanel className="wsq wsq-narrow" label={L('Sign in', 'تسجيل الدخول')} onClose={() => closeAuth(false)}>
             <div className="wsq-head"><span /><button type="button" className="wsq-x" onClick={() => closeAuth(false)} aria-label={L('Close', 'إغلاق')}>×</button></div>
             <div className="wsq-body"><AuthForm lang={lang} reason={authAsk.reason} onDone={(ok) => closeAuth(ok)} /></div>
-          </div>
+          </ModalPanel>
         </div>
       )}
+      <ConsentBanner lang={lang} />
       {toastState && <div className={`ws-toast ws-toast-${toastState.kind}`} role="status">{toastState.msg}</div>}
     </div>
   );

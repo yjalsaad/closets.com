@@ -7,6 +7,7 @@
  * Signed-out customers are sent through the account dialog first and come straight back here.
  * ===========================================================================*/
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ModalPanel } from '../a11y/dialog';
 import { getStudio, setStudio, useStudio, fmtBD, indicative } from './studioStore';
 import { captureStorage, nameOf } from './designers';
 import { getSession, onSession, rpc, authError } from './customerAuth';
@@ -78,10 +79,8 @@ export default function QuoteDialog({ ctx, shot, lang = 'en', onClose }) {
   const [err, setErr] = useState('');
   const [done, setDone] = useState(null);   // { kind:'saved'|'requested', ref }
   const [thumb, setThumb] = useState(null);
-  const box = useRef(null);
   useEffect(() => { let on = true; shrink((shot && ((shot.view3d && shot.view3d.dataUrl) || (shot.elevation && shot.elevation.dataUrl))) || null).then((t) => { if (on) setThumb(t); }); return () => { on = false; }; }, [shot]);
   useEffect(() => { if (!signedIn) return; rpc('cp_profile_get', {}).then((p) => { if (p && p.phone) setPhone((v) => v || p.phone); }).catch(() => {}); }, [signedIn]);
-  useEffect(() => { const k = (e) => { if (e.key === 'Escape') onClose(); }; window.addEventListener('keydown', k); try { box.current && box.current.focus(); } catch (e) { /* ignore */ } return () => window.removeEventListener('keydown', k); }, [onClose]);
 
   const auto = ctx.auto || { lines: [], net: 0 };
   const net = Number(auto.net) || 0;
@@ -138,7 +137,7 @@ export default function QuoteDialog({ ctx, shot, lang = 'en', onClose }) {
 
   return (
     <div className="wsq-scrim" dir={ar ? 'rtl' : 'ltr'} lang={ar ? 'ar' : 'en'} onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="wsq" role="dialog" aria-modal="true" aria-labelledby="wsq-h" tabIndex={-1} ref={box}>
+      <ModalPanel className="wsq" labelledBy="wsq-h" onClose={onClose}>
         <div className="wsq-head">
           <div>
             <div className="wsq-eyebrow">{nameOf(st.kind, ar)}</div>
@@ -211,7 +210,7 @@ export default function QuoteDialog({ ctx, shot, lang = 'en', onClose }) {
             </div>
           </div>
         )}
-      </div>
+      </ModalPanel>
     </div>
   );
 }

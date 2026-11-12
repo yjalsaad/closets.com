@@ -4,6 +4,7 @@
  * catalogue + the public finishes table are used. Visitor sessions record device / browser / time-zone country / referrer /
  * campaign tags and time spent — no IP address is stored and nothing personal until the visitor fills in a form. */
 import { SUPA_URL, SUPA_KEY } from '../studio/hub/supaConfig';
+import { hasConsent, whenConsent } from '../privacy/consent';
 import { FALLBACK_PRODUCTS, finishesToProducts } from './materials';
 
 const H = { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' };
@@ -80,12 +81,17 @@ function ping(keepalive) {
   let ref = ''; try { const h = document.referrer ? new URL(document.referrer).hostname : ''; ref = h && h !== window.location.hostname ? h.replace(/^www\./, '') : ''; } catch (e) { /* ignore */ }
   rpc('viz_session_ping', { p: { session: SESSION, channel: sessionChannel, ...deviceInfo(), tz, country: TZ_CC[tz] || null, lang: (navigator.language || '').slice(0, 10), referrer: ref, utm: Object.keys(utm).length ? utm : null, landing: window.location.pathname.slice(0, 200), seconds: seconds() } }, { keepalive }).catch(() => {});
 }
+// [PRIVACY] session pings (device, OS, browser, timezone, language, referrer host, UTM, landing path, active seconds) are
+// non-essential first-party measurement: they start ONLY after the visitor allowed measurement (src/privacy/consent.js).
 export function startSession(channel) {
   sessionChannel = channel || 'web';
   if (started || typeof window === 'undefined') return;
-  started = Date.now(); lastTick = Date.now(); ping(false);
-  pingTimer = setInterval(() => { if (!document.hidden) ping(false); }, 30000);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) { seconds(); lastTick = 0; ping(true); } else lastTick = Date.now(); });
+  whenConsent('analytics', () => {
+    if (started) return;
+    started = Date.now(); lastTick = Date.now(); ping(false);
+    pingTimer = setInterval(() => { if (!document.hidden) ping(false); }, 30000);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) { seconds(); lastTick = 0; ping(true); } else lastTick = Date.now(); });
+  });
 }
 export const stopSession = () => { clearInterval(pingTimer); };
 
@@ -111,6 +117,7 @@ export function toggleFavorite(pid) {
 let queue = []; let timer = null; let channel = 'web';
 export const setChannel = (c) => { channel = c; sessionChannel = c; };
 export function track(kind, data = {}) {
+  if (!hasConsent('analytics')) return;   // [PRIVACY] usage events are dropped (not queued) until measurement is allowed
   queue.push({ session: SESSION, kind, channel, ...data });
   if (queue.length >= 20) flush(); else if (!timer) timer = setTimeout(flush, 5000);
 }

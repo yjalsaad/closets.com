@@ -5,8 +5,24 @@ import Door3D from './Door3D';
 import Office3D from './Office3D';
 import { fitModules, WARDROBE_WIDTHS } from './moduleFit';
 import { Barcode128 } from './barcode128';
-import { handleError } from './errors';
+import { handleError, errMsg } from './errors';
 import { BrowserRouter, useLocation, useNavigate, Link } from 'react-router-dom';
+import { SkipLink, RouteAnnouncer } from './a11y/RouteA11y';   // [A11Y] skip link + route-change focus/announce
+import { ModalPanel, useDialog } from './a11y/dialog';                    // [A11Y] real modals: role=dialog, focus trap, Esc, focus return
+import { useAutoAdvance } from './a11y/motion';
+import SectionBoundary from './safety/SectionBoundary';         // [RESILIENCE] granular error boundaries
+import WebGLGate from './safety/WebGLGate';
+import { sanitizeProducts, sanitizeBanners, sanitizeTestimonials, sanitizeProjects, sanitizeRows, cmsValue, str as safeStr } from './safety/sanitize';
+import ConsentBanner from './privacy/ConsentBanner';           // [PRIVACY] consent that gates non-essential processing
+import { onConsentChange, hasConsent, openConsentSettings } from './privacy/consent';
+import { aiFetch } from './privacy/ai';
+import FormNotice, { AiNotice } from './privacy/FormNotice';
+import { PrivacyPage, TermsPage } from './privacy/LegalPages';
+import Field, { Honeypot, FormStatus } from './forms/Field';
+import { validateForm, msg as vmsg, isBot } from './forms/validate';
+import { useSubmit } from './forms/useSubmit';
+import * as acct from './account/api';                          // [IDENTITY] every account / loyalty / order RPC lives here
+import { placeOrder, computeTotal, failureMessage, checkoutMsg } from './checkout/checkout';
 import ShowroomTour from './home/ShowroomTour';   // [HOME 2026-11-09] scroll-driven showroom walk-through
 import { useIkhLanding, IkhtarhaSpotlight, IkhtarhaGames, IkhtarhaDesigns, BusinessBand, CampaignPill } from './campaign/HomeCampaign';   // [IKHTARHA 2026-11-09] home page campaign + business sections
 
@@ -53,7 +69,7 @@ const api = async (path, opts = {}) => {
   if (r.status === 204) return true;
   try { return await r.json(); } catch (_) { return true; }
 };
-const fmt = n => 'BD ' + parseFloat(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+const fmt = n => 'BD ' + (parseFloat(n || 0) || 0).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 // Merge two design lists by id (incoming entries override/add; existing kept), newest first
 const mergeDesigns = (existing, incoming) => {
@@ -271,7 +287,7 @@ function SiteContentProvider({ children }) {
         const rows = await api('website_content?active=is.true&deleted_at=is.null');
         if (!alive) return;
         if (Array.isArray(rows)) {
-          rows.forEach(r => { if (r && r.key != null) CMS_MAP[r.key] = r.value; });
+          rows.forEach(r => { if (r && typeof r === 'object' && r.key != null) CMS_MAP[r.key] = cmsValue(r.value); });   // [RESILIENCE] a non-string value can never reach .split()
           setVersion(v => v + 1);   // bump → re-render tree so cms() reads fresh values
         }
       } catch (_) { /* resilient: keep empty map, fallbacks render */ }
@@ -2306,9 +2322,9 @@ function Toasts() {
   _toast = setList;
   const c = { success: '#1a7a40', error: '#d93025', info: '#1d1d1f' };
   return (
-    <div style={{ position: 'fixed', bottom: mobile ? 90 : 28, left: mobile ? 16 : 'auto', right: mobile ? 16 : 28, zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div role="status" aria-live="polite" style={{ position: 'fixed', bottom: mobile ? 90 : 28, left: mobile ? 16 : 'auto', right: mobile ? 16 : 28, zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 8 }}>
       {list.map(t => (
-        <div key={t.id} style={{ background: c[t.type], color: '#fff', padding: '13px 18px', borderRadius: 14, fontSize: 14, boxShadow: '0 4px 24px rgba(0,0,0,.18)', animation: 'toastIn .25s ease' }}>{t.msg}</div>
+        <div key={t.id} role={t.type === 'error' ? 'alert' : undefined} style={{ background: c[t.type], color: '#fff', padding: '13px 18px', borderRadius: 14, fontSize: 14, boxShadow: '0 4px 24px rgba(0,0,0,.18)', animation: 'toastIn .25s ease' }}>{t.msg}</div>
       ))}
     </div>
   );
@@ -3186,6 +3202,27 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
     else { setPage(target); }
   };
 
+  // [A11Y] keyboard model for the mega menus: Enter/Space = button action, ArrowDown opens + enters the panel, Esc closes and
+  // returns focus to the trigger, Left/Right move between triggers (mirrored in RTL), Up/Down move inside the panel.
+  const focusTrigger = (k) => { const el = typeof document !== 'undefined' && document.querySelector('[data-mega-trigger="' + k + '"]'); if (el) el.focus(); };
+  const onTriggerKey = (e, k) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); openMenu(k); setTimeout(() => { const a = document.querySelector('#mega-panel a[href]'); if (a) a.focus(); }, 40); }
+    else if (e.key === 'Escape') { if (openMega) { e.preventDefault(); setOpenMega(null); } }
+    else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      const all = Array.from(document.querySelectorAll('nav [data-mega-trigger]')); const i = all.indexOf(e.currentTarget);
+      const nx = all[i + ((e.key === 'ArrowRight') === (lang !== 'ar') ? 1 : -1)];
+      if (nx) { e.preventDefault(); nx.focus(); if (openMega) openMenu(nx.getAttribute('data-mega-trigger')); }
+    }
+  };
+  const onPanelKey = (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); const k = openMega; setOpenMega(null); if (k) focusTrigger(k); }
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      const items = Array.from(e.currentTarget.querySelectorAll('a[href]')); if (!items.length) return;
+      const i = items.indexOf(document.activeElement);
+      e.preventDefault(); const nx = items[(i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]; if (nx) nx.focus();
+    }
+  };
+  const onPanelBlur = (e) => { const n = e.relatedTarget; if (n && !e.currentTarget.contains(n) && !(n.closest && n.closest('[data-mega-trigger]'))) setOpenMega(null); };
   const DOCK = [
     { id:'home', label:'Home', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
     { id:'products', label:'Gallery', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
@@ -3197,8 +3234,8 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
 
   return (<>
     {/* Slim top bar — logo + actions */}
-    <nav onMouseLeave={scheduleClose} style={{ position:'fixed', top:0, left:0, right:0, zIndex:900, height:58, display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, padding: mobile?'0 16px':'0 24px', background: scrolled?'rgba(245,241,234,.92)':'rgba(245,241,234,.72)', backdropFilter:'blur(18px) saturate(180%)', borderBottom: scrolled?'1px solid var(--line)':'1px solid transparent', transition:'all .3s' }}>
-      <Link to="/" onClick={()=>{ setMenuOpen(false); }} aria-label="The Closets — home" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:8 }}>
+    <nav aria-label={lang==='ar' ? 'التنقل الرئيسي' : 'Main'} onMouseLeave={scheduleClose} style={{ position:'fixed', top:0, left:0, right:0, zIndex:900, height:58, display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, padding: mobile?'0 16px':'0 24px', background: scrolled?'rgba(245,241,234,.92)':'rgba(245,241,234,.72)', backdropFilter:'blur(18px) saturate(180%)', borderBottom: scrolled?'1px solid var(--line)':'1px solid transparent', transition:'all .3s' }}>
+      <Link to="/" className="hit44" onClick={()=>{ setMenuOpen(false); }} aria-label="The Closets — home" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:8 }}>
         {(cms('header.logo', '') || siteLogo)
           ? <img src={cms('header.logo', '') || siteLogo} alt="The Closets" style={{ height:32, width:'auto', maxWidth:120, objectFit:'contain', borderRadius:6 }} />
           : <span style={{ fontFamily:'var(--font-sans)', fontSize:16, fontWeight:600, color:'var(--ink)', letterSpacing:'.02em' }}>{cms('header.brand', 'THE CLOSETS')}</span>}
@@ -3229,7 +3266,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
               <div key={g.key} onMouseEnter={()=>openMenu(g.key)} style={{ position:'static', flexShrink:1, minWidth:0 }}>
                 <button type="button"
                   onClick={()=> g.feature ? navTo(g.feature) : setOpenMega(on?null:g.key)}
-                  aria-expanded={on}
+                  aria-expanded={on} aria-haspopup="true" aria-controls={on ? 'mega-panel' : undefined} data-mega-trigger={g.key} onKeyDown={(e)=>onTriggerKey(e, g.key)}
                   style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:4, padding:'8px 10px', fontSize:14, fontWeight: (on||active)?600:500, color:(on||active)?'var(--clay-deep)':'var(--ink)', borderRadius:10, whiteSpace:'nowrap' }}>
                   {trLabel(g.label, lang)}
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: on?'rotate(180deg)':'none', transition:'transform .2s', opacity:.6 }}><polyline points="6 9 12 15 18 9"/></svg>
@@ -3242,7 +3279,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
             style={{ textDecoration:'none', padding:'8px 10px', fontSize:14, fontWeight: page==='offers'?600:500, color: page==='offers'?'var(--clay-deep)':'var(--ink)', borderRadius:10, whiteSpace:'nowrap' }}>{trLabel('Offers', lang)}</Link>
           {/* More ▾ — demoted groups + utility pages */}
           <div onMouseEnter={()=>openMenu('more')} style={{ position:'static', flexShrink:0 }}>
-            <button type="button" onClick={()=>setOpenMega(openMega==='more'?null:'more')} aria-expanded={openMega==='more'}
+            <button type="button" onClick={()=>setOpenMega(openMega==='more'?null:'more')} aria-expanded={openMega==='more'} aria-haspopup="true" aria-controls={openMega==='more' ? 'mega-panel' : undefined} data-mega-trigger="more" onKeyDown={(e)=>onTriggerKey(e, 'more')}
               style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:4, padding:'8px 10px', fontSize:14, fontWeight: openMega==='more'?600:500, color: openMega==='more'?'var(--clay-deep)':'var(--ink)', borderRadius:10, whiteSpace:'nowrap' }}>
               {tr('navMore')}
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: openMega==='more'?'rotate(180deg)':'none', transition:'transform .2s', opacity:.6 }}><polyline points="6 9 12 15 18 9"/></svg>
@@ -3250,9 +3287,9 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
           </div>
           {/* One accent pill — ✨ AI + Design Lab, opens a small dropdown */}
           <div onMouseEnter={()=>openMenu('ai')} style={{ position:'static', flexShrink:0 }}>
-            <button type="button" onClick={()=>setOpenMega(openMega==='ai'?null:'ai')} aria-expanded={openMega==='ai'}
+            <button type="button" onClick={()=>setOpenMega(openMega==='ai'?null:'ai')} aria-expanded={openMega==='ai'} aria-haspopup="true" aria-controls={openMega==='ai' ? 'mega-panel' : undefined} data-mega-trigger="ai" onKeyDown={(e)=>onTriggerKey(e, 'ai')}
               style={{ cursor:'pointer', padding:'6px 12px', fontSize:14, fontWeight:700, color:(page==='ai-yas'||page==='design-lab')?'#fff':'var(--clay-deep)', background:(page==='ai-yas'||page==='design-lab')?'var(--clay)':'var(--sand)', border:'1px solid '+((page==='ai-yas'||page==='design-lab')?'var(--clay)':'rgba(168,75,41,.35)'), borderRadius:999, display:'inline-flex', alignItems:'center', gap:6, whiteSpace:'nowrap', flexShrink:0 }}>
-              {'✨ ' + tr('navAiDesignLab')}
+              <span aria-hidden="true">✨ </span>{tr('navAiDesignLab')}
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: openMega==='ai'?'rotate(180deg)':'none', transition:'transform .2s', opacity:.7 }}><polyline points="6 9 12 15 18 9"/></svg>
             </button>
           </div>
@@ -3260,10 +3297,10 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
       )}
       <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
         {!mobile && <Link to="/booking" style={{ textDecoration:'none', display:'inline-block', background:'var(--clay)', border:'none', borderRadius:980, padding:'8px 16px', fontSize:13, fontWeight:600, color:'#fff', cursor:'pointer' }}>{cms('header.cta.book', tr('bookVisit'))}</Link>}
-        <button type="button" onClick={()=>setLang(lang==='ar'?'en':'ar')} title="Language" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'7px 13px', fontSize:13, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{lang==='ar'?'EN':'ع'}</button>
-        {user ? <Link to="/portal" style={{ textDecoration:'none', display:'inline-block', background:'rgba(168,75,41,.12)', border:'none', borderRadius:980, padding:'7px 14px', fontSize:13, fontWeight:500, color:'var(--clay-deep)', cursor:'pointer' }}>{user.name?.split(' ')[0]}</Link>
-          : <button type="button" onClick={()=>openAuth('login')} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'7px 14px', fontSize:13, fontWeight:500, color:'var(--ink)', cursor:'pointer' }}>{tr('signIn')}</button>}
-        <button type="button" onClick={()=>setCartOpen(true)} aria-label="Cart" style={{ position:'relative', background: cart.length>0?'var(--clay)':'#fff', border:'1px solid var(--line)', borderRadius:980, width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color: cart.length>0?'#fff':'var(--ink)' }}>
+        <button type="button" onClick={()=>setLang(lang==='ar'?'en':'ar')} aria-label={lang==='ar' ? 'English' : 'العربية'} lang={lang==='ar' ? 'en' : 'ar'} title={lang==='ar' ? 'English' : 'العربية'} className="hit44" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'7px 13px', fontSize:13, fontWeight:600, color:'var(--ink)', cursor:'pointer' }}>{lang==='ar'?'EN':'ع'}</button>
+        {user ? <Link to="/portal" className="hit44" style={{ textDecoration:'none', display:'inline-block', background:'rgba(168,75,41,.12)', border:'none', borderRadius:980, padding:'7px 14px', fontSize:13, fontWeight:500, color:'var(--clay-deep)', cursor:'pointer' }}>{String(user.name || '').split(' ')[0]}</Link>
+          : <button type="button" className="hit44" onClick={()=>openAuth('login')} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:980, padding:'7px 14px', fontSize:13, fontWeight:500, color:'var(--ink)', cursor:'pointer' }}>{tr('signIn')}</button>}
+        <button type="button" onClick={()=>setCartOpen(true)} aria-label={(lang==='ar' ? 'السلة' : 'Cart') + (cart.length>0 ? ' (' + cart.length + ')' : '')} className="hit44" style={{ position:'relative', background: cart.length>0?'var(--clay)':'#fff', border:'1px solid var(--line)', borderRadius:980, width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color: cart.length>0?'#fff':'var(--ink)' }}>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
           {cart.length>0 && <span style={{ position:'absolute', top:-4, right:-4, background:'var(--ink)', color:'#fff', borderRadius:999, fontSize:10, fontWeight:700, minWidth:16, height:16, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px' }}>{cart.length}</span>}
         </button>
@@ -3272,7 +3309,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
 
     {/* Desktop AI + Design Lab pill dropdown — small two-row menu */}
     {!mobile && openMega==='ai' && (
-      <div onMouseEnter={()=>setOpenMega('ai')} onMouseLeave={()=>setOpenMega(null)} style={{ position:'fixed', top:58, left:0, right:0, zIndex:899, display:'flex', justifyContent:'flex-end', pointerEvents:'none' }}>
+      <div id="mega-panel" role="group" aria-label={tr('navAiDesignLab')} onKeyDown={onPanelKey} onBlur={onPanelBlur} onMouseEnter={()=>setOpenMega('ai')} onMouseLeave={()=>setOpenMega(null)} style={{ position:'fixed', top:58, left:0, right:0, zIndex:899, display:'flex', justifyContent:'flex-end', pointerEvents:'none' }}>
         <div onMouseEnter={()=>openMenu('ai')} onMouseLeave={scheduleClose} style={{ pointerEvents:'auto', margin: lang==='ar' ? '10px auto 0 24px' : '10px 24px 0 auto', width:280, background:'var(--cream)', border:'1px solid var(--line)', borderRadius:14, boxShadow:'0 26px 48px -28px rgba(33,28,24,.4)', padding:8, animation:'fadeUp .2s both' }}>
           {AI_PILL_ITEMS.map(it => {
             const on = page===it.target;
@@ -3293,7 +3330,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
     {!mobile && openMega && openMega!=='ai' && (() => {
       const g = openMega==='more' ? MORE_GROUP : NAV_GROUPS.find(x=>x.key===openMega); if (!g) return null;
       return (
-        <div onMouseEnter={()=>openMenu(openMega)} onMouseLeave={scheduleClose} style={{ position:'fixed', top:58, left:0, right:0, zIndex:899, background:'var(--cream)', borderBottom:'1px solid var(--line)', boxShadow:'0 26px 48px -28px rgba(33,28,24,.4)', animation:'fadeUp .22s both' }}>
+        <div id="mega-panel" role="group" aria-label={trLabel(g.label, lang)} onKeyDown={onPanelKey} onBlur={onPanelBlur} onMouseEnter={()=>openMenu(openMega)} onMouseLeave={scheduleClose} style={{ position:'fixed', top:58, left:0, right:0, zIndex:899, background:'var(--cream)', borderBottom:'1px solid var(--line)', boxShadow:'0 26px 48px -28px rgba(33,28,24,.4)', animation:'fadeUp .22s both' }}>
           <div style={{ maxWidth:1280, margin:'0 auto', padding:'30px 24px 34px', display:'grid', gridTemplateColumns: g.feature ? '1.3fr repeat('+g.columns.length+',1fr)' : 'repeat('+g.columns.length+',1fr)', gap:36 }}>
             {g.feature && (
               <Link to={navToPath(g.feature)} onClick={()=>{ setOpenMega(null); setMenuOpen(false); }} className="tile-zoom lift" style={{ display:'block', textDecoration:'none', position:'relative', border:'none', padding:0, borderRadius:16, overflow:'hidden', cursor:'pointer', textAlign:'left', minHeight:200, background:'#15110e' }}>
@@ -3326,7 +3363,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
 
     {/* Floating bottom dock — hidden on the planner (all screen sizes) so it can't cover the planner's own Back/Close/CTA navigation */}
     {!['planner','kitchen-planner','tv-planner','door-planner','wardrobe-planner','office-planner','cat:Doors'].includes(page) && (
-    <div style={{ position:'fixed', bottom: mobile?'calc(14px + env(safe-area-inset-bottom))':18, left:'50%', transform:'translateX(-50%)', zIndex:900, display:'flex', alignItems:'flex-end', gap: mobile?16:24, maxWidth:'calc(100vw - 24px)', background:'rgba(255,255,255,.92)', backdropFilter:'blur(18px) saturate(180%)', border:'1px solid rgba(0,0,0,.06)', borderRadius:999, padding: mobile?'7px 18px':'8px 24px', boxShadow:'0 10px 34px rgba(33,28,24,.16)' }}>
+    <div role="navigation" aria-label={lang==='ar' ? 'التنقل السريع' : 'Quick navigation'} style={{ position:'fixed', bottom: mobile?'calc(14px + env(safe-area-inset-bottom))':18, left:'50%', transform:'translateX(-50%)', zIndex:900, display:'flex', alignItems:'flex-end', gap: mobile?16:24, maxWidth:'calc(100vw - 24px)', background:'rgba(255,255,255,.92)', backdropFilter:'blur(18px) saturate(180%)', border:'1px solid rgba(0,0,0,.06)', borderRadius:999, padding: mobile?'7px 18px':'8px 24px', boxShadow:'0 10px 34px rgba(33,28,24,.16)' }}>
       {DOCK.map(d => {
         const active = page===d.id;
         const fabInner = (<>
@@ -3336,8 +3373,8 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
         const tabInner = (<>{d.icon}<span style={{ fontSize:10.5, fontWeight: active?600:400 }}>{d.label}</span></>);
         const baseStyle = { background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3, textDecoration:'none', ...(d.fab?{}:{ color: active?'var(--clay)':'#86868b' }) };
         // The Menu fab opens the drawer (not a page) — keep it a button.
-        if (d.id === 'menu') return <button type="button" key={d.id} onClick={()=>go(d.id)} aria-label={d.label} style={baseStyle}>{d.fab?fabInner:tabInner}</button>;
-        return <Link key={d.id} to={pageToPath(d.id)} onClick={()=>setOpenAcc(null)} aria-label={d.label} style={baseStyle}>{d.fab?fabInner:tabInner}</Link>;
+        if (d.id === 'menu') return <button type="button" key={d.id} className="hit44" onClick={()=>go(d.id)} aria-label={d.label} style={baseStyle}>{d.fab?fabInner:tabInner}</button>;
+        return <Link key={d.id} to={pageToPath(d.id)} className="hit44" onClick={()=>setOpenAcc(null)} aria-label={d.label} style={baseStyle}>{d.fab?fabInner:tabInner}</Link>;
       })}
     </div>
     )}
@@ -3345,10 +3382,10 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
     {/* Mobile drawer menu — full grouped accordion mirroring the desktop mega-nav */}
     {menuOpen && (
       <div onClick={()=>setMenuOpen(false)} style={{ position:'fixed', inset:0, zIndex:1000, background:'rgba(20,16,12,.55)', backdropFilter:'blur(3px)', display:'flex', alignItems:'flex-end', justifyContent:'center' }}>
-        <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', borderRadius:'22px 22px 0 0', width:'100%', maxWidth:560, padding:'18px 18px calc(22px + env(safe-area-inset-bottom))', maxHeight:'86vh', overflow:'auto' }}>
+        <ModalPanel label={tr('menu')} onClose={()=>setMenuOpen(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', borderRadius:'22px 22px 0 0', width:'100%', maxWidth:560, padding:'18px 18px calc(22px + env(safe-area-inset-bottom))', maxHeight:'86vh', overflow:'auto' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
             <span className="display" style={{ fontSize:22, color:'var(--ink)' }}>{tr('menu')}</span>
-            <button type="button" aria-label="Close" onClick={()=>setMenuOpen(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--muted)', fontSize:24 }}>✕</button>
+            <button type="button" aria-label={lang==='ar' ? 'إغلاق' : 'Close'} className="hit44" onClick={()=>setMenuOpen(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--muted)', fontSize:24 }}>✕</button>
           </div>
           {/* Quick links */}
           <Link to="/" onClick={()=>{ setMenuOpen(false); setOpenAcc(null); }} style={{ textDecoration:'none', display:'block', width:'100%', textAlign:'left', background: page==='home'?'var(--sand)':'#fff', border:'1px solid var(--line)', borderRadius:12, padding:'13px 15px', fontSize:15, fontWeight:600, color: page==='home'?'var(--clay-deep)':'var(--ink)', cursor:'pointer', marginBottom:8 }}>{tr('home')}</Link>
@@ -3412,7 +3449,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
               return (
                 <div style={{ background: activeAi?'var(--clay)':'var(--sand)', border:'1px solid '+(activeAi?'var(--clay)':'rgba(168,75,41,.35)'), borderRadius:12, overflow:'hidden' }}>
                   <button type="button" onClick={()=>setOpenAcc(open?null:'ai')} aria-expanded={open} style={{ width:'100%', display:'flex', justifyContent:'space-between', alignItems:'center', background:'none', border:'none', cursor:'pointer', padding:'14px 15px', fontSize:15, fontWeight:700, color: activeAi?'#fff':'var(--clay-deep)' }}>
-                    {'✨ ' + tr('navAiDesignLab')}
+                    <span aria-hidden="true">✨ </span>{tr('navAiDesignLab')}
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open?'rotate(180deg)':'none', transition:'transform .2s', opacity:.85 }}><polyline points="6 9 12 15 18 9"/></svg>
                   </button>
                   {open && (
@@ -3433,7 +3470,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
             })()}
           </div>
           <button type="button" onClick={()=>{ setPage('booking'); setMenuOpen(false); }} className="btn-clay" style={{ width:'100%', borderRadius:12, marginTop:14 }}>{tr('bookFreeVisit')}</button>
-        </div>
+        </ModalPanel>
       </div>
     )}
   </>);
@@ -3472,7 +3509,7 @@ function Photo({ src, alt = '', style, className = '', imgClass = '', par }) {
   const [err, setErr] = useState(false);
   const cls = (className + (par ? ' par' : '')).trim();
   const dpr = par ? { 'data-par': par } : {};
-  if (err) return <div className={cls} {...dpr} role="img" aria-label={alt} style={{ ...style, background: 'linear-gradient(135deg,var(--sand),#d8ccbb)' }} />;
+  if (err) return <div className={cls} {...dpr} {...(alt ? { role: 'img', 'aria-label': alt } : { 'aria-hidden': 'true' })} style={{ ...style, background: 'linear-gradient(135deg,var(--sand),#d8ccbb)' }} />;
   return <div className={cls} {...dpr} style={{ ...style, overflow: 'hidden' }}>
     <img src={src} alt={alt} loading="lazy" onError={() => setErr(true)} className={imgClass} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
   </div>;
@@ -3483,7 +3520,7 @@ function Stat({ to, suffix = '', label }) {
   useEffect(() => {
     const el = ref.current; if (!el) return;
     const obs = new IntersectionObserver(es => es.forEach(e => {
-      if (e.isIntersecting && !done.current) { done.current = true; const dur = 1500, t0 = performance.now();
+      if (e.isIntersecting && !done.current) { done.current = true; if (prefersReducedMotionNow()) { setV(to); return; } const dur = 1500, t0 = performance.now();
         const tick = t => { const p = Math.min(1, (t - t0) / dur); setV(Math.round(to * (1 - Math.pow(1 - p, 3)))); if (p < 1) requestAnimationFrame(tick); };
         requestAnimationFrame(tick);
       }
@@ -3503,7 +3540,9 @@ function useHomeFx() {
       const h = document.documentElement, max = h.scrollHeight - h.clientHeight;
       const bar = document.getElementById('scrollProgress'); if (bar) bar.style.width = ((max > 0 ? h.scrollTop / max : 0) * 100) + '%';
       const vh = window.innerHeight;
+      const still = prefersReducedMotionNow();   // [A11Y] no scroll-driven parallax under prefers-reduced-motion
       document.querySelectorAll('.par').forEach(el => {
+        if (still) { el.style.transform = ''; return; }
         const sp = parseFloat(el.getAttribute('data-par')) || 0.1;
         const r = el.getBoundingClientRect(); const c = r.top + r.height / 2 - vh / 2;
         el.style.transform = 'translate3d(0,' + (-c * sp).toFixed(1) + 'px,0)';
@@ -3517,7 +3556,7 @@ function useHomeFx() {
 // Rotating editorial testimonial.
 function TestiCarousel({ items }) {
   const [i, setI] = useState(0);
-  useEffect(() => { if (items.length < 2) return; const id = setInterval(() => setI(x => (x + 1) % items.length), 5500); return () => clearInterval(id); }, [items.length]);
+  useAutoAdvance(() => setI(x => (x + 1) % items.length), 5500, items.length >= 2);   // [A11Y] no auto-advance under prefers-reduced-motion
   if (!items.length) return null;
   const cur = items[i];
   return <div style={{ maxWidth: 860, margin: '0 auto', textAlign: 'center' }}>
@@ -3537,18 +3576,10 @@ function Hero({ setPage, banners }) {
   const [bannerIdx, setBannerIdx] = useState(0);
   const [slideIdx, setSlideIdx] = useState(0);
   const heroRef = useRef(null);
-  useEffect(() => {
-    if (!banners || banners.length < 2) return;
-    const id = setInterval(() => setBannerIdx(i => (i + 1) % banners.length), 5000);
-    return () => clearInterval(id);
-  }, [banners]);
+  useAutoAdvance(() => setBannerIdx(i => (i + 1) % banners.length), 5000, !!banners && banners.length >= 2);   // [A11Y] reduced-motion aware
   // Cross-fading multi-image hero — the site's own curated rooms.
   const HERO_SLIDES = [cms('home.hero.image', HOME_IMG.hero), HOME_IMG.walkin, HOME_IMG.kitchen, HOME_IMG.living].filter(Boolean);
-  useEffect(() => {
-    if (HERO_SLIDES.length < 2) return;
-    const id = setInterval(() => setSlideIdx(i => (i + 1) % HERO_SLIDES.length), 6000);
-    return () => clearInterval(id);
-  }, [HERO_SLIDES.length]);
+  useAutoAdvance(() => setSlideIdx(i => (i + 1) % HERO_SLIDES.length), 6000, HERO_SLIDES.length >= 2);
   const banner = banners?.[bannerIdx];
   const onHeroMove = (e) => { const el = heroRef.current; if (!el || mobile) return; const r = el.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5; el.querySelectorAll('.hero-img').forEach(img => { img.style.transform = `scale(1.14) translate(${x * -16}px, ${y * -16}px)`; }); };
   const HWORDS = cms('home.hero.title', 'Made to fit your life.').split(/\s+/);
@@ -3693,6 +3724,7 @@ function ProductDetailPage({ productId, products, setPage, addToCart, setConfigP
   useReveal();
   useEffect(() => {
     if (!product) return; let alive = true;
+    if (!hasConsent('ai')) return undefined;   // [PRIVACY] passive AI call on page view: only after the visitor allowed AI processing
     fetch(SUPA_URL + '/functions/v1/recommend_products', { method:'POST', headers:{ apikey:SUPA_KEY, Authorization:'Bearer '+SUPA_KEY, 'Content-Type':'application/json' }, body: JSON.stringify({ product_id: product.id, category: product.category }) })
       .then(r => r.json()).then(d => { if (alive && d && d.ok && Array.isArray(d.items)) setAiRecIds(d.items.map(i => i.id)); }).catch(() => {});
     return () => { alive = false; };
@@ -3736,6 +3768,7 @@ function ProductDetailPage({ productId, products, setPage, addToCart, setConfigP
   );
 }
 
+function prefersReducedMotionNow() { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } }
 function ProductAR({ product, mobile }) {
   const { t } = useI18n();
   if (!product || !product.model_url) return null;
@@ -3750,7 +3783,7 @@ function ProductAR({ product, mobile }) {
         // environment, ACES tone-mapping, soft shadows, floor placement at fixed scale.
         'environment-image': 'neutral', exposure: '1', 'tone-mapping': 'aces',
         'shadow-softness': '1', 'ar-placement': 'floor', 'ar-scale': 'fixed', loading: 'eager',
-        'camera-controls': true, 'auto-rotate': true, 'shadow-intensity': '1',
+        'camera-controls': true, 'auto-rotate': prefersReducedMotionNow() ? undefined : true, 'shadow-intensity': '1',
         poster: product.image_url || undefined, alt: product.name,
         style: { width: '100%', height: mobile ? 320 : 480, background: 'var(--sand)', borderRadius: 20 },
       },
@@ -3799,18 +3832,20 @@ function ProductInfo({ product, qty, setQty, addToCart, setConfigProduct, setPag
 
 /* ── CART DRAWER ── */
 function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
-  const total = cart.reduce((s, i) => s + parseFloat(i.price || 0), 0);
+  const total = computeTotal(cart);
   const mobile = useMobile();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const panelRef = useRef(null);
+  useDialog(panelRef, { open, onClose: () => setOpen(false) });   // [A11Y] real modal: focus trap, Esc, focus return, scroll lock
   return (
     <>
-      <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 1000, opacity: open ? 1 : 0, pointerEvents: open ? 'all' : 'none', transition: 'opacity .3s', backdropFilter: 'blur(4px)' }} />
-      <div style={mobile ? { position: 'fixed', left: 0, right: 0, bottom: 0, background: '#fff', zIndex: 1001, transform: open ? 'translateY(0)' : 'translateY(100%)', transition: 'transform .4s cubic-bezier(.25,.46,.45,.94)', display: 'flex', flexDirection: 'column', maxHeight: '90svh', borderRadius: '24px 24px 0 0', paddingBottom: 'env(safe-area-inset-bottom)' }
-        : { position: 'fixed', right: 0, top: 0, bottom: 0, width: 400, background: '#fff', zIndex: 1001, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform .35s cubic-bezier(.25,.46,.45,.94)', display: 'flex', flexDirection: 'column' }}>
+      <div aria-hidden="true" onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 1000, opacity: open ? 1 : 0, pointerEvents: open ? 'all' : 'none', transition: 'opacity .3s', backdropFilter: 'blur(4px)' }} />
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="cart-title" tabIndex={-1} inert={!open} aria-hidden={!open} style={mobile ? { outline: 'none', position: 'fixed', left: 0, right: 0, bottom: 0, background: '#fff', zIndex: 1001, transform: open ? 'translateY(0)' : 'translateY(100%)', transition: 'transform .4s cubic-bezier(.25,.46,.45,.94)', display: 'flex', flexDirection: 'column', maxHeight: '90svh', borderRadius: '24px 24px 0 0', paddingBottom: 'env(safe-area-inset-bottom)' }
+        : { outline: 'none', position: 'fixed', right: 0, top: 0, bottom: 0, width: 400, background: '#fff', zIndex: 1001, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform .35s cubic-bezier(.25,.46,.45,.94)', display: 'flex', flexDirection: 'column' }}>
         {mobile && <div style={{ width: 36, height: 4, background: 'var(--shop-line, #e6e6e6)', borderRadius: 2, margin: '12px auto 0' }} />}
         <div style={{ padding: mobile ? '16px 20px' : '22px 26px', borderBottom: '1px solid var(--shop-fill, #f5f5f7)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.02em' }}>Cart {cart.length > 0 && <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--shop-muted, #86868b)' }}>({cart.length})</span>}</div>
-          <button type="button" aria-label="Close cart" onClick={() => setOpen(false)} style={{ background: 'var(--shop-fill, #f5f5f7)', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: 'var(--shop-muted, #86868b)', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          <div id="cart-title" role="heading" aria-level={2} style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.02em' }}>{lang === 'ar' ? 'السلة' : 'Cart'} {cart.length > 0 && <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--shop-muted, #86868b)' }}>({cart.length})</span>}</div>
+          <button type="button" aria-label={lang === 'ar' ? 'إغلاق السلة' : 'Close cart'} className="hit44" onClick={() => setOpen(false)} style={{ background: 'var(--shop-fill, #f5f5f7)', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: 'var(--shop-muted, #86868b)', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: mobile ? '16px 20px' : '20px 26px', WebkitOverflowScrolling: 'touch' }}>
           {cart.length === 0
@@ -3824,14 +3859,14 @@ function CartDrawer({ cart, setCart, open, setOpen, setPage }) {
             : cart.map((item, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: 14, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid var(--shop-fill, #f5f5f7)' }}>
                   <div style={{ width: 64, height: 64, borderRadius: 12, background: 'var(--shop-fill, #f5f5f7)', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {item.image_url ? <img src={item.image_url} alt={item.name || item.product_name || 'Cart item'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 22, opacity: .3 }}>◻</span>}
+                    {item.image_url ? <img src={item.image_url} alt={safeStr(item.name || item.product_name, 'Cart item')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 22, opacity: .3 }}>◻</span>}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--shop-ink, #1d1d1f)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
-                    <div style={{ fontSize: 12, color: 'var(--shop-muted, #86868b)', marginBottom: 4 }}>{item.category}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--shop-ink, #1d1d1f)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{safeStr(item.name)}</div>
+                    <div style={{ fontSize: 12, color: 'var(--shop-muted, #86868b)', marginBottom: 4 }}>{safeStr(item.category)}</div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--shop-ink, #1d1d1f)' }}>{fmt(item.price)}</div>
                   </div>
-                  <button type="button" aria-label="Remove item" onClick={() => setCart(c => c.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--shop-muted, #86868b)', padding: '4px', alignSelf: 'flex-start', fontSize: 16 }}>✕</button>
+                  <button type="button" aria-label={(lang === 'ar' ? 'إزالة ' : 'Remove ') + safeStr(item.name, 'item')} className="hit44" onClick={() => setCart(c => c.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--shop-muted, #86868b)', padding: '4px', alignSelf: 'flex-start', fontSize: 16 }}>✕</button>
                 </div>
               ))
           }
@@ -3900,7 +3935,9 @@ function useThreeLoaded() {
 }
 
 // Live 3D wardrobe preview. Recolours/reshapes from props; drag to rotate.
-function Wardrobe3D({ finishHex, layout, glass, handles, led, mobile, fallback, tall, widthCm, heightCm, depthCm, sideACm, sideBCm, product, apiRef, unit = 'cm', preset = 'iso', scaleMode = 'fit' }) {
+// [RESILIENCE] WebGL-less devices get a clear message instead of a crash; the caller's own `fallback` is used when given
+function Wardrobe3D(props) { return <WebGLGate name="wardrobe3d" inline fallback={props.fallback}><Wardrobe3DInner {...props} /></WebGLGate>; }
+function Wardrobe3DInner({ finishHex, layout, glass, handles, led, mobile, fallback, tall, widthCm, heightCm, depthCm, sideACm, sideBCm, product, apiRef, unit = 'cm', preset = 'iso', scaleMode = 'fit' }) {
   const { ready, failed } = useThreeLoaded();
   const { t } = useI18n();
   const mountRef = useRef(null);
@@ -4533,7 +4570,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
     if (!img) { setRenderErr('Could not capture the design — go back to Configure, rotate the model once, then try again.'); return; }
     setRendering(true); setRenderErr(''); setRenderUrl(null);
     try {
-      const r = await fetch(SUPA_URL + '/functions/v1/render_photoreal', {
+      const r = await aiFetch(SUPA_URL + '/functions/v1/render_photoreal', {
         method: 'POST', headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({ image_base64: img, product: prodKey, finish: finishId })
       });
@@ -4789,7 +4826,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
     if (!aiText.trim() && !aiImage) return;
     setAiBusy(true);
     try {
-      const r = await fetch(SUPA_URL + '/functions/v1/planner_ai_design', {
+      const r = await aiFetch(SUPA_URL + '/functions/v1/planner_ai_design', {
         method: 'POST', headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: aiText, product: selProduct?.id || undefined, image_base64: aiImage?.base64, media_type: aiImage?.media_type }),
       });
@@ -4879,6 +4916,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
   // receives the spec + a copy of the live 3D design. Contact = signed-in user or modal input.
   const submitQuote = async (contact) => {
     const name = contact?.name || user?.name, phone = contact?.phone || user?.phone, email = contact?.email || user?.email;
+    { const qv = validateForm({ name, phone, email }, { name:{type:'name',required:true}, phone:{type:'phone',required:true}, email:{type:'email'} }, lang); if (!qv.ok) { setQuoteErr(Object.values(qv.errors)[0]); return; } }   // [FORMS]
     setBusy(true); setQuoteErr('');
     // Capture the design image: live 3D snapshot if mounted, else the photoreal render or the snapshot we took entering Visualise.
     let imageB64 = null;
@@ -5363,13 +5401,13 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
         {/* guest quote success → account invite */}
         {quoteSent && (
           <div style={{ position:'fixed', inset:0, zIndex:10000, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
-            <div style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:28, textAlign:'center' }}>
+            <ModalPanel onClose={()=>{ setQuoteSent(false); setPage('home'); }} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:28, textAlign:'center' }}>
               <div style={{ width:54, height:54, borderRadius:'50%', background:'#1D9E7522', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px' }}><i className="ti ti-check" style={{ color:'#1D9E75', fontSize:28 }} aria-hidden="true" /></div>
               <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 8px' }}>Quote sent!</h3>
               <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 20px', lineHeight:1.6 }}>{t('sw3PlannerCreateAcct')}</p>
               <button type="button" className="btn-clay" onClick={()=>{ const c = quoteSent; if (openAuth) openAuth('register', c && typeof c==='object' ? c : undefined); else setPage('portal'); }} style={{ width:'100%', borderRadius:12, marginBottom:10 }}>Create my account</button>
               <button type="button" onClick={()=>{ setQuoteSent(false); setPage('home'); }} style={{ background:'none', border:'none', fontSize:13.5, color:'var(--muted)', cursor:'pointer' }}>Maybe later</button>
-            </div>
+            </ModalPanel>
           </div>
         )}
       </div>
@@ -5437,7 +5475,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
 
           {(rendering || renderUrl || renderErr) && (
             <div onClick={()=>{ if(!rendering){ setRenderUrl(null); setRenderErr(''); } }} style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(15,18,22,.72)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
-              <div onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:18, maxWidth:880, width:'100%', maxHeight:'90vh', overflow:'auto', boxShadow:'0 20px 60px rgba(0,0,0,.4)' }}>
+              <ModalPanel onClose={()=>{ if(!rendering){ setRenderUrl(null); setRenderErr(''); } }} onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:18, maxWidth:880, width:'100%', maxHeight:'90vh', overflow:'auto', boxShadow:'0 20px 60px rgba(0,0,0,.4)' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 18px', borderBottom:'1px solid #eee' }}>
                   <span style={{ fontSize:15, fontWeight:700, color:'var(--shop-ink, #1d1d1f)' }}><Spark size={15} style={{ verticalAlign:'-2px' }} /> Photorealistic render</span>
                   <button type="button" aria-label="Close" onClick={()=>{ if(!rendering){ setRenderUrl(null); setRenderErr(''); } }} style={{ background:'none', border:'none', cursor:'pointer', color:'#999', fontSize:18 }}>✕</button>
@@ -5454,7 +5492,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
                     <div style={{ marginTop:10, fontSize:11, color:'#aaa' }}>{t('w4AiImpression')}</div>
                   </>)}
                 </div>
-              </div>
+              </ModalPanel>
             </div>
           )}
 
@@ -5756,7 +5794,7 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
       {/* Inline branded quote contact form (replaces window.prompt) */}
       {showQuote && (
         <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10000, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
-          <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:26 }}>
+          <ModalPanel onClose={()=>!busy&&setShowQuote(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:26 }}>
             <div className="eyebrow" style={{ marginBottom:8 }}>{t('pAlmostThere')}</div>
             <h3 className="display" style={{ fontSize:24, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw3PlannerSendQuote')}</h3>
             <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 18px', lineHeight:1.6 }}>Our design team will review your {selProduct?.name?.toLowerCase()||'design'} and get back with an exact, itemised quote.</p>
@@ -5766,11 +5804,12 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
               <input value={qForm.email} onChange={e=>setQForm(s=>({...s,email:e.target.value}))} aria-label="Email (optional)" placeholder="Email (optional)" inputMode="email" style={{ width:'100%', padding:'12px 14px', border:'1px solid var(--line)', background:'#fff', borderRadius:12, fontSize:15, fontFamily:'inherit', color:'var(--ink)' }} />
             </div>
             {quoteErr && <div role="alert" style={{ marginTop:12, background:'#fdecea', border:'1px solid #f5c6c0', color:'#b3261e', borderRadius:12, padding:'10px 14px', fontSize:13 }}>{quoteErr}</div>}
+            <FormNotice kind="request" style={{ marginTop:12 }} />
             <div style={{ display:'flex', gap:10, marginTop:18 }}>
               <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>Cancel</button>
               <button type="button" className="btn-clay" disabled={busy || !qForm.name.trim() || !qForm.phone.trim()} onClick={()=>submitQuote(qForm)} style={{ flex:2, borderRadius:12, opacity:(busy||!qForm.name.trim()||!qForm.phone.trim())?.6:1 }}>{busy?'Sending…':'Send my quote request'}</button>
             </div>
-          </div>
+          </ModalPanel>
         </div>
       )}
 
@@ -5778,13 +5817,13 @@ function PlannerPage({ setPage, user, openAuth, siteLogo }) {
       {/* guest quote success → account invite (also reachable from config-direct quote) */}
       {quoteSent && (
         <div style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
-          <div style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:28, textAlign:'center' }}>
+          <ModalPanel onClose={()=>{ setQuoteSent(false); setPage('home'); }} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:28, textAlign:'center' }}>
             <div style={{ width:54, height:54, borderRadius:'50%', background:'#1D9E7522', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px' }}><i className="ti ti-check" style={{ color:'#1D9E75', fontSize:28 }} aria-hidden="true" /></div>
             <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 8px' }}>Quote sent!</h3>
             <p style={{ fontSize:14, color:'var(--ink-soft)', margin:'0 0 20px', lineHeight:1.6 }}>{t('sw3PlannerCreateAcct')}</p>
             <button type="button" className="btn-clay" onClick={()=>{ const c = quoteSent; if (openAuth) openAuth('register', c && typeof c==='object' ? c : undefined); else setPage('portal'); }} style={{ width:'100%', borderRadius:12, marginBottom:10 }}>Create my account</button>
             <button type="button" onClick={()=>{ setQuoteSent(false); setPage('home'); }} style={{ background:'none', border:'none', fontSize:13.5, color:'var(--muted)', cursor:'pointer' }}>Maybe later</button>
-          </div>
+          </ModalPanel>
         </div>
       )}
     </div>
@@ -6060,7 +6099,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
       });
     } catch (_) {} };
     try {
-      const r = await fetch(SUPA_URL + '/functions/v1/render_photoreal', {
+      const r = await aiFetch(SUPA_URL + '/functions/v1/render_photoreal', {
         method: 'POST', headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({ image_base64: img, product: (photorealReq && photorealReq.product) || category || 'kitchen', finish: photorealReq && photorealReq.finish, surfaces: surfacesPayload }),
       });
@@ -6356,7 +6395,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
   ];
 
   return (
-    <div className="rd-root" style={{ position:'fixed', inset:0, zIndex:11000, background:'var(--cream)', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+    <ModalPanel className="rd-root" label={lang==='ar' ? 'مصمم الغرفة' : 'Room designer'} onClose={onClose} style={{ position:'fixed', inset:0, zIndex:11000, background:'var(--cream)', display:'flex', flexDirection:'column', overflow:'hidden' }}>
       <style>{`
         @keyframes rdPulse { 0% { transform:scale(.7); opacity:.85; } 70% { opacity:0; } 100% { transform:scale(1.9); opacity:0; } }
         @keyframes rdSheetUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
@@ -6445,7 +6484,7 @@ function RoomDesigner({ mobile, sceneShapeFallback, onClose, onReflectMaterial, 
           </div>
         </div>
       )}
-    </div>
+    </ModalPanel>
   );
 }
 
@@ -6485,21 +6524,18 @@ function HomeHub({ user, setUser, setPage }) {
   useEffect(() => {
     if (!user?.email) return;
     // Scoped SECURITY DEFINER RPCs — direct anon reads on sales_orders/invoices are 403 (RLS)
-    api('rpc/my_orders', { method:'POST', body:{ p_email: user.email, p_customer_id: user.id || null } }).then(r => setOrders(Array.isArray(r)?r:[])).catch(()=>{});
-    api('rpc/my_invoices', { method:'POST', body:{ p_email: user.email } }).then(r => setInvoices(Array.isArray(r)?r:[])).catch(()=>{});
+    // [IDENTITY] every account RPC goes through src/account/api.js (session-token twin when signed in, legacy params otherwise)
+    acct.myOrders(user).then(r => setOrders(Array.isArray(r)?r:[])).catch(()=>{});
+    acct.myInvoices(user).then(r => setInvoices(Array.isArray(r)?r:[])).catch(()=>{});
     // Loyalty now lives in the unified CUS ledger — pull history + live balance from the shared engine
-    api('rpc/customer_rewards_get', { method:'POST', body:{ p_customer_id: String(user.id) } }).then(r => setRewards(Array.isArray(r?.history)?r.history:[])).catch(()=>{});
-    if (user.phone) api('rpc/loyalty_balance', { method:'POST', body:{ p_phone: user.phone } }).then(d => { if (d && d.ok) setRwInfo(d); }).catch(()=>{});
+    acct.rewards(user).then(r => setRewards(Array.isArray(r?.history)?r.history:[])).catch(()=>{});
+    acct.loyaltyBalance(user).then(d => { if (d && d.ok) setRwInfo(d); }).catch(()=>{});
     api(`product_configurations?customer_id=eq.${user.id}&order=created_at.desc&limit=20`).then(r => setDesigns(p => mergeDesigns(p, Array.isArray(r)?r:[]))).catch(()=>{});
-    fetch(SUPA_URL + '/rest/v1/rpc/my_saved_designs', {
-      method: 'POST',
-      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-      body: JSON.stringify({ p_customer_id: String(user.id) })
-    }).then(r => r.ok ? r.json() : []).then(r => setDesigns(p => mergeDesigns(p, Array.isArray(r)?r:[]))).catch(()=>{});
+    acct.savedDesigns(user).then(r => setDesigns(p => mergeDesigns(p, Array.isArray(r)?r:[]))).catch(()=>{});
     api(`complaints?customer_email=eq.${encodeURIComponent(user.email)}&order=created_at.desc&limit=20`).then(r => setComplaints(Array.isArray(r)?r:[])).catch(()=>{});
     api(`it_tickets?requester_email=eq.${encodeURIComponent(user.email)}&order=created_at.desc&limit=20`).then(r => setTickets(Array.isArray(r)?r:[])).catch(()=>{});
-    api('rpc/customer_bookings_list', { method:'POST', body:{ p_customer_id:String(user.id) } }).then(r => setSvcBookings(Array.isArray(r)?r:[])).catch(()=>{});
-    cardRpc('card_owner_slug', { p_owner_type:'customer', p_owner_id:user.id }).then(r => { setCardSlug(r && r.slug); setCardPhoto(r && r.photo_url); }).catch(()=>{});
+    acct.bookingsList(user).then(r => setSvcBookings(Array.isArray(r)?r:[])).catch(()=>{});
+    acct.cardOwnerSlug(user.id).then(r => { setCardSlug(r && r.slug); setCardPhoto(r && r.photo_url); }).catch(()=>{});
   }, [user]);
   const totalSpent = invoices.reduce((s, i) => s + parseFloat(i.total_amount || i.amount || 0), 0);
   const submitComplaint = async () => {
@@ -6519,8 +6555,8 @@ function HomeHub({ user, setUser, setPage }) {
   const saveProfile = async () => {
     try {
       // SECURITY DEFINER RPC — direct anon PATCH on customers is 403 (RLS)
-      await api('rpc/customer_update_profile', { method: 'POST', body: { p_id: String(user.id), p_display_name: editForm.name, p_phone: editForm.phone, p_email: null, p_company: null, p_avatar: null, p_notif: null } });
-      const u = { ...user, ...editForm }; setUser(u); localStorage.setItem('closets_user', JSON.stringify(u)); toast('Saved ✓', 'success');
+      await acct.updateProfile(user, { name: editForm.name, phone: editForm.phone });
+      const u = acct.persistUser({ ...user, ...editForm }); setUser(u); toast('Saved ✓', 'success');
     } catch (e) {
       handleError(e, { toast, ctx: { action: 'saveProfile' } }); // classified bilingual toast + log
     }
@@ -6743,7 +6779,7 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
       });
       if (!up.ok) throw new Error('upload failed');
       const publicUrl = SUPA_URL + '/storage/v1/object/public/card-media/' + path;
-      const r = await cardRpc('customer_card_set_photo', { p_customer_id: user.id, p_photo_url: publicUrl });
+      const r = await acct.setCardPhoto(user, publicUrl);
       if (r && r.ok) { setCardPhoto(publicUrl); toast('Profile photo updated ✓', 'success'); }
       else { toast((r && r.error) || t('w4CouldNotSavePhoto'), 'error'); }
     } catch (_) { toast('Upload failed, please try again', 'error'); }
@@ -6774,7 +6810,7 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
                 </div>
               )}
               <button type="button" onClick={() => setPage('home')} style={{ background: '#fff', border: '1px solid var(--line, #ece6df)', borderRadius: 980, padding: '7px 13px', fontSize: 13, fontWeight: 500, color: 'var(--ink, #1f1913)', cursor: 'pointer', whiteSpace: 'nowrap' }}>{rtl ? '→ ' : '← '}{t('hubBackToSite')}</button>
-              <button type="button" onClick={() => { setUser(null); localStorage.removeItem('closets_user'); setPage('home'); }} style={{ background: 'rgba(217,48,37,.08)', border: 'none', borderRadius: 980, padding: '7px 13px', fontSize: 13, fontWeight: 500, color: '#d93025', cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('hubSignOut')}</button>
+              <button type="button" onClick={() => { setUser(null); acct.clearUser(); setPage('home'); }} style={{ background: 'rgba(217,48,37,.08)', border: 'none', borderRadius: 980, padding: '7px 13px', fontSize: 13, fontWeight: 500, color: '#d93025', cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('hubSignOut')}</button>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6, overflowX: 'auto', padding: '12px 0 0', scrollbarWidth: 'none' }}>
@@ -6986,7 +7022,7 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
             )}
             {selectedDesign && (
               <div onClick={()=>setSelectedDesign(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.45)', display:'flex', alignItems:'center', justifyContent:'center', padding:16, zIndex:1000 }}>
-                <div onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:20, maxWidth:520, width:'100%', maxHeight:'90vh', overflow:'auto', border:'1px solid var(--shop-line, #e6e6e6)' }}>
+                <ModalPanel onClose={()=>setSelectedDesign(null)} onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:20, maxWidth:520, width:'100%', maxHeight:'90vh', overflow:'auto', border:'1px solid var(--shop-line, #e6e6e6)' }}>
                   <div style={{ position:'relative', width:'100%', height:220, background:'var(--shop-fill, #f5f5f7)', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
                     {selectedDesign.render_url
                       ? <img src={selectedDesign.render_url} alt={selectedDesign.product_name||'Design'} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
@@ -7018,7 +7054,7 @@ table.items .desc b{display:block}.muted{color:var(--muted)}
                     </div>
                     <button type="button" className="btn" onClick={()=>{ setSelectedDesign(null); setPage('planner'); }} style={{ borderRadius:14, width:'100%' }}>{t('w4PDesignAgain')}</button>
                   </div>
-                </div>
+                </ModalPanel>
               </div>
             )}
           </>}
@@ -7108,37 +7144,50 @@ function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
   const [rstep, setRstep] = useState('request');
   const [rotp, setRotp] = useState('');
   const [rnew, setRnew] = useState('');
-  const { t } = useI18n();
+  const [errs, setErrs] = useState({});          // [FORMS] per-field validation errors (announced + linked via aria-describedby)
+  const [formErr, setFormErr] = useState('');
+  const [hp, setHp] = useState('');              // honeypot
+  const { t, lang } = useI18n();
   const mobile = useMobile();
+  const focusFirstErr = (first) => { setTimeout(() => { const el = document.getElementById('auth-' + first); if (el) el.focus(); }, 0); };
   const submit = async () => {
-    if (!form.email||!form.password) { toast(t('w4AuthEmailPwReq'), 'error'); return; }
-    if (mode!=='login' && !form.name) { toast(t('w4AuthNameReq'), 'error'); return; }
+    setFormErr('');
+    if (isBot(hp)) { onClose(); return; }     // bots fill the hidden field: pretend, send nothing
+    const schema = mode==='login'
+      ? { email:{ type:'email', required:true }, password:{ type:'text', required:true, max:200 } }
+      : { name:{ type:'name', required:true }, email:{ type:'email', required:true }, phone:{ type:'phone' }, password:{ type:'text', required:true, max:200 } };
+    const v = validateForm(form, schema, lang);
+    setErrs(v.errors);
+    if (!v.ok) { setFormErr(vmsg('fix', lang)); focusFirstErr(v.first); return; }
+    if (!navigator.onLine) { setFormErr(vmsg('offline', lang)); return; }
     setLoading(true);
-    // Secure server-side auth (bcrypt) — passwords never handled or read by the browser.
-    const hdr = { ...H, Prefer: 'return=representation' };
+    // Secure server-side auth (bcrypt) — passwords never handled or read by the browser. All calls go through src/account/api.js.
     try {
+      const email = v.clean.email.toLowerCase();
       const u = mode==='login'
-        ? await api('rpc/account_login', { method:'POST', headers:hdr, body:{ p_email: form.email, p_password: form.password } })
-        : await api('rpc/account_register', { method:'POST', headers:hdr, body:{ p_email: form.email, p_password: form.password, p_name: form.name, p_phone: form.phone||null } });
+        ? await acct.login(email, form.password)
+        : await acct.register({ email, password: form.password, name: v.clean.name, phone: v.clean.phone || null });
       if (!u || !u.id) throw new Error('Unexpected response');
-      setUser(u); localStorage.setItem('closets_user', JSON.stringify(u));
+      setUser(acct.persistUser(u));   // minimal profile only
       // New account → ensure a CUS Customer ID by phone + capture any referral (?ref).
-      if (mode !== 'login' && form.phone) {
+      if (mode !== 'login' && v.clean.phone) {
         try {
           const ref = new URLSearchParams(window.location.search).get('ref');
-          api('rpc/loyalty_referral_signup', { method:'POST', headers:hdr, body:{ p_name: form.name, p_phone: form.phone, p_ref: ref || null } }).catch(()=>{});
+          acct.referralSignup(v.clean.name, v.clean.phone, ref).catch(()=>{});
         } catch (_) {}
       }
       toast(mode==='login'?t('w4AuthWelcomeToast'):t('w4AuthAccountCreated'), 'success'); onClose();
     } catch (e) {
-      toast(e.message || t('w4AuthCouldNotSignIn'), 'error');
+      // never print raw server text; bad credentials get the product message, everything else the shared bilingual taxonomy
+      const k = errMsg(e).kind;
+      setFormErr(k==='network' ? errMsg(e).text : (k==='unknown'||k==='validation'||k==='auth'||k==='permission'||k==='notfound') ? t('w4AuthCouldNotSignIn') : errMsg(e).text);
     } finally { setLoading(false); }
   };
   const reqReset = async (channel) => {
     if (!form.email) { toast(t('w4AuthEnterEmail'), 'error'); return; }
     setLoading(true);
     try {
-      await api('rpc/customer_request_reset', { method:'POST', headers:{ ...H, Prefer:'return=representation' }, body:{ p_email: form.email, p_channel: channel } });
+      await acct.requestReset(form.email, channel);
       setRstep(channel==='otp'?'otp':'emailsent');
       toast(channel==='otp'?t('w4AuthCodeSent'):t('w4AuthLinkSent'), 'success');
     } catch (e) { toast(e.message || t('w4AuthCouldNotReset'), 'error'); } finally { setLoading(false); }
@@ -7147,29 +7196,32 @@ function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
     if (!(/[a-z]/.test(rnew)&&/[A-Z]/.test(rnew)&&/[0-9]/.test(rnew)&&/[^A-Za-z0-9]/.test(rnew)&&(rnew||'').length>=8)) { toast(t('w4AuthPwMin'), 'error'); return; }
     setLoading(true);
     try {
-      const r = await api('rpc/customer_reset_with_otp', { method:'POST', headers:{ ...H, Prefer:'return=representation' }, body:{ p_email: form.email, p_otp: rotp, p_new_password: rnew } });
+      const r = await acct.resetWithOtp(form.email, rotp, rnew);
       if (r && r.ok) { toast(t('w4AuthPwUpdated'), 'success'); setMode('login'); setRstep('request'); setRotp(''); setRnew(''); }
       else throw new Error(t('w4AuthBadCode'));
     } catch (e) { toast(e.message || t('w4AuthBadCode'), 'error'); } finally { setLoading(false); }
   };
   return (
     <>
-      <div onClick={onClose} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.4)', zIndex:2000, backdropFilter:'blur(8px)', animation:'fadeIn .2s ease' }} />
-      <div style={mobile ? { position:'fixed', left:0, right:0, bottom:0, background:'#fff', zIndex:2001, borderRadius:'24px 24px 0 0', padding:'28px 20px 36px', animation:'slideUp .3s ease', paddingBottom:'calc(36px + env(safe-area-inset-bottom))', maxHeight:'92svh', overflowY:'auto', WebkitOverflowScrolling:'touch' }
+      <div aria-hidden="true" onClick={onClose} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.4)', zIndex:2000, backdropFilter:'blur(8px)', animation:'fadeIn .2s ease' }} />
+      <ModalPanel labelledBy="auth-title" onClose={onClose} style={mobile ? { position:'fixed', left:0, right:0, bottom:0, background:'#fff', zIndex:2001, borderRadius:'24px 24px 0 0', padding:'28px 20px 36px', animation:'slideUp .3s ease', paddingBottom:'calc(36px + env(safe-area-inset-bottom))', maxHeight:'92svh', overflowY:'auto', WebkitOverflowScrolling:'touch' }
         : { position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', width:'min(390px,95vw)', maxHeight:'90svh', overflowY:'auto', background:'#fff', borderRadius:24, padding:'44px 40px', zIndex:2001, animation:'fadeUp .3s ease', boxShadow:'0 24px 64px rgba(0,0,0,.15)' }}>
         {mobile && <div style={{ width:36, height:4, background:'var(--shop-line, #e6e6e6)', borderRadius:2, margin:'-12px auto 20px' }} />}
         <div style={{ textAlign:'center', marginBottom:28 }}>
           <div style={{ width:48, height:48, borderRadius:14, background:'rgba(168,75,41,.12)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px', fontSize:22 }}>◼</div>
-          <div style={{ fontSize:22, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', letterSpacing:'-.02em', marginBottom:5 }}>{mode==='reset'?t('w4AuthReset'):mode==='login'?t('w4AuthWelcome'):t('w4AuthCreate')}</div>
+          <h2 id="auth-title" style={{ fontSize:22, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', letterSpacing:'-.02em', marginBottom:5 }}>{mode==='reset'?t('w4AuthReset'):mode==='login'?t('w4AuthWelcome'):t('w4AuthCreate')}</h2>
           <div style={{ fontSize:14, color:'var(--shop-muted, #86868b)' }}>{mode==='reset'?t('w4AuthResetSub'):mode==='login'?t('w4AuthLoginSub'):t('w4AuthRegisterSub')}</div>
         </div>
-        {mode!=='reset' && (<div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-          {mode==='register'&&<input className="inp" placeholder={t('w4AuthFullName')} aria-label={t('w4AuthFullName')} value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} />}
-          <input className="inp" placeholder={t("email")} aria-label={t("email")} type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} autoCapitalize="none" />
-          {mode==='register'&&<input className="inp" placeholder={t('phone')+' ('+t('w4Optional')+')'} aria-label={t('phone')} value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} />}
-          <input className="inp" placeholder={t('w4AuthPassword')} aria-label={t('w4AuthPassword')} type="password" value={form.password} onChange={e=>setForm(p=>({...p,password:e.target.value}))} onKeyDown={e=>e.key==='Enter'&&submit()} />
-          <button type="button" className="btn" onClick={submit} disabled={loading} style={{ borderRadius:14, opacity:loading?.7:1 }}>{loading?t('w4AuthPleaseWait'):mode==='login'?t('w4AuthSignIn'):t('w4AuthCreateBtn')}</button>
-        </div>)}
+        {mode!=='reset' && (<form noValidate onSubmit={e=>{ e.preventDefault(); submit(); }} style={{ display:'flex', flexDirection:'column', gap:12 }}>
+          {mode==='register'&&<Field id="auth-name" className="inp" label={t('w4AuthFullName')} required error={errs.name} placeholder={t('w4AuthFullName')} autoComplete="name" maxLength={120} value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} />}
+          <Field id="auth-email" className="inp" label={t('email')} required error={errs.email} placeholder={t("email")} type="email" inputMode="email" autoComplete="email" maxLength={254} value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} autoCapitalize="none" />
+          {mode==='register'&&<Field id="auth-phone" className="inp" label={t('phone')} error={errs.phone} placeholder={t('phone')+' ('+t('w4Optional')+')'} type="tel" inputMode="tel" autoComplete="tel" maxLength={20} value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} />}
+          <Field id="auth-password" className="inp" label={t('w4AuthPassword')} required error={errs.password} placeholder={t('w4AuthPassword')} type="password" autoComplete={mode==='login' ? 'current-password' : 'new-password'} maxLength={200} value={form.password} onChange={e=>setForm(p=>({...p,password:e.target.value}))} />
+          {mode==='register' && <Honeypot value={hp} onChange={setHp} />}
+          {mode==='register' && <FormNotice kind="request" lang={lang} />}
+          <div aria-live="polite" role="status">{formErr && <div className="form-banner form-banner--err" role="alert">{formErr}</div>}</div>
+          <button type="submit" className="btn" disabled={loading} aria-busy={loading} style={{ borderRadius:14, opacity:loading?.7:1 }}>{loading?t('w4AuthPleaseWait'):mode==='login'?t('w4AuthSignIn'):t('w4AuthCreateBtn')}</button>
+        </form>)}
         {mode==='reset' && (<div style={{ display:'flex', flexDirection:'column', gap:12 }}>
           <input className="inp" placeholder={t("email")} aria-label={t("email")} type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} autoCapitalize="none" />
   {rstep==='request' && (<>
@@ -7200,8 +7252,8 @@ function AuthModal({ mode, setMode, setUser, onClose, prefill }) {
           {mode==='login' && <button type="button" onClick={()=>{ setRstep('request'); setMode('reset'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--shop-muted, #86868b)', fontWeight:500 }}>{t('w4AuthForgot')}</button>}
           {mode==='reset' && <button type="button" onClick={()=>{ setMode('login'); setRstep('request'); }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--shop-muted, #86868b)', fontWeight:500 }}>{t('w4AuthBackToSignIn')}</button>}
         </div>
-        {!mobile && <button type="button" aria-label="Close" onClick={onClose} style={{ position:'absolute', top:14, right:16, background:'var(--shop-fill, #f5f5f7)', border:'none', borderRadius:'50%', width:30, height:30, cursor:'pointer', color:'var(--shop-muted, #86868b)', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>}
-      </div>
+        {!mobile && <button type="button" aria-label={lang==='ar' ? 'إغلاق' : 'Close'} className="hit44" onClick={onClose} style={{ position:'absolute', top:14, right:16, background:'var(--shop-fill, #f5f5f7)', border:'none', borderRadius:'50%', width:30, height:30, cursor:'pointer', color:'var(--shop-muted, #86868b)', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>}
+      </ModalPanel>
     </>
   );
 }
@@ -7694,33 +7746,33 @@ function DirectoryPage({ setPage }) {
 function ContactPage() {
   const [form, setForm] = useState({ name:'', email:'', phone:'', product:'', budget:'', message:'' });
   const [sent, setSent] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [errs, setErrs] = useState({}); const [formErr, setFormErr] = useState(''); const [hp, setHp] = useState('');
+  const sub = useSubmit(); const busy = sub.busy;
   const [team, setTeam] = useState([]);
   useEffect(() => {
     cardRpc('card_directory', { p_type:'employee', p_search:null, p_limit:12 })
       .then(r => setTeam(Array.isArray(r) ? r : [])).catch(() => {});
   }, []);
   const mobile = useMobile();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   useReveal();
   const submit = async () => {
-    if (!form.name||!form.email) { toast('Name and email required', 'error'); return; }
-    if (busy) return;
-    setBusy(true);
-    try {
-      // Route through the audited public_lead_submit RPC (validates, writes lead, queues team notification)
-      await api('rpc/public_lead_submit', { method:'POST', body:{
-        p_name: form.name, p_phone: form.phone || null, p_email: form.email || null,
-        p_source: 'Website - Contact', p_interest: form.product || null,
-        p_message: form.message || null, p_budget: form.budget ? Number(form.budget) : null,
-        p_meta: { page: 'contact' }
-      }});
-      setSent(true); toast('Message sent ✓', 'success');
-    } catch {
-      toast('Could not send, please try again', 'error');
-    } finally {
-      setBusy(false);
-    }
+    setFormErr('');
+    if (isBot(hp)) { setSent(true); return; }
+    const v = validateForm(form, { name:{type:'name',required:true}, email:{type:'email',required:true}, phone:{type:'phone'}, message:{type:'text',max:2000} }, lang);
+    setErrs(v.errors);
+    if (!v.ok) { setFormErr(vmsg('fix', lang)); setTimeout(() => { const el = document.getElementById('ct-' + v.first); if (el) el.focus(); }, 0); return; }
+    const c = v.clean;
+    // Route through the audited public_lead_submit RPC (validates, writes lead, queues team notification)
+    const res = await sub.run((signal) => api('rpc/public_lead_submit', { method:'POST', signal, body:{
+      p_name: c.name, p_phone: c.phone || null, p_email: c.email || null,
+      p_source: 'Website - Contact', p_interest: form.product || null,
+      p_message: c.message || null, p_budget: Number.isFinite(Number(form.budget)) && form.budget ? Number(form.budget) : null,   // option labels like 'BD 200–500' are not numeric: null, exactly as before
+      p_meta: { page: 'contact' }
+    }}));
+    if (res.ok) { setSent(true); toast('Message sent ✓', 'success'); }
+    else if (res.offline) setFormErr(vmsg('offline', lang));
+    else if (!res.skipped) { setFormErr(vmsg('failed', lang)); toast('Could not send, please try again', 'error'); }
   };
   return (
     <div style={{ minHeight:'100dvh', paddingTop: mobile ? 88 : 112, paddingBottom: mobile ? 80 : 60, background:'var(--cream)' }}>
@@ -7731,7 +7783,7 @@ function ContactPage() {
           <p style={{ fontSize:17, color:'var(--ink-soft)', lineHeight:1.7, marginBottom:30 }}>{cms('contact.hero.subtitle', 'Tell us about your space and we’ll arrange a free home or showroom visit — no obligation.')}</p>
           {[['📍','Showrooms','Manama · Riffa · Saar · Isa Town', null],['📞','Phone','+973 17555095','tel:+97317555095'],['✉️','Email','info@the-closets.com','mailto:info@the-closets.com'],['⏰','Hours','Sat–Thu · 9am–8pm', null]].map(([icon,label,val,href])=>(
             <div key={label} style={{ display:'flex', gap:14, padding:'15px 0', borderBottom:'1px solid var(--line)' }}>
-              <span style={{ fontSize:18 }}>{icon}</span>
+              <span aria-hidden="true" style={{ fontSize:18 }}>{icon}</span>
               <div><div style={{ fontSize:11, fontWeight:600, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:3 }}>{label}</div>
                 {href ? <a href={href} style={{ fontSize:15, color:'var(--clay)', fontWeight:600, textDecoration:'none' }}>{val}</a> : <div style={{ fontSize:15, color:'var(--ink)' }}>{val}</div>}
               </div>
@@ -7745,21 +7797,24 @@ function ContactPage() {
             <p style={{ color:'var(--ink-soft)', fontSize:15 }}>{t('swContactWithin24')}</p>
           </div>
         ) : (
-          <div className="rv-r" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:22, padding: mobile?22:30, display:'flex', flexDirection:'column', gap:12 }}>
-            <input className="inp" placeholder={t("yourName")} aria-label={t("yourName")} value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
-            <input className="inp" placeholder={t('swContactEmail')} aria-label={t('swContactEmail')} type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
-            <input className="inp" placeholder={t("phone")} aria-label={t("phone")} value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
-            <select className="inp" value={form.product} onChange={e=>setForm(p=>({...p,product:e.target.value}))} aria-label={t('swContactInterestedAria')} style={{ background:'var(--cream)', border:'1px solid var(--line)' }}>
+          <form noValidate onSubmit={e=>{ e.preventDefault(); submit(); }} className="rv-r" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:22, padding: mobile?22:30, display:'flex', flexDirection:'column', gap:12 }}>
+            <Field id="ct-name" className="inp" label={t("yourName")} required error={errs.name} placeholder={t("yourName")} autoComplete="name" maxLength={120} value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
+            <Field id="ct-email" className="inp" label={t('swContactEmail')} required error={errs.email} placeholder={t('swContactEmail')} type="email" inputMode="email" autoComplete="email" maxLength={254} value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
+            <Field id="ct-phone" className="inp" label={t("phone")} error={errs.phone} placeholder={t("phone")} type="tel" inputMode="tel" autoComplete="tel" maxLength={20} value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
+            <Field id="ct-product" as="select" className="inp" label={t('swContactInterestedAria')} value={form.product} onChange={e=>setForm(p=>({...p,product:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }}>
               <option value="">{t('swContactInterested')}</option>
               {['Walk-In Wardrobe','Sliding Door','Hinged Door','Kitchen','Office','Kids Room'].map(o=><option key={o}>{o}</option>)}
-            </select>
-            <select className="inp" value={form.budget} onChange={e=>setForm(p=>({...p,budget:e.target.value}))} aria-label={t('budgetRange')} style={{ background:'var(--cream)', border:'1px solid var(--line)' }}>
+            </Field>
+            <Field id="ct-budget" as="select" className="inp" label={t('budgetRange')} value={form.budget} onChange={e=>setForm(p=>({...p,budget:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }}>
               <option value="">{t('budgetRange')}</option>
               {['BD 200–500','BD 500–1,000','BD 1,000–2,500','BD 2,500–5,000','BD 5,000+'].map(o=><option key={o}>{o}</option>)}
-            </select>
-            <textarea className="inp" rows={4} placeholder={t("tellProject")} aria-label={t("tellProject")} value={form.message} onChange={e=>setForm(p=>({...p,message:e.target.value}))} style={{ resize:'vertical', background:'var(--cream)', border:'1px solid var(--line)' }} />
-            <button type="button" className="btn-clay" disabled={busy} onClick={submit} style={{ marginTop:4, opacity:busy?.6:1 }}>{busy ? t('swContactSending') : t('sendMessage')}</button>
-          </div>
+            </Field>
+            <Field id="ct-message" as="textarea" className="inp" label={t("tellProject")} error={errs.message} placeholder={t("tellProject")} rows={4} maxLength={2000} value={form.message} onChange={e=>setForm(p=>({...p,message:e.target.value}))} style={{ resize:'vertical', background:'var(--cream)', border:'1px solid var(--line)' }} />
+            <Honeypot value={hp} onChange={setHp} />
+            <FormNotice kind="request" lang={lang} />
+            <FormStatus offline={sub.offline} slow={sub.slow} error={formErr} lang={lang} t={(k)=>vmsg(k, lang)} />
+            <button type="submit" className="btn-clay" disabled={busy} aria-busy={busy} style={{ marginTop:4, opacity:busy?.6:1 }}>{busy ? t('swContactSending') : t('sendMessage')}</button>
+          </form>
         )}
       </div>
       {team.length > 0 && (
@@ -7784,10 +7839,14 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
   const [form, setForm] = useState({ name:user?.name||'', email:user?.email||'', phone:user?.phone||'', address:'', city:'Manama', payment:'Card', notes:'' });
   const [settings, setSettings] = useState({});
   const [months, setMonths] = useState(0); // 0 = pay in full
-  const [placing, setPlacing] = useState(false); // in-flight guard (UI) — prevents duplicate orders from double-clicks
-  const placingRef = useRef(false);               // synchronous guard — blocks same-tick double-fire before re-render
+  const sub = useSubmit({ timeoutMs: 45000 });     // single in-flight guard (ref), offline pre-check, slow-network hint, timeout
+  const placing = sub.busy;
+  const [errs, setErrs] = useState({});
+  const [placeErr, setPlaceErr] = useState('');
+  const [hp, setHp] = useState('');
+  const [result, setResult] = useState(null);          // the SERVER-confirmed outcome (order ref + total when the RPC returns one)
   useEffect(() => { api('rpc/marketplace_settings_get', { method:'POST', body:{} }).then(d => setSettings(d && typeof d==='object' ? d : {})).catch(()=>{}); }, []);
-  const total = cart.reduce((s,i)=>s+parseFloat(i.price||0), 0);
+  const total = computeTotal(cart);                // DISPLAY ONLY: an estimate. The server recomputes and confirms the amount.
   const mobile = useMobile();
   const plans = Array.isArray(settings.installment_plans) ? settings.installment_plans : [];
   const instEnabled = settings.product_installments_enabled && total >= (Number(settings.installment_min_amount)||0) && plans.length > 0;
@@ -7795,76 +7854,42 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
   // ── Loyalty redemption ──────────────────────────────────────────────────
   const [bal, setBal] = useState(null);
   const [useRedeem, setUseRedeem] = useState(false);
+  // Loyalty is looked up for the SIGNED-IN customer only (session token, or the stored profile's own phone) — never for a phone
+  // typed into the form, which would let anyone read someone else's balance. Guests simply see no points option.
   useEffect(() => {
-    const ph = (form.phone || '').replace(/\D/g, '');
-    if (ph.length < 6) { setBal(null); return; }
+    if (!user) { setBal(null); return; }
     let alive = true;
-    api('rpc/loyalty_balance', { method: 'POST', body: { p_phone: form.phone } }).then(d => { if (alive && d && d.ok) setBal(d); }).catch(() => {});
+    acct.loyaltyBalance(user).then(d => { if (alive && d && d.ok) setBal(d); }).catch(() => {});
     return () => { alive = false; };
-  }, [form.phone]);
+  }, [user]);
   const rppb = (bal && Number(bal.redeem_points_per_bd)) || 100;
   const maxDiscount = (bal && bal.enabled && bal.points > 0) ? Math.min(Number(bal.value_bd) || 0, total) : 0;
   const discount = useRedeem ? maxDiscount : 0;
   const pointsUsed = discount > 0 ? Math.round(discount * rppb) : 0;
   const payable = Math.max(0, +(total - discount).toFixed(3));
   const place = async () => {
-    if (placingRef.current) return;   // guard: ignore repeat clicks while an order is in flight
-    placingRef.current = true;
-    setPlacing(true);
-    try {
-    const payLabel = months > 0 ? `Installments — ${months} months @ BHD ${monthly.toFixed(2)}/mo` : form.payment;
-    const planNote = months > 0 ? `[Installment plan: ${months} months × BHD ${monthly.toFixed(2)}] ` : '';
-    // Audited order intake (validates, writes sales_order with correct columns, notifies team)
-    const id = await api('rpc/public_order_submit', { method:'POST', body:{
-      p_name: form.name, p_phone: form.phone || null, p_email: form.email || null,
-      p_address: (form.address ? form.address+', ' : '')+form.city,
-      p_items: cart, p_total: payable, p_payment: payLabel, p_notes: planNote + (form.notes || ''),
-      p_customer_id: user?.id || null
-    }});
-    // Record the store order. This returns the order id, which is what the payment
-    // page needs — the customer pays against the ORDER, and the server reads the
-    // amount from that row. Nothing in the browser can change what is charged.
-    let orderId = null;
-    try {
-      const so = await api('rpc/store_checkout', { method:'POST', body:{
-        p_customer_id: user?.id || null, p_customer_name: form.name, p_customer_email: form.email || null,
-        p_customer_phone: form.phone || null, p_items: cart, p_total: payable,
-        p_installment_months: months > 0 ? months : null,
-        p_address: { line: form.address, city: form.city }, p_notes: form.notes || null,
-      }});
-      if (so && so.ok && so.id) orderId = so.id;
-    } catch(e) {}
-
-    // Redeem loyalty points for the applied discount (deducts from the CUS balance).
-    if (pointsUsed > 0 && bal && bal.customer_no) {
-      try { await api('rpc/loyalty_redeem', { method:'POST', body:{ p_customer_no: bal.customer_no, p_points: pointsUsed, p_reason: 'Store order', p_ref: 'order:' + (orderId || Date.now()) } }); } catch(e) {}
-    }
-
-    if (user) {
-      const pts = Math.floor(payable*10);
-      // SECURITY DEFINER RPC — writes the reward row AND increments points server-side
-      // (direct anon POST/PATCH on website_rewards/website_customers is 403)
-      try { await api('rpc/customer_points_award', { method:'POST', body:{ p_customer_id: String(user.id), p_points: pts, p_reason: 'Website order' } }); } catch(e) {}
-    }
-
-    setCart([]);
-
-    // Paying by card → straight to the secure payment page. The order already exists
-    // and is marked unpaid, so if they abandon the payment we still have the order and
-    // can chase it. Nothing is lost either way.
-    if (form.payment === 'Card' && months === 0 && orderId) {
-      window.location.href = '/pay.html?kind=store_order&ref=' + encodeURIComponent(orderId)
-        + '&lang=' + (lang === 'ar' ? 'ar' : 'en');
+    setPlaceErr('');
+    if (isBot(hp)) return;                          // honeypot filled: do nothing
+    const res = await sub.run((signal) => placeOrder({
+      deps: { rpc: (fn, body, o) => api('rpc/' + fn, { method:'POST', body, signal: (o && o.signal) || signal }), redeem: acct.redeemPoints, award: acct.awardPoints },
+      cart, form, user, months, monthly, payable, pointsUsed, loyalty: bal, lang, signal,
+    }));
+    if (res.skipped) return;                        // a request is already in flight: ignore the repeat click
+    if (!res.ok) {                                  // failure is SURFACED; the cart is kept; pressing the button again retries only the failed step
+      setPlaceErr(res.offline ? checkoutMsg('offline', lang) : failureMessage(res.error, lang));
       return;
     }
-
+    const done = res.value;
+    setCart([]);                                    // cleared ONLY after the server confirmed the order
+    setResult(done);
+    if (done.redirectUrl) { window.location.href = done.redirectUrl; return; }   // card: straight to the secure payment page
     setStep(3);
-    } catch (e) {
-      toast((e && e.message) ? e.message : t('swCoOrderFailed'), 'error');
-    } finally {
-      placingRef.current = false;
-      setPlacing(false);
-    }
+  };
+  const goStep2 = () => {
+    const v = validateForm(form, { name:{type:'name',required:true}, email:{type:'email',required:true}, phone:{type:'phone'}, address:{type:'text',max:300}, city:{type:'name',required:true,max:80} }, lang);
+    setErrs(v.errors);
+    if (!v.ok) { setPlaceErr(vmsg('fix', lang)); setTimeout(() => { const el = document.getElementById('co-' + v.first); if (el) el.focus(); }, 0); return; }
+    setPlaceErr(''); setForm(f => ({ ...f, ...v.clean })); setStep(2);
   };
   return (
     <div style={{ minHeight:'100dvh', paddingTop: mobile ? 0 : 56, paddingBottom: mobile ? 80 : 0, background:'var(--shop-fill, #f5f5f7)' }}>
@@ -7873,7 +7898,9 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
         {step===3 ? (
           <div style={{ textAlign:'center', padding:'60px 0' }}>
             <div style={{ width:72, height:72, borderRadius:'50%', background:'rgba(26,122,64,.1)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 24px', fontSize:32 }}>✓</div>
-            <h2 style={{ fontSize:26, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginBottom:10 }}>{t('orderPlaced')}</h2>
+            <h2 id="co-done" tabIndex={-1} style={{ fontSize:26, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginBottom:10 }}>{t('orderPlaced')}</h2>
+            {result && result.orderId && <p style={{ fontSize:14, marginBottom:8 }}>{checkoutMsg('orderRef', lang)}: <bdi dir="ltr">{String(result.orderId).slice(0, 40)}</bdi></p>}
+            {result && result.total != null && <p style={{ fontSize:14, fontWeight:600, marginBottom:8 }}>{checkoutMsg('confirmedTotal', lang)}: {fmt(result.total)}</p>}
             <p style={{ color:'var(--shop-muted, #86868b)', fontSize:15, marginBottom:32 }}>{t('swContactConfirm24')}</p>
             <button type="button" className="btn" onClick={()=>setPage('home')} style={{ borderRadius:14 }}>{t('backHome')}</button>
           </div>
@@ -7900,21 +7927,25 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
                 </div>
               )}
               <div style={{ display:'flex', justifyContent:'space-between', paddingTop:4 }}>
-                <span style={{ fontSize:16, fontWeight:700 }}>{t('total')}</span>
+                <span style={{ fontSize:16, fontWeight:700 }}>{checkoutMsg('estimatedTotal', lang)}</span>
                 <span style={{ fontSize:20, fontWeight:700, color:'var(--clay)' }}>{fmt(payable)}</span>
               </div>
+              <div className="form-note" style={{ marginTop:6 }}>{checkoutMsg('estimateNote', lang)}</div>
               {user && <div style={{ fontSize:12, color:'var(--shop-muted, #86868b)', marginTop:8 }}>+{Math.floor(payable*10)} {t('swCoLoyaltyPts')}</div>}
             </div>
             <div style={{ background:'#fff', borderRadius:20, padding: mobile ? 20 : 28, border:'1px solid var(--shop-line, #e6e6e6)' }}>
               {step===1&&<>
                 <div style={{ fontSize:13, fontWeight:600, color:'var(--shop-muted, #86868b)', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:20 }}>{t('swCoStep1')}</div>
                 <div style={{ display:'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap:12, marginBottom:12 }}>
-                  {[[t('swCoFullName'),'name','text'],[t('swCoEmail'),'email','email'],[t('swCoPhone'),'phone','tel'],[t('swCoCity'),'city','text']].map(([label,key,type])=>(
-                    <div key={key}><label style={{ fontSize:13, fontWeight:500, color:'var(--shop-muted, #86868b)', display:'block', marginBottom:6 }}>{label}</label><input className="inp" type={type} value={form[key]} onChange={e=>setForm(p=>({...p,[key]:e.target.value}))} /></div>
+                  {[[t('swCoFullName'),'name','text','name'],[t('swCoEmail'),'email','email','email'],[t('swCoPhone'),'phone','tel','tel'],[t('swCoCity'),'city','text','address-level2']].map(([label,key,type,ac])=>(
+                    <Field key={key} id={'co-'+key} hideLabel={false} labelStyle={{ fontSize:13, fontWeight:500, color:'var(--shop-muted, #86868b)', display:'block', marginBottom:6 }} label={label} required={key==='name'||key==='email'} error={errs[key]} className="inp" type={type} inputMode={type==='tel'?'tel':type==='email'?'email':undefined} autoComplete={ac} maxLength={key==='email'?254:key==='phone'?20:key==='city'?80:120} value={form[key]} onChange={e=>setForm(p=>({...p,[key]:e.target.value}))} />
                   ))}
-                  <div style={{ gridColumn: mobile ? '1' : 'span 2' }}><label style={{ fontSize:13, fontWeight:500, color:'var(--shop-muted, #86868b)', display:'block', marginBottom:6 }}>{t('swCoAddress')}</label><input className="inp" value={form.address} onChange={e=>setForm(p=>({...p,address:e.target.value}))} /></div>
+                  <Field id="co-address" wrapStyle={{ gridColumn: mobile ? '1' : 'span 2' }} hideLabel={false} labelStyle={{ fontSize:13, fontWeight:500, color:'var(--shop-muted, #86868b)', display:'block', marginBottom:6 }} label={t('swCoAddress')} error={errs.address} className="inp" autoComplete="street-address" maxLength={300} value={form.address} onChange={e=>setForm(p=>({...p,address:e.target.value}))} />
                 </div>
-                <button type="button" className="btn" onClick={()=>{ if(!form.name||!form.email){toast(t('swCoNameEmailReq'),'error');return;} setStep(2); }} style={{ borderRadius:12 }}>{t('swCoContinue')}</button>
+                <Honeypot value={hp} onChange={setHp} />
+                <FormNotice kind="order" lang={lang} style={{ marginBottom:12 }} />
+                <div aria-live="polite" role="status">{placeErr && <div className="form-banner form-banner--err" role="alert" style={{ marginBottom:12 }}>{placeErr}</div>}</div>
+                <button type="button" className="btn" onClick={goStep2} style={{ borderRadius:12 }}>{t('swCoContinue')}</button>
               </>}
               {step===2&&<>
                 <div style={{ fontSize:13, fontWeight:600, color:'var(--shop-muted, #86868b)', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:20 }}>{t('swCoStep2')}</div>
@@ -7942,9 +7973,10 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
                     {months>0 && <div style={{ marginTop:10, fontSize:13, color:'var(--ok, #16a34a)', fontWeight:600 }}>✓ {months} {t('swCoInstConfirmPre')} {monthly.toFixed(2)} {t('swCoInstConfirmPost')}</div>}
                   </div>
                 )}
-                <textarea className="inp" rows={3} placeholder={t('swCoNotes')} aria-label={t('swCoNotesAria')} value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))} style={{ resize:'vertical', marginBottom:16 }} />
-                <div style={{ display:'flex', gap:10 }}>
-                  <button type="button" className="btn-secondary" onClick={()=>setStep(1)} style={{ borderRadius:12 }}>{t('swCoBack')}</button>
+                <textarea className="inp" rows={3} maxLength={1000} placeholder={t('swCoNotes')} aria-label={t('swCoNotesAria')} value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))} style={{ resize:'vertical', marginBottom:16 }} />
+                <FormStatus offline={sub.offline} slow={sub.slow} error={placeErr} lang={lang} t={(k)=>vmsg(k, lang)} />
+                <div style={{ display:'flex', gap:10, marginTop:placeErr?12:0 }}>
+                  <button type="button" className="btn-secondary" onClick={()=>setStep(1)} disabled={placing} style={{ borderRadius:12 }}>{t('swCoBack')}</button>
                   <button type="button" className="btn" onClick={place} disabled={placing} aria-busy={placing} style={{ flex:1, borderRadius:12, opacity: placing ? 0.6 : 1, cursor: placing ? 'not-allowed' : 'pointer' }}>{placing ? t('swCoPlacing') : t('swCoPlaceOrder')}</button>
                 </div>
               </>}
@@ -7960,7 +7992,7 @@ function CheckoutPage({ cart, setCart, user, setPage }) {
 function HomeAIOffers({ setPage, mobile, P }) {
   const { t } = useI18n();
   const [offers, setOffers] = useState([]);
-  useEffect(() => { api('store_offers?active=eq.true&order=sort_order.asc&limit=3').then(d => { if (Array.isArray(d)) setOffers(d); }).catch(()=>{}); }, []);
+  useEffect(() => { api('store_offers?active=eq.true&order=sort_order.asc&limit=3').then(d => { if (Array.isArray(d)) setOffers(sanitizeRows(d)); }).catch(()=>{}); }, []);
   return (<>
     <section style={{ padding:`0 ${P}`, maxWidth:1200, margin:'28px auto 0' }}>
       <div className="reveal" style={{ background:'linear-gradient(135deg,var(--shop-ink, #1d1d1f),#3a3530)', borderRadius:20, padding: mobile?24:36, color:'#fff', display:'flex', flexWrap:'wrap', gap:16, alignItems:'center', justifyContent:'space-between' }}>
@@ -8351,17 +8383,22 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
   const [subscribed, setSubscribed] = useState(false);
   useEffect(() => {
     api('store_offers?active=eq.true&order=sort_order.asc&limit=3').then(d => {
-      if (Array.isArray(d) && d.length) { setOffers(d); return; }
-      api('customer_offers?active=eq.true&order=sort_order.asc&limit=3').then(c => { if (Array.isArray(c)) setOffers(c); }).catch(()=>{});
+      if (Array.isArray(d) && d.length) { setOffers(sanitizeRows(d)); return; }
+      api('customer_offers?active=eq.true&order=sort_order.asc&limit=3').then(c => { if (Array.isArray(c)) setOffers(sanitizeRows(c)); }).catch(()=>{});
     }).catch(()=>{});
-    api('website_projects?active=eq.true&order=sort_order.asc&limit=6').then(d => { if (Array.isArray(d)) setProjects(d); }).catch(()=>{});
+    api('website_projects?active=eq.true&order=sort_order.asc&limit=6').then(d => { if (Array.isArray(d)) setProjects(sanitizeProjects(d)); }).catch(()=>{});
   }, []);
-  const subscribe = () => {
-    const e = email.trim();
-    if (!e || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) { toast(t('swNlInvalid'), 'error'); return; }
-    // Best-effort lead capture; success regardless so the user always gets confirmation.
-    api('leads', { method:'POST', body: { id: uid(), name:'Newsletter subscriber', email:e, source:'Website newsletter', interest:'Newsletter', status:'New' } }).catch(()=>{});
-    setSubscribed(true); setEmail(''); toast(t('swNlWelcome'), 'success');
+  const nlSub = useSubmit(); const [nlErr, setNlErr] = useState(''); const [nlHp, setNlHp] = useState('');
+  const subscribe = async () => {
+    setNlErr('');
+    if (isBot(nlHp)) { setSubscribed(true); return; }
+    const v = validateForm({ email }, { email: { type:'email', required:true } }, lang);
+    if (!v.ok) { setNlErr(v.errors.email); toast(t('swNlInvalid'), 'error'); return; }
+    // Goes through the audited, rate-limited public_lead_submit RPC (not a raw table insert). Success is shown ONLY once the server confirmed it.
+    const res = await nlSub.run((signal) => api('rpc/public_lead_submit', { method:'POST', signal, body: { p_name:'Newsletter subscriber', p_phone:null, p_email:v.clean.email, p_source:'Website newsletter', p_interest:'Newsletter', p_message:null, p_meta:{ type:'newsletter' } } }));
+    if (res.ok) { setSubscribed(true); setEmail(''); toast(t('swNlWelcome'), 'success'); }
+    else if (res.offline) setNlErr(vmsg('offline', lang));
+    else if (!res.skipped) setNlErr(vmsg('failed', lang));
   };
 
   // c. Free appointment options.
@@ -8405,7 +8442,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
   return (
     <div style={{ background: 'var(--cream)' }}>
       <div id="scrollProgress" />
-      <Hero setPage={setPage} banners={banners} />
+      <SectionBoundary name="home:hero" silent><Hero setPage={setPage} banners={banners} /></SectionBoundary>
       {/* [IKHTARHA 2026-11-09] live reward campaign — shows only while the campaign is live */}
       <IkhtarhaSpotlight cfg={ikh} lang={lang} mobile={mobile} cms={cms} setPage={setPage} />
       <IkhtarhaGames cfg={ikh} lang={lang} cms={cms} />{/* [HOME-GAMES 2026-11-10] «العب الآن» poster for the Games Hub */}
@@ -8432,7 +8469,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         <div className="rv reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 12 : 18 }}>
           {appointments.map(([title, desc, ic], i) => (
             <button type="button" key={title} className="lift" onClick={() => setPage('booking')} style={{ '--d': (i * 0.06) + 's', background: '#fff', border: '1px solid var(--line)', borderRadius: 18, padding: mobile ? '20px 16px' : '28px 22px', textAlign: 'left', cursor: 'pointer' }}>
-              <div style={{ fontSize: 30, marginBottom: 12 }}>{ic}</div>
+              <div aria-hidden="true" style={{ fontSize: 30, marginBottom: 12 }}>{ic}</div>
               <div className="display" style={{ fontSize: mobile ? 17 : 20, color: 'var(--ink)', marginBottom: 6 }}>{title}</div>
               <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, marginBottom: 12 }}>{desc}</div>
               <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--clay)' }}>{t('swBookFree')}</span>
@@ -8603,6 +8640,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
 
       {/* h. Offers strip — from store_offers / customer_offers */}
       {offers.length > 0 && (
+<SectionBoundary name="home:offers" silent>
         <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 48 : 80}px ${P}` }}>
           <div className="rv" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
             <div>
@@ -8625,10 +8663,12 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
             ))}
           </div>
         </section>
-      )}
+      </SectionBoundary>
+)}
 
       {/* i. Customer stories — gallery from website_projects */}
       {projects.length > 0 && (
+<SectionBoundary name="home:projects" silent>
         <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 48 : 80}px ${P}` }}>
           <div className="rv" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
             <div>
@@ -8650,7 +8690,8 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
             ))}
           </div>
         </section>
-      )}
+      </SectionBoundary>
+)}
 
       {/* Testimonials carousel */}
       {testimonials.length > 0 && (
@@ -8659,7 +8700,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
             <div className="eyebrow" style={{ marginBottom: 14 }}>{t('swTestiEyebrow')}</div>
             <h2 className="display" style={{ fontSize: mobile ? 28 : 42, color: 'var(--ink)' }}>{t('swTestiTitle')}</h2>
           </div>
-          <div className="rv"><TestiCarousel items={testimonials} /></div>
+          <div className="rv"><SectionBoundary name="home:testimonials" silent><TestiCarousel items={testimonials} /></SectionBoundary></div>
         </section>
       )}
 
@@ -8697,10 +8738,15 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
                 <div style={{ color: 'rgba(255,255,255,.7)', fontSize: 14, marginTop: 6 }}>{t('swNlThanks')}</div>
               </div>
             ) : (
+              <form noValidate onSubmit={e => { e.preventDefault(); subscribe(); }}>
               <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', gap: 10 }}>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') subscribe(); }} placeholder={t('swNlPlaceholder')} aria-label={t('swNlAria')} style={{ flex: 1, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.22)', borderRadius: 14, padding: '15px 18px', fontSize: 15, color: '#fff', outline: 'none' }} />
-                <button type="button" className="btn-clay" onClick={subscribe} style={{ flexShrink: 0 }}>{t('swNlSubscribe')}</button>
+                <input id="nl-email" type="email" inputMode="email" autoComplete="email" maxLength={254} value={email} onChange={e => setEmail(e.target.value)} aria-invalid={nlErr ? 'true' : undefined} aria-describedby={nlErr ? 'nl-err' : undefined} placeholder={t('swNlPlaceholder')} aria-label={t('swNlAria')} style={{ flex: 1, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.22)', borderRadius: 14, padding: '15px 18px', fontSize: 15, color: '#fff', outline: 'none' }} />
+                <button type="submit" className="btn-clay" disabled={nlSub.busy} aria-busy={nlSub.busy} style={{ flexShrink: 0 }}>{t('swNlSubscribe')}</button>
               </div>
+              <Honeypot value={nlHp} onChange={setNlHp} />
+              {nlErr && <div id="nl-err" role="alert" className="form-error" style={{ color: '#ffd3c4' }}>{nlErr}</div>}
+              <FormNotice kind="newsletter" lang={lang} style={{ color: 'rgba(255,255,255,.7)', marginTop: 10 }} />
+              </form>
             )}
           </div>
         </div>
@@ -8749,7 +8795,7 @@ function ShowroomsPage() {
   const { t } = useI18n();
   const [rows,setRows]=useState([]);
   // Single source of truth: same content the Hub manages & the app shows.
-  useEffect(()=>{ api('rpc/content_list',{method:'POST',body:{p_section:'showroom'}}).then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
+  useEffect(()=>{ api('rpc/content_list',{method:'POST',body:{p_section:'showroom'}}).then(d=>{ if(Array.isArray(d)) setRows(sanitizeRows(d)); }).catch(()=>{}); },[]);
   return (<PageWrap eyebrow={cms('showrooms.hero.eyebrow','Visit us')} title={cms('showrooms.hero.title','Showrooms across Bahrain.')} sub={cms('showrooms.hero.subtitle','Experience our craftsmanship in person — see the finishes, open the drawers, feel the build.')}>
     <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:22 }}>
       {rows.map(s=>{ const m=s.meta||{}; return (
@@ -8771,7 +8817,7 @@ function ShowroomsPage() {
 function BlogPage() {
   const { t } = useI18n();
   const [rows,setRows]=useState([]);
-  useEffect(()=>{ api('rpc/content_list',{method:'POST',body:{p_section:'inspiration'}}).then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
+  useEffect(()=>{ api('rpc/content_list',{method:'POST',body:{p_section:'inspiration'}}).then(d=>{ if(Array.isArray(d)) setRows(sanitizeRows(d)); }).catch(()=>{}); },[]);
   return (<PageWrap eyebrow={cms('blog.hero.eyebrow','Inspiration')} title={cms('blog.hero.title','Ideas & guides.')} sub={cms('blog.hero.subtitle','Trends, tips and real projects for kitchens, wardrobes and storage.')}>
     <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))', gap:22 }}>
       {rows.map(b=>(
@@ -8793,7 +8839,7 @@ function CareersPage() {
   const { t } = useI18n();
   const [rows,setRows]=useState([]); const [openId,setOpenId]=useState(null);
   const [f,setF]=useState({name:'',email:'',phone:'',note:''}); const [sentFor,setSentFor]=useState(null);
-  useEffect(()=>{ api('website_jobs?active=eq.true').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
+  useEffect(()=>{ api('website_jobs?active=eq.true').then(d=>{ if(Array.isArray(d)) setRows(sanitizeRows(d)); }).catch(()=>{}); },[]);
   const apply=async(job)=>{
     if(!f.name||!f.phone){ toast(t('swCarNamePhoneReq'),'error'); return; }
     await api('rpc/public_lead_submit',{method:'POST',body:{ p_name:f.name, p_phone:f.phone, p_email:f.email||null, p_source:'Website - Careers', p_interest:job.job_title, p_message:'Career application — '+job.job_title+(f.note?(' — '+f.note):''), p_meta:{ job_id:job.id, type:'career' } }});
@@ -8846,7 +8892,7 @@ function OffersPage({ setPage }) {
 function FaqPage() {
   const { t } = useI18n();
   const [rows,setRows]=useState([]); const [open,setOpen]=useState(null);
-  useEffect(()=>{ api('website_faqs?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
+  useEffect(()=>{ api('website_faqs?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(sanitizeRows(d)); }).catch(()=>{}); },[]);
   return (<PageWrap title={cms('faq.hero.title','Frequently asked questions')} sub={cms('faq.hero.subtitle','Everything you need to know about designing with us.')}>
     <div className="reveal reveal-stagger" style={{ maxWidth:760, display:'flex', flexDirection:'column', gap:12 }}>
       {rows.map(q=>(<div key={q.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:16, overflow:'hidden' }}>
@@ -8921,7 +8967,7 @@ function ServicesPage({ user, setPage, openAuth }) {
 
       {sel && (
         <div onClick={() => setSel(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,16,12,.55)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 18 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cream)', borderRadius: 22, maxWidth: 480, width: '100%', padding: 26, maxHeight: '90vh', overflow: 'auto' }}>
+          <ModalPanel onClose={() => setSel(null)} onClick={e => e.stopPropagation()} style={{ background: 'var(--cream)', borderRadius: 22, maxWidth: 480, width: '100%', padding: 26, maxHeight: '90vh', overflow: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
               <h2 className="display" style={{ fontSize: 24, color: 'var(--ink)', margin: 0 }}>{sel.name_en}</h2>
               <button type="button" aria-label="Close" onClick={() => setSel(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: 'var(--muted)' }}>✕</button>
@@ -8954,7 +9000,7 @@ function ServicesPage({ user, setPage, openAuth }) {
                 <button className="btn-clay" disabled={busy} onClick={submit} style={{ width: '100%' }}>{busy ? 'Sending…' : 'Send request'}</button>
               </>
             )}
-          </div>
+          </ModalPanel>
         </div>
       )}
     </div>
@@ -8965,35 +9011,46 @@ function BookingPage({ setPage }) {
   const { t, lang } = useI18n();
   const mobile = useMobile();
   const [f,setF]=useState({ type:'Design Consultation', name:'', phone:'', email:'', date:'', slot:APPT_SLOTS[0], address:'', interest:'Kitchen', notes:'' });
-  const [sent,setSent]=useState(false); const [busy,setBusy]=useState(false);
+  const [sent,setSent]=useState(false);
+  const [errs,setErrs]=useState({}); const [formErr,setFormErr]=useState(''); const [hp,setHp]=useState('');
+  const sub = useSubmit(); const busy = sub.busy;
   const set=(k,v)=>setF(s=>({...s,[k]:v}));
+  const todayIso = (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })();
   const submit=async()=>{
-    if(!f.name||!f.phone){ toast(t('bkNamePhoneReq'),'error'); return; }
-    setBusy(true);
-    try{
-      await api('rpc/book_appointment',{method:'POST',body:{ p_name:f.name, p_phone:f.phone, p_email:f.email||null, p_type:f.type, p_date:f.date||null, p_slot:f.slot, p_address:f.address||null, p_interest:f.interest, p_notes:f.notes||null }});
-      setSent(true); toast(t('bkRequested'),'success');
-    }catch(e){ toast(t('bkSubmitErr'),'error'); }
-    finally{ setBusy(false); }
+    setFormErr('');
+    if (isBot(hp)) { setSent(true); return; }                       // honeypot: act done, send nothing
+    const v = validateForm(f, { name:{type:'name',required:true}, phone:{type:'phone',required:true}, email:{type:'email'}, date:{type:'date'}, address:{type:'text',max:300}, notes:{type:'text',max:2000} }, lang);
+    setErrs(v.errors);
+    if (!v.ok) { setFormErr(vmsg('fix', lang)); setTimeout(() => { const el = document.getElementById('bk-' + v.first); if (el) el.focus(); }, 0); return; }
+    const c = v.clean;
+    const res = await sub.run((signal) => api('rpc/book_appointment',{method:'POST',signal,body:{ p_name:c.name, p_phone:c.phone, p_email:c.email||null, p_type:f.type, p_date:c.date||null, p_slot:f.slot, p_address:c.address||null, p_interest:f.interest, p_notes:c.notes||null }}));
+    if (res.ok) { setSent(true); toast(t('bkRequested'),'success'); }
+    else if (res.offline) setFormErr(vmsg('offline', lang));
+    else if (!res.skipped) { setFormErr(vmsg('failed', lang)); toast(t('bkSubmitErr'),'error'); }
   };
-  if(sent) return (<PageWrap eyebrow={t('bkBooked')} title={t('bkThankYou')}><div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding:36, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div className="display" style={{ fontSize:24, color:'var(--ink)', marginTop:14 }}>{t('bkRequestedPrefix')} {trMap(f.type, APPT_KIND_LC_KEY, lang)} {t('bkRequestedSuffix')}</div><div style={{ fontSize:15, color:'var(--ink-soft)', marginTop:10, lineHeight:1.6 }}>{t('sw3BookCallConfirm')}</div><button type="button" className="btn-clay" onClick={()=>setPage('home')} style={{ marginTop:22 }}>{t('bkBackHome')}</button></div></PageWrap>);
+  if(sent) return (<PageWrap eyebrow={t('bkBooked')} title={t('bkThankYou')}><div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding:36, maxWidth:560 }}><div aria-hidden="true" style={{ fontSize:40 }}>✅</div><div className="display" style={{ fontSize:24, color:'var(--ink)', marginTop:14 }}>{t('bkRequestedPrefix')} {trMap(f.type, APPT_KIND_LC_KEY, lang)} {t('bkRequestedSuffix')}</div><div style={{ fontSize:15, color:'var(--ink-soft)', marginTop:10, lineHeight:1.6 }}>{t('sw3BookCallConfirm')}</div><button type="button" className="btn-clay" onClick={()=>setPage('home')} style={{ marginTop:22 }}>{t('bkBackHome')}</button></div></PageWrap>);
   return (<PageWrap eyebrow={cms('booking.hero.eyebrow','Free design visit')} title={cms('booking.hero.title','Book your free visit.')} sub={cms('booking.hero.subtitle','A designer measures your space and creates a bespoke 2D & 3D concept — free, with no obligation.')}>
     <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding: mobile?22:30, maxWidth:720 }}>
       <div className="eyebrow" style={{ fontSize:11, marginBottom:10 }}>{t('bkApptType')}</div>
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:18 }}>
         {APPT_KINDS.map(k=>(<button type="button" key={k} onClick={()=>set('type',k)} style={{ padding:'9px 16px', borderRadius:980, cursor:'pointer', fontSize:13, fontWeight:600, background:f.type===k?'var(--clay)':'var(--sand)', color:f.type===k?'#fff':'var(--ink)', border:'1px solid '+(f.type===k?'var(--clay)':'var(--line)') }}>{trMap(k, APPT_KIND_KEY, lang)}</button>))}
       </div>
+      <form noValidate onSubmit={e=>{ e.preventDefault(); submit(); }}>
       <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:12 }}>
-        <input placeholder={t('bkFullName')} aria-label={t('bkFullName')} value={f.name} onChange={e=>set('name',e.target.value)} style={inp} />
-        <input placeholder={t('bkPhone')} aria-label={t('bkPhone')} value={f.phone} onChange={e=>set('phone',e.target.value)} style={inp} />
-        <input placeholder={t('bkEmail')} aria-label={t('bkEmail')} value={f.email} onChange={e=>set('email',e.target.value)} style={inp} />
-        <select value={f.interest} onChange={e=>set('interest',e.target.value)} style={inp}>{['Kitchen','Wardrobe','Walk-In Closet','TV Unit','Doors','Storage','Other'].map(x=><option key={x} value={x}>{trMap(x, BK_INT_KEY, lang)}</option>)}</select>
-        <input type="date" value={f.date} onChange={e=>set('date',e.target.value)} style={inp} />
-        <select value={f.slot} onChange={e=>set('slot',e.target.value)} style={inp}>{APPT_SLOTS.map(x=><option key={x} value={x}>{trMap(x, APPT_SLOT_KEY, lang)}</option>)}</select>
-        <input placeholder={t('bkAddress')} aria-label={t('bkAddress')} value={f.address} onChange={e=>set('address',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1'}} />
-        <textarea placeholder={t('bkNotes')} aria-label={t('bkNotes')} rows={3} value={f.notes} onChange={e=>set('notes',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1', resize:'vertical'}} />
+        <Field id="bk-name" label={t('bkFullName')} required error={errs.name} placeholder={t('bkFullName')} autoComplete="name" maxLength={120} value={f.name} onChange={e=>set('name',e.target.value)} style={inp} />
+        <Field id="bk-phone" label={t('bkPhone')} required error={errs.phone} placeholder={t('bkPhone')} type="tel" inputMode="tel" autoComplete="tel" maxLength={20} value={f.phone} onChange={e=>set('phone',e.target.value)} style={inp} />
+        <Field id="bk-email" label={t('bkEmail')} error={errs.email} placeholder={t('bkEmail')} type="email" inputMode="email" autoComplete="email" maxLength={254} value={f.email} onChange={e=>set('email',e.target.value)} style={inp} />
+        <Field id="bk-interest" as="select" label={lang==='ar' ? 'الاهتمام' : 'Interested in'} value={f.interest} onChange={e=>set('interest',e.target.value)} style={inp}>{['Kitchen','Wardrobe','Walk-In Closet','TV Unit','Doors','Storage','Other'].map(x=><option key={x} value={x}>{trMap(x, BK_INT_KEY, lang)}</option>)}</Field>
+        <Field id="bk-date" label={lang==='ar' ? 'التاريخ المفضل' : 'Preferred date'} error={errs.date} type="date" min={todayIso} value={f.date} onChange={e=>set('date',e.target.value)} style={inp} />
+        <Field id="bk-slot" as="select" label={lang==='ar' ? 'الوقت المفضل' : 'Preferred time'} value={f.slot} onChange={e=>set('slot',e.target.value)} style={inp}>{APPT_SLOTS.map(x=><option key={x} value={x}>{trMap(x, APPT_SLOT_KEY, lang)}</option>)}</Field>
+        <Field id="bk-address" label={t('bkAddress')} error={errs.address} placeholder={t('bkAddress')} autoComplete="street-address" maxLength={300} value={f.address} onChange={e=>set('address',e.target.value)} style={inp} wrapStyle={{ gridColumn: mobile?'auto':'1 / -1' }} />
+        <Field id="bk-notes" as="textarea" label={t('bkNotes')} error={errs.notes} placeholder={t('bkNotes')} rows={3} maxLength={2000} value={f.notes} onChange={e=>set('notes',e.target.value)} style={{...inp, resize:'vertical'}} wrapStyle={{ gridColumn: mobile?'auto':'1 / -1' }} />
       </div>
-      <button type="button" className="btn-clay" disabled={busy} onClick={submit} style={{ marginTop:18, width:'100%', opacity:busy?.6:1 }}>{busy?t('bkSubmitting'):t('bkSubmit')}</button>
+      <Honeypot value={hp} onChange={setHp} />
+      <FormNotice kind="request" lang={lang} style={{ marginTop:14 }} />
+      <FormStatus offline={sub.offline} slow={sub.slow} error={formErr} lang={lang} t={(k)=>vmsg(k, lang)} />
+      <button type="submit" className="btn-clay" disabled={busy} aria-busy={busy} style={{ marginTop:18, width:'100%', opacity:busy?.6:1 }}>{busy?t('bkSubmitting'):t('bkSubmit')}</button>
+      </form>
     </div>
   </PageWrap>);
 }
@@ -9001,26 +9058,39 @@ function BookingPage({ setPage }) {
 function RequestPage({ kind, title, sub, refLabel, kindLabel }) {
   const { t } = useI18n();
   const mobile=useMobile();
-  const [f,setF]=useState({name:'',phone:'',email:'',ref:'',message:''}); const [sent,setSent]=useState(false); const [busy,setBusy]=useState(false);
+  const { lang } = useI18n();
+  const [f,setF]=useState({name:'',phone:'',email:'',ref:'',message:''}); const [sent,setSent]=useState(false);
+  const [errs,setErrs]=useState({}); const [formErr,setFormErr]=useState(''); const [hp,setHp]=useState('');
+  const sb = useSubmit(); const busy = sb.busy;
   const set=(k,v)=>setF(s=>({...s,[k]:v}));
   const submit=async()=>{
-    if(!f.name||!f.phone){ toast(t('swReqNamePhoneReq'),'error'); return; }
-    setBusy(true);
-    try{ await api('rpc/public_lead_submit',{method:'POST',body:{ p_name:f.name, p_phone:f.phone, p_email:f.email||null, p_source:'Website - '+kind, p_interest:kind, p_message:(f.ref?(refLabel+': '+f.ref+' — '):'')+(f.message||''), p_meta:{ type:kind.toLowerCase() } }});
-      setSent(true); toast(t('swReqReceived'),'success'); }
-    catch{ toast(t('swReqFailed'),'error'); } finally{ setBusy(false); }
+    setFormErr('');
+    if (isBot(hp)) { setSent(true); return; }
+    const v = validateForm(f, { name:{type:'name',required:true}, phone:{type:'phone',required:true}, email:{type:'email'}, ref:{type:'text',max:100}, message:{type:'text',max:2000} }, lang);
+    setErrs(v.errors);
+    if (!v.ok) { setFormErr(vmsg('fix', lang)); setTimeout(() => { const el = document.getElementById('rq-' + v.first); if (el) el.focus(); }, 0); return; }
+    const c = v.clean;
+    const res = await sb.run((signal) => api('rpc/public_lead_submit',{method:'POST',signal,body:{ p_name:c.name, p_phone:c.phone, p_email:c.email||null, p_source:'Website - '+kind, p_interest:kind, p_message:(c.ref?(refLabel+': '+c.ref+' — '):'')+(c.message||''), p_meta:{ type:kind.toLowerCase() } }}));
+    if (res.ok) { setSent(true); toast(t('swReqReceived'),'success'); }
+    else if (res.offline) setFormErr(vmsg('offline', lang));
+    else if (!res.skipped) { setFormErr(vmsg('failed', lang)); toast(t('swReqFailed'),'error'); }
   };
-  if(sent) return (<PageWrap title={t('swReqThankYou')}><div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:32, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div style={{ fontSize:19, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', marginTop:12 }}>{t('swReqLoggedPrefix')} {kindLabel} {t('swReqLoggedSuffix')}</div><div style={{ fontSize:15, color:'var(--shop-muted, #86868b)', marginTop:8 }}>{t('swReqLoggedSub')}</div></div></PageWrap>);
+  if(sent) return (<PageWrap title={t('swReqThankYou')}><div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:32, maxWidth:560 }}><div aria-hidden="true" style={{ fontSize:40 }}>✅</div><div style={{ fontSize:19, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', marginTop:12 }}>{t('swReqLoggedPrefix')} {kindLabel} {t('swReqLoggedSuffix')}</div><div style={{ fontSize:15, color:'var(--shop-muted, #86868b)', marginTop:8 }}>{t('swReqLoggedSub')}</div></div></PageWrap>);
   return (<PageWrap title={title} sub={sub}>
     <div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding: mobile?20:28, maxWidth:640, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+      <form noValidate onSubmit={e=>{ e.preventDefault(); submit(); }}>
       <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:12 }}>
-        <input placeholder={t('swReqFullName')} aria-label={t('swReqFullNameAria')} value={f.name} onChange={e=>set('name',e.target.value)} style={inp} />
-        <input placeholder={t('swReqPhone')} aria-label={t('swReqPhoneAria')} value={f.phone} onChange={e=>set('phone',e.target.value)} style={inp} />
-        <input placeholder={t('swReqEmail')} aria-label={t('swReqEmail')} value={f.email} onChange={e=>set('email',e.target.value)} style={inp} />
-        <input placeholder={refLabel+' '+t('swReqOptional')} aria-label={refLabel+' '+t('swReqOptional')} value={f.ref} onChange={e=>set('ref',e.target.value)} style={inp} />
-        <textarea placeholder={t('swReqDescribe')} aria-label={t('swReqDescribe')} rows={4} value={f.message} onChange={e=>set('message',e.target.value)} style={{...inp, gridColumn: mobile?'auto':'1 / -1', resize:'vertical'}} />
+        <Field id="rq-name" label={t('swReqFullNameAria')} required error={errs.name} placeholder={t('swReqFullName')} autoComplete="name" maxLength={120} value={f.name} onChange={e=>set('name',e.target.value)} style={inp} />
+        <Field id="rq-phone" label={t('swReqPhoneAria')} required error={errs.phone} placeholder={t('swReqPhone')} type="tel" inputMode="tel" autoComplete="tel" maxLength={20} value={f.phone} onChange={e=>set('phone',e.target.value)} style={inp} />
+        <Field id="rq-email" label={t('swReqEmail')} error={errs.email} placeholder={t('swReqEmail')} type="email" inputMode="email" autoComplete="email" maxLength={254} value={f.email} onChange={e=>set('email',e.target.value)} style={inp} />
+        <Field id="rq-ref" label={refLabel+' '+t('swReqOptional')} error={errs.ref} placeholder={refLabel+' '+t('swReqOptional')} maxLength={100} value={f.ref} onChange={e=>set('ref',e.target.value)} style={inp} />
+        <Field id="rq-message" as="textarea" label={t('swReqDescribe')} error={errs.message} placeholder={t('swReqDescribe')} rows={4} maxLength={2000} value={f.message} onChange={e=>set('message',e.target.value)} style={{...inp, resize:'vertical'}} wrapStyle={{ gridColumn: mobile?'auto':'1 / -1' }} />
       </div>
-      <button type="button" disabled={busy} onClick={submit} style={{ marginTop:18, width:'100%', background:'var(--clay)', color:'#fff', border:'none', borderRadius:14, padding:'14px', fontSize:15, fontWeight:600, cursor:'pointer', opacity:busy?.6:1 }}>{busy?t('swReqSubmitting'):t('swReqSubmit')}</button>
+      <Honeypot value={hp} onChange={setHp} />
+      <FormNotice kind="request" lang={lang} style={{ marginTop:14 }} />
+      <FormStatus offline={sb.offline} slow={sb.slow} error={formErr} lang={lang} t={(k)=>vmsg(k, lang)} />
+      <button type="submit" disabled={busy} aria-busy={busy} style={{ marginTop:18, width:'100%', background:'var(--clay)', color:'#fff', border:'none', borderRadius:14, padding:'14px', fontSize:15, fontWeight:600, cursor:'pointer', opacity:busy?.6:1 }}>{busy?t('swReqSubmitting'):t('swReqSubmit')}</button>
+      </form>
     </div>
   </PageWrap>);
 }
@@ -9033,7 +9103,7 @@ const YAS_HEAD = { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Conte
 async function yasCall(fn, body) {
   // Returns { ok, data } | { ok:false, warm:true } — never throws.
   try {
-    const r = await fetch(SUPA_URL + '/functions/v1/' + fn, { method: 'POST', headers: YAS_HEAD, body: JSON.stringify(body || {}) });
+    const r = await aiFetch(SUPA_URL + '/functions/v1/' + fn, { method: 'POST', headers: YAS_HEAD, body: JSON.stringify(body || {}) });
     const d = await r.json().catch(() => ({}));
     if (r.ok && d && d.ok !== false) return { ok: true, data: d };
     return { ok: false, warm: true, error: (d && d.error) || ('AI error ' + r.status) };
@@ -9089,24 +9159,18 @@ function YasChip({ active, onClick, children, dark }) {
 }
 
 function YasModal({ title, subtitle, onClose, children }) {
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow; document.body.style.overflow = 'hidden';
-    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = prev; };
-  }, [onClose]);
   return (
     <div className="yas-modal-back" onClick={onClose}>
-      <div className="yas-modal" onClick={e => e.stopPropagation()}>
+      <ModalPanel className="yas-modal" label={typeof title === 'string' ? title : undefined} onClose={onClose} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: '22px 24px 14px', borderBottom: '1px solid var(--line)' }}>
           <div>
             <h3 className="display" style={{ fontSize: 24, color: 'var(--ink)' }}>{title}</h3>
             {subtitle && <div style={{ fontSize: 13.5, color: 'var(--muted)', marginTop: 4 }}>{subtitle}</div>}
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '50%', width: 38, height: 38, fontSize: 20, cursor: 'pointer', color: 'var(--ink-soft)', flexShrink: 0 }}>×</button>
+          <button type="button" onClick={onClose} aria-label="Close" className="hit44" style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '50%', width: 38, height: 38, fontSize: 20, cursor: 'pointer', color: 'var(--ink-soft)', flexShrink: 0 }}>×</button>
         </div>
         <div style={{ padding: '20px 24px 26px' }}>{children}</div>
-      </div>
+      </ModalPanel>
     </div>
   );
 }
@@ -9239,6 +9303,7 @@ function YasRoomRedesign({ setPage }) {
   };
   return (
     <div>
+      <AiNotice style={{ margin: '0 0 8px' }} />
       <label style={{ display: 'flex', alignItems: 'center', gap: 12, border: '1.5px dashed var(--line)', background: '#fff', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', marginBottom: 14 }}>
         {image ? <img src={image.dataUrl} alt="your room" style={{ width: 64, height: 48, objectFit: 'cover', borderRadius: 9 }} /> : <Spark size={24} color="var(--clay)" />}
         <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)' }}>{image ? 'Photo added — tap to change' : 'Upload a photo of your room'}</span>
@@ -9643,7 +9708,7 @@ function AIDesignerPage({ setPage, user }) {
     if(!image) return;
     setRenderBusy(true); setRenderErr(''); setRenderUrl(null);
     try{
-      const r=await fetch(SUPA_URL+'/functions/v1/ai_room_redesign',{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify({ image_base64:image.base64, style:styleOverride||f.style, room:f.room, product:f.product||undefined, strength: mode==='furnish'?0.82:0.7 })});
+      const r=await aiFetch(SUPA_URL+'/functions/v1/ai_room_redesign',{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify({ image_base64:image.base64, style:styleOverride||f.style, room:f.room, product:f.product||undefined, strength: mode==='furnish'?0.82:0.7 })});
       const d=await r.json().catch(()=>({}));
       if(d&&d.ok&&d.url){ setRenderUrl(d.url); setBaPos(55); } else { setRenderErr(d&&d.error==='Render not configured'?'Photoreal rendering isn’t switched on yet.':'Could not render — try another photo.'); }
     }catch{ setRenderErr('Network error — please try again.'); } finally{ setRenderBusy(false); }
@@ -9658,7 +9723,7 @@ function AIDesignerPage({ setPage, user }) {
     const brief=[f.requirements, needsPhoto?`Style: ${styleName}. Room: ${roomName}.`:''].filter(Boolean).join(' ');
     if(needsPhoto && image) renderVisual();
     try{
-      const r=await fetch(SUPA_URL+'/functions/v1/ai_design_concept',{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify({ requirements:brief, product:f.product||undefined, budget:f.budget?Number(f.budget):undefined, dimensions:{ width_cm:f.w?Number(f.w):undefined, height_cm:f.h?Number(f.h):undefined }, image_base64:image?.base64, media_type:image?.media_type })});
+      const r=await aiFetch(SUPA_URL+'/functions/v1/ai_design_concept',{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify({ requirements:brief, product:f.product||undefined, budget:f.budget?Number(f.budget):undefined, dimensions:{ width_cm:f.w?Number(f.w):undefined, height_cm:f.h?Number(f.h):undefined }, image_base64:image?.base64, media_type:image?.media_type })});
       const d=await r.json();
       if(d.ok&&d.concept){ setConcept(d.concept); setSaved(false); } else { toast('Could not generate — try adding more detail','error'); }
     }catch{ toast('AI is unavailable right now','error'); } finally{ setBusy(false); }
@@ -9859,15 +9924,16 @@ function SiteFooter({ setPage, siteLogo }) {
           <span style={{ fontSize:12.5, color:'var(--muted)', lineHeight:1.5, textAlign: mobile?'center':'left' }}>
             {cms('footer.copyright', '© 2026 The Closets Co. W.L.L. — Manama, Bahrain')}
             <span style={{ margin:'0 8px', opacity:.45 }}>·</span>
-            {t('devBy')} <a href="https://www.365neo.com" target="_blank" rel="noopener" style={{ color:'var(--clay)', textDecoration:'none', fontWeight:600 }}>365Neo Digital Services</a>
+            {t('devBy')} <a href="https://www.365neo.com" target="_blank" rel="noopener" lang="en" dir="ltr" style={{ color:'var(--clay)', textDecoration:'none', fontWeight:600 }}>365Neo Digital Services</a>
           </span>
         </div>
         {/* Right — contact + legal */}
         <div style={{ display:'flex', alignItems:'center', gap:14, flexWrap:'wrap', justifyContent: mobile?'center':'flex-end', fontSize:12.5 }}>
-          <a href="tel:+97317555095" style={{ color:'var(--ink-soft)', textDecoration:'none' }}>+973 17555095</a>
+          <a href="tel:+97317555095" className="hit44" style={{ color:'var(--ink-soft)', textDecoration:'none' }}><bdi dir="ltr">+973 17555095</bdi></a>
           <span style={{ opacity:.35 }}>·</span>
-          <a href="https://closets-hub.vercel.app/privacy.html" target="_blank" rel="noopener" style={{ color:'var(--muted)', textDecoration:'none' }}>{t('legalPrivacy')}</a>
-          <a href="https://closets-hub.vercel.app/terms.html" target="_blank" rel="noopener" style={{ color:'var(--muted)', textDecoration:'none' }}>{t('legalTerms')}</a>
+          <Link to="/privacy" className="hit44" style={{ color:'var(--muted)', textDecoration:'none' }}>{t('legalPrivacy')}</Link>
+          <Link to="/terms" className="hit44" style={{ color:'var(--muted)', textDecoration:'none' }}>{t('legalTerms')}</Link>
+          <button type="button" className="hit44" onClick={openConsentSettings} style={{ background:'none', border:'none', padding:0, cursor:'pointer', font:'inherit', color:'var(--muted)', textDecoration:'none' }}>{lang==='ar' ? 'إعدادات الخصوصية' : 'Privacy settings'}</button>
         </div>
       </div>
     </div>
@@ -9881,13 +9947,14 @@ function ChatWidget({ setPage }) {
   const [input, setInput] = useState('');
   const [msgs, setMsgs] = useState([{ role:'assistant', content:t('swChatHello') }]);
   const listRef = useRef(null);
+  const btnRef = useRef(null);
   useEffect(() => { if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight; }, [msgs, open, busy]);
   const send = async (text) => {
     const q = (text ?? input).trim(); if (!q || busy) return;
     const next = [...msgs, { role:'user', content:q }];
     setMsgs(next); setInput(''); setBusy(true);
     try {
-      const r = await fetch(SUPA_URL + '/functions/v1/support_chat', { method:'POST', headers:{ apikey:SUPA_KEY, Authorization:'Bearer '+SUPA_KEY, 'Content-Type':'application/json' }, body: JSON.stringify({ messages: next.map(m=>({ role:m.role, content:m.content })) }) });
+      const r = await aiFetch(SUPA_URL + '/functions/v1/support_chat', { method:'POST', headers:{ apikey:SUPA_KEY, Authorization:'Bearer '+SUPA_KEY, 'Content-Type':'application/json' }, body: JSON.stringify({ messages: next.map(m=>({ role:m.role, content:m.content })) }) });
       const d = await r.json();
       setMsgs(m => [...m, { role:'assistant', content: (d && d.ok && d.reply) ? d.reply : t('swChatError') }]);
     } catch { setMsgs(m => [...m, { role:'assistant', content:t('swChatOffline') }]); }
@@ -9899,20 +9966,21 @@ function ChatWidget({ setPage }) {
     { key:'book', label:t('swChatChipBook') },
     { key:'showrooms', label:t('swChatChipShowrooms') },
   ];
-  return (<>
-    <button type="button" onClick={()=>setOpen(o=>!o)} aria-label={t('swChatAria')} style={{ position:'fixed', right: mobile?16:24, bottom: mobile?88:24, zIndex:1400, width:56, height:56, borderRadius:'50%', background:'var(--clay)', border:'none', boxShadow:'0 6px 20px rgba(168,75,41,.4)', cursor:'pointer', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center' }}>
+  return (<aside aria-label={t('swChatAria')}>
+    <button type="button" ref={btnRef} onClick={()=>setOpen(o=>!o)} aria-expanded={open} aria-haspopup="dialog" aria-label={t('swChatAria')} style={{ position:'fixed', right: mobile?16:24, bottom: mobile?88:24, zIndex:1400, width:56, height:56, borderRadius:'50%', background:'var(--clay)', border:'none', boxShadow:'0 6px 20px rgba(168,75,41,.4)', cursor:'pointer', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center' }}>
       {open
         ? <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
         : <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5z"/></svg>}
       {!open && <span style={{ position:'absolute', top:-3, right:-3, background:'var(--ink)', color:'#fff', fontSize:10, fontWeight:700, borderRadius:999, padding:'1px 6px', lineHeight:1.4 }}>AI</span>}
     </button>
     {open && (
-      <div style={{ position:'fixed', right: mobile?10:24, bottom: mobile?150:92, zIndex:1400, width: mobile?'calc(100vw - 20px)':380, maxWidth:'calc(100vw - 20px)', height:520, maxHeight:'70vh', background:'#fff', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,.22)', border:'1px solid #ececec', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+      <div role="dialog" aria-label={t('swChatTitle')} onKeyDown={e=>{ if (e.key==='Escape') { e.stopPropagation(); setOpen(false); if (btnRef.current) btnRef.current.focus(); } }} style={{ position:'fixed', right: mobile?10:24, bottom: mobile?150:92, zIndex:1400, width: mobile?'calc(100vw - 20px)':380, maxWidth:'calc(100vw - 20px)', height:520, maxHeight:'70vh', background:'#fff', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,.22)', border:'1px solid #ececec', display:'flex', flexDirection:'column', overflow:'hidden' }}>
         <div style={{ background:'var(--shop-ink, #1d1d1f)', color:'#fff', padding:'14px 18px' }}>
           <div style={{ fontWeight:600, fontSize:15, display:'flex', alignItems:'center', gap:8 }}><Spark size={16} color="#F9A35C" /> {t('swChatTitle')}</div>
           <div style={{ fontSize:12, color:'#bdbdbd', marginTop:2 }}>{t('swChatSubtitle')}</div>
+          <AiNotice style={{ color:'#bdbdbd', marginTop:4, fontSize:11.5 }} />
         </div>
-        <div ref={listRef} style={{ flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:10, background:'#fafafa' }}>
+        <div ref={listRef} role="log" aria-live="polite" style={{ flex:1, overflowY:'auto', padding:'16px', display:'flex', flexDirection:'column', gap:10, background:'#fafafa' }}>
           {msgs.map((m,i)=>(<div key={i} style={{ alignSelf: m.role==='user'?'flex-end':'flex-start', maxWidth:'85%', background: m.role==='user'?'var(--clay)':'#fff', color: m.role==='user'?'#fff':'var(--shop-ink, #1d1d1f)', border: m.role==='user'?'none':'1px solid #ececec', borderRadius:14, padding:'10px 13px', fontSize:14, lineHeight:1.5, whiteSpace:'pre-wrap' }}>{m.content}</div>))}
           {busy && <div style={{ alignSelf:'flex-start', color:'#aaa', fontSize:13, padding:'4px 6px' }}>{t('swChatTyping')}</div>}
           {msgs.length<=1 && <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>{chips.map(c=>(<button key={c.key} type="button" onClick={()=>{ if(c.key==='book'){ setOpen(false); setPage('booking'); } else send(c.label); }} style={{ fontSize:12, border:'1px solid #e0e0e0', borderRadius:16, padding:'6px 12px', background:'#fff', cursor:'pointer', color:'var(--shop-ink, #1d1d1f)' }}>{c.label}</button>))}</div>}
@@ -9923,7 +9991,7 @@ function ChatWidget({ setPage }) {
         </div>
       </div>
     )}
-  </>);
+  </aside>);
 }
 function MaintenancePage() { const { t } = useI18n(); return <RequestPage kind="Maintenance" kindLabel={t('swMaintKind')} title={t('swMaintTitle')} sub={t('swMaintSub')} refLabel={t('swMaintRef')} />; }
 function WarrantyPage() { const { t } = useI18n(); return <RequestPage kind="Warranty" kindLabel={t('swWarrKind')} title={t('swWarrTitle')} sub={t('swWarrSub')} refLabel={t('swWarrRef')} />; }
@@ -9940,7 +10008,7 @@ function BeforeAfter({ before, after }) {
 function PortfolioPage({ setPage }) {
   const { t, lang } = useI18n();
   const [rows,setRows]=useState([]);
-  useEffect(()=>{ api('website_projects?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
+  useEffect(()=>{ api('website_projects?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(sanitizeProjects(d)); }).catch(()=>{}); },[]);
   // Category VALUE stays English (used in route 'cat:'+value); label is translated for display.
   const cats=[['Kitchens',t('swPortCatKitchens')],['Wardrobes',t('swPortCatWardrobes')],['Walk-In Closets',t('swPortCatWalkin')],['TV Units',t('swPortCatTv')],['Doors',t('swPortCatDoors')],['Storage Solutions',t('swPortCatStorage')],['Office Furniture',t('swPortCatOffice')]];
   const [filter,setFilter]=useState('all');
@@ -10964,6 +11032,7 @@ function TVUnitPlannerWizard({ setPage, user, openAuth }) {
 
   const submitQuote = async (c) => {
     if (!c.name.trim() || !c.phone.trim()) { toast(t('w4AddNamePhone'),'error'); return; }
+    { const qv = validateForm(c, { name:{type:'name',required:true}, phone:{type:'phone',required:true}, email:{type:'email'} }, lang); if (!qv.ok) { toast(Object.values(qv.errors)[0], 'error'); return; } c = { ...c, ...qv.clean }; }   // [FORMS] real e-mail / phone validation
     setBusy(true);
     try {
       const token = uid();
@@ -11225,7 +11294,7 @@ function TVUnitPlannerWizard({ setPage, user, openAuth }) {
       {/* QUOTE modal */}
       {showQuote && (
         <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
-          <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:420, width:'100%', padding:24 }}>
+          <ModalPanel onClose={()=>!busy&&setShowQuote(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:420, width:'100%', padding:24 }}>
             <div className="eyebrow" style={{ marginBottom:8 }}>{t('pAlmostThere')}</div>
             <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 6px' }}>{t('pQuoteTitleTV')}</h3>
             <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)' }}>{lay.name} · {tv.size}" · {fin.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(grandTotal)}</b></div>
@@ -11235,11 +11304,12 @@ function TVUnitPlannerWizard({ setPage, user, openAuth }) {
               <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} placeholder="Email (optional)" inputMode="email" style={inS} />
               <input type="date" value={contact.date} onChange={e=>setContact(c=>({...c,date:e.target.value}))} style={inS} />
             </div>
+            <FormNotice kind="request" style={{ marginTop:12 }} />
             <div style={{ display:'flex', gap:10, marginTop:16 }}>
               <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pCancel')}</button>
               <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submitQuote(contact)} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?t('pSending'):(user?t('pSendQuoteReq'):t('pSignInSend'))}</button>
             </div>
-          </div>
+          </ModalPanel>
         </div>
       )}
     </div>
@@ -11447,6 +11517,7 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
 
   const submitQuote = async (c) => {
     if (!c.name.trim() || !c.phone.trim()) { toast(t('w4AddNamePhone'),'error'); return; }
+    { const qv = validateForm(c, { name:{type:'name',required:true}, phone:{type:'phone',required:true}, email:{type:'email'} }, lang); if (!qv.ok) { toast(Object.values(qv.errors)[0], 'error'); return; } c = { ...c, ...qv.clean }; }   // [FORMS] real e-mail / phone validation
     setBusy(true);
     try {
       const token = uid();
@@ -11698,7 +11769,7 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
       {/* QUOTE modal */}
       {showQuote && (
         <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
-          <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:420, width:'100%', padding:24 }}>
+          <ModalPanel onClose={()=>!busy&&setShowQuote(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:420, width:'100%', padding:24 }}>
             <div className="eyebrow" style={{ marginBottom:8 }}>{t('pAlmostThere')}</div>
             <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 6px' }}>{t('pQuoteTitleOffice')}</h3>
             <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)' }}>{lay.name} · {desk.shape} desk · {fin.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(grandTotal)}</b></div>
@@ -11708,11 +11779,12 @@ function OfficePlannerWizard({ setPage, user, openAuth }) {
               <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} placeholder="Email (optional)" inputMode="email" style={inS} />
               <input type="date" value={contact.date} onChange={e=>setContact(c=>({...c,date:e.target.value}))} style={inS} />
             </div>
+            <FormNotice kind="request" style={{ marginTop:12 }} />
             <div style={{ display:'flex', gap:10, marginTop:16 }}>
               <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pCancel')}</button>
               <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submitQuote(contact)} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?t('pSending'):(user?t('pSendQuoteReq'):t('pSignInSend'))}</button>
             </div>
-          </div>
+          </ModalPanel>
         </div>
       )}
     </div>
@@ -12072,6 +12144,7 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
 
   const submitQuote = async (c) => {
     if (!c.name.trim() || !c.phone.trim()) { toast(t('w4AddNamePhone'),'error'); return; }
+    { const qv = validateForm(c, { name:{type:'name',required:true}, phone:{type:'phone',required:true}, email:{type:'email'} }, lang); if (!qv.ok) { toast(Object.values(qv.errors)[0], 'error'); return; } c = { ...c, ...qv.clean }; }   // [FORMS] real e-mail / phone validation
     setBusy(true);
     try {
       const token = uid();
@@ -12416,7 +12489,7 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
       {/* QUOTE modal */}
       {showQuote && (
         <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
-          <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:420, width:'100%', padding:24 }}>
+          <ModalPanel onClose={()=>!busy&&setShowQuote(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:420, width:'100%', padding:24 }}>
             <div className="eyebrow" style={{ marginBottom:8 }}>{t('pAlmostThere')}</div>
             <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 6px' }}>{t('pQuoteTitleWardrobe')}</h3>
             <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)' }}>{room.name} · {lay.name} · {fin.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(grandTotal)}</b></div>
@@ -12426,11 +12499,12 @@ function WardrobePlannerWizard({ setPage, user, openAuth }) {
               <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} placeholder="Email (optional)" inputMode="email" style={inS} />
               <input type="date" value={contact.date} onChange={e=>setContact(c=>({...c,date:e.target.value}))} style={inS} />
             </div>
+            <FormNotice kind="request" style={{ marginTop:12 }} />
             <div style={{ display:'flex', gap:10, marginTop:16 }}>
               <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pCancel')}</button>
               <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submitQuote(contact)} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?t('pSending'):(user?t('pSendQuoteReq'):t('pSignInSend'))}</button>
             </div>
-          </div>
+          </ModalPanel>
         </div>
       )}
     </div>
@@ -12684,6 +12758,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
 
   const submitQuote = async (c) => {
     if (!c.name.trim() || !c.phone.trim()) { toast(t('w4AddNamePhone'),'error'); return; }
+    { const qv = validateForm(c, { name:{type:'name',required:true}, phone:{type:'phone',required:true}, email:{type:'email'} }, lang); if (!qv.ok) { toast(Object.values(qv.errors)[0], 'error'); return; } c = { ...c, ...qv.clean }; }   // [FORMS] real e-mail / phone validation
     setBusy(true);
     try {
       const token = uid();
@@ -12971,7 +13046,7 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
       {/* QUOTE modal */}
       {showQuote && (
         <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
-          <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:420, width:'100%', padding:24 }}>
+          <ModalPanel onClose={()=>!busy&&setShowQuote(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:420, width:'100%', padding:24 }}>
             <div className="eyebrow" style={{ marginBottom:8 }}>{t('pAlmostThere')}</div>
             <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 6px' }}>{t('pQuoteTitleDoor')}</h3>
             <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)' }}>{dt.name} · {wd.name} · {st.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(grandTotal)}</b></div>
@@ -12981,11 +13056,12 @@ function DoorPlannerWizard({ setPage, user, openAuth }) {
               <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} placeholder="Email (optional)" inputMode="email" style={inS} />
               <input type="date" value={contact.date} onChange={e=>setContact(c=>({...c,date:e.target.value}))} style={inS} />
             </div>
+            <FormNotice kind="request" style={{ marginTop:12 }} />
             <div style={{ display:'flex', gap:10, marginTop:16 }}>
               <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pCancel')}</button>
               <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submitQuote(contact)} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?t('pSending'):(user?t('pSendQuoteReq'):t('pSignInSend'))}</button>
             </div>
-          </div>
+          </ModalPanel>
         </div>
       )}
     </div>
@@ -13492,6 +13568,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
 
   const submitQuote = async (c) => {
     if (!c.name.trim() || !c.phone.trim()) { toast(t('w4AddNamePhone'),'error'); return; }
+    { const qv = validateForm(c, { name:{type:'name',required:true}, phone:{type:'phone',required:true}, email:{type:'email'} }, lang); if (!qv.ok) { toast(Object.values(qv.errors)[0], 'error'); return; } c = { ...c, ...qv.clean }; }   // [FORMS] real e-mail / phone validation
     setBusy(true);
     try {
       const token = uid();
@@ -13862,7 +13939,7 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
       {/* QUOTE modal */}
       {showQuote && (
         <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
-          <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:420, width:'100%', padding:24 }}>
+          <ModalPanel onClose={()=>!busy&&setShowQuote(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:420, width:'100%', padding:24 }}>
             <div className="eyebrow" style={{ marginBottom:8 }}>{t('pAlmostThere')}</div>
             <h3 className="display" style={{ fontSize:23, color:'var(--ink)', margin:'0 0 6px' }}>{t('pQuoteTitleKitchen')}</h3>
             <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)' }}>{lay.name} · {door.name} · {ctop.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(grandTotal)}</b></div>
@@ -13872,11 +13949,12 @@ function KitchenPlannerWizard({ setPage, user, openAuth }) {
               <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} placeholder="Email (optional)" inputMode="email" style={inS} />
               <input type="date" value={contact.date} onChange={e=>setContact(c=>({...c,date:e.target.value}))} style={inS} />
             </div>
+            <FormNotice kind="request" style={{ marginTop:12 }} />
             <div style={{ display:'flex', gap:10, marginTop:16 }}>
               <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('pCancel')}</button>
               <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submitQuote(contact)} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?t('pSending'):(user?t('pSendQuoteReq'):t('pSignInSend'))}</button>
             </div>
-          </div>
+          </ModalPanel>
         </div>
       )}
 
@@ -13961,6 +14039,7 @@ function KitchenStudio({ setPage, user, openAuth }) {
 
   const submit = async (c) => {
     if (!c.name.trim() || !c.phone.trim()) { toast(t('w4AddNamePhone'),'error'); return; }
+    { const qv = validateForm(c, { name:{type:'name',required:true}, phone:{type:'phone',required:true}, email:{type:'email'} }, lang); if (!qv.ok) { toast(Object.values(qv.errors)[0], 'error'); return; } c = { ...c, ...qv.clean }; }   // [FORMS] real e-mail / phone validation
     setBusy(true);
     try {
       const cfgId = uid();
@@ -14174,7 +14253,7 @@ function KitchenStudio({ setPage, user, openAuth }) {
       {/* SPEC & PRICING DETAIL drawer (Part 3) */}
       {specOpen && (
         <div onClick={()=>setSpecOpen(false)} style={{ position:'fixed', inset:0, zIndex:10000, background:'rgba(20,16,12,.55)', backdropFilter:'blur(3px)', display:'flex', justifyContent:'flex-end' }}>
-          <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', width: mobile?'100%':440, maxWidth:'100%', height:'100%', overflowY:'auto', padding:'24px 22px', boxShadow:'-12px 0 40px rgba(0,0,0,.2)' }}>
+          <ModalPanel onClose={()=>setSpecOpen(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', width: mobile?'100%':440, maxWidth:'100%', height:'100%', overflowY:'auto', padding:'24px 22px', boxShadow:'-12px 0 40px rgba(0,0,0,.2)' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
               <h3 className="display" style={{ fontSize:22, color:'var(--ink)', margin:0 }}>{t('sw2KsSpecPricing')}</h3>
               <button type="button" onClick={()=>setSpecOpen(false)} style={{ background:'none', border:'none', fontSize:20, color:'var(--muted)', cursor:'pointer' }}>✕</button>
@@ -14193,14 +14272,14 @@ function KitchenStudio({ setPage, user, openAuth }) {
             <div style={{ background:'var(--sand)', borderRadius:14, padding:'14px 16px', fontSize:12.5, color:'var(--ink-soft)', lineHeight:1.6 }}>
               <b style={{ color:'var(--ink)' }}>How pricing works.</b> Cabinets are charged per linear metre of run × your door-style factor. Worktops are per metre. Appliances and storage add-ons are per unit. Typical base units are 60cm wide × 72cm high × 60cm deep; tall units 200cm+. Every figure here is indicative — your free design visit confirms exact measurements and a fully itemised quote.
             </div>
-          </div>
+          </ModalPanel>
         </div>
       )}
 
       {/* QUOTE modal */}
       {showQuote && (
         <div onClick={()=>!busy&&setShowQuote(false)} style={{ position:'fixed', inset:0, zIndex:10001, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
-          <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:26 }}>
+          <ModalPanel onClose={()=>!busy&&setShowQuote(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:26 }}>
             <div className="eyebrow" style={{ marginBottom:8 }}>{t('pAlmostThere')}</div>
             <h3 className="display" style={{ fontSize:24, color:'var(--ink)', margin:'0 0 6px' }}>{t('pQuoteTitleKitchen')}</h3>
             <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)', lineHeight:1.6 }}>{lay.name} · {cab.name} · {wt.name} · <b style={{ color:'var(--clay-deep)' }}>{fmt(est)}</b></div>
@@ -14210,11 +14289,12 @@ function KitchenStudio({ setPage, user, openAuth }) {
               <input value={contact.email} onChange={e=>setContact(c=>({...c,email:e.target.value}))} aria-label={t('sw2KsEmail')} placeholder={t('sw2KsEmailOpt')} inputMode="email" style={inS} />
               <input type="date" value={contact.date} onChange={e=>setContact(c=>({...c,date:e.target.value}))} style={inS} />
             </div>
+            <FormNotice kind="request" style={{ marginTop:12 }} />
             <div style={{ display:'flex', gap:10, marginTop:16 }}>
               <button type="button" onClick={()=>setShowQuote(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('sw2Cancel')}</button>
               <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={()=>submit(contact)} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?t('sw2Sending'):(user?t('sw2KsSendQuoteReq'):t('sw2KsSignInSend'))}</button>
             </div>
-          </div>
+          </ModalPanel>
         </div>
       )}
     </div>
@@ -15444,7 +15524,7 @@ function KitchenStudioPage({ setPage, user }) {
       {/* Book modal */}
       {showBook && (
         <div onClick={()=>!busy&&setShowBook(false)} style={{ position:'fixed', inset:0, zIndex:10000, background:'rgba(20,16,12,.6)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:18 }}>
-          <div onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:26 }}>
+          <ModalPanel onClose={()=>!busy&&setShowBook(false)} onClick={e=>e.stopPropagation()} style={{ background:'var(--cream)', border:'1px solid var(--line)', borderRadius:22, maxWidth:440, width:'100%', padding:26 }}>
             <div className="eyebrow" style={{ marginBottom:8 }}>{t('pAlmostThere')}</div>
             <h3 className="display" style={{ fontSize:24, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw2StBookTitle')}</h3>
             <div style={{ background:'var(--sand)', borderRadius:12, padding:'10px 14px', margin:'12px 0', fontSize:13, color:'var(--ink-soft)', lineHeight:1.6 }}>{all.length} {t('sw2StUnits')} · {st.name} · {wt[1]} {t('sw2StWorktopWord')} · <b style={{ color:'var(--clay-deep)' }}>{fmt(est)}</b></div>
@@ -15458,7 +15538,7 @@ function KitchenStudioPage({ setPage, user }) {
               <button type="button" onClick={()=>setShowBook(false)} disabled={busy} style={{ flex:1, background:'none', border:'1px solid var(--line)', borderRadius:12, padding:'12px', fontSize:14, fontWeight:600, color:'var(--ink-soft)', cursor:'pointer' }}>{t('sw2Cancel')}</button>
               <button type="button" className="btn-clay" disabled={busy||!contact.name.trim()||!contact.phone.trim()} onClick={book} style={{ flex:2, borderRadius:12, opacity:(busy||!contact.name.trim()||!contact.phone.trim())?.6:1 }}>{busy?t('sw2Sending'):t('sw2StRequestAppt')}</button>
             </div>
-          </div>
+          </ModalPanel>
         </div>
       )}
     </div>
@@ -16126,47 +16206,17 @@ function loadGA4() {
   gtag('config', GA_MEASUREMENT_ID, { anonymize_ip: true });
 }
 
-// ── CookieConsent: privacy-first, consent-gated analytics banner ──
-// Default = NO non-essential cookies. GA4 loads ONLY after an explicit Accept.
-// Choice persisted in localStorage('closets_consent') = 'accepted' | 'declined'.
+// ── CookieConsent: privacy-first, consent-gated measurement ──
+// [PRIVACY] The banner and the stored choice live in src/privacy/consent.js (shared by every shell). Nothing optional
+// (GA4 if ever enabled, visualizer session pings / events) runs until the visitor chose; "Essential only" is the equal-weight alternative.
 function CookieConsent() {
-  const { t, lang } = useI18n();
-  const rtl = lang === 'ar';
-  const [show, setShow] = useState(false);
+  const { lang } = useI18n();
   useEffect(() => {
-    let choice = null;
-    try { choice = localStorage.getItem('closets_consent'); } catch (e) {}
-    if (choice === 'accepted') { loadGA4(); setShow(false); }
-    else if (choice === 'declined') { setShow(false); }
-    else { setShow(true); }
+    const go = (c) => { if (c && c.analytics) loadGA4(); };
+    go({ analytics: hasConsent('analytics') });
+    return onConsentChange(go);
   }, []);
-  if (!show) return null;
-  const decide = (val) => {
-    try { localStorage.setItem('closets_consent', val); } catch (e) {}
-    if (val === 'accepted') loadGA4();
-    setShow(false);
-  };
-  return (
-    <div role="dialog" aria-live="polite" aria-label={t('consentTitle')} dir={rtl ? 'rtl' : 'ltr'}
-      style={{ position:'fixed', left:16, right:16, bottom:16, zIndex:9999, maxWidth:560, margin:'0 auto',
-        background:'#fff', border:'1px solid var(--line)', borderRadius:'var(--radius-lg, 16px)',
-        boxShadow:'0 12px 40px rgba(0,0,0,.18)', padding:'18px 20px',
-        textAlign: rtl ? 'right' : 'left' }}>
-      <div style={{ fontSize:15, fontWeight:700, color:'var(--ink)', marginBottom:6 }}>{t('consentTitle')}</div>
-      <div style={{ fontSize:13.5, color:'var(--ink-soft)', lineHeight:1.6, marginBottom:14 }}>
-        {t('consentBody')}{' '}
-        <a href="https://closets-hub.vercel.app/privacy.html" target="_blank" rel="noopener"
-          style={{ color:'var(--clay, var(--brand))', textDecoration:'underline', fontWeight:600 }}>{t('consentPrivacy')}</a>
-      </div>
-      <div style={{ display:'flex', gap:10, flexWrap:'wrap', justifyContent: rtl ? 'flex-start' : 'flex-end' }}>
-        <button type="button" onClick={() => decide('declined')}
-          style={{ background:'#fff', color:'var(--ink)', border:'1px solid var(--line)', borderRadius:980,
-            padding:'10px 20px', fontSize:13.5, fontWeight:600, cursor:'pointer' }}>{t('consentDecline')}</button>
-        <button type="button" onClick={() => decide('accepted')} className="btn-clay"
-          style={{ padding:'10px 22px', fontSize:13.5, borderRadius:980 }}>{t('consentAccept')}</button>
-      </div>
-    </div>
-  );
+  return <ConsentBanner lang={lang} linkAs={Link} />;
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -16283,7 +16333,7 @@ function DlGlowUp({ user, setPage, openAuth, referral }) {
     if (!image) { toast(t('dlGuNeedPhoto'), 'error'); return; }
     setBusy(true); setErr(''); setUrl(null); setPublished(false);
     try {
-      const r = await fetch(SUPA_URL + '/functions/v1/ai_room_redesign', {
+      const r = await aiFetch(SUPA_URL + '/functions/v1/ai_room_redesign', {
         method: 'POST',
         headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({ image_base64: image.base64, media_type: image.media_type, style: DL_STYLE_MAP[style] || 'warm_oak', room: 'living', strength: 0.7 }),
@@ -16320,12 +16370,13 @@ function DlGlowUp({ user, setPage, openAuth, referral }) {
       await api('viral_designs', { method: 'POST', body: [row] });
       setPublished(true);
       toast(t('dlGuPublished'), 'success');
-    } catch (_) { toast(t('dlGuPublished'), 'success'); setPublished(true); }
+    } catch (e) { handleError(e, { toast, ctx: { action: 'publishGlowup' } }); }   // [RESILIENCE] never claim "published" when the save failed
     setPublishing(false);
   };
 
   return (
     <div>
+      <AiNotice style={{ margin: '0 0 8px' }} />
       <label style={{ display: 'flex', alignItems: 'center', gap: 12, border: '1.5px dashed var(--line)', background: '#fff', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', marginBottom: 10 }}>
         {image ? <img src={image.dataUrl} alt="your room" style={{ width: 64, height: 48, objectFit: 'cover', borderRadius: 9 }} /> : <Spark size={24} color="var(--clay)" />}
         <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{image ? t('dlGuChange') : t('dlGuUpload')}</span>
@@ -16530,11 +16581,11 @@ function DlRefer({ user, openAuth }) {
       // Scoped SECURITY DEFINER RPCs — direct anon reads on customer_referrals are 403 (RLS).
       // (Old direct read also selected referrer_name, a column that doesn't exist.)
       try {
-        const n = await api('rpc/my_referral_count', { method:'POST', body:{ p_customer_id: String(user.id) } });
+        const n = await acct.referralCount(user);
         if (alive && typeof n === 'number') setCount(n);
       } catch (_) {}
       try {
-        const top = await api('rpc/referral_leaderboard', { method:'POST', body:{} });
+        const top = await acct.referralLeaderboard();
         if (alive && Array.isArray(top) && top.length) setBoard(top);
       } catch (_) {}
     })();
@@ -16716,7 +16767,7 @@ export default function App() {
   // and the header's 🧩 Design your own button both already lead to the planner.
   return <BrowserRouter><SiteContentProvider><AppInner /></SiteContentProvider></BrowserRouter>;
 }
-const PATH_TO_PAGE = { '':'home','/':'home','/home':'home','/kitchen':'kitchen','/kitchens':'kitchen','/wardrobes':'wardrobes','/wardrobe':'wardrobes','/tv':'tv','/tv-units':'tv','/doors':'doors','/door':'doors','/office':'office','/about':'about','/contact':'contact','/services':'services','/showrooms':'showrooms','/blog':'blog','/faq':'faq','/offers':'offers','/projects':'projects','/booking':'booking','/directory':'directory','/portal':'portal','/how-it-works':'how-it-works','/guide':'how-it-works','/ai-yas':'ai-yas','/ai':'ai-yas','/ai-designer':'ai','/design-lab':'design-lab',
+const PATH_TO_PAGE = { '/privacy':'privacy','/terms':'terms','':'home','/':'home','/home':'home','/kitchen':'kitchen','/kitchens':'kitchen','/wardrobes':'wardrobes','/wardrobe':'wardrobes','/tv':'tv','/tv-units':'tv','/doors':'doors','/door':'doors','/office':'office','/about':'about','/contact':'contact','/services':'services','/showrooms':'showrooms','/blog':'blog','/faq':'faq','/offers':'offers','/projects':'projects','/booking':'booking','/directory':'directory','/portal':'portal','/how-it-works':'how-it-works','/guide':'how-it-works','/ai-yas':'ai-yas','/ai':'ai-yas','/ai-designer':'ai','/design-lab':'design-lab',
   // Task 2 route table — canonical + back-compat aliases
   '/gallery':'products','/products':'products','/signin':'portal','/portal':'portal',
   '/design-studio':'planner','/planner':'planner',
@@ -16979,20 +17030,20 @@ function AppInner() {
     }
   }, [navigate, location.pathname, location.search]);
   const [configProduct, setConfigProduct] = useState(null);
-  const [user, setUser] = useState(() => { try { const u = localStorage.getItem('closets_user'); return u ? JSON.parse(u) : null; } catch { return null; } });
+  const [user, setUser] = useState(() => acct.loadUser());   // [IDENTITY] minimal stored profile only; RPC identity comes from src/account/api.js
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [authPrefill, setAuthPrefill] = useState(null);
   const [siteLogo, setSiteLogo] = useState(null);
   const [banners, setBanners] = useState([]);
   useEffect(() => {
-    api('website_products?active=eq.true&order=sort_order.asc').then(d => { if (Array.isArray(d)) setProducts(d); }).catch(()=>{});
-    api('website_testimonials?active=eq.true&order=sort_order.asc').then(d => { if (Array.isArray(d)) setTestimonials(d); }).catch(()=>{});
+    api('website_products?active=eq.true&order=sort_order.asc').then(d => { if (Array.isArray(d)) setProducts(sanitizeProducts(d)); }).catch(()=>{});   // [RESILIENCE] coerce at the boundary
+    api('website_testimonials?active=eq.true&order=sort_order.asc').then(d => { if (Array.isArray(d)) setTestimonials(sanitizeTestimonials(d)); }).catch(()=>{});
     api('website_configurator_settings?id=eq.main-config&select=config').then(d => {
-      const cfg = d?.[0]?.config; if (cfg?.site_logo_url) setSiteLogo(cfg.site_logo_url);
+      const cfg = d?.[0]?.config; if (cfg && typeof cfg.site_logo_url === 'string' && cfg.site_logo_url) setSiteLogo(cfg.site_logo_url);
     }).catch(()=>{});
     api('website_banners?active=eq.true&order=sort_order.asc&limit=10').then(d => {
-      if (Array.isArray(d) && d.length) setBanners(d);
+      if (Array.isArray(d) && d.length) setBanners(sanitizeBanners(d));
     }).catch(()=>{});
   }, []);
   const addToCart = item => setCart(c => [...c, item]);
@@ -17012,7 +17063,11 @@ function AppInner() {
   return (
     <AppCtx.Provider value={{ user, setUser, cart, setCart, addToCart, setPage, lang, setLang }}>
       <style>{CSS}</style>
+      <SkipLink lang={lang} />
+      <RouteAnnouncer pathname={location.pathname} lang={lang} />
       {page!=='portal' && <Nav page={page} setPage={setPage} cart={cart} setCartOpen={setCartOpen} user={user} openAuth={openAuth} siteLogo={siteLogo} lang={lang} setLang={setLang} />}
+      <main id="main" tabIndex={-1} style={{ outline: 'none' }}>
+      <SectionBoundary name={'route:' + page} resetKey={page}>
       {page==='home' && <HomePage user={user} banners={banners} siteLogo={siteLogo} products={products} testimonials={testimonials} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
       {page==='products' && <ProductsPage products={products} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
       {productId && <ProductDetailPage productId={productId} products={products} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
@@ -17051,9 +17106,11 @@ function AppInner() {
       {/* 🧩 Design your own — logged-out visitors get the sign-in gate, never the planner */}
       {plannerLocked && <PlannerLoginGate openAuth={openAuth} setPage={setPage} lang={lang} />}
       {page.startsWith('cat:') && page!=='cat:Doors' && <CategoryPage category={page.slice(4)} products={products} setPage={setPage} addToCart={addToCart} />}
+      {page==='privacy' && <PrivacyPage lang={lang} />}
+      {page==='terms' && <TermsPage lang={lang} />}
+      </SectionBoundary>
+      </main>
       {!['portal','checkout','planner'].includes(page) && <SiteFooter setPage={setPage} siteLogo={siteLogo} />}
-      {/* Inert marker (hidden, aria-hidden, not rendered visually) — keeps the CRA smoke test green without affecting UI/SEO/a11y */}
-      <a href="https://reactjs.org" hidden aria-hidden="true" tabIndex={-1} style={{ display:'none' }}>Learn React</a>
       {!['kitchen-planner','tv-planner','door-planner','wardrobe-planner','office-planner','planner'].includes(page) && <ChatWidget setPage={setPage} />}
       <CartDrawer cart={cart} setCart={setCart} open={cartOpen} setOpen={setCartOpen} setPage={setPage} />
       {authOpen && <AuthModal mode={authMode} setMode={setAuthMode} setUser={setUser} prefill={authPrefill} onClose={()=>{ setAuthOpen(false); setAuthPrefill(null); }} />}
