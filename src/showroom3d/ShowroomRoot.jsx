@@ -30,7 +30,10 @@ export default function ShowroomRoot() {
     let m = document.querySelector('meta[name="robots"]'); const created = !m;
     if (!m) { m = document.createElement('meta'); m.name = 'robots'; document.head.appendChild(m); }
     const prev = m.content; m.content = 'noindex, nofollow';
-    return () => { if (created) m.remove(); else m.content = prev; };
+    // phones with a notch / home bar: let the page draw edge to edge so the HUD can use env(safe-area-inset-*) (restored on leave)
+    const vp = document.querySelector('meta[name="viewport"]'), vpPrev = vp ? vp.content : null;
+    if (vp && !/viewport-fit/.test(vpPrev)) vp.content = vpPrev + ', viewport-fit=cover';
+    return () => { if (created) m.remove(); else m.content = prev; if (vp && vpPrev !== null) vp.content = vpPrev; };
   }, [lang, ar]);
 
   const switchLang = () => {

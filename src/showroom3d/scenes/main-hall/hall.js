@@ -39,6 +39,14 @@ export function buildHallShell({ M, tier, logoTex, glowTex }) {
     const gl = addGlow(1.8, D - 2, 0, 0, 0, 0.5); gl.rotation.set(0, inward * Math.PI / 2, Math.PI / 2); gl.position.set(x + inward * 0.02, 8.3, -D / 2);
   }
 
+  // inside faces of the two solid front wings (x = +-14..22, z = -0.8): walkers can now stand beside them, so they get the same walnut + plaster finish
+  for (const s of [-1, 1]) {
+    const cx = s * (H.glassHalf + H.halfWidth) / 2, ww = H.halfWidth - H.glassHalf;
+    const wb = new THREE.PlaneGeometry(ww, 4.5); worldUV(wb, 2.4); const lo = new THREE.Mesh(wb, M.walnut); lo.position.set(cx, 2.25, -0.81); lo.rotation.y = Math.PI; lo.receiveShadow = true; g.add(lo);
+    const wu = new THREE.PlaneGeometry(ww, h - 4.5); worldUV(wu, 3); const hi = new THREE.Mesh(wu, M.plaster); hi.position.set(cx, 4.5 + (h - 4.5) / 2, -0.81); hi.rotation.y = Math.PI; hi.receiveShadow = true; g.add(hi);
+    g.add(mesh(box(ww, 0.1, 0.12), M.brass, { x: cx, y: 4.55, z: -0.87 }));
+  }
+
   // back wall: vertical oak slats on walnut, lit logo panel, brass reveal frame
   const bw = new THREE.PlaneGeometry(W, h); worldUV(bw, 2.4);
   const back = new THREE.Mesh(bw, M.walnut); back.position.set(0, h / 2, -D + 0.005); back.receiveShadow = true; g.add(back);

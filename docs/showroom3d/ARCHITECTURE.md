@@ -1,8 +1,8 @@
-# Virtual Showroom 3D: architecture (Phases 0 to 2)
+# Virtual Showroom 3D: architecture (Phases 0 to 3)
 
 Route: `/showroom-3d` and `/ar/showroom-3d` (noindex, own lazy chunk, own full-screen shell like `/visualizer`).
-Status: **Phase 0 (this doc), Phase 1 (architectural environment), Phase 2 (cinematic intro, loader, hand-over).**
-Phases 3 to 7 are not built (see the end).
+Status: **Phase 0 (this doc), Phase 1 (architectural environment), Phase 2 (cinematic intro, loader, hand-over), Phase 3 (first-person roaming, collision, department quick-nav).**
+Phases 4 to 7 are not built (see the end).
 
 ## Honest scope statement
 
@@ -36,14 +36,18 @@ src/showroom3d/
   strings.js  logo.js
   3d/        engine, quality tiers, loading progress, palette, noise, textures, materials, sky/IBL, vegetation, geometry helpers
   cinematic/ timeline.js (pure data + math)  director.js (GSAP)
-  navigation/ lookAround.js (Phase 2 placeholder; Phase 3 replaces with first-person)
-  ui/        LoadingScreen, IntroLayer, Hud, Fallback2D, LogoImg, showroom.css
+  navigation/ Phase 3, pure JS unless noted:
+              colliders.js (2D circle vs AABB / OBB / circle, sub-stepped sliding, door state)  walker.js (speed, smoothing, head-bob)
+              navgraph.js (department route graph, Dijkstra)  interaction.js (bay zones)  lookAround.js (yaw / pitch helpers only)
+              explorer.js (DOM + engine glue: keys, pointer lock, drag fallback, touch input, GSAP glide, QA hooks)
+  ui/        LoadingScreen, IntroLayer, Hud (top bar, guidance, prompts), TouchControls (joystick / look / interact), Menus (department sheet,
+             pause menu, coach marks), useDialog (focus trap), Fallback2D, LogoImg, showroom.css
   scenes/
     exterior/   facade (stone shell, glazing, roof slab, fins, logo wall), landscape (site, pools, lawns, palms, hedges, skyline)
     entrance/   sliding glass doors
     main-hall/  hall (floor, walls, ceiling, beams, LED lines, pendants), bays + signs + departments data
   assets/    the-closets-logo-official.jpg
-  __tests__/ 52 Jest tests (pure logic + UI)
+  __tests__/ 109 Jest tests (pure logic + UI)
 ```
 
 ## What is built
@@ -72,8 +76,7 @@ wash away (no hard cut). Letterbox bars during the intro.
 **Loader**: real weighted progress (`3d/progress.js`): logo, fonts, each procedural texture, environment, exterior, hall, shader
 compile, first frame. Monotonic; shown as a percentage with an ARIA progress bar.
 
-**Hand-over**: a deliberately simple look-around (drag to look, wheel / pinch to creep, arrow keys), clamped inside the hall.
-Not first-person movement.
+**Hand-over**: the intro ends on the spawn pose (0, 1.65 m, -9, looking down the hall) and the first-person explorer (Phase 3, below) takes over seamlessly.
 
 **Quality tiers** (`3d/quality.js`): `high` (desktop), `medium` (tablet / weaker desktop), `low` (phones, data-saver, software GL).
 Differences: pixel-ratio cap, shadow map, MSAA, point lights, palm count, texture size, normal maps, clouds, floor material.
@@ -83,6 +86,61 @@ Override with `?quality=high|medium|low`. Adaptive resolution lowers the render 
 **Logo**: the owner's raster JPG has an off-white background. In 3D it is the face of the lit logo panels. In the DOM it is
 colour-to-alpha keyed once on a canvas (every kept pixel keeps its colour; nothing is traced or redrawn) and shown multiplied until
 the keyed copy is ready. **A vector SVG or PNG with alpha is still needed for production** (edges are only as good as the JPEG).
+
+## Phase 3: first-person roaming (what is built)
+
+**Desktop**: W A S D and the arrow keys; Shift = jog; mouse look through Pointer Lock (click the scene; a hint says so). If the lock is refused or
+unsupported (or fails twice) it falls back to drag-look and says so. E = interact (stub, below). 1 to 8 = glide to a department. Esc, or the
+browser releasing the lock, opens the pause menu (resume, departments, replay intro, language, head-bob on/off, show tips, back to website).
+Keyboard-only turning: `,` and `.` (or Alt + Left / Right). Dialogs move focus in, trap Tab, close on Esc and give focus back.
+
+**Mobile**: floating virtual joystick (left half; rim of the stick = jog), touch look (right half), a round Interact button, a Departments button
+that opens a bottom sheet and glides the camera (GSAP) to the bay entrance. Each gesture owns its element with pointer capture and
+`touch-action: none`, so page scroll / pinch never see it and both thumbs work together; a second finger in the same zone is ignored.
+Layout honours `env(safe-area-inset-*)`; `viewport-fit=cover` is added while the showroom route is mounted and restored on leave. Joystick left /
+look right / interact right are **physical** (thumbs do not mirror in RTL); the top bar and all text mirror in Arabic.
+The control scheme follows the last input device (touch overlay for fingers, keyboard + mouse otherwise).
+
+**Movement**: 1.4 m/s walk, 2.5 m/s jog, velocity eased with a ~0.11 s time constant (no instant start / stop), eye height 1.65 m, head-bob
+(+-1 cm vertical, 1 cm sway, one dip per 0.78 m step, driven by distance actually travelled so it stops against a wall). Bob can be turned off in
+the menu (remembered) and is forced off for `prefers-reduced-motion`, which also makes department jumps instant.
+
+**Collision** (`navigation/colliders.js`, pure JS, no three.js): the walker is a circle of radius 0.35 m (camera near plane is 0.15 m, so the lens
+cannot poke through anything). Obstacles are AABBs, OBBs and circles; a move is cut into sub-steps of <= 0.0875 m and pushed out of every obstacle
+after each one, so the circle slides along walls, rounds corners, and cannot tunnel at any dt (a 400 m step is unit-tested against a 0.3 m wall).
+Built from the real scene: building shell, solid front wings, glass curtain wall (the doorway is a 3.2 m gap that is solid again if the doors are
+closed, e.g. during the replayed intro), both benches, both planters, the 16 bay portal posts, and outside the reflecting basins, olive planters,
+hedge rows, kerbs and an end stop on the approach path 36 m from the facade. **There are no pillars in the hall and the roof beams are at 9.4 m, so
+neither needs a collider** (the module supports circles / OBBs for when Phase 4 adds fixtures). The exterior walkable area is the paved forecourt
+(49 x 22 m) plus the first 14 m of the approach path.
+
+**Department glide**: `navgraph.js` holds a small graph (street, gate, forecourt, door, lobby, two lanes between benches and bays, one stand point
+per bay 3.5 m in front of its inlay, lanes round the basins and olive planters). From any standable point the route goes to the nearest node with a
+clear line, then Dijkstra to the bay; tests check every edge is collision-free, every bay reachable from a 3 m grid of the whole walkable area, and
+that the collision-checked walker can follow every route. GSAP eases along the polyline and settles yaw / pitch so the sign, the alcove and the floor
+zone are in frame. Movement input cancels a glide.
+
+**Interaction (stub)**: each bay has a zone (its floor plus 4.6 m of nave). Standing in it shows a "Press E / Tap Interact" prompt and a soft
+highlight on the floor inlay; E pulses the highlight and shows "products arrive in a later release". E outside a bay explains what to do. Real
+product interaction is Phase 5.
+
+**Coach marks / guidance**: first visit shows a three-tip card (desktop or touch wording, EN / AR), stored in localStorage
+(`closets_showroom_coach`); "Show tips" in the menu brings it back. A bottom hint explains the controls and fades after the visitor starts moving.
+No minimap (not cheap enough to be worth it yet).
+
+**Inside faces of the two front wings** were an unlit black box (nobody could stand near them before); they now carry the same walnut + plaster finish
+as the side walls.
+
+### QA hooks and scripts
+
+`?debug=1` adds `window.__showroom.explore`: `pos() yaw() pitch() speed() camY() zone() state()`, `teleport(x, z, yaw, pitch)` (collision-resolved)
+and `sim(seconds, {fwd, right, jog}, step)` which runs the *same* Walker + collision code as the frame loop without needing frames (SwiftShader is
+~2 fps, so wall-clock walking would take minutes). In debug mode GSAP lag smoothing is off so glides take their real time.
+`scripts/showroom3d-qa/phase3.js` (Playwright, headless Chromium on SwiftShader; serve a build with `scripts/showroom3d-qa/serve.js`) runs 101 checks:
+real key presses, 14 wall / bench / planter / post / glass / corner collisions, large-dt and 150 fuzzed random walks, out through the doors and back,
+glide to all 8 bays (from the spawn and from the street), pause menu focus trap, pointer lock denied / granted / real, 390x844 touch joystick with CDP
+multi-touch, pinch / swipe not zooming or scrolling, EN + AR layouts, reduced motion. Screenshots: `docs/showroom3d/screenshots/phase3-*`.
+
 
 ## Integration touch points (outside `src/showroom3d`)
 
@@ -95,23 +153,28 @@ the keyed copy is ready. **A vector SVG or PNG with alpha is still needed for pr
 
 ## Testing
 
-`npx react-scripts test` : 152 tests pass (52 new). New suites cover timeline integrity, quality tier selection and adaptive scale,
+`npx react-scripts test` : 209 tests pass (52 from Phases 0 to 2, 57 from Phase 3). Phase 0 to 2 suites cover timeline integrity, quality tier selection and adaptive scale,
 loading progress, department layout, strings (EN/AR parity), look-around maths, noise/tiling, GSAP director seek/finish/reset,
-route regex, loader / fallback UI. Visual QA: Playwright + SwiftShader screenshots in `docs/showroom3d/screenshots/`.
+route regex, loader / fallback UI. Phase 3 adds colliders (circle vs box / OBB / circle, sliding, corners, large dt, spawn validity, door states,
+fuzzed bounds), navgraph (every bay reachable, every edge clear, walked routes), walker (speeds, smoothing, bob, reduced motion), explorer (keys, pause,
+pointer lock fallback, glide, interaction) and the overlays (focus trap, EN/AR, joystick). Visual QA: Playwright + SwiftShader screenshots in `docs/showroom3d/screenshots/`.
 Debug hooks: `?debug=1` exposes `window.__showroom` (`seek(t)`, `info()`, `state()`); `&at=SECONDS` holds the intro at a time;
 `&aa=0` disables MSAA (SwiftShader shows MSAA artefacts on the logo panel; they are absent with `aa=0` and on the low tier).
 
-## Not built (Phases 3 to 7)
+## Not built (Phases 4 to 7)
 
-3 first-person WASD / mouse / E, mobile joystick, collision. 4 furnishing the departments, product interaction, customisation.
+4 furnishing the departments, product interaction, customisation.
 5 favourites and quote workflow to the backend. 6 sound, analytics, deeper EN/AR review (Arabic copy needs native review).
 7 production assets (GLB, baked lighting), performance budget on real devices, a11y pass for 3D navigation.
 
 ## Known issues / risks
 
 - Not photoreal; trees and palms are stylised, the facade glazing grid is heavy, the hall benches read as plain slabs.
-- Performance measured **only under SwiftShader (CPU)**: 1440x900 high 0.47 fps, low 1.2 fps; 390x844 low 4 fps. These say nothing about real
-  GPUs. Needs profiling on real phones before launch.
+- Performance measured **only under SwiftShader (CPU)**: Phase 2 numbers 1440x900 high 0.47 fps, low 1.2 fps; 390x844 low 4 fps. Phase 3 roaming at
+  960x540: low tier 2.6 fps, high tier 1.6 fps; 390x844 low 2.7 fps (requestAnimationFrame rate, includes the QA harness). These say nothing about real
+  GPUs. Needs profiling on real phones before launch. The collision step costs one sub-step per frame at walking speed (microseconds).
+- Phase 3 is untested on real devices, real GPUs, real touch hardware (iOS Safari pointer-event / safe-area behaviour) and screen readers. Arabic
+  copy still needs native review. The approach path ends at an invisible stop 36 m out.
 - Texture generation runs on the main thread (about 1 to 3 s on desktop CPUs); a worker / OffscreenCanvas would remove the jank on low-end phones.
 - Pre-existing: `CI=true` build fails on 12 mini-css-extract "Conflicting order" warnings from the studio `neoKitchen` CSS
   (cause: ~10 studio files import the same CSS files in different orders, e.g. `workspace.css` vs `workspace3d.css`). Not fixed here: a safe

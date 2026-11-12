@@ -5,13 +5,27 @@ import { createProgress } from './3d/progress';
 import { pickTier, readSignals, probeRenderer, isSoftwareRenderer } from './3d/quality';
 import { createDirector } from './cinematic/director';
 import { HANDOVER, DURATION } from './cinematic/timeline';
-import { LookAround } from './navigation/lookAround';
+import gsap from 'gsap';
+import { Explorer } from './navigation/explorer';
 import { useReducedMotion } from '../a11y/motion';
 import { t } from './strings';
 import LoadingScreen from './ui/LoadingScreen';
 import IntroLayer from './ui/IntroLayer';
 import Hud from './ui/Hud';
+import { DeptMenu, PauseMenu, CoachMarks } from './ui/Menus';
 import { withLang } from '../seo/routes';
+
+const COACH_KEY = 'closets_showroom_coach', BOB_KEY = 'closets_showroom_bob';
+const readFlag = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (x) { return d; } };
+const writeFlag = (k, v) => { try { localStorage.setItem(k, v); } catch (x) { /* private mode etc. */ } };
+/** touch overlay from the start on phones / tablets (coarse primary pointer, or a touch screen on a small display); later input flips it either way */
+const coarse = (q) => {
+  try {
+    if (q.get('touch') === '1') return true;
+    if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return true;
+    return (navigator.maxTouchPoints || 0) > 0 && Math.min(window.innerWidth, window.innerHeight) <= 820 && !(window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches);
+  } catch (x) { return false; }
+};
 
 export default function ShowroomExperience({ lang, onLang, onFail }) {
   const reduced = useReducedMotion();
@@ -27,6 +41,12 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   const [caption, setCaption] = useState(null);
   const [tierId, setTierId] = useState('high');
   const capRef = useRef(null);
+  const explorerRef = useRef(null);
+  const [st, setSt] = useState({});
+  const [touch, setTouch] = useState(() => coarse(new URLSearchParams(window.location.search)));
+  const [deptOpen, setDeptOpen] = useState(false);
+  const [coach, setCoach] = useState(false);
+  const [bob, setBob] = useState(() => readFlag(BOB_KEY, '1') !== '0');
 
   const paintOverlay = useCallback((s) => {
     if (veilRef.current) veilRef.current.style.opacity = String(s.veil);
@@ -36,9 +56,8 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   }, []);
 
   const handover = useCallback(() => {
-    const a = api.current; if (!a.engine) return;
-    if (a.look) a.look.setPose(HANDOVER); else a.look = new LookAround(a.engine.camera, a.engine.canvas, HANDOVER);
-    a.look.enable(); setPhase('explore');
+    const a = api.current; if (!a.engine || !a.explorer) return;
+    a.explorer.enable(HANDOVER); setPhase('explore'); setCoach(readFlag(COACH_KEY, '0') !== '1');
   }, []);
 
   useEffect(() => {
@@ -56,7 +75,9 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       onComplete: () => { if (!cancelled) handover(); },
     });
     api.current = { engine, director, progress };
-    engine.onFrame = () => { const a = api.current; if (a.look && a.look.active) a.look.update(); };
+    const explorer = new Explorer({ engine, canvas: canvasRef.current, reduced: reducedRef.current, bob: readFlag(BOB_KEY, '1') !== '0' && !reducedRef.current, onState: (p) => setSt((s) => ({ ...s, ...p })) });
+    api.current.explorer = explorer; explorerRef.current = explorer;
+    engine.onFrame = (dt) => explorer.update(dt);
 
     (async () => {
       try {
@@ -71,10 +92,11 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       onVis = () => { if (document.hidden) engine.stop(); else engine.start(); };
       document.addEventListener('visibilitychange', onVis);
       if (debug) {
+        gsap.ticker.lagSmoothing(0);   // QA under software GL runs at ~1 fps: let GSAP keep real time so glides finish in their real duration
         window.__showroom = {
           ready: true, tier, director, engine,
           seek: (tt) => { director.seek(tt); }, info: () => engine.info(), phase: () => api.current.phaseNow,
-          state: () => director.state(), look: () => api.current.look && { yaw: api.current.look.yaw, pitch: api.current.look.pitch, pos: api.current.look.pos },
+          state: () => director.state(), explore: explorer.debug(),
         };
       }
       // fade the loader out; the cinematic (or the static reveal) starts underneath
@@ -88,7 +110,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
 
     return () => {
       cancelled = true; unsub(); if (ro) ro.disconnect(); if (onVis) document.removeEventListener('visibilitychange', onVis);
-      if (api.current.look) api.current.look.dispose();
+      explorer.dispose(); explorerRef.current = null;
       director.kill(); engine.dispose(); api.current = {}; if (window.__showroom) delete window.__showroom;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,11 +119,26 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   useEffect(() => { if (api.current.engine && api.current.engine.scene) api.current.engine.setLanguage(lang); }, [lang]);
   useEffect(() => { api.current.phaseNow = phase; }, [phase]);
 
+  // keep the explorer in sync with the UI
+  useEffect(() => { const x = explorerRef.current; if (x) { x.setReduced(reduced); x.setBob(bob && !reduced); } }, [reduced, bob]);
+  useEffect(() => { const x = explorerRef.current; if (x) x.setUiOpen(deptOpen || !!st.paused); }, [deptOpen, st.paused]);
+  // the control scheme follows the last input device (touch overlay for fingers, keyboard + mouse otherwise)
+  useEffect(() => {
+    const f = (e) => setTouch(e.pointerType === 'touch');
+    window.addEventListener('pointerdown', f, true); return () => window.removeEventListener('pointerdown', f, true);
+  }, []);
+
+  const canvasFocus = () => canvasRef.current;
+  const onResume = (click) => { const x = explorerRef.current; if (!x) return; x.resume(); x.setUiOpen(false); if (click && !touch) x.requestLock(); };
+  const onPick = (id) => { setDeptOpen(false); const x = explorerRef.current; if (x) { x.setUiOpen(false); x.glideTo(id); } };
+  const onInteract = () => { const x = explorerRef.current; if (x) x.interact(); };
+  const onBob = () => { const v = !bob; setBob(v); writeFlag(BOB_KEY, v ? '1' : '0'); };
+  const closeCoach = () => { setCoach(false); writeFlag(COACH_KEY, '1'); };
   const onSkip = () => { const a = api.current; if (!a.director) return; a.director.skip(() => handover()); };
   const onReplay = () => {
     const a = api.current; if (!a.director) return;
-    if (a.look) a.look.disable();
-    setPhase('intro'); a.director.play();
+    if (a.explorer) a.explorer.disable();
+    setDeptOpen(false); setCoach(false); setPhase('intro'); a.director.play();
   };
   const loaded = !loaderOn && phase !== 'loading';
   const intro = phase === 'intro';
@@ -109,10 +146,13 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   const home = withLang('/', lang);
 
   return (
-    <div className="sr-stage" ref={wrapRef} data-phase={phase} data-loaded={loaded ? '1' : '0'}>
+    <div className="sr-stage" ref={wrapRef} data-phase={phase} data-touch={touch ? "1" : "0"} data-loaded={loaded ? '1' : '0'}>
       <canvas ref={canvasRef} className="sr-canvas" tabIndex={-1} aria-label={t('pageTitle', lang)} role="img" />
       <IntroLayer ref={{ veil: veilRef, logo: logoRef, bars: barsRef }} lang={lang} caption={intro ? caption : null} onSkip={onSkip} active={intro} />
-      {showHud && <Hud lang={lang} tier={tierId} reduced={reduced} onLang={onLang} onReplay={onReplay} homeHref={home} />}
+      {showHud && <Hud lang={lang} tier={tierId} touch={touch} st={st} explorerRef={explorerRef} homeHref={home} onDepts={() => setDeptOpen(true)} onMenu={() => explorerRef.current && explorerRef.current.pause()} onInteract={onInteract} coach={coach} />}
+      {showHud && coach && !st.paused && !deptOpen && <CoachMarks lang={lang} touch={touch} onDone={closeCoach} />}
+      {showHud && deptOpen && <DeptMenu lang={lang} touch={touch} onPick={onPick} onClose={() => setDeptOpen(false)} fallbackFocus={canvasFocus} />}
+      {showHud && st.paused && <PauseMenu lang={lang} touch={touch} reduced={reduced} bob={bob} homeHref={home} onResume={onResume} onDepts={() => { onResume(false); setDeptOpen(true); }} onReplay={onReplay} onLang={onLang} onBob={onBob} onTips={() => { onResume(false); setCoach(true); }} fallbackFocus={canvasFocus} />}
       {loaderOn ? <LoadingScreen pct={pct} lang={lang} leaving={leaving} /> : null}
     </div>
   );
