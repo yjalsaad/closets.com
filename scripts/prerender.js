@@ -157,6 +157,14 @@ async function renderJob(browser, base, job) {
     let html = await page.content();
     html = '<!DOCTYPE html>' + html.replace(/^<!DOCTYPE html>/i, '');
     if (chunkScripts.size) html = html.replace('</head>', Array.from(chunkScripts).sort().map((u) => '<link rel="preload" as="script" href="' + u + '">').join('') + '</head>');
+    // Preload ONLY the above-the-fold faces for this language (self-hosted fonts, src/design/tokens.css).
+    {
+      const media = path.join(BUILD_DIR, 'static', 'media');
+      const want = job.lang === 'ar' ? ['ibm-plex-sans-arabic-arabic-400-normal', 'noto-naskh-arabic-arabic-wght-normal'] : ['fraunces-latin-wght-normal', 'inter-latin-wght-normal'];
+      let files = []; try { files = fs.readdirSync(media); } catch (e) { /* no media dir */ }
+      const tags = want.map((w) => files.find((f) => f.startsWith(w + '.') && f.endsWith('.woff2'))).filter(Boolean).map((f) => '<link rel="preload" as="font" type="font/woff2" crossorigin href="/static/media/' + f + '">').join('');
+      if (tags) html = html.replace('</head>', tags + '</head>');
+    }
     html = html.replace('<div id="root">', '<div id="root" data-prerender-path="' + job.marker + '" data-prerender-lang="' + job.lang + '">');
     return html;
   } finally { await page.close().catch(() => {}); }

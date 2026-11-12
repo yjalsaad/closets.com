@@ -2127,15 +2127,7 @@ function Toasts() {
 }
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
-  /* ── Typography [2026-10-31]: the platform UI font — SF Pro on Apple, Segoe UI on Windows, Roboto on Android / ChromeOS.
-     One clear sans for body AND headings (Apple / Google style); Arabic uses SF Arabic on Apple, IBM Plex Sans Arabic elsewhere. ── */
-  :root { --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --font-ar-display: "Alexandria", "IBM Plex Sans Arabic", -apple-system, "SF Arabic", sans-serif; --font-ar: "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "SF Arabic", "Segoe UI", Tahoma, sans-serif; --font-display: var(--font-sans); --serif: var(--font-display); }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  /* ── Arabic typography [2026-11-09 brand kit]: IBM Plex Sans Arabic for text; Alexandria (the Ikhtarha campaign display face) for headings ── */
-  html[lang="ar"] body, [dir="rtl"] { font-family: var(--font-ar); }
-  html[lang="ar"] .display, [dir="rtl"] .display { font-family: var(--font-ar-display); font-weight: 800; letter-spacing: 0; line-height: 1.3 !important; }
-  html[lang="ar"] .eyebrow, [dir="rtl"] .eyebrow { font-family: var(--font-ar); }
   html { -webkit-tap-highlight-color: transparent; }
   /* ── RTL logical fixes (reach what inline styles don't) ── */
   [dir="rtl"] input, [dir="rtl"] textarea, [dir="rtl"] select { text-align: right; }
@@ -2223,104 +2215,20 @@ const CSS = `
   }
   @keyframes bannerFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
   .hero-content { position: relative; z-index: 1; }
-  /* ── Premium canvas (IKEA-bright blend A+B+C) ──────────────────────────────
-     B (soft daylight): body sits on a fixed white→warm wash, lit from above.
-     A (section bands): the transparent maxWidth sections read against this
-        canvas; existing var(--sand)/#fff sections become the rhythm bands.
-     C (neutral panels): .card gets a soft resting shadow so it floats as a
-        panel on the bright canvas. Reusable .band-soft / .panel-soft below. */
-  html { background: #EEF3F1; }
-  body { background: transparent; color: var(--shop-ink, #1d1d1f); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
-  /* Fixed sea-mist daylight canvas — cool + airy summer base, lit from above,
-     with a faint teal wash and a warm coral corner so both accents live in the
-     background. White/sand sections ride on top as crisp floating panels. */
-  body::before {
-    content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-    background:
-      radial-gradient(1300px 640px at 50% -14%, rgba(255,255,255,.9), transparent 60%),
-      radial-gradient(900px 640px at 8% 4%, rgba(242,165,102,.12), transparent 55%),
-      radial-gradient(880px 620px at 92% 2%, rgba(198,93,46,.05), transparent 55%),
-      linear-gradient(180deg, #F6FAF9 0%, #F1F5F4 52%, #E7EEEB 100%);
-  }
-  .band-soft { background: #EDF3F1; border-top: 1px solid #DCE7E3; border-bottom: 1px solid #DCE7E3; }
-  .panel-soft { background: #F7FBFA; border: 1px solid #E2ECE9; border-radius: 18px; }
   ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 2px; }
   input, select, textarea, button { font-family: inherit; }
   @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .reveal { opacity: 0; transform: translateY(16px); transition: opacity .5s cubic-bezier(.25,.46,.45,.94), transform .5s cubic-bezier(.25,.46,.45,.94); }
-  .reveal.vis { opacity: 1; transform: translateY(0); }
-  .inp { background: var(--shop-fill, #f5f5f7); border: 1.5px solid transparent; border-radius: 12px; padding: 13px 16px; font-size: 16px; color: var(--shop-ink, #1d1d1f); width: 100%; transition: all .2s; -webkit-appearance: none; }
-  .inp:focus { outline: none; background: #fff; border-color: var(--clay); box-shadow: 0 0 0 4px rgba(168,75,41,.1); }
-  .inp::placeholder { color: var(--shop-muted, #86868b); }
-  .btn { background: var(--clay); color: #fff; border: none; border-radius: 14px; padding: 15px 24px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 50px; -webkit-tap-highlight-color: transparent; }
-  .btn:active { transform: scale(.97); background: var(--clay-deep); }
-  .btn-sm { background: var(--clay); color: #fff; border: none; border-radius: 12px; padding: 11px 18px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; }
-  .btn-sm:active { transform: scale(.97); background: var(--clay-deep); }
-  .btn-secondary { background: var(--shop-fill, #f5f5f7); color: var(--shop-ink, #1d1d1f); border: none; border-radius: 14px; padding: 15px 24px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all .15s; min-height: 50px; }
-  .btn-secondary:active { background: #e8e8ed; transform: scale(.97); }
-  .btn-ghost { background: transparent; border: 1.5px solid var(--shop-line, #e6e6e6); border-radius: 14px; padding: 14px 22px; font-size: 15px; font-weight: 500; cursor: pointer; color: var(--shop-ink, #1d1d1f); transition: all .15s; }
-  .card { background: #fff; border-radius: 20px; border: 1px solid var(--shop-line, #e6e6e6); overflow: hidden; box-shadow: 0 1px 2px rgba(31,25,19,.04), 0 12px 30px -22px rgba(31,25,19,.22); }
   /* ── Editorial-luxury design tokens (Home redesign) ── */
-  :root {
-    /* Palette v3 — Summer "Sea Breeze": cool sea-mist canvas + fresh teal accent
-       + coral-orange CTA (teal/orange complementary). Airy and bright, still
-       luxury. Coral (--clay) AA-safe with #fff; teal for eyebrows/links/accents.
-       See Decisions Log 2026-07-26 "Palette v3 — Summer Sea Breeze". */
-    --ink:#1b2a27; --ink-soft:#3d4f4b; --muted:#6d7c77; --cream:#f1f5f4; --sand:#e2ece9; --line:#d6e0dd; --clay:#C65D2E; --clay-deep:#A94A22;
-    /* Fresh secondary — light orange accent (decorative washes / glows / rules) */
-    --peach:#F2A566; --peach-deep:#E08A44;
-    /* Editorial accents — warm metal bridge (sand/brass) + bronze */
-    --bronze:#8f6338; --brass:#c29a5b;
-    /* Shop layer — the store/checkout surfaces use a cool neutral system
-       (distinct from the warm editorial layer, intentional). Tokenized so the
-       two gray families never mix mid-component. */
-    --shop-ink:#1d1d1f; --shop-ink-2:#6e6e73; --shop-muted:#86868b;
-    --shop-fill:#f5f5f7; --shop-line:#e6e6e6;
-    /* Semantic (site-wide) */
-    --ok:#16a34a; --err:#b91c1c;
-    --focus-ring:0 0 0 3px rgba(198,93,46,.35);
-  }
-  /* A11y: keyboard focus ring (mouse clicks unaffected) + reduced-motion */
-  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible,
-  textarea:focus-visible, [tabindex]:focus-visible { outline:none; box-shadow:var(--focus-ring); }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
   }
-  .display { font-family:var(--font-display); font-weight:700; letter-spacing:-.025em; line-height:1.06; }
-  .eyebrow { font-size:12px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--clay); }
-  .btn-clay { background:var(--clay); color:#fff; border:none; border-radius:14px; padding:15px 26px; font-size:16px; font-weight:600; letter-spacing:.01em; cursor:pointer; transition:transform .15s, background .2s, box-shadow .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:50px; box-shadow:0 14px 30px -16px rgba(137,57,30,.55); }
-  .btn-clay:active { transform:scale(.97); }
-  .btn-ink { background:var(--ink); color:#fff; border:none; border-radius:14px; padding:15px 26px; font-size:16px; font-weight:600; letter-spacing:.01em; cursor:pointer; transition:transform .15s, opacity .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:50px; }
-  .btn-ink:active { transform:scale(.97); }
-  .btn-line { background:transparent; color:var(--ink); border:1px solid var(--ink); border-radius:14px; padding:14px 24px; font-size:15px; font-weight:500; letter-spacing:.01em; cursor:pointer; transition:all .2s; min-height:50px; display:inline-flex; align-items:center; justify-content:center; gap:8px; }
-  .lift { transition: transform .45s cubic-bezier(.22,1,.36,1), box-shadow .45s; }
-  .tile-zoom { overflow:hidden; }
-  .tile-zoom > img, .tile-zoom > .tz { transition: transform .9s cubic-bezier(.22,1,.36,1); }
   @media (min-width:768px){
-    .btn-clay:hover { background:var(--clay-deep); box-shadow:0 18px 32px -14px rgba(143,76,45,.7); transform:translateY(-1px); }
-    .btn-ink:hover { opacity:.88; transform:translateY(-1px); }
-    .btn-line:hover { background:var(--ink); color:#fff; }
-    .lift:hover { transform:translateY(-4px); box-shadow:0 26px 52px -26px rgba(33,28,24,.38); }
-    .tile-zoom:hover > img, .tile-zoom:hover > .tz { transform:scale(1.06); }
   }
-  select.inp { background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%2386868b' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; appearance: none; -webkit-appearance: none; }
   /* ── Cinematic scroll animations (Home) ── */
   @media (prefers-reduced-motion: reduce){ .kenburns{ animation:none !important; } .marquee{ animation:none !important; } }
-  .rv { opacity:0; transform:translateY(34px); transition:opacity .9s cubic-bezier(.22,1,.36,1), transform .9s cubic-bezier(.22,1,.36,1); transition-delay:var(--d,0s); will-change:opacity,transform; }
-  .rv.vis { opacity:1; transform:none; }
-  .rv-l { opacity:0; transform:translateX(-44px); transition:opacity 1s cubic-bezier(.22,1,.36,1), transform 1s cubic-bezier(.22,1,.36,1); transition-delay:var(--d,0s); }
-  .rv-l.vis { opacity:1; transform:none; }
-  .rv-r { opacity:0; transform:translateX(44px); transition:opacity 1s cubic-bezier(.22,1,.36,1), transform 1s cubic-bezier(.22,1,.36,1); transition-delay:var(--d,0s); }
-  .rv-r.vis { opacity:1; transform:none; }
-  .rv-sc { opacity:0; transform:scale(.92); transition:opacity 1.1s cubic-bezier(.22,1,.36,1), transform 1.1s cubic-bezier(.22,1,.36,1); transition-delay:var(--d,0s); }
-  .rv-sc.vis { opacity:1; transform:none; }
-  .rv-words .w { display:inline-block; opacity:0; transform:translateY(42px); transition:opacity .8s cubic-bezier(.22,1,.36,1), transform .8s cubic-bezier(.22,1,.36,1); }
-  .rv-words.vis .w { opacity:1; transform:none; }
-  .kenburns { animation: kenburns 24s ease-in-out infinite alternate; will-change:transform; }
-  @keyframes kenburns { 0%{ transform:scale(1.05) translate(0,0);} 100%{ transform:scale(1.18) translate(-2%,-1.5%);} }
   .scroll-cue { width:26px; height:42px; border:1.5px solid rgba(255,255,255,.65); border-radius:16px; position:relative; }
   .scroll-cue::after { content:''; position:absolute; left:50%; top:7px; width:3px; height:8px; background:#fff; border-radius:2px; transform:translateX(-50%); animation:cue 1.9s ease-in-out infinite; }
   @keyframes cue { 0%,100%{ opacity:0; transform:translate(-50%,0);} 40%{ opacity:1;} 80%{ opacity:0; transform:translate(-50%,13px);} }
@@ -2329,9 +2237,6 @@ const CSS = `
   .marquee-wrap:hover .marquee { animation-play-state:paused; }
   @keyframes marquee { to { transform:translateX(-50%); } }
   .glass { background:rgba(245,241,234,.72); backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); }
-  .hscroll { display:flex; gap:22px; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding:4px 0 14px; scrollbar-width:none; }
-  .hscroll::-webkit-scrollbar{ display:none; }
-  .hscroll > * { scroll-snap-align:center; flex:0 0 auto; }
   #scrollProgress { position:fixed; top:0; left:0; height:3px; background:var(--clay); z-index:1200; width:0; transition:width .08s linear; }
   .par { will-change:transform; }
   @media (max-width: 767px) {
@@ -2349,22 +2254,13 @@ const CSS = `
   body { overflow-x: clip; }
   @media (min-width: 768px) {
     .hide-desktop { display: none !important; }
-    .btn:hover { background: var(--clay-deep); opacity: .9; }
-    .card:hover { box-shadow: 0 22px 46px -24px rgba(31,25,19,.28); transform: translateY(-2px); }
-    .card { transition: box-shadow .35s cubic-bezier(.22,1,.36,1), transform .35s cubic-bezier(.22,1,.36,1); }
   }
 
   /* ── ui-ux-pro-max: site-wide UX baseline ── */
   /* Accessibility: visible keyboard focus on every interactive element (CRITICAL) */
-  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
-  textarea:focus-visible, [role="button"]:focus-visible, [tabindex]:focus-visible {
-    outline: 2px solid var(--clay); outline-offset: 2px; border-radius: 4px;
-  }
-  :focus:not(:focus-visible) { outline: none; }
   /* Touch & interaction: remove 300ms tap delay, kill grey tap flash, comfortable targets */
   a, button, [role="button"], input[type="submit"], label { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   button:not(:disabled), a[href], [role="button"] { cursor: pointer; }
-  button:disabled { opacity: .5; cursor: not-allowed; }
   /* Anchor offset for the fixed header. (No global smooth-scroll — it can make
      wheel/trackpad scrolling feel laggy or "stuck" on some devices.) */
   :target { scroll-margin-top: 96px; }
@@ -2430,8 +2326,6 @@ const CSS = `
      Scroll-reveal · staggered grids · hover micro-interactions · float
      Same easing (.22,.61,.36,1) / durations everywhere for consistency.
      ════════════════════════════════════════════════════════════ */
-  .reveal { opacity:0; transform:translateY(18px); transition:opacity .7s cubic-bezier(.22,.61,.36,1), transform .7s cubic-bezier(.22,.61,.36,1); }
-  .reveal.in { opacity:1; transform:none; }
   /* Staggered cascade: children stay hidden until the parent is .in */
   .reveal-stagger.in > * { animation:revealUp .6s cubic-bezier(.22,.61,.36,1) both; }
   @keyframes revealUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
@@ -2445,16 +2339,8 @@ const CSS = `
   .reveal-stagger.in > *:nth-child(8){ animation-delay:.46s; }
   .reveal-stagger.in > *:nth-child(n+9){ animation-delay:.52s; }
   /* Gentle premium lift on cards */
-  .lift { transition:transform .35s cubic-bezier(.22,.61,.36,1), box-shadow .35s; }
-  .lift:hover { transform:translateY(-4px); box-shadow:0 18px 40px rgba(20,16,12,.12); }
   /* Image zoom inside its own clipping wrapper */
-  .zoomwrap { overflow:hidden; }
-  .zoomwrap img { transition:transform .9s cubic-bezier(.22,.61,.36,1); }
-  .zoomwrap:hover img { transform:scale(1.06); }
   /* Tactile button feedback (append to existing styles, do not replace) */
-  .btn-clay, .btn-line { transition:transform .2s, box-shadow .2s, filter .2s; }
-  .btn-clay:hover, .btn-line:hover { transform:translateY(-2px); }
-  .btn-clay:active, .btn-line:active { transform:translateY(0) scale(.98); }
   /* Hero accent float */
   @keyframes floatY { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-10px); } }
   .floaty { animation:floatY 6s ease-in-out infinite; }
@@ -2463,30 +2349,14 @@ const CSS = `
     .reveal, .reveal.in, .reveal-stagger.in > *, .floaty {
       opacity:1 !important; transform:none !important; animation:none !important; transition:none !important;
     }
-    .lift:hover { transform:none; }
   }
   /* ─────────────  Apple-style site-wide polish  ───────────── */
-  html { scroll-behavior:smooth; }
-  body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; text-rendering:optimizeLegibility; }
-  ::selection { background:color-mix(in srgb, var(--clay,#C2410C) 22%, transparent); }
-  h1,h2 { letter-spacing:-.035em; }
-  h3 { letter-spacing:-.025em; }
   /* Deeper, softer, springier lift on every card */
-  .lift { transition:transform .4s cubic-bezier(.22,1,.36,1), box-shadow .4s cubic-bezier(.22,1,.36,1); will-change:transform; }
-  .lift:hover { transform:translateY(-6px); box-shadow:0 30px 62px -26px rgba(20,16,12,.28); }
-  .zoomwrap img { transition:transform 1s cubic-bezier(.22,1,.36,1); }
-  .zoomwrap:hover img { transform:scale(1.05); }
   /* Universal tactile press + smooth state transitions on buttons/links */
-  button, a[class*="btn"], [role="button"] { transition:transform .16s cubic-bezier(.22,1,.36,1), box-shadow .2s, filter .2s, background .2s, color .2s, border-color .2s; }
-  button:active, a[class*="btn"]:active, [role="button"]:active { transform:scale(.97); }
   /* Brand-coloured focus ring for accessibility */
-  a:focus-visible, button:focus-visible, [role="button"]:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-    outline:none; box-shadow:0 0 0 3px color-mix(in srgb, var(--clay,#C2410C) 34%, transparent);
-  }
   @media (prefers-reduced-motion: reduce){
     html{ scroll-behavior:auto; }
     .lift{ transition:none; } .lift:hover{ transform:none; box-shadow:0 18px 40px rgba(20,16,12,.12); }
-    button:active, a[class*="btn"]:active, [role="button"]:active { transform:none; }
   }
 `;
 
