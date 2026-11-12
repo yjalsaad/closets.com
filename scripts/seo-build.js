@@ -34,7 +34,7 @@ function sitemapXml(lastmod) {
 
 function robotsTxt() {
   // Non-content / transactional / interactive areas: noindex via meta, and not worth crawling.
-  const dis = ['/cart', '/signin', '/portal', '/checkout', '/directory', '/design-studio', '/studio', '/visualizer', '/pay.html', '/pay-success.html', '/pay-failed.html'];
+  const dis = ['/cart', '/signin', '/portal', '/checkout', '/directory', '/design-studio', '/studio', '/visualizer', '/showroom-3d', '/pay.html', '/pay-success.html', '/pay-failed.html'];
   const lines = ['# The Closets Co.', 'User-agent: *', 'Allow: /', ''];
   for (const d of dis) { lines.push('Disallow: ' + d); if (ENABLE_AR_URLS && !/\./.test(d) && !/^\/(studio|visualizer)/.test(d)) lines.push('Disallow: /ar' + d); }
   lines.push('', 'Sitemap: ' + SITE_URL + '/sitemap.xml', '');
