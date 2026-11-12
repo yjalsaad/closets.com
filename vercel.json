@@ -1,6 +1,105 @@
 {
   "buildCommand": "CI=false npm run build",
+  "trailingSlash": false,
+  "headers": [
+    { "source": "/(.*)", "headers": [
+      { "key": "Strict-Transport-Security", "value": "max-age=31536000" },
+      { "key": "X-Content-Type-Options", "value": "nosniff" },
+      { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+      { "key": "Permissions-Policy", "value": "camera=(self), microphone=(self), geolocation=(), payment=(), usb=(), interest-cohort=()" }
+    ] },
+    { "source": "/((?!visualizer/embed).*)", "headers": [
+      { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+      { "key": "Content-Security-Policy-Report-Only", "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.gstatic.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' data: blob: https://jflmbfxbhpioyniibjsj.supabase.co https://cdn.jsdelivr.net https://www.gstatic.com https://*.google-analytics.com https://*.analytics.google.com; worker-src 'self' blob:; frame-src 'self' blob: about:; object-src 'none'; base-uri 'self'; form-action 'self' https:; frame-ancestors 'self'" }
+    ] },
+    { "source": "/visualizer/embed/:path*", "headers": [
+      { "key": "Content-Security-Policy-Report-Only", "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.gstatic.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' data: blob: https://jflmbfxbhpioyniibjsj.supabase.co https://cdn.jsdelivr.net https://www.gstatic.com https://*.google-analytics.com https://*.analytics.google.com; worker-src 'self' blob:; frame-src 'self' blob: about:; object-src 'none'; base-uri 'self'; form-action 'self' https:" }
+    ] },
+    { "source": "/(studio|visualizer|campaign|ikhtarha)(/.*)?", "headers": [
+      { "key": "X-Robots-Tag", "value": "noindex" }
+    ] },
+    { "source": "/static/(.*)", "headers": [
+      { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+    ] },
+    { "source": "/vendor/(.*)", "headers": [
+      { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+    ] },
+    { "source": "/(layouts|brand)/(.*)", "headers": [
+      { "key": "Cache-Control", "value": "public, max-age=604800, stale-while-revalidate=86400" }
+    ] },
+    { "source": "/(favicon.svg|favicon.ico|apple-touch-icon.png|logo192.png|logo512.png|og-image.jpg|manifest.json)", "headers": [
+      { "key": "Cache-Control", "value": "public, max-age=86400" }
+    ] },
+    { "source": "/visualizer-embed.js", "headers": [
+      { "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" }
+    ] }
+  ],
+  "redirects": [
+    { "source": "/home", "destination": "/", "permanent": true },
+    { "source": "/ar/home", "destination": "/ar", "permanent": true },
+    { "source": "/kitchens", "destination": "/kitchen", "permanent": true },
+    { "source": "/ar/kitchens", "destination": "/ar/kitchen", "permanent": true },
+    { "source": "/wardrobe", "destination": "/wardrobes", "permanent": true },
+    { "source": "/ar/wardrobe", "destination": "/ar/wardrobes", "permanent": true },
+    { "source": "/tv-units", "destination": "/tv", "permanent": true },
+    { "source": "/ar/tv-units", "destination": "/ar/tv", "permanent": true },
+    { "source": "/door", "destination": "/doors", "permanent": true },
+    { "source": "/ar/door", "destination": "/ar/doors", "permanent": true },
+    { "source": "/guide", "destination": "/how-it-works", "permanent": true },
+    { "source": "/ar/guide", "destination": "/ar/how-it-works", "permanent": true },
+    { "source": "/ai", "destination": "/ai-lab/yas", "permanent": true },
+    { "source": "/ar/ai", "destination": "/ar/ai-lab/yas", "permanent": true },
+    { "source": "/ai-yas", "destination": "/ai-lab/yas", "permanent": true },
+    { "source": "/ar/ai-yas", "destination": "/ar/ai-lab/yas", "permanent": true },
+    { "source": "/products", "destination": "/gallery", "permanent": true },
+    { "source": "/ar/products", "destination": "/ar/gallery", "permanent": true },
+    { "source": "/design-lab", "destination": "/ai-lab", "permanent": true },
+    { "source": "/ar/design-lab", "destination": "/ar/ai-lab", "permanent": true },
+    { "source": "/planner", "destination": "/design-studio", "permanent": true },
+    { "source": "/ar/planner", "destination": "/ar/design-studio", "permanent": true },
+    { "source": "/kitchen-planner", "destination": "/design-studio/kitchen-planner", "permanent": true },
+    { "source": "/ar/kitchen-planner", "destination": "/ar/design-studio/kitchen-planner", "permanent": true },
+    { "source": "/wardrobe-planner", "destination": "/design-studio/wardrobe-planner", "permanent": true },
+    { "source": "/ar/wardrobe-planner", "destination": "/ar/design-studio/wardrobe-planner", "permanent": true },
+    { "source": "/tv-planner", "destination": "/design-studio/tv-planner", "permanent": true },
+    { "source": "/ar/tv-planner", "destination": "/ar/design-studio/tv-planner", "permanent": true },
+    { "source": "/door-planner", "destination": "/design-studio/door-planner", "permanent": true },
+    { "source": "/ar/door-planner", "destination": "/ar/design-studio/door-planner", "permanent": true },
+    { "source": "/office-planner", "destination": "/design-studio/office-planner", "permanent": true },
+    { "source": "/ar/office-planner", "destination": "/ar/design-studio/office-planner", "permanent": true },
+    { "source": "/design-builder", "destination": "/design-studio/builder", "permanent": true },
+    { "source": "/ar/design-builder", "destination": "/ar/design-studio/builder", "permanent": true },
+    { "source": "/portal", "destination": "/signin", "permanent": true },
+    { "source": "/ar/portal", "destination": "/ar/signin", "permanent": true }
+  ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/privacy", "destination": "/app-shell.html" },
+    { "source": "/ar/privacy", "destination": "/app-shell.html" },
+    { "source": "/terms", "destination": "/app-shell.html" },
+    { "source": "/ar/terms", "destination": "/app-shell.html" },
+    { "source": "/cart", "destination": "/app-shell.html" },
+    { "source": "/ar/cart", "destination": "/app-shell.html" },
+    { "source": "/signin", "destination": "/app-shell.html" },
+    { "source": "/ar/signin", "destination": "/app-shell.html" },
+    { "source": "/checkout", "destination": "/app-shell.html" },
+    { "source": "/ar/checkout", "destination": "/app-shell.html" },
+    { "source": "/directory", "destination": "/app-shell.html" },
+    { "source": "/ar/directory", "destination": "/app-shell.html" },
+    { "source": "/ai-designer", "destination": "/app-shell.html" },
+    { "source": "/ar/ai-designer", "destination": "/app-shell.html" },
+    { "source": "/design-studio", "destination": "/app-shell.html" },
+    { "source": "/ar/design-studio", "destination": "/app-shell.html" },
+    { "source": "/design-studio/:path*", "destination": "/app-shell.html" },
+    { "source": "/ar/design-studio/:path*", "destination": "/app-shell.html" },
+    { "source": "/category/:path*", "destination": "/app-shell.html" },
+    { "source": "/ar/category/:path*", "destination": "/app-shell.html" },
+    { "source": "/product-(.+)", "destination": "/app-shell.html" },
+    { "source": "/ar/product-(.+)", "destination": "/app-shell.html" },
+    { "source": "/studio", "destination": "/app-shell.html" },
+    { "source": "/studio/:path*", "destination": "/app-shell.html" },
+    { "source": "/visualizer", "destination": "/app-shell.html" },
+    { "source": "/visualizer/:path*", "destination": "/app-shell.html" },
+    { "source": "/campaign/:path*", "destination": "/app-shell.html" },
+    { "source": "/ikhtarha/:path*", "destination": "/app-shell.html" }
   ]
 }

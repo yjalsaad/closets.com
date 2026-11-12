@@ -1,4 +1,4 @@
-// Cabinets3D — interactive WebGL 3D of the assembled run (three.js r128 from CDN).
+// Cabinets3D — interactive WebGL 3D of the assembled run (three.js r128, self-hosted in public/vendor).
 // Pro features: real materials (wood grain / marble / gloss / matte, procedural so
 // no external textures), a worktop slab, camera presets (Front/Iso/Top), click a
 // cabinet to select it, drag to orbit, scroll to zoom. Snapshot exposed via apiRef.
@@ -13,7 +13,7 @@ export function loadThree() {
   if (threePromise) return threePromise;
   threePromise = new Promise((resolve, reject) => {
     const s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+    s.src = "/vendor/three-r128.min.js";
     s.onload = () => resolve(window.THREE);
     s.onerror = () => reject(new Error("three-load-failed"));
     document.head.appendChild(s);

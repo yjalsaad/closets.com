@@ -30,6 +30,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { fitModules } from './moduleFit';
 
+import guard3D from './safety/guard3d';
 /**
  * Office3D - standalone interactive, premium-looking 3D home office.
  *
@@ -68,7 +69,7 @@ function mmToM(v, fallbackMm) {
   return Number.isFinite(m) && m > 0 ? m : fb;
 }
 
-export default function Office3D({
+function Office3D({
   materials = {},
   shape = 'built-in',
   activeSurface = null,
@@ -639,3 +640,5 @@ function applyMaterials(materials, mats, disposables, onChange) {
   });
   if (onChange) onChange();
 }
+
+export default guard3D(Office3D, 'office3d');

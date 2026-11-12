@@ -276,7 +276,7 @@ export function CampaignPill({ cfg, lang }) {
   const ar = lang === 'ar';
   return (
     <div className="hc-pill" dir={ar ? 'rtl' : 'ltr'} data-testid="home-ikh-pill">
-      <a href={PLAY}><img src="/brand/ikhtarha/logo-light.png" alt={ar ? (cfg.name_ar || 'اختارها') : (cfg.name_en || 'Ikhtarha')} /><span>{ar ? 'اختار صندوق جائزتك' : 'Pick your prize box'}</span></a>
+      <a href={PLAY}><picture><source srcSet="/brand/ikhtarha/logo-light-sm.webp" type="image/webp" /><img src="/brand/ikhtarha/logo-light.png" width="54" height="26" decoding="async" alt={ar ? (cfg.name_ar || 'اختارها') : (cfg.name_en || 'Ikhtarha')} /></picture><span>{ar ? 'اختار صندوق جائزتك' : 'Pick your prize box'}</span></a>
       <button type="button" aria-label={ar ? 'إخفاء' : 'Hide'} onClick={() => { setHide(true); try { sessionStorage.setItem('hc_pill_x', '1'); } catch (e) { /* ignore */ } }}>×</button>
     </div>
   );
