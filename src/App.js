@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, createContext, useContext, Component, Fragment, createElement } from 'react';
+import GlassLayer from './glass/GlassLayer'; // [GLASS 2026-11-14]
 import KitchenScene3D from './KitchenScene3D';
 import TVUnit3D from './TVUnit3D';
 import Door3D from './Door3D';
@@ -17012,6 +17013,7 @@ function AppInner() {
   return (
     <AppCtx.Provider value={{ user, setUser, cart, setCart, addToCart, setPage, lang, setLang }}>
       <style>{CSS}</style>
+      <GlassLayer page={page} />{/* [GLASS 2026-11-14] the site-wide glass look: backdrop, frosted cards, arrival motion */}
       {page!=='portal' && <Nav page={page} setPage={setPage} cart={cart} setCartOpen={setCartOpen} user={user} openAuth={openAuth} siteLogo={siteLogo} lang={lang} setLang={setLang} />}
       {page==='home' && <HomePage user={user} banners={banners} siteLogo={siteLogo} products={products} testimonials={testimonials} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
       {page==='products' && <ProductsPage products={products} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
