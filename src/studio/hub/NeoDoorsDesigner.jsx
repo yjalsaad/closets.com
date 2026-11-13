@@ -6,6 +6,7 @@
  * The engine is src/neoDoors/ (pure modules); the studio reuses the Neo Kitchen components. This file only mounts the studio (it owns the autosave
  * and the toast); keeping it thin keeps the lazy chunk's entry stable.
  * ===========================================================================*/
+import './neoKitchen/cssOrder'; // [CI-CSS-ORDER] must stay the first import: fixes the shared stylesheet order
 import React from 'react';
 import NeoDoorsStudio from './neoDoors/NeoDoorsStudio';
 

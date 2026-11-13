@@ -1,3 +1,4 @@
+import './neoKitchen/cssOrder'; // [CI-CSS-ORDER] must stay the first import: fixes the shared stylesheet order
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getOutput } from "./neoKitchen/outputSettings"; // [NEO-OUTPUT-UX34] the quote hand-off carries the Output setting
 import { SUPA_URL, SUPA_HEADERS } from "./supaConfig";
