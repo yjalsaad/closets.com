@@ -42,7 +42,7 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   const fr = []; for (const x of [-7, -5.25, -3.5, -1.75, -VIP.doorHalf, VIP.doorHalf, 1.75, 3.5, 5.25, 7]) fr.push(placed(bevelBox(0.06, H, 0.1, { b: 0.004 }), { x, y: H / 2, z: gz }));
   fr.push(placed(bevelBox(W, 0.08, 0.1, { b: 0.004 }), { x: cx, y: H - 0.04, z: gz }), placed(bevelBox(W, 0.06, 0.1, { b: 0.004 }), { x: cx, y: 0.03, z: gz }), placed(bevelBox(VIP.doorHalf * 2, 0.06, 0.1, { b: 0.004 }), { x: 0, y: VIP.doorH + 0.03, z: gz }), placed(bevelBox(W, 0.06, 0.1, { b: 0.004 }), { x: cx, y: 2.1, z: gz }));
   fr.forEach((g) => add(g, bronze));
-  add(placed(bevelBox(1.4, 0.12, 0.5, { b: 0.01 }), { x: 0, y: VIP.doorH + 0.42, z: gz + 0.1 }), M.plinth);
+  add(placed(bevelBox(1.96, 0.07, 0.1, { b: 0.006 }), { x: 0, y: VIP.doorH + 0.09, z: gz + 0.08 }), brass);
   // door leaves: bronze frame + glass, sliding along x
   const leaves = []; for (const s of [-1, 1]) { const g = new THREE.Group(); const f = [placed(bevelBox(0.04, VIP.doorH, 0.05, { b: 0.003 }), { x: -VIP.doorHalf / 2, y: VIP.doorH / 2 }), placed(bevelBox(0.04, VIP.doorH, 0.05, { b: 0.003 }), { x: VIP.doorHalf / 2, y: VIP.doorH / 2 }), placed(bevelBox(VIP.doorHalf, 0.05, 0.05, { b: 0.003 }), { y: VIP.doorH - 0.025 }), placed(bevelBox(VIP.doorHalf, 0.05, 0.05, { b: 0.003 }), { y: 0.025 })].map(prep);
     const fm = new THREE.Mesh(mergeGeometries(f), bronze); g.add(fm); const gm = new THREE.Mesh(new THREE.PlaneGeometry(VIP.doorHalf - 0.06, VIP.doorH - 0.1), glass); gm.position.y = VIP.doorH / 2; g.add(gm); g.position.set(s * VIP.doorHalf / 2, 0, gz + 0.07); group.add(g); leaves.push({ g, s }); }

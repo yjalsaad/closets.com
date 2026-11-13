@@ -46,7 +46,9 @@ export function campaignLinks(lang = 'en') {
 /** read the prefill the booking page honours (kept here so the page and the tests share one parser). Unknown interests are dropped. */
 export function parseBookingPrefill(search = '') {
   const q = new URLSearchParams(search);
-  const interest = Object.values(INTEREST).includes(q.get('interest')) ? q.get('interest') : null;
+  const raw = q.get('interest');
+  // the VIP room's "private investor briefing" has no option of its own on the booking form: it maps to the form's existing 'Other' (the notes carry the request)
+  const interest = raw === 'investor-briefing' ? 'Other' : Object.values(INTEREST).includes(raw) ? raw : null;
   const notes = clean(q.get('notes')).slice(0, NOTES_MAX);
   return { interest, notes: notes || null };
 }

@@ -68,7 +68,7 @@ export function drawHub(g, w, h, o) {
   // department module counts (real, from the Hub module map)
   const bx = k.mx(70), bw = w * 0.42, rowH = 34, by = 505, max = Math.max(...C.HUB_DEPARTMENTS.map((d) => d.modules));
   k.text(lang === 'ar' ? 'عدد الوحدات لكل قسم (من خريطة وحدات المنصة)' : 'Modules per department (from the Hub module map)', bx, by - 14, { size: 22, weight: 600, color: P.brassPale });
-  C.HUB_DEPARTMENTS.slice(0, 7).forEach((d, i) => { const y = by + 14 + i * rowH, len = (d.modules / max) * (bw - 330), grow = Math.min(1, (t * 0.8 - i * 0.12) + 0.2); const gl = Math.max(0, Math.min(1, grow)) * len;
+  C.HUB_DEPARTMENTS.slice(0, 6).forEach((d, i) => { const y = by + 14 + i * rowH, len = (d.modules / max) * (bw - 330), grow = Math.min(1, (t * 0.8 - i * 0.12) + 0.2); const gl = Math.max(0, Math.min(1, grow)) * len;
     k.text(Lx(d.name, lang), bx, y + 22, { size: 20, max: 250 }); const sx = k.rtl ? bx - 270 : bx + 270; g.fillStyle = hex(P.brandOrange); g.fillRect(k.rtl ? sx - gl : sx, y + 6, gl, 18); k.text(String(d.modules), k.rtl ? sx - gl - 10 : sx + gl + 10, y + 22, { size: 20, color: P.taupe }); });
   // capabilities
   const cx0 = k.rtl ? 70 : w * 0.52, cw = (w * 0.48 - 70 - 20) / 2;

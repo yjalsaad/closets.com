@@ -111,7 +111,7 @@ export const INVEST_STEPS = [
   { id: 'terms', title: { en: 'Terms', ar: 'الشروط' }, body: { en: 'Any terms are discussed and agreed directly with management.', ar: 'تُناقَش أي شروط وتُتفق مباشرة مع الإدارة.' } },
 ];
 /** words that must never appear in the investor content (tested): figures, returns, valuation, equity, guarantees */
-export const FORBIDDEN_FINANCIAL = /\b(roi|return[s]?|yield|valuation|equity|stake|shares?|dividend|profit|guarantee[sd]?|BHD|BD|USD|%|per\s?cent)\b|[0-9]+\s?(x|times)\b|دينار|عائد|ربح|تقييم|أسهم|ضمان|%/i;
+export const FORBIDDEN_FINANCIAL = /\b(roi|returns?|yields?|valuation|equity|stakes?|shares?|dividends?|profits?|guarantee[sd]?|BHD|BD|USD|per\s?cent)\b|[0-9]+\s?(x|times)\b|دينار|عائد|ربح|تقييم|أسهم|ضمان|%/i;
 
 // ---- station 5: the CTA, routed to the EXISTING booking flow ----
 export const BRIEFING_INTEREST = 'investor-briefing';
