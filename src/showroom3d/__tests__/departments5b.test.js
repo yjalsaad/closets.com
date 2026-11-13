@@ -124,7 +124,7 @@ describe('collisions and routes for all eight bays', () => {
     for (const b of bays) { const from = [b.x + b.facing * 4.5, b.z]; const p = moveCircle(from, -b.facing * 9, 0, R, colliders); expect(Math.abs(p[0])).toBeLessThan(22 - 0.6 - 0.2); expect(Math.abs(p[0] - b.x)).toBeLessThan(3.0); }
   });
   test('the quick-nav graph reaches all eight departments (door open) from the spawn and from the street, with clear walked routes', () => {
-    const g = buildGraph(); expect(g.stops).toHaveLength(8);
+    const g = buildGraph(); expect(g.stops).toHaveLength(9); expect(g.stops[8].id).toBe('vip');
     for (const from of [[0, -9], [0, 30], [-18, 12]]) for (const s of g.stops) { const r = routeTo(g, from, s.id, colliders); expect(r).toBeTruthy(); const pts = r.points; expect(pts[pts.length - 1]).toEqual(s.stand); for (let i = 1; i < pts.length; i++) expect(isFree(pts[i][0], pts[i][1], R, colliders)).toBe(true); }
   });
 });

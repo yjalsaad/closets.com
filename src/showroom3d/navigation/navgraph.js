@@ -37,7 +37,9 @@ export function buildGraph(bays = layoutBays()) {
   }
   // the VIP meeting room (9th stop): a lane in front of its glass door, reached from both sides of the nave round the bench; the stand point is inside, facing the screen
   nodes.vipL = [-SPINE_X, VIP.approach[1]]; nodes.vipR = [SPINE_X, VIP.approach[1]]; nodes.vipDoor = [...VIP.approach]; nodes['stand-vip'] = [...VIP.stand];
-  edges.push(['lane-walkin', 'vipL'], ['lane-studio', 'vipR'], ['vipL', 'vipDoor'], ['vipR', 'vipDoor'], ['vipDoor', 'stand-vip']);
+  Object.assign(nodes, { vipFrontL: [-4.6, -29.9], vipSideL: [-5.2, -32.6], vipBackL: [-5.0, -34.8], vipBackR: [5.0, -34.8], vipSideR: [5.2, -32.6], vipFrontR: [2.6, -29.9] });    // round the table, inside the room
+  Object.assign(nodes, { backL: [-10, -35.4], backR: [10, -35.4] });     // the strip behind the last bays (the VIP room walls now close it off from the nave centre)
+  edges.push(['lane-bedroom', 'backL'], ['lane-lounge', 'backR'], ['lane-walkin', 'vipL'], ['lane-studio', 'vipR'], ['vipL', 'vipDoor'], ['vipR', 'vipDoor'], ['vipDoor', 'stand-vip'], ['stand-vip', 'vipFrontL'], ['stand-vip', 'vipFrontR'], ['vipFrontL', 'vipSideL'], ['vipSideL', 'vipBackL'], ['vipBackL', 'vipBackR'], ['vipBackR', 'vipSideR']);
   stops.push({ id: 'vip', index: 9, side: 'center', stand: [...VIP.stand], look: [...VIP.look], bay: null });
   return { nodes, edges, stops };
 }

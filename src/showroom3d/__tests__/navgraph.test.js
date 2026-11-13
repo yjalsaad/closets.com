@@ -50,7 +50,7 @@ describe('navigation graph (department quick-nav)', () => {
     expect(Math.min(...zs)).toBeLessThan(-7); expect(r.points.some((p) => Math.abs(p[0]) < 0.01 && p[1] > -0.5 && p[1] < 0.5)).toBe(true);
   });
   test('route benches: left bays use the left lane, right bays the right lane (no crossing the benches)', () => {
-    for (const s of graph.stops) { const r = routeTo(graph, [0, -3.5], s.id, open); for (const p of r.points) expect(Math.abs(p[0]) > 3.2 + R || p[1] > -3.6).toBe(true); }
+    for (const s of graph.stops.filter((q) => q.id !== 'vip')) { const r = routeTo(graph, [0, -3.5], s.id, open); for (const p of r.points) expect(Math.abs(p[0]) > 3.2 + R || p[1] > -3.6).toBe(true); }
   });
   test('polyline helpers', () => {
     const pts = [[0, 0], [3, 0], [3, 4]]; expect(polylineLength(pts)).toBe(7);
@@ -62,7 +62,7 @@ describe('navigation graph (department quick-nav)', () => {
 describe('interaction zones', () => {
   const zones = interactionZones();
   test('every stand point is inside its own department zone and no other', () => {
-    for (const s of graph.stops) { const z = zoneAt(zones, s.stand[0], s.stand[1]); expect(z && z.id).toBe(s.id); }
+    for (const s of graph.stops.filter((q) => q.id !== 'vip')) { const z = zoneAt(zones, s.stand[0], s.stand[1]); expect(z && z.id).toBe(s.id); }
   });
   test('the spawn, the lobby and the nave centre are in no zone', () => {
     for (const p of [[0, -9], [0, -3.5], [0, -20], [8, -20]]) expect(zoneAt(zones, p[0], p[1])).toBeNull();

@@ -14,7 +14,7 @@ import * as fu from '../products/furnish';
 import * as pr from '../products/props';
 
 const ease = (x) => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
-const SW = 1536, SH = 696;
+const SW = 1536, SH = 864;
 
 export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = false }) {
   const group = new THREE.Group(); group.name = 'vip-room';
@@ -24,7 +24,7 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   const woodFlute = wood.clone(); woodFlute.vertexColors = true;
   const leather = std({ color: P.ink, roughness: 0.5, envMapIntensity: 0.6 }), fabric = std({ map: M.white, normalMap: M.tex.weave && M.tex.weave.normal, color: P.fabricCharcoal, roughness: 0.95, envMapIntensity: 0.3 });
   const stone = M.stone.clone(); stone.map = M.tex.marble.dark.map; stone.roughnessMap = M.tex.marble.dark.rough; stone.color.setHex(0xe9e6df); stone.needsUpdate = true;
-  const plaster = M.plaster, brass = M.brass, bronze = M.bronze, glass = M.glassClear;
+  const plaster = std({ color: P.plasterWarm, emissive: P.plasterWarm, emissiveIntensity: 0.4, roughness: 0.9, envMapIntensity: 0.2 }), brass = M.brass, bronze = M.bronze, glass = M.glassClear;
   const led = (k = 2.6) => { const m = M.ledWarm(); m.color.multiplyScalar(k / 3.4); return m; };
   const statics = new Map(); const add = (geo, mat) => { if (!statics.has(mat)) statics.set(mat, []); statics.get(mat).push(prep(geo)); };
   const mesh = (geo, mat, o = {}) => { const m = new THREE.Mesh(geo, mat); if (o.pos) m.position.set(...o.pos); if (o.rot) m.rotation.set(...o.rot); m.castShadow = !!o.cast; m.receiveShadow = o.receive !== false; if (o.name) m.name = o.name; (o.parent || group).add(m); return m; };
@@ -34,7 +34,7 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   { const g = new THREE.PlaneGeometry(W + 0.3, D + 0.1); g.rotateX(Math.PI / 2); mesh(g, plaster, { pos: [cx, H, cz], receive: false, name: 'vip-ceiling' }); }
   for (const s of [-1, 1]) { const f = new THREE.Mesh(flutedPanel(D, H, 0.06, { pitch: 0.06, relief: 0.016, off: [s * 0.3, 0.1] }), woodFlute); f.position.set(s * (VIP.x1 + 0.03), H / 2, cz); f.rotation.y = s < 0 ? Math.PI / 2 : -Math.PI / 2; f.receiveShadow = true; f.name = 'vip-wall-' + (s < 0 ? 'left' : 'right'); group.add(f); }
   add(placed(bevelBox(W, H, 0.06, { b: 0.004, grain: 'y' }), { x: cx, y: H / 2, z: VIP.z0 + 0.03 }), wood);                   // back wall panel (covers the hall's slats behind the screen)
-  add(placed(bevelBox(W + 0.3, 0.1, D + 0.1, { b: 0.01 }), { x: cx, y: H + 0.05, z: cz }), M.plinth);                         // roof edge
+  add(placed(bevelBox(W + 0.3, 0.1, D + 0.1, { b: 0.01 }), { x: cx, y: H + 0.09, z: cz }), M.plinth);                         // roof edge (clear of the ceiling plane: no z-fighting)
   // ---- front glass wall with the door gap, bronze mullions, header ----
   const gz = VIP.z1, sideW = W / 2 - VIP.doorHalf;
   for (const s of [-1, 1]) mesh(new THREE.PlaneGeometry(sideW, H - 0.1), glass, { pos: [s * (VIP.doorHalf + sideW / 2), (H - 0.1) / 2 + 0.05, gz], receive: false, name: 'vip-glass' });
@@ -85,9 +85,9 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   function add2(geo, mat) { const m = new THREE.Mesh(prep(geo), mat); group.add(m); return m; }
   mesh(new THREE.BoxGeometry(S.w, 0.012, 0.03), led(2.8), { pos: [cx, S.y - S.h / 2 - 0.16, S.z + 0.05], receive: false });
   const gallery = makePanel(1536, 1024, (g, w, h, l) => drawGallery(g, w, h, { lang: l, projects: state.projects }), lang);
-  add2(placed(bevelBox(0.04, 2.95, 4.4, { b: 0.006 }), { x: VIP.x0 + 0.08, y: 2.0, z: cz - 0.8 }), brass); mesh(new THREE.PlaneGeometry(4.2, 2.8), new THREE.MeshBasicMaterial({ map: gallery.tex, toneMapped: false }), { pos: [VIP.x0 + 0.1, 2.0, cz - 0.8], rot: [0, Math.PI / 2, 0], receive: false, name: 'vip-gallery' });
+  add2(placed(bevelBox(0.04, 2.95, 4.4, { b: 0.006 }), { x: VIP.x0 + 0.08, y: 2.0, z: cz - 0.8 }), brass); mesh(new THREE.PlaneGeometry(4.2, 2.8), new THREE.MeshBasicMaterial({ map: gallery.tex, toneMapped: false }), { pos: [VIP.x0 + 0.115, 2.0, cz - 0.8], rot: [0, Math.PI / 2, 0], receive: false, name: 'vip-gallery' });
   const hubWall = makePanel(1024, 720, (g, w, h, l) => drawHubWall(g, w, h, { lang: l }), lang);
-  add2(placed(bevelBox(0.04, 2.7, 3.9, { b: 0.006 }), { x: VIP.x1 - 0.08, y: 2.0, z: cz - 0.8 }), brass); mesh(new THREE.PlaneGeometry(3.7, 2.6), new THREE.MeshBasicMaterial({ map: hubWall.tex, toneMapped: false }), { pos: [VIP.x1 - 0.1, 2.0, cz - 0.8], rot: [0, -Math.PI / 2, 0], receive: false, name: 'vip-hubwall' });
+  add2(placed(bevelBox(0.04, 2.7, 3.9, { b: 0.006 }), { x: VIP.x1 - 0.08, y: 2.0, z: cz - 0.8 }), brass); mesh(new THREE.PlaneGeometry(3.7, 2.6), new THREE.MeshBasicMaterial({ map: hubWall.tex, toneMapped: false }), { pos: [VIP.x1 - 0.115, 2.0, cz - 0.8], rot: [0, -Math.PI / 2, 0], receive: false, name: 'vip-hubwall' });
   const holos = [0, 1, 2].map((i) => { const p = makePanel(512, 288, (g, w, h, l) => drawHolo(g, w, h, { lang: l, which: i }), lang); const m = new THREE.MeshBasicMaterial({ map: p.tex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, side: THREE.DoubleSide, opacity: reduced ? 0.95 : 0 });
     const g = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.84), m); g.position.set((i - 1) * 1.9, 1.75, T.z + 0.15); g.rotation.x = -0.12; g.renderOrder = 8; g.name = 'vip-holo-' + i; group.add(g); return { p, m, g, base: g.position.y }; });
   const mapP = makePanel(1024, 1024, (g, w, h, l) => drawFloorMap(g, w, h, { lang: l }), lang);
@@ -97,7 +97,7 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   const spot = new THREE.SpotLight(P.ledCool, 0, 12, 0.62, 0.7, 1.4); spot.position.set(0, H - 0.1, T.z + 0.4); spot.target = new THREE.Object3D(); spot.target.position.set(0, T.h, T.z); spot.castShadow = false;
   const fill = new THREE.PointLight(P.lightHall, 0, 14, 2); fill.position.set(0, H - 0.6, cz + 0.4);
   const lights = [spot, spot.target, fill];
-  const SPOT_I = 260, FILL_I = 18;
+  const SPOT_I = 300, FILL_I = 45;
 
   const api = {
     group, lights, state, screen, gallery, hubWall, mapMesh, holos,
@@ -123,7 +123,7 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
       state.enter = Math.min(1, state.enter + (state.reduced ? 1 : dt / 2.4)); state.t += dt;
       const k = ease(state.inside || state.focus ? state.enter : 0.25 + 0.15 * state.door), lv = state.level == null ? 1 : state.level;
       spot.intensity = SPOT_I * k * lv; fill.intensity = FILL_I * (0.4 + 0.6 * k) * lv; const sc = 0.55 + 0.45 * ease((state.enter - 0.0) / 0.8); screenMat.color.setScalar(state.inside || state.focus ? sc : 0.75);
-      holos.forEach((h, i) => { const a = ease((state.enter * 1.6 - i * 0.28)); h.m.opacity = (state.inside || state.focus ? 0.95 : 0.3) * a + (state.reduced ? 0.0 : 0); h.g.position.y = h.base + (state.reduced ? 0 : 0.04 * Math.sin(state.t * 0.9 + i * 1.7) - (1 - a) * 0.25); });
+      holos.forEach((h, i) => { const a = ease((state.enter * 1.6 - i * 0.28)); h.m.opacity = (state.focus ? 0 : state.inside ? 0.95 : 0.3) * a; h.g.position.y = h.base + (state.reduced ? 0 : 0.04 * Math.sin(state.t * 0.9 + i * 1.7) - (1 - a) * 0.25); });
       mapMat.opacity = 0.9 * ease(state.enter * 1.3); mapMesh.scale.setScalar(0.7 + 0.3 * ease(state.enter)); if (!state.reduced) mapMesh.rotation.z = state.t * 0.05;
       // the screen animates only while somebody is in the room (or presenting); static otherwise (a redraw is a canvas upload)
       state.redrawT += dt; if ((state.inside || state.focus) && !state.reduced && state.station !== 0 && state.redrawT > 0.14) { state.redrawT = 0; screen.redraw(state.lang); }

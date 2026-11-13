@@ -77,9 +77,9 @@ describe('Explorer (keyboard, pause, pointer lock, interaction, glide)', () => {
 });
 
 describe('overlays', () => {
-  test('department menu lists the eight departments in order, in both languages, and picking calls back', () => {
+  test('department menu lists the eight departments and the VIP meeting room (9th) in order, in both languages, and picking calls back', () => {
     const onPick = jest.fn(), onClose = jest.fn(); const { rerender } = render(<DeptMenu lang="en" touch={false} onPick={onPick} onClose={onClose} />);
-    const items = screen.getAllByRole('button').filter((b) => b.dataset.dept); expect(items.map((b) => b.dataset.dept)).toEqual(DEPARTMENTS.map((d) => d.id));
+    const items = screen.getAllByRole('button').filter((b) => b.dataset.dept); expect(items.map((b) => b.dataset.dept)).toEqual([...DEPARTMENTS.map((d) => d.id), 'vip']);
     fireEvent.click(items[2]); expect(onPick).toHaveBeenCalledWith('walkin');
     expect(screen.getByRole('dialog').getAttribute('aria-modal')).toBe('true');
     rerender(<DeptMenu lang="ar" touch onPick={onPick} onClose={onClose} />); expect(screen.getByText('المطابخ')).toBeTruthy();

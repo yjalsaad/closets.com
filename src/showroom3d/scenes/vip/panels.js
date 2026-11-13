@@ -21,20 +21,20 @@ function kit(g, w, h, lang) {
   };
 }
 const head = (k, w, eyebrow, title, y0 = 70) => { k.rule(k.mx(70), y0 - 38, 90); k.text(eyebrow, k.mx(70), y0, { size: 24, weight: 600, color: P.brassPale }); k.text(title, k.mx(70), y0 + 70, { size: 66, weight: 700 }); };
-const footer = (k, w, h, lang, extra) => { k.text(Lx(C.DISCLAIMER, lang), k.mx(70), h - 36, { size: 22, color: P.taupe, max: w - 140 }); if (extra) k.text(extra, k.mx(w - 70), h - 36, { size: 20, color: P.taupe, align: k.rtl ? 'left' : 'right' }); };
+const footer = (k, w, h, lang, extra) => { k.text(Lx(C.DISCLAIMER, lang), k.mx(70), h - 96, { size: 22, color: P.taupe, max: w - 140 }); if (extra) k.text(extra, k.mx(w - 70), h - 36, { size: 20, color: P.taupe, align: k.rtl ? 'left' : 'right' }); };
 const tagIllus = (k, w, lang, y) => { k.text(Lx(C.ILLUSTRATIVE, lang), k.mx(w - 70), y, { size: 20, color: P.brassPale, align: k.rtl ? 'left' : 'right' }); };
 
 /** station 1: the company story and brand */
 export function drawStory(g, w, h, o) {
   const k = kit(g, w, h, o.lang), { lang } = o; k.bg(); head(k, w, lang === 'ar' ? 'المحطة 1 من 5' : 'STATION 1 OF 5', Lx(C.STATIONS[0].title, lang));
-  if (o.logo) { const lw = 360, lh = lw / (o.logo.width / o.logo.height || 1.75), x = k.rtl ? w - 70 - lw : 70; g.fillStyle = hex(P.logoPaper); roundedRect(g, x - 14, 210, lw + 28, lh + 28, 14); g.fill(); g.drawImage(o.logo, x, 224, lw, lh); }
-  const lines = C.storyLines(); let y = 480; const tx = k.mx(70);
-  k.text(Lx(C.STATIONS[0].lead, lang), tx, 440, { size: 40, weight: 600, color: P.brandOrange });
-  for (const l of lines) y = k.para(Lx(l, lang), tx, y + 14, w * 0.46, { size: 28 }) + 6;
-  const cf = C.contestedFacts(), gx = k.rtl ? 70 : w * 0.56, gw = w * 0.44 - 70, cw = (gw - 24) / 2, chh = 200;
+  if (o.logo) { const lw = 280, lh = lw / (o.logo.width / o.logo.height || 1.75), x = k.rtl ? w - 70 - lw : 70; g.fillStyle = hex(P.logoPaper); roundedRect(g, x - 12, 210, lw + 24, lh + 24, 12); g.fill(); g.drawImage(o.logo, x, 222, lw, lh); }
+  const lines = C.storyLines().slice(0, 3); let y = 470; const tx = k.mx(70);
+  k.text(Lx(C.STATIONS[0].lead, lang), tx, 440, { size: 38, weight: 600, color: P.brandOrange });
+  for (const l of lines) y = k.para(Lx(l, lang), tx, y + 14, w * 0.46, { size: 26, lh: 34 }) + 8;
+  const cf = C.contestedFacts(), gx = k.rtl ? 70 : w * 0.56, gw = w * 0.44 - 70, cw = (gw - 24) / 2, chh = 170;
   cf.forEach((f, i) => { const cx = gx + (i % 2) * (cw + 24), cy = 230 + Math.floor(i / 2) * (chh + 24); k.card(cx, cy, cw, chh, { dash: !f.confirmed, line: f.confirmed ? rgba(P.sand, 0.3) : rgba(P.brandOrange, 0.7) });
-    const ax = k.rtl ? cx + cw - 24 : cx + 24; k.text(Lx(f.label, lang), ax, cy + 56, { size: 24, weight: 600, color: P.taupe }); k.para(Lx(f.value, lang), ax, cy + 108, cw - 48, { size: f.confirmed ? 40 : 28, weight: f.confirmed ? 700 : 600, color: f.confirmed ? P.sand : P.brandOrange, lh: 36 }); if (!f.confirmed) k.text(lang === 'ar' ? 'بانتظار الإدارة' : 'PLACEHOLDER', ax, cy + chh - 22, { size: 16, weight: 700, color: P.brassPale }); });
-  k.card(gx, 230 + 2 * (chh + 24), gw, 120, { line: rgba(P.brass, 0.7) }); const bx = k.rtl ? gx + gw - 24 : gx + 24; k.text(lang === 'ar' ? 'ضمان' : 'Warranty', bx, 230 + 2 * (chh + 24) + 46, { size: 22, weight: 600, color: P.taupe }); k.text(Lx(C.storyLines()[1], lang), bx, 230 + 2 * (chh + 24) + 92, { size: 26, weight: 600, max: gw - 48 });
+    const ax = k.rtl ? cx + cw - 24 : cx + 24; k.text(Lx(f.label, lang), ax, cy + 56, { size: 24, weight: 600, color: P.taupe }); k.para(Lx(f.value, lang), ax, cy + 100, cw - 48, { size: f.confirmed ? 40 : 28, weight: f.confirmed ? 700 : 600, color: f.confirmed ? P.sand : P.brandOrange, lh: 34 }); if (!f.confirmed) k.text(lang === 'ar' ? 'بانتظار الإدارة' : 'PLACEHOLDER', ax, cy + chh - 18, { size: 16, weight: 700, color: P.brassPale }); });
+  k.card(gx, 230 + 2 * (chh + 24), gw, 110, { line: rgba(P.brass, 0.7) }); const bx = k.rtl ? gx + gw - 24 : gx + 24; k.text(lang === 'ar' ? 'ضمان' : 'Warranty', bx, 230 + 2 * (chh + 24) + 42, { size: 22, weight: 600, color: P.taupe }); k.text(Lx(C.storyLines()[1], lang), bx, 230 + 2 * (chh + 24) + 84, { size: 26, weight: 600, max: gw - 48 });
   footer(k, w, h, lang);
 }
 
@@ -66,25 +66,25 @@ export function drawHub(g, w, h, o) {
     k.text(Lx(s.name, lang), x, y0 + 62, { size: 30, weight: 700, align: 'center' }); k.text(Lx(s.sub, lang), x, y0 + 96, { size: 19, color: P.taupe, align: 'center', max: step - 20 }); });
   const p = ((t * 0.7) % fl.length), seg = Math.min(fl.length - 2, p | 0), f = p - seg, dx = (k.rtl ? x1 - (seg + f) * step : x0 + (seg + f) * step); g.fillStyle = hex(P.sand); g.beginPath(); g.arc(dx, y0, 8, 0, Math.PI * 2); g.fill();
   // department module counts (real, from the Hub module map)
-  const bx = k.mx(70), bw = w * 0.42, rowH = 40, by = 520, max = Math.max(...C.HUB_DEPARTMENTS.map((d) => d.modules));
+  const bx = k.mx(70), bw = w * 0.42, rowH = 34, by = 505, max = Math.max(...C.HUB_DEPARTMENTS.map((d) => d.modules));
   k.text(lang === 'ar' ? 'عدد الوحدات لكل قسم (من خريطة وحدات المنصة)' : 'Modules per department (from the Hub module map)', bx, by - 14, { size: 22, weight: 600, color: P.brassPale });
-  C.HUB_DEPARTMENTS.slice(0, 9).forEach((d, i) => { const y = by + 14 + i * rowH, len = (d.modules / max) * (bw - 330), grow = Math.min(1, (t * 0.8 - i * 0.12) + 0.2); const gl = Math.max(0, Math.min(1, grow)) * len;
+  C.HUB_DEPARTMENTS.slice(0, 7).forEach((d, i) => { const y = by + 14 + i * rowH, len = (d.modules / max) * (bw - 330), grow = Math.min(1, (t * 0.8 - i * 0.12) + 0.2); const gl = Math.max(0, Math.min(1, grow)) * len;
     k.text(Lx(d.name, lang), bx, y + 22, { size: 20, max: 250 }); const sx = k.rtl ? bx - 270 : bx + 270; g.fillStyle = hex(P.brandOrange); g.fillRect(k.rtl ? sx - gl : sx, y + 6, gl, 18); k.text(String(d.modules), k.rtl ? sx - gl - 10 : sx + gl + 10, y + 22, { size: 20, color: P.taupe }); });
   // capabilities
   const cx0 = k.rtl ? 70 : w * 0.52, cw = (w * 0.48 - 70 - 20) / 2;
-  C.HUB_CAPABILITIES.forEach((c, i) => { const x = cx0 + (i % 2) * (cw + 20), y = 500 + Math.floor(i / 3 * 1) * 0 + Math.floor(i / 2) * 118; k.card(x, y, cw, 104, { line: rgba(P.brass, 0.4) }); const ax = k.rtl ? x + cw - 18 : x + 18; k.text(Lx(c.title, lang), ax, y + 38, { size: 24, weight: 700, color: P.brassPale, max: cw - 36 }); k.para(Lx(c.body, lang), ax, y + 68, cw - 36, { size: 16, lh: 20 }); });
+  C.HUB_CAPABILITIES.forEach((c, i) => { const x = cx0 + (i % 2) * (cw + 20), y = 490 + Math.floor(i / 2) * 100; k.card(x, y, cw, 90, { line: rgba(P.brass, 0.4) }); const ax = k.rtl ? x + cw - 18 : x + 18; k.text(Lx(c.title, lang), ax, y + 32, { size: 22, weight: 700, color: P.brassPale, max: cw - 36 }); k.para(Lx(c.body, lang), ax, y + 56, cw - 36, { size: 15, lh: 18 }); });
   tagIllus(k, w, lang, 120); footer(k, w, h, lang, lang === 'ar' ? 'المصدر: مستودع المنصة' : 'Source: the Hub repository');
 }
 
 /** station 4: the investor path: five steps, no figures */
 export function drawInvest(g, w, h, o) {
   const k = kit(g, w, h, o.lang), { lang, t = 0 } = o; k.bg(); head(k, w, lang === 'ar' ? 'المحطة 4 من 5' : 'STATION 4 OF 5', Lx(C.STATIONS[3].title, lang));
-  const n = C.INVEST_STEPS.length, mx = 70, gap = 24, cw = (w - 2 * mx - gap * (n - 1)) / n, y = 260, ch = 440, on = ((t * 0.5) % n) | 0;
+  const n = C.INVEST_STEPS.length, mx = 70, gap = 24, cw = (w - 2 * mx - gap * (n - 1)) / n, y = 250, ch = 400, on = ((t * 0.5) % n) | 0;
   C.INVEST_STEPS.forEach((s, i) => { const x = k.rtl ? w - mx - cw - i * (cw + gap) : mx + i * (cw + gap), act = i === on; k.card(x, y, cw, ch, { fill: act ? rgba(P.brandOrange, 0.16) : rgba(P.sand, 0.05), line: act ? rgba(P.brandOrange, 0.9) : rgba(P.sand, 0.2) });
     g.fillStyle = act ? hex(P.brandOrange) : hex(P.brassPale); g.beginPath(); g.arc(x + cw / 2, y + 62, 34, 0, Math.PI * 2); g.fill(); k.text(String(i + 1), x + cw / 2, y + 74, { size: 38, weight: 700, color: P.ink, align: 'center' });
     k.para(Lx(s.title, lang), x + cw / 2, y + 150, cw - 30, { size: 30, weight: 700, color: P.sand, align: 'center', lh: 36 }); k.para(Lx(s.body, lang), x + cw / 2, y + 270, cw - 36, { size: 22, align: 'center', lh: 30 }); });
-  k.card(mx, 740, w - 2 * mx, 90, { line: rgba(P.brass, 0.7) }); k.text(Lx(C.DISCLAIMER, lang), w / 2, 796, { size: 28, weight: 600, align: 'center', max: w - 2 * mx - 60 });
-  k.text(lang === 'ar' ? 'لا أرقام ولا عوائد ولا وعود في هذه العملية.' : 'No figures, no returns, no promises in this process.', k.mx(70), h - 36, { size: 22, color: P.taupe });
+  k.card(mx, 672, w - 2 * mx, 84, { line: rgba(P.brass, 0.7) }); k.text(Lx(C.DISCLAIMER, lang), w / 2, 724, { size: 28, weight: 600, align: 'center', max: w - 2 * mx - 60 });
+  k.text(lang === 'ar' ? 'لا أرقام ولا عوائد ولا وعود في هذه العملية.' : 'No figures, no returns, no promises in this process.', k.mx(70), 786, { size: 22, color: P.taupe });
 }
 
 /** station 5: the call to action (routes to the existing booking page; the real button is in the panel) */
@@ -96,8 +96,8 @@ export function drawBriefing(g, w, h, o) {
   k.text(lang === 'ar' ? 'اطلب إحاطة خاصة للمستثمرين' : 'Request a private investor briefing', bx + bw / 2, by + 62, { size: 32, weight: 700, color: P.ink, align: 'center' });
   const px = k.rtl ? 70 : w * 0.58, pw = w * 0.42 - 70; k.card(px, 250, pw, 440, { line: rgba(P.brass, 0.5) }); const ax = k.rtl ? px + pw - 30 : px + 30;
   k.text(lang === 'ar' ? 'ما نحتاجه من الإدارة' : 'Still to be provided by management', ax, 306, { size: 24, weight: 700, color: P.brassPale, max: pw - 60 });
-  [[{ en: 'Investor information pack', ar: 'الحزمة التعريفية للمستثمرين' }], [{ en: 'Funding sought', ar: 'التمويل المطلوب' }], [{ en: 'Financial statements', ar: 'القوائم المالية' }], [{ en: 'Dedicated management contact', ar: 'جهة اتصال مخصصة في الإدارة' }]].forEach(([n], i) => { k.card(px + 20, 336 + i * 80, pw - 40, 64, { dash: true, line: rgba(P.brandOrange, 0.7) }); k.text(Lx(n, lang), ax + 4, 376 + i * 80, { size: 22, weight: 600, max: pw * 0.5 }); k.text(lang === 'ar' ? Lx(C.PLACEHOLDER, lang) : 'To be confirmed by management', k.rtl ? px + 36 : px + pw - 36, 376 + i * 80, { size: 18, color: P.brandOrange, align: k.rtl ? 'left' : 'right', max: pw * 0.42 }); });
-  const ct = C.contactLines(lang); ct.forEach((c, i) => k.text(`${Lx(c.label, lang)}: ${c.text}`, k.mx(70), 640 + i * 40, { size: 26, color: P.sand })); footer(k, w, h, lang);
+  [[{ en: 'Investor information pack', ar: 'الحزمة التعريفية للمستثمرين' }], [{ en: 'Funding sought', ar: 'التمويل المطلوب' }], [{ en: 'Financial statements', ar: 'القوائم المالية' }], [{ en: 'Dedicated management contact', ar: 'جهة اتصال مخصصة في الإدارة' }]].forEach(([n], i) => { k.card(px + 20, 336 + i * 80, pw - 40, 66, { dash: true, line: rgba(P.brandOrange, 0.7) }); k.text(Lx(n, lang), ax + 4, 366 + i * 80, { size: 21, weight: 600, max: pw - 70 }); k.text(Lx(C.PLACEHOLDER, lang), ax + 4, 392 + i * 80, { size: 16, color: P.brandOrange, max: pw - 70 }); });
+  const ct = C.contactLines(lang); ct.forEach((c, i) => k.text(`${Lx(c.label, lang)}: ${c.text}`, k.mx(70), 640 + i * 38, { size: 26, color: P.sand })); footer(k, w, h, lang);
 }
 export const STATION_DRAW = [drawStory, drawProjectsScreen, drawHub, drawInvest, drawBriefing];
 

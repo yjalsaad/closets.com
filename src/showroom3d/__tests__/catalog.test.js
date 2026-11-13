@@ -60,11 +60,11 @@ describe('camera views and the frame transform', () => {
 
 describe('interaction zones incl. the Ikhtarha stage', () => {
   test('the 8 bay zones are unchanged and the stage zone sits in the nave, clear of the bays', () => {
-    expect(interactionZones()).toHaveLength(8); const z = allZones(); expect(z).toHaveLength(9); const s = z[8];
+    expect(interactionZones()).toHaveLength(8); const z = allZones(); expect(z).toHaveLength(11); const s = z[10];
     expect(s.id).toBe('ikhtarha'); expect(s.stage).toBe(true); expect(Math.abs(s.minX)).toBeLessThan(12); expect(s.maxZ).toBeLessThan(-14);
     expect(zoneAt(z, 0, STAGE.z)).toMatchObject({ id: 'ikhtarha' }); expect(zoneAt(z, -12.5, -7.9)).toMatchObject({ id: 'kitchens' }); expect(zoneAt(z, 0, -9)).toBeNull();
   });
-  test('stage zone does not overlap any bay zone', () => { const z = allZones(); const s = z[8]; for (const b of z.slice(0, 8)) expect(s.maxX < b.minX || s.minX > b.maxX || s.maxZ < b.minZ || s.minZ > b.maxZ).toBe(true); });
+  test('stage zone does not overlap any bay zone', () => { const z = allZones(); const s = z[10]; for (const b of z.slice(0, 10)) expect(s.maxX < b.minX || s.minX > b.maxX || s.maxZ < b.minZ || s.minZ > b.maxZ).toBe(true); });
 });
 
 describe('Ikhtarha copy is the campaign\'s own (checked against the campaign source files)', () => {
