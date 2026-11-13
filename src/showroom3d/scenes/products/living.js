@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { flutedPanel, placed, prep, mergeColored } from '../../3d/builders';
 import { mergeGeometries } from '../../3d/geom';
-import { PALETTE as P } from '../../3d/palette';
+import { PALETTE as P, hex } from '../../3d/palette';
 import { createKit } from './kit';
 import { buildCanopy, buildWallWash, propMesh } from './stage';
 import * as pr from './props';
@@ -15,7 +15,7 @@ const T = 0.019, Y0 = 0.06, Y1 = 2.62;
 
 function screenTexture() {
   const c = document.createElement('canvas'); c.width = 512; c.height = 288; const g = c.getContext('2d');
-  const gr = g.createLinearGradient(0, 0, 512, 288); gr.addColorStop(0, '#0b0d12'); gr.addColorStop(0.55, '#101722'); gr.addColorStop(1, '#07080b'); g.fillStyle = gr; g.fillRect(0, 0, 512, 288);
+  const gr = g.createLinearGradient(0, 0, 512, 288); gr.addColorStop(0, hex(P.screenDark)); gr.addColorStop(0.55, hex(P.charcoal)); gr.addColorStop(1, hex(P.screenDark)); g.fillStyle = gr; g.fillRect(0, 0, 512, 288);
   const glow = g.createRadialGradient(360, 90, 4, 360, 90, 220); glow.addColorStop(0, 'rgba(120,150,175,0.20)'); glow.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = glow; g.fillRect(0, 0, 512, 288);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }

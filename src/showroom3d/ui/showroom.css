@@ -192,6 +192,8 @@
 .sr-chip[aria-pressed="true"] { background: var(--sr-on-dark); color: var(--sr-ink); border-color: var(--sr-on-dark); }
 .sr-panel-foot { padding: var(--space-4) var(--space-5) var(--space-5); border-block-start: 1px solid var(--sr-line); display: grid; gap: var(--space-2); }
 .sr-quote { width: 100%; }
+.sr-extra { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-2); }
+.sr-extra .sr-btn { width: 100%; text-align: center; }
 .sr-btn-teal { background: var(--sr-ik-teal); border-color: var(--sr-ik-teal); color: var(--sr-on-dark); }
 .sr-btn-purple { background: var(--sr-ik-purple); border-color: var(--sr-ik-purple); color: var(--sr-on-dark); }
 .sr-ik-ctas { grid-auto-flow: row; }

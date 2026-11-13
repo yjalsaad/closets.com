@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { t } from '../strings';
 import { PRODUCTS, STAGE_VIEWS, nameOf } from '../products/catalog';
 import { finishList, getFinish, finishLabel } from '../products/finishes';
-import { buildQuoteUrl, campaignLinks } from '../products/quote';
+import { buildQuoteUrl, campaignLinks, extraLinks } from '../products/quote';
 import { IK, ikt } from '../products/campaignCopy';
 import { hex } from '../3d/palette';
 
@@ -32,7 +32,8 @@ export function ProductPanel({ lang, touch, explorerRef, st }) {
   }, [st.lastToggle]);
   const p = PRODUCTS[st.focus]; if (!p || !ps) return null;
   const finish = getFinish(p.id, ps.finishId), anyOpen = p.parts.some((x) => ps.parts[x.id] && isOpenState(ps.parts[x.id].state));
-  const quote = buildQuoteUrl({ product: p.id, productName: nameOf(p.name, lang), finishId: ps.finishId, finishName: finishLabel(p.id, ps.finishId, lang), lang });
+  const quote = buildQuoteUrl({ product: p.id, productName: nameOf(p.name, lang), finishId: ps.finishId, finishName: finishLabel(p.id, ps.finishId, lang), lang, consult: p.cta === 'consult' });
+  const links = extraLinks(p.id, lang), consult = p.cta === 'consult';
   return (
     <aside className="sr-panel" aria-label={t('panelAria', lang)} data-testid="sr-panel" data-product={p.id}>
       <header className="sr-panel-head">
@@ -80,8 +81,16 @@ export function ProductPanel({ lang, touch, explorerRef, st }) {
         <p className="sr-hint-inline">{t(touch ? 'focusHintTouch' : 'focusHintDesk', lang)}</p>
       </div>
       <footer className="sr-panel-foot">
-        <a className="sr-btn sr-quote" href={quote} data-testid="sr-quote">{t('panelQuote', lang)}</a>
-        <p className="sr-note">{t('panelQuoteNote', lang)}</p>
+        <a className="sr-btn sr-quote" href={quote} data-testid="sr-quote">{t(consult ? 'panelConsult' : 'panelQuote', lang)}</a>
+        <p className="sr-note">{t(consult ? 'panelConsultNote' : 'panelQuoteNote', lang)}</p>
+        {links.length > 0 && (
+          <div className="sr-extra" data-testid="sr-extra-links">
+            {links.map((l) => (l.href
+              ? <a key={l.id} className="sr-btn sr-btn-line" href={l.href} {...(l.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})} dir={l.dir} data-testid={'sr-link-' + l.id}>{l.label}</a>
+              : <p key={l.id} className="sr-note" data-testid={'sr-link-' + l.id}>{l.text}</p>))}
+            {links[0].note && <p className="sr-note">{links[0].note}</p>}
+          </div>
+        )}
       </footer>
       <div className="sr-sr-only" role="status" aria-live="polite">{live}</div>
     </aside>

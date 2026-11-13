@@ -11,8 +11,12 @@ export const LOCAL_BOXES = {
   wardrobe: [['wardrobe', -3.0, -2.1, -3.45, 3.45], ['plant', -3.0, -1.5, 2.6, 3.45]],
   door: [['wall', -3.0, -1.1, -3.45, 3.45], ['bench', -3.0, -0.08, 1.3, 3.45], ['plant', -3.0, -0.25, -3.45, -2.2]],
   bedroom: [['wall', -3.0, -2.3, -3.45, 3.45], ['bed', -3.0, -0.2, -0.75, 1.9]],
+  walkin: [['wall', -3.0, -2.2, -3.45, 3.45], ['island', -3.0, -0.35, -1.2, 1.2]],
+  living: [['wall', -3.0, -2.1, -3.45, 3.45], ['cluster', -3.0, -0.05, -2.6, 2.6], ['console', -3.0, 0.6, -0.95, 0.95]],
+  studio: [['wall', -3.0, -2.3, -3.45, 3.45], ['table', -3.0, 0.25, -1.3, 1.5]],
+  lounge: [['wall', -3.0, -2.5, -3.45, 3.45], ['desk', -3.0, -1.05, -2.55, 0.35], ['cluster', -3.0, 0.15, 0.3, 3.45]],
 };
-export const LOCAL_CIRCLES = { kitchen: [], wardrobe: [], door: [], bedroom: [['plant', -1.15, -0.95, 0.3]] };
+export const LOCAL_CIRCLES = { kitchen: [], wardrobe: [], door: [], bedroom: [['plant', -1.15, -0.95, 0.3]], walkin: [], living: [['plant', -0.8, -3.0, 0.3]], studio: [['plant', -0.4, -2.6, 0.3]], lounge: [['plant', -0.5, -3.0, 0.3]] };
 
 export function productColliders(bays = layoutBays()) {
   const out = [];

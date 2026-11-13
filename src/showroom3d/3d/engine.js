@@ -71,7 +71,7 @@ export class ShowroomEngine {
     await nextFrame(); this.hall = buildHallShell(ctx); this.scene.add(this.hall.group); this.report('hall', 0.6);
     this.report('hall', 1); await nextFrame();
     // Phase 4: furnished departments (kitchens, wardrobes, doors) + the Ikhtarha stage; they build their own materials from the generated interior environment
-    this.products = buildProducts({ renderer, hallM: M, tier, lang: this.lang, bays: layoutBays(), reduced: !!this.reduced });
+    this.products = buildProducts({ renderer, hallM: M, tier, lang: this.lang, bays: layoutBays(), reduced: !!this.reduced, logoTex });
     this.scene.add(this.products.group); this.products.lights.forEach((l) => this.scene.add(l)); this.report('products', 0.6);
     this.bays = buildBays({ ...ctx, products: this.products }); this.scene.add(this.bays.group); this.report('products', 1);
     if (tier.id === 'high') {   // planar floor reflections of the furnished bays + stage (high tier only)

@@ -10,9 +10,13 @@ import { buildKitchen } from './kitchen';
 import { buildWardrobe } from './wardrobe';
 import { buildDoor } from './door';
 import { buildBedroom } from './bedroom';
+import { buildWalkin } from './walkin';
+import { buildLiving } from './living';
+import { buildStudio } from './studio';
+import { buildLounge } from './lounge';
 import { buildStage } from './ikhtarha';
 
-const BUILDERS = { kitchen: buildKitchen, wardrobe: buildWardrobe, door: buildDoor, bedroom: buildBedroom };
+const BUILDERS = { kitchen: buildKitchen, wardrobe: buildWardrobe, door: buildDoor, bedroom: buildBedroom, walkin: buildWalkin, living: buildLiving, studio: buildStudio, lounge: buildLounge };
 const KEY_E = { kitchen: 1.5, wardrobe: 5.2, door: 3.0, bedroom: 3.2, walkin: 3.2, living: 3.0, studio: 3.0, lounge: 3.0 };
 const ANCHORS = { kitchen: { local: [-1.2, 0.8, 0], spot: [1.2, 3.1, 0.2] }, wardrobe: { local: [-2.0, 1.2, 0], spot: [0.9, 3.1, 0] }, door: { local: [-1.0, 1.2, 0], spot: [1.4, 3.1, 0] },
   bedroom: { local: [-2.0, 0.9, 0.2], spot: [1.0, 3.1, 0.2] }, walkin: { local: [-1.6, 1.1, 0], spot: [1.0, 3.1, 0] }, living: { local: [-1.6, 1.0, 0], spot: [1.0, 3.1, 0] }, studio: { local: [-1.6, 1.0, 0], spot: [1.0, 3.1, 0] }, lounge: { local: [-1.6, 1.0, 0], spot: [1.0, 3.1, 0] } };
@@ -23,11 +27,11 @@ function outlineObject(color) {
   m.renderOrder = 20; m.visible = false; m.frustumCulled = false; return m;
 }
 
-export function buildProducts({ renderer, hallM, tier, lang, bays, reduced = false }) {
+export function buildProducts({ renderer, hallM, tier, lang, bays, reduced = false, logoTex = null }) {
   const env = buildInteriorEnv(renderer), tex = createProductTextures(tier), M = createProductMaterials({ tier, env, tex });
   const registry = createRegistry(), kits = {}, bayOf = {};
   for (const b of bays) { const id = b.product; if (id) bayOf[id] = b; }
-  for (const id of Object.keys(BUILDERS)) { kits[id] = BUILDERS[id]({ M, tier, registry, reduced }); applyFinish(M, id, kits[id].state.finishId); }
+  for (const id of Object.keys(BUILDERS)) { kits[id] = BUILDERS[id]({ M, tier, registry, reduced, lang, logoTex }); applyFinish(M, id, kits[id].state.finishId); }
   const stage = buildStage({ M: { ...hallM, brass: M.brass, bronze: M.bronze }, tier, lang });
 
   // ---- lights: ONE moving key spot (shadow on medium / high) + one fill point light; they glide to whichever product / stage the visitor is nearest to
@@ -66,7 +70,7 @@ export function buildProducts({ renderer, hallM, tier, lang, bays, reduced = fal
     /** jump the key light straight to the anchor nearest the camera (used after a teleport and by QA; normally it glides) */
     snap(cam) { let best = anchors[0], bd = 1e9; for (const a of anchors) { const d = Math.hypot(cam.position.x - a.at[0], cam.position.z - a.at[2]) * (a.id === 'stage' ? 0.7 : 1); if (d < bd) { bd = d; best = a; } } lightTo(best, 0, true); },
     anchorId: () => anchorId || 'neutral',
-    setLanguage(l) { stage.relabel(l); },
+    setLanguage(l) { stage.relabel(l); for (const k of Object.values(kits)) if (k.relabel) k.relabel(l); },
     setReduced(v) { for (const k of Object.values(kits)) k.setReduced(v); },
     /** 0..1: hall light level from the intro (products wake up with the hall) */
     setLevel(k) { cur.level = k; stage.setLevel(k); },
