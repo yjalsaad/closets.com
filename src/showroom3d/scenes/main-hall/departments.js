@@ -5,15 +5,15 @@ import { HALL, BAY } from '../../3d/dimensions';
 export const DEPARTMENTS = [
   { id: 'kitchens',  side: 'left',  en: 'Kitchens',            ar: 'المطابخ', product: 'kitchen' },
   { id: 'wardrobes', side: 'left',  en: 'Wardrobes',           ar: 'خزائن الملابس', product: 'wardrobe' },
-  { id: 'walkin',    side: 'left',  en: 'Walk-in Closets',     ar: 'غرف الملابس' },
-  { id: 'bedroom',   side: 'left',  en: 'Bedrooms',            ar: 'غرف النوم' },
+  { id: 'walkin',    side: 'left',  en: 'Walk-in Closets',     ar: 'غرف الملابس', product: 'walkin' },
+  { id: 'bedroom',   side: 'left',  en: 'Bedrooms',            ar: 'غرف النوم', product: 'bedroom' },
   { id: 'doors',     side: 'right', en: 'Doors',               ar: 'الأبواب', product: 'door' },
-  { id: 'living',    side: 'right', en: 'Living',              ar: 'غرف المعيشة' },
-  { id: 'studio',    side: 'right', en: 'Custom Studio',       ar: 'استوديو التصميم' },
-  { id: 'lounge',    side: 'right', en: 'Consultation Lounge', ar: 'صالة الاستشارات' },
+  { id: 'living',    side: 'right', en: 'Living',              ar: 'غرف المعيشة', product: 'living' },
+  { id: 'studio',    side: 'right', en: 'Custom Studio',       ar: 'استوديو التصميم', product: 'studio' },
+  { id: 'lounge',    side: 'right', en: 'Consultation Lounge', ar: 'صالة الاستشارات', product: 'lounge' },
 ];
 
-/** departments furnished in Phase 4 (the other five stay empty and labelled 'to be furnished') */
+/** every department now carries a furnished sample configuration (Phase 4 / 5 / 5b); a department without `product` would still render as an empty, 'to be furnished' bay */
 export const isFurnished = (d) => !!(d && d.product);
 
 /** world-space layout of every bay (centre x/z, size, which way the front faces) */

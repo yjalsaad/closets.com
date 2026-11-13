@@ -106,6 +106,32 @@ export function rugSet(size = 512, seed = 31) {
   return { map, normal: heightToNormal(h, size, size, 1.4) };
 }
 
+/** plank floor: 6 long boards across V, each with its own grain offset + tone, dark seams with a bevel in the normal map. {map, rough, normal}. tone 0 oak / 1 walnut */
+export function plankSet(size, seed = 61, tone = 0) {
+  const base = timberSet(size, seed, tone), rows = 6, rh = size / rows, map = cv(size), g = map.getContext('2d'), rough = cv(size), gr = rough.getContext('2d'), norm = cv(size), gn = norm.getContext('2d');
+  const r = makeNoise2D(seed + 3);
+  gn.fillStyle = 'rgb(128,128,255)'; gn.fillRect(0, 0, size, size);
+  for (let i = 0; i < rows; i++) {
+    const off = Math.floor(fbm(r, i * 3.1, 0.7, 2, 4) * size * 1.3) % size, y = i * rh, k = 0.86 + 0.28 * fbm(r, i * 1.7, 4.2, 2, 3);
+    for (const [src, ctx] of [[base.map, g], [base.rough, gr], [base.normal, gn]]) { ctx.save(); ctx.beginPath(); ctx.rect(0, y, size, rh); ctx.clip(); ctx.drawImage(src, -off, y - (i * rh * 0.37) % (size - rh), size, size); ctx.drawImage(src, size - off, y - (i * rh * 0.37) % (size - rh), size, size); ctx.restore(); }
+    g.fillStyle = 'rgba(' + (k < 1 ? '30,20,10' : '255,244,224') + ',' + Math.abs(1 - k) * 0.9 + ')'; g.fillRect(0, y, size, rh);
+    g.fillStyle = 'rgba(24,16,10,0.75)'; g.fillRect(0, y, size, Math.max(2, size / 400)); gr.fillStyle = 'rgb(210,210,210)'; gr.fillRect(0, y, size, Math.max(2, size / 400));
+    gn.fillStyle = 'rgb(128,190,255)'; gn.fillRect(0, y, size, Math.max(1, size / 700)); gn.fillStyle = 'rgb(128,66,255)'; gn.fillRect(0, y + Math.max(1, size / 700), size, Math.max(1, size / 700));
+    for (let j = 0; j < 2; j++) { const bx = ((fbm(r, i * 5.3 + j * 2, 9.1, 2, 4) * 997) % 1) * size; g.fillStyle = 'rgba(24,16,10,0.75)'; g.fillRect(bx, y, Math.max(2, size / 400), rh); gr.fillStyle = 'rgb(210,210,210)'; gr.fillRect(bx, y, Math.max(2, size / 400), rh); }
+  }
+  return { map, rough, normal: norm };
+}
+
+/** upholstery weave: a fine cross-hatch with soft slub variation. {map: flat white (tint comes from material.color), rough, normal} */
+export function weaveSet(size = 256, seed = 71) {
+  const n = makeNoise2D(seed), h = new Float32Array(size * size), r = new Float32Array(size * size);
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const u = x / size, v = y / size, a = Math.sin(u * size * 0.7) * 0.5 + 0.5, b = Math.sin(v * size * 0.7) * 0.5 + 0.5, slub = fbm(n, u * 6, v * 40, 2, 6);
+    h[y * size + x] = 0.35 + 0.3 * (((x >> 1) + (y >> 1)) % 2 ? a : b) + 0.25 * slub; r[y * size + x] = 0.82 + 0.1 * (slub - 0.5);
+  }
+  return { rough: gray(r, size, size), normal: heightToNormal(h, size, size, 1.2) };
+}
+
 /** soft dark rounded-rect decal (alpha gradient) used as a baked contact shadow under furniture */
 export function contactShadowTexture(aspect = 1, strength = 0.55, blur = 22) {
   const W = 128, Hh = Math.max(32, Math.round(128 / aspect)), c = cv(W, Hh), g = c.getContext('2d');

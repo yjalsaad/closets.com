@@ -36,7 +36,7 @@ export class Mover {
   }
 }
 
-/** parts: [{id, kind: 'drawer'|'door'|'slider'|'pivot', duration?, group?}] */
+/** parts: [{id, kind: 'drawer'|'door'|'slider'|'pivot'|'tilt'|'tray', duration?, group?}] */
 export function createProductState(def, { reduced = false } = {}) {
   const movers = new Map(); const kinds = new Map();
   for (const p of def.parts) { movers.set(p.id, new Mover({ duration: p.duration || DEFAULT_DURATION[p.kind] || 0.7 })); kinds.set(p.id, p.kind); }
@@ -69,4 +69,4 @@ export function createProductState(def, { reduced = false } = {}) {
   return s;
 }
 
-export const DEFAULT_DURATION = { drawer: 0.65, door: 0.9, slider: 1.0, pivot: 1.1 };
+export const DEFAULT_DURATION = { drawer: 0.65, door: 0.9, slider: 1.0, pivot: 1.1, tilt: 0.8, tray: 0.6 };

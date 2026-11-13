@@ -3,9 +3,12 @@
  *    ?notes= (pre-filled into the notes box, editable) since this release; the visitor still reviews and submits the form themselves.
  *  - the Ikhtarha campaign shell (/campaign/ikhtarha, /campaign/ikhtarha/demo): separate app shell, not localised by URL (see seo/routes.js). */
 import { withLang } from '../../seo/routes';
+import { FACTS } from '../../content/facts';
 
 /** showroom department -> the booking form's own English "interest" option */
-export const INTEREST = { kitchen: 'Kitchen', wardrobe: 'Wardrobe', door: 'Doors' };
+/* Bedrooms, the Custom Studio and the Lounge have no interest of their own on the booking form, so they use its existing 'Other' (the notes name the product). */
+export const INTEREST = { kitchen: 'Kitchen', wardrobe: 'Wardrobe', door: 'Doors', bedroom: 'Other', walkin: 'Walk-In Closet', living: 'TV Unit', studio: 'Other', lounge: 'Other' };
+export const STUDIO_PATH = '/studio';      // the existing Neo Design Studio shell (src/studio); not localised by URL
 export const NOTES_MAX = 600;
 
 export const BOOKING_PATH = '/booking';
@@ -19,13 +22,14 @@ const clean = (s) => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f<>]
  * @param {{product: string, productName?: string, finishId?: string, finishName?: string, lang?: string}} o
  * @returns {string} site-relative URL, e.g. /booking?interest=Kitchen&source=showroom-3d&finish=oak-white-stone&notes=...
  */
-export function buildQuoteUrl({ product, productName = '', finishId = '', finishName = '', lang = 'en' } = {}) {
+export function buildQuoteUrl({ product, productName = '', finishId = '', finishName = '', lang = 'en', consult = false } = {}) {
   const L = lang === 'ar' ? 'ar' : 'en';
   const q = new URLSearchParams();
   if (INTEREST[product]) q.set('interest', INTEREST[product]);
   q.set('source', 'showroom-3d');
   if (finishId) q.set('finish', clean(finishId).slice(0, 40));
-  const bits = [L === 'ar' ? 'من المعرض الافتراضي (نموذج تصميم، وليس عرض سعر)' : 'From the virtual showroom (sample configuration, not a quotation)'];
+  const bits = [consult ? (L === 'ar' ? 'من المعرض الافتراضي (طلب استشارة، وليس عرض سعر)' : 'From the virtual showroom (consultation request, not a quotation)')
+    : (L === 'ar' ? 'من المعرض الافتراضي (نموذج تصميم، وليس عرض سعر)' : 'From the virtual showroom (sample configuration, not a quotation)')];
   if (productName) bits.push((L === 'ar' ? 'المنتج: ' : 'Product: ') + clean(productName));
   if (finishName) bits.push((L === 'ar' ? 'التشطيب: ' : 'Finish: ') + clean(finishName));
   q.set('notes', bits.join('. ').slice(0, NOTES_MAX));
@@ -45,4 +49,18 @@ export function parseBookingPrefill(search = '') {
   const interest = Object.values(INTEREST).includes(q.get('interest')) ? q.get('interest') : null;
   const notes = clean(q.get('notes')).slice(0, NOTES_MAX);
   return { interest, notes: notes || null };
+}
+
+/** secondary links of a department panel: the Design Studio entry (studio) and the existing contact details (lounge: phone / WhatsApp / hours, all from content/facts.js) */
+export function extraLinks(product, lang = 'en') {
+  const L = lang === 'ar' ? 'ar' : 'en';
+  if (product === 'studio') return [{ id: 'studio', href: STUDIO_PATH, label: L === 'ar' ? 'افتح استوديو التصميم' : 'Open the Design Studio', note: L === 'ar' ? 'يفتح صفحة استوديو التصميم الحالية.' : 'Opens the existing Design Studio page.' }];
+  if (product === 'lounge') {
+    const out = [];
+    if (FACTS.phoneHref && FACTS.phone) out.push({ id: 'call', href: FACTS.phoneHref, label: (L === 'ar' ? 'اتصل بنا: ' : 'Call us: ') + FACTS.phone, dir: 'ltr' });
+    if (FACTS.whatsappHref) out.push({ id: 'whatsapp', href: FACTS.whatsappHref, label: L === 'ar' ? 'واتساب' : 'WhatsApp', external: true });
+    if (FACTS.hours) out.push({ id: 'hours', text: (L === 'ar' ? 'ساعات العمل: ' : 'Hours: ') + (FACTS.hours[L] || FACTS.hours.en) });
+    return out;
+  }
+  return [];
 }
