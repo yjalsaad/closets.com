@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, createContext, useContext, Component, Fragment, createElement } from 'react';
 import GlassLayer from './glass/GlassLayer'; // [GLASS 2026-11-14]
+import TypeShowcase from './glass/TypeShowcase'; // [GLASS 2026-11-14] stage 2
 import KitchenScene3D from './KitchenScene3D';
 import TVUnit3D from './TVUnit3D';
 import Door3D from './Door3D';
@@ -14454,7 +14455,7 @@ function WardrobesPage({ setPage, products }) {
 
 function KitchenPage({ setPage, products }) {
   const mobile = useMobile();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [faq, setFaq] = useState(-1);
   const { map: dbLayouts } = useLayouts('kitchen');
   const kLayouts = K_LAYOUTS.map(l => mergeLayout(l, dbLayouts));
@@ -14501,22 +14502,7 @@ function KitchenPage({ setPage, products }) {
       <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2KpEveryLayout')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>{t('sw2KpFitRoom')}</h2>
-        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
-          {kLayouts.map(l=>(
-            <div key={l.id} className="lift zoomwrap" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, overflow:'hidden', textAlign:'center' }}>
-              <img src={l.img} alt={l.name} loading="lazy" style={{ display:'block', width:'100%', height: mobile?110:130, objectFit:'cover' }} />
-              <div style={{ padding:'14px 12px 16px' }}>
-                <div style={{ fontSize:14, fontWeight:600, color:'var(--ink)' }}>{l.name}</div>
-                <div style={{ fontSize:11.5, color:'var(--muted)', marginTop:4, lineHeight:1.4 }}>{l.sub}</div>
-                {Array.isArray(l.bullets) && l.bullets.length>0 && (
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:5, justifyContent:'center', marginTop:8 }}>
-                    {l.bullets.slice(0,3).map(b=>(<span key={b} style={{ fontSize:10.5, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'3px 8px' }}>{b}</span>))}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+        <TypeShowcase types={kLayouts} ar={lang==='ar'} cta={t('sw2DesignYours')} onDesign={()=>setPage('kitchen-planner')} testid="showcase-kitchen" />{/* [GLASS] explore one large picture instead of five small cards */}
       </section>
 
       {/* MATERIALS showcase (worktops) */}
@@ -14627,7 +14613,7 @@ function KitchenPage({ setPage, products }) {
 
 function OfficePage({ setPage, products }) {
   const mobile = useMobile();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [faq, setFaq] = useState(-1);
   const { map: dbLayouts } = useLayouts('office');
   const officeLayouts = OFFICE_LAYOUTS.map(l => mergeLayout(l, dbLayouts));
@@ -14659,22 +14645,7 @@ function OfficePage({ setPage, products }) {
         <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2OfLayoutsEyebrow')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{t('sw2OfFindSetup')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2OfLayoutsSub')}</p>
-        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
-          {officeLayouts.map(t=>(
-            <button key={t.id} type="button" className="lift" onClick={()=>setPage('office-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
-              <div style={{ height: mobile?170:210, background:`url('${t.img}') center/cover` }} />
-              <div style={{ padding:'18px 20px' }}>
-                <div style={{ fontSize:20, fontWeight:600, color:'var(--ink)' }}>{t.name}</div>
-                <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{t.sub}</div>
-                {t.desc && <p style={{ fontSize:13, color:'var(--ink-soft)', margin:'8px 0 0', lineHeight:1.5 }}>{t.desc}</p>}
-                <div style={{ display:'flex', flexWrap:'wrap', gap:6, margin:'12px 0' }}>
-                  {(Array.isArray(t.bullets)&&t.bullets.length?t.bullets:t.feats).map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{c}</span>))}
-                </div>
-                <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600 }}>{designYoursLbl}</div>
-              </div>
-            </button>
-          ))}
-        </div>
+        <TypeShowcase types={officeLayouts} ar={lang==='ar'} cta={designYoursLbl} onDesign={()=>setPage('office-planner')} testid="showcase-office" />{/* [GLASS] */}
       </section>
 
       {/* STORAGE & DESK strip */}
@@ -14782,7 +14753,7 @@ function OfficePage({ setPage, products }) {
    Hero + section headings fully Hub-editable via cms('tv.*', fallback). */
 function TVUnitPage({ setPage, products }) {
   const mobile = useMobile();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [faq, setFaq] = useState(-1);
   const { map: dbLayouts } = useLayouts('tv');
   const tvLayouts = TV_LAYOUTS.map(l => mergeLayout(l, dbLayouts));
@@ -14822,22 +14793,7 @@ function TVUnitPage({ setPage, products }) {
         <div className="eyebrow" style={{ marginBottom:10 }}>{cms('tv.layouts.eyebrow','TV & media layouts')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('tv.layouts.title','Find your media wall.')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{cms('tv.layouts.subtitle','Six ways to bring the living room together around the screen — from a minimal floating panel to a full storage wall.')}</p>
-        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
-          {tvLayouts.map(t=>(
-            <button key={t.id} type="button" className="lift" onClick={()=>setPage('tv-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:20, overflow:'hidden', background:'#fff', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
-              <div style={{ height: mobile?170:210, background:`url('${t.img}') center/cover` }} />
-              <div style={{ padding:'18px 20px' }}>
-                <div style={{ fontSize:20, fontWeight:600, color:'var(--ink)' }}>{t.name}</div>
-                <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{t.sub}</div>
-                {t.desc && <p style={{ fontSize:13, color:'var(--ink-soft)', margin:'8px 0 0', lineHeight:1.5 }}>{t.desc}</p>}
-                <div style={{ display:'flex', flexWrap:'wrap', gap:6, margin:'12px 0' }}>
-                  {(Array.isArray(t.bullets)&&t.bullets.length?t.bullets:t.feats).map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:999, padding:'4px 10px' }}>{c}</span>))}
-                </div>
-                <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600 }}>{designYoursLbl}</div>
-              </div>
-            </button>
-          ))}
-        </div>
+        <TypeShowcase types={tvLayouts} ar={lang==='ar'} cta={designYoursLbl} onDesign={()=>setPage('tv-planner')} testid="showcase-tv" />{/* [GLASS] */}
       </section>
 
       {/* STORAGE & DISPLAY strip */}
