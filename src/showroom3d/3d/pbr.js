@@ -30,7 +30,7 @@ function gray(arr, w, h) {
 export function timberSet(size, seed = 3, tone = 0) {
   const n = makeNoise2D(seed), n2 = makeNoise2D(seed + 7), n3 = makeNoise2D(seed + 19);
   const A = tone ? rgb(0x6d5546) : rgb(0xb09a7d), B = tone ? rgb(0x2f2017) : rgb(0x7f6a4f);
-  const rings = tone ? 16 : 20, cath = tone ? 0.55 : 0.4;
+  const rings = tone ? 16 : 7, cath = tone ? 0.55 : 1.1;
   const h = new Float32Array(size * size), r = new Float32Array(size * size);
   const map = paint(size, (u, v, o, x, y) => {
     const warp = fbm(n2, u * 2, v * 3, 3, 2) * cath + 0.1 * fbm(n3, u * 5, v * 2, 2, 5);
@@ -39,7 +39,7 @@ export function timberSet(size, seed = 3, tone = 0) {
     const streak = fbm(n, u * 5, v * 90, 3, 5);                      // fine lines along U
     const fibre = fbm(n3, u * 24, v * 260, 2, 24);                   // very fine fibre
     const pore = fbm(n2, u * 34, v * 360, 1, 34) > (tone ? 0.82 : 0.74) ? 1 : 0;
-    const k = clamp01(0.2 + 0.45 * t + 0.22 * (streak - 0.5) + 0.08 * (fibre - 0.5) + pore * 0.18);
+    const k = clamp01(tone ? 0.2 + 0.45 * t + 0.22 * (streak - 0.5) + 0.08 * (fibre - 0.5) + pore * 0.18 : 0.3 + 0.2 * t + 0.34 * (streak - 0.5) + 0.12 * (fibre - 0.5) + pore * 0.2);
     const c = mix3(A, B, k);
     o[0] = c[0]; o[1] = c[1]; o[2] = c[2];
     const i = y * size + x; h[i] = 0.55 + 0.18 * t + 0.1 * (streak - 0.5) - pore * 0.35; r[i] = 0.5 + 0.14 * (1 - t) + pore * 0.18 + 0.05 * (fibre - 0.5);

@@ -3,6 +3,8 @@
 import * as THREE from 'three';
 import { mulberry32 } from './noise';
 import { mergeGeometries, instanced } from './geom';
+import { placed, mergeColored } from './builders';
+import { leafCardTexture } from './pbr';
 
 function frondGeometry(len, width, droop, curl) {
   const segs = 8, g = new THREE.PlaneGeometry(width, len, 1, segs);
@@ -61,14 +63,30 @@ export function buildShrubs(items, M, seed = 3) {
 }
 
 /** a single olive-type tree: gnarled trunk + clustered canopy; used in the hall planters and the entrance court */
+const _cardMat = new WeakMap();
+function cardMaterial(M) {
+  if (!_cardMat.has(M)) _cardMat.set(M, new THREE.MeshStandardMaterial({ map: leafCardTexture(), alphaTest: 0.5, side: THREE.DoubleSide, vertexColors: true, roughness: 0.6, envMap: M.leaf.envMap, envMapIntensity: 0.5 }));
+  return _cardMat.get(M);
+}
+/** olive tree: a leaning trunk, three limbs and a canopy of ~300 narrow leaf cards (alpha cut-outs, bent, tinted silver-green) in five crowns: no blobs */
 export function buildOlive(M, x, z, s = 1, baseY = 0) {
   const grp = new THREE.Group(); grp.position.set(x, baseY, z);
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.09 * s, 0.16 * s, 2.1 * s, 8), M.trunk);
-  trunk.position.y = 1.05 * s; trunk.rotation.z = 0.06; trunk.castShadow = true; grp.add(trunk);
-  const blobs = new THREE.IcosahedronGeometry(1, 2), r = mulberry32(Math.floor(x * 31 + z * 17 + 5));
-  for (let i = 0; i < 6; i++) {
-    const b = new THREE.Mesh(blobs, M.leaf), k = (0.75 + r() * 0.5) * s;
-    b.position.set((r() - 0.5) * 1.6 * s, (2.4 + r() * 0.9) * s, (r() - 0.5) * 1.6 * s); b.scale.set(k, k * 0.72, k); b.castShadow = true; b.receiveShadow = true; grp.add(b);
-  }
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.07 * s, 0.15 * s, 2.0 * s, 8), M.trunk);
+  trunk.position.y = 1.0 * s; trunk.rotation.z = 0.06; trunk.castShadow = true; grp.add(trunk);
+  const r = mulberry32(Math.floor(x * 31 + z * 17 + 5)), limbs = [], items = [], tints = [0x6f8a52, 0x85997a, 0x5c7a45, 0x9aa88a, 0x72875a];
+  const crowns = [[0, 2.7, 0, 0.95], [-0.8, 2.45, 0.35, 0.7], [0.85, 2.55, -0.3, 0.75], [0.1, 3.15, 0.5, 0.6], [-0.2, 2.35, -0.8, 0.65]];
+  crowns.forEach(([cx, cy, cz, cr], ci) => {
+    const len = Math.hypot(cx, cy - 1.9, cz); const limb = new THREE.CylinderGeometry(0.03 * s, 0.06 * s, len * s, 6); limb.translate(0, len * s / 2, 0);
+    limb.rotateZ(-Math.atan2(cx, cy - 1.9)); limb.rotateX(Math.atan2(cz, cy - 1.9)); limb.translate(0, 1.9 * s, 0); limbs.push(limb);
+    for (let i = 0; i < 62; i++) {
+      const a = r() * 6.283, b = Math.acos(2 * r() - 1), rr = cr * (0.35 + 0.65 * Math.cbrt(r())), px = cx + Math.sin(b) * Math.cos(a) * rr, py = cy + Math.cos(b) * rr * 0.7, pz = cz + Math.sin(b) * Math.sin(a) * rr;
+      const lg = new THREE.PlaneGeometry(0.07 * s, 0.26 * s, 1, 3), p = lg.attributes.position;
+      for (let v = 0; v < p.count; v++) { const t = (p.getY(v) + 0.13 * s) / (0.26 * s); p.setY(v, t * 0.26 * s); p.setZ(v, p.getZ(v) + t * t * 0.07 * s); }
+      lg.computeVertexNormals();
+      items.push({ geo: placed(lg, { x: px * s, y: py * s, z: pz * s, ry: r() * 6.283, rx: -(0.3 + r() * 1.1), rz: (r() - 0.5) * 0.6 }), color: tints[(ci + i) % tints.length] });
+    }
+  });
+  const limbMesh = new THREE.Mesh(mergeGeometries(limbs.map((g) => { const n = g.index ? g.toNonIndexed() : g; return n; })), M.trunk); limbMesh.castShadow = true; grp.add(limbMesh);
+  const canopy = new THREE.Mesh(mergeColored(items), cardMaterial(M)); canopy.castShadow = true; canopy.receiveShadow = true; grp.add(canopy);
   return grp;
 }
