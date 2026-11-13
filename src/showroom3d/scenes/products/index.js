@@ -9,11 +9,13 @@ import { createProductTextures, createProductMaterials, applyFinish } from './ma
 import { buildKitchen } from './kitchen';
 import { buildWardrobe } from './wardrobe';
 import { buildDoor } from './door';
+import { buildBedroom } from './bedroom';
 import { buildStage } from './ikhtarha';
 
-const BUILDERS = { kitchen: buildKitchen, wardrobe: buildWardrobe, door: buildDoor };
-const KEY_E = { kitchen: 1.5, wardrobe: 5.2, door: 3.0 };
-const ANCHORS = { kitchen: { local: [-1.2, 0.8, 0], spot: [1.2, 3.1, 0.2] }, wardrobe: { local: [-2.0, 1.2, 0], spot: [0.9, 3.1, 0] }, door: { local: [-1.0, 1.2, 0], spot: [1.4, 3.1, 0] } };
+const BUILDERS = { kitchen: buildKitchen, wardrobe: buildWardrobe, door: buildDoor, bedroom: buildBedroom };
+const KEY_E = { kitchen: 1.5, wardrobe: 5.2, door: 3.0, bedroom: 3.2, walkin: 3.2, living: 3.0, studio: 3.0, lounge: 3.0 };
+const ANCHORS = { kitchen: { local: [-1.2, 0.8, 0], spot: [1.2, 3.1, 0.2] }, wardrobe: { local: [-2.0, 1.2, 0], spot: [0.9, 3.1, 0] }, door: { local: [-1.0, 1.2, 0], spot: [1.4, 3.1, 0] },
+  bedroom: { local: [-2.0, 0.9, 0.2], spot: [1.0, 3.1, 0.2] }, walkin: { local: [-1.6, 1.1, 0], spot: [1.0, 3.1, 0] }, living: { local: [-1.6, 1.0, 0], spot: [1.0, 3.1, 0] }, studio: { local: [-1.6, 1.0, 0], spot: [1.0, 3.1, 0] }, lounge: { local: [-1.6, 1.0, 0], spot: [1.0, 3.1, 0] } };
 
 function outlineObject(color) {
   const g = new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1));

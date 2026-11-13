@@ -53,6 +53,7 @@ export const PALETTE = {
   fruitLemon: 0xd9c34c, fruitApple: 0x7d9a3a, fruitOrange: 0xd9822b, steelPot: 0xb8babb, woodSpoon: 0xb98d5c, brassLamp: 0xc9a25b, shadeLinen: 0xefe3cc,
   artA: 0x8a5a44, artB: 0xd8c3a0, artC: 0x2f4a47, artD: 0xe9e2d6, artE: 0xb9873c,
   lightHall: 0xffe8d0,
+  plasterWarm: 0xcdbfa9, velvetDark: 0x2a2226, velvetWine: 0x4b2a30, screenDark: 0x0b0c0e, screenGlow: 0x9fb6c4, paperWhite: 0xf4f0e8, brassPale: 0xd9bf86, mirrorEdge: 0xcfd8da,
   ceilingLight: 0xf2ebdf, wallGreige: 0x6f685e,
   focusRing: 0xffb067, hoverRing: 0xfff0d6,
   // Ikhtarha campaign brand: mirrored from src/campaign/IkhtarhaRoot.jsx BRAND (primary / accent / sand / taupe / charcoal). The campaign

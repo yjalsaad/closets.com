@@ -4,7 +4,7 @@
  * renderOrder-sorted glass on the lighter tiers. */
 import * as THREE from 'three';
 import { PALETTE as P } from '../../3d/palette';
-import { timberSet, marbleSet, brushedSet, peelSet, rugSet, toTex, hobTexture, tileSet, leafCardTexture, aoTexture } from '../../3d/pbr';
+import { timberSet, marbleSet, brushedSet, peelSet, rugSet, toTex, hobTexture, tileSet, leafCardTexture, aoTexture, plankSet, weaveSet } from '../../3d/pbr';
 import { getFinish } from '../../products/finishes';
 
 const C = (n) => new THREE.Color(n);
@@ -19,6 +19,7 @@ export function createProductTextures(tier) {
     marble: { white: mk(marbleSet(marbleS, 11, 'white')), dark: mk(marbleSet(marbleS, 12, 'dark')), sand: mk(marbleSet(marbleS, 13, 'sand')) },
     tiles: { sand: mk(tileSet(S >= 1024 ? 1024 : S, 41, 'sand')), white: mk(tileSet(S >= 1024 ? 1024 : S, 42, 'white')), dark: mk(tileSet(S >= 1024 ? 1024 : S, 43, 'dark')), grey: mk(tileSet(S >= 1024 ? 1024 : S, 44, 'grey')) },
     leaf: leafCardTexture(), ao: aoTexture(),
+    planks: { oak: mk(plankSet(S >= 1024 ? 1024 : S, 61, 0)), walnut: mk(plankSet(S >= 1024 ? 1024 : S, 62, 1)) }, weave: mk(weaveSet(256, 71)),
     brushed: mk(brushedSet(256, 23)), peel: mk(peelSet(256, 29)), rug: mk(rugSet(Math.max(256, S >> 1), 31)), hob: hobTexture(),
   };
 }
@@ -33,18 +34,26 @@ export function createProductMaterials({ tier, env, tex }) {
   // ---- finish-swapped surfaces: one material per role per product ----
   const white = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1); white.colorSpace = THREE.SRGBColorSpace; white.needsUpdate = true; M.white = white;
   const surface = () => phys({ map: tex.oak.map, roughnessMap: tex.oak.rough, normalMap: tex.oak.normal, roughness: 0.6, metalness: 0, envMapIntensity: 0.42, clearcoat: tier.id === 'low' ? 0 : 0.1, clearcoatRoughness: 0.35, normalScale: new THREE.Vector2(0.55, 0.55) });
-  M.front = { kitchen: surface(), wardrobe: surface(), door: surface() };
+  const IDS = ['kitchen', 'wardrobe', 'door', 'bedroom', 'walkin', 'living', 'studio', 'lounge'], mapIds = (ids, f) => Object.fromEntries(ids.map((id) => [id, f(id)]));
+  M.front = mapIds(IDS, surface);
   // reeded (fluted) geometry carries baked groove darkening in vertex colours, so it needs its own vertexColors twin of each finish material
   const fl = () => { const m = surface(); m.vertexColors = true; return m; };
-  M.flute = { kitchen: fl(), wardrobe: fl(), door: fl() };
+  M.flute = mapIds(IDS, fl);
   M.wallFlute = fl(); M.wallFlute.map = white; M.wallFlute.roughnessMap = tex.peel.rough; M.wallFlute.normalMap = tex.peel.normal; M.wallFlute.color.setHex(P.wallGreige); M.wallFlute.roughness = 0.7;   // door-bay feature wall: neutral, never swapped, so the door stays the hero
-  M.carcass = { kitchen: surface(), wardrobe: surface() };
+  M.carcass = mapIds(IDS.filter((id) => id !== 'door'), surface);
   M.frame = { door: surface() };
   M.interior = std({ map: tex.oak.map, roughnessMap: tex.oak.rough, normalMap: tex.oak.normal, color: C(0xf2e6d2), roughness: 1, envMapIntensity: 0.5 });
   M.stone = phys({ color: C(0xe9e6df), map: tex.marble.white.map, roughness: 0.14, metalness: 0, envMapIntensity: 1.0, clearcoat: hi ? 0.5 : 0, clearcoatRoughness: 0.08, roughnessMap: tex.marble.white.rough });
+  M.stones = { kitchen: M.stone, ...mapIds(['bedroom', 'walkin', 'living', 'studio', 'lounge'], () => M.stone.clone()) };     // one stone per department, so finishes never leak between bays
+  M.plaster = std({ map: white, roughnessMap: tex.peel.rough, normalMap: tex.peel.normal, normalScale: new THREE.Vector2(0.4, 0.4), color: C(P.plasterWarm), roughness: 0.85, envMapIntensity: 0.3 });
+  M.mirror = phys({ color: C(0xdfe8ea), metalness: 1, roughness: 0.035, envMapIntensity: 1.6 });
   // per-bay floor zones (large-format polished stone, a different stone per room, so each bay reads as its own room): kitchen sand, wardrobe pale grey, door deep grey
   const floor = (t, ei = 0.85) => phys({ map: t.map, roughnessMap: t.rough, normalMap: t.normal, normalScale: new THREE.Vector2(0.5, 0.5), roughness: 1, metalness: 0, clearcoat: tier.id === 'low' ? 0 : 0.75, clearcoatRoughness: 0.06, envMapIntensity: ei });
-  M.floorBay = { kitchen: floor(tex.tiles.sand), wardrobe: floor(tex.tiles.white), door: floor(tex.tiles.grey, 0.7) };
+  const plank = (t) => phys({ map: t.map, roughnessMap: t.rough, normalMap: t.normal, normalScale: new THREE.Vector2(0.6, 0.6), roughness: 1, metalness: 0, clearcoat: tier.id === 'low' ? 0 : 0.35, clearcoatRoughness: 0.28, envMapIntensity: 0.45 });
+  M.floorBay = { kitchen: floor(tex.tiles.sand), wardrobe: floor(tex.tiles.white), door: floor(tex.tiles.grey, 0.7), bedroom: plank(tex.planks.oak), walkin: plank(tex.planks.walnut), living: floor(tex.tiles.dark, 0.8), studio: floor(tex.tiles.grey, 0.7), lounge: floor(tex.tiles.sand, 0.85) };
+  // upholstery: woven micro-relief, tinted by the finish (bed, sofas, chairs, stools). One per department so a finish swap in one bay never touches another.
+  const uph = () => std({ map: white, roughnessMap: tex.weave.rough, normalMap: tex.weave.normal, normalScale: new THREE.Vector2(0.9, 0.9), color: C(P.fabricLinen), roughness: 1, envMapIntensity: 0.3 });
+  M.uphol = mapIds(['bedroom', 'walkin', 'living', 'studio', 'lounge'], uph);
   // baked ambient occlusion decals (one shared material; geometry carries per-quad strength in the vertex alpha)
   M.ao = new THREE.MeshBasicMaterial({ map: tex.ao, vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, toneMapped: true });
   M.leafCard = new THREE.MeshStandardMaterial(E({ map: tex.leaf, alphaTest: 0.5, side: THREE.DoubleSide, vertexColors: true, roughness: 0.5, envMapIntensity: 0.5 }));
@@ -55,7 +64,7 @@ export function createProductMaterials({ tier, env, tex }) {
   const metal = (color, rough) => phys({ color: C(color), metalness: 1, roughness: rough, anisotropy: hi || tier.id === 'medium' ? 0.65 : 0, anisotropyRotation: 0, roughnessMap: tex.brushed.rough, normalMap: tier.normalMaps ? tex.brushed.normal : null, normalScale: new THREE.Vector2(0.25, 0.25), envMapIntensity: 0.55 });
   M.brass = metal(P.brassBrushed, 0.3);
   M.bronze = metal(P.bronzeDark, 0.42);
-  M.metal = { kitchen: metal(P.brassBrushed, 0.3), wardrobe: metal(P.bronzeDark, 0.42), door: metal(P.brassBrushed, 0.3) };   // recoloured by applyFinish
+  M.metal = mapIds(IDS, (id) => (id === 'wardrobe' ? metal(P.bronzeDark, 0.42) : metal(P.brassBrushed, 0.3)));   // recoloured by applyFinish
   M.steel = phys({ color: C(P.steel), metalness: 1, roughness: 0.3, anisotropy: hi ? 0.5 : 0, roughnessMap: tex.brushed.rough, envMapIntensity: 1.0 });
   M.hob = phys({ map: tex.hob, roughness: 0.08, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.04, envMapIntensity: 1.2 });
   M.darkInterior = std({ color: C(0x1a1410), roughness: 1, envMapIntensity: 0.1 });
@@ -101,9 +110,10 @@ export function applyFinish(M, product, finishId) {
   if (product === 'door') { apply(M.front.door, f.leaf); apply(M.frame.door, f.frame); apply(M.flute.door, f.frame); }
   else { apply(M.front[product], f.front); apply(M.carcass[product], f.carcass); apply(M.flute[product], f.front); }
   if (f.stone) {
-    const s = M.tex.marble[f.stone]; M.stone.map = s.map; M.stone.roughnessMap = s.rough; M.stone.needsUpdate = true;
-    M.stone.color.setHex(0xe9e6df);
+    const s = M.tex.marble[f.stone], st = (M.stones && M.stones[product]) || M.stone; st.map = s.map; st.roughnessMap = s.rough; st.needsUpdate = true;
+    st.color.setHex(0xe9e6df);
   }
+  if (f.fabric != null && M.uphol && M.uphol[product]) { const u = M.uphol[product]; u.color.setHex(f.fabric); u.needsUpdate = true; }
   const mm = M.metal[product]; if (mm) { mm.color.setHex(f.metal === 'bronze' ? P.bronzeDark : P.brassBrushed); mm.roughness = f.metal === 'bronze' ? 0.42 : 0.3; }
   return f;
 }

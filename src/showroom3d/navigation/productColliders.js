@@ -10,8 +10,9 @@ export const LOCAL_BOXES = {
   kitchen: [['run', -3.0, -2.12, -3.45, 3.45], ['island', -3.0, 0.27, -1.36, 1.36]],
   wardrobe: [['wardrobe', -3.0, -2.1, -3.45, 3.45], ['plant', -3.0, -1.5, 2.6, 3.45]],
   door: [['wall', -3.0, -1.1, -3.45, 3.45], ['bench', -3.0, -0.08, 1.3, 3.45], ['plant', -3.0, -0.25, -3.45, -2.2]],
+  bedroom: [['wall', -3.0, -2.3, -3.45, 3.45], ['bed', -3.0, -0.2, -0.75, 1.9]],
 };
-export const LOCAL_CIRCLES = { kitchen: [], wardrobe: [], door: [] };
+export const LOCAL_CIRCLES = { kitchen: [], wardrobe: [], door: [], bedroom: [['plant', -1.15, -0.95, 0.3]] };
 
 export function productColliders(bays = layoutBays()) {
   const out = [];

@@ -74,7 +74,7 @@ export function createKit({ product, M, tier, registry, reduced = false }) {
      * a drawer: front panel (bevelled, grain along the width) on a body that slides out along +X. Origin = centre of the CLOSED front face
      * plane. The slides are two thin steel runners. `pull`: 'finger' adds a slim brass L-profile on the top edge.
      */
-    drawer({ id, x, y, z, w, h, depth = 0.5, travel = 0.42, t = 0.019, grainOff = [0, 0], pull = 'finger', led = true, frontMat, metalMat, bodyMat, parent = group, partLabel }) {
+    drawer({ id, x, y, z, w, h, depth = 0.5, travel = 0.42, t = 0.019, grainOff = [0, 0], pull = 'finger', led = true, organiser = true, frontMat, metalMat, bodyMat, parent = group, partLabel }) {
       const g = new THREE.Group(); g.position.set(x, y, z); parent.add(g);
       const front = new THREE.Mesh(bevelBox(t, h, w, { grain: 'z', tile: 0.8, off: grainOff }), frontMat); front.castShadow = front.receiveShadow = true; front.name = id + ':front'; g.add(front);
       const hit = [front];
@@ -93,16 +93,18 @@ export function createKit({ product, M, tier, registry, reduced = false }) {
         placed(bevelBox(bt, bh, bw, { b: 0.0008, grain: 'z', off: [0.9, 0] }), { x: -t / 2 - 0.004, y: by }),
       ];
       // organiser inserts: a tray divider across the drawer and (in the wide ones) two long dividers, so an open drawer reads as a used drawer
-      if (w > 0.5) { parts.push(placed(bevelBox(0.008, bh * 0.62, bw - 0.02, { b: 0.0006 }), { x: -t / 2 - depth * 0.38, y: by - bh * 0.19 })); if (w > 0.8) for (const f of [-1, 1]) parts.push(placed(bevelBox(depth * 0.7, bh * 0.55, 0.008, { b: 0.0006 }), { x: -t / 2 - depth * 0.68, y: by - bh * 0.22, z: f * bw * 0.17 })); }
+      if (organiser && w > 0.5) { parts.push(placed(bevelBox(0.008, bh * 0.62, bw - 0.02, { b: 0.0006 }), { x: -t / 2 - depth * 0.38, y: by - bh * 0.19 })); if (w > 0.8) for (const f of [-1, 1]) parts.push(placed(bevelBox(depth * 0.7, bh * 0.55, 0.008, { b: 0.0006 }), { x: -t / 2 - depth * 0.68, y: by - bh * 0.22, z: f * bw * 0.17 })); }
       parts.forEach((g, i) => { parts[i] = prep(g); });
       const body = new THREE.Mesh(mergeGeometries(parts), bodyMat); body.castShadow = body.receiveShadow = true; body.name = id + ':body'; g.add(body);
       if (led) {
         kit.led({ x: -t / 2 - 0.03, y: by + bh / 2 - 0.004, z: 0, len: bw - 0.02, axis: 'z', parent: g, levelOf: (s) => s.ledLevel(id) * 0.95,
           washPlane: { w: bw, h: depth * 0.9, pos: [-t / 2 - depth / 2, by - bh / 2 + bt + 0.004, 0], rot: [-Math.PI / 2, 0, Math.PI / 2] } });
       }
-      const apply = () => { g.position.x = x + travel * state.part(id).value; };
+      // a closed drawer's body and contents are hidden behind its front: not drawing them saves a draw call (and a shadow caster) per drawer
+      const inner = g.userData.inner = [];
+      const apply = () => { const v = state.part(id).value, open = v > 0.002; g.position.x = x + travel * v; body.visible = open; for (const m of inner) m.visible = open; };
       updaters.push(apply); apply();
-      registry.register({ id, product, kind: 'drawer', label: PRODUCTS[product].parts.find((p) => p.id === id).label, hit, object: g });
+      registry.register({ id, product, kind: PRODUCTS[product].parts.find((p) => p.id === id).kind, label: PRODUCTS[product].parts.find((p) => p.id === id).label, hit, object: g });
       return g;
     },
 
@@ -138,6 +140,31 @@ export function createKit({ product, M, tier, registry, reduced = false }) {
       const apply = () => { g.rotation.y = side * (maxDeg * Math.PI / 180) * state.part(id).value; };
       updaters.push(apply); apply();
       return { group: g, hit };
+    },
+
+    /** two hinged leaves that share ONE part id (a double door): left hinge at z0 (opens toward +z), right hinge at z1 (opens toward -z). Registers once for picking. */
+    doorPair({ id, x, y, z0, z1, w, h, hingeMat = null, ...o }) {
+      const a = kit.hinged({ id, x, y, z: z0, w, h, side: 1, hingeMat, ...o }), b = kit.hinged({ id, x, y, z: z1, w, h, side: -1, hingeMat, ...o });
+      registry.register({ id, product, kind: 'door', label: PRODUCTS[product].parts.find((p) => p.id === id).label, hit: [...a.hit, ...b.hit], object: a.group });
+      registry.get(id).objects = [a.group, b.group];
+      return { a, b, groups: [a.group, b.group] };
+    },
+
+    /**
+     * a tilting shelf: a front panel hinged at its BOTTOM edge that folds outward (top toward +X) so its inner face turns up and shows what is
+     * stored on it. Origin = the hinge axis (z centre). Put the stored items in `group` in panel coordinates: the inner face is the plane x = -t / 2.
+     */
+    tilt({ id, x, y, z, w, h, t = 0.02, maxDeg = 64, grainOff = [0, 0], frontMat, metalMat, parent = group }) {
+      const g = new THREE.Group(); g.position.set(x, y, z); parent.add(g);
+      const panel = new THREE.Mesh(bevelBox(t, h, w, { grain: 'z', off: grainOff }), frontMat); panel.position.y = h / 2; panel.castShadow = panel.receiveShadow = true; panel.name = id + ':front'; g.add(panel);
+      const hit = [panel];
+      const pull = new THREE.Mesh(prep(placed(bevelBox(0.014, 0.016, w - 0.12, { b: 0.0008 }), { x: t / 2 + 0.006, y: h - 0.05 })), metalMat); pull.castShadow = true; pull.name = id + ':pull'; g.add(pull); hit.push(pull);
+      const lip = new THREE.Mesh(prep(placed(bevelBox(0.05, 0.03, w - 0.02, { b: 0.001 }), { x: -t / 2 - 0.025, y: 0.015 })), metalMat); g.add(lip);
+      const inner = g.userData.inner = [];
+      const apply = () => { const v = state.part(id).value; g.rotation.z = -(maxDeg * Math.PI / 180) * v; for (const m of inner) m.visible = v > 0.002; };
+      updaters.push(apply); apply();
+      registry.register({ id, product, kind: 'tilt', label: PRODUCTS[product].parts.find((p) => p.id === id).label, hit, object: g });
+      return { group: g, hit, panel };
     },
 
     /** sliding leaf: translates along Z by `travel` (sign gives the direction). Origin = leaf centre. */
