@@ -28,5 +28,5 @@ async function enterExplore(page, { tap = false } = {}) {
   await page.waitForTimeout(800);
 }
 const ex = (page, fn, ...a) => page.evaluate(([f, args]) => { const e = window.__showroom.explore; return (new Function('e', 'args', 'return (' + f + ')(e, ...args)'))(e, args); }, [fn.toString(), a]);
-async function shot(page, name, opts = {}) { const p = path.join(OUT, name + '.jpg'); await page.screenshot({ path: p, type: 'jpeg', quality: opts.quality || 72, ...opts.clip && { clip: opts.clip } }); return p; }
+async function shot(page, name, opts = {}) { const p = path.join(OUT, name + '.jpg'); await page.screenshot({ path: p, type: 'jpeg', timeout: 180000, quality: opts.quality || 72, ...opts.clip && { clip: opts.clip } }); return p; }
 module.exports = { launch, openShowroom, enterExplore, check, results, shot, ex, BASE, OUT };

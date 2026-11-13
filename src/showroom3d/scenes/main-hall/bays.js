@@ -11,7 +11,7 @@ export function buildBays({ M, lang, products = null }) {
   const g = new THREE.Group(); g.name = 'bays';
   const bays = layoutBays();
   const signs = [], glows = new Map();
-  const alcove = new THREE.MeshStandardMaterial({ color: PALETTE.stoneMid, roughness: 0.9, emissive: new THREE.Color(PALETTE.ledWarm), emissiveIntensity: 0.07 });
+  const alcove = new THREE.MeshStandardMaterial({ color: PALETTE.taupe, roughness: 0.9, emissive: new THREE.Color(PALETTE.ledWarm), emissiveIntensity: 0.03 });
   for (const b of bays) {
     const s = b.side === 'left' ? -1 : 1, wallX = s * HALL.halfWidth, inward = -s;   // inward: direction toward the nave
     const grp = new THREE.Group(); grp.position.set(b.x, 0, b.z); g.add(grp);

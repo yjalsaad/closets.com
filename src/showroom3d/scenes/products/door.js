@@ -13,7 +13,7 @@ import * as pr from './props';
 
 const WALL_X = -1.2, WALL_T = 0.16, OPEN_W = 1.0, OPEN_H = 2.4, PIV_Z = -0.3;
 
-function artTexture() {
+export function artTexture() {
   const c = document.createElement('canvas'); c.width = 256; c.height = 340; const g = c.getContext('2d');
   g.fillStyle = '#' + P.artD.toString(16).padStart(6, '0'); g.fillRect(0, 0, 256, 340);
   const blob = (x, y, rx, ry, col, a) => { g.globalAlpha = a; g.fillStyle = '#' + col.toString(16).padStart(6, '0'); g.beginPath(); g.ellipse(x, y, rx, ry, 0.3, 0, 7); g.fill(); };
@@ -85,7 +85,7 @@ export function buildDoor({ M, tier, registry, reduced }) {
   for (const z of [1.45, 2.55]) kit.addStatic(placed(fin(0.34, 0.4, 0.03, { b: 0.001 }), { x: -0.3, y: 0.2, z }), METAL);
   const soft = [...pr.foldedStack(-0.3, 0.445, 1.8, { n: 3, seed: 9, w: 0.3, d: 0.3 })];
 
-  kit.ao([-1.115, 3.05, 0], [0, 0, 1], [0, 1, 0], 6.2, 0.55, '+v', 0.45); kit.ao([-1.0, 0.011, 0], [0, 0, 1], [1, 0, 0], 6.0, 0.5, '-v', 0.4);
+  kit.ao([-1.115, 3.05, 0], [0, 0, 1], [0, 1, 0], 6.2, 0.9, '+v', 0.28); kit.ao([-1.0, 0.011, 0], [0, 0, 1], [1, 0, 0], 6.0, 0.5, '-v', 0.4);
   kit.ao([-2.78, 1.5, 0], [0, 0, 1], [0, 1, 0], 2.8, 0.7, '+v', 0.4); kit.ao([-2.78, 0.4, 0], [0, 0, 1], [0, 1, 0], 2.8, 0.7, '-v', 0.4);
   buildCanopy(kit, { downlights: [[-0.6, -1.8], [-0.6, 0], [-0.6, 1.8], [1.3, -1.8], [1.3, 0], [1.3, 1.8]] }); buildWallWash(kit, { z: 0, len: 6.0, x: WALL_X + WALL_T / 2 + 0.002 });
   kit.contactShadow({ x: -0.9, z: 0, w: 2.2, d: 6.2, strength: 0.4, blur: 26 });

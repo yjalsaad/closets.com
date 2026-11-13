@@ -29,7 +29,7 @@ function gray(arr, w, h) {
  */
 export function timberSet(size, seed = 3, tone = 0) {
   const n = makeNoise2D(seed), n2 = makeNoise2D(seed + 7), n3 = makeNoise2D(seed + 19);
-  const A = tone ? rgb(0x6d5546) : rgb(0xa8998a), B = tone ? rgb(0x2f2017) : rgb(0x796a58);
+  const A = tone ? rgb(0x6d5546) : rgb(0xb09a7d), B = tone ? rgb(0x2f2017) : rgb(0x7f6a4f);
   const rings = tone ? 16 : 20, cath = tone ? 0.55 : 0.4;
   const h = new Float32Array(size * size), r = new Float32Array(size * size);
   const map = paint(size, (u, v, o, x, y) => {
@@ -48,14 +48,14 @@ export function timberSet(size, seed = 3, tone = 0) {
 }
 
 /** polished veined stone. variant: 'white' | 'dark' | 'sand'. Veins are domain-warped ridged noise; thin gold veins on the white. */
-export function marbleSet(size, seed = 11, variant = 'white') {
+export function marbleSet(size, seed = 11, variant = 'white', floor = false) {
   const n = makeNoise2D(seed), n2 = makeNoise2D(seed + 5), n3 = makeNoise2D(seed + 13);
   const spec = {
-    white: { base: rgb(P.marbleWhite), cloud: rgb(0xcfc9bf), vein: rgb(P.marbleVeinGrey), gold: rgb(P.marbleVeinGold), goldAmt: 0.6, veinAmt: 0.7 },
-    dark: { base: rgb(P.marbleDark), cloud: rgb(0x403c3a), vein: rgb(P.marbleDarkVein), gold: rgb(P.marbleVeinGold), goldAmt: 0.35, veinAmt: 0.85 },
-    sand: { base: rgb(P.marbleSand), cloud: rgb(0xc3ae8c), vein: rgb(0x9b8460), gold: rgb(0xe8dcc3), goldAmt: 0.5, veinAmt: 0.55 },
+    white: { base: rgb(P.marbleWhite), cloud: rgb(0xcfc9bf), vein: rgb(P.marbleVeinGrey), gold: rgb(P.marbleVeinGold), goldAmt: 0.55, veinAmt: 0.7, tile: { gold: 0.18, vein: 0.4 } },
+    dark: { base: rgb(P.marbleDark), cloud: rgb(0x403c3a), vein: rgb(P.marbleDarkVein), gold: rgb(P.marbleVeinGold), goldAmt: 0.35, veinAmt: 0.85, tile: { gold: 0.04, vein: 0.45 } },
+    sand: { base: rgb(P.marbleSand), cloud: rgb(0xb5aa98), vein: rgb(0x8a8174), gold: rgb(0xd9d0bf), goldAmt: 0.3, veinAmt: 0.5, tile: { gold: 0.1, vein: 0.32 } },
   }[variant] || null;
-  const S = spec, rough = new Float32Array(size * size);
+  const S = floor && spec.tile ? { ...spec, goldAmt: spec.tile.gold, veinAmt: spec.tile.vein } : spec, rough = new Float32Array(size * size);
   const map = paint(size, (u, v, o, x, y) => {
     const q1 = fbm(n, u * 3, v * 3, 4, 3), q2 = fbm(n2, u * 3 + 5, v * 3 + 2, 4, 3);
     const px = u * 2 + v * 1 + (q1 - 0.5) * 1.7, py = v * 2 - u * 1 + (q2 - 0.5) * 1.7;      // integer lattice shifts keep it tileable; the diagonal bias gives long flowing veins
@@ -160,7 +160,7 @@ export function buildInteriorEnv(renderer) {
 
 /** large-format polished stone / porcelain: 2 x 2 tiles of the veined stone generator (each tile flipped / offset so no two match), dark grout, grout normal. */
 export function tileSet(size, seed = 41, variant = 'white') {
-  const half = size >> 1, base = marbleSet(half, seed, variant), c = cv(size), g = c.getContext('2d'), cr = cv(size), gr = cr.getContext('2d');
+  const half = size >> 1, base = marbleSet(half, seed, variant, true), c = cv(size), g = c.getContext('2d'), cr = cv(size), gr = cr.getContext('2d');
   const flips = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
   for (let i = 0; i < 4; i++) {
     const tx = i % 2, ty = i >> 1, [fx, fy] = flips[(i * 3 + seed) % 4];

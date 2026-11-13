@@ -52,7 +52,7 @@ export function createProductMaterials({ tier, env, tex }) {
   M.plinth = std({ color: C(P.ink), roughness: 0.85, envMapIntensity: 0.2 });
 
   // ---- metals (anisotropic brushed brass / bronze) ----
-  const metal = (color, rough) => phys({ color: C(color), metalness: 1, roughness: rough, anisotropy: hi || tier.id === 'medium' ? 0.65 : 0, anisotropyRotation: 0, roughnessMap: tex.brushed.rough, normalMap: tier.normalMaps ? tex.brushed.normal : null, normalScale: new THREE.Vector2(0.25, 0.25), envMapIntensity: 0.95 });
+  const metal = (color, rough) => phys({ color: C(color), metalness: 1, roughness: rough, anisotropy: hi || tier.id === 'medium' ? 0.65 : 0, anisotropyRotation: 0, roughnessMap: tex.brushed.rough, normalMap: tier.normalMaps ? tex.brushed.normal : null, normalScale: new THREE.Vector2(0.25, 0.25), envMapIntensity: 0.7 });
   M.brass = metal(P.brassBrushed, 0.3);
   M.bronze = metal(P.bronzeDark, 0.42);
   M.metal = { kitchen: metal(P.brassBrushed, 0.3), wardrobe: metal(P.bronzeDark, 0.42), door: metal(P.brassBrushed, 0.3) };   // recoloured by applyFinish

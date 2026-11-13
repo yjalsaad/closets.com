@@ -29,7 +29,7 @@ export function buildProducts({ renderer, hallM, tier, lang, bays, reduced = fal
   const stage = buildStage({ M: { ...hallM, brass: M.brass, bronze: M.bronze }, tier, lang });
 
   // ---- lights: ONE moving key spot (shadow on medium / high) + one fill point light; they glide to whichever product / stage the visitor is nearest to
-  const key = new THREE.SpotLight(P.ledCool, 40, 14, 0.7, 0.7, 1.6); key.target = new THREE.Object3D();
+  const key = new THREE.SpotLight(P.ledCool, 40, 14, 0.56, 0.8, 1.6); key.target = new THREE.Object3D();
   if (tier.id !== 'low') { key.castShadow = true; key.shadow.mapSize.set(tier.id === 'high' ? 2048 : 1024, tier.id === 'high' ? 2048 : 1024); key.shadow.bias = -0.0004; key.shadow.normalBias = 0.025; key.shadow.radius = 3; key.shadow.camera.near = 0.4; key.shadow.camera.far = 12; }
   const fill = tier.id === 'low' ? null : new THREE.PointLight(P.ledCool, 6, 9, 2);
   const lights = [key, key.target, ...(fill ? [fill] : [])];

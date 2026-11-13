@@ -45,8 +45,8 @@ export const PALETTE = {
   // Phase 4: product finishes (sample configuration swatches, all procedural) + props + campaign
   oakLight: 0xb09a7c, oakPale: 0xcbbca0, walnutDeep: 0x4a3426, smokedOak: 0x6e5440,
   lacquerSage: 0x8f9a86, lacquerStone: 0xa7a199, lacquerIvory: 0xe9e3d6, lacquerCharcoal: 0x34332f, lacquerClay: 0xb08a72,
-  marbleWhite: 0xe8e4dc, marbleVeinGrey: 0x8d8a86, marbleVeinGold: 0xb89b63, marbleDark: 0x2c2a29, marbleDarkVein: 0xb9b2a6, marbleSand: 0xd7c6a8,
-  brassBrushed: 0xb8935a, bronzeDark: 0x3a2f27, steel: 0xa8aaab, glassSmoke: 0x2b2622,
+  marbleWhite: 0xe8e4dc, marbleVeinGrey: 0x8d8a86, marbleVeinGold: 0xb89b63, marbleDark: 0x2c2a29, marbleDarkVein: 0xb9b2a6, marbleSand: 0xcfc6b6,
+  brassBrushed: 0xa5834f, bronzeDark: 0x3a2f27, steel: 0xa8aaab, glassSmoke: 0x2b2622,
   hobGlass: 0x0d0d0e, interiorWarm: 0xefe3d0, interiorShade: 0x9c8b78,
   fabricLinen: 0xd9cfbe, fabricSage: 0x7f8c76, fabricClay: 0x9a6a55, fabricNavy: 0x2e3a4d, fabricCream: 0xece4d4, fabricCharcoal: 0x3a3a3a, fabricBlush: 0xc9a79c,
   ceramicWhite: 0xf1ede6, ceramicSand: 0xcbbba3, ceramicTerra: 0xb26a48, ceramicDark: 0x3b3430, bookA: 0x6b3a2e, bookB: 0x2f4a47, bookC: 0xd2c3a6, bookD: 0x4b4f6b, rugSand: 0xd6c7ac, rugBorder: 0x8c7658, potTerra: 0xb5805a, leafDeep: 0x3f5a2c,

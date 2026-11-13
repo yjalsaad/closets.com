@@ -8,6 +8,7 @@ import { PALETTE as P } from '../../3d/palette';
 import { createKit } from './kit';
 import { buildCanopy, buildWallWash, propMesh, CANOPY_Y } from './stage';
 import * as pr from './props';
+import { artTexture } from './door';
 
 const BASE = { y0: 0.1, top: 0.865, wt: 0.04 };          // plinth height, carcass top, worktop thickness
 const RUN = { x0: -2.8, x1: -2.2, z0: -2.7, z1: 2.7, unit: 0.9 };
@@ -157,8 +158,11 @@ export function buildKitchen({ M, tier, registry, reduced }) {
   const bulb = M.ledWarm(); bulb.color.multiplyScalar(1.4); kit.mesh(mergeGeometries(lamps), bulb, { cast: false });
   kit.pool(-0.2, BASE.top + BASE.wt + 0.004, 0, 1.8, 0.35);
 
+  // ---- two framed artworks above the wall units, flanking the hood (a feature wall needs something to look at) ----
+  { const at = artTexture(), amat = new THREE.MeshStandardMaterial({ map: at, roughness: 0.75, envMap: M.stone.envMap, envMapIntensity: 0.3 });
+    for (const z of [-1.5, 1.75]) { const art = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.82), amat); art.scale.set(1.25, 0.62, 1); art.position.set(-2.795, 2.72, z); art.rotation.y = Math.PI / 2; group.add(art); kit.addStatic(placed(fin(0.02, 0.54, 0.82, { b: 0.002 }), { x: -2.805, y: 2.72, z }), METAL); } }
   // ---- baked ambient occlusion (decals): wall under the canopy, splashback under the wall units, island fronts under the overhang, worktop at the splashback ----
-  kit.ao([-2.815, 3.05, 0], [0, 0, 1], [0, 1, 0], 6.2, 0.55, '+v', 0.5);
+  kit.ao([-2.815, 3.05, 0], [0, 0, 1], [0, 1, 0], 6.2, 0.9, '+v', 0.3);
   kit.ao([-2.77, 1.36, -1.35], [0, 0, 1], [0, 1, 0], 2.7, 0.3, '+v', 0.42); kit.ao([-2.77, 1.36, 1.8], [0, 0, 1], [0, 1, 0], 1.8, 0.3, '+v', 0.42);
   kit.ao([-2.5, 0.907, 0], [0, 0, 1], [1, 0, 0], 5.4, 0.2, '-v', 0.3);
   kit.ao([ISL.x1 + T + 0.002, 0.77, 0], [0, 0, 1], [0, 1, 0], 2.4, 0.2, '+v', 0.45);

@@ -76,7 +76,7 @@ export class ShowroomEngine {
     if (tier.id === 'high') {   // planar floor reflections of the furnished bays + stage (high tier only)
       const rects = layoutBays().filter((b) => b.product).map((b) => (b.facing > 0 ? { x0: b.x - 3, x1: b.x + 6.5, z0: b.z - 3.3, z1: b.z + 3.3 } : { x0: b.x - 6.5, x1: b.x + 3, z0: b.z - 3.3, z1: b.z + 3.3 }));
       rects.push({ x0: -4.2, x1: 4.2, z0: -24.8, z1: -16.2 });
-      try { this.mirror = new FloorMirror(renderer, this.scene, rects, { strength: 0.55 }); } catch (e) { this.mirror = null; }
+      try { this.mirror = new FloorMirror(renderer, this.scene, rects, { strength: 1.0 }); } catch (e) { this.mirror = null; }
     }
     this.glowMats = [...this.hall.glows]; this.glowBase = this.glowMats.map((m) => m.opacity);
     this.setupLights();
@@ -178,11 +178,11 @@ export class ShowroomEngine {
     if (this.running) return; this.running = true; let last = performance.now();
     const loop = (now) => {
       if (!this.running) return; this.raf = requestAnimationFrame(loop);
+      this.renderer.info.reset();   // counts the whole frame: floor-mirror pass + shadow + scene + bloom
       const dt = Math.min(this.maxDt || 0.1, (now - last) / 1000); last = now;
       if (this.onFrame) this.onFrame(dt, now);
       if (this.products) this.products.update(dt, this.camera);
       this.daylight(dt);
-      this.renderer.info.reset();
       if (this.post) this.post.render(); else this.renderer.render(this.scene, this.camera);
       this.measure(dt);
     };
