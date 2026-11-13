@@ -2,7 +2,7 @@
  * doors), LED strips with additive wash, static-geometry merging and baked contact shadows. Pure three.js; a product module (kitchen.js,
  * wardrobe.js, door.js) calls these and gets back one object with update(). Product frame: +X toward the visitor, Y up, wall at x = -3. */
 import * as THREE from 'three';
-import { bevelBox, flutedPanel, placed, prep } from '../../3d/builders';
+import { bevelBox, flutedPanel, placed, prep, aoQuad, mergeAo } from '../../3d/builders';
 import { mergeGeometries } from '../../3d/geom';
 import { washTexture, poolTexture, contactShadowTexture } from '../../3d/pbr';
 import { createProductState } from '../../products/animation';
@@ -20,6 +20,7 @@ export function createKit({ product, M, tier, registry, reduced = false }) {
   const lod = { detail: new THREE.Group(), props: new THREE.Group() };          // hidden when the visitor is far away (draw-call saving)
   lod.detail.name = 'lod-detail'; lod.props.name = 'lod-props'; group.add(lod.detail, lod.props);
   const washTex = _wash.v || (_wash.v = washTexture()), poolTex = _wash.p || (_wash.p = poolTexture());
+  const aoList = [];
   const ledMats = [];                      // every emissive material created here (disposed with the product)
 
   const kit = {
@@ -27,7 +28,15 @@ export function createKit({ product, M, tier, registry, reduced = false }) {
     /** collect a placed geometry into the merged static mesh of `mat` */
     addStatic(geo, mat) { if (!statics.has(mat)) statics.set(mat, []); statics.get(mat).push(prep(geo)); },
     /** merge the collected statics into one mesh per material; call once at the end of a product build */
+    /** queue a baked-AO decal (see builders.aoQuad); they are merged into ONE transparent mesh at flush time */
+    ao(c, u, v, w, h, dark = '-v', strength = 0.5) { aoList.push(aoQuad(c, u, v, w, h, dark, strength)); },
+    /** polished stone floor zone of this bay (product frame: x -2.7..2.7, z -3.1..3.1) */
+    floor(w = 5.4, d = 6.2) {
+      const g = new THREE.PlaneGeometry(w, d); g.rotateX(-Math.PI / 2); const uv = g.attributes.uv, p = g.attributes.position; for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i) / 2.4 + 0.3, p.getZ(i) / 2.4 + 0.7);
+      const m = new THREE.Mesh(g, M.floorBay[product]); m.position.set(0, 0.009, 0); m.receiveShadow = true; m.name = 'bay-floor'; group.add(m); return m;
+    },
     flushStatics({ cast = true, receive = true, into = group } = {}) {
+      if (aoList.length) { const m = new THREE.Mesh(mergeAo(aoList), M.ao); m.renderOrder = 3; m.frustumCulled = false; m.name = 'ao-decals'; into.add(m); aoList.length = 0; }
       for (const [mat, list] of statics) {
         const m = new THREE.Mesh(mergeGeometries(list), mat); m.castShadow = cast; m.receiveShadow = receive; m.name = 'static'; m.matrixAutoUpdate = false; m.updateMatrix(); into.add(m);
       }

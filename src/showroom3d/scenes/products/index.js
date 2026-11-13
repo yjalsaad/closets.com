@@ -63,6 +63,7 @@ export function buildProducts({ renderer, hallM, tier, lang, bays, reduced = fal
     },
     /** jump the key light straight to the anchor nearest the camera (used after a teleport and by QA; normally it glides) */
     snap(cam) { let best = anchors[0], bd = 1e9; for (const a of anchors) { const d = Math.hypot(cam.position.x - a.at[0], cam.position.z - a.at[2]) * (a.id === 'stage' ? 0.7 : 1); if (d < bd) { bd = d; best = a; } } lightTo(best, 0, true); },
+    anchorId: () => anchorId || 'neutral',
     setLanguage(l) { stage.relabel(l); },
     setReduced(v) { for (const k of Object.values(kits)) k.setReduced(v); },
     /** 0..1: hall light level from the intro (products wake up with the hall) */

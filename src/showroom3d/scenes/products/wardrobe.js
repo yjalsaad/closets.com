@@ -16,6 +16,7 @@ export function buildWardrobe({ M, tier, registry, reduced }) {
   const { lod } = kit, F = M.front.wardrobe, C = M.carcass.wardrobe, METAL = M.metal.wardrobe, fin = bevelBox;
   const cx = (X0 + X1) / 2, d = X1 - X0, H = Y1 - Y0, cy = (Y0 + Y1) / 2;
 
+  kit.floor();
   // ---- carcass: back, top, bottom, ends and three full-height dividers (static, one draw call) ----
   const shell = [placed(fin(0.018, H, Z1 - Z0, { b: 0.0008, grain: 'y' }), { x: X0 + 0.009, y: cy }), placed(fin(d, 0.02, Z1 - Z0, { b: 0.0008, grain: 'z' }), { x: cx, y: Y1 - 0.01 }), placed(fin(d, 0.02, Z1 - Z0, { b: 0.0008, grain: 'z' }), { x: cx, y: Y0 + 0.01 })];
   for (const z of [Z0 + 0.009, -1.2, 0, 1.2, Z1 - 0.009]) shell.push(placed(fin(d - 0.02, H, 0.018, { b: 0.0008, grain: 'y', off: [z, 0] }), { x: cx - 0.01, y: cy, z }));
@@ -84,15 +85,24 @@ export function buildWardrobe({ M, tier, registry, reduced }) {
   // trims: slim bronze reveals between sections (a visible shadow gap) and kick
   for (const z of [0, 1.2]) kit.addStatic(placed(fin(0.006, H - 0.04, 0.008, { b: 0.0006 }), { x: X1 + 0.002, y: cy, z }), METAL);
 
+  // ---- baked ambient occlusion: inside every section (under the top board, at the dividers, above the base), wall under the canopy ----
+  for (const [z0, z1, y0, y1] of [[-2.4, -1.2, Y0, Y1], [-1.2, 0, Y0, Y1], [0, 1.2, Y0, Y1], [1.2, 2.4, 1.2, Y1]]) {
+    const zc = (z0 + z1) / 2, w = z1 - z0;
+    kit.ao([-2.78, Y1 - 0.25, zc], [0, 0, 1], [0, 1, 0], w, 0.5, '+v', 0.5); kit.ao([-2.78, y0 + 0.2, zc], [0, 0, 1], [0, 1, 0], w, 0.4, '-v', 0.4);
+    kit.ao([-2.78, (y0 + y1) / 2, z0 + 0.17], [0, 0, 1], [0, 1, 0], 0.34, y1 - y0, '-u', 0.4); kit.ao([-2.78, (y0 + y1) / 2, z1 - 0.17], [0, 0, 1], [0, 1, 0], 0.34, y1 - y0, '+u', 0.4);
+  }
+  kit.ao([-2.815, 3.05, 0], [0, 0, 1], [0, 1, 0], 6.2, 0.55, '+v', 0.5);
+  kit.ao([-2.2 - 0.1, 0.011, 0], [0, 0, 1], [1, 0, 0], 4.8, 0.3, '-v', 0.3);
   // ---- stage ----
   buildCanopy(kit); buildWallWash(kit, { z: 0, len: 6.0 });
   kit.contactShadow({ x: -1.7, z: 0, w: 1.7, d: 5.4, strength: 0.55, blur: 26 });
   kit.pool(-0.9, 0.005, 0, 4.2, 0.18);
+  { const rug = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.7), M.rug); rug.rotation.x = -Math.PI / 2; rug.position.set(-0.85, 0.0125, 0); rug.receiveShadow = true; lod.props.add(rug); }
   // props on top and beside
   ceramic.push(...pr.vase(-2.5, Y1 + 0.011, -0.8, { h: 0.4, r: 0.09, color: P.ceramicDark }));
-  const leaves = [...pr.stems(-2.5, Y1 + 0.011 + 0.2, -0.8, { n: 7, h: 0.55, seed: 11 }), ...pr.plant(-1.8, 0, 2.95, { h: 1.35, leaves: 34, potR: 0.18, seed: 5 })];
+  const pl = pr.plant(-1.8, 0, 2.95, { h: 1.35, leaves: 44, potR: 0.18, seed: 5 }), leaves = [...pr.stems(-2.5, Y1 + 0.011 + 0.2, -0.8, { n: 7, h: 0.55, seed: 11 }), ...pl.body];
   const add = (items, mat, cast = true) => { if (items.length) lod.props.add(propMesh(items, mat, { cast })); };
-  add(soft.filter((x) => x.geo.attributes && x.geo.attributes.position.count > 0), M.fabric); add(ceramic, M.ceramic); add(leaves, M.leaves, false); add(metalP, M.propMetal);
+  add(soft.filter((x) => x.geo.attributes && x.geo.attributes.position.count > 0), M.fabric); add(ceramic, M.ceramic); add(leaves, M.leaves, false); add(pl.cards, M.leafCard, false); add(metalP, M.propMetal);
   const hw = new THREE.Mesh(mergeGeometries(hardware), METAL); hw.castShadow = true; lod.detail.add(hw);
   kit.flushStatics();
   return kit;

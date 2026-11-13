@@ -75,6 +75,11 @@ export function garment(type, x, y, z, { color = P.fabricLinen, ry = 0, s = 1, s
   const depth = type === 'coat' ? 0.07 : 0.045;
   const g = new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.012, bevelSegments: 1, curveSegments: 2 });
   g.translate(0, 0, -depth / 2);
+  { // fabric drape: soft vertical folds (stronger toward the hem) plus a slow sway, different per garment
+    const rr = mulberry32(seed * 977 + 13), ph = rr() * 6.28, ph2 = rr() * 6.28, amp = 0.007 + rr() * 0.008, pos = g.attributes.position;
+    for (let i = 0; i < pos.count; i++) { const px = pos.getX(i), py = pos.getY(i), hem = Math.min(1, Math.max(0, -py / 0.6)); pos.setZ(i, pos.getZ(i) + Math.sign(pos.getZ(i) || 1) * amp * (Math.sin(px * 20 * s + ph) * (0.35 + 0.65 * hem) + 0.6 * Math.sin(py * 9 + ph2))); }
+    g.computeVertexNormals();
+  }
   const out = [G(g, color, { x, y, z, ry })];
   // hanger: slim shoulder bar + hook (rotated with the garment)
   const hb = placed(bevelBox(0.4 * s + 0.04, 0.006, 0.006, { b: 0.0008 }), { y: -0.03, ry }), hook = placed(new THREE.TorusGeometry(0.018, 0.0025, 5, 10, Math.PI * 1.5), { y: 0.0, ry });
@@ -101,24 +106,29 @@ export function shoe(x, y, z, { color = P.fabricCharcoal, ry = 0 } = {}) {
   return [G(bevelBox(0.28, 0.07, 0.095, { b: 0.025 }), color, { x, y: y + 0.035, z, ry }), G(bevelBox(0.1, 0.1, 0.09, { b: 0.03 }), color, { x: x - 0.09 * Math.cos(ry), y: y + 0.06, z: z + 0.09 * Math.sin(ry) * 0, ry }), G(bevelBox(0.075, 0.02, 0.09, { b: 0.006 }), P.fabricCream, { x: x - 0.11, y: y + 0.01, z, ry })];
 }
 
-/** potted plant: terracotta pot + curved stems with elliptic leaves (two greens). h = overall height */
+/**
+ * potted plant: terracotta pot + curved stems + LEAF CARDS (alpha cut-out planes with midrib and veins, bent along their length, tinted per leaf).
+ * Returns { body: [{geo,color}] for the vertex-colour material, cards: [{geo,color}] for the leaf-card material }.
+ */
 export function plant(x, y, z, { h = 1.2, leaves = 26, potR = 0.17, seed = 1, potColor = P.potTerra, spread = 0.35, leafSize = 0.11 } = {}) {
-  const r = mulberry32(seed), out = [G(lathe([[0.001, 0], [potR * 0.7, 0], [potR, potR * 1.5], [potR * 1.04, potR * 1.62], [potR * 0.92, potR * 1.62], [potR * 0.9, potR * 1.5], [0.001, potR * 1.5]], 18), potColor, { x, y, z })];
-  const top = y + potR * 1.5, tall = h - potR * 1.5;
-  out.push(G(new THREE.CylinderGeometry(potR * 0.88, potR * 0.88, 0.01, 14), 0x2b2118, { x, y: top - 0.005, z }));
-  const stems = 4 + Math.round(leaves / 7);
+  const r = mulberry32(seed), body = [G(lathe([[0.001, 0], [potR * 0.7, 0], [potR, potR * 1.5], [potR * 1.04, potR * 1.62], [potR * 0.92, potR * 1.62], [potR * 0.9, potR * 1.5], [0.001, potR * 1.5]], 18), potColor, { x, y, z })], cards = [];
+  const top = y + potR * 1.5, tall = h - potR * 1.5, tints = [P.leaf, P.leafDeep, P.leafDry, P.grassDark];
+  body.push(G(new THREE.CylinderGeometry(potR * 0.88, potR * 0.88, 0.01, 14), 0x2b2118, { x, y: top - 0.005, z }));
+  const stems = 4 + Math.round(leaves / 6);
   for (let s = 0; s < stems; s++) {
-    const a = (s / stems) * 6.28 + r(), lean = 0.04 + r() * spread, top2 = tall * (0.55 + r() * 0.45);
+    const a = (s / stems) * 6.28 + r(), lean = 0.04 + r() * spread, top2 = tall * (0.5 + r() * 0.5);
     const pts = [[0, 0, 0], [Math.cos(a) * lean * 0.3, top2 * 0.4, Math.sin(a) * lean * 0.3], [Math.cos(a) * lean, top2, Math.sin(a) * lean]];
-    out.push(G(tube(pts, 0.006, { seg: 6, radial: 5 }), P.trunk, { x, y: top, z }));
-    const n = Math.round(leaves / stems);
+    body.push(G(tube(pts, 0.005, { seg: 6, radial: 5 }), P.trunk, { x, y: top, z }));
+    const n = Math.max(3, Math.round(leaves / stems));
     for (let i = 0; i < n; i++) {
-      const k = 0.35 + 0.65 * (i / n), px = Math.cos(a) * lean * k * k + (r() - 0.5) * 0.06, pz = Math.sin(a) * lean * k * k + (r() - 0.5) * 0.06, py = top2 * k;
-      const lg = new THREE.SphereGeometry(leafSize * (0.8 + r() * 0.5), 7, 5); lg.scale(1, 0.12, 0.55);
-      out.push(G(lg, (i + s) % 3 ? P.leaf : P.leafDeep, { x: x + px, y: top + py, z: z + pz, ry: r() * 6.28, rz: (r() - 0.5) * 1.2, rx: (r() - 0.5) * 0.6 }));
+      const k = 0.3 + 0.7 * (i / n), px = Math.cos(a) * lean * k * k, pz = Math.sin(a) * lean * k * k, py = top2 * k, sz = leafSize * (0.8 + r() * 0.7);
+      const lg = new THREE.PlaneGeometry(sz * 0.8, sz * 1.7, 1, 4), p = lg.attributes.position;
+      for (let v = 0; v < p.count; v++) { const t = (p.getY(v) + sz * 0.85) / (sz * 1.7); p.setY(v, t * sz * 1.7); p.setZ(v, p.getZ(v) + t * t * sz * 0.5 + Math.abs(p.getX(v)) * 0.25); }
+      lg.computeVertexNormals();
+      cards.push(G(lg, tints[Math.floor(r() * tints.length)], { x: x + px, y: top + py, z: z + pz, ry: a + (r() - 0.5) * 1.6, rx: -(0.5 + r() * 0.9), rz: (r() - 0.5) * 0.4 }));
     }
   }
-  return out;
+  return { body, cards };
 }
 /** pampas / dried stems in a vase */
 export function stems(x, y, z, { n = 7, h = 0.7, seed = 5, color = P.fabricCream } = {}) {

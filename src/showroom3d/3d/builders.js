@@ -114,3 +114,25 @@ export function mergeColored(items) {
   m.setAttribute('color', new THREE.BufferAttribute(col, 3));
   return m;
 }
+
+/**
+ * A baked ambient-occlusion decal quad: centre c, in-plane axes uDir / vDir (unit vectors), size w x h, darkest along `dark` ('-v' | '+v' | '-u' | '+u'),
+ * strength 0..1 (vertex alpha). Use with the decal material (transparent black, alpha gradient map, vertexColors) and merge them per product.
+ */
+export function aoQuad(c, uDir, vDir, w, h, dark = '-v', strength = 0.5) {
+  const U = new THREE.Vector3(...uDir).normalize(), V = new THREE.Vector3(...vDir).normalize(), C = new THREE.Vector3(...c);
+  const corner = (su, sv) => C.clone().addScaledVector(U, su * w / 2).addScaledVector(V, sv * h / 2);
+  const pts = [corner(-1, -1), corner(1, -1), corner(1, 1), corner(-1, 1)], idx = [0, 1, 2, 0, 2, 3];
+  const grad = { '-v': (su, sv) => (sv + 1) / 2, '+v': (su, sv) => (1 - sv) / 2, '-u': (su) => (su + 1) / 2, '+u': (su) => (1 - su) / 2 }[dark];
+  const sg = [[-1, -1], [1, -1], [1, 1], [-1, 1]], pos = new Float32Array(18), uv = new Float32Array(12), col = new Float32Array(24);
+  idx.forEach((k, i) => { pos.set([pts[k].x, pts[k].y, pts[k].z], i * 3); uv.set([0.5, grad(sg[k][0], sg[k][1])], i * 2); col.set([0, 0, 0, strength], i * 4); });
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setAttribute('color', new THREE.BufferAttribute(col, 4));
+  g.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(18).fill(0).map((_, i) => (i % 3 === 1 ? 1 : 0)), 3));
+  return g;
+}
+/** merge ao decals (position / uv / 4-component colour) into one geometry = one draw call */
+export function mergeAo(list) {
+  const n = list.reduce((a, g) => a + g.attributes.position.count, 0), pos = new Float32Array(n * 3), uv = new Float32Array(n * 2), col = new Float32Array(n * 4), nor = new Float32Array(n * 3);
+  let o = 0; for (const g of list) { pos.set(g.attributes.position.array, o * 3); uv.set(g.attributes.uv.array, o * 2); col.set(g.attributes.color.array, o * 4); nor.set(g.attributes.normal.array, o * 3); o += g.attributes.position.count; }
+  const m = new THREE.BufferGeometry(); m.setAttribute('position', new THREE.BufferAttribute(pos, 3)); m.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); m.setAttribute('color', new THREE.BufferAttribute(col, 4)); m.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); return m;
+}

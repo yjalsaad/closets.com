@@ -7,6 +7,8 @@ import { SUN_DIR, buildEnvironment } from './sky';
 import { stoneSet, woodSet, plasterSet, paverSet, grassSet, sandSet, leafSet, trunkSet, frondCanvas } from './textures';
 import { createMaterials, glowTexture } from './materials';
 import { disposeTree } from './geom';
+import { FloorMirror } from './mirror';
+import { sunScale, gradeFor, mixGrade } from './lighting';
 import { LOGO_URL } from '../logo';
 import { buildExterior } from '../scenes/exterior';
 import { buildEntrance } from '../scenes/entrance';
@@ -71,6 +73,11 @@ export class ShowroomEngine {
     this.products = buildProducts({ renderer, hallM: M, tier, lang: this.lang, bays: layoutBays(), reduced: !!this.reduced });
     this.scene.add(this.products.group); this.products.lights.forEach((l) => this.scene.add(l)); this.report('products', 0.6);
     this.bays = buildBays({ ...ctx, products: this.products }); this.scene.add(this.bays.group); this.report('products', 1);
+    if (tier.id === 'high') {   // planar floor reflections of the furnished bays + stage (high tier only)
+      const rects = layoutBays().filter((b) => b.product).map((b) => (b.facing > 0 ? { x0: b.x - 3, x1: b.x + 6.5, z0: b.z - 3.3, z1: b.z + 3.3 } : { x0: b.x - 6.5, x1: b.x + 3, z0: b.z - 3.3, z1: b.z + 3.3 }));
+      rects.push({ x0: -4.2, x1: 4.2, z0: -24.8, z1: -16.2 });
+      try { this.mirror = new FloorMirror(renderer, this.scene, rects, { strength: 0.55 }); } catch (e) { this.mirror = null; }
+    }
     this.glowMats = [...this.hall.glows]; this.glowBase = this.glowMats.map((m) => m.opacity);
     this.setupLights();
     this.applyState(this.state);
@@ -104,7 +111,7 @@ export class ShowroomEngine {
     scene.add(sun); this.sun = sun;
     this.hemi = new THREE.HemisphereLight(PALETTE.hemiSky, PALETTE.stoneMid, 0.55); scene.add(this.hemi);
     const spots = [[-8, 7.4, -8], [8, 7.4, -8], [0, 7.4, -18], [-8, 7.4, -28], [8, 7.4, -28], [0, 7.4, -4]].slice(0, tier.pointLights);
-    this.pointLights = spots.map((p) => { const l = new THREE.PointLight(PALETTE.ledWarm, 130, 42, 2); l.position.set(...p); scene.add(l); l.userData.base = 130; return l; });
+    this.pointLights = spots.map((p) => { const l = new THREE.PointLight(PALETTE.lightHall, 130, 42, 2); l.position.set(...p); scene.add(l); l.userData.base = 130; return l; });
   }
 
   /** push the cinematic state (door opening, interior light level) into the scene */
@@ -139,6 +146,16 @@ export class ShowroomEngine {
     if (!x && !y) { if (c.view && c.view.enabled) { c.clearViewOffset(); } return; }
     c.setViewOffset(w, h, x, y, w, h);
   }
+  /** inside the hall the hard window-sun stripes fade out (the bay key lights take over); the colour grade glides to the nearest room's grade; the floor mirror renders */
+  daylight(dt) {
+    const z = this.camera.position.z;
+    if (this.sun && !this.cinematic) this.sun.intensity = 8.2 * sunScale(z);
+    if (this.post && this.post.setGrade && this.products) {
+      const id = z < 0.6 ? this.products.anchorId() : 'neutral', want = gradeFor(id); this.grade = this.grade ? mixGrade(this.grade, want, 1 - Math.exp(-2.5 * dt)) : want; this.post.setGrade(this.grade);
+    }
+    if (this.mirror && z < -0.5) { this.mirror.setSize(this.width * (this.scale || 1), this.height * (this.scale || 1)); this.mirror.mesh.visible = true; this.mirror.render(this.camera, [this.hall && this.hall.group, this.exterior && this.exterior.group, this.entrance && this.entrance.group, ...(this.products ? this.products.outlines : [])]); }
+    else if (this.mirror) this.mirror.mesh.visible = false;
+  }
   setLanguage(lang) { this.lang = lang; if (this.bays) this.bays.relabel(lang); if (this.products) this.products.setLanguage(lang); }
 
   setSize(w, h) {
@@ -164,6 +181,7 @@ export class ShowroomEngine {
       const dt = Math.min(this.maxDt || 0.1, (now - last) / 1000); last = now;
       if (this.onFrame) this.onFrame(dt, now);
       if (this.products) this.products.update(dt, this.camera);
+      this.daylight(dt);
       this.renderer.info.reset();
       if (this.post) this.post.render(); else this.renderer.render(this.scene, this.camera);
       this.measure(dt);
@@ -188,6 +206,7 @@ export class ShowroomEngine {
   dispose() {
     this.disposed = true; this.stop();
     if (this.scene) disposeTree(this.scene);
+    if (this.mirror) { try { this.mirror.dispose(); } catch (e) { /* ignore */ } }
     if (this.post) { try { this.post.dispose(); } catch (e) { /* ignore */ } }
     if (this.products) this.products.dispose();
     if (this.envMap) this.envMap.dispose();

@@ -29,7 +29,7 @@ function gray(arr, w, h) {
  */
 export function timberSet(size, seed = 3, tone = 0) {
   const n = makeNoise2D(seed), n2 = makeNoise2D(seed + 7), n3 = makeNoise2D(seed + 19);
-  const A = tone ? rgb(0x75594a) : rgb(0xaa957a), B = tone ? rgb(0x3a281c) : rgb(0x7f6a50);
+  const A = tone ? rgb(0x6d5546) : rgb(0xa8998a), B = tone ? rgb(0x2f2017) : rgb(0x796a58);
   const rings = tone ? 16 : 20, cath = tone ? 0.55 : 0.4;
   const h = new Float32Array(size * size), r = new Float32Array(size * size);
   const map = paint(size, (u, v, o, x, y) => {
@@ -156,4 +156,35 @@ export function buildInteriorEnv(renderer) {
   const pm = new THREE.PMREMGenerator(renderer); const rt = pm.fromScene(scene, 0.035, 0.1, 60); pm.dispose();
   scene.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
   return rt.texture;
+}
+
+/** large-format polished stone / porcelain: 2 x 2 tiles of the veined stone generator (each tile flipped / offset so no two match), dark grout, grout normal. */
+export function tileSet(size, seed = 41, variant = 'white') {
+  const half = size >> 1, base = marbleSet(half, seed, variant), c = cv(size), g = c.getContext('2d'), cr = cv(size), gr = cr.getContext('2d');
+  const flips = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
+  for (let i = 0; i < 4; i++) {
+    const tx = i % 2, ty = i >> 1, [fx, fy] = flips[(i * 3 + seed) % 4];
+    for (const [src, ctx] of [[base.map, g], [base.rough, gr]]) { ctx.save(); ctx.translate(tx * half + (fx < 0 ? half : 0), ty * half + (fy < 0 ? half : 0)); ctx.scale(fx, fy); ctx.drawImage(src, 0, 0); ctx.restore(); }
+  }
+  const gw = Math.max(2, Math.round(size / 256)), h = new Float32Array(size * size).fill(0.8);
+  g.fillStyle = 'rgba(40,36,32,0.55)'; gr.fillStyle = 'rgb(200,200,200)';
+  for (const k of [0, half]) { g.fillRect(k - gw / 2, 0, gw, size); g.fillRect(0, k - gw / 2, size, gw); gr.fillRect(k - gw / 2, 0, gw, size); gr.fillRect(0, k - gw / 2, size, gw); }
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) { const dx = Math.min(x % half, half - (x % half)), dy = Math.min(y % half, half - (y % half)); if (Math.min(dx, dy) < gw) h[y * size + x] = 0.2; }
+  return { map: c, rough: cr, normal: heightToNormal(h, size, size, 1.4) };
+}
+
+/** a leaf card (alpha cut-out): pointed oval, midrib, side veins, light-to-dark gradient. White-ish base so vertex colours tint it. */
+export function leafCardTexture() {
+  const W = 128, H = 256, c = cv(W, H), g = c.getContext('2d'); g.clearRect(0, 0, W, H);
+  const path = () => { g.beginPath(); g.moveTo(W / 2, H - 4); g.bezierCurveTo(W * 0.98, H * 0.78, W * 0.95, H * 0.28, W / 2, 4); g.bezierCurveTo(W * 0.05, H * 0.28, W * 0.02, H * 0.78, W / 2, H - 4); g.closePath(); };
+  path(); const gr = g.createLinearGradient(0, H, 0, 0); gr.addColorStop(0, '#9aa08a'); gr.addColorStop(0.5, '#e2e6d8'); gr.addColorStop(1, '#c9d0bd'); g.fillStyle = gr; g.fill();
+  g.save(); path(); g.clip(); g.strokeStyle = 'rgba(70,84,60,0.55)'; g.lineWidth = 3; g.beginPath(); g.moveTo(W / 2, H - 4); g.lineTo(W / 2, 8); g.stroke(); g.lineWidth = 1.4;
+  for (let i = 0; i < 9; i++) { const y = H - 30 - i * 24; for (const sx of [-1, 1]) { g.beginPath(); g.moveTo(W / 2, y); g.quadraticCurveTo(W / 2 + sx * W * 0.22, y - 14, W / 2 + sx * W * 0.44, y - 34); g.stroke(); } }
+  g.restore(); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+/** alpha gradient used by the baked-AO decals: opaque at v = 0, clear at v = 1 (colour is black, the material is transparent) */
+export function aoTexture() {
+  const c = cv(4, 64), g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 64);
+  gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(0.25, 'rgba(0,0,0,0.55)'); gr.addColorStop(0.6, 'rgba(0,0,0,0.16)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 4, 64); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }

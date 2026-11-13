@@ -43,7 +43,7 @@ export const PALETTE = {
   sun: 0xffe2b0,
   fog: 0xe6d3b8,
   // Phase 4: product finishes (sample configuration swatches, all procedural) + props + campaign
-  oakLight: 0xb89868, oakPale: 0xd2bb94, walnutDeep: 0x4a3426, smokedOak: 0x6e5440,
+  oakLight: 0xb09a7c, oakPale: 0xcbbca0, walnutDeep: 0x4a3426, smokedOak: 0x6e5440,
   lacquerSage: 0x8f9a86, lacquerStone: 0xa7a199, lacquerIvory: 0xe9e3d6, lacquerCharcoal: 0x34332f, lacquerClay: 0xb08a72,
   marbleWhite: 0xe8e4dc, marbleVeinGrey: 0x8d8a86, marbleVeinGold: 0xb89b63, marbleDark: 0x2c2a29, marbleDarkVein: 0xb9b2a6, marbleSand: 0xd7c6a8,
   brassBrushed: 0xb8935a, bronzeDark: 0x3a2f27, steel: 0xa8aaab, glassSmoke: 0x2b2622,
@@ -52,6 +52,7 @@ export const PALETTE = {
   ceramicWhite: 0xf1ede6, ceramicSand: 0xcbbba3, ceramicTerra: 0xb26a48, ceramicDark: 0x3b3430, bookA: 0x6b3a2e, bookB: 0x2f4a47, bookC: 0xd2c3a6, bookD: 0x4b4f6b, rugSand: 0xd6c7ac, rugBorder: 0x8c7658, potTerra: 0xb5805a, leafDeep: 0x3f5a2c,
   fruitLemon: 0xd9c34c, fruitApple: 0x7d9a3a, fruitOrange: 0xd9822b, steelPot: 0xb8babb, woodSpoon: 0xb98d5c, brassLamp: 0xc9a25b, shadeLinen: 0xefe3cc,
   artA: 0x8a5a44, artB: 0xd8c3a0, artC: 0x2f4a47, artD: 0xe9e2d6, artE: 0xb9873c,
+  lightHall: 0xffe8d0,
   ceilingLight: 0xf2ebdf, wallGreige: 0x6f685e,
   focusRing: 0xffb067, hoverRing: 0xfff0d6,
   // Ikhtarha campaign brand: mirrored from src/campaign/IkhtarhaRoot.jsx BRAND (primary / accent / sand / taupe / charcoal). The campaign

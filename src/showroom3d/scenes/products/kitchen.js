@@ -33,6 +33,7 @@ export function buildKitchen({ M, tier, registry, reduced }) {
   const { group, lod } = kit, F = M.front.kitchen, C = M.carcass.kitchen, METAL = M.metal.kitchen;
   const fin = (w, h, d, o) => bevelBox(w, h, d, o);
 
+  kit.floor();
   // ---- feature wall: fluted timber (real geometry) + stone splashback ----
   const wall = new THREE.Mesh(flutedPanel(6.2, 3.3, 0.04, { pitch: 0.04, relief: 0.012, off: [0.2, 0.1] }).rotateY(Math.PI / 2), M.flute.kitchen);
   wall.position.set(-2.84, 1.65, 0); wall.receiveShadow = true; wall.name = 'feature-wall'; group.add(wall);
@@ -156,25 +157,32 @@ export function buildKitchen({ M, tier, registry, reduced }) {
   const bulb = M.ledWarm(); bulb.color.multiplyScalar(1.4); kit.mesh(mergeGeometries(lamps), bulb, { cast: false });
   kit.pool(-0.2, BASE.top + BASE.wt + 0.004, 0, 1.8, 0.35);
 
+  // ---- baked ambient occlusion (decals): wall under the canopy, splashback under the wall units, island fronts under the overhang, worktop at the splashback ----
+  kit.ao([-2.815, 3.05, 0], [0, 0, 1], [0, 1, 0], 6.2, 0.55, '+v', 0.5);
+  kit.ao([-2.77, 1.36, -1.35], [0, 0, 1], [0, 1, 0], 2.7, 0.3, '+v', 0.42); kit.ao([-2.77, 1.36, 1.8], [0, 0, 1], [0, 1, 0], 1.8, 0.3, '+v', 0.42);
+  kit.ao([-2.5, 0.907, 0], [0, 0, 1], [1, 0, 0], 5.4, 0.2, '-v', 0.3);
+  kit.ao([ISL.x1 + T + 0.002, 0.77, 0], [0, 0, 1], [0, 1, 0], 2.4, 0.2, '+v', 0.45);
+  kit.ao([-2.2 - 0.1, 0.011, 0], [0, 0, 1], [1, 0, 0], 5.4, 0.3, '-v', 0.35);
   // ---- stage: canopy, wall wash, contact shadows, floor pool ----
   buildCanopy(kit); buildWallWash(kit, { z: 0, len: 6.0 });
   kit.contactShadow({ x: ix - 0.2, z: 0, w: 1.5, d: 3.0, strength: 0.55, blur: 26 });
   kit.contactShadow({ x: sx, z: 0, w: 1.2, d: 6.2, strength: 0.5, blur: 24 });
 
+  { const rug = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 2.6), M.rug); rug.rotation.x = -Math.PI / 2; rug.rotation.z = Math.PI / 2; rug.position.set(-1.75, 0.0125, 0); rug.receiveShadow = true; lod.props.add(rug); }   // runner in the aisle
   // ---- props (merged by material class: three draw calls for the whole set) ----
   const wtTop = BASE.top + BASE.wt;
-  const matte = [], ceramic = [], metalP = [], fabric = [], leaves = [];
+  const matte = [], ceramic = [], metalP = [], fabric = [], leaves = [], cards = [];
   ceramic.push(...pr.fruitBowl(-0.12, wtTop, 0.62), ...pr.vase(-0.3, wtTop, -0.6, { h: 0.34, r: 0.075, color: P.ceramicSand }), ...pr.plateStack(-2.45, wtTop, -0.45), ...pr.mug(-2.4, wtTop, -1.0, { color: P.ceramicTerra, ry: 0.5 }), ...pr.mug(-2.35, wtTop, -1.14), ...pr.utensilCrock(-2.7, wtTop, -2.45), ...pr.glass(-0.1, wtTop, -0.2));
   matte.push(...pr.books(-0.35, wtTop, 0.1, { n: 4, seed: 3, ry: 0.2 }), ...pr.cuttingBoard(-2.45, wtTop, -2.0));
   metalP.push(...pr.potOnHob(-2.5, wtTop + 0.007, hobZ));
-  leaves.push(...pr.plant(-2.62, wtTop, 2.42, { h: 0.45, leaves: 14, potR: 0.07, seed: 9, leafSize: 0.05 }));
+  { const pl = pr.plant(-2.62, wtTop, 2.42, { h: 0.45, leaves: 14, potR: 0.07, seed: 9, leafSize: 0.05 }); leaves.push(...pl.body); cards.push(...pl.cards); }
   leaves.push(...pr.stems(-0.3, wtTop + 0.3, -0.6, { n: 6, h: 0.55, seed: 4 }));
   const st1 = pr.stool(-1.22, -0.62, { color: P.fabricClay }), st2 = pr.stool(-1.22, 0.62, { color: P.fabricClay });
   fabric.push(...st1.soft, ...st2.soft); metalP.push(...st1.hard, ...st2.hard);
   // dishes inside the island cupboard (seen when the doors open)
   ceramic.push(...pr.plateStack(-0.25, 0.416, 0.36, 5), ...pr.plateStack(-0.25, 0.416, 0.9, 4), ...pr.bowl(-0.25, 0.121, 0.4), ...pr.bowl(-0.25, 0.121, 0.85, { r: 0.1 }));
   const add = (items, mat, cast = true) => { if (items.length) lod.props.add(propMesh(items, mat, { cast })); };
-  add(ceramic, M.ceramic); add(matte, M.matte); add(metalP, M.propMetal); add(fabric, M.fabric); add(leaves, M.leaves, false);
+  add(ceramic, M.ceramic); add(matte, M.matte); add(metalP, M.propMetal); add(fabric, M.fabric); add(leaves, M.leaves, false); add(cards, M.leafCard, false);
 
   kit.flushStatics();
   kit.extents = { x0: -3, x1: 3, z: 3.4 };
