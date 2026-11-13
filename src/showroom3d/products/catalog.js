@@ -196,8 +196,8 @@ export const PRODUCTS = {
     ],
     views: [
       { id: 'overview', label: { en: 'Whole studio', ar: 'الاستوديو كاملاً' }, pos: [3.9, 1.65, 0.0], look: [-2.0, 1.2, 0.0], fov: 56 },
-      { id: 'board', label: { en: 'Sample board', ar: 'لوح العينات' }, pos: [0.3, 1.5, -0.2], look: [-2.8, 1.45, -0.3], fov: 50 },
-      { id: 'screen', label: { en: 'Design Studio screen', ar: 'شاشة استوديو التصميم' }, pos: [0.0, 1.5, 1.4], look: [-2.8, 1.4, 2.1], fov: 42 },
+      { id: 'board', label: { en: 'Sample board', ar: 'لوح العينات' }, pos: [0.3, 1.5, -0.2], look: [-2.6, 1.45, -0.3], fov: 50 },
+      { id: 'screen', label: { en: 'Design Studio screen', ar: 'شاشة استوديو التصميم' }, pos: [0.0, 1.5, 1.4], look: [-2.6, 1.4, 2.1], fov: 42 },
       { id: 'table', label: { en: 'Design table', ar: 'طاولة التصميم' }, pos: [2.4, 1.9, 0.6], look: [-1.0, 0.8, 0.0], fov: 50 },
     ],
   },
@@ -221,7 +221,7 @@ export const PRODUCTS = {
     views: [
       { id: 'overview', label: { en: 'Whole lounge', ar: 'الصالة كاملة' }, pos: [3.9, 1.65, 0.0], look: [-1.8, 1.1, 0.0], fov: 56 },
       { id: 'desk', label: { en: 'Reception desk', ar: 'مكتب الاستقبال' }, pos: [1.9, 1.5, 0.2], look: [-2.2, 0.9, -0.3], fov: 50 },
-      { id: 'cta', label: { en: 'Consultation panel', ar: 'لوحة الاستشارة' }, pos: [0.4, 1.55, 1.5], look: [-2.8, 1.5, 2.1], fov: 46 },
+      { id: 'cta', label: { en: 'Consultation panel', ar: 'لوحة الاستشارة' }, pos: [0.4, 1.55, 1.5], look: [-2.6, 1.5, 2.1], fov: 46 },
       { id: 'seating', label: { en: 'Lounge seating', ar: 'منطقة الجلوس' }, pos: [3.6, 1.7, -2.4], look: [-0.5, 0.5, 2.0], fov: 54 },
     ],
   },

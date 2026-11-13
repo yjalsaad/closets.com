@@ -12,14 +12,14 @@ const bays = layoutBays(), bayOf = (id) => bays.find((b) => b.product === id);
 const read = (f) => fs.readFileSync(path.resolve(__dirname, '../../' + f), 'utf8');
 
 describe('product catalog', () => {
-  test('exactly the three departments of this phase are furnished; the other five stay empty', () => {
-    expect(DEPARTMENTS.filter(isFurnished).map((d) => d.id)).toEqual(['kitchens', 'wardrobes', 'doors']);
-    for (const id of ['walkin', 'bedroom', 'living', 'studio', 'lounge']) expect(isFurnished(DEPARTMENTS.find((d) => d.id === id))).toBe(false);
+  test('all eight departments are furnished, each with exactly one product, and every product has a bay', () => {
+    expect(DEPARTMENTS.filter(isFurnished).map((d) => d.id)).toEqual(['kitchens', 'wardrobes', 'walkin', 'bedroom', 'doors', 'living', 'studio', 'lounge']);
+    expect(PRODUCT_LIST.map((p) => p.dept).sort()).toEqual(DEPARTMENTS.map((d) => d.id).sort());
     for (const p of PRODUCT_LIST) { expect(productForDept(p.dept)).toBe(p); expect(bayOf(p.id)).toBeTruthy(); }
   });
   test('part ids are unique, every part is bilingual and has a known kind', () => {
     const ids = PRODUCT_LIST.flatMap((p) => p.parts.map((x) => x.id)); expect(new Set(ids).size).toBe(ids.length);
-    for (const p of PRODUCT_LIST) for (const x of p.parts) { expect(['drawer', 'door', 'slider', 'pivot']).toContain(x.kind); expect(x.label.en.length).toBeGreaterThan(3); expect(/[؀-ۿ]/.test(x.label.ar)).toBe(true); }
+    for (const p of PRODUCT_LIST) for (const x of p.parts) { expect(['drawer', 'door', 'slider', 'pivot', 'tilt', 'tray']).toContain(x.kind); expect(x.label.en.length).toBeGreaterThan(3); expect(/[؀-ۿ]/.test(x.label.ar)).toBe(true); }
   });
   test('the brief is covered: drawers + doors on the kitchen, sliding + hinged + glass + drawers on the wardrobe, a pivot door', () => {
     const kinds = (id) => new Set(PRODUCTS[id].parts.map((x) => x.kind));

@@ -12,8 +12,8 @@ describe('EN / AR strings', () => {
     expect(t('skipIntro', 'en')).toBe('Skip intro'); expect(t('skipIntro', 'ar')).toBe('تخطي المقدمة'); expect(t('nope', 'en')).toBe('nope');
     for (const v of Object.values(STRINGS)) expect(/[\u{1F300}-\u{1FAFF}☀-➿]/u.test(v.en + v.ar)).toBe(false);
   });
-  test('the preview note is honest that bays are empty', () => {
-    expect(STRINGS.previewNote.en.toLowerCase()).toContain('empty'); expect(STRINGS.bayPending.en.toLowerCase()).toContain('furnished');
+  test('the preview note is honest that the departments are sample configurations, not final designs or prices', () => {
+    expect(STRINGS.previewNote.en.toLowerCase()).toContain('sample configurations'); expect(STRINGS.previewNote.en.toLowerCase()).toContain('price'); expect(STRINGS.bayPending.en.toLowerCase()).toContain('furnished');
   });
 });
 

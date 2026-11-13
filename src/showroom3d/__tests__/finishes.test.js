@@ -2,8 +2,8 @@ import { FINISHES, PRODUCT_IDS, finishList, finishIds, getFinish, defaultFinish,
 import { PALETTE } from '../3d/palette';
 
 describe('finish configuration', () => {
-  test('three furnished products, each with 3 to 4 finishes, unique ids, bilingual names, palette swatches', () => {
-    expect(PRODUCT_IDS).toEqual(['kitchen', 'wardrobe', 'door']);
+  test('eight furnished products, each with 3 to 4 finishes, unique ids, bilingual names, palette swatches', () => {
+    expect(PRODUCT_IDS).toEqual(['kitchen', 'wardrobe', 'door', 'bedroom', 'walkin', 'living', 'studio', 'lounge']);
     for (const p of PRODUCT_IDS) {
       const list = finishList(p); expect(list.length).toBeGreaterThanOrEqual(3); expect(list.length).toBeLessThanOrEqual(4); expect(new Set(list.map((f) => f.id)).size).toBe(list.length);
       for (const f of list) { expect(f.en.length).toBeGreaterThan(3); expect(/[؀-ۿ]/.test(f.ar)).toBe(true); expect(Object.values(PALETTE)).toContain(f.swatch); }
@@ -24,5 +24,5 @@ describe('finish configuration', () => {
     for (const p of PRODUCT_IDS) for (const f of finishList(p)) { expect(f.en + f.ar).not.toMatch(/\d|BD|%|premium|certified|grade/i); }
   });
   test('the door finishes follow the site\'s own wording (oak to deep colour, veneer or hand-sprayed paint)', () => { const all = finishList('door').map((f) => f.en).join(' | '); expect(all).toMatch(/veneer/i); expect(all).toMatch(/hand-sprayed/i); });
-  test('data is exported as one frozen-shape object', () => { expect(Object.keys(FINISHES).sort()).toEqual(['door', 'kitchen', 'wardrobe']); });
+  test('data is exported as one frozen-shape object', () => { expect(Object.keys(FINISHES).sort()).toEqual([...PRODUCT_IDS].sort()); });
 });

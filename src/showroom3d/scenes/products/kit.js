@@ -40,7 +40,7 @@ export function createKit({ product, M, tier, registry, reduced = false }) {
       for (const [mat, list] of statics) {
         const m = new THREE.Mesh(mergeGeometries(list), mat); m.castShadow = cast; m.receiveShadow = receive; m.name = 'static'; m.matrixAutoUpdate = false; m.updateMatrix(); into.add(m);
       }
-      statics.clear();
+      statics.clear(); kit._dirty = true;      // run every updater once so closed drawers / tilting shelves hide their contents from the first frame
     },
     mesh(geo, mat, { x = 0, y = 0, z = 0, cast = true, receive = true, parent = group, name } = {}) {
       const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = cast; m.receiveShadow = receive; if (name) m.name = name; parent.add(m); return m;

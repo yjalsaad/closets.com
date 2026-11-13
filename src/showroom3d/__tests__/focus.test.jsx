@@ -34,7 +34,7 @@ function make(opts = {}) {
   const canvas = document.createElement('canvas'); document.body.appendChild(canvas); const engine = fakeEngine(), events = [];
   const x = new Explorer({ engine, canvas, reduced: true, onState: (p) => events.push(p), ...opts }); x.enable(); return { x, engine, canvas, events };
 }
-const at = (x, id) => { const b = bays.find((q) => q.id === id); x.walker.setPose(b.facing * 12.5 * -1 * -1 === 12.5 ? 12.5 * Math.sign(b.x) : 0, b.z, 0, 0); x.update(1 / 60); };
+const at = (x, id) => { const b = bays.find((q) => q.id === id); x.walker.setPose(12.5 * Math.sign(b.x), b.z, 0, 0); x.update(1 / 60); };
 
 describe('Explorer: product focus, picking and the Ikhtarha stage', () => {
   afterEach(() => { document.body.innerHTML = ''; });
@@ -51,8 +51,9 @@ describe('Explorer: product focus, picking and the Ikhtarha stage', () => {
     expect(engine.camera.position.x).toBeCloseTo(before.x, 6); expect(engine.camera.position.z).toBeCloseTo(before.z, 6); expect(x.walker.pos).toEqual(pose); expect(engine.baseFov).toBe(50); expect(engine.shifts.pop()).toEqual([0, 0]);
     expect(x.paused).toBe(false);   // Esc closed the focus, it did not also open the pause menu
   });
-  test('E at an empty bay does not focus anything (still the "later release" stub); E at the stage opens the Ikhtarha stage', () => {
-    const { x, events } = make(); at(x, 'walkin'); key('KeyE'); expect(x.focus).toBeNull(); expect(events.filter((e) => e.interact).pop()).toMatchObject({ interactZone: 'walkin' });
+  test('E at any of the eight bays focuses its product; E at the stage opens the Ikhtarha stage', () => {
+    const { x, events } = make(); for (const d of ['walkin', 'bedroom', 'living', 'studio', 'lounge']) { x.exitFocus(); at(x, d); key('KeyE'); expect(x.focus).toMatchObject({ kind: 'product', key: PRODUCTS[productForDept(d).id].id }); }
+    x.exitFocus();
     x.walker.setPose(0, -20.5, 0, 0); x.update(1 / 60); expect(x.zone.id).toBe('ikhtarha'); key('KeyE'); expect(x.focus).toMatchObject({ kind: 'stage', key: 'ikhtarha' }); expect(events.filter((e) => e.focusKind).pop().focusKind).toBe('stage');
     const v = STAGE_VIEWS[0]; x.update(1 / 60); expect(x.engine.camera.position.z).toBeCloseTo(v.pos[2], 6);
   });

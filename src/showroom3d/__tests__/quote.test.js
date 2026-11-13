@@ -17,7 +17,7 @@ describe('quotation / booking URL builder (builds a link; never calls a backend)
   test('each showroom product maps to an interest value that exists on the booking form', () => {
     const form = fs.readFileSync(path.resolve(__dirname, '../../pages/BookingPage.jsx'), 'utf8');
     for (const v of Object.values(INTEREST)) expect(form).toContain(`'${v}'`);
-    expect(INTEREST).toEqual({ kitchen: 'Kitchen', wardrobe: 'Wardrobe', door: 'Doors' });
+    expect(INTEREST).toEqual({ kitchen: 'Kitchen', wardrobe: 'Wardrobe', door: 'Doors', bedroom: 'Other', walkin: 'Walk-In Closet', living: 'TV Unit', studio: 'Other', lounge: 'Other' });
   });
   test('notes are sanitised (no control characters or angle brackets), capped, and unknown products add no interest', () => {
     const u = q(buildQuoteUrl({ product: 'sofa', productName: 'A\u0000<b>x</b>\n\ny', finishName: 'z'.repeat(2000), lang: 'en' }));
