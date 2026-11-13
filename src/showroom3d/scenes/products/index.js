@@ -65,7 +65,7 @@ export function buildProducts({ renderer, hallM, tier, lang, bays, reduced = fal
     /** put each product into its bay group (called by buildBays); right-hand bays face -x, so their frame is rotated by PI */
     attach(bay, grp) {
       const kit = bay.product && kits[bay.product]; if (!kit) return false;
-      kit.group.rotation.y = bay.facing < 0 ? Math.PI : 0; grp.add(kit.group); return true;
+      kit.group.rotation.y = bay.facing < 0 ? Math.PI : 0; kit.group.position.x = bay.facing * (kit.wallShift || 0); grp.add(kit.group); return true;
     },
     /** jump the key light straight to the anchor nearest the camera (used after a teleport and by QA; normally it glides) */
     snap(cam) { let best = anchors[0], bd = 1e9; for (const a of anchors) { const d = Math.hypot(cam.position.x - a.at[0], cam.position.z - a.at[2]) * (a.id === 'stage' ? 0.7 : 1); if (d < bd) { bd = d; best = a; } } lightTo(best, 0, true); },

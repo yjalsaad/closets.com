@@ -46,7 +46,7 @@ export function createProductMaterials({ tier, env, tex }) {
   M.stone = phys({ color: C(0xe9e6df), map: tex.marble.white.map, roughness: 0.14, metalness: 0, envMapIntensity: 1.0, clearcoat: hi ? 0.5 : 0, clearcoatRoughness: 0.08, roughnessMap: tex.marble.white.rough });
   M.stones = { kitchen: M.stone, ...mapIds(['bedroom', 'walkin', 'living', 'studio', 'lounge'], () => M.stone.clone()) };     // one stone per department, so finishes never leak between bays
   M.plaster = std({ map: white, roughnessMap: tex.peel.rough, normalMap: tex.peel.normal, normalScale: new THREE.Vector2(0.4, 0.4), color: C(P.plasterWarm), roughness: 0.85, envMapIntensity: 0.3 });
-  M.mirror = phys({ color: C(0xdfe8ea), metalness: 1, roughness: 0.035, envMapIntensity: 1.6 });
+  M.mirror = phys({ color: C(P.mirrorEdge), metalness: 1, roughness: 0.05, envMapIntensity: 0.85 });
   // per-bay floor zones (large-format polished stone, a different stone per room, so each bay reads as its own room): kitchen sand, wardrobe pale grey, door deep grey
   const floor = (t, ei = 0.85) => phys({ map: t.map, roughnessMap: t.rough, normalMap: t.normal, normalScale: new THREE.Vector2(0.5, 0.5), roughness: 1, metalness: 0, clearcoat: tier.id === 'low' ? 0 : 0.75, clearcoatRoughness: 0.06, envMapIntensity: ei });
   const plank = (t) => phys({ map: t.map, roughnessMap: t.rough, normalMap: t.normal, normalScale: new THREE.Vector2(0.6, 0.6), roughness: 1, metalness: 0, clearcoat: tier.id === 'low' ? 0 : 0.35, clearcoatRoughness: 0.28, envMapIntensity: 0.45 });
@@ -79,7 +79,7 @@ export function createProductMaterials({ tier, env, tex }) {
   // ---- props: vertex-coloured, so a whole shelf of objects is one draw call ----
   M.matte = std({ vertexColors: true, roughness: 0.88, envMapIntensity: 0.45 });
   M.ceramic = phys({ vertexColors: true, roughness: 0.22, clearcoat: hi ? 0.6 : 0, clearcoatRoughness: 0.1, envMapIntensity: 0.9 });
-  M.fabric = std({ vertexColors: true, roughness: 0.95, envMapIntensity: 0.35, normalMap: tex.peel.normal, normalScale: new THREE.Vector2(1.2, 1.2) });
+  M.fabric = std({ vertexColors: true, roughness: 0.95, envMapIntensity: 0.35, normalMap: tex.peel.normal, normalScale: new THREE.Vector2(0.7, 0.7) });
   M.propMetal = std({ vertexColors: true, metalness: 0.9, roughness: 0.28, envMapIntensity: 1.1 });
   M.leaves = std({ vertexColors: true, roughness: 0.6, envMapIntensity: 0.55, side: THREE.DoubleSide });
   M.rug = std({ map: tex.rug.map, normalMap: tier.normalMaps ? tex.rug.normal : null, roughness: 1, envMapIntensity: 0.2 });

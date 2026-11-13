@@ -23,8 +23,10 @@ export function createKit({ product, M, tier, registry, reduced = false }) {
   const aoList = [];
   const ledMats = [];                      // every emissive material created here (disposed with the product)
 
+  // the five Phase 5b departments are built against x = -3.0 (the wall plane); the hall's wall slats stand 0.095 m proud of it, so those products sit 0.11 m forward
+  const wallShift = ['bedroom', 'walkin', 'living', 'studio', 'lounge'].includes(product) ? 0.11 : 0;
   const kit = {
-    product, group, state, M, tier, registry, lod, updaters,
+    product, group, state, wallShift, M, tier, registry, lod, updaters,
     /** collect a placed geometry into the merged static mesh of `mat` */
     addStatic(geo, mat) { if (!statics.has(mat)) statics.set(mat, []); statics.get(mat).push(prep(geo)); },
     /** merge the collected statics into one mesh per material; call once at the end of a product build */

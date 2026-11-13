@@ -29,7 +29,7 @@ export function buildLiving({ M, tier, registry, reduced }) {
   // ---- slat wall panel (real geometry) + TV ----
   { const wall = new THREE.Mesh(flutedPanel(6.2, 3.3, 0.04, { pitch: 0.05, relief: 0.014, off: [0.2, 0.1] }).rotateY(Math.PI / 2), FL); wall.position.set(-2.96, 1.65, 0); wall.receiveShadow = true; wall.name = 'feature-wall'; group.add(wall); }
   kit.addStatic(placed(fin(0.03, 1.0, 1.74, { b: 0.004 }), { x: -2.905, y: 1.5 }), M.darkInterior);
-  { const sc = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 0.956), new THREE.MeshStandardMaterial({ map: screenTexture(), roughness: 0.12, metalness: 0.2, envMap: M.stone.envMap, envMapIntensity: 1.4 })); sc.position.set(-2.888, 1.5, 0); sc.rotation.y = Math.PI / 2; sc.name = 'tv-screen'; group.add(sc); }
+  { const sc = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 0.956), new THREE.MeshStandardMaterial({ map: screenTexture(), roughness: 0.3, metalness: 0.1, envMap: M.stone.envMap, envMapIntensity: 0.5 })); sc.position.set(-2.888, 1.5, 0); sc.rotation.y = Math.PI / 2; sc.name = 'tv-screen'; group.add(sc); }
   kit.led({ x: -2.93, y: 1.5, z: 0.9, len: 1.0, axis: 'y', thick: 0.01, levelOf: (s) => s.accentLevel(), washPlane: { w: 2.6, h: 1.8, pos: [-2.935, 1.5, 0], rot: [0, Math.PI / 2, 0] } });
   kit.led({ x: -2.93, y: 1.5, z: -0.9, len: 1.0, axis: 'y', thick: 0.01, levelOf: (s) => s.accentLevel() });
 
