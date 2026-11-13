@@ -43,8 +43,8 @@ export function createProductMaterials({ tier, env, tex }) {
   M.interior = std({ map: tex.oak.map, roughnessMap: tex.oak.rough, normalMap: tex.oak.normal, color: C(0xf2e6d2), roughness: 1, envMapIntensity: 0.5 });
   M.stone = phys({ color: C(0xe9e6df), map: tex.marble.white.map, roughness: 0.14, metalness: 0, envMapIntensity: 1.0, clearcoat: hi ? 0.5 : 0, clearcoatRoughness: 0.08, roughnessMap: tex.marble.white.rough });
   // per-bay floor zones (large-format polished stone, a different stone per room, so each bay reads as its own room): kitchen sand, wardrobe pale grey, door deep grey
-  const floor = (t) => phys({ map: t.map, roughnessMap: t.rough, normalMap: t.normal, normalScale: new THREE.Vector2(0.5, 0.5), roughness: 1, metalness: 0, clearcoat: tier.id === 'low' ? 0 : 0.75, clearcoatRoughness: 0.06, envMapIntensity: 0.85 });
-  M.floorBay = { kitchen: floor(tex.tiles.sand), wardrobe: floor(tex.tiles.white), door: floor(tex.tiles.dark) };
+  const floor = (t, ei = 0.85) => phys({ map: t.map, roughnessMap: t.rough, normalMap: t.normal, normalScale: new THREE.Vector2(0.5, 0.5), roughness: 1, metalness: 0, clearcoat: tier.id === 'low' ? 0 : 0.75, clearcoatRoughness: 0.06, envMapIntensity: ei });
+  M.floorBay = { kitchen: floor(tex.tiles.sand), wardrobe: floor(tex.tiles.white), door: floor(tex.tiles.dark, 0.45) };
   // baked ambient occlusion decals (one shared material; geometry carries per-quad strength in the vertex alpha)
   M.ao = new THREE.MeshBasicMaterial({ map: tex.ao, vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, toneMapped: true });
   M.leafCard = new THREE.MeshStandardMaterial(E({ map: tex.leaf, alphaTest: 0.5, side: THREE.DoubleSide, vertexColors: true, roughness: 0.5, envMapIntensity: 0.5 }));

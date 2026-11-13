@@ -146,8 +146,8 @@ export function toTex(canvas, { srgb = true, repeat, anisotropy = 4 } = {}) {
  */
 export function buildInteriorEnv(renderer) {
   const scene = new THREE.Scene(); const col = (hex, k) => new THREE.Color(hex).multiplyScalar(k);
-  const room = new THREE.Mesh(new THREE.BoxGeometry(24, 9, 24), new THREE.MeshBasicMaterial({ color: col(P.interiorWarm, 0.16), side: THREE.BackSide })); room.position.y = 4.5; scene.add(room);
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(24, 24), new THREE.MeshBasicMaterial({ color: col(P.stoneMid, 0.2) })); floor.rotation.x = -Math.PI / 2; floor.position.y = 0.02; scene.add(floor);
+  const room = new THREE.Mesh(new THREE.BoxGeometry(24, 9, 24), new THREE.MeshBasicMaterial({ color: col(P.sand, 0.15), side: THREE.BackSide })); room.position.y = 4.5; scene.add(room);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(24, 24), new THREE.MeshBasicMaterial({ color: col(P.concrete, 0.16) })); floor.rotation.x = -Math.PI / 2; floor.position.y = 0.02; scene.add(floor);
   const panel = (w, h, x, y, z, rx, ry, c, k) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: col(c, k), side: THREE.DoubleSide, toneMapped: false })); m.position.set(x, y, z); m.rotation.set(rx, ry, 0); scene.add(m); };
   for (const x of [-4, 0, 4]) panel(0.7, 14, x, 8.9, 0, Math.PI / 2, 0, P.ledCool, 4.6);           // ceiling strips
   panel(9, 5, 11.9, 3.2, 0, 0, -Math.PI / 2, P.ledCool, 3.0);                                       // daylight window

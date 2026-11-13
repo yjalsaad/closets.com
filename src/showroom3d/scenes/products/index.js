@@ -41,7 +41,7 @@ export function buildProducts({ renderer, hallM, tier, lang, bays, reduced = fal
     const k = snap ? 1 : 1 - Math.exp(-3.5 * dt), at = new THREE.Vector3(...a.at), sp = new THREE.Vector3(...a.spot);
     cur.at.lerp(at, k); cur.spot.lerp(sp, k); key.position.copy(cur.spot); key.target.position.copy(cur.at); key.target.updateMatrixWorld();
     const d = cur.spot.distanceTo(cur.at); key.distance = d * 2.6; key.intensity = a.E * d * d * 1.25 * cur.level;
-    if (fill) { fill.position.set(cur.at.x * 0.8 + cur.spot.x * 0.2, cur.at.y + 1.6, cur.at.z * 0.8 + cur.spot.z * 0.2); fill.intensity = 2.0 * cur.fillK * cur.level; }
+    if (fill) { fill.position.set(cur.at.x * 0.5 + cur.spot.x * 0.5, cur.at.y + 0.7, cur.at.z * 0.5 + cur.spot.z * 0.5); fill.intensity = 2.0 * cur.fillK * cur.level; }
   };
   lightTo(anchors[0], 0, true);
 
