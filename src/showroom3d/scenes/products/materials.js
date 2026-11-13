@@ -46,7 +46,7 @@ export function createProductMaterials({ tier, env, tex }) {
   M.stone = phys({ color: C(0xe9e6df), map: tex.marble.white.map, roughness: 0.14, metalness: 0, envMapIntensity: 1.0, clearcoat: hi ? 0.5 : 0, clearcoatRoughness: 0.08, roughnessMap: tex.marble.white.rough });
   M.stones = { kitchen: M.stone, ...mapIds(['bedroom', 'walkin', 'living', 'studio', 'lounge'], () => M.stone.clone()) };     // one stone per department, so finishes never leak between bays
   M.plaster = std({ map: white, roughnessMap: tex.peel.rough, normalMap: tex.peel.normal, normalScale: new THREE.Vector2(0.4, 0.4), color: C(P.plasterWarm), roughness: 0.85, envMapIntensity: 0.3 });
-  M.mirror = phys({ color: C(P.mirrorEdge), metalness: 1, roughness: 0.05, envMapIntensity: 0.85 });
+  M.mirror = phys({ color: 0x8d9a9e, metalness: 1, roughness: 0.14, envMapIntensity: 0.7 });
   // per-bay floor zones (large-format polished stone, a different stone per room, so each bay reads as its own room): kitchen sand, wardrobe pale grey, door deep grey
   const floor = (t, ei = 0.85) => phys({ map: t.map, roughnessMap: t.rough, normalMap: t.normal, normalScale: new THREE.Vector2(0.5, 0.5), roughness: 1, metalness: 0, clearcoat: tier.id === 'low' ? 0 : 0.75, clearcoatRoughness: 0.06, envMapIntensity: ei });
   const plank = (t) => phys({ map: t.map, roughnessMap: t.rough, normalMap: t.normal, normalScale: new THREE.Vector2(0.6, 0.6), roughness: 1, metalness: 0, clearcoat: tier.id === 'low' ? 0 : 0.35, clearcoatRoughness: 0.28, envMapIntensity: 0.45 });
@@ -113,7 +113,7 @@ export function applyFinish(M, product, finishId) {
     const s = M.tex.marble[f.stone], st = (M.stones && M.stones[product]) || M.stone; st.map = s.map; st.roughnessMap = s.rough; st.needsUpdate = true;
     st.color.setHex(0xe9e6df);
   }
-  if (f.fabric != null && M.uphol && M.uphol[product]) { const u = M.uphol[product]; u.color.setHex(f.fabric); u.needsUpdate = true; }
+  if (f.fabric != null && M.uphol && M.uphol[product]) { const u = M.uphol[product]; u.color.setHex(f.fabric).multiplyScalar(0.84); u.needsUpdate = true; }
   const mm = M.metal[product]; if (mm) { mm.color.setHex(f.metal === 'bronze' ? P.bronzeDark : P.brassBrushed); mm.roughness = f.metal === 'bronze' ? 0.42 : 0.3; }
   return f;
 }

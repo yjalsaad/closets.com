@@ -49,7 +49,8 @@ export function buildBedroom({ M, tier, registry, reduced }) {
   kit.addStatic(placed(fin(2.05, 0.28, 1.98, { b: 0.025, tile: 0.3 }), { x: -1.93, y: 0.27, z: ZB }), UP);   // base
   const bedding = [
     { geo: placed(fin(1.98, 0.2, 1.8, { b: 0.06 }), { x: -1.93, y: 0.52, z: ZB }), color: P.fabricCream },                                         // mattress
-    { geo: placed(fin(1.5, 0.09, 1.86, { b: 0.04 }), { x: -1.68, y: 0.66, z: ZB }), color: P.fabricLinen },                                         // duvet
+    { geo: placed(fin(1.5, 0.09, 1.86, { b: 0.04 }), { x: -1.68, y: 0.66, z: ZB }), color: 0xcfc4ae },                                                // duvet
+    { geo: placed(fin(0.22, 0.1, 1.88, { b: 0.045 }), { x: -2.42, y: 0.675, z: ZB }), color: P.fabricCream },                                        // turned-down fold at the pillows
     { geo: placed(fin(0.46, 0.09, 1.72, { b: 0.04 }), { x: -1.0, y: 0.685, z: ZB }), color: P.fabricClay },                                            // throw across the foot
   ];
   for (const dz of [-0.46, 0.46]) bedding.push({ geo: placed(fin(0.3, 0.17, 0.66, { b: 0.07 }), { x: -2.7, y: 0.74, z: ZB + dz, rz: -0.28 }), color: P.fabricCream }, { geo: placed(fin(0.24, 0.15, 0.52, { b: 0.06 }), { x: -2.5, y: 0.78, z: ZB + dz * 0.75, rz: -0.25, ry: dz * 0.2 }), color: P.fabricLinen });

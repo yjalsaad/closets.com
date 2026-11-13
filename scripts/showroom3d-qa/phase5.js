@@ -117,10 +117,58 @@ async function stats(b) {
   check('low tier stays light: under 450 draw calls and 200k triangles at every spot', Object.entries(out.low).every(([k, v]) => k === 'gpu' || (v.calls < 450 && v.triangles < 200000)), Object.fromEntries(Object.entries(out.low).filter(([k]) => k !== 'gpu').map(([k, v]) => [k, v.calls + '/' + Math.round(v.triangles / 1000) + 'k'])));
 }
 
+async function gallery(b) {
+  const o = await L.openShowroom(b, { query: 'debug=1&quality=high&aa=0', viewport: { width: 1100, height: 620 } }); const page = o.page; await L.enterExplore(page); await dismissCoach(page);
+  const only = process.env.ONLY, snap = async (name, wait = 7000, hud = false) => { if (only && !name.startsWith(only)) return; await page.waitForTimeout(wait); await setHud(page, hud); await page.waitForTimeout(250); await shot(page, name, { quality: 56 }); await setHud(page, true); };
+  const E = (fn) => page.evaluate(fn), focus = async (pid, view) => { await E(`window.__showroom.explore.explorer.exitFocus && window.__showroom.explore.explorer.focus && window.__showroom.explore.explorer.exitFocus()`); await page.waitForTimeout(1500); await E(`window.__showroom.explore.explorer.focusProduct('${pid}', '${view || 'overview'}')`); await settle(page, 0); };
+  const open = (pid, ids) => page.evaluate(([pid, ids]) => { const st = window.__showroom.engine.products.kits[pid].state; if (ids === 'ALL') st.openAll(); else ids.forEach((i) => st.open(i)); }, [pid, ids]);
+  const close = (pid) => page.evaluate((pid) => window.__showroom.engine.products.kits[pid].state.closeAll(), pid);
+  const fin = (pid, f) => page.evaluate(([pid, f]) => window.__showroom.explore.explorer.setFinish(f), [pid, f]);
+  const view = (v) => page.evaluate((v) => window.__showroom.explore.explorer.setView(v), v);
+  await goto(page, [0, -9, 0, 0.05]); await snap('phase5-00-hall-all-eight-bays-from-spawn', 7000);
+  // bedroom
+  await goto(page, [-9.5, -30.7, Math.PI / 2 + 0.2, 0.04]); await snap('phase5-10-bedroom-wide', 7000);
+  await goto(page, POSE.bedroom); await focus('bedroom', 'overview'); await snap('phase5-11-bedroom-closed', 6000); await snap('phase5-12-bedroom-panel', 300, true);
+  await view('bed'); await open('bedroom', ['bd-bs-l1', 'bd-bs-l2', 'bd-bs-r1', 'bd-bs-r2']); await snap('phase5-13-bedroom-bedside-drawers-open', 9000);
+  await view('wardrobe'); await open('bedroom', ['bd-ward-a', 'bd-ward-b']); await snap('phase5-14-bedroom-wardrobe-wall-open-led', 9000);
+  await view('dressing'); await open('bedroom', ['bd-van-1', 'bd-van-2']); await snap('phase5-15-bedroom-dressing-unit-mirror', 9000);
+  await close('bedroom'); await view('overview'); await fin('bedroom', 'walnut-sage'); await snap('phase5-16-bedroom-finish-walnut-sage', 9000); await fin('bedroom', 'oak-linen');
+  // walk-in
+  await E(`window.__showroom.explore.explorer.exitFocus()`); await page.waitForTimeout(2000);
+  await goto(page, [-9.5, -23.1, Math.PI / 2 - 0.15, 0.04]); await snap('phase5-20-walkin-wide', 7000);
+  await goto(page, POSE.walkin); await focus('walkin', 'overview'); await snap('phase5-21-walkin-closed', 6000);
+  await view('island'); await open('walkin', ['wi-tray-1', 'wi-tray-2', 'wi-isl-1', 'wi-isl-4']); await snap('phase5-22-walkin-island-trays-drawers-open', 9000);
+  await view('shoes'); await open('walkin', ['wi-shoe-1', 'wi-shoe-2', 'wi-shoe-3', 'wi-shoe-4']); await snap('phase5-23-walkin-shoe-wall-tilted', 9000);
+  await view('display'); await open('walkin', ['wi-glass-a', 'wi-glass-b']); await snap('phase5-24-walkin-glass-display-led', 9000);
+  await close('walkin'); await view('overview'); await fin('walkin', 'ivory-bronze'); await snap('phase5-25-walkin-finish-ivory-bronze', 9000); await fin('walkin', 'walnut-brass');
+  // living
+  await E(`window.__showroom.explore.explorer.exitFocus()`); await page.waitForTimeout(2000);
+  await goto(page, [9.5, -15.5, -Math.PI / 2 - 0.2, 0.04]); await snap('phase5-30-living-wide', 7000);
+  await goto(page, POSE.living); await focus('living', 'overview'); await snap('phase5-31-living-closed', 6000);
+  await view('tv'); await open('living', ['lv-base-l', 'lv-base-r', 'lv-drawer-1', 'lv-drawer-2']); await snap('phase5-32-living-tv-unit-open', 9000);
+  await view('display'); await open('living', ['lv-tall-l', 'lv-tall-r']); await snap('phase5-33-living-tall-cabinets-led', 9000);
+  await close('living'); await view('lounge'); await snap('phase5-34-living-seating-console', 8000); await view('overview'); await fin('living', 'oak-sage'); await snap('phase5-35-living-finish-oak-sage', 9000); await fin('living', 'walnut-cream');
+  // studio
+  await E(`window.__showroom.explore.explorer.exitFocus()`); await page.waitForTimeout(2000);
+  await goto(page, [9.5, -23.1, -Math.PI / 2 + 0.2, 0.04]); await snap('phase5-40-studio-wide', 7000);
+  await goto(page, POSE.studio); await focus('studio', 'overview'); await snap('phase5-41-studio-closed', 6000); await snap('phase5-42-studio-panel-links', 300, true);
+  await view('board'); await open('studio', ['st-sample-1', 'st-sample-2', 'st-rail-1', 'st-rail-2']); await snap('phase5-43-studio-sample-board-rails-open', 9000);
+  await view('screen'); await snap('phase5-44-studio-design-studio-screen', 8000);
+  await close('studio'); await view('table'); await open('studio', ['st-table-1', 'st-table-2']); await snap('phase5-45-studio-design-table-drawers', 9000); await close('studio'); await view('overview'); await fin('studio', 'charcoal'); await snap('phase5-46-studio-finish-charcoal', 9000); await fin('studio', 'oak');
+  // lounge
+  await E(`window.__showroom.explore.explorer.exitFocus()`); await page.waitForTimeout(2000);
+  await goto(page, [9.5, -30.7, -Math.PI / 2 - 0.2, 0.04]); await snap('phase5-50-lounge-wide', 7000);
+  await goto(page, POSE.lounge); await focus('lounge', 'overview'); await snap('phase5-51-lounge-closed', 6000); await snap('phase5-52-lounge-panel-contact-links', 300, true);
+  await view('desk'); await open('lounge', ['lg-desk-1', 'lg-desk-2']); await snap('phase5-53-lounge-reception-desk-drawers', 9000);
+  await view('cta'); await open('lounge', ['lg-cred-doors', 'lg-cred-d1']); await snap('phase5-54-lounge-consultation-panel-credenza', 9000);
+  await close('lounge'); await view('overview'); await fin('lounge', 'charcoal-blush'); await snap('phase5-55-lounge-finish-charcoal-blush', 9000); await fin('lounge', 'oak-clay');
+  check('gallery: no page errors', o.errors.length === 0, o.errors.slice(0, 3)); await o.ctx.close();
+}
+
 (async () => {
   const b = await L.launch(); const only = process.argv[2];
   const run = async (name, fn) => { if (only && only !== name) return; try { await fn(b); } catch (e) { check(`suite "${name}" ran to the end`, false, String(e && e.message).slice(0, 300)); } };
-  try { await run('flows', flows); await run('reduced', reduced); await run('mobile', mobile); await run('ar', ar); await run('stats', stats); } finally { await b.close(); }
+  try { await run('flows', flows); await run('reduced', reduced); await run('mobile', mobile); await run('ar', ar); await run('stats', stats); await run('gallery', gallery); } finally { await b.close(); }
   const bad = L.results.filter((r) => !r.ok); console.log(`\n${L.results.length - bad.length}/${L.results.length} checks passed`); bad.forEach((r) => console.log('FAILED:', r.name, JSON.stringify(r.detail)));
   process.exit(bad.length ? 1 : 0);
 })();

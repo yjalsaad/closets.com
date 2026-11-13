@@ -25,7 +25,7 @@ export function buildStudio({ M, tier, registry, reduced, lang = 'en' }) {
   { const w = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 3.3), M.plaster); w.position.set(-2.995, 1.65, 0); w.rotation.y = Math.PI / 2; w.receiveShadow = true; group.add(w); }
 
   // ---- sample board: backing panel + 3 rows x 5 columns of static swatches (never swapped, so each always matches its label) ----
-  const BZ0 = -3.25, BZ1 = -0.75, BY0 = 1.0, BY1 = 2.6, cols = 5, rows = 3, tw = (BZ1 - BZ0) / cols, th = (BY1 - BY0) / rows;
+  const BZ0 = -2.95, BZ1 = -0.55, BY0 = 1.0, BY1 = 2.6, cols = 5, rows = 3, tw = (BZ1 - BZ0) / cols, th = (BY1 - BY0) / rows;
   kit.addStatic(placed(fin(0.03, BY1 - BY0 + 0.1, BZ1 - BZ0 + 0.1, { b: 0.004 }), { x: -2.965, y: (BY0 + BY1) / 2, z: (BZ0 + BZ1) / 2 }), M.plinth);
   const mats = new Map(), tiles = new Map(); const key = (spec) => spec.kind + (spec.tone || 0) + spec.color;
   const swatch = (product, f) => { const spec = product === 'door' ? f.leaf : f.front, k = key(spec); if (!mats.has(k)) mats.set(k, swatchMaterial(M, product, f.id)); return mats.get(k); };
@@ -49,7 +49,7 @@ export function buildStudio({ M, tier, registry, reduced, lang = 'en' }) {
   });
 
   // ---- sample rail: a hanging swatch strip rack with two sliding panels ----
-  const RZ0 = -0.3, RZ1 = 1.1, RY = 1.45, RH = 1.9;
+  const RZ0 = -0.35, RZ1 = 1.1, RY = 1.45, RH = 1.9;
   kit.addStatic(placed(fin(0.03, RH + 0.1, RZ1 - RZ0 + 0.1, { b: 0.004 }), { x: -2.965, y: RY, z: (RZ0 + RZ1) / 2 }), M.plinth);
   { const strips = [], cc = [P.oakLight, P.walnutDeep, P.lacquerSage, P.lacquerIvory, P.lacquerClay, P.lacquerCharcoal, P.fabricNavy, P.fabricBlush, P.oakPale, P.smokedOak]; for (let k = 0; k < 10; k++) for (let j = 0; j < 4; j++) strips.push({ geo: placed(fin(0.014, 0.4, 0.1, { b: 0.002 }), { x: -2.935, y: RY + 0.68 - j * 0.45, z: RZ0 + 0.09 + k * 0.13 }), color: cc[(k * 3 + j) % cc.length] }); group.add(propMesh(strips, M.matte, { cast: false })); }
   kit.addStatic(placed(fin(0.05, 0.02, RZ1 - RZ0 + 0.7, { b: 0.001 }), { x: -2.9, y: RY + RH / 2 + 0.02, z: (RZ0 + RZ1) / 2 }), METAL); kit.addStatic(placed(fin(0.05, 0.02, RZ1 - RZ0 + 0.7, { b: 0.001 }), { x: -2.9, y: RY - RH / 2 - 0.02, z: (RZ0 + RZ1) / 2 }), METAL);
@@ -59,9 +59,9 @@ export function buildStudio({ M, tier, registry, reduced, lang = 'en' }) {
 
   // ---- wall screen: the existing Design Studio entry ----
   const scr = makePanel(1024, 576, drawStudioScreen, lang);
-  kit.addStatic(placed(fin(0.04, 1.06, 1.84, { b: 0.004 }), { x: -2.955, y: 1.55, z: 2.5 }), M.darkInterior);
+  kit.addStatic(placed(fin(0.04, 1.06, 1.84, { b: 0.004 }), { x: -2.955, y: 1.55, z: 2.15 }), M.darkInterior);
   { const sm = new THREE.Mesh(new THREE.PlaneGeometry(1.76, 0.99), new THREE.MeshBasicMaterial({ map: scr.tex, toneMapped: false })); sm.position.set(-2.932, 1.55, 2.5); sm.rotation.y = Math.PI / 2; sm.name = 'studio-screen'; group.add(sm); }
-  kit.led({ x: -2.95, y: 1.55, z: 2.5, len: 1.7, axis: 'z', thick: 0.01, levelOf: (s) => s.accentLevel(), washPlane: { w: 2.8, h: 1.9, pos: [-2.97, 1.55, 2.5], rot: [0, Math.PI / 2, 0] } });
+  kit.led({ x: -2.95, y: 1.55, z: 2.15, len: 1.7, axis: 'z', thick: 0.01, levelOf: (s) => s.accentLevel(), washPlane: { w: 2.8, h: 1.9, pos: [-2.97, 1.55, 2.15], rot: [0, Math.PI / 2, 0] } });
   kit.relabel = (l) => scr.redraw(l);
 
   // ---- design table: stone top on two trestle slabs, apron with two drawers, chairs, plan, tablet, pendant ----

@@ -55,7 +55,7 @@ describe('finishes of the five new departments', () => {
     const M = { tier: 'low', white: null, tex: { oak: {}, walnut: {}, peel: {}, marble: { white: { map: 1 }, dark: { map: 2 }, sand: { map: 3 } } }, front: mk(ids), flute: mk(ids), carcass: mk(ids), metal: mk(ids), frame: { door: S() }, uphol: mk(NEW), stone: S() };
     M.stones = { kitchen: M.stone, ...mk(NEW) };
     const kitchenStone = M.stone.map;
-    for (const id of NEW) for (const f of finishList(id)) { applyFinish(M, id, f.id); if (f.fabric != null) expect(M.uphol[id].color.getHex()).toBe(f.fabric); if (f.stone) expect(M.stones[id].map).toBe({ white: 1, dark: 2, sand: 3 }[f.stone]); }
+    for (const id of NEW) for (const f of finishList(id)) { applyFinish(M, id, f.id); if (f.fabric != null) expect(M.uphol[id].color.getHex()).toBe(new THREE.Color(f.fabric).multiplyScalar(0.84).getHex()); if (f.stone) expect(M.stones[id].map).toBe({ white: 1, dark: 2, sand: 3 }[f.stone]); }
     expect(M.stone.map).toBe(kitchenStone); expect(FINISHES.bedroom).toBeTruthy(); expect(getFinish('lounge', 'nope')).toBe(finishList('lounge')[0]);
   });
 });
