@@ -11,7 +11,7 @@ uniform sampler2D tMap; uniform float uStr; varying vec4 vProj; varying vec3 vW;
 void main(){
   if (vProj.w <= 0.001) discard;
   vec2 uv = vProj.xy / vProj.w; if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) discard; vec3 V = normalize(cameraPosition - vW);
-  float fres = 0.16 + 0.84 * pow(1.0 - clamp(V.y, 0.0, 1.0), 2.5);
+  float fres = (0.16 + 0.84 * pow(1.0 - clamp(V.y, 0.0, 1.0), 2.5)) * (1.0 - smoothstep(0.6, 0.82, V.y));   // no reflection when looking steeply down at the floor (the mirrored camera then sees nothing useful)
   float r = 0.0045 + 0.004 * clamp(length(cameraPosition - vW) / 14.0, 0.0, 1.0);
   vec4 a = texture2D(tMap, uv) * 0.36 + texture2D(tMap, uv + vec2(r, 0.0)) * 0.16 + texture2D(tMap, uv - vec2(r, 0.0)) * 0.16 + texture2D(tMap, uv + vec2(0.0, r * 1.6)) * 0.16 + texture2D(tMap, uv - vec2(0.0, r * 1.6)) * 0.16;
   float edge = smoothstep(0.0, 0.04, uv.x) * smoothstep(1.0, 0.96, uv.x) * smoothstep(0.0, 0.04, uv.y) * smoothstep(1.0, 0.96, uv.y);
