@@ -12,6 +12,15 @@ import { applyFinish } from './materials';
 
 const _wash = { v: null, p: null };
 
+/** merge non-indexed geometries keeping the baked vertex colours (reeded panels carry groove darkening in `color`); missing colours are white */
+function mergeKeepColor(list) {
+  let n = 0; for (const g of list) n += g.attributes.position.count;
+  const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), uv = new Float32Array(n * 2), col = new Float32Array(n * 3).fill(1); let o = 0;
+  for (const g of list) { const c = g.attributes.position.count; pos.set(g.attributes.position.array, o * 3); if (g.attributes.normal) nor.set(g.attributes.normal.array, o * 3); if (g.attributes.uv) uv.set(g.attributes.uv.array, o * 2); if (g.attributes.color && g.attributes.color.itemSize === 3) col.set(g.attributes.color.array, o * 3); o += c; }
+  const m = new THREE.BufferGeometry(); m.setAttribute('position', new THREE.BufferAttribute(pos, 3)); m.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); m.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); m.setAttribute('color', new THREE.BufferAttribute(col, 3)); return m;
+}
+const FAR_NAMES = /:(front|pull|leaf|frame)$/;
+
 export function createKit({ product, M, tier, registry, reduced = false }) {
   const group = new THREE.Group(); group.name = 'product-' + product;
   const state = createProductState(stateDef(product, finishIds(product)), { reduced });
@@ -22,11 +31,15 @@ export function createKit({ product, M, tier, registry, reduced = false }) {
   const washTex = _wash.v || (_wash.v = washTexture()), poolTex = _wash.p || (_wash.p = poolTexture());
   const aoList = [];
   const ledMats = [];                      // every emissive material created here (disposed with the product)
+  const accents = [];                       // merged accent LEDs (see led())
+  const partGroups = [];                   // top-level groups of every moving part (drawers, doors, sliders, tilting shelves)
+  const far = { group: new THREE.Group(), on: false };   // far-away proxy: the CLOSED fronts merged per material (a handful of draw calls instead of two per part)
+  far.group.name = 'far-proxy'; far.group.visible = false; group.add(far.group);
 
   // the five Phase 5b departments are built against x = -3.0 (the wall plane); the hall's wall slats stand 0.095 m proud of it, so those products sit 0.11 m forward
   const wallShift = ['bedroom', 'walkin', 'living', 'studio', 'lounge'].includes(product) ? 0.11 : 0;
   const kit = {
-    product, group, state, wallShift, M, tier, registry, lod, updaters,
+    product, group, state, wallShift, far, M, tier, registry, lod, updaters,
     /** collect a placed geometry into the merged static mesh of `mat` */
     addStatic(geo, mat) { if (!statics.has(mat)) statics.set(mat, []); statics.get(mat).push(prep(geo)); },
     /** merge the collected statics into one mesh per material; call once at the end of a product build */
@@ -42,7 +55,45 @@ export function createKit({ product, M, tier, registry, reduced = false }) {
       for (const [mat, list] of statics) {
         const m = new THREE.Mesh(mergeGeometries(list), mat); m.castShadow = cast; m.receiveShadow = receive; m.name = 'static'; m.matrixAutoUpdate = false; m.updateMatrix(); into.add(m);
       }
-      statics.clear(); kit._dirty = true;      // run every updater once so closed drawers / tilting shelves hide their contents from the first frame
+      statics.clear(); kit._dirty = true; kit.buildFar(); kit.buildAccents(into);      // run every updater once so closed drawers / tilting shelves hide their contents from the first frame
+    },
+    /** build the merged accent-LED meshes: strips (opaque emissive) + washes (additive), both with per-vertex colour = base colour x current level */
+    buildAccents(into = group) {
+      if (!accents.length || kit._accent) return;
+      const parts = [], washes = []; const baseS = new THREE.Color(M.ledWarm().color), baseW = new THREE.Color(0xfff0dd);
+      for (const e of accents) {
+        e.parent.updateMatrixWorld(true); const m = e.parent.matrixWorld;
+        const s = prep(e.strip.applyMatrix4(m)); parts.push({ geo: s, e, kind: 's' });
+        if (e.wash) { const w = prep(e.wash.applyMatrix4(m)); washes.push({ geo: w, e, kind: 'w' }); }
+      }
+      const build = (list, mat) => { let n = 0; for (const it of list) { it.start = n; n += it.geo.attributes.position.count; it.n = it.geo.attributes.position.count; } const g = mergeGeometries(list.map((it) => it.geo)); const col = new Float32Array(n * 3); g.setAttribute('color', new THREE.BufferAttribute(col, 3)); const mesh = new THREE.Mesh(g, mat); mesh.frustumCulled = false; mesh.name = 'accent-leds'; into.add(mesh); return { col, mesh, attr: g.attributes.color }; };
+      const sMat = new THREE.MeshBasicMaterial({ vertexColors: true, toneMapped: false }), wMat = new THREE.MeshBasicMaterial({ map: washTex, vertexColors: true, side: THREE.DoubleSide, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+      ledMats.push(sMat, wMat); const S = build(parts, sMat), W = washes.length ? build(washes, wMat) : null; if (W) W.mesh.renderOrder = 4;
+      kit._accent = true;
+      const apply = () => {
+        for (const it of parts) { const k = Math.max(0, Math.min(1, it.e.levelOf(state))), f = 0.03 + 0.97 * k; for (let i = 0; i < it.n; i++) { const o = (it.start + i) * 3; S.col[o] = baseS.r * f; S.col[o + 1] = baseS.g * f; S.col[o + 2] = baseS.b * f; } }
+        S.attr.needsUpdate = true;
+        if (W) { for (const it of washes) { const k = Math.max(0, Math.min(1, it.e.levelOf(state))), f = k * 0.9 * it.e.intensity * 0.6; for (let i = 0; i < it.n; i++) { const o = (it.start + i) * 3; W.col[o] = baseW.r * f; W.col[o + 1] = baseW.g * f; W.col[o + 2] = baseW.b * f; } } W.attr.needsUpdate = true; }
+      };
+      updaters.push(apply); apply();
+    },
+    /** merge the closed fronts of every moving part into the far proxy (one mesh per material). Called by flushStatics at the end of a build. */
+    buildFar() {
+      if (far.built || !partGroups.length) return; far.built = true; group.updateMatrixWorld(true);
+      const by = new Map();
+      for (const pg of partGroups) pg.traverse((m) => { if (!m.isMesh || !FAR_NAMES.test(m.name || '')) return; const g = m.geometry.clone().applyMatrix4(m.matrixWorld); const k = m.material; if (!by.has(k)) by.set(k, []); by.get(k).push(prep(g)); });
+      for (const [mat, list] of by) { const mm = new THREE.Mesh(mergeKeepColor(list), mat); mm.castShadow = false; mm.receiveShadow = true; mm.matrixAutoUpdate = false; mm.name = 'far-fronts'; far.group.add(mm); }
+    },
+    /** far = the visitor is a long way off: draw the merged closed fronts instead of every part, unless something is open */
+    setFar(v) {
+      const showReal = !v || state.anyOpen(); far.on = v;
+      if (far.lastReal === showReal) return; far.lastReal = showReal;
+      for (const g of partGroups) g.visible = showReal; far.group.visible = !showReal && far.group.children.length > 0;
+    },
+    /** far products stop casting shadows (the sun and key-light shadow passes only need what is near the visitor): casters are collected once, toggled on distance changes */
+    setCasting(on) {
+      if (!far.casters) { far.casters = []; group.traverse((m) => { if (m.isMesh && m.castShadow && !(m.parent === far.group)) far.casters.push(m); }); }
+      if (far.casting === on) return; far.casting = on; for (const m of far.casters) m.castShadow = on;
     },
     mesh(geo, mat, { x = 0, y = 0, z = 0, cast = true, receive = true, parent = group, name } = {}) {
       const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = cast; m.receiveShadow = receive; if (name) m.name = name; parent.add(m); return m;
@@ -53,6 +104,16 @@ export function createKit({ product, M, tier, registry, reduced = false }) {
      * dir: orientation of the wash plane: 'down' (hangs under a unit, washes the worktop / splashback), 'side' (vertical strip lighting an interior), 'up'.
      */
     led({ x, y, z, len, thick = 0.012, axis = 'z', washW = 0.5, washL, washDir = 'x', parent = group, levelOf, intensity = 1, washPlane = null }) {
+      // an LED that follows only the LED switch ("accent": cove, under-cabinet, plinth, wall wash) is merged with all the others into ONE strip mesh and ONE wash mesh
+      // (vertex colours carry the level), so a whole department costs two draw calls for its lighting instead of two per strip. Part-driven LEDs (inside drawers / doors) stay separate.
+      const probe = (a, l) => levelOf({ accentLevel: () => a, ledLevel: () => l, part: () => ({ value: l }) });
+      let accent = false; try { accent = probe(1, 0) !== probe(0, 0) && probe(0, 1) === probe(0, 0); } catch (e) { accent = false; }
+      if (accent && parent !== undefined) {
+        const sx = axis === 'x' ? len : thick, sy = axis === 'y' ? len : 0.006, sz = axis === 'z' ? len : thick;
+        const e = { parent, strip: new THREE.BoxGeometry(sx, sy, sz).translate(x, y, z), wash: null, levelOf, intensity };
+        if (washPlane) { const pg = new THREE.PlaneGeometry(washPlane.w, washPlane.h); pg.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(...washPlane.pos), new THREE.Quaternion().setFromEuler(new THREE.Euler(...(washPlane.rot || [0, 0, 0]))), new THREE.Vector3(1, 1, 1))); e.wash = pg; }
+        accents.push(e); return { strip: null, wash: null, apply() {}, merged: true };
+      }
       const mat = M.ledWarm(); ledMats.push(mat);
       const sx = axis === 'x' ? len : thick, sy = axis === 'y' ? len : 0.006, sz = axis === 'z' ? len : thick;
       const strip = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), mat); strip.position.set(x, y, z); parent.add(strip);
@@ -77,7 +138,7 @@ export function createKit({ product, M, tier, registry, reduced = false }) {
      * plane. The slides are two thin steel runners. `pull`: 'finger' adds a slim brass L-profile on the top edge.
      */
     drawer({ id, x, y, z, w, h, depth = 0.5, travel = 0.42, t = 0.019, grainOff = [0, 0], pull = 'finger', led = true, organiser = true, frontMat, metalMat, bodyMat, parent = group, partLabel }) {
-      const g = new THREE.Group(); g.position.set(x, y, z); parent.add(g);
+      const g = new THREE.Group(); g.position.set(x, y, z); parent.add(g); partGroups.push(g);
       const front = new THREE.Mesh(bevelBox(t, h, w, { grain: 'z', tile: 0.8, off: grainOff }), frontMat); front.castShadow = front.receiveShadow = true; front.name = id + ':front'; g.add(front);
       const hit = [front];
       if (pull === 'finger') {
@@ -115,7 +176,7 @@ export function createKit({ product, M, tier, registry, reduced = false }) {
      * glass: use a thin bronze frame + glass pane instead of a solid slab.
      */
     hinged({ id, x, y, z, w, h, t = 0.019, side = 1, maxDeg = 108, grainOff = [0, 0], pull = 'finger', fluted = false, glass = false, frontMat, flutedMat = null, metalMat, glassMat, parent = group, grain = 'y', hingeMat = null, hingeY = [0.18, null] }) {
-      const g = new THREE.Group(); g.position.set(x, y, z); parent.add(g);
+      const g = new THREE.Group(); g.position.set(x, y, z); parent.add(g); partGroups.push(g);
       const hit = [];
       if (glass) {
         const fr = 0.028, parts = [
@@ -157,11 +218,10 @@ export function createKit({ product, M, tier, registry, reduced = false }) {
      * stored on it. Origin = the hinge axis (z centre). Put the stored items in `group` in panel coordinates: the inner face is the plane x = -t / 2.
      */
     tilt({ id, x, y, z, w, h, t = 0.02, maxDeg = 64, grainOff = [0, 0], frontMat, metalMat, parent = group }) {
-      const g = new THREE.Group(); g.position.set(x, y, z); parent.add(g);
+      const g = new THREE.Group(); g.position.set(x, y, z); parent.add(g); partGroups.push(g);
       const panel = new THREE.Mesh(bevelBox(t, h, w, { grain: 'z', off: grainOff }), frontMat); panel.position.y = h / 2; panel.castShadow = panel.receiveShadow = true; panel.name = id + ':front'; g.add(panel);
       const hit = [panel];
-      const pull = new THREE.Mesh(prep(placed(bevelBox(0.014, 0.016, w - 0.12, { b: 0.0008 }), { x: t / 2 + 0.006, y: h - 0.05 })), metalMat); pull.castShadow = true; pull.name = id + ':pull'; g.add(pull); hit.push(pull);
-      const lip = new THREE.Mesh(prep(placed(bevelBox(0.05, 0.03, w - 0.02, { b: 0.001 }), { x: -t / 2 - 0.025, y: 0.015 })), metalMat); g.add(lip);
+      const pull = new THREE.Mesh(mergeGeometries([prep(placed(bevelBox(0.014, 0.016, w - 0.12, { b: 0.0008 }), { x: t / 2 + 0.006, y: h - 0.05 })), prep(placed(bevelBox(0.05, 0.03, w - 0.02, { b: 0.001 }), { x: -t / 2 - 0.025, y: 0.015 }))]), metalMat); pull.castShadow = true; pull.name = id + ':pull'; g.add(pull); hit.push(pull);
       const inner = g.userData.inner = [];
       const apply = () => { const v = state.part(id).value; g.rotation.z = -(maxDeg * Math.PI / 180) * v; for (const m of inner) m.visible = v > 0.002; };
       updaters.push(apply); apply();
@@ -171,7 +231,7 @@ export function createKit({ product, M, tier, registry, reduced = false }) {
 
     /** sliding leaf: translates along Z by `travel` (sign gives the direction). Origin = leaf centre. */
     slider({ id, x, y, z, w, h, t = 0.022, travel, grainOff = [0, 0], fluted = false, glass = false, frontMat, flutedMat = null, metalMat, glassMat, parent = group, pullSign = 1 }) {
-      const g = new THREE.Group(); g.position.set(x, y, z); parent.add(g);
+      const g = new THREE.Group(); g.position.set(x, y, z); parent.add(g); partGroups.push(g);
       const geo = fluted ? flutedPanel(w, h, t, { pitch: 0.038, relief: 0.011, off: grainOff }) : bevelBox(w, h, t, { grain: 'y', off: grainOff });
       geo.rotateY(Math.PI / 2);
       const leaf = new THREE.Mesh(geo, fluted && flutedMat ? flutedMat : frontMat); leaf.castShadow = leaf.receiveShadow = true; leaf.name = id + ':leaf'; g.add(leaf);

@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { HALL, BAY } from '../../3d/dimensions';
 import { PALETTE } from '../../3d/palette';
-import { box, mesh, worldUV } from '../../3d/geom';
+import { box, mesh, worldUV, mergeGeometries } from '../../3d/geom';
 import { layoutBays } from './departments';
 import { makeSignTexture, redrawSign, SIGN_W, SIGN_H } from './signs';
 
@@ -20,7 +20,7 @@ export function buildBays({ M, lang, products = null }) {
     const inlay = new THREE.Mesh(ig, M.stoneInlay); inlay.position.y = 0.006; inlay.receiveShadow = true; grp.add(inlay);
     // brass zone border
     const bw = b.depth - 0.6, bd = b.width - 0.6, t = 0.035;
-    for (const [w, d, x, z] of [[bw, t, 0, bd / 2], [bw, t, 0, -bd / 2], [t, bd, bw / 2, 0], [t, bd, -bw / 2, 0]]) grp.add(mesh(box(w, 0.012, d), M.brass, { x, y: 0.012, z }));
+    { const m = mergeGeometries([[bw, t, 0, bd / 2], [bw, t, 0, -bd / 2], [t, bd, bw / 2, 0], [t, bd, -bw / 2, 0]].map(([w, d, x, z]) => box(w, 0.012, d).translate(x, 0.012, z))); grp.add(new THREE.Mesh(m, M.brass)); }   // one draw call for the four border strips
     // interaction highlight (Phase 3 stub): a soft additive wash over the floor inlay, faded in when the visitor stands in the zone and pulsed on E
     const hm = new THREE.MeshBasicMaterial({ color: PALETTE.brandOrange, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
     const hg = new THREE.PlaneGeometry(b.depth - 0.5, b.width - 0.5); hg.rotateX(-Math.PI / 2);
@@ -30,8 +30,7 @@ export function buildBays({ M, lang, products = null }) {
     const lx = wallX - b.x + inward * 0.15;   // in front of the wall slats
     const furnished = !!(products && products.attach(b, grp));      // Phase 4: a furnished bay brings its own feature wall; the plain lit alcove plane is only for empty bays
     if (!furnished) grp.add(mesh(new THREE.PlaneGeometry(b.width - 0.5, 3.8), alcove, { x: lx, y: 2.5, z: 0, ry: inward * Math.PI / 2 }));
-    for (const dz of [-1, 1]) grp.add(mesh(box(0.34, 4.7, 0.3, 1.2), M.walnut, { x: lx + inward * 0.17, y: 2.35, z: dz * (b.width / 2 - 0.15), cast: true, receive: true }));
-    grp.add(mesh(box(0.34, 0.32, b.width, 1.2), M.walnut, { x: lx + inward * 0.17, y: 4.56, z: 0, cast: true, receive: true }));
+    { const m = new THREE.Mesh(mergeGeometries([...[-1, 1].map((dz) => box(0.34, 4.7, 0.3, 1.2).translate(lx + inward * 0.17, 2.35, dz * (b.width / 2 - 0.15))), box(0.34, 0.32, b.width, 1.2).translate(lx + inward * 0.17, 4.56, 0)]), M.walnut); m.castShadow = true; m.receiveShadow = true; grp.add(m); }   // portal: two posts + head beam in one draw call
     // sign
     const tex = makeSignTexture(b, lang);
     const mat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, color: new THREE.Color(PALETTE.signTint) });

@@ -51,9 +51,8 @@ export function buildWalkin({ M, tier, registry, reduced }) {
   const shelfGlass = new THREE.MeshStandardMaterial({ color: P.glass, transparent: true, opacity: 0.35, roughness: 0.05, depthWrite: false, envMap: M.stone.envMap, envMapIntensity: 1.2 });
   const gs = []; for (const [z0, z1] of [[-0.16, 0.76], [0.81, 1.71]]) for (const y of [0.75, 1.3, 1.85]) gs.push(prep(placed(fin(0.5, 0.012, z1 - z0, { b: 0.002 }), { x: -2.72, y, z: (z0 + z1) / 2 })));
   kit.mesh(mergeGeometries(gs), shelfGlass, { cast: false, parent: lod.detail });
-  const idA = (s) => s.ledLevel('wi-glass-a'), idB = (s) => s.ledLevel('wi-glass-b');
-  for (const [z0, z1, lv] of [[-0.16, 0.76, idA], [0.81, 1.71, idB]]) {
-    for (const y of [0.75, 1.3, 1.85, 2.45]) kit.led({ x: -2.5, y: y - 0.01, z: (z0 + z1) / 2, len: z1 - z0 - 0.06, axis: 'z', thick: 0.012, levelOf: (s) => 0.35 + 0.65 * Math.max(lv(s), 0) * 0 + 0.0 + lv(s), intensity: 0.8 });
+  for (const [z0, z1] of [[-0.16, 0.76], [0.81, 1.71]]) {
+    for (const y of [0.75, 1.3, 1.85, 2.45]) kit.led({ x: -2.5, y: y - 0.01, z: (z0 + z1) / 2, len: z1 - z0 - 0.06, axis: 'z', thick: 0.012, levelOf: (s) => 0.8 * s.accentLevel(), intensity: 0.8 });
     const zc = (z0 + z1) / 2;
     soft.push(...pr.bag(-2.7, 0.761, zc - 0.2, { color: P.fabricClay, ry: Math.PI / 2, w: 0.3 }), ...pr.bag(-2.7, 0.761, zc + 0.22, { color: P.fabricCharcoal, ry: Math.PI / 2, w: 0.28, h: 0.2 }), ...pr.shoe(-2.7, 1.321, zc - 0.2, { ry: Math.PI / 2, color: P.fabricCream }), ...pr.shoe(-2.7, 1.321, zc + 0.05, { ry: Math.PI / 2, color: P.fabricNavy }), ...pr.bag(-2.7, 1.871, zc, { color: P.fabricSage, ry: Math.PI / 2, w: 0.28 }));
     ceramic.push(...pr.vase(-2.7, 1.316, zc + 0.28, { h: 0.2, r: 0.04, color: P.ceramicTerra }), ...pr.vase(-2.7, 0.756 + 0.0, zc, { h: 0.0001, r: 0.001 }));

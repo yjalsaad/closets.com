@@ -14,6 +14,9 @@ import { PRODUCTS, STAGE_VIEWS } from '../products/catalog';
 import { cycleFinish } from '../products/finishes';
 import { Walker, wrapPi, clamp } from './walker';
 import { yawPitchFromLookAt } from './lookAround';
+import { VIP_VIEWS } from '../scenes/vip/layout';
+import { stepStation, clampStation, arrowDir, STATIONS } from '../products/vipContent';
+import { loadSiteProjects } from '../products/projectsFeed';
 
 export const SENS = { mouse: 0.0022, drag: 0.0036, touch: 0.0052 };   // radians per pixel
 export const NEAR = { explore: 0.15, intro: 0.25 };                    // camera near plane (explore must stay below PLAYER.radius)
@@ -21,10 +24,11 @@ const MOVE_KEYS = { KeyW: 'f', ArrowUp: 'f', KeyS: 'b', ArrowDown: 'b', KeyA: 'l
 const editable = (el) => !!el && (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable);
 
 export class Explorer {
-  constructor({ engine, canvas, reduced = false, bob = true, onState = () => {} }) {
+  constructor({ engine, canvas, reduced = false, bob = true, onState = () => {}, projectsLoader = loadSiteProjects }) {
+    this.projectsLoader = projectsLoader; this.projectsPromise = null;
     this.engine = engine; this.canvas = canvas; this.onState = onState; this.reduced = reduced;
     this.graph = buildGraph(); this.zones = allZones();
-    this.doorOpen = true; this.colliders = buildColliders({ doorOpen: 1, oliveCount: engine.tierId === 'low' ? 2 : 4 });
+    this.doorOpen = true; this.vipOpen = true; this.colliders = buildColliders({ doorOpen: 1, oliveCount: engine.tierId === 'low' ? 2 : 4, vipOpen: 1 });
     this.walker = new Walker({ pos: [HANDOVER.p[0], HANDOVER.p[2]], colliders: this.colliders, bob });
     this.keys = new Set(); this.touch = { x: 0, y: 0, jog: false };
     this.enabled = false; this.paused = false; this.uiOpen = false; this.glide = null;
@@ -114,7 +118,7 @@ export class Explorer {
     // keyboard-only turning: , and . (or Alt + Left / Right)
     if (code === 'Comma' || (e.altKey && code === 'ArrowLeft')) { e.preventDefault(); this.walker.look(0.2, 0); return; }
     if (code === 'Period' || (e.altKey && code === 'ArrowRight')) { e.preventDefault(); this.walker.look(-0.2, 0); return; }
-    const m = /^(?:Digit|Numpad)([1-8])$/.exec(code);
+    const m = /^(?:Digit|Numpad)([1-9])$/.exec(code);
     if (m) { e.preventDefault(); this.glideTo(this.graph.stops[Number(m[1]) - 1].id); }
   }
 
@@ -152,6 +156,7 @@ export class Explorer {
     if (this.focus) return;
     this.interactions++;
     const z = this.zone, P = this.products;
+    if (z && z.vip && P && P.vip) { this.focusVip(0); return; }
     if (z && z.stage && P) { this.focusStage('overview'); return; }          // (no "later release" toast: the panel is the response)
     const pid = z && P ? P.productAt(z.id) : null;
     if (pid) { this.focusProduct(pid, 'overview'); return; }
@@ -226,6 +231,27 @@ export class Explorer {
     P.setFocusPart(null); P.setHover(null); this.flyTo(P.focusView(productId, view.id));
     this.emit({ focus: productId, focusKind: 'product', focusView: view.id, partFocus: null, prod: ++this.rev }); return true;
   }
+  /** VIP meeting room: a guided presentation. The camera glides to the station's pose inside the room; the screen, gallery and hologram panels show the station. */
+  focusVip(i = 0) {
+    const P = this.products; if (!this.enabled || !P || !P.vip) return false;
+    const idx = clampStation(i); this.startFocus('vip', 'vip'); this.focus.view = STATIONS[idx].id; this.focus.station = idx;
+    P.setFocusPart(null); P.setHover(null); P.vip.setFocus(true); P.vip.enter(); P.vip.setStation(idx); this.ensureProjects();
+    this.flyTo({ pos: VIP_VIEWS[idx].pos, look: VIP_VIEWS[idx].look, fov: VIP_VIEWS[idx].fov });
+    this.emit({ focus: 'vip', focusKind: 'vip', focusView: STATIONS[idx].id, vipStation: idx, partFocus: null, prod: ++this.rev }); return true;
+  }
+  setStation(i) {
+    const f = this.focus, P = this.products; if (!f || f.kind !== 'vip' || !P || !P.vip) return;
+    const idx = clampStation(i); if (idx === f.station) return; f.station = idx; f.view = STATIONS[idx].id; P.vip.setStation(idx);
+    this.flyTo({ pos: VIP_VIEWS[idx].pos, look: VIP_VIEWS[idx].look, fov: VIP_VIEWS[idx].fov });
+    this.emit({ focusView: STATIONS[idx].id, vipStation: idx, prod: ++this.rev });
+  }
+  stepStation(dir) { const f = this.focus; if (f && f.kind === 'vip') this.setStation(stepStation(f.station, dir)); }
+  /** the site's project list, read once (the SAME read-only client path the Projects page uses) the first time somebody enters the VIP room */
+  ensureProjects() {
+    if (this.projectsPromise || !this.products || !this.products.vip) return this.projectsPromise;
+    this.projectsPromise = Promise.resolve().then(() => this.projectsLoader()).then((res) => { const r = res || { status: 'error', rows: [] }; if (this.products && this.products.vip) this.products.vip.setProjects(r); this.vipRows = r.rows; this.emit({ vipProjects: r.status, vipProjectsRev: (this.vipProjectsRev = (this.vipProjectsRev || 0) + 1) }); return r; }).catch(() => null);
+    return this.projectsPromise;
+  }
   focusStage(viewId = 'overview') {
     if (!this.enabled || !this.products) return false;
     this.startFocus('stage', 'ikhtarha'); const v = STAGE_VIEWS.find((x) => x.id === viewId) || STAGE_VIEWS[0]; this.focus.view = v.id;
@@ -234,17 +260,18 @@ export class Explorer {
   }
   setView(viewId) {
     const f = this.focus; if (!f) return;
+    if (f.kind === 'vip') { const i = STATIONS.findIndex((s) => s.id === viewId); if (i >= 0) this.setStation(i); return; }
     if (f.kind === 'stage') { const v = STAGE_VIEWS.find((x) => x.id === viewId); if (!v) return; f.view = v.id; this.flyTo({ pos: v.pos, look: v.look, fov: v.fov }); }
     else { const p = PRODUCTS[f.key]; if (!p.views.some((x) => x.id === viewId)) return; f.view = viewId; this.flyTo(this.products.focusView(f.key, viewId)); }
     this.emit({ focusView: viewId, prod: ++this.rev });
   }
   cycleView(dir = 1) {
-    const f = this.focus; if (!f) return; const list = f.kind === 'stage' ? STAGE_VIEWS : PRODUCTS[f.key].views, i = list.findIndex((v) => v.id === f.view);
+    const f = this.focus; if (!f) return; if (f.kind === 'vip') { this.stepStation(dir); return; } const list = f.kind === 'stage' ? STAGE_VIEWS : PRODUCTS[f.key].views, i = list.findIndex((v) => v.id === f.view);
     this.setView(list[(i + dir + list.length) % list.length].id);
   }
   exitFocus() {
     if (!this.focus) return false; const P = this.products;
-    if (P) { P.setFocusPart(null); P.setHover(null); }
+    if (P) { P.setFocusPart(null); P.setHover(null); if (P.vip) P.vip.setFocus(false); }
     const s = this.saved, fc = this.fc; this.focus = null; this.pdown = null;
     this.emit({ focus: null, focusKind: null, partFocus: null, partHover: null, prod: ++this.rev });
     if (!fc || !s) { this.fc = null; return true; }
@@ -262,6 +289,17 @@ export class Explorer {
     if (!down || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return !!(code in MOVE_KEYS);
     if (onControl && (code === 'Enter' || code === 'Space')) return false;             // let the focused button do its own thing
     const f = this.focus, P = this.products; if (!f || !P) return false;
+    if (f.kind === 'vip') {
+      const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl', d = arrowDir(code, rtl), dig = /^(?:Digit|Numpad)([1-5])$/.exec(code);
+      if (onControl && (code === 'ArrowLeft' || code === 'ArrowRight' || code === 'ArrowUp' || code === 'ArrowDown')) return false;
+      if (d) { e.preventDefault(); this.stepStation(d); return true; }
+      if (code === 'ArrowDown' || code === 'ArrowUp') { e.preventDefault(); this.stepStation(code === 'ArrowDown' ? 1 : -1); return true; }
+      if (dig) { e.preventDefault(); this.setStation(Number(dig[1]) - 1); return true; }
+      if (code === 'Home') { e.preventDefault(); this.setStation(0); return true; } if (code === 'End') { e.preventDefault(); this.setStation(STATIONS.length - 1); return true; }
+      if (code === 'KeyV') { e.preventDefault(); this.stepStation(e.shiftKey ? -1 : 1); return true; }
+      if (code === 'KeyE') { e.preventDefault(); return true; }
+      return code in MOVE_KEYS;
+    }
     if (f.kind === 'product') {
       const dir = code === 'ArrowRight' || code === 'ArrowDown' ? 1 : code === 'ArrowLeft' || code === 'ArrowUp' ? -1 : 0;
       if (dir && !onControl) { e.preventDefault(); const id = P.registry.step(f.key, P.registry.focus, dir); P.setFocusPart(id); this.emit({ partFocus: id, prod: ++this.rev }); return true; }
@@ -307,7 +345,7 @@ export class Explorer {
   glideTo(id) {
     if (!this.enabled) return false;
     if (this.focus) this.exitFocus(); if (this.fly) { this.fly.kill(); this.fly = null; } this.fc = null;
-    const route = routeTo(this.graph, this.walker.pos, id, this.colliders); if (!route) return false;
+    const route = routeTo(this.graph, this.walker.pos, id, buildColliders({ doorOpen: this.doorOpen ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4, vipOpen: 1 })); if (!route) return false;
     this.killGlide(); this.keys.clear();
     const w = this.walker, pts = route.points, len = polylineLength(pts), stop = route.stop;
     const y0 = w.yaw, p0 = w.pitch;
@@ -334,8 +372,10 @@ export class Explorer {
   }
   update(dt) {
     if (!this.enabled) return;
+    const vOpen = !this.products || !this.products.vip || this.products.vip.doorOpen >= DOOR_OPEN_AT;
+    if (vOpen !== this.vipOpen) { this.vipOpen = vOpen; this.colliders = buildColliders({ doorOpen: this.doorOpen ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4, vipOpen: vOpen ? 1 : 0 }); this.walker.setColliders(this.colliders); }
     const open = (this.engine.state.doorOpen || 0) >= DOOR_OPEN_AT;
-    if (open !== this.doorOpen) { this.doorOpen = open; this.colliders = buildColliders({ doorOpen: open ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4 }); this.walker.setColliders(this.colliders); }
+    if (open !== this.doorOpen) { this.doorOpen = open; this.colliders = buildColliders({ doorOpen: open ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4, vipOpen: this.vipOpen ? 1 : 0 }); this.walker.setColliders(this.colliders); }
     if (this.fc) this.walker.step(dt, {}, this.reduced);                                     // focused on a product: the walker stands still
     else if (!this.glide && !this.paused && !this.uiOpen) this.walker.step(dt, this.inputVector(), this.reduced);
     else if (this.paused || this.uiOpen) this.walker.step(dt, {}, this.reduced);

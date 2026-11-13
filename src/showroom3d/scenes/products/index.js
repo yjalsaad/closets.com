@@ -15,6 +15,7 @@ import { buildLiving } from './living';
 import { buildStudio } from './studio';
 import { buildLounge } from './lounge';
 import { buildStage } from './ikhtarha';
+import { buildVipRoom } from '../vip/vipRoom';
 
 const BUILDERS = { kitchen: buildKitchen, wardrobe: buildWardrobe, door: buildDoor, bedroom: buildBedroom, walkin: buildWalkin, living: buildLiving, studio: buildStudio, lounge: buildLounge };
 const KEY_E = { kitchen: 1.5, wardrobe: 5.2, door: 3.0, bedroom: 3.2, walkin: 3.2, living: 3.0, studio: 3.0, lounge: 3.0 };
@@ -38,7 +39,8 @@ export function buildProducts({ renderer, hallM, tier, lang, bays, reduced = fal
   const key = new THREE.SpotLight(P.ledCool, 40, 14, 0.56, 0.8, 1.6); key.target = new THREE.Object3D();
   if (tier.id !== 'low') { key.castShadow = true; key.shadow.mapSize.set(tier.id === 'high' ? 2048 : 1024, tier.id === 'high' ? 2048 : 1024); key.shadow.bias = -0.0004; key.shadow.normalBias = 0.025; key.shadow.radius = 3; key.shadow.camera.near = 0.4; key.shadow.camera.far = 12; }
   const fill = tier.id === 'low' ? null : new THREE.PointLight(P.ledCool, 6, 9, 2);
-  const lights = [key, key.target, ...(fill ? [fill] : [])];
+  const vip = buildVipRoom({ M, tier, lang, logoTex, reduced });
+  const lights = [key, key.target, ...(fill ? [fill] : []), ...vip.lights];
   const anchors = [...Object.keys(kits).map((id) => { const b = bayOf[id], a = ANCHORS[id]; return { id, at: toWorld(b, a.local), spot: toWorld(b, a.spot), E: KEY_E[id], fillK: KEY_E[id] / 1.5 }; }), { id: 'stage', at: [STAGE.x, 0.9, STAGE.z], spot: [STAGE.x + 0.4, 8.6, STAGE.z + 1.2], E: 3.0, fillK: 1.2 }];
   const cur = { at: new THREE.Vector3(...anchors[0].at), spot: new THREE.Vector3(...anchors[0].spot), I: 40, level: 1, fillK: 1 };
   let anchorId = null;
@@ -61,7 +63,7 @@ export function buildProducts({ renderer, hallM, tier, lang, bays, reduced = fal
   };
 
   const api = {
-    kits, registry, stage, lights, group: new THREE.Group(), outlines: [hover, focus], env, M, bayOf,
+    kits, registry, stage, vip, lights, group: new THREE.Group(), outlines: [hover, focus], env, M, bayOf,
     /** put each product into its bay group (called by buildBays); right-hand bays face -x, so their frame is rotated by PI */
     attach(bay, grp) {
       const kit = bay.product && kits[bay.product]; if (!kit) return false;
@@ -70,10 +72,12 @@ export function buildProducts({ renderer, hallM, tier, lang, bays, reduced = fal
     /** jump the key light straight to the anchor nearest the camera (used after a teleport and by QA; normally it glides) */
     snap(cam) { let best = anchors[0], bd = 1e9; for (const a of anchors) { const d = Math.hypot(cam.position.x - a.at[0], cam.position.z - a.at[2]) * (a.id === 'stage' ? 0.7 : 1); if (d < bd) { bd = d; best = a; } } lightTo(best, 0, true); },
     anchorId: () => anchorId || 'neutral',
-    setLanguage(l) { stage.relabel(l); for (const k of Object.values(kits)) if (k.relabel) k.relabel(l); },
-    setReduced(v) { for (const k of Object.values(kits)) k.setReduced(v); },
+    /** groups of the products farther than `d` metres from the camera (the floor-mirror pass skips them: it only needs what the visitor is next to) */
+    farGroups(cam, d = 13) { const out = []; for (const [id, k] of Object.entries(kits)) { const b = bayOf[id]; if (Math.hypot(cam.position.x - b.x, cam.position.z - b.z) > d) out.push(k.group); } return out; },
+    setLanguage(l) { stage.relabel(l); vip.setLanguage(l); for (const k of Object.values(kits)) if (k.relabel) k.relabel(l); },
+    setReduced(v) { for (const k of Object.values(kits)) k.setReduced(v); vip.setReduced(v); },
     /** 0..1: hall light level from the intro (products wake up with the hall) */
-    setLevel(k) { cur.level = k; stage.setLevel(k); },
+    setLevel(k) { cur.level = k; stage.setLevel(k); vip.setLevel(k); },
     setHover(id) { if (registry.setHover(id)) fit(hover, id); },
     setFocusPart(id) { if (registry.setFocus(id)) fit(focus, id); },
     /** raycast: returns {id, distance, part} or null */
@@ -99,16 +103,16 @@ export function buildProducts({ renderer, hallM, tier, lang, bays, reduced = fal
       for (const [id, k] of Object.entries(kits)) {
         k.group.visible = inside;
         const b = bayOf[id], d = Math.hypot(cam.position.x - b.x, cam.position.z - b.z);
-        k.lod.props.visible = d < 20; k.lod.detail.visible = d < 24;
+        k.lod.props.visible = d < 15; k.lod.detail.visible = d < 18; const far = k.far.on ? d > 8.8 : d > 9.8; k.setFar(far); k.setCasting(!far);
         if (inside) k.update(dt);
       }
-      stage.group.visible = inside;
+      stage.group.visible = inside; vip.group.visible = inside; if (inside) vip.update(dt, cam);
       if (registry.hover) fit(hover, registry.hover);
       if (registry.focus) fit(focus, registry.focus);
     },
     stats() { let tris = 0; return { products: Object.keys(kits).length, tris }; },
-    dispose() { for (const k of Object.values(kits)) k.dispose(); stage.dispose(); env.dispose && env.dispose(); },
+    dispose() { for (const k of Object.values(kits)) k.dispose(); stage.dispose(); vip.dispose(); env.dispose && env.dispose(); },
   };
-  api.group.add(stage.group, ...api.outlines);
+  api.group.add(stage.group, vip.group, ...api.outlines);
   return api;
 }

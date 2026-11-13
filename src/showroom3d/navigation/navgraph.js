@@ -5,6 +5,7 @@
 import { HALL } from '../3d/dimensions';
 import { layoutBays } from '../scenes/main-hall/departments';
 import { PLAYER, buildColliders, segmentClear } from './colliders';
+import { VIP } from '../scenes/vip/layout';
 
 const SPINE_X = 8;                           // walking lanes between the benches (|x| <= 3.2) and the bays (|x| >= 16)
 export const STAND_X = 12.5;                 // 3.5 m in front of the bay's floor inlay edge: far enough to see the whole alcove, sign and floor zone
@@ -34,6 +35,10 @@ export function buildGraph(bays = layoutBays()) {
     nodes[lane] = [s * SPINE_X, st.stand[1]]; nodes['stand-' + st.id] = st.stand;
     edges.push([lastOf[st.side], lane], [lane, 'stand-' + st.id]); lastOf[st.side] = lane;
   }
+  // the VIP meeting room (9th stop): a lane in front of its glass door, reached from both sides of the nave round the bench; the stand point is inside, facing the screen
+  nodes.vipL = [-SPINE_X, VIP.approach[1]]; nodes.vipR = [SPINE_X, VIP.approach[1]]; nodes.vipDoor = [...VIP.approach]; nodes['stand-vip'] = [...VIP.stand];
+  edges.push(['lane-walkin', 'vipL'], ['lane-studio', 'vipR'], ['vipL', 'vipDoor'], ['vipR', 'vipDoor'], ['vipDoor', 'stand-vip']);
+  stops.push({ id: 'vip', index: 9, side: 'center', stand: [...VIP.stand], look: [...VIP.look], bay: null });
   return { nodes, edges, stops };
 }
 

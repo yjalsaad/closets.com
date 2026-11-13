@@ -11,6 +11,7 @@
  * circle on the far side of a wall. */
 import { HALL, SITE } from '../3d/dimensions';
 import { layoutBays } from '../scenes/main-hall/departments';
+import { vipBoxes, vipDoorBox } from '../scenes/vip/layout';
 import { productColliders } from './productColliders';
 
 export const PLAYER = { radius: 0.35, eye: HALL.eye };
@@ -34,9 +35,9 @@ export const WALK_RECTS = {
 
 /**
  * All obstacles for a given door state.
- * @param {{doorOpen?: number, oliveCount?: number}} opts  doorOpen 0..1 (>= DOOR_OPEN_AT means passable)
+ * @param {{doorOpen?: number, oliveCount?: number, vipOpen?: number}} opts  doorOpen / vipOpen 0..1 (>= DOOR_OPEN_AT means passable)
  */
-export function buildColliders({ doorOpen = 1, oliveCount = 4 } = {}) {
+export function buildColliders({ doorOpen = 1, oliveCount = 4, vipOpen = 1 } = {}) {
   const H = HALL, W = H.halfWidth, D = H.depth, g = H.doorHalfOpening;
   const list = [];
   // ---- building shell (interior face at x = +-22, back at z = -36, facade glass on z = 0) ----
@@ -58,6 +59,7 @@ export function buildColliders({ doorOpen = 1, oliveCount = 4 } = {}) {
   }
   // ---- Phase 4: furnished bays (kitchen run + island, wardrobe, door wall + bench, plants) and the Ikhtarha stage ----
   list.push(...productColliders());
+  list.push(...vipBoxes()); if (vipOpen < DOOR_OPEN_AT) list.push(vipDoorBox());      // the VIP meeting room: walls, table, lounge; the sliding door is solid until it is open
   // ---- exterior: building footprint is already solid; forecourt perimeter = hedge rows + kerbs + an end stop on the path ----
   const fx = WALK_RECTS.forecourt, px = WALK_RECTS.path;
   list.push(box('site-left', fx.minX - FAR, fx.minX, 0.35, fx.maxZ + 4));

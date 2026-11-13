@@ -155,7 +155,7 @@ export class ShowroomEngine {
       const id = z < 0.6 ? this.products.anchorId() : 'neutral', want = gradeFor(id); this.grade = this.grade ? mixGrade(this.grade, want, 1 - Math.exp(-2.5 * dt)) : want; this.post.setGrade(this.grade);
     }
     const fwdY = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion).y;   // looking steeply down: the mirrored camera sees nothing useful and the overlay misrenders, so skip the pass
-    if (this.mirror && z < -0.5 && fwdY > -0.42) { this.mirror.setSize(this.width * (this.scale || 1), this.height * (this.scale || 1)); this.mirror.mesh.visible = true; this.mirror.render(this.camera, [this.hall && this.hall.group, this.exterior && this.exterior.group, this.entrance && this.entrance.group, ...(this.products ? this.products.outlines : [])]); }
+    if (this.mirror && z < -0.5 && fwdY > -0.42) { this.mirror.setSize(this.width * (this.scale || 1), this.height * (this.scale || 1)); this.mirror.mesh.visible = true; this.mirror.render(this.camera, [this.hall && this.hall.group, this.exterior && this.exterior.group, this.entrance && this.entrance.group, ...(this.products ? [...this.products.outlines, this.products.vip && this.products.vip.group, ...this.products.farGroups(this.camera, 13)] : [])]); }
     else if (this.mirror) this.mirror.mesh.visible = false;
   }
   setLanguage(lang) { this.lang = lang; if (this.bays) this.bays.relabel(lang); if (this.products) this.products.setLanguage(lang); }
