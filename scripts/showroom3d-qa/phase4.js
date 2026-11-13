@@ -17,8 +17,8 @@ const settle = async (page, ms = 3000) => { await page.waitForFunction(() => { c
 const goto = async (page, pose) => { await ex(page, (e, p) => e.teleport(...p), pose); await page.waitForTimeout(400); };
 const press = async (page, key) => { await page.keyboard.press(key); await page.waitForTimeout(150); };
 const dismissCoach = async (page) => { await page.evaluate(() => { try { localStorage.setItem('closets_showroom_coach', '1'); } catch (e) { /* ignore */ } const b = document.querySelector('[data-testid="sr-coach-done"]'); if (b) b.click(); }); await page.waitForTimeout(200); };
-/** any supabase / rest / rpc request made by the showroom page (frame url /showroom-3d) is a failure, and so is any non-GET to those anywhere. The booking page that the quotation link opens makes its own ordinary reads; those do not count. */
-function trackBackend(page) { const bad = []; page.on('request', (r) => { const u = r.url(); if (!/supabase\.co|\/rest\/v1\/|\/rpc\//.test(u)) return; let f = ''; try { f = r.frame().url(); } catch (e) { /* ignore */ } if (r.method() !== 'GET' || /showroom-3d/.test(f)) bad.push(r.method() + ' ' + u); }); return bad; }
+/** every supabase / rest / rpc request from the showroom is a failure. After `disarm()` (called just before following a link to another page) only non-GET requests count: the booking page makes its own ordinary reads. */
+function trackBackend(page) { const bad = []; let armed = true; page.on('request', (r) => { if (!/supabase\.co|\/rest\/v1\/|\/rpc\//.test(r.url())) return; if (!armed && r.method() === 'GET') return; bad.push(r.method() + ' ' + r.url()); }); bad.disarm = () => { armed = false; }; return bad; }
 
 async function flows(b) {
   const o = await L.openShowroom(b, { query: FAST, viewport: { width: 1100, height: 640 } }); const page = o.page; const backend = trackBackend(page);
@@ -73,7 +73,7 @@ async function flows(b) {
   // quotation link carries the finish and opens the existing booking page
   const href = await page.getAttribute('[data-testid="sr-quote"]', 'href'); const u = new URL(href, 'http://x');
   check('quotation link: /booking, interest Kitchen, selected finish, notes', u.pathname === '/booking' && u.searchParams.get('interest') === 'Kitchen' && u.searchParams.get('finish') === 'charcoal-white-stone' && /Charcoal/.test(u.searchParams.get('notes')), href);
-  await page.click('[data-testid="sr-quote"]'); await page.waitForURL(/\/booking/, { timeout: 60000 }); await page.waitForSelector('#bk-notes', { timeout: 60000 });
+  backend.disarm(); await page.click('[data-testid="sr-quote"]'); await page.waitForURL(/\/booking/, { timeout: 60000 }); await page.waitForSelector('#bk-notes', { timeout: 60000 });
   check('the existing booking page opens pre-filled (interest + notes), nothing submitted', (await page.inputValue('#bk-interest')) === 'Kitchen' && /Charcoal matt lacquer/.test(await page.inputValue('#bk-notes')) && /sample configuration/i.test(await page.inputValue('#bk-notes')));
   check('no backend request was made by any showroom interaction (no supabase / rpc / rest call)', backend.length === 0, backend.slice(0, 3));
   check('no page errors', o.errors.length === 0, o.errors.slice(0, 3)); await o.ctx.close();
@@ -105,7 +105,7 @@ async function flowsRest(b) {
   const hrefs = { price: await wp.getAttribute('[data-testid="sr-ik-price"]', 'href'), play: await wp.getAttribute('[data-testid="sr-ik-play"]', 'href'), demo: await wp.getAttribute('[data-testid="sr-ik-demo"]', 'href') };
   check('CTAs go to the existing pages: /booking, /campaign/ikhtarha, /campaign/ikhtarha/demo', /^\/booking\?/.test(hrefs.price) && /^\/campaign\/ikhtarha(\?|$)/.test(hrefs.play) && /^\/campaign\/ikhtarha\/demo/.test(hrefs.demo), hrefs);
   for (const v of ['boxes', 'screen', 'overview']) { await wp.click(`[data-testid="sr-view-${v}"]`); await settle(wp, 300); check(`stage view "${v}" selected`, (await wp.getAttribute(`[data-testid="sr-view-${v}"]`, 'aria-pressed')) === 'true'); }
-  await wp.click('[data-testid="sr-ik-price"]'); await wp.waitForURL(/\/booking/, { timeout: 60000 }); check('"Price & pick your box" opens the existing booking page', /source=showroom-3d-ikhtarha/.test(wp.url()), wp.url());
+  backend2.disarm(); await wp.click('[data-testid="sr-ik-price"]'); await wp.waitForURL(/\/booking/, { timeout: 60000 }); check('"Price & pick your box" opens the existing booking page', /source=showroom-3d-ikhtarha/.test(wp.url()), wp.url());
   check('no backend request from the stage / wardrobe / door flows', backend2.length === 0, backend2.slice(0, 3)); check('no page errors (wardrobe / door / stage)', w.errors.length === 0, w.errors.slice(0, 3)); await w.ctx.close();
 }
 
@@ -170,7 +170,7 @@ async function stats(b) {
 
 async function gallery(b) {
   const o = await L.openShowroom(b, { query: 'debug=1&quality=high&aa=0', viewport: { width: 1280, height: 720 } }); const page = o.page; await L.enterExplore(page); await dismissCoach(page);
-  const snap = async (name, wait = 7000, hud = false) => { if (process.env.ONLY && !name.startsWith(process.env.ONLY)) return; await page.waitForTimeout(wait); await setHud(page, hud); await page.waitForTimeout(250); await shot(page, name, { quality: 66 }); await setHud(page, true); };
+  const snap = async (name, wait = 7000, hud = false) => { if (process.env.ONLY && !name.startsWith(process.env.ONLY)) return; await page.waitForTimeout(wait); await setHud(page, hud); await page.waitForTimeout(250); await shot(page, name.replace(/^phase4-/, process.env.PREFIX || 'phase4-'), { quality: 62 }); await setHud(page, true); };
   const E = (fn) => page.evaluate(fn);
   const focus = async (pid, view) => { await E(`window.__showroom.explore.explorer.focusProduct('${pid}', '${view || 'overview'}')`); await settle(page, 0); };
   // department wide shots (visitor view, no panel)
