@@ -53,6 +53,7 @@ export function marbleSet(size, seed = 11, variant = 'white', floor = false) {
   const spec = {
     white: { base: rgb(P.marbleWhite), cloud: rgb(0xcfc9bf), vein: rgb(P.marbleVeinGrey), gold: rgb(P.marbleVeinGold), goldAmt: 0.55, veinAmt: 0.7, tile: { gold: 0.18, vein: 0.4 } },
     dark: { base: rgb(P.marbleDark), cloud: rgb(0x403c3a), vein: rgb(P.marbleDarkVein), gold: rgb(P.marbleVeinGold), goldAmt: 0.35, veinAmt: 0.85, tile: { gold: 0.04, vein: 0.45 } },
+    grey: { base: rgb(0x8c8e90), cloud: rgb(0x76787a), vein: rgb(0xdcddde), gold: rgb(0xdcddde), goldAmt: 0.1, veinAmt: 0.55, tile: { gold: 0.05, vein: 0.35 } },
     sand: { base: rgb(P.marbleSand), cloud: rgb(0xb5aa98), vein: rgb(0x8a8174), gold: rgb(0xd9d0bf), goldAmt: 0.3, veinAmt: 0.5, tile: { gold: 0.1, vein: 0.32 } },
   }[variant] || null;
   const S = floor && spec.tile ? { ...spec, goldAmt: spec.tile.gold, veinAmt: spec.tile.vein } : spec, rough = new Float32Array(size * size);

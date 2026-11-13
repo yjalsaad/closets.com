@@ -9,7 +9,8 @@ void main(){ vUv2 = aUv; vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz;
 const frag = /* glsl */`
 uniform sampler2D tMap; uniform float uStr; varying vec4 vProj; varying vec3 vW; varying vec2 vUv2;
 void main(){
-  vec2 uv = vProj.xy / vProj.w; vec3 V = normalize(cameraPosition - vW);
+  if (vProj.w <= 0.001) discard;
+  vec2 uv = vProj.xy / vProj.w; if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) discard; vec3 V = normalize(cameraPosition - vW);
   float fres = 0.16 + 0.84 * pow(1.0 - clamp(V.y, 0.0, 1.0), 2.5);
   float r = 0.0045 + 0.004 * clamp(length(cameraPosition - vW) / 14.0, 0.0, 1.0);
   vec4 a = texture2D(tMap, uv) * 0.36 + texture2D(tMap, uv + vec2(r, 0.0)) * 0.16 + texture2D(tMap, uv - vec2(r, 0.0)) * 0.16 + texture2D(tMap, uv + vec2(0.0, r * 1.6)) * 0.16 + texture2D(tMap, uv - vec2(0.0, r * 1.6)) * 0.16;

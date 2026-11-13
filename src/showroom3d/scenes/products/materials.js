@@ -17,7 +17,7 @@ export function createProductTextures(tier) {
   return {
     oak: mk(timberSet(S, 3, 0)), walnut: mk(timberSet(S, 8, 1)),
     marble: { white: mk(marbleSet(marbleS, 11, 'white')), dark: mk(marbleSet(marbleS, 12, 'dark')), sand: mk(marbleSet(marbleS, 13, 'sand')) },
-    tiles: { sand: mk(tileSet(S >= 1024 ? 1024 : S, 41, 'sand')), white: mk(tileSet(S >= 1024 ? 1024 : S, 42, 'white')), dark: mk(tileSet(S >= 1024 ? 1024 : S, 43, 'dark')) },
+    tiles: { sand: mk(tileSet(S >= 1024 ? 1024 : S, 41, 'sand')), white: mk(tileSet(S >= 1024 ? 1024 : S, 42, 'white')), dark: mk(tileSet(S >= 1024 ? 1024 : S, 43, 'dark')), grey: mk(tileSet(S >= 1024 ? 1024 : S, 44, 'grey')) },
     leaf: leafCardTexture(), ao: aoTexture(),
     brushed: mk(brushedSet(256, 23)), peel: mk(peelSet(256, 29)), rug: mk(rugSet(Math.max(256, S >> 1), 31)), hob: hobTexture(),
   };
@@ -44,7 +44,7 @@ export function createProductMaterials({ tier, env, tex }) {
   M.stone = phys({ color: C(0xe9e6df), map: tex.marble.white.map, roughness: 0.14, metalness: 0, envMapIntensity: 1.0, clearcoat: hi ? 0.5 : 0, clearcoatRoughness: 0.08, roughnessMap: tex.marble.white.rough });
   // per-bay floor zones (large-format polished stone, a different stone per room, so each bay reads as its own room): kitchen sand, wardrobe pale grey, door deep grey
   const floor = (t, ei = 0.85) => phys({ map: t.map, roughnessMap: t.rough, normalMap: t.normal, normalScale: new THREE.Vector2(0.5, 0.5), roughness: 1, metalness: 0, clearcoat: tier.id === 'low' ? 0 : 0.75, clearcoatRoughness: 0.06, envMapIntensity: ei });
-  M.floorBay = { kitchen: floor(tex.tiles.sand), wardrobe: floor(tex.tiles.white), door: floor(tex.tiles.dark, 0.45) };
+  M.floorBay = { kitchen: floor(tex.tiles.sand), wardrobe: floor(tex.tiles.white), door: floor(tex.tiles.grey, 0.7) };
   // baked ambient occlusion decals (one shared material; geometry carries per-quad strength in the vertex alpha)
   M.ao = new THREE.MeshBasicMaterial({ map: tex.ao, vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, toneMapped: true });
   M.leafCard = new THREE.MeshStandardMaterial(E({ map: tex.leaf, alphaTest: 0.5, side: THREE.DoubleSide, vertexColors: true, roughness: 0.5, envMapIntensity: 0.5 }));
@@ -52,7 +52,7 @@ export function createProductMaterials({ tier, env, tex }) {
   M.plinth = std({ color: C(P.ink), roughness: 0.85, envMapIntensity: 0.2 });
 
   // ---- metals (anisotropic brushed brass / bronze) ----
-  const metal = (color, rough) => phys({ color: C(color), metalness: 1, roughness: rough, anisotropy: hi || tier.id === 'medium' ? 0.65 : 0, anisotropyRotation: 0, roughnessMap: tex.brushed.rough, normalMap: tier.normalMaps ? tex.brushed.normal : null, normalScale: new THREE.Vector2(0.25, 0.25), envMapIntensity: 0.7 });
+  const metal = (color, rough) => phys({ color: C(color), metalness: 1, roughness: rough, anisotropy: hi || tier.id === 'medium' ? 0.65 : 0, anisotropyRotation: 0, roughnessMap: tex.brushed.rough, normalMap: tier.normalMaps ? tex.brushed.normal : null, normalScale: new THREE.Vector2(0.25, 0.25), envMapIntensity: 0.55 });
   M.brass = metal(P.brassBrushed, 0.3);
   M.bronze = metal(P.bronzeDark, 0.42);
   M.metal = { kitchen: metal(P.brassBrushed, 0.3), wardrobe: metal(P.bronzeDark, 0.42), door: metal(P.brassBrushed, 0.3) };   // recoloured by applyFinish

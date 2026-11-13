@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { TIERS, adaptScale, effectivePixelRatio, isSoftwareRenderer } from './quality';
 import { PALETTE } from './palette';
 import { SUN_DIR, buildEnvironment } from './sky';
+import { tileSet } from './pbr';
 import { stoneSet, woodSet, plasterSet, paverSet, grassSet, sandSet, leafSet, trunkSet, frondCanvas } from './textures';
 import { createMaterials, glowTexture } from './materials';
 import { disposeTree } from './geom';
@@ -51,7 +52,7 @@ export class ShowroomEngine {
     // procedural texture sets, one at a time so the loading bar moves for real
     const S = tier.texSize, sets = {};
     const jobs = [
-      ['stone', () => stoneSet(S, 7)], ['oak', () => woodSet(S, 3, 0)], ['walnut', () => woodSet(Math.max(256, S >> 1), 8, 1)], ['plaster', () => plasterSet(Math.max(256, S >> 1), 5)],
+      ['stone', () => stoneSet(S, 7)], ['floor', () => tileSet(S, 47, 'white')], ['oak', () => woodSet(S, 3, 0)], ['walnut', () => woodSet(Math.max(256, S >> 1), 8, 1)], ['plaster', () => plasterSet(Math.max(256, S >> 1), 5)],
       ['paver', () => paverSet(Math.max(256, S >> 1), 9)], ['grass', () => grassSet(Math.max(256, S >> 1), 21)], ['sand', () => sandSet(Math.max(128, S >> 2), 31)],
       ['leaf', () => leafSet(Math.max(128, S >> 2), 41)], ['trunk', () => trunkSet(Math.max(128, S >> 2), 51)], ['frond', () => frondCanvas(256, 512)],
     ];

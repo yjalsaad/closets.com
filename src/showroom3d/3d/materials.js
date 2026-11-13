@@ -14,8 +14,8 @@ export function createMaterials(sets, tier, envMap) {
   const phys = (o) => new THREE.MeshPhysicalMaterial({ envMap, ...o });
   const M = {};
   const floorOpts = {
-    map: T(sets.stone.map, [1, 1]), roughnessMap: T(sets.stone.rough, [1, 1], false), roughness: 1,
-    normalMap: nm ? T(sets.stone.normal, [1, 1], false) : null, normalScale: new THREE.Vector2(0.6, 0.6), envMapIntensity: 0.55,
+    map: T((sets.floor || sets.stone).map, [1, 1]), roughnessMap: T((sets.floor || sets.stone).rough, [1, 1], false), roughness: 1,
+    normalMap: nm ? T((sets.floor || sets.stone).normal, [1, 1], false) : null, normalScale: new THREE.Vector2(0.5, 0.5), envMapIntensity: 0.6,
   };
   floorOpts.color = new THREE.Color(PALETTE.floorTint);
   M.floor = tier.physicalFloor ? phys({ ...floorOpts, clearcoat: 0.3, clearcoatRoughness: 0.25 }) : std(floorOpts);
