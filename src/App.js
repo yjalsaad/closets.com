@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, createContext, useContext, Component, Fragment, createElement } from 'react';
 import GlassLayer from './glass/GlassLayer'; // [GLASS 2026-11-14]
 import TypeShowcase from './glass/TypeShowcase'; // [GLASS 2026-11-14] stage 2
+import ProjectStrip from './glass/ProjectStrip'; // [GLASS 2026-11-14] finished-projects strip on the home page
 import KitchenScene3D from './KitchenScene3D';
 import TVUnit3D from './TVUnit3D';
 import Door3D from './Door3D';
@@ -8603,6 +8604,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </div>
       </section>
 
+      <ProjectStrip ar={lang === 'ar'} t={t} load={() => api('website_projects?active=eq.true&order=sort_order.asc')} onAll={() => setPage('projects')} />{/* [GLASS 2026-11-14] finished projects, as a strip of film; renders nothing when there are none */}
       {/* h. Offers strip — from store_offers / customer_offers */}
       {offers.length > 0 && (
         <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 48 : 80}px ${P}` }}>
