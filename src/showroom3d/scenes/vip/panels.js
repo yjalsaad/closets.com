@@ -139,3 +139,59 @@ export function drawHolo(g, w, h, o) {
   if (which === 2) ['admin', 'sales', 'design', 'finance'].forEach((n, i) => { const y = 100 + i * 52; k.card(34, y, w - 68, 40, { r: 8 }); k.text({ admin: lang === 'ar' ? 'مدير' : 'Administrator', sales: lang === 'ar' ? 'مبيعات' : 'Sales', design: lang === 'ar' ? 'تصميم' : 'Designer', finance: lang === 'ar' ? 'مالية' : 'Finance' }[n], k.mx(52), y + 29, { size: 22 }); ['V', 'E', 'A'].forEach((c, j) => { g.fillStyle = rgba(P.brandOrange, [0.8, 0.5, 0.25][(i + j) % 3]); g.fillRect(w - 150 + j * 34, y + 8, 24, 24); }); });
   k.text(Lx(C.ILLUSTRATIVE, lang), k.mx(34), h - 22, { size: 16, color: P.taupe, max: w - 68 });
 }
+
+// ================================================================ decks: generic slides + deck chips on the wall screen
+/** the rich built-in renderers, by the `builtin` key of a default-deck slide */
+export const BUILTIN_DRAW = { story: drawStory, projects: drawProjectsScreen, hub: drawHub, invest: drawInvest, briefing: drawBriefing };
+const ACCENT = { orange: P.brandOrange, brass: P.brassPale, sand: P.sand, sage: P.ikMint };
+
+/** deck chips along the top of the wall screen (only drawn when there is more than one deck). Pure layout in design pixels, shared by the drawing and the click hit-test. */
+export function chipLayout(titles, w, rtl, max = 4) {
+  const n = Math.min(titles.length, max), gap = 12, h = 38, y = 22; let total = 0; const widths = titles.slice(0, n).map((t) => { const cw = Math.min(260, 34 + t.length * 11); total += cw; return cw; }); total += gap * (n - 1);
+  let x = rtl ? 70 : w - 70 - total; return widths.map((cw, i) => { const r = { i, x, y, w: cw, h }; x += cw + gap; return r; });
+}
+export function drawDeckChips(g, w, h, o) {
+  const k = kit(g, w, h, o.lang), titles = o.decks; if (!titles || titles.length < 2) return; const rects = chipLayout(titles, w, k.rtl, o.max || 4);
+  rects.forEach((r) => { const on = r.i === o.deckIndex; k.card(r.x, r.y, r.w, r.h, { fill: on ? rgba(P.brandOrange, 0.28) : rgba(P.sand, 0.06), line: on ? rgba(P.brandOrange, 0.95) : rgba(P.sand, 0.3), r: 19 }); k.text(titles[r.i], r.x + r.w / 2, r.y + 26, { size: 18, weight: on ? 700 : 500, color: on ? P.sand : P.taupe, align: 'center', max: r.w - 20 }); });
+  if (titles.length > rects.length) k.text(`+${titles.length - rects.length}`, k.rtl ? 70 + 0 : w - 70, 70, { size: 16, color: P.taupe, align: k.rtl ? 'left' : 'right' });
+}
+
+/** one generic slide (imported / saved decks): title, lead, bullets on one side, image / table / bar chart on the other, source + illustrative labels, the disclaimer in the footer.
+ *  o: { lang, slide (resolved), index, count, deckTitle, unit, images: Map url -> HTMLImageElement } */
+export function drawSlide(g, w, h, o) {
+  const k = kit(g, w, h, o.lang), { lang, slide: s } = o, accent = ACCENT[s.accent] !== undefined ? ACCENT[s.accent] : P.brandOrange; k.bg();
+  const word = lang === 'ar' ? 'الشريحة' : 'SLIDE', of = lang === 'ar' ? 'من' : 'OF';
+  k.rule(k.mx(70), 32, 90); g.fillStyle = hex(accent); g.fillRect(k.rtl ? w - 70 - 90 : 70, 32, 90, 5);
+  k.text(`${o.deckTitle} · ${word} ${o.index + 1} ${of} ${o.count}`, k.mx(70), 70, { size: 24, weight: 600, color: P.brassPale, max: w * 0.6 });
+  const ty = k.para(s.title, k.mx(70), 136, w - 140 - 120, { size: 58, weight: 700, color: P.sand, lh: 64 });
+  let y = ty + 16; if (s.lead) y = k.para(s.lead, k.mx(70), y + 8, w * 0.8, { size: 32, weight: 600, color: accent, lh: 42 }) + 8;
+  const blocks = s.blocks || [], hasBlocks = blocks.length > 0, bw = hasBlocks ? w * 0.44 : w - 140, top = Math.max(y + 24, 250), bottom = h - 170;
+  const size = s.bullets.length > 5 ? 24 : s.bullets.length > 3 ? 28 : 32; let by = top;
+  s.bullets.forEach((b) => { if (by > bottom) return; g.fillStyle = hex(accent); g.beginPath(); g.arc(k.rtl ? w - 70 - 8 : 78, by + size * 0.15, 6, 0, Math.PI * 2); g.fill(); by = k.para(b, k.rtl ? w - 70 - 26 : 70 + 26, by + size * 0.4, bw - 30, { size, weight: 500, color: P.sand, lh: size * 1.3 }) + 10; });
+  if (hasBlocks) {
+    const bx0 = k.rtl ? 70 : w - 70 - bw, bh = (bottom - top - 16 * (blocks.length - 1)) / blocks.length; let cy = top;
+    blocks.forEach((b) => { drawBlock(k, g, b, bx0, cy, bw, bh, lang, o, accent); cy += bh + 16; });
+  }
+  const tags = [s.illustrative || blocks.some((b) => b.illustrative) ? Lx(C.ILLUSTRATIVE, lang) : '', s.source ? (lang === 'ar' ? 'المصدر: ' : 'Source: ') + s.source : '', ...blocks.filter((b) => b.source).map((b) => (lang === 'ar' ? 'المصدر: ' : 'Source: ') + b.source)].filter(Boolean);
+  tags.slice(0, 2).forEach((t, i) => k.text(t, k.mx(70), h - 156 + i * 26, { size: 20, color: P.brassPale, max: w - 140 }));
+  footer(k, w, h, lang, null);
+}
+function drawBlock(k, g, b, x, y, bw, bh, lang, o, accent) {
+  k.card(x, y, bw, bh, { fill: rgba(P.sand, 0.05), line: rgba(P.sand, 0.25) });
+  if (b.type === 'image') {
+    const im = o.images && o.images.get(b.url), cap = b.caption ? 34 : 0;
+    if (im && im.width) { g.save(); roundedRect(g, x, y, bw, bh - cap, 14); g.clip(); const sc = Math.min(bw / im.width, (bh - cap) / im.height); g.drawImage(im, x + (bw - im.width * sc) / 2, y + (bh - cap - im.height * sc) / 2, im.width * sc, im.height * sc); g.restore(); }
+    else k.para(b.alt || '', x + bw / 2, y + (bh - cap) / 2, bw - 40, { size: 22, color: P.taupe, align: 'center', lh: 28 });
+    if (b.caption) k.text(b.caption, x + bw / 2, y + bh - 10, { size: 18, color: P.taupe, align: 'center', max: bw - 24 });
+  } else if (b.type === 'table') {
+    const rows = b.rows || [], head = b.head, cols = Math.max(1, rows[0] ? rows[0].length : 1), cw = (bw - 40) / cols, all = head ? [head, ...rows] : rows, rh = Math.min(48, (bh - 24) / all.length), fs = Math.max(14, Math.min(24, rh * 0.5));
+    all.forEach((r, ri) => { const yy = y + 16 + ri * rh; if (head && ri === 0) { g.fillStyle = rgba(P.brandOrange, 0.25); g.fillRect(x + 12, yy, bw - 24, rh - 4); }
+      r.forEach((c, ci) => k.text(c, k.rtl ? x + bw - 20 - ci * cw : x + 20 + ci * cw, yy + rh * 0.62, { size: fs, weight: head && ri === 0 ? 700 : 400, color: P.sand, max: cw - 12 })); });
+  } else if (b.type === 'bar') {
+    const d = b.data || [], max = Math.max(...d.map((v) => v.value), 1e-9), lh = 30, top = y + (b.title ? 50 : 20), rowH = Math.min(52, (bh - (top - y) - 16) / d.length), labelW = bw * 0.32, maxLen = bw - labelW - 120;
+    if (b.title) k.text(b.title, k.rtl ? x + bw - 20 : x + 20, y + 36, { size: 22, weight: 700, color: P.brassPale, max: bw - 40 });
+    d.forEach((v, i) => { const yy = top + i * rowH, len = Math.max(2, (v.value / max) * maxLen), lx = k.rtl ? x + bw - 20 : x + 20, bx = k.rtl ? x + bw - 20 - labelW : x + 20 + labelW;
+      k.text(v.label, lx, yy + rowH * 0.62, { size: Math.min(lh, 20), max: labelW - 10, color: P.sand }); g.fillStyle = hex(accent); g.fillRect(k.rtl ? bx - len : bx, yy + rowH * 0.2, len, rowH * 0.5);
+      k.text(String(v.value) + (b.unit ? ' ' + b.unit : ''), k.rtl ? bx - len - 8 : bx + len + 8, yy + rowH * 0.62, { size: 18, color: P.taupe, align: k.rtl ? 'right' : 'left' }); });
+  }
+}

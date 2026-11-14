@@ -31,6 +31,10 @@ function walk(d) {
 }
 walk(SHOW);
 
+/* siteBridge.js (the showroom's only link to site internals) is replaced by the vendored add-on copy (consent/strings/PAGES without src/privacy or src/seo). */
+const BRIDGE = path.join(SHOW, 'vendor/siteBridge.js');
+if (fs.existsSync(BRIDGE)) { fs.writeFileSync(path.join(SHOW, 'siteBridge.js'), fs.readFileSync(BRIDGE, 'utf8').replace(/(from |import\()'\.\//g, "$1'./vendor/")); console.log('port-yas-bloom: siteBridge.js <- vendor/siteBridge.js'); }
+
 /* ---- test compat: the copied unit tests assert things about the integration branch (/ar/* page URLs, pages/*.jsx files, vercel rewrites, App.js shell links).
  * On production main those do not exist, so the expectations are re-pointed (same intent) or skipped (integration-only coupling; listed in docs/showroom3d/ADDON-PORT.md). */
 const SKIP = [   // test title prefixes that only make sense on the integration branch
@@ -52,6 +56,13 @@ for (const f of fs.readdirSync(TDIR)) {
   s = s.replace("read('content/facts.js')", "read('showroom3d/vendor/facts.js')");
   for (const t of SKIP) s = s.split("test('" + t).join("test.skip('" + t);
   if (s !== o) { fs.writeFileSync(p, s); tchanged++; }
+}
+
+/* main's vendored facts.js is owner-decided (yearsOfCraft = 20, confirmed); the copied deck tests were written when it was contested (null). Use a still-contested fact instead. */
+{
+  const t1 = path.join(TDIR, 'vipDecks.test.js'), t2 = path.join(TDIR, 'vipDecksGolden.test.js');
+  if (fs.existsSync(t1)) { const a = fs.readFileSync(t1, 'utf8'); const b = a.split('{{fact:yearsOfCraft}}').join('{{fact:productionModel}}'); if (b !== a) fs.writeFileSync(t1, b); }
+  if (fs.existsSync(t2)) { const a = fs.readFileSync(t2, 'utf8'); const b = a.replace('same(C.contestedFacts())).toEqual(golden.contestedFacts)', "same(C.contestedFacts().filter((f) => f.key !== 'yearsOfCraft'))).toEqual(golden.contestedFacts.filter((f) => f.key !== 'yearsOfCraft'))"); let c = b.replace('.toEqual(golden.businessLines)', ".toEqual(JSON.parse(JSON.stringify(golden.businessLines).split('\"href\":\"/' + 'ar/').join('\"href\":\"/')))"); c = c.replace('.toEqual(golden.briefingUrl)', ".toEqual(JSON.parse(JSON.stringify(golden.briefingUrl).split('\"/' + 'ar/booking').join('\"/booking')))"); if (c !== a) fs.writeFileSync(t2, c); }
 }
 console.log('port-yas-bloom: re-pointed / skipped tests in', tchanged, 'files');
 console.log('port-yas-bloom: rewrote imports in', changed, 'files');

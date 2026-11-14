@@ -11,6 +11,14 @@ It runs `git checkout <ref> -- src/showroom3d docs/showroom3d scripts/showroom3d
 rewrites imports of integration-only modules to `src/showroom3d/vendor/*`, adds the scoped token import to `ShowroomRoot.jsx`, and re-points / skips the few copied unit tests that assert integration-branch facts.
 Files that are NOT on the source ref and therefore survive a re-run: `src/showroom3d/vendor/*`, `src/showroom3d/__tests__/addon.test.js`, this file, `scripts/port-yas-bloom.*`.
 
+## Preview branch: re-running the port when the showroom branch changes
+`claude/yas-bloom-preview` = current `origin/main` + this add-on only (draft PR, never merged; it exists so the preview is byte-identical to production plus `/yas-bloom`).
+1. `git fetch origin main claude/web-showroom-3d` (the clone's fetch refspec may only cover `main`, so name the branch).
+2. `git rebase origin/main` (main moves; the preview must always sit on the newest main).
+3. `scripts/port-yas-bloom.sh origin/claude/web-showroom-3d`; it refreshes `src/showroom3d`, `docs/showroom3d`, `scripts/showroom3d-qa`, re-applies the import rewrites, copies `vendor/siteBridge.js` over `siteBridge.js` (no `src/privacy` / `src/seo` on main), keeps main's own `vip.test.js` (owner-decided facts) and re-points the deck golden tests.
+4. If the showroom starts importing a NEW integration-only module, add it to `MAP` in `port-yas-bloom.js` and a vendored copy under `src/showroom3d/vendor/`. If a new `siteBridge` export appears, add it to `vendor/siteBridge.js`.
+5. `npm ci`, Jest, `CI=false react-scripts build` (the build fails with `CI=true` on main itself: 12 CSS "Conflicting order" warnings), then `git diff origin/main...HEAD --name-status | grep -v '^A'` must list only the four add-on hook files and showroom/doc/script files, then commit and push.
+
 ## Modified existing files (all tiny)
 | file | change |
 |---|---|

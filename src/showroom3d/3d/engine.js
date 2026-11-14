@@ -9,6 +9,8 @@ import { stoneSet, woodSet, plasterSet, paverSet, grassSet, sandSet, leafSet, tr
 import { createMaterials, glowTexture } from './materials';
 import { disposeTree } from './geom';
 import { FloorMirror } from './mirror';
+import { StaffManager } from '../staff/staffScene';
+import { VisitorAvatar } from '../characters/visitorAvatar';
 import { sunScale, gradeFor, mixGrade } from './lighting';
 import { LOGO_URL } from '../logo';
 import { buildExterior } from '../scenes/exterior';
@@ -73,6 +75,8 @@ export class ShowroomEngine {
     // Phase 4: furnished departments (kitchens, wardrobes, doors) + the Ikhtarha stage; they build their own materials from the generated interior environment
     this.products = buildProducts({ renderer, hallM: M, tier, lang: this.lang, bays: layoutBays(), reduced: !!this.reduced, logoTex });
     this.scene.add(this.products.group); this.products.lights.forEach((l) => this.scene.add(l)); this.report('products', 0.6);
+    this.avatar = new VisitorAvatar({ tier: this.tierId }); this.scene.add(this.avatar.group);
+    this.staff = new StaffManager({ tier: this.tierId, lang: this.lang }); this.scene.add(this.staff.group);
     this.bays = buildBays({ ...ctx, products: this.products }); this.scene.add(this.bays.group); this.report('products', 1);
     if (tier.id === 'high') {   // planar floor reflections of the furnished bays + stage (high tier only)
       const rects = layoutBays().filter((b) => b.product).map((b) => (b.facing > 0 ? { x0: b.x - 3, x1: b.x + 6.5, z0: b.z - 3.3, z1: b.z + 3.3 } : { x0: b.x - 6.5, x1: b.x + 3, z0: b.z - 3.3, z1: b.z + 3.3 }));
@@ -158,7 +162,7 @@ export class ShowroomEngine {
     if (this.mirror && z < -0.5 && fwdY > -0.42) { this.mirror.setSize(this.width * (this.scale || 1), this.height * (this.scale || 1)); this.mirror.mesh.visible = true; this.mirror.render(this.camera, [this.hall && this.hall.group, this.exterior && this.exterior.group, this.entrance && this.entrance.group, ...(this.products ? [...this.products.outlines, this.products.vip && this.products.vip.group, ...this.products.farGroups(this.camera, 13)] : [])]); }
     else if (this.mirror) this.mirror.mesh.visible = false;
   }
-  setLanguage(lang) { this.lang = lang; if (this.bays) this.bays.relabel(lang); if (this.products) this.products.setLanguage(lang); }
+  setLanguage(lang) { this.lang = lang; if (this.bays) this.bays.relabel(lang); if (this.products) this.products.setLanguage(lang); if (this.staff) this.staff.setLanguage(lang); }
 
   setSize(w, h) {
     this.width = Math.max(2, w); this.height = Math.max(2, h);
