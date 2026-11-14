@@ -449,3 +449,8 @@
 .sr-panel-vip .sr-panel-foot .sr-vip-meet-next { grid-column: 1 / -1; order: -1; justify-content: center; min-height: 48px; }
 .sr-panel-vip[data-mode="big"] .sr-panel-foot .sr-vip-meet-next, .sr-panel-vip[data-mode="full"] .sr-panel-foot .sr-vip-meet-next { order: 5; flex: 0 1 auto; }
 .sr-vip-film-real { color: var(--sr-orange) !important; }
+
+/* Graphics setting in the menu (Auto / High / Balanced / Performance) */
+.sr-gfx { display: grid; gap: var(--space-1); padding: var(--space-2) var(--space-3); border: 1px solid var(--sr-line); border-radius: var(--radius-md); font-size: var(--fs-sm); color: var(--sr-on-dark); text-align: start; }
+.sr-gfx select { min-height: 44px; border-radius: var(--radius-sm); border: 1px solid var(--sr-line); background: var(--sr-ink); color: var(--sr-on-dark); padding-inline: var(--space-3); font: inherit; }
+.sr-gfx small { font-size: var(--fs-xs); color: var(--sr-on-dark-2); }

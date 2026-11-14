@@ -101,6 +101,15 @@ describe('overlays', () => {
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' }); expect(h.onResume).toHaveBeenLastCalledWith(false);
     rerender(<PauseMenu lang="ar" reduced bob homeHref="/ar" {...h} />); expect(screen.getByText(STRINGS.headBobOff.ar).closest('button').disabled).toBe(true); expect(screen.getByText(STRINGS.headBobReduced.ar)).toBeTruthy();
   });
+  test('pause menu: the Graphics setting lists Auto / High / Balanced / Performance, shows the tier in use, and reports the choice', () => {
+    const onGraphics = jest.fn();
+    const { rerender } = render(<PauseMenu lang="en" reduced={false} bob homeHref="/" tier="medium" gfxMode="auto" onGraphics={onGraphics} onResume={() => {}} onDepts={() => {}} onReplay={() => {}} onLang={() => {}} onBob={() => {}} onTips={() => {}} />);
+    const sel = screen.getByTestId('sr-menu-graphics-select'); expect([...sel.options].map((o) => o.value)).toEqual(['auto', 'high', 'balanced', 'performance']); expect(sel.value).toBe('auto');
+    expect([...sel.options].map((o) => o.textContent)).toEqual(['Auto (recommended)', 'High', 'Balanced', 'Performance']); expect(screen.getByTestId('sr-menu-graphics-now')).toHaveTextContent('Now showing: Balanced');
+    fireEvent.change(sel, { target: { value: 'high' } }); expect(onGraphics).toHaveBeenCalledWith('high');
+    rerender(<PauseMenu lang="ar" reduced={false} bob homeHref="/ar" tier="low" gfxMode="performance" onGraphics={onGraphics} onResume={() => {}} onDepts={() => {}} onReplay={() => {}} onLang={() => {}} onBob={() => {}} onTips={() => {}} />);
+    expect(screen.getByTestId('sr-menu-graphics-select').value).toBe('performance'); expect(screen.getByTestId('sr-menu-graphics-now').textContent).toMatch(/[؀-ۿ]/);
+  });
   test('coach marks: three tips per input type, EN and AR, with a dismiss button', () => {
     const done = jest.fn(); const { rerender, container } = render(<CoachMarks lang="en" touch={false} onDone={done} />);
     expect(container.querySelectorAll('li')).toHaveLength(3); expect(screen.getByText(/W A S D/)).toBeTruthy(); fireEvent.click(screen.getByText('Got it')); expect(done).toHaveBeenCalled();

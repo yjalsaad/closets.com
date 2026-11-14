@@ -1,4 +1,5 @@
 import React from 'react';
+import { GRAPHICS_MODES } from '../3d/quality';
 import { t } from '../strings';
 import { DEPARTMENTS } from '../scenes/main-hall/departments';
 import { useDialog } from './useDialog';
@@ -35,7 +36,7 @@ export function DeptMenu({ lang, touch, onPick, onClose, fallbackFocus }) {
 }
 
 /** ESC / Menu overlay: resume, departments, replay intro, language, head-bob, tips, back to website. */
-export function PauseMenu({ lang, touch, reduced, bob, homeHref, explorerRef, st = {}, onResume, onDepts, onReplay, onLang, onBob, onTips, fallbackFocus }) {
+export function PauseMenu({ lang, touch, reduced, bob, homeHref, explorerRef, st = {}, tier = 'high', gfxMode = 'auto', onGraphics, onResume, onDepts, onReplay, onLang, onBob, onTips, fallbackFocus }) {
   const ref = useDialog(true, () => onResume(false), fallbackFocus);
   return (
     <div className="sr-modal" onPointerDown={(e) => { if (e.target === e.currentTarget) onResume(false); }}>
@@ -49,6 +50,13 @@ export function PauseMenu({ lang, touch, reduced, bob, homeHref, explorerRef, st
           <button type="button" className="sr-btn sr-btn-line" onClick={() => explorerRef && explorerRef.current && explorerRef.current.toggleCameraMode()} aria-pressed={st.camMode === 'third'} data-testid="sr-menu-cam">{t('camLabel', lang)}: {t(st.camMode === 'third' ? 'camThird' : 'camFirst', lang)}</button>
           <button type="button" className="sr-btn sr-btn-line" onClick={() => explorerRef && explorerRef.current && explorerRef.current.cycleAvatar()} data-testid="sr-menu-avatar">{t('avatarLabel', lang)}: {t('avatar_' + (st.avatar || 'female'), lang)}</button>
           <button type="button" className="sr-btn sr-btn-line" onClick={onBob} aria-pressed={bob && !reduced} disabled={reduced}>{bob && !reduced ? t('headBobOn', lang) : t('headBobOff', lang)}</button>
+          <label className="sr-gfx" data-testid="sr-menu-graphics">
+            <span>{t('qualityLabel', lang)}</span>
+            <select value={gfxMode} onChange={(e) => onGraphics && onGraphics(e.target.value)} data-testid="sr-menu-graphics-select" aria-describedby="sr-gfx-now">
+              {GRAPHICS_MODES.map((m) => <option key={m} value={m}>{t('gfx_' + m, lang)}</option>)}
+            </select>
+            <small id="sr-gfx-now" data-testid="sr-menu-graphics-now">{t('gfxNow', lang)}: {t('quality' + tier.charAt(0).toUpperCase() + tier.slice(1), lang)}. {t('gfxReload', lang)}</small>
+          </label>
           <button type="button" className="sr-btn sr-btn-line" onClick={onTips}>{t('showTips', lang)}</button>
           <a className="sr-btn sr-btn-line" href={homeHref}>{t('exit', lang)}</a>
         </div>
