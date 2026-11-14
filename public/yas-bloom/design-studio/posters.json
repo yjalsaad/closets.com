@@ -1,0 +1,26 @@
+{
+ "kitchen-1-en": {
+  "bytes": "56952 86",
+  "total": "BD 1,472"
+ },
+ "kitchen-2-en": {
+  "bytes": "37646 86",
+  "total": "BD 1,674"
+ },
+ "kitchen-3-en": {
+  "bytes": "51508 86",
+  "total": "BD 1,674"
+ },
+ "kitchen-1-ar": {
+  "bytes": "53062 86",
+  "total": "BD 1,472"
+ },
+ "kitchen-2-ar": {
+  "bytes": "33580 86",
+  "total": "BD 1,674"
+ },
+ "kitchen-3-ar": {
+  "bytes": "45748 86",
+  "total": "BD 1,674"
+ }
+}

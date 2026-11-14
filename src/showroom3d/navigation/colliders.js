@@ -15,6 +15,7 @@ import { vipBoxes, vipDoorBox } from '../scenes/vip/layout';
 import { productColliders } from './productColliders';
 import { staffColliders } from '../staff/roster';
 import { collectionsColliders } from '../collections/layout';
+import { studioColliders } from '../designstudio/layout';
 
 export const PLAYER = { radius: 0.35, eye: HALL.eye };
 /** the sliding doors count as open (passable) once the leaves have cleared the opening */
@@ -63,6 +64,7 @@ export function buildColliders({ doorOpen = 1, oliveCount = 4, vipOpen = 1 } = {
   // ---- Phase 4: furnished bays (kitchen run + island, wardrobe, door wall + bench, plants) and the Ikhtarha stage ----
   list.push(...productColliders());
   list.push(...collectionsColliders());                                                // the Collections feature wall on the right front wing
+  list.push(...studioColliders());                                                     // the Kitchen Design Studio (screen wall + touch podium) on the left front wing
   list.push(...staffColliders());                                                      // the advisers' standing circles + the Reception desk
   list.push(...vipBoxes()); if (vipOpen < DOOR_OPEN_AT) list.push(vipDoorBox());      // the VIP meeting room: walls, table, lounge; the sliding door is solid until it is open
   // ---- exterior: building footprint is already solid; forecourt perimeter = hedge rows + kerbs + an end stop on the path ----

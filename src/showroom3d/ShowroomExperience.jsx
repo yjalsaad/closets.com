@@ -19,6 +19,9 @@ import { ProductPanel, CampaignPanel } from './ui/ProductPanel';
 import { VipPanel } from './ui/VipPanel';
 import { CollectionsPanel } from './collections/CollectionsPanel';
 import { withLang } from './vendor/routes';
+import DesignerOverlay from './designstudio/DesignerOverlay';
+import { useDesigner } from './designstudio/useDesigner';
+import { isActive as dsIsActive } from './designstudio/logic';
 
 const COACH_KEY = 'closets_showroom_coach', BOB_KEY = 'closets_showroom_bob';
 const readFlag = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (x) { return d; } };
@@ -58,6 +61,10 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   const [bubble, setBubble] = useState(null);     // the Reception greeting bubble
   const [colOpen, setColOpen] = useState(false);  // the Collections panel (opened with E / Interact at the Collections wall)
   const [bob, setBob] = useState(() => readFlag(BOB_KEY, '1') !== '0');
+  // the Kitchen Design Studio designer overlay (closed | loading | open | confirm | failed): while it is open the render loop is paused (not disposed) and the explorer is frozen
+  const setDsPaused = useCallback((on) => { const a = api.current; a.dsActive = on; if (!a.engine || !a.engine.scene) return; if (on) a.engine.stop(); else if (!document.hidden) a.engine.start(); }, []);
+  const dsClosed = useCallback(() => { const c = canvasRef.current; if (c && c.focus) c.focus({ preventScroll: true }); }, []);
+  const { ds, dispatch: dsDispatch, open: openDesigner, requestClose: dsBack } = useDesigner({ lang, setPaused: setDsPaused, onClosed: dsClosed });
 
   const paintOverlay = useCallback((s) => {
     if (veilRef.current) veilRef.current.style.opacity = String(s.veil);
@@ -98,7 +105,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
         await engine.init();
       } catch (e) { if (!cancelled) onFail && onFail(e); return; }
       if (cancelled) return;
-      if (engine.products) engine.products.setReduced(reducedRef.current);   // the products are built after the first render of this component: apply the reduced-motion setting now
+      if (engine.designStudio) engine.designStudio.setReduced(reducedRef.current); if (engine.products) engine.products.setReduced(reducedRef.current);   // the products are built after the first render of this component: apply the reduced-motion setting now
       ro = new ResizeObserver(() => { const w = wrapRef.current; if (w) engine.setSize(w.clientWidth, w.clientHeight); });
       ro.observe(wrapRef.current);
       // the ResizeObserver does not fire when only the device pixel ratio changes (browser zoom, moving the window to another screen), and some mobile browsers resize the
@@ -108,7 +115,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       engine.setSize(wrapRef.current.clientWidth, wrapRef.current.clientHeight);
       engine.setLanguage(langRef.current);
       engine.start();
-      onVis = () => { if (document.hidden) engine.stop(); else engine.start(); };
+      onVis = () => { if (document.hidden || api.current.dsActive) engine.stop(); else engine.start(); };
       document.addEventListener('visibilitychange', onVis);
       if (debug) {
         gsap.ticker.lagSmoothing(0);   // QA under software GL runs at ~1 fps: let GSAP keep real time so glides finish in their real duration
@@ -139,10 +146,11 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   useEffect(() => { api.current.phaseNow = phase; }, [phase]);
 
   // keep the explorer in sync with the UI
-  useEffect(() => { const x = explorerRef.current; if (x) { x.setReduced(reduced); x.setBob(bob && !reduced); } const e = api.current.engine; if (e && e.products) e.products.setReduced(reduced); }, [reduced, bob]);
-  useEffect(() => { const x = explorerRef.current; if (x) x.setUiOpen(deptOpen || !!st.paused || !!chat || colOpen); }, [deptOpen, st.paused, chat, colOpen]);
+  useEffect(() => { const x = explorerRef.current; if (x) { x.setReduced(reduced); x.setBob(bob && !reduced); } const e = api.current.engine; if (e && e.products) e.products.setReduced(reduced); if (e && e.designStudio) e.designStudio.setReduced(reduced); }, [reduced, bob]);
+  useEffect(() => { const x = explorerRef.current; if (x) x.setUiOpen(deptOpen || !!st.paused || !!chat || colOpen || dsIsActive(ds)); }, [deptOpen, st.paused, chat, colOpen, ds.status]);
   useEffect(() => { if (st.collections) setColOpen(true); }, [st.collections]);
-  useEffect(() => { const c = api.current.engine && api.current.engine.collections; if (c) { c.setTouch(touch); if (colOpen) c.load(); } }, [touch, colOpen, phase]);
+  useEffect(() => { if (st.designStudio) openDesigner(st.designStudioId); }, [st.designStudio]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { const c = api.current.engine && api.current.engine.collections; if (c) { c.setTouch(touch); if (colOpen) c.load(); } const d = api.current.engine && api.current.engine.designStudio; if (d) d.setTouch(touch); }, [touch, colOpen, phase]);
   useEffect(() => { if (st.talk && st.talkN) { setBubble(null); setChat(st.talk); } }, [st.talkN]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (st.greet === 'reception' && st.greetN && !chat) { setBubble(true); const id = setTimeout(() => setBubble(null), 6500); return () => clearTimeout(id); } return undefined; }, [st.greetN]);   // eslint-disable-line react-hooks/exhaustive-deps
   // the control scheme follows the last input device (touch overlay for fingers, keyboard + mouse otherwise)
@@ -174,12 +182,13 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       <IntroLayer ref={{ veil: veilRef, logo: logoRef, bars: barsRef }} lang={lang} caption={intro ? caption : null} onSkip={onSkip} active={intro} />
       {showHud && <Hud lang={lang} tier={tierId} touch={touch} st={st} explorerRef={explorerRef} homeHref={home} onDepts={() => setDeptOpen(true)} onMenu={() => explorerRef.current && explorerRef.current.pause()} onInteract={onInteract} onTalk={() => { const x = explorerRef.current; if (x) x.talkToStaff(); }} chatOpen={!!chat} coach={coach} />}
       {showHud && st.focus && (st.focusKind === 'vip' ? <VipPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} reduced={reduced} tier={tierId} /> : st.focusKind === 'stage' ? <CampaignPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} /> : <ProductPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} />)}
-      {showHud && chat && <StaffChat lang={lang} reduced={reduced} explorerRef={explorerRef} engineRef={api} staffId={chat} onClose={() => { setChat(null); const c = canvasRef.current; if (c && c.focus) c.focus({ preventScroll: true }); }} />}
+      {showHud && chat && <StaffChat onOpenDesigner={openDesigner} lang={lang} reduced={reduced} explorerRef={explorerRef} engineRef={api} staffId={chat} onClose={() => { setChat(null); const c = canvasRef.current; if (c && c.focus) c.focus({ preventScroll: true }); }} />}
       {showHud && bubble && !chat && !st.focus && !st.paused && !deptOpen && <p className="sr-bubble" role="status" data-testid="sr-greet-bubble">{t('chatGreetBubble', lang).replace('{name}', FIRST_NAMES.reception[lang === 'ar' ? 'ar' : 'en'])}</p>}
       {showHud && colOpen && !st.paused && <CollectionsPanel lang={lang} touch={touch} onClose={() => setColOpen(false)} fallbackFocus={canvasFocus} />}
       {showHud && coach && !st.paused && !deptOpen && !st.focus && <CoachMarks lang={lang} touch={touch} onDone={closeCoach} />}
       {showHud && deptOpen && <DeptMenu lang={lang} touch={touch} onPick={onPick} onClose={() => setDeptOpen(false)} fallbackFocus={canvasFocus} />}
       {showHud && st.paused && <PauseMenu lang={lang} touch={touch} tier={tierId} gfxMode={gfxMode} onGraphics={onGraphics} reduced={reduced} bob={bob} explorerRef={explorerRef} st={st} homeHref={home} onResume={onResume} onDepts={() => { onResume(false); setDeptOpen(true); }} onReplay={onReplay} onLang={onLang} onBob={onBob} onTips={() => { onResume(false); setCoach(true); }} fallbackFocus={canvasFocus} />}
+      {showHud && ds.status !== 'closed' && <DesignerOverlay state={ds} dispatch={dsDispatch} lang={lang} onBack={dsBack} onLang={onLang} />}
       {loaderOn ? <LoadingScreen pct={pct} lang={lang} leaving={leaving} /> : null}
     </div>
   );

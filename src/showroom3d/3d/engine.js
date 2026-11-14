@@ -17,6 +17,7 @@ import { buildExterior } from '../scenes/exterior';
 import { buildEntrance } from '../scenes/entrance';
 import { buildHallShell } from '../scenes/main-hall/hall';
 import { buildCollectionsWall } from '../collections/wall';
+import { buildDesignStudio } from '../designstudio/wall';
 import { buildBays } from '../scenes/main-hall/bays';
 import { layoutBays } from '../scenes/main-hall/departments';
 import { buildProducts } from '../scenes/products';
@@ -85,6 +86,7 @@ export class ShowroomEngine {
     this.staff = new StaffManager({ tier: this.tierId, lang: this.lang, mode: staffModeFrom(typeof window !== 'undefined' ? window.location.search : '') }); this.scene.add(this.staff.group);
     this.bays = buildBays({ ...ctx, products: this.products }); this.scene.add(this.bays.group); this.report('products', 1);
     this.collections = buildCollectionsWall({ tier: this.tierId, lang: this.lang }); this.scene.add(this.collections.group);
+    this.designStudio = buildDesignStudio({ tier: this.tierId, lang: this.lang, reduced: !!this.reduced }); this.scene.add(this.designStudio.group);   // the Kitchen Design Studio station (left front wing)
     if (tier.id === 'high') {   // planar floor reflections of the furnished bays + stage (high tier only)
       const rects = layoutBays().filter((b) => b.product).map((b) => (b.facing > 0 ? { x0: b.x - 3, x1: b.x + 6.5, z0: b.z - 3.3, z1: b.z + 3.3 } : { x0: b.x - 6.5, x1: b.x + 3, z0: b.z - 3.3, z1: b.z + 3.3 }));
       rects.push({ x0: -4.2, x1: 4.2, z0: -24.8, z1: -16.2 });
@@ -189,7 +191,7 @@ export class ShowroomEngine {
     if (this.mirror && !this.mirrorOff && z < -0.5 && fwdY > -0.42) { this.mirror.setSize(this.width * (this.scale || 1), this.height * (this.scale || 1)); this.mirror.mesh.visible = true; this.mirror.render(this.camera, [this.hall && this.hall.group, this.exterior && this.exterior.group, this.entrance && this.entrance.group, ...(this.products ? [...this.products.outlines, this.products.vip && this.products.vip.group, ...this.products.farGroups(this.camera, 13)] : [])]); }
     else if (this.mirror) this.mirror.mesh.visible = false;
   }
-  setLanguage(lang) { this.lang = lang; if (this.gallery) this.gallery.setLanguage(lang); if (this.hall && this.hall.relabel) this.hall.relabel(lang); if (this.exterior && this.exterior.relabel) this.exterior.relabel(lang); if (this.bays) this.bays.relabel(lang); if (this.collections) this.collections.setLanguage(lang); if (this.products) this.products.setLanguage(lang); if (this.staff) this.staff.setLanguage(lang); }
+  setLanguage(lang) { this.lang = lang; if (this.gallery) this.gallery.setLanguage(lang); if (this.hall && this.hall.relabel) this.hall.relabel(lang); if (this.exterior && this.exterior.relabel) this.exterior.relabel(lang); if (this.bays) this.bays.relabel(lang); if (this.collections) this.collections.setLanguage(lang); if (this.designStudio) this.designStudio.setLanguage(lang); if (this.products) this.products.setLanguage(lang); if (this.staff) this.staff.setLanguage(lang); }
 
   setSize(w, h) {
     const nw = Math.max(2, w), nh = Math.max(2, h), dprNow = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
@@ -234,6 +236,7 @@ export class ShowroomEngine {
       const dt = Math.min(this.maxDt || 0.1, (now - last) / 1000); last = now;
       if (this.onFrame) this.onFrame(dt, now);
       if (this.products) this.products.update(dt, this.camera);
+      if (this.designStudio) this.designStudio.update(dt);
       this.daylight(dt);
       if (this.post && !this.postOff) this.post.render(); else this.renderer.render(this.scene, this.camera);
       this.measure(dt);
@@ -264,6 +267,7 @@ export class ShowroomEngine {
     if (this.post) { try { this.post.dispose(); } catch (e) { /* ignore */ } }
     if (this.products) this.products.dispose();
     if (this.collections) this.collections.dispose();
+    if (this.designStudio) this.designStudio.dispose();
     if (this.envMap) this.envMap.dispose();
     disposeRealism();
     if (this.glowTex) this.glowTex.dispose();

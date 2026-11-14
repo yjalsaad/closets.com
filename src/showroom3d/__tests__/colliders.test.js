@@ -77,7 +77,7 @@ describe('the showroom obstacle set', () => {
     expect(moveCircle([0, -11.7], -99, 0, R, open)[0]).toBeCloseTo(-22 + R, 3);
     expect(moveCircle([10, -9], 0, -99, R, open)[1]).toBeCloseTo(-36 + R, 3);
     expect(moveCircle([10, -9], 0, 99, R, open)[1]).toBeCloseTo(-0.2 - R, 3);        // glass facade (not the door)
-    expect(moveCircle([-18, -9], 0, 99, R, open)[1]).toBeCloseTo(-0.8 - R, 3);       // solid wing is thicker
+    expect(moveCircle([-16.2, -9], 0, 99, R, open)[1]).toBeCloseTo(-0.81 - 0.3 - 0.04 - R, 3);   // the left wing now carries the Kitchen Design Studio base (x = -16.2 is clear of its podium and of the kitchen island); the right wing: the Collections wall
   });
   test('benches, planters and bay posts are solid', () => {
     expect(moveCircle([5, -15], -99, 0, R, open)[0]).toBeCloseTo(3.2 + R, 3);
