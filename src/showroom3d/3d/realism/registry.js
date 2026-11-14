@@ -10,11 +10,11 @@ const NAMES = ['oak', 'walnut', 'limestone', 'stucco', 'greyplaster', 'linen', '
 /** derived sets: { source set, multiply tint (rgb 0..1), optional brightness normalisation target } */
 export const VARIANTS = {
   oak: { from: 'oak' },
-  walnut: { from: 'walnut', mul: [0.5, 0.42, 0.38] },
+  walnut: { from: 'walnut', mul: [0.66, 0.56, 0.5] },
   walnutMid: { from: 'walnut', mul: [0.78, 0.66, 0.58] },
   stone: { from: 'limestone', mul: [0.97, 0.93, 0.88] },
   plaster: { from: 'stucco', mul: [0.9, 0.84, 0.76] },
-  microcement: { from: 'greyplaster', mul: [0.97, 0.95, 0.92], norm: 0.74 },
+  microcement: { from: 'greyplaster', mul: [1, 0.985, 0.96], norm: 0.86 },
   concreteWall: { from: 'greyplaster', mul: [0.9, 0.86, 0.8], norm: 0.5 },
   planks: { from: 'planks' },
   planksDark: { from: 'parquet', mul: [0.62, 0.52, 0.46] },
@@ -81,7 +81,7 @@ export async function loadInteriorHdr(renderer) {
     const tex = await new Promise((res, rej) => loader.load(`${REAL_BASE}studio_warm_512.hdr`, res, undefined, rej));
     const d = tex.image.data, W = tex.image.width, H = tex.image.height;
     // grade the capture toward the brand's warm walnut / travertine interior: warm multiply, darker floor half (a dim reflected floor), brighter lamps stay bright
-    for (let y = 0; y < H; y++) { const lat = y / H, k = lat > 0.5 ? 0.55 + 0.45 * (1 - (lat - 0.5) * 2) : 1; for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; d[i] *= 1.0 * k; d[i + 1] *= 0.92 * k; d[i + 2] *= 0.78 * k; } }
+    for (let y = 0; y < H; y++) { const lat = y / H, k = lat > 0.5 ? 0.55 + 0.45 * (1 - (lat - 0.5) * 2) : 1; for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; d[i] *= 1.0 * k; d[i + 1] *= 0.95 * k; d[i + 2] *= 0.86 * k; } }
     tex.mapping = THREE.EquirectangularReflectionMapping; tex.needsUpdate = true;
     const pm = new THREE.PMREMGenerator(renderer); REG.env = pm.fromEquirectangular(tex).texture; pm.dispose(); tex.dispose();
   } catch (e) { REG.env = null; }

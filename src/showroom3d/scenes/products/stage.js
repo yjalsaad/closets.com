@@ -9,7 +9,7 @@ export const CANOPY_Y = 3.3;
 
 export function buildCanopy(kit, { downlights = [[-1.4, -1.8], [-1.4, 0], [-1.4, 1.8], [0.9, -1.8], [0.9, 0], [0.9, 1.8]], washLen = 6.0 } = {}) {
   const { M } = kit, g = new THREE.Group(); g.name = 'canopy';
-  const plaster = new THREE.MeshStandardMaterial({ color: P.ceilingLight, roughness: 0.92, envMapIntensity: 0.3, emissive: new THREE.Color(P.ledCool), emissiveIntensity: 0.34 });
+  const plaster = new THREE.MeshStandardMaterial({ map: M.tex && M.tex.walnut ? M.tex.walnut.map : null, color: P.canopyTint, roughness: 0.74, envMapIntensity: 0.25, emissive: new THREE.Color(P.ledWarm), emissiveIntensity: 0.05 });   // dark walnut soffit like the reference showrooms; the warm spots + cove carry the light
   const parts = [placed(bevelBox(6.0, 0.2, 6.8, { b: 0.004, tile: 2 }), { x: 0, y: CANOPY_Y + 0.1 }), placed(bevelBox(0.06, 0.14, 6.8, { b: 0.002 }), { x: 2.98, y: CANOPY_Y - 0.07 })].map(prep);
   const slab = new THREE.Mesh(mergeGeometries(parts), plaster); slab.castShadow = false; slab.receiveShadow = true; g.add(slab);
   // downlight trims (brass ring + emissive lens), always on: the room's own lighting

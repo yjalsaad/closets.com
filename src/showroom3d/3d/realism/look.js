@@ -11,5 +11,5 @@ export function kelvin(k) {
 }
 export const LOOK = {
   toneMapping: THREE.ACESFilmicToneMapping, exposure: 0.78,
-  keyK: 3300, spotK: 3000, fillK: 5600,
+  keyK: 4300, spotK: 3000, fillK: 5600,
 };

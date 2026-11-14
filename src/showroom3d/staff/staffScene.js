@@ -3,6 +3,8 @@
  * while the chat panel is answering. Far advisers collapse to one baked draw call and are not animated. Everything here is cosmetic: no state outside this module depends on it. */
 import * as THREE from 'three';
 import { buildCharacter } from '../characters/rig';
+import { GLB_CHARACTERS, DRACO_PATH } from '../characters/glbConfig';
+import { loadGlbCharacter } from '../characters/glbCharacter';
 import { createAnim, updateAnim, pose, playGesture, speechEnvelope } from '../characters/anim';
 import { staffRoster, RECEPTION, NOTICE_RADIUS, APPROACH, TALK_RADIUS } from './roster';
 import { bevelBox, placed, prep, mergeColored } from '../3d/builders';
@@ -27,7 +29,13 @@ export class StaffManager {
       return { def, char, anim: createAnim({ seed: def.seed }), pos: [def.at[0], def.at[1]], yaw: def.yaw, cool: 0, moving: 0, far: false, text: '' };
     });
     this.positions = this.items.map((i) => i.pos);
+    this.items.forEach((it) => { const c = GLB_CHARACTERS[it.def.id]; if (c) this.swapGlb(it, c); });   // optional licensed GLB per adviser (config is empty by default)
     this.reception = this.buildReception(); this.group.add(this.reception.group);
+  }
+  /** replace one adviser's procedural character by a licensed rigged GLB (bone-name retarget); on any failure the procedural one stays */
+  async swapGlb(it, cfg) {
+    const c = await loadGlbCharacter(cfg.url, { height: cfg.height, dracoPath: DRACO_PATH, label: it.char.label }); if (!c) return false;
+    c.group.position.copy(it.char.group.position); c.group.rotation.copy(it.char.group.rotation); this.group.remove(it.char.group); it.char.dispose(); this.group.add(c.group); it.char = c; return true;
   }
   buildReception() {
     const d = RECEPTION.desk, bk = RECEPTION.backdrop, g = new THREE.Group(); g.name = 'reception';

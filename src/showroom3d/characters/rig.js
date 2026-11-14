@@ -100,10 +100,10 @@ export function buildCharacter(o = {}) {
     G(sph(0.014, 0), skinD, { y: -0.012, z: 0.099, s: [0.9, 1.25, 1.1] }),
     G(sph(0.02, 0), skinD, { x: -0.093, y: 0.0, s: [0.5, 1.1, 0.8] }), G(sph(0.02, 0), skinD, { x: 0.093, y: 0.0, s: [0.5, 1.1, 0.8] }),
     G(new THREE.BoxGeometry(0.03, 0.0055, 0.006), hairC, { x: -0.038, y: 0.048, z: 0.095, rz: 0.12 }), G(new THREE.BoxGeometry(0.03, 0.0055, 0.006), hairC, { x: 0.038, y: 0.048, z: 0.095, rz: -0.12 })];
-  const wedge = (r, extra = 0.7) => new THREE.SphereGeometry(r, q ? 14 : 8, q ? 9 : 6, Math.PI / 2 + extra, Math.PI * 2 - 2 * extra, 0, 1.95);
+  const wedge = (r, extra = 0.7) => new THREE.SphereGeometry(r, q ? 36 : 8, q ? 22 : 6, Math.PI / 2 + extra, Math.PI * 2 - 2 * extra, 0, 1.95);
   const covered = o.scarf || (male && outfit === 'thobe');
   if (covered) {
-    headItems.push(G(wedge(0.124, 0.7), scarfC, { y: 0.012, z: -0.008 }), G(new THREE.LatheGeometry(V([[0.125, -0.02], [0.2, -0.17], [0.215, -0.27], [0.001, -0.27]]).reverse(), q ? 14 : 8), scarfC, { y: -0.01, z: -0.02, s: [1, 1, 0.82] }));
+    headItems.push(G(wedge(0.124, 0.7), scarfC, { y: 0.012, z: -0.008 }), G(new THREE.LatheGeometry(V([[0.125, -0.02], [0.2, -0.17], [0.215, -0.27], [0.001, -0.27]]).reverse(), q ? 36 : 8), scarfC, { y: -0.01, z: -0.02, s: [1, 1, 0.82] }));
     if (male) headItems.push(G(new THREE.TorusGeometry(0.115, 0.009, 4, q ? 14 : 8), P.agalBlack, { y: 0.065, rx: Math.PI / 2 }));
   } else if (o.hair !== 'none') {
     const hs = o.hair || (male || guest ? 'short' : 'bun');

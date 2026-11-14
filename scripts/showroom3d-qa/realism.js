@@ -12,12 +12,18 @@ const VIEWS = [
   ['vip', [-2.0, -29.2, 0.5, 0.05]], ['hall-far', [0, -31, Math.PI, 0.05]],
 ];
 const setHud = (page, on) => page.evaluate((on) => document.querySelectorAll('.sr-hud, .sr-panel, .sr-coach, .sr-touch, .sr-greet, [data-testid="sr-greet-bubble"], [data-testid="sr-talk"]').forEach((n) => { n.style.visibility = on ? '' : 'hidden'; }), on);
+/** robust 'Skip intro': a software-GL high tier frame is so slow that Playwright's actionability check keeps seeing the button re-mounted, so click through the DOM until the explore phase starts */
+async function enter(page) {
+  await page.waitForSelector('[data-testid="sr-skip"]', { timeout: 240000 });
+  for (let i = 0; i < 60; i++) { const ph = await page.evaluate(() => { const b = document.querySelector('[data-testid="sr-skip"]'); if (b) b.click(); const st = document.querySelector('.sr-stage'); return st && st.dataset.phase; }); if (ph === 'explore') break; await page.waitForTimeout(1500); }
+  await page.waitForSelector('.sr-stage[data-phase="explore"]', { timeout: 240000 }); await page.waitForTimeout(800);
+}
 const dismiss = (page) => page.evaluate(() => { try { localStorage.setItem('closets_showroom_coach', '1'); } catch (e) { /* ignore */ } const b = document.querySelector('[data-testid="sr-coach-done"]'); if (b) b.click(); });
 async function run() {
   const b = await L.launch(); const stats = {};
   const want = (n) => !ONLY.length || ONLY.includes(n);
   const o = await L.openShowroom(b, { query: `debug=1&quality=${TIER}&aa=0`, viewport: { width: 1100, height: 620 } }); const page = o.page;
-  await L.enterExplore(page); await dismiss(page); await page.waitForTimeout(3000);
+  await enter(page); await dismiss(page); await page.waitForTimeout(3000);
   const wait = TIER === 'high' ? 6500 : 3500;
   let i = 0;
   for (const [name, p] of VIEWS) {
@@ -37,7 +43,7 @@ async function run() {
   await o.ctx.close();
   // Arabic + mobile
   if (want('ar')) {
-    const a = await L.openShowroom(b, { url: '/ar/yas-bloom', query: `debug=1&quality=${TIER}&aa=0`, viewport: { width: 1100, height: 620 } }); await L.enterExplore(a.page); await dismiss(a.page); await a.page.waitForTimeout(2500);
+    const a = await L.openShowroom(b, { url: '/ar/yas-bloom', query: `debug=1&quality=${TIER}&aa=0`, viewport: { width: 1100, height: 620 } }); await enter(a.page); await dismiss(a.page); await a.page.waitForTimeout(2500);
     await L.ex(a.page, (e, x) => e.teleport(...x), [-5.2, -3.6, 0, 0]); await a.page.waitForTimeout(wait); await setHud(a.page, false); await a.page.waitForTimeout(200);
     await L.shot(a.page, `${LABEL}-90-ar-reception`, { quality: 80 });
     await L.ex(a.page, (e, x) => e.teleport(...x), [-12.5, -7.9, SP, 0.05]); await a.page.waitForTimeout(wait); await L.shot(a.page, `${LABEL}-91-ar-kitchen-sign`, { quality: 80 }); await a.ctx.close();

@@ -40,7 +40,7 @@ export const PALETTE = {
   skyZenith: 0x5f8fc4,
   skyMid: 0xa9c4dc,
   skyHorizon: 0xf5d8b0,
-  sun: 0xffe2b0,
+  sun: 0xffecd2,
   fog: 0xe6d3b8,
   // Phase 4: product finishes (sample configuration swatches, all procedural) + props + campaign
   oakLight: 0xb09a7c, oakPale: 0xcbbca0, walnutDeep: 0x4a3426, smokedOak: 0x6e5440,
@@ -54,7 +54,7 @@ export const PALETTE = {
   artA: 0x8a5a44, artB: 0xd8c3a0, artC: 0x2f4a47, artD: 0xe9e2d6, artE: 0xb9873c,
   lightHall: 0xffe8d0,
   plasterWarm: 0xcdbfa9, velvetDark: 0x2a2226, velvetWine: 0x4b2a30, screenDark: 0x0b0c0e, screenGlow: 0x9fb6c4, paperWhite: 0xf4f0e8, brassPale: 0xd9bf86, mirrorEdge: 0xcfd8da,
-  ceilingLight: 0xf2ebdf, ceilDark: 0x120d0a, wallGreige: 0x6f685e,
+  ceilingLight: 0xf2ebdf, ceilDark: 0x120d0a, slatTint: 0x8f867f, canopyDark: 0x3b2c22, canopyTint: 0x9a8f86, wallGreige: 0x6f685e,
   focusRing: 0xffb067, hoverRing: 0xfff0d6,
   // Ikhtarha campaign brand: mirrored from src/campaign/IkhtarhaRoot.jsx BRAND (primary / accent / sand / taupe / charcoal). The campaign
   // page can override these per campaign from the Hub; the showroom mirrors the shipped defaults and does not read the live config.
@@ -66,7 +66,7 @@ export const PALETTE = {
   // overlay
   veil: 0xf6efe4,
   // material tints
-  floorTint: 0xd0cabf, ceilingTint: 0xd8cdbd, water: 0x1d3b3f, hemiSky: 0xfff3e2, signTint: 0xe8e8e8,
+  floorTint: 0xf0ebe3, ceilingTint: 0xd8cdbd, water: 0x1d3b3f, hemiSky: 0xfff3e2, signTint: 0xe8e8e8,
 };
 
 export const hex = (n) => '#' + (n >>> 0).toString(16).padStart(6, '0').slice(-6);

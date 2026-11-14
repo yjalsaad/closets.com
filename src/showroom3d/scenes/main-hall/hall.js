@@ -6,8 +6,18 @@ import { HALL } from '../../3d/dimensions';
 import { box, mesh, instanced, worldUV } from '../../3d/geom';
 import { buildOlive } from '../../3d/vegetation';
 import { LOGO_ASPECT } from '../../logo';
-import { PALETTE } from '../../3d/palette';
+import { PALETTE, hex } from '../../3d/palette';
+import { COLUMNS, COLUMN_SIZE } from '../../3d/dimensions';
 import { poolTexture } from '../../3d/pbr';
+
+/** the small backlit column plate: brand name, crisp (2x canvas, mipmapped) */
+function columnPlateTexture() {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 512; const g = c.getContext('2d');
+  g.fillStyle = hex(PALETTE.ink); g.fillRect(0, 0, 1024, 512); g.strokeStyle = hex(PALETTE.brass); g.lineWidth = 8; g.strokeRect(14, 14, 996, 484);
+  g.fillStyle = hex(PALETTE.sand); g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '600 118px "Fraunces", Georgia, serif'; g.fillText('THE CLOSETS', 512, 220);
+  g.fillStyle = hex(PALETTE.brassPale); g.font = '600 56px "Inter", sans-serif'; g.fillText('INTERNATIONAL', 512, 362);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+}
 
 export function buildHallShell({ M, tier, logoTex, glowTex }) {
   const g = new THREE.Group(); g.name = 'hall';
@@ -81,6 +91,17 @@ export function buildHallShell({ M, tier, logoTex, glowTex }) {
     const f = addGlow(0.7, D - 3, x, 0.016, -D / 2, 0.55); f.rotation.x = -Math.PI / 2;
   }
 
+  // skirting boards + shadow gap along the back wall and front wings (dark recess line under a bevelled brass-edged board)
+  for (const [w, x, z, ry] of [[W, 0, -D + 0.04, 0], [H.halfWidth - H.glassHalf, -(H.glassHalf + H.halfWidth) / 2, -0.84, 0], [H.halfWidth - H.glassHalf, (H.glassHalf + H.halfWidth) / 2, -0.84, 0]]) {
+    g.add(mesh(box(w, 0.14, 0.035), M.walnut, { x, y: 0.12, z: z + (z < -1 ? 0.0 : -0.0), ry })); g.add(mesh(box(w, 0.04, 0.02), M.ceilDark || M.charcoal, { x, y: 0.02, z: z + 0.01, ry }));
+  }
+  // walnut-clad columns at the bay gaps (the reference look: columns carry a small lit brand plate); footprints are mirrored in navigation/colliders.js (COLUMNS)
+  const colItems = COLUMNS.map((c) => ({ x: c.x, y: cy / 2, z: c.z }));
+  g.add(instanced(box(COLUMN_SIZE, cy, COLUMN_SIZE, 0.9), M.slat ? M.walnut : M.walnut, colItems, { cast: true, receive: true }));
+  g.add(instanced(box(COLUMN_SIZE + 0.05, 0.12, COLUMN_SIZE + 0.05), M.brass, COLUMNS.map((c) => ({ x: c.x, y: 0.06, z: c.z })), {}));   // brass plinth ring: a shadow-gap / skirting detail
+  g.add(instanced(box(COLUMN_SIZE + 0.05, 0.06, COLUMN_SIZE + 0.05), M.led, COLUMNS.map((c) => ({ x: c.x, y: cy - 0.03, z: c.z })), {}));   // cap light line
+  const plate = columnPlateTexture(); const plateGeo = new THREE.PlaneGeometry(0.46, 0.23);
+  g.add(instanced(plateGeo, new THREE.MeshBasicMaterial({ map: plate, toneMapped: false }), COLUMNS.map((c) => ({ x: c.x - c.s * (COLUMN_SIZE / 2 + 0.006), y: 1.95, z: c.z, ry: -c.s * Math.PI / 2 })), {}));
   // planted stone benches along the nave axis + two specimen trees by the entrance
   for (const z of [-15, -26]) {
     g.add(mesh(box(6.4, 0.42, 1.5, 2.4), M.stoneInlay, { x: 0, y: 0.21, z, cast: true, receive: true }));
