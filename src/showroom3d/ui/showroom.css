@@ -426,3 +426,4 @@
 .sr-panel-vip[data-mode="panel"][data-deck="film"] .sr-panel-foot [data-testid="sr-vip-big"] { grid-column: 1 / -1; }
 .sr-vip-scrub { display: block; } .sr-vip-scrub input { width: 100%; min-height: 32px; accent-color: var(--sr-orange); }
 
+@media (max-width: 640px), (pointer: coarse) and (max-height: 700px) { .sr-panel-vip[data-mode="panel"] { max-height: 62dvh; } .sr-panel-vip[data-mode="panel"] .sr-eyebrow { display: none; } }
