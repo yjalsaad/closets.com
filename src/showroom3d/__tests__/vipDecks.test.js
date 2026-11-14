@@ -186,7 +186,7 @@ describe('RTL and strings', () => {
     const d = sanitizeDeck({ title: { en: 'E', ar: 'ع' }, slides: [{ title: { en: 'T', ar: 'ش' } }] }).deck; expect(resolveDeck(d, 'ar').title).toBe('ع'); expect(resolveDeck(d, 'ar').slides[0].title).toBe('ش'); expect(resolveDeck(d, 'en').slides[0].title).toBe('T');
     expect(arrowDir('ArrowRight', true)).toBe(-1); expect(arrowDir('ArrowRight', false)).toBe(1);
     const ltr = chipLayout(['A', 'B', 'C'], 1536, false), rtl = chipLayout(['A', 'B', 'C'], 1536, true); expect(ltr[0].x).toBeGreaterThan(1536 / 2); expect(rtl[0].x).toBeLessThan(1536 / 2); for (const r of [...ltr, ...rtl]) { expect(r.x).toBeGreaterThanOrEqual(0); expect(r.x + r.w).toBeLessThanOrEqual(1536); }
-    expect(chipLayout(['a', 'b', 'c', 'd', 'e', 'f'], 1536, false)).toHaveLength(4);
+    expect(chipLayout(['a', 'b', 'c', 'd', 'e', 'f'], 1536, false)).toHaveLength(3); expect(chipLayout(['a', 'b', 'c', 'd', 'e', 'f'], 1536, false, 3, 5).map((r) => r.i)).toEqual([3, 4, 5]); expect(chipLayout(['a', 'b', 'c', 'd'], 1536, false, 3, 2).map((r) => r.i)).toEqual([1, 2, 3]); expect(chipLayout(['a', 'b', 'c', 'd'], 1536, false, 3, 0).map((r) => r.i)).toEqual([0, 1, 2]);
   });
   test('all new UI strings exist in EN and AR (the strings test also checks Arabic script and no emoji)', () => {
     for (const k of ['vipDeckLabel', 'vipDeckAdd', 'vipDeckDelete', 'vipDeckLocal', 'vdTitle', 'vdResponsible', 'vdLocal', 'vdSave', 'vdErrBlocked', 'vdErrFull', 'vdErrMax', 'vdEmpty', 'vdValid']) { expect(STRINGS[k].en.length).toBeGreaterThan(3); expect(/[؀-ۿ]/.test(STRINGS[k].ar)).toBe(true); }

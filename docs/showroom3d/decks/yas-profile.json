@@ -1,0 +1,594 @@
+{
+  "id": "yas-profile",
+  "title": {
+    "en": "YAS Profile (2023)",
+    "ar": "ملف YAS (2023)"
+  },
+  "slides": [
+    {
+      "id": "cover",
+      "layout": "hero",
+      "accent": "brass",
+      "title": {
+        "en": "YAS Wood: Profile 2023",
+        "ar": "YAS Wood: ملف 2023"
+      },
+      "lead": {
+        "en": "Surfaces and solutions for furniture and interior design.",
+        "ar": "أسطح وحلول للأثاث والتصميم الداخلي."
+      },
+      "bullets": [
+        {
+          "en": "From the YAS Wood profile supplied by management.",
+          "ar": "من ملف YAS Wood المقدَّم من الإدارة."
+        }
+      ],
+      "blocks": [
+        {
+          "type": "image",
+          "url": "https://www.the-closets.com/yas-bloom/profile/yas-cover.webp",
+          "alt": {
+            "en": "A bright room with a light sideboard, from the YAS Wood profile cover",
+            "ar": "غرفة مضيئة مع بوفيه فاتح، من غلاف ملف YAS Wood"
+          }
+        }
+      ],
+      "source": {
+        "en": "YAS Wood Profile 2023, p. 1. Arabic text awaits native review.",
+        "ar": "ملف YAS Wood لعام 2023، ص 1. النص العربي بانتظار مراجعة ناطق أصلي."
+      }
+    },
+    {
+      "id": "intro",
+      "accent": "brass",
+      "title": {
+        "en": "Introduction",
+        "ar": "مقدمة"
+      },
+      "bullets": [
+        {
+          "en": "Surfaces and solutions for furniture and interior design.",
+          "ar": "أسطح وحلول للأثاث والتصميم الداخلي."
+        },
+        {
+          "en": "Faced panels, laminates and edges made with advanced technologies.",
+          "ar": "ألواح مكسوّة ولامينيت وحواف بتقنيات متقدمة."
+        },
+        {
+          "en": "Delivering products and services since 2007.",
+          "ar": "تقدّم منتجاتها وخدماتها منذ عام 2007."
+        },
+        {
+          "en": "A subsidiary of YAS Holding; sister company of The Closets.",
+          "ar": "تابعة لـ YAS Holding؛ وشقيقة ذا كلوزتس."
+        }
+      ],
+      "blocks": [
+        {
+          "type": "image",
+          "url": "https://www.the-closets.com/yas-bloom/profile/yas-lounge.webp",
+          "alt": {
+            "en": "A light-oak cabinet by a window",
+            "ar": "خزانة من خشب البلوط الفاتح عند نافذة"
+          }
+        }
+      ],
+      "source": {
+        "en": "YAS Wood Profile 2023, p. 2",
+        "ar": "ملف YAS Wood لعام 2023، ص 2"
+      }
+    },
+    {
+      "id": "mission-vision",
+      "accent": "sage",
+      "title": {
+        "en": "Mission and vision",
+        "ar": "الرسالة والرؤية"
+      },
+      "bullets": [
+        {
+          "en": "Mission: innovative surfaces and solutions for furniture and interiors.",
+          "ar": "الرسالة: أسطح وحلول مبتكرة للأثاث والتصميم الداخلي."
+        },
+        {
+          "en": "Mission: keep researching and developing to exceed expectations.",
+          "ar": "الرسالة: مواصلة البحث والتطوير لتجاوز التوقعات."
+        },
+        {
+          "en": "Vision: the leading provider in the Middle East and beyond.",
+          "ar": "الرؤية: المزوّد الرائد في الشرق الأوسط وخارجه."
+        }
+      ],
+      "blocks": [
+        {
+          "type": "image",
+          "url": "https://www.the-closets.com/yas-bloom/profile/yas-mission.webp",
+          "alt": {
+            "en": "A light-oak door beside a dark console",
+            "ar": "باب من البلوط الفاتح بجانب كونسول داكن"
+          }
+        }
+      ],
+      "source": {
+        "en": "YAS Wood Profile 2023, p. 3",
+        "ar": "ملف YAS Wood لعام 2023، ص 3"
+      }
+    },
+    {
+      "id": "product",
+      "accent": "brass",
+      "title": {
+        "en": "The product",
+        "ar": "المنتج"
+      },
+      "bullets": [
+        {
+          "en": "Wood-based faced panels covered with decorative papers, foil, PP or PET.",
+          "ar": "ألواح مكسوّة أساسها خشبي مغطاة بأوراق زخرفية أو فويل أو PP أو PET."
+        },
+        {
+          "en": "Versatile, easy to install and customizable for any project.",
+          "ar": "متعددة الاستخدامات وسهلة التركيب وقابلة للتخصيص."
+        },
+        {
+          "en": "For kitchens, commercial spaces and residential projects.",
+          "ar": "للمطابخ والمساحات التجارية والمشاريع السكنية."
+        },
+        {
+          "en": "Ongoing research and development in technology and design.",
+          "ar": "بحث وتطوير مستمران في التقنية والتصميم."
+        }
+      ],
+      "blocks": [
+        {
+          "type": "image",
+          "url": "https://www.the-closets.com/yas-bloom/profile/yas-vanity.webp",
+          "alt": {
+            "en": "A dark wood-grain vanity unit",
+            "ar": "وحدة مغسلة بسطح خشبي داكن"
+          }
+        }
+      ],
+      "source": {
+        "en": "YAS Wood Profile 2023, p. 4",
+        "ar": "ملف YAS Wood لعام 2023، ص 4"
+      }
+    },
+    {
+      "id": "partners",
+      "accent": "sage",
+      "title": {
+        "en": "Partners",
+        "ar": "الشركاء"
+      },
+      "bullets": [
+        {
+          "en": "Decorative paper makers Interprint Impress and Schattdecor.",
+          "ar": "مصنّعو الأوراق الزخرفية Interprint Impress وSchattdecor."
+        },
+        {
+          "en": "A library of designs, textures and finishes.",
+          "ar": "مكتبة من التصاميم والملمسات والتشطيبات."
+        },
+        {
+          "en": "The page shows partner certificates and a formaldehyde-free mark.",
+          "ar": "تعرض الصفحة شهادات للشركاء وعلامة خالٍ من الفورمالدهيد."
+        }
+      ],
+      "source": {
+        "en": "YAS Wood Profile 2023, p. 5",
+        "ar": "ملف YAS Wood لعام 2023، ص 5"
+      },
+      "blocks": []
+    },
+    {
+      "id": "gallery-1",
+      "layout": "duo",
+      "accent": "brass",
+      "title": {
+        "en": "Gallery: Fribourg and Agostino Oak",
+        "ar": "المعرض: Fribourg وAgostino Oak"
+      },
+      "blocks": [
+        {
+          "type": "image",
+          "url": "https://www.the-closets.com/yas-bloom/profile/yas-fribourg.webp",
+          "alt": {
+            "en": "A cabinet with glazed doors in Fribourg Oak",
+            "ar": "خزانة بأبواب زجاجية بديكور Fribourg Oak"
+          },
+          "caption": {
+            "en": "Fribourg Oak",
+            "ar": "Fribourg Oak"
+          }
+        },
+        {
+          "type": "image",
+          "url": "https://www.the-closets.com/yas-bloom/profile/yas-agostino.webp",
+          "alt": {
+            "en": "A dark vanity unit in Agostino Oak",
+            "ar": "وحدة مغسلة داكنة بديكور Agostino Oak"
+          },
+          "caption": {
+            "en": "Agostino Oak",
+            "ar": "Agostino Oak"
+          }
+        }
+      ],
+      "source": {
+        "en": "YAS Wood Profile 2023, pp. 7-8",
+        "ar": "ملف YAS Wood لعام 2023، ص 7-8"
+      }
+    },
+    {
+      "id": "gallery-2",
+      "layout": "duo",
+      "accent": "brass",
+      "title": {
+        "en": "Gallery: Abisko Ash and Montello",
+        "ar": "المعرض: Abisko Ash وMontello"
+      },
+      "blocks": [
+        {
+          "type": "image",
+          "url": "https://www.the-closets.com/yas-bloom/profile/yas-sideboard.webp",
+          "alt": {
+            "en": "A sideboard in Abisko Ash with posters above",
+            "ar": "بوفيه بديكور Abisko Ash مع ملصقات فوقه"
+          },
+          "caption": {
+            "en": "Abisko Ash",
+            "ar": "Abisko Ash"
+          }
+        },
+        {
+          "type": "image",
+          "url": "https://www.the-closets.com/yas-bloom/profile/yas-montello.webp",
+          "alt": {
+            "en": "Marble-look coffee tables, Montello",
+            "ar": "طاولات قهوة بمظهر الرخام، Montello"
+          },
+          "caption": {
+            "en": "Montello",
+            "ar": "Montello"
+          }
+        }
+      ],
+      "source": {
+        "en": "YAS Wood Profile 2023, pp. 9-10",
+        "ar": "ملف YAS Wood لعام 2023، ص 9-10"
+      }
+    },
+    {
+      "id": "gallery-3",
+      "layout": "duo",
+      "accent": "brass",
+      "title": {
+        "en": "Gallery: Lucenta and Celestine Oak",
+        "ar": "المعرض: Lucenta وCelestine Oak"
+      },
+      "blocks": [
+        {
+          "type": "image",
+          "url": "https://www.the-closets.com/yas-bloom/profile/yas-wardrobe.webp",
+          "alt": {
+            "en": "A wardrobe with grey fronts and an open shelf, Lucenta",
+            "ar": "خزانة ملابس بواجهات رمادية ورف مفتوح، Lucenta"
+          },
+          "caption": {
+            "en": "Lucenta",
+            "ar": "Lucenta"
+          }
+        },
+        {
+          "type": "image",
+          "url": "https://www.the-closets.com/yas-bloom/profile/yas-celestine.webp",
+          "alt": {
+            "en": "A cabinet in Celestine Oak",
+            "ar": "خزانة بديكور Celestine Oak"
+          },
+          "caption": {
+            "en": "Celestine Oak",
+            "ar": "Celestine Oak"
+          }
+        }
+      ],
+      "source": {
+        "en": "YAS Wood Profile 2023, pp. 11-12",
+        "ar": "ملف YAS Wood لعام 2023، ص 11-12"
+      }
+    },
+    {
+      "id": "decors-1",
+      "accent": "orange",
+      "title": {
+        "en": "A glance at the variety (1 of 4)",
+        "ar": "نظرة على التنوع (1 من 4)"
+      },
+      "lead": {
+        "en": "Decor codes and names from the profile.",
+        "ar": "رموز الديكورات وأسماؤها من الملف."
+      },
+      "blocks": [
+        {
+          "type": "table",
+          "head": [
+            {
+              "en": "Code",
+              "ar": "الرمز"
+            },
+            {
+              "en": "Decor",
+              "ar": "الديكور"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "en": "32376",
+                "ar": "32376"
+              },
+              {
+                "en": "Mauvella Oak",
+                "ar": "Mauvella Oak"
+              }
+            ],
+            [
+              {
+                "en": "71139",
+                "ar": "71139"
+              },
+              {
+                "en": "Soho",
+                "ar": "Soho"
+              }
+            ],
+            [
+              {
+                "en": "71165",
+                "ar": "71165"
+              },
+              {
+                "en": "Pitch Black",
+                "ar": "Pitch Black"
+              }
+            ],
+            [
+              {
+                "en": "60168",
+                "ar": "60168"
+              },
+              {
+                "en": "Azul Onyx",
+                "ar": "Azul Onyx"
+              }
+            ]
+          ]
+        }
+      ],
+      "source": {
+        "en": "YAS Wood Profile 2023, p. 14",
+        "ar": "ملف YAS Wood لعام 2023، ص 14"
+      }
+    },
+    {
+      "id": "decors-2",
+      "accent": "orange",
+      "title": {
+        "en": "A glance at the variety (2 of 4)",
+        "ar": "نظرة على التنوع (2 من 4)"
+      },
+      "lead": {
+        "en": "Decor codes and names from the profile.",
+        "ar": "رموز الديكورات وأسماؤها من الملف."
+      },
+      "blocks": [
+        {
+          "type": "table",
+          "head": [
+            {
+              "en": "Code",
+              "ar": "الرمز"
+            },
+            {
+              "en": "Decor",
+              "ar": "الديكور"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "en": "71145",
+                "ar": "71145"
+              },
+              {
+                "en": "Tapiz",
+                "ar": "Tapiz"
+              }
+            ],
+            [
+              {
+                "en": "28049",
+                "ar": "28049"
+              },
+              {
+                "en": "Comano",
+                "ar": "Comano"
+              }
+            ],
+            [
+              {
+                "en": "60161",
+                "ar": "60161"
+              },
+              {
+                "en": "Tivoli",
+                "ar": "Tivoli"
+              }
+            ],
+            [
+              {
+                "en": "43103",
+                "ar": "43103"
+              },
+              {
+                "en": "Panaro",
+                "ar": "Panaro"
+              }
+            ]
+          ]
+        }
+      ],
+      "source": {
+        "en": "YAS Wood Profile 2023, p. 15",
+        "ar": "ملف YAS Wood لعام 2023، ص 15"
+      }
+    },
+    {
+      "id": "decors-3",
+      "accent": "orange",
+      "title": {
+        "en": "A glance at the variety (3 of 4)",
+        "ar": "نظرة على التنوع (3 من 4)"
+      },
+      "lead": {
+        "en": "Decor codes and names from the profile.",
+        "ar": "رموز الديكورات وأسماؤها من الملف."
+      },
+      "blocks": [
+        {
+          "type": "table",
+          "head": [
+            {
+              "en": "Code",
+              "ar": "الرمز"
+            },
+            {
+              "en": "Decor",
+              "ar": "الديكور"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "en": "48190",
+                "ar": "48190"
+              },
+              {
+                "en": "Shirin Walnut",
+                "ar": "Shirin Walnut"
+              }
+            ],
+            [
+              {
+                "en": "60162",
+                "ar": "60162"
+              },
+              {
+                "en": "Esperanza",
+                "ar": "Esperanza"
+              }
+            ],
+            [
+              {
+                "en": "32374",
+                "ar": "32374"
+              },
+              {
+                "en": "Celestine Oak",
+                "ar": "Celestine Oak"
+              }
+            ],
+            [
+              {
+                "en": "71143",
+                "ar": "71143"
+              },
+              {
+                "en": "Akron",
+                "ar": "Akron"
+              }
+            ]
+          ]
+        }
+      ],
+      "source": {
+        "en": "YAS Wood Profile 2023, p. 16",
+        "ar": "ملف YAS Wood لعام 2023، ص 16"
+      }
+    },
+    {
+      "id": "decors-4",
+      "accent": "orange",
+      "title": {
+        "en": "A glance at the variety (4 of 4)",
+        "ar": "نظرة على التنوع (4 من 4)"
+      },
+      "lead": {
+        "en": "Decor codes and names from the profile.",
+        "ar": "رموز الديكورات وأسماؤها من الملف."
+      },
+      "blocks": [
+        {
+          "type": "table",
+          "head": [
+            {
+              "en": "Code",
+              "ar": "الرمز"
+            },
+            {
+              "en": "Decor",
+              "ar": "الديكور"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "en": "32352",
+                "ar": "32352"
+              },
+              {
+                "en": "Fribourg Oak",
+                "ar": "Fribourg Oak"
+              }
+            ],
+            [
+              {
+                "en": "48192",
+                "ar": "48192"
+              },
+              {
+                "en": "Sary Walnut",
+                "ar": "Sary Walnut"
+              }
+            ],
+            [
+              {
+                "en": "99106",
+                "ar": "99106"
+              },
+              {
+                "en": "Malto",
+                "ar": "Malto"
+              }
+            ],
+            [
+              {
+                "en": "60155",
+                "ar": "60155"
+              },
+              {
+                "en": "Infinity Brown",
+                "ar": "Infinity Brown"
+              }
+            ]
+          ]
+        }
+      ],
+      "source": {
+        "en": "YAS Wood Profile 2023, p. 17",
+        "ar": "ملف YAS Wood لعام 2023، ص 17"
+      }
+    }
+  ]
+}
