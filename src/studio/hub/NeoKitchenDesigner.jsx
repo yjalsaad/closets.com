@@ -5,6 +5,7 @@
  * Everything visual comes from DESIGN.md tokens (see src/neoKitchen/neoKitchen.css); the model / geometry / BOM / DXF /
  * assistant live in src/neoKitchen/*.js as pure, unit-tested functions.
  * ===========================================================================*/
+import './neoKitchen/cssOrder'; // [CI-CSS-ORDER] must stay the first import: fixes the shared stylesheet order
 import { wsShowFactory } from './wsFlags'; // [WEB-STUDIO]
 import React, { useState, useMemo, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
