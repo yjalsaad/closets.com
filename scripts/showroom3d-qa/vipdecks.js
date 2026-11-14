@@ -31,11 +31,11 @@ async function flows(b) {
   await enterVip(page);
   // ---- default deck: unchanged behaviour
   let txt = await panelText(page);
-  check('default deck: station 1 of 5 "Company story and brand", picker shows one deck, no delete / local note', /Station\s*1\s*\/\s*5/.test(txt) && /Company story and brand/.test(txt) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 1 && (await page.locator('[data-testid="sr-vip-deck-delete"]').count()) === 0);
+  check('default deck: station 1 of 4 "Company story and brand", picker shows the four built-in entries (three decks and the film), no delete / local note', /Station\s*1\s*\/\s*4/.test(txt) && /Company story and brand/.test(txt) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 4 && (await page.locator('[data-testid="sr-vip-deck-delete"]').count()) === 0);
   check('default deck: placeholders still "To be confirmed by management"; warranty fact from facts.js', (await page.$$eval('[data-testid="sr-vip-facts"] li', (l) => l.length === 4 && l.every((e) => e.dataset.confirmed === '0' && /To be confirmed by management/.test(e.innerText)))) && /10 years on cabinetry/.test(txt));
-  await press(page, 'Digit4'); await settle(page, 300); check('default deck: key 4 jumps to station 4 (investor path) with the disclaimer; key 9 does nothing (only 5 stations)', /Station\s*4\s*\/\s*5/.test(await panelText(page)) && /Information only, not an offer or financial advice/.test(await panelText(page)));
-  await press(page, 'Digit9'); await settle(page, 200); check('key 9 ignored', /Station\s*4\s*\/\s*5/.test(await panelText(page))); await press(page, 'Digit1'); await settle(page, 300);
-  check('default deck: "[" and "]" do nothing while there is one deck', await (async () => { await press(page, 'BracketRight'); return /Station\s*1\s*\/\s*5/.test(await panelText(page)) && (await wall(page)).deck === 'default'; })());
+  await press(page, 'Digit4'); await settle(page, 300); check('default deck: key 4 jumps to station 4 (contact) with the disclaimer; key 9 does nothing (only 5 stations)', /Station\s*4\s*\/\s*4/.test(await panelText(page)) && /Information only, not an offer or financial advice/.test(await panelText(page)));
+  await press(page, 'Digit9'); await settle(page, 200); check('key 9 ignored', /Station\s*4\s*\/\s*4/.test(await panelText(page))); await press(page, 'Digit1'); await settle(page, 300);
+  await press(page, 'BracketRight'); await settle(page, 500); const nx = (await wall(page)).deck; await press(page, 'BracketLeft'); await settle(page, 500); check('"]" goes to the next built-in entry (The Closets profile) and "[" comes back to the default deck', nx === 'closets-profile' && (await wall(page)).deck === 'default' && /Station\s*1\s*\/\s*4/.test(await panelText(page)), nx);
   await shot(page, 'vipdecks-01-default-deck-picker', { quality: 60 });
   // ---- add a presentation by pasting markdown
   await page.click('[data-testid="sr-vip-deck-add"]'); await page.waitForSelector('[data-testid="sr-vd-dialog"]');
@@ -57,20 +57,21 @@ async function flows(b) {
   await page.fill('[data-testid="sr-vd-text"]', MD); await page.waitForTimeout(200);
   await page.click('[data-testid="sr-vd-save"]'); await page.waitForSelector('[data-testid="sr-vd-dialog"]', { state: 'detached' }); await settle(page, 600);
   const ids = await stored(page); txt = await panelText(page);
-  check('save: stored under one localStorage key on this device, the new deck is shown (Slide 1 / 3), local label visible, picker has 2 decks', ids.length === 1 && /Slide\s*1\s*\/\s*3/.test(txt) && /Who we are/.test(txt) && /Saved on this device only/.test(txt) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 2, ids);
-  check('wall screen state follows: deck id, 2 decks (chips), slide 1', await (async () => { const w = await wall(page); return w.deck === ids[0] && w.decks === 2 && w.slide === 0; })());
+  check('save: stored under one localStorage key on this device, the new deck is shown (Slide 1 / 3), local label visible, picker has 5 entries', ids.length === 1 && /Slide\s*1\s*\/\s*3/.test(txt) && /Who we are/.test(txt) && /Saved on this device only/.test(txt) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 5, ids);
+  check('wall screen state follows: deck id, 2 decks (chips), slide 1', await (async () => { const w = await wall(page); return w.deck === ids[0] && w.decks === 5 && w.slide === 0; })());
   await wallShot(page, 'vipdecks-04-wall-generic-slide', 3500);
   await shot(page, 'vipdecks-05-saved-deck-panel', { quality: 60 });
   // ---- pick decks: Next on the generic deck, the last slide is the disclaimer, then [ ] and the select, and a real click on the wall chip
   await press(page, 'ArrowRight'); await press(page, 'ArrowRight'); await settle(page, 300); txt = await panelText(page);
   check('generic deck: ArrowRight x2 reaches slide 3 = the disclaimer slide (always last); Next is then disabled', /Slide\s*3\s*\/\s*3/.test(txt) && /Information only, not an offer or financial advice/.test(txt) && (await page.isDisabled('[data-testid="sr-vip-next"]')));
   await press(page, 'Digit1'); await settle(page, 300); await press(page, 'BracketLeft'); await settle(page, 400);
-  check('"[" cycles to the previous deck (the default deck, station 1)', /Station\s*1\s*\/\s*5/.test(await panelText(page)) && (await wall(page)).deck === 'default');
+  check('"[" cycles to the previous entry (the film entry sits before the saved deck)', (await wall(page)).deck === 'film');
   await press(page, 'BracketRight'); await settle(page, 400); check('"]" cycles to the next deck', /Slide\s*1\s*\/\s*3/.test(await panelText(page)) && (await wall(page)).deck === ids[0]);
-  await page.selectOption('[data-testid="sr-vip-deck-select"]', 'default'); await settle(page, 400); check('the picker (select) switches back to the default deck', /Station\s*1\s*\/\s*5/.test(await panelText(page)) && (await wall(page)).deck === 'default');
-  await page.focus('[data-testid="sr-vip-deck-select"]'); await page.keyboard.press('ArrowDown'); await page.waitForTimeout(400); await settle(page, 300); check('the picker is keyboard operable (ArrowDown on the focused select changes deck)', (await wall(page)).deck === ids[0]);
+  await page.selectOption('[data-testid="sr-vip-deck-select"]', 'default'); await settle(page, 400); check('the picker (select) switches back to the default deck', /Station\s*1\s*\/\s*4/.test(await panelText(page)) && (await wall(page)).deck === 'default');
+  await page.focus('[data-testid="sr-vip-deck-select"]'); await page.keyboard.press('ArrowDown'); await page.waitForTimeout(400); await settle(page, 300); check('the picker is keyboard operable (ArrowDown on the focused select moves to the next entry)', (await wall(page)).deck === 'closets-profile'); await page.selectOption('[data-testid="sr-vip-deck-select"]', ids[0]); await settle(page, 400);
   await page.evaluate(() => document.activeElement && document.activeElement.blur());
-  // wall chip: project the chip centre to the screen and click it with the real mouse
+  // wall chip: project the chip centre to the screen and click it with the real mouse (the wall shows a window of three chips round the active deck, so start from the second entry)
+  await page.selectOption('[data-testid="sr-vip-deck-select"]', 'closets-profile'); await settle(page, 600); await page.evaluate(() => document.activeElement && document.activeElement.blur());
   const pt = await page.evaluate(() => {
     const x = window.__showroom.explore.explorer, v = x.products.vip, d = v.state.decks; const titles = d.map(() => 0);
     // chip layout is the same function the wall uses: re-derive from chipAt by scanning the top strip
@@ -87,7 +88,7 @@ async function flows(b) {
   await shot(page, 'vipdecks-07-delete-confirm', { quality: 60 });
   await page.click('[data-testid="sr-vip-deck-delete-no"]'); check('delete: "Keep it" cancels', (await stored(page)).length === 1 && (await page.locator('[data-testid="sr-vip-deck-confirm"]').count()) === 0);
   await page.click('[data-testid="sr-vip-deck-delete"]'); await page.click('[data-testid="sr-vip-deck-delete-yes"]'); await settle(page, 500);
-  check('delete: the deck is removed from storage, the view falls back to the default deck, picker back to one deck, chips gone', (await stored(page)).length === 0 && (await wall(page)).deck === 'default' && (await wall(page)).decks === 1 && /Station\s*1\s*\/\s*5/.test(await panelText(page)) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 1);
+  check('delete: the deck is removed from storage, the view falls back to the default deck, picker back to four entries', (await stored(page)).length === 0 && (await wall(page)).deck === 'default' && (await wall(page)).decks === 4 && /Station\s*1\s*\/\s*4/.test(await panelText(page)) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 4);
   check('the whole session made no network write and no request to anything but the local server (no backend, no upload)', net.writes.length === 0 && net.net.filter((u) => !/supabase\.co\/rest\/v1\/website_projects/.test(u)).length === 0, net.net.slice(0, 4));
   check('flows: no page errors', o.errors.length === 0, o.errors.slice(0, 3)); await o.ctx.close();
 }
@@ -116,10 +117,10 @@ async function fail(b) {
   const page = o.page; await mockProjects(page); await enterVip(page);
   await page.click('[data-testid="sr-vip-deck-add"]'); await paste(page, MD); await page.click('[data-testid="sr-vd-save"]'); await page.waitForTimeout(400);
   const msg = await page.locator('[data-testid="sr-vd-saveerr"]').innerText().catch(() => '');
-  check('storage failure: a clear message in the dialog ("Could not save ... not enough storage"), the dialog stays open, nothing was added, the room still works', /Could not save/.test(msg) && /storage/i.test(msg) && (await page.locator('[data-testid="sr-vd-dialog"]').count()) === 1 && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 1, msg);
+  check('storage failure: a clear message in the dialog ("Could not save ... not enough storage"), the dialog stays open, nothing was added, the room still works', /Could not save/.test(msg) && /storage/i.test(msg) && (await page.locator('[data-testid="sr-vd-dialog"]').count()) === 1 && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 4, msg);
   await shot(page, 'vipdecks-08-save-failed', { quality: 60 });
   await page.click('[data-testid="sr-vd-close"]'); await page.waitForSelector('[data-testid="sr-vd-dialog"]', { state: 'detached' });
-  check('after cancelling, focus returns to the "Add presentation" button and Escape-less keys work again (key 2 -> station 2)', (await page.evaluate(() => document.activeElement && document.activeElement.dataset.testid)) === 'sr-vip-deck-add' && await (async () => { await page.evaluate(() => document.activeElement.blur()); await press(page, 'Digit2'); return /Station\s*2\s*\/\s*5/.test(await panelText(page)); })());
+  check('after cancelling, focus returns to the "Add presentation" button and Escape-less keys work again (key 2 -> station 2)', (await page.evaluate(() => document.activeElement && document.activeElement.dataset.testid)) === 'sr-vip-deck-add' && await (async () => { await page.evaluate(() => document.activeElement.blur()); await press(page, 'Digit2'); return /Station\s*2\s*\/\s*4/.test(await panelText(page)); })());
   check('fail: no page errors', o.errors.length === 0, o.errors.slice(0, 3)); await o.ctx.close();
 }
 
@@ -139,14 +140,14 @@ async function ar(b) {
 async function mobile(b) {
   const o = await L.openShowroom(b, { query: FAST, viewport: { width: 390, height: 844 }, mobile: true }); const page = o.page; await mockProjects(page); await enterVip(page, true);
   const r = await page.locator('[data-testid="sr-vip-panel"]').boundingBox();
-  check('mobile: the presentation panel is still a bottom sheet (<= 54% height; the VIP sheet carries the deck bar) with the deck picker inside', r.width > 360 && r.height <= 844 * 0.55 && r.y + r.height > 820 && (await page.locator('[data-testid="sr-vip-deck-select"]').count()) === 1, r);
+  check('mobile: the presentation panel is still a bottom sheet (<= 62% height; the VIP sheet carries the deck bar) with the deck picker inside', r.width > 360 && r.height <= 844 * 0.63 && r.y + r.height > 820 && (await page.locator('[data-testid="sr-vip-deck-select"]').count()) === 1, r);
   const sel = await page.locator('[data-testid="sr-vip-deck-select"]').boundingBox(), add = await page.locator('[data-testid="sr-vip-deck-add"]').boundingBox(); check('mobile: picker and Add button are at least 44 px tall', sel.height >= 43 && add.height >= 43, [sel.height, add.height]);
   await shot(page, 'vipdecks-12-mobile-panel', { quality: 55 });
   await page.tap('[data-testid="sr-vip-deck-add"]'); await page.waitForSelector('[data-testid="sr-vd-dialog"]'); const d = await page.locator('[data-testid="sr-vd-dialog"]').boundingBox();
   check('mobile: the dialog fits the screen (no horizontal overflow) and its Save is reachable', d.width <= 390 && !(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)));
   await paste(page, MD); await page.locator('[data-testid="sr-vd-save"]').scrollIntoViewIfNeeded(); await shot(page, 'vipdecks-13-mobile-dialog', { quality: 55 });
   await page.tap('[data-testid="sr-vd-save"]'); await page.waitForSelector('[data-testid="sr-vd-dialog"]', { state: 'detached' }); await settle(page, 500);
-  check('mobile: saving by tap shows the new deck; Next by tap works; picker (select) lists both decks', /Slide\s*1\s*\/\s*3/.test(await panelText(page)) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 2);
+  check('mobile: saving by tap shows the new deck; Next by tap works; picker (select) lists both decks', /Slide\s*1\s*\/\s*3/.test(await panelText(page)) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 5);
   await page.tap('[data-testid="sr-vip-next"]'); await settle(page, 300); check('mobile: Next by tap', /2\s*\/\s*3/.test(await panelText(page)));
   await shot(page, 'vipdecks-14-mobile-saved-deck', { quality: 55 });
   check('mobile: no horizontal overflow, no page errors', !(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)) && o.errors.length === 0, o.errors.slice(0, 3)); await o.ctx.close();

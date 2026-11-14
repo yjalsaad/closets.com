@@ -1,6 +1,6 @@
 # VIP room presentation decks
 
-The VIP Meeting Room (`src/showroom3d/`) shows **decks**: ordered slides drawn on the wall screen and mirrored in the DOM panel. The five original stations are the **default deck** (unchanged). More decks can be
+The VIP Meeting Room (`src/showroom3d/`) shows **decks**: ordered slides drawn on the wall screen and mirrored in the DOM panel. The original stations are the **default deck** (now four: the "How to join and invest" and investor-briefing stations were removed at the owner's request). More decks can be
 
 1. **added in the room** by anyone with the page open ("Add presentation"): saved **on that device only** (this file, sections 3 to 5), or
 2. **committed as a file** to become permanent for everybody (section 6).
@@ -23,7 +23,7 @@ Always visible in the dialog: **"Saved on this device only"** and the note that 
 
 * **The disclaimer is always the last slide** of every deck, imported ones included: *"Information only, not an offer or financial advice; details provided directly by management."* (Arabic: *للاطلاع فقط، وليس عرضًا ولا نصيحة مالية؛ تُقدَّم التفاصيل مباشرة من الإدارة.*) It is appended by `sanitizeDeck()` and cannot be removed or faked by an import (a `disclaimer` flag in imported JSON is dropped). Generic slides also repeat it as a footer.
 * **"To be confirmed by management" placeholders** still resolve from `src/content/facts.js`. Anywhere in a deck's text, write `{{fact:yearsOfCraft}}` (also `homesDelivered`, `productionModel`, `showroomCount`, `warrantyYears`, `phone`). While the fact is `null` it prints *To be confirmed by management* (Arabic *يؤكَّد من الإدارة*); once management fills `facts.js` the value appears with no change to the deck. Unknown keys also print the placeholder; nothing else is ever substituted.
-* **Financial promises**: the built-in content may never contain figures, returns, valuation, equity, ROI or guarantees (the existing unit test in `vip.test.js` still scans it). Imported decks are the owner's content, so they are *not* blocked, but the dialog shows a **warning** when it sees financial wording or figures, and when a chart or table has neither a `source` nor `illustrative: true`.
+* **Financial promises**: the built-in content may never contain figures, returns, valuation, equity, ROI or guarantees (and, since the owner's request, no invitation to invest or join: `vipProfileDecks.test.js` and `vip.test.js` check it) (the existing unit test in `vip.test.js` still scans it). Imported decks are the owner's content, so they are *not* blocked, but the dialog shows a **warning** when it sees financial wording or figures, and when a chart or table has neither a `source` nor `illustrative: true`.
 * **Illustrative**: mark any slide or block `"illustrative": true` and the room prints "Illustrative: simplified mock-up, not real data".
 
 ## 3. Deck schema (JSON)
@@ -32,7 +32,7 @@ Always visible in the dialog: **"Saved on this device only"** and the note that 
 {
   "id": "partner-welcome",              // optional; becomes "user-partner-welcome" (a-z, 0-9, dashes, max 40)
   "title": { "en": "Partner welcome", "ar": "أهلًا بشركائنا" },   // Text, max 80
-  "slides": [                             // 1 to 20 slides (the notice slide is added on top)
+  "slides": [                             // 1 to 24 slides (the notice slide is added on top)
     {
       "id": "who",                        // optional
       "title": "Who we are",              // Text, max 90
@@ -67,7 +67,7 @@ The bar chart is drawn from exactly the numbers supplied: nothing is calculated,
 * strips HTML tags, `<script>`/`<style>` blocks, comments, entity-encoded tags, `javascript:` text, control characters and bidi-override characters; collapses whitespace; truncates to the caps above. Text is only ever rendered as text (React escapes it; the wall is canvas text), never as HTML.
 * images: **https only**, no credentials in the address, must parse as a URL with a dotted host, at most 500 characters, no spaces. `http:`, `data:`, `javascript:`, `file:`, relative and protocol-relative addresses are rejected with a message naming the slide.
 * drops unknown fields, `builtin`, `data` and `disclaimer` (those keys are reserved for committed decks); ids are slugged and made unique; a user slide cannot take the reserved `disclaimer` id.
-* refuses input longer than 100,000 characters before parsing and more than 20 slides; truncates bullets, blocks, rows, columns and bars with a warning.
+* refuses input longer than 100,000 characters before parsing and more than 24 slides; truncates bullets, blocks, rows, columns and bars with a warning.
 * uses the site's `src/safety/sanitize.js` helpers (`str`, `arr`, `isObj`) through the single adapter `src/showroom3d/siteBridge.js`.
 * stored decks are **re-sanitised on every load**, so edited or corrupted storage cannot reach the renderer.
 
@@ -151,8 +151,38 @@ Status: **proposal only. Nothing below is applied** (no table, no function, no m
 * **RLS**: enable RLS; `select` where `owner = auth.uid()` or (`published` and the viewer holds the VIP role); `insert/update/delete` only `owner = auth.uid()` **and** the caller has the manager role from the existing RBAC matrix. No anonymous access.
 * **Edge function** `vip-deck-save` (the only writer): re-runs the SAME `sanitizeDeck()` server-side (never trust the browser), enforces size and per-owner count, appends the disclaimer slide, rate-limits, writes an audit row. The client never writes the table directly.
 * **Client**: a read of the owner's / published decks merged after the permanent ones, the same picker, the same renderer; local-only decks stay as they are.
-* **Risks**: (1) stored content shown to investors is a liability channel: needs publish review and an audit log; (2) any image address is fetched by the *viewer's* browser (tracking pixel risk): consider an image allow-list or proxy; (3) stored XSS if the server sanitiser and the renderer drift (mitigation: text-only rendering, one shared sanitiser, tests); (4) abuse / storage growth: quotas and rate limits; (5) PII or confidential data pasted into decks: retention and deletion policy; (6) an auth dependency and a backend write path that the showroom deliberately does not have today (it is additive and read-only); (7) legal review of who may publish financial wording.
+* **Risks**: (1) stored content shown to visitors is a liability channel: needs publish review and an audit log; (2) any image address is fetched by the *viewer's* browser (tracking pixel risk): consider an image allow-list or proxy; (3) stored XSS if the server sanitiser and the renderer drift (mitigation: text-only rendering, one shared sanitiser, tests); (4) abuse / storage growth: quotas and rate limits; (5) PII or confidential data pasted into decks: retention and deletion policy; (6) an auth dependency and a backend write path that the showroom deliberately does not have today (it is additive and read-only); (7) legal review of who may publish financial wording.
 
-## 8. Files
+## 8. Profile decks, motion, the big screen and reading mode
 
-`src/showroom3d/vip/deckSchema.js` (schema, sanitiser, disclaimer, fact tokens) · `deckMarkdown.js` · `deckStore.js` · `deckState.js` (picker state machine) · `example.js` · `decks/default.js` (the five stations) · `decks/index.js` · `ui/VipPanel.jsx`, `ui/VipSlide.jsx`, `ui/VipDeckDialog.jsx` · `scenes/vip/panels.js` (`drawSlide`, `drawDeckChips`) · tests `__tests__/vipDecks*.test.js*`, golden fixture `__tests__/fixtures/vip-golden.json` (dumped from the pre-deck `vipContent.js`) · QA `scripts/showroom3d-qa/vipdecks.js` · screenshots `docs/showroom3d/screenshots/vipdecks-*`.
+Three permanent decks now load in the VIP room (picker order): the **company presentation** (default; four stations: story, projects and business lines, Bonsai Hub, talk to our team), **The Closets: Company Profile** (22 slides) and **YAS Profile (2023)** (12 slides), all with EN + AR text and a source page on every slide. Facts and figures are listed in `VIP-ROOM-OWNER-INPUTS.md`; JSON exports for the Hub are in `docs/showroom3d/decks/`; photos in `public/yas-bloom/profile/` (22 WebP files, about 1 MB, each <= 150 KB; `scripts/showroom3d-profile/make-images.py` rebuilds them from the PDFs).
+
+**Schema additions (backwards compatible):** a block `{ "type": "stat", "items": [ { "value": 70000, "suffix": " sqm", "label": Text } ] }` (1 to 4 figures, counted up on screen); a slide field `"layout": "split" | "hero" | "duo"` (hero: first image full-bleed with the title over it; duo: two photos side by side); a bullet written `"2013: text"` shows its year in the accent colour; `LIMITS.maxSlides` is now 24. Committed decks may use image paths `/yas-bloom/profile/<name>.webp`; imports and saved decks may not (https only).
+
+**Motion** (`vip/motion.js`, pure and tested): slide cross-fade with a drifting previous frame, staggered bullet reveal, count-up for stats and bar growth, a slow Ken Burns on photos (high tier only), the same ideas in the panel with CSS. **Auto-play**: Play / Pause, speed 0.5x, 1x, 1.5x, 2x, Loop, a progress bar on the wall and in the panel; keys **P** or **Space**, **R** speed, **L** loop. **Tiers**: low = short fade, no stagger, no drift, 6 Hz redraws; medium = stagger and count-up, 8 Hz; high = adds Ken Burns, 12 Hz. **Reduced motion** (`prefers-reduced-motion`): no transitions, no stagger, no count-up, no drift, final values at once, no redraw loop.
+
+**The big screen** is now a 16:9 LED wall of 6.9 x 3.9 m (it was 5.7 x 3.2) in a stone surround with a brass edge, a warm LED line and a soft glow, a presenter lectern, the presenter's remote on the table, and the whole chair row facing it (no chair stands between the table and the wall). The texture is 1920 x 1080 (2560 x 1440 on high), mipmapped, anisotropic, smoothed at high quality. Panel buttons: **Present on big screen** (key **B**: the camera fronts the wall and the panel shrinks to a slim presenter bar), **Reading mode** (key **Z**: the wall fills the view edge to edge, only Previous / Next / Exit stay), **Full screen presentation** (key **F**: the browser's full screen plus the big view; a browser may refuse it). **Esc** steps back one level.
+
+**The adviser** can drive the screen: asked to "present the company profile" (or "present the YAS profile"; Arabic works too) the VIP adviser answers and the screen plays the deck (`staff/guide.js` intent `present`, chips `#present:<deck id>`).
+
+**Legibility rules** (hard requirement, tested in `__tests__/vipLegibility.test.js` for every slide, both languages, and in `scripts/showroom3d-qa/vipprofile.js legible` with the real fonts): wall title 66 px of an 864 px screen (7.6%), lead 38 px, bullets 30 to 40 px (3.5 to 4.6%), table cells 30, stat labels 30, captions 24, source and disclaimer lines 22; weights 500 or heavier; contrast at least 4.5:1; no squeezed text; 70 px side margins; at most 2 bullets on photo layouts, 4 beside a photo, 6 on a text slide, each about 12 words or fewer; dense lists are split over several slides. **Not covered:** the built-in stations of the default deck keep their original dense drawings (Hub diagram, business-line map) with smaller type; use Reading mode or the panel for those. In the panel, generic slides use 18 px bullets and 22 px leads.
+
+## 9. FILM mode ("Watch our story" / "شاهد حكايتنا")
+
+The picker's last entry plays the documentary **"The Closets: The Journey of Ambition" / "الخزائن: حكاية طموح"** on the big screen. The film itself is produced separately; this room only plays it.
+
+* **Files it expects** (all under `public/yas-bloom/film/`, same site, nothing external): `film.json`, `journey-1080.mp4`, `journey-720.mp4`, `journey-poster.jpg`, `journey.ar.vtt`, `journey.en.vtt`.
+* **Manifest** `film.json`: `{ "title": { "en", "ar" }, "durationSec": 96, "sources": [ { "src": "/yas-bloom/film/journey-1080.mp4", "width": 1920, "height": 1080, "bytes": 0 }, ... ], "poster": "/yas-bloom/film/journey-poster.jpg", "captions": [ { "lang": "ar", "src": "/yas-bloom/film/journey.ar.vtt" }, { "lang": "en", "src": "..." } ], "notes": "AI-generated illustration" }`. Parsed and sanitised by `vip/film.js` (`parseFilmManifest`): only paths under `/yas-bloom/film/` with the expected file types are kept.
+* **Nothing downloads until Play.** Choosing the entry reads `film.json` and the poster only. The `<video>` element is created on the first Play with `preload="none"`. It is **never autoplayed and never muted for autoplay**: Play is a button, a key (**P** / **Space**) or a click on the wall, and it starts **with sound**.
+* **Source**: the 720 file on phones, on the low tier and with data saver; otherwise the 1080 file (`pickSource`).
+* **On the wall**: a `THREE.VideoTexture` (sRGB) replaces the slide canvas while the film plays or is paused; the poster with the title is shown when idle or finished. Captions and the small label **"AI-generated illustration"** sit on a strip over the lower edge.
+* **Captions**: the narration is Arabic, so an English page starts with English captions and an Arabic page with Arabic ones; the Captions button cycles language and off (key **C**).
+* **Controls**: Play / Pause, seek bar (arrow keys: 10 s), volume (**M** mutes), Captions, **Cinema mode** (key **F** or **Z**: the same video as a normal HTML5 player over the whole page with native controls and native captions; **Esc** returns), Present on big screen.
+* **It pauses** when you leave the room, choose another deck, open the Add-presentation dialog or hide the tab.
+* **Until the film exists** (no `film.json`, a broken one, or a video file that fails to load) the screen and the panel say **"Film coming soon"** and the controls are disabled; nothing else in the room is affected.
+* **The adviser**: "play your story", "show me the film" (Arabic too) opens the film on the big screen; the visitor presses Play.
+* Tests: `__tests__/vipFilm.test.js` (manifest parsing, source selection, caption order, the state machine, missing-file state, panel, adviser). QA: `scripts/showroom3d-qa/vipprofile.js film` (the missing state against the plain build; playback with a 20 s colour-bar TEST clip served by route mocks, as a VP9 `.webm` because the test Chromium has no H.264 decoder: **the real MP4 files have not been played here**).
+
+## 10. Files
+
+`src/showroom3d/vip/deckSchema.js` (schema, sanitiser, disclaimer, fact tokens) · `motion.js` (easing, tiers, auto-play) · `film.js`, `filmPlayer.js` (FILM mode) · `ui/VipFilm.jsx` · `decks/closets-profile.js`, `decks/yas-profile.js` · `deckMarkdown.js` · `deckStore.js` · `deckState.js` (picker state machine) · `example.js` · `decks/default.js` (the five stations) · `decks/index.js` · `ui/VipPanel.jsx`, `ui/VipSlide.jsx`, `ui/VipDeckDialog.jsx` · `scenes/vip/panels.js` (`drawSlide`, `drawDeckChips`) · tests `__tests__/vipDecks*.test.js*`, golden fixture `__tests__/fixtures/vip-golden.json` (dumped from the pre-deck `vipContent.js`) · QA `scripts/showroom3d-qa/vipdecks.js` · screenshots `docs/showroom3d/screenshots/vipdecks-*`.

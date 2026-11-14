@@ -34,6 +34,7 @@ export default function StaffChat({ lang, reduced, explorerRef, engineRef, staff
 
   const run = useCallback((action) => {
     if (!action) return;
+    if (action.type === 'present') { const x = explorerRef.current; onClose(); if (x) setTimeout(() => x.presentDeck(action.deck, { autoplay: true, mode: 'big' }), 120); return; }
     if (action.type === 'glide') { const x = explorerRef.current; onClose(); if (x) setTimeout(() => x.glideTo(action.id), 60); }
   }, [explorerRef, onClose]);
 
