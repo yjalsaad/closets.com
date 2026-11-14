@@ -3,7 +3,7 @@ import path from 'path';
 import { SECTIONS, SECTION_DEPTS, BYLINE, sectionById, sectionByKind, enabledSections, sectionName, sectionDept, posterUrls } from '../sections';
 import { SLOTS, SCREEN, SIGN, BASE, PODIUM, STAND_BACK, WALL_Z, placement, studioColliders, studioZones, withDesignStudio, TIER, tierOf, LOAD_RADIUS, shouldLoad, loopAt, LOOP, ARRIVE_PITCH } from '../layout';
 import { DS, dt } from '../strings';
-import { buildEmbedUrl, buildSiteUrl, stillOnDesigner, normLang, syncLang, readLang, isSignedIn, headerShift, HEADER_SHIFT, EMBED_CSS, reduce, initialState, isActive, isDirty, DIRTY_AFTER, isEditingKey, escapeShouldClose, designStudioIntent, designStudioReply, designStudioServices, adviserChips, GO_TOKEN, OPEN_TOKEN, LANG_KEY, USER_KEY, SRC_PARAM } from '../logic';
+import { buildEmbedUrl, buildSiteUrl, stillOnDesigner, normLang, syncLang, readLang, isSignedIn, frameShift, scrollOffset, HEADER_SHIFT, EMBED_CSS, reduce, initialState, isActive, isDirty, DIRTY_AFTER, isEditingKey, escapeShouldClose, designStudioIntent, designStudioReply, designStudioServices, adviserChips, GO_TOKEN, OPEN_TOKEN, LANG_KEY, USER_KEY, SRC_PARAM } from '../logic';
 import { HALL } from '../../3d/dimensions';
 import { BRAND_LINE } from '../../scenes/main-hall/hall';
 import { buildGraph, routeTo, shortestPath } from '../../navigation/navgraph';
@@ -58,7 +58,7 @@ describe('placement: zone, colliders, navigation', () => {
   test('the stand point is free, inside the zone, in front of the screen and the whole screen fits one 16:9 view from there', () => {
     expect(isFree(P.stand[0], P.stand[1], R, open)).toBe(true);
     const [z] = studioZones(); expect(zoneAt([z], P.stand[0], P.stand[1])).toBe(z); expect(z).toMatchObject({ id: 'kitchen-studio', designStudio: true, sectionId: 'kitchen-studio' });
-    expect(P.stand[1]).toBeCloseTo(WALL_Z - STAND_BACK, 6);
+    expect(P.stand[1]).toBeCloseTo(WALL_Z - STAND_BACK, 6); expect(ARRIVE_PITCH).toBeCloseTo(0.12, 6);
     const half = Math.atan((SCREEN.w / 2 + SCREEN.bezel) / STAND_BACK) * 2 * 180 / Math.PI; expect(half).toBeLessThan(80);   // the 16:9 horizontal fov at the base vertical fov 50 is about 80 degrees
     expect(ARRIVE_PITCH).toBeGreaterThan(0);
   });
@@ -73,10 +73,12 @@ describe('placement: zone, colliders, navigation', () => {
     expect(pod.maxZ).toBe(wall.minZ);                                                         // joined
     expect(pod.maxX - pod.minX).toBeCloseTo(PODIUM.w, 6);
     const free = (x, z) => isFree(x, z, R, open);
-    expect(free(P.x, P.z - 0.5)).toBe(false); expect(free(P.podium.x, P.podium.z)).toBe(false);
+    expect(free(P.podium.x, P.podium.z)).toBe(false);
     expect(free(pod.minX - R - 0.05, P.podium.z)).toBe(true); expect(free(pod.maxX + R + 0.05, P.podium.z)).toBe(true);   // you can walk round it
-    expect(moveCircle([-16.2, -9], 0, 99, R, open)[1]).toBeCloseTo(wall.minZ - R, 3);
-    expect(moveCircle([P.x, P.stand[1]], 0, 99, R, open)[1]).toBeCloseTo(pod.minZ - R, 3);   // walking at the podium stops at it
+    expect(moveCircle([-20.2, -5.5], 0, 99, R, open)[1]).toBeCloseTo(wall.minZ - R, 3);
+    expect(moveCircle([P.podium.x, P.stand[1]], 0, 99, R, open)[1]).toBeCloseTo(pod.minZ - R, 3);   // walking at the podium stops at it
+    expect(P.podium.x).toBeGreaterThan(P.x + 1.5); expect(Math.abs(P.podium.x - P.x) - PODIUM.w / 2).toBeGreaterThan(0.7);   // off the middle of the screen (the stand point looks straight at it), not in front of the call-to-action
+    expect(free(P.x, P.z - 0.5)).toBe(false);
   });
   test('the quick-nav graph: stop 11 with a lane and stand node; the original graphs are not mutated', () => {
     const base = buildGraph(), g = withDesignStudio(base);
@@ -150,9 +152,10 @@ describe('embed URL, language and sign-in helpers', () => {
   test('isSignedIn reads the website customer record', () => {
     expect(isSignedIn(memStore())).toBe(false); expect(isSignedIn(memStore({ [USER_KEY]: '{"id":"u1"}' }))).toBe(true); expect(isSignedIn(memStore({ [USER_KEY]: 'not json' }))).toBe(false); expect(isSignedIn(memStore({ [USER_KEY]: 'null' }))).toBe(false);
   });
-  test('headerShift follows the site: 104 px from 768 px wide, 72 below; the injected CSS only hides the footer', () => {
-    expect(headerShift(1440)).toBe(104); expect(headerShift(768)).toBe(104); expect(headerShift(767)).toBe(72); expect(headerShift(390)).toBe(72);
-    expect(EMBED_CSS).toMatch(/^footer\{display:none!important\}/); expect(EMBED_CSS).not.toMatch(/nav|header|#root|\.btn|button/);
+  test('desktop: the frame is shifted up by the site header (104 px); phones: no shift, the document is kept scrolled by 72 px; the injected CSS only hides header / footer and scrolling', () => {
+    expect(frameShift(1440)).toBe(104); expect(frameShift(768)).toBe(104); expect(frameShift(767)).toBe(0); expect(frameShift(390)).toBe(0);
+    expect(scrollOffset(1440)).toBe(0); expect(scrollOffset(768)).toBe(0); expect(scrollOffset(767)).toBe(72); expect(scrollOffset(390)).toBe(72);
+    expect(EMBED_CSS).toBe('nav,footer{display:none!important}html{overflow:hidden!important}'); expect(EMBED_CSS).not.toMatch(/#root|\.btn|button|\bdiv\b/);
   });
 });
 
@@ -173,7 +176,7 @@ describe('open / close state machine', () => {
     expect(reduce(s, { type: 'request-close' })).toMatchObject({ status: 'closed', reason: 'user' });
     s = step(s, ...Array(DIRTY_AFTER).fill({ type: 'interact' })); expect(isDirty(s)).toBe(true);
     const c = reduce(s, { type: 'request-close' }); expect(c.status).toBe('confirm'); expect(reduce(c, { type: 'stay' }).status).toBe('open'); expect(reduce(c, { type: 'leave' })).toMatchObject({ status: 'closed', reason: 'user' });
-    expect(reduce(c, { type: 'request-close' })).toMatchObject({ status: 'closed' });                // a second Back press while confirming closes (explicit)
+    expect(reduce(c, { type: 'request-close' })).toBe(c);                                            // a second Back / Esc while the question is on screen changes nothing
   });
   test('interactions while loading do not count; failed and loading close at once', () => {
     let s = step(initialState, { type: 'open', sectionId: 'kitchen-studio' }, { type: 'interact', n: 9 }); expect(s.interactions).toBe(0);

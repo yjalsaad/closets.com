@@ -83,10 +83,10 @@ export function buildDesignStudio({ tier = 'high', lang = 'en', reduced = false,
   const baseItems = [
     { geo: placed(bevelBox(baseW, BASE.h - 0.1, BASE.depth, { b: 0.012 }), { y: (BASE.h - 0.1) / 2 + 0.08, z: BASE.depth / 2 }), color: P.walnutDeep },
     { geo: placed(bevelBox(baseW + 0.04, 0.05, BASE.depth + 0.04, { b: 0.008 }), { y: BASE.h - 0.02, z: BASE.depth / 2 + 0.02 }), color: P.travertineTint },
-    { geo: placed(bevelBox(baseW - 0.2, 0.022, 0.02), { y: 0.5, z: BASE.depth + 0.004 }), color: P.brass },
+    { geo: placed(bevelBox(baseW - 0.2, 0.022, 0.02), { y: BASE.h * 0.62, z: BASE.depth + 0.004 }), color: P.brass },
     { geo: placed(bevelBox(baseW, 0.08, BASE.depth - 0.06), { y: 0.04, z: (BASE.depth - 0.06) / 2 }), color: P.bronzeDark },
   ];
-  const baseMat = std({ vertexColors: true, roughness: 0.6, metalness: 0.06, envMapIntensity: 0.5 });
+  const baseMat = std({ vertexColors: true, roughness: 0.6, metalness: 0.06, envMapIntensity: 0.5, emissive: P.walnutDeep, emissiveIntensity: 0.85 });   // the wing is in shade: a little self-light keeps the walnut reading as walnut, not black (same trick as collections/wall.js)
   { const m = new THREE.Mesh(keep(mergeColored(baseItems)), baseMat); m.castShadow = true; m.receiveShadow = true; m.name = 'ds-base'; group.add(m); }
   add(box(baseW - 0.3, 0.02, 0.012), keep(new THREE.MeshBasicMaterial({ color: new THREE.Color(P.ledWarm).multiplyScalar(T.bloom ? 2.2 : 1), toneMapped: false })), { y: 0.095, z: BASE.depth - 0.032 });   // toe-kick LED line
 
@@ -121,24 +121,26 @@ export function buildDesignStudio({ tier = 'high', lang = 'en', reduced = false,
   add(box(SIGN.w + 0.12, SIGN.h + 0.12, 0.03), std({ color: P.bronzeDark, roughness: 0.5, metalness: 0.3 }), { y: SIGN.cy, z: 0.03 });
 
   // ---- touch podium: soft walnut body, stone top, brass line, slanted tablet (one merged mesh + one tablet plane) ----
-  const podLocal = { x: 0, z: PODIUM.dz };   // group local frame: z outward from the wall
+  const podLocal = { x: -PODIUM.dx, z: PODIUM.dz };   // group local frame: z outward from the wall, +x = the visitor's right (so toward the glass wall is -x)
   const bodyH = PODIUM.h - 0.07, podItems = [
-    { geo: placed(bevelBox(PODIUM.w, bodyH, PODIUM.d, { b: 0.02 }), { y: bodyH / 2 + 0.04, z: podLocal.z }), color: P.walnutDeep },
-    { geo: placed(bevelBox(PODIUM.w + 0.08, 0.06, PODIUM.d + 0.08, { b: 0.012 }), { y: PODIUM.h - 0.03, z: podLocal.z }), color: P.marbleWhite },
-    { geo: placed(bevelBox(PODIUM.w - 0.16, 0.02, 0.02), { y: 0.62, z: podLocal.z + PODIUM.d / 2 + 0.004 }), color: P.brass },
-    { geo: placed(bevelBox(PODIUM.w + 0.02, 0.06, PODIUM.d + 0.02, { b: 0.01 }), { y: 0.03, z: podLocal.z }), color: P.bronzeDark },
+    { geo: placed(bevelBox(PODIUM.w, bodyH, PODIUM.d, { b: 0.02 }), { x: podLocal.x, y: bodyH / 2 + 0.04, z: podLocal.z }), color: P.walnutDeep },
+    { geo: placed(bevelBox(PODIUM.w + 0.08, 0.06, PODIUM.d + 0.08, { b: 0.012 }), { x: podLocal.x, y: PODIUM.h - 0.03, z: podLocal.z }), color: P.marbleWhite },
+    { geo: placed(bevelBox(PODIUM.w - 0.16, 0.02, 0.02), { x: podLocal.x, y: 0.62, z: podLocal.z + PODIUM.d / 2 + 0.004 }), color: P.brass },
+    { geo: placed(bevelBox(PODIUM.w + 0.02, 0.06, PODIUM.d + 0.02, { b: 0.01 }), { x: podLocal.x, y: 0.03, z: podLocal.z }), color: P.bronzeDark },
   ];
-  { const m = new THREE.Mesh(keep(mergeColored(podItems)), std({ vertexColors: true, roughness: 0.55, metalness: 0.06, envMapIntensity: 0.5 })); m.castShadow = true; m.receiveShadow = true; m.name = 'ds-podium'; group.add(m); }
+  { const m = new THREE.Mesh(keep(mergeColored(podItems)), std({ vertexColors: true, roughness: 0.55, metalness: 0.06, envMapIntensity: 0.5, emissive: P.walnutDeep, emissiveIntensity: 0.7 })); m.castShadow = true; m.receiveShadow = true; m.name = 'ds-podium'; group.add(m); }
   const tilt = 0.28, tabW = 1.08, tabH = 0.5, tabY = PODIUM.h + 0.05;
   const tab = makePanel(1024, 480, (g, w, h, l, L) => drawTablet(g, w, h, l, L, state.touch), lang, { design: { w: 1024, h: 480 }, anisotropy: 8 }); keep(tab.tex);
-  { const tg = new THREE.Group(); tg.position.set(0, tabY, podLocal.z); tg.rotation.x = -Math.PI / 2 + tilt;
+  { const tg = new THREE.Group(); tg.position.set(podLocal.x, tabY, podLocal.z); tg.rotation.x = -Math.PI / 2 + tilt;
     const frame = new THREE.Mesh(keep(new THREE.BoxGeometry(tabW + 0.06, tabH + 0.06, 0.03)), std({ color: P.bronzeDark, roughness: 0.4, metalness: 0.4 })); frame.position.z = 0.0; tg.add(frame);
     const face = new THREE.Mesh(keep(new THREE.PlaneGeometry(tabW, tabH)), keep(new THREE.MeshBasicMaterial({ map: tab.tex, toneMapped: false }))); face.position.z = 0.017; face.name = 'ds-tablet'; tg.add(face);
     group.add(tg); }
 
-  // ---- the floor halo in front of the podium: fades in near, pulses when the designer is opened ----
-  const hm = keep(new THREE.MeshBasicMaterial({ color: P.brandOrange, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
-  const halo = new THREE.Mesh(keep(new THREE.PlaneGeometry(2.0, 1.2)), hm); halo.rotation.x = -Math.PI / 2; halo.position.set(0, 0.02, podLocal.z + PODIUM.d / 2 + 0.55); halo.renderOrder = 3; halo.visible = false; group.add(halo);
+  // ---- the floor halo in front of the podium: a soft orange pool that fades in near it and pulses on E ----
+  const hc = document.createElement('canvas'); hc.width = 64; hc.height = 64; { const hg2 = hc.getContext('2d'), rg2 = hg2.createRadialGradient(32, 32, 2, 32, 32, 32); rg2.addColorStop(0, rgba(P.brandOrange, 1)); rg2.addColorStop(0.5, rgba(P.brandOrange, 0.35)); rg2.addColorStop(1, rgba(P.brandOrange, 0)); hg2.fillStyle = rg2; hg2.fillRect(0, 0, 64, 64); }
+  const haloTex = keep(new THREE.CanvasTexture(hc)); haloTex.colorSpace = THREE.SRGBColorSpace;
+  const hm = keep(new THREE.MeshBasicMaterial({ map: haloTex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const halo = new THREE.Mesh(keep(new THREE.PlaneGeometry(2.6, 1.7)), hm); halo.rotation.x = -Math.PI / 2; halo.position.set(podLocal.x, 0.02, podLocal.z + PODIUM.d / 2 + 0.7); halo.renderOrder = 3; halo.visible = false; group.add(halo);
 
   // ---- drawing ----
   const drawSignNow = () => { if (!state.disposed) { drawSign(sc, { lang: state.lang }); signTex.needsUpdate = true; } };

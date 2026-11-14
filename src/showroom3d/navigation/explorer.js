@@ -177,7 +177,7 @@ export class Explorer {
   interact() {
     if (!this.enabled || this.paused || this.uiOpen) return;
     if (this.focus) return;
-    { const S = this.engine.staff, np = S && S.nearest(this.walker.pos[0], this.walker.pos[1], 1.9), rec = S && S.nearest(this.walker.pos[0], this.walker.pos[1], TALK_RADIUS); if ((np || (rec && rec.id === 'reception')) && this.talkToStaff((np || rec).id)) return; }   // E next to an adviser (or in front of the Reception desk) talks to her
+    if (!(this.zone && this.zone.designStudio)) { const S = this.engine.staff, np = S && S.nearest(this.walker.pos[0], this.walker.pos[1], 1.9), rec = S && S.nearest(this.walker.pos[0], this.walker.pos[1], TALK_RADIUS); if ((np || (rec && rec.id === 'reception')) && this.talkToStaff((np || rec).id)) return; }   // E next to an adviser (or in front of the Reception desk) talks to her
     this.interactions++;
     const z = this.zone, P = this.products;
     if (z && z.collections) { this.emit({ collections: this.interactions }); return; }          // the Collections wall: the React layer opens its panel

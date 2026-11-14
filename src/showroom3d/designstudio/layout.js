@@ -13,12 +13,12 @@ export const SLOTS = {
   'left-wing': { side: -1, x: -18 },                      // centre of the wing between the glass wall (x = -14) and the side wall (x = -22)
 };
 
-export const SCREEN = { w: 4.8, h: 2.7, cy: 2.2, bezel: 0.07, depth: 0.12 };   // 16:9; bottom edge 0.85 m, top edge 3.55 m
-export const SIGN = { w: 4.8, h: 0.62, cy: 4.02 };         // above the screen, below the 4.5 m walnut / plaster line
-export const BASE = { h: 0.78, depth: 0.3 };               // base panel under the screen (floor to the screen's bottom edge)
-export const PODIUM = { w: 1.5, d: 0.7, h: 1.02, dz: 1.15 };// free-standing touch table, `dz` = metres from the wall face to its centre
+export const SCREEN = { w: 4.8, h: 2.7, cy: 2.0, bezel: 0.07, depth: 0.12 };   // 16:9; bottom edge 0.65 m, top edge 3.35 m (centre a little above the 1.65 m eye line)
+export const SIGN = { w: 4.8, h: 0.62, cy: 3.9 };         // above the screen, below the 4.5 m walnut / plaster line
+export const BASE = { h: 0.58, depth: 0.3 };               // base panel under the screen (floor to the screen's bottom edge)
+export const PODIUM = { w: 1.5, d: 0.7, h: 1.02, dz: 1.15, dx: 2.35 };// free-standing touch table: `dz` = metres from the wall face to its centre, `dx` = metres toward the glass wall (the visitor's left) so it never stands in front of the middle of the screen
 export const STAND_BACK = 3.6;                             // metres from the wall: the whole 4.8 m screen fits one 16:9 view (vertical fov 40-50 deg); the stand point stays inside the zone (z >= -4.5)
-export const ARRIVE_PITCH = 0.17;                          // radians: the glide arrives looking a little up so the screen and its sign are both in frame
+export const ARRIVE_PITCH = 0.12;                          // radians: the glide arrives looking a little up so the screen and its sign are both in frame
 
 /** everything geometric about one section, derived from its slot */
 export function placement(section = SECTIONS[0]) {
@@ -29,7 +29,7 @@ export function placement(section = SECTIONS[0]) {
   const podiumZ = z - PODIUM.dz;
   const x0 = slot.side < 0 ? -HALL.halfWidth : HALL.glassHalf + 0.2, x1 = slot.side < 0 ? -(HALL.glassHalf + 0.2) : HALL.halfWidth;
   return {
-    id: section.id, x, z, side: slot.side, stand, look: [x, lookY, z], podium: { x, z: podiumZ, w: PODIUM.w, d: PODIUM.d },
+    id: section.id, x, z, side: slot.side, stand, look: [x, lookY, z], podium: { x: x + PODIUM.dx, z: podiumZ, w: PODIUM.w, d: PODIUM.d },
     zone: { minX: x0, maxX: x1, minZ: -4.5, maxZ: z },
     /** the corridor lane the quick-nav route uses to reach the stand point (mirrors collections: just past the planter) */
     lane: [slot.side * 13.6, -2.5],

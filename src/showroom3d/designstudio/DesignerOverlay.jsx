@@ -9,7 +9,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { dt } from './strings';
 import { sectionById, sectionName } from './sections';
-import { buildEmbedUrl, buildSiteUrl, stillOnDesigner, headerShift, HEADER_SHIFT, EMBED_CSS, EMBED_STYLE_ID, LOAD_TIMEOUT_MS, isEditingKey, escapeShouldClose, isSignedIn, normLang, designerRendered } from './logic';
+import { buildEmbedUrl, buildSiteUrl, stillOnDesigner, frameShift, scrollOffset, EMBED_CSS, EMBED_STYLE_ID, LOAD_TIMEOUT_MS, isEditingKey, escapeShouldClose, isSignedIn, normLang, designerRendered } from './logic';
 import './designstudio.css';
 
 const POLL_MS = 250;
@@ -17,7 +17,7 @@ const POLL_MS = 250;
 export default function DesignerOverlay({ state, dispatch, lang, onBack, onLang, storage = window.localStorage }) {
   const section = sectionById(state.sectionId), L = normLang(lang), rtl = L === 'ar';
   const frameRef = useRef(null), stageRef = useRef(null), rootRef = useRef(null), backRef = useRef(null);
-  const [shift, setShift] = useState(() => headerShift(window.innerWidth));
+  const [shift, setShift] = useState(() => frameShift(window.innerWidth));
   const url = useMemo(() => buildEmbedUrl(section), [section]);
   const siteUrl = useMemo(() => buildSiteUrl(section), [section]);
   const signedIn = useMemo(() => isSignedIn(storage), [storage, state.attempt]);  // eslint-disable-line react-hooks/exhaustive-deps
@@ -25,7 +25,7 @@ export default function DesignerOverlay({ state, dispatch, lang, onBack, onLang,
   const stRef = useRef(state); stRef.current = state;
   const langRef = useRef(L); langRef.current = L;
 
-  useEffect(() => { const f = () => setShift(headerShift(window.innerWidth)); window.addEventListener('resize', f); return () => window.removeEventListener('resize', f); }, []);
+  useEffect(() => { const f = () => setShift(frameShift(window.innerWidth)); window.addEventListener('resize', f); return () => window.removeEventListener('resize', f); }, []);
 
   // modal behaviour: the showroom behind the overlay is inert (no Tab, no screen reader) while it is open
   useEffect(() => {
@@ -77,7 +77,7 @@ export default function DesignerOverlay({ state, dispatch, lang, onBack, onLang,
         off.push(() => { try { win.removeEventListener('keydown', onKey, true); win.removeEventListener('pointerdown', onDown, true); } catch (e) { /* frame gone */ } });
         if (!doc.getElementById(EMBED_STYLE_ID) && doc.head) { const st = doc.createElement('style'); st.id = EMBED_STYLE_ID; st.textContent = EMBED_CSS; doc.head.appendChild(st); }
       }
-      if (window.innerWidth < HEADER_SHIFT.breakpoint) { try { const need = HEADER_SHIFT.mobile; if (Math.abs((win.scrollY || 0) - need) > 1) win.scrollTo(0, need); } catch (e) { /* ignore */ } }
+      { const need = scrollOffset(window.innerWidth); if (need) { try { if (Math.abs((win.scrollY || 0) - need) > 1) win.scrollTo(0, need); } catch (e) { /* ignore */ } } }
     };
     tick(); const id = setInterval(tick, 400);
     return () => { clearInterval(id); off.forEach((f) => f()); };
@@ -115,7 +115,7 @@ export default function DesignerOverlay({ state, dispatch, lang, onBack, onLang,
         </button>
         <p className="sr-ds-title"><b>{name}</b><small>{dt('byline', L)}</small></p>
         <span className="sr-ds-grow" />
-        <a className="sr-btn sr-btn-line sr-ds-site" href={siteUrl} target="_blank" rel="noopener noreferrer" data-testid="sr-ds-site">{dt('onSite', L)} <span aria-hidden="true">{'↗'}</span><span className="sr-sr-only"> ({dt('onSiteNote', L)})</span></a>
+        <a className="sr-btn sr-btn-line sr-ds-site" href={siteUrl} target="_blank" rel="noopener noreferrer" data-testid="sr-ds-site" aria-label={`${dt('onSite', L)} (${dt('onSiteNote', L)})`}><span className="sr-ds-site-t">{dt('onSite', L)}</span> <span aria-hidden="true">{'↗'}</span></a>
         <button type="button" className="sr-btn sr-btn-line sr-ds-lang" onClick={onLang} lang={rtl ? 'en' : 'ar'} aria-label={dt('langLabel', L)} data-testid="sr-ds-lang">{dt('langBtn', L)}</button>
       </header>
       <div className="sr-ds-stage" ref={stageRef}>

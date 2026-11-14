@@ -28,6 +28,11 @@ describe('the explorer and the Kitchen Design Studio', () => {
     key('KeyE'); expect(engine.calls.pulse).toBe(1);
     expect(events.filter((e) => e.designStudio).pop()).toMatchObject({ designStudioId: 'kitchen-studio' });
   });
+  test('the kitchens adviser stands 1.3 m from the stand point: E at the station still opens the designer (T / the Talk button reach her)', () => {
+    const { x, engine, events } = make(); engine.staff = { nearest: () => ({ id: 'kitchens' }) }; const talk = jest.spyOn(x, 'talkToStaff').mockReturnValue(true);
+    x.debug().teleport(P.stand[0], P.stand[1], 0, 0.1); key('KeyE'); expect(talk).not.toHaveBeenCalled(); expect(events.some((e) => e.designStudio)).toBe(true);
+    key('KeyT'); expect(talk).toHaveBeenCalled();
+  });
   test('E elsewhere does not open the designer; leaving the zone clears the halo', () => {
     const { x, engine, events } = make();
     x.debug().teleport(0, -3.5, 0, 0); key('KeyE'); expect(events.some((e) => e.designStudio)).toBe(false);
@@ -39,7 +44,7 @@ describe('the explorer and the Kitchen Design Studio', () => {
   });
   test('the glide to the studio arrives looking a little up at the screen (stop.pitch)', () => {
     const { x, events } = make(); x.reduced = true; x.debug().teleport(0, -3.5, 0, 0); expect(x.glideTo('kitchen-studio')).toBe(true);
-    expect(events.filter((e) => e.arrived).pop().arrived).toBe('kitchen-studio'); expect(x.walker.pitch).toBeCloseTo(0.17, 2);
+    expect(events.filter((e) => e.arrived).pop().arrived).toBe('kitchen-studio'); expect(x.walker.pitch).toBeCloseTo(0.12, 2);
     expect(Math.hypot(x.walker.pos[0] - P.stand[0], x.walker.pos[1] - P.stand[1])).toBeLessThan(0.05);
   });
   test('a click on the screen while standing at the station opens the designer; from afar it walks there', () => {

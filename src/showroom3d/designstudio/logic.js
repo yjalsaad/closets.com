@@ -36,12 +36,16 @@ export function readLang(storage) { try { return storage.getItem(LANG_KEY) === '
 export function isSignedIn(storage) { try { const u = storage.getItem(USER_KEY); return !!(u && JSON.parse(u)); } catch (e) { return false; } }
 
 // ---------------------------------------------------------------- the designer lays itself out below the site header (App.js KitchenPlannerWizard: marginTop HEADER = 104 desktop / 72 under 768 px)
-/** the frame is shifted up by this much so the site header sits outside the visible window, with no CSS injected for it */
+/** Desktop (>= 768 px): the wizard is `height: calc(100dvh - 104px)` under a 104 px margin, so the frame is shifted UP by 104 px (and made 104 px taller): the site header sits outside the
+ *  visible window and the designer fills it exactly. Phones (< 768 px): the wizard is `100dvh` under a 72 px margin (the page scrolls by 72 px), so the frame is NOT shifted; instead its
+ *  document is kept scrolled by 72 px, which puts the designer's top bar at the top and its Back / Next / total bar at the bottom of the screen. Nothing is edited in the site. */
 export const HEADER_SHIFT = { desktop: 104, mobile: 72, breakpoint: 768 };
-export const headerShift = (width) => (width < HEADER_SHIFT.breakpoint ? HEADER_SHIFT.mobile : HEADER_SHIFT.desktop);
-/** one small stylesheet injected (from this same-origin parent) into the designer document: hides the site footer so the page does not scroll, nothing else. If the site's markup
- *  changes the selector simply stops matching and the footer sits below the fold, out of sight (no breakage). */
-export const EMBED_CSS = 'footer{display:none!important}html,body{overflow:hidden!important;height:100%}';
+export const frameShift = (width) => (width < HEADER_SHIFT.breakpoint ? 0 : HEADER_SHIFT.desktop);
+export const scrollOffset = (width) => (width < HEADER_SHIFT.breakpoint ? HEADER_SHIFT.mobile : 0);
+/** one small stylesheet injected (from this same-origin parent) into the designer document: hides the site header and footer (belt and braces on desktop, where the frame shift already hides the
+ *  header) and stops the visitor scrolling the page (script scrolling still works: phones rely on it). If the site's markup changes the selectors simply stop matching: the header / footer would then sit outside the visible window (desktop) or the
+ *  header over the designer (phone), never break it. */
+export const EMBED_CSS = 'nav,footer{display:none!important}html{overflow:hidden!important}';
 export const EMBED_STYLE_ID = 'sr-ds-embed';
 
 // ---------------------------------------------------------------- state machine: closed -> loading -> open (-> confirm) | failed
@@ -55,7 +59,7 @@ export function reduce(s, a) {
     case 'fail': return s.status === 'loading' || s.status === 'open' ? { ...s, status: 'failed', reason: a.reason || 'error' } : s;
     case 'retry': return s.status === 'failed' ? { ...s, status: 'loading', attempt: s.attempt + 1, interactions: 0, reason: null } : s;
     case 'interact': return s.status === 'open' || s.status === 'confirm' ? { ...s, interactions: s.interactions + (a.n || 1) } : s;
-    case 'request-close': return s.status === 'open' && s.interactions >= DIRTY_AFTER ? { ...s, status: 'confirm' } : s.status === 'closed' ? s : { ...initialState, attempt: s.attempt, reason: 'user' };
+    case 'request-close': return s.status === 'closed' || s.status === 'confirm' ? s : s.status === 'open' && s.interactions >= DIRTY_AFTER ? { ...s, status: 'confirm' } : { ...initialState, attempt: s.attempt, reason: 'user' };   // while the question is on screen a second Back / Esc changes nothing (its buttons decide)
     case 'stay': return s.status === 'confirm' ? { ...s, status: 'open' } : s;
     case 'leave': return s.status === 'confirm' ? { ...initialState, attempt: s.attempt, reason: 'user' } : s;
     case 'close': return s.status === 'closed' ? s : { ...initialState, attempt: s.attempt, reason: a.reason || 'back' };   // the browser Back button, when there is no design to protect
@@ -71,7 +75,7 @@ export const isDirty = (s) => s.interactions >= DIRTY_AFTER;
 export const isEditingKey = (key) => !['Tab', 'Shift', 'Control', 'Alt', 'Meta', 'Escape', 'CapsLock', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].includes(key);
 /** has the designer really rendered (not just the HTML shell)? Its step bar / sign-in gate are buttons: three or more under #root. Pure on a document-like object. */
 export function designerRendered(doc) { try { return !!doc && doc.readyState !== 'loading' && doc.querySelectorAll('#root button').length >= 3; } catch (e) { return false; } }
-/** Esc from INSIDE the designer returns to the showroom only when the designer itself has nothing open to close (its quote dialog etc.) */
+/** Esc from INSIDE the designer leaves (with the confirmation when a design is in progress) unless the designer has a real dialog of its own open ([role=dialog] / [aria-modal]; its quote form is a plain overlay that ignores Esc, so there the confirmation protects the design) */
 export function escapeShouldClose(doc) {
   try { return !doc.querySelector('[role="dialog"],[aria-modal="true"]'); } catch (e) { return true; }
 }
