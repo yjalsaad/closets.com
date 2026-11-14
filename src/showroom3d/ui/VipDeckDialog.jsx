@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { t } from '../strings';
 import { useDialog } from './useDialog';
 import { SlideBody } from './VipSlide';
@@ -21,10 +21,11 @@ export function VipDeckDialog({ lang, ex, max, onClose }) {
   const [text, setText] = useState(''), [fileErr, setFileErr] = useState(''), [saveErr, setSaveErr] = useState(''), [pi, setPi] = useState(0), rtl = lang === 'ar';
   const ref = useDialog(true, onClose);
   useEffect(() => { ex.setVipDialog(true); return () => ex.setVipDialog(false); }, [ex]);
-  const res = useMemo(() => parseInput(text), [text]);
+  const res = useMemo(() => parseInput(text), [text]), statusRef = useRef(null);
   const rd = useMemo(() => (res.ok ? resolveDeck(res.deck, lang) : null), [res, lang]);
   const slide = rd ? rd.slides[Math.min(pi, rd.slides.length - 1)] : null;
   useEffect(() => { setPi(0); setSaveErr(''); }, [text]);
+  useEffect(() => { const n = statusRef.current; if (n && !res.empty && res.errors.length && n.scrollIntoView) n.scrollIntoView({ block: 'nearest' }); }, [res]);   // the errors are never left below the fold
   const onFile = (e) => {
     const f = e.target.files && e.target.files[0]; setFileErr(''); if (!f) return;
     if (f.size > LIMITS.maxInput * 2) { setFileErr(t('vdErrFileBig', lang)); return; }
@@ -43,10 +44,10 @@ export function VipDeckDialog({ lang, ex, max, onClose }) {
           <button type="button" className="sr-btn sr-btn-line" onClick={() => setText(EXAMPLE_MARKDOWN)} data-testid="sr-vd-example">{t('vdExample', lang)}</button>
         </div>
         <label className="sr-vd-label" htmlFor="sr-vd-text">{t('vdPaste', lang)}</label>
-        <textarea id="sr-vd-text" className="sr-vd-text" value={text} onChange={(e) => setText(e.target.value)} rows={8} spellCheck={false} dir="auto" data-testid="sr-vd-text" aria-describedby="sr-vd-syntax" />
+        <textarea id="sr-vd-text" className="sr-vd-text" value={text} onChange={(e) => setText(e.target.value)} rows={6} spellCheck={false} dir="auto" data-testid="sr-vd-text" aria-describedby="sr-vd-syntax" />
         <p className="sr-dialog-note" id="sr-vd-syntax" dir="ltr">{t('vdSyntax', lang)}</p>
         {fileErr && <p className="sr-vd-error" role="alert" data-testid="sr-vd-fileerr">{fileErr}</p>}
-        <div aria-live="polite" data-testid="sr-vd-status" data-state={res.empty ? 'empty' : res.ok ? 'ok' : 'error'}>
+        <div aria-live="polite" ref={statusRef} data-testid="sr-vd-status" data-state={res.empty ? 'empty' : res.ok ? 'ok' : 'error'}>
           {res.empty && <p className="sr-dialog-note">{t('vdEmpty', lang)}</p>}
           {!res.empty && res.errors.length > 0 && <div className="sr-vd-error" role="alert"><b>{t('vdErrors', lang)}</b><ul data-testid="sr-vd-errors">{res.errors.map((m, i) => <li key={i}>{m}</li>)}</ul></div>}
           {!res.empty && res.warnings.length > 0 && <div className="sr-vd-warn"><b>{t('vdWarnings', lang)}</b><ul data-testid="sr-vd-warnings">{res.warnings.map((m, i) => <li key={i}>{m}</li>)}</ul></div>}
@@ -59,8 +60,7 @@ export function VipDeckDialog({ lang, ex, max, onClose }) {
               <span>{pi + 1} / {rd.slides.length}</span><button type="button" className="sr-btn sr-btn-line" onClick={() => setPi(Math.min(rd.slides.length - 1, pi + 1))} disabled={pi >= rd.slides.length - 1}>{t('vdNextSlide', lang)}</button></div>
             <h4 data-testid="sr-vd-pv-title">{slide.title}</h4><SlideBody lang={lang} slide={slide} />
           </section>)}
-        {saveErr && <p className="sr-vd-error" role="alert" data-testid="sr-vd-saveerr"><b>{t('vdSaveFailed', lang)}.</b> {saveErr}</p>}
-        <div className="sr-vd-actions"><button type="button" className="sr-btn" onClick={save} disabled={!res.ok} data-testid="sr-vd-save">{t('vdSave', lang)}</button><button type="button" className="sr-btn sr-btn-line" onClick={onClose}>{t('vdCancel', lang)}</button></div>
+        <div className="sr-vd-actions">{saveErr && <p className="sr-vd-error sr-vd-saveerr" role="alert" data-testid="sr-vd-saveerr"><b>{t('vdSaveFailed', lang)}.</b> {saveErr}</p>}<button type="button" className="sr-btn" onClick={save} disabled={!res.ok} data-testid="sr-vd-save">{t('vdSave', lang)}</button><button type="button" className="sr-btn sr-btn-line" onClick={onClose}>{t('vdCancel', lang)}</button></div>
       </div>
     </div>
   );

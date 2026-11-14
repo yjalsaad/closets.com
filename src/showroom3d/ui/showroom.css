@@ -293,3 +293,6 @@
 .sr-vd-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-block-start: var(--space-4); position: sticky; inset-block-end: calc(var(--space-5) * -1); padding-block: var(--space-3); background: var(--sr-ink); }
 .sr-vd-actions .sr-btn[disabled] { opacity: .4; cursor: not-allowed; }
 @media (max-width: 640px), (pointer: coarse) and (max-height: 700px) { .sr-panel-vip { max-height: 54dvh; } }
+@media (max-width: 640px) { .sr-panel-vip .sr-panel-close { grid-column: 1 / -1; justify-self: start; white-space: nowrap; min-height: 40px; } }
+@media (max-height: 760px) { .sr-vip-keys { display: none; } }
+.sr-vd-saveerr { flex: 1 1 100%; margin: 0; }

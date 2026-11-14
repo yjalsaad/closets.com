@@ -1,6 +1,6 @@
 /* VIP presentation DECKS QA (headless Chromium on SwiftShader): the default deck unchanged, picking a deck (select, keys, wall chips), importing markdown, importing
  * invalid input, saving on this device (and a storage failure), deleting, AR / RTL, mobile bottom sheet, no network writes.
- * Needs a served build:  node scripts/showroom3d-qa/serve.js build 5055   then   node scripts/showroom3d-qa/vipdecks.js [flows|blocks|fail|ar|mobile] */
+ * Needs a served build:  node scripts/showroom3d-qa/serve.js build 5055   (BASE=http://localhost:PORT overrides)   then   node scripts/showroom3d-qa/vipdecks.js [flows|blocks|fail|ar|mobile] */
 const L = require('./lib.js');
 const { check, ex, shot } = L;
 
@@ -16,7 +16,7 @@ const setHud = (page, on) => page.evaluate((on) => document.querySelectorAll('.s
 const panelText = (page) => page.locator('[data-testid="sr-vip-panel"]').innerText();
 const wall = (page) => page.evaluate(() => { const v = window.__showroom.engine.products.vip; return { deck: v.state.deck.id, decks: v.state.decks.length, slide: v.station }; });
 const stored = (page) => page.evaluate(() => { try { const j = JSON.parse(localStorage.getItem('sr3d.vipDecks.v1') || 'null'); return j ? j.decks.map((d) => d.id) : []; } catch (e) { return 'ERR'; } });
-function track(page) { const t = { net: [], writes: [] }; page.on('request', (r) => { const u = r.url(); if (/^data:|localhost:5055|^blob:/.test(u)) return; t.net.push(r.method() + ' ' + u); if (r.method() !== 'GET') t.writes.push(r.method() + ' ' + u); }); return t; }
+function track(page) { const t = { net: [], writes: [] }; page.on('request', (r) => { const u = r.url(); if (/^data:|^blob:/.test(u) || u.startsWith(L.BASE)) return; t.net.push(r.method() + ' ' + u); if (r.method() !== 'GET') t.writes.push(r.method() + ' ' + u); }); return t; }
 const mockProjects = (page) => page.route('**/rest/v1/website_projects*', (r) => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: '[]' }));
 async function enterVip(page, tap = false) {
   await L.enterExplore(page, { tap }); await dismissCoach(page); await goto(page, VIP_STAND);
