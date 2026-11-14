@@ -107,7 +107,7 @@ async function mobile(b) {
   await tp(page, [0, -3.5, 0, 0.04]); await shot(page, 'combined-09-mobile-hall', { quality: 80 });
   await enterVip(page); await page.selectOption('[data-testid="sr-vip-deck-select"]', 'closets-profile'); await settle(page, 800); await imagesReady(page);
   await page.evaluate(() => document.querySelector('[data-testid="sr-vip-next"]').click()); await settle(page, 600); await shot(page, 'combined-10-mobile-vip-panel', { quality: 80 });
-  await page.evaluate(() => document.querySelector('[data-testid="sr-vip-read"]').click()); await page.waitForSelector('.sr-vip-reader', { timeout: 30000 }); await wait(page, 1200);
+  await page.evaluate(() => document.querySelector('[data-testid="sr-vip-read"]').click()); await page.waitForSelector('.sr-vip-reader', { timeout: 30000 }); await page.waitForFunction(() => document.querySelector('.sr-vip-reader').getAnimations({ subtree: true }).every((x) => x.playState === 'finished'), null, { timeout: 60000 }).catch(() => {}); await wait(page, 600);   // the entrance animations (slide-in, staggered reveal) must have ended
   const r = await page.evaluate(() => { const n = document.querySelector('.sr-vip-reader'); return { sw: n.scrollWidth, cw: n.clientWidth, fs: parseFloat(getComputedStyle(n.querySelector('.sr-vip-bullets') || n).fontSize) }; });
   check('mobile reader: no horizontal overflow and body text >= 20 px', r.sw <= r.cw + 1 && r.fs >= 20, r); await shot(page, 'combined-11-mobile-vip-reader', { quality: 82 });
   await page.evaluate(() => window.__showroom.explore.explorer.setPresentMode('panel')); await wait(page, 600);
