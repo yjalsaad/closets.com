@@ -34,7 +34,7 @@ export function DeptMenu({ lang, touch, onPick, onClose, fallbackFocus }) {
 }
 
 /** ESC / Menu overlay: resume, departments, replay intro, language, head-bob, tips, back to website. */
-export function PauseMenu({ lang, touch, reduced, bob, homeHref, onResume, onDepts, onReplay, onLang, onBob, onTips, fallbackFocus }) {
+export function PauseMenu({ lang, touch, reduced, bob, homeHref, explorerRef, st = {}, onResume, onDepts, onReplay, onLang, onBob, onTips, fallbackFocus }) {
   const ref = useDialog(true, () => onResume(false), fallbackFocus);
   return (
     <div className="sr-modal" onPointerDown={(e) => { if (e.target === e.currentTarget) onResume(false); }}>
@@ -45,6 +45,8 @@ export function PauseMenu({ lang, touch, reduced, bob, homeHref, onResume, onDep
           <button type="button" className="sr-btn sr-btn-line" onClick={onDepts}>{t('departments', lang)}</button>
           <button type="button" className="sr-btn sr-btn-line" onClick={onReplay}>{reduced ? t('playIntro', lang) : t('replayIntro', lang)}</button>
           <button type="button" className="sr-btn sr-btn-line" onClick={onLang} lang={lang === 'ar' ? 'en' : 'ar'} aria-label={t('langToggleLabel', lang)}>{t('langToggle', lang)}</button>
+          <button type="button" className="sr-btn sr-btn-line" onClick={() => explorerRef && explorerRef.current && explorerRef.current.toggleCameraMode()} aria-pressed={st.camMode === 'third'} data-testid="sr-menu-cam">{t('camLabel', lang)}: {t(st.camMode === 'third' ? 'camThird' : 'camFirst', lang)}</button>
+          <button type="button" className="sr-btn sr-btn-line" onClick={() => explorerRef && explorerRef.current && explorerRef.current.cycleAvatar()} data-testid="sr-menu-avatar">{t('avatarLabel', lang)}: {t('avatar_' + (st.avatar || 'female'), lang)}</button>
           <button type="button" className="sr-btn sr-btn-line" onClick={onBob} aria-pressed={bob && !reduced} disabled={reduced}>{bob && !reduced ? t('headBobOn', lang) : t('headBobOff', lang)}</button>
           <button type="button" className="sr-btn sr-btn-line" onClick={onTips}>{t('showTips', lang)}</button>
           <a className="sr-btn sr-btn-line" href={homeHref}>{t('exit', lang)}</a>

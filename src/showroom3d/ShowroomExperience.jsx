@@ -1,5 +1,6 @@
 /* The mounted 3D experience: canvas + engine + GSAP director + overlays. Everything heavy is created in effects and disposed on unmount. */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import StaffChat from './ui/StaffChat';
 import { ShowroomEngine } from './3d/engine';
 import { createProgress } from './3d/progress';
 import { pickTier, readSignals, probeRenderer, isSoftwareRenderer } from './3d/quality';
@@ -48,6 +49,8 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   const [touch, setTouch] = useState(() => coarse(new URLSearchParams(window.location.search)));
   const [deptOpen, setDeptOpen] = useState(false);
   const [coach, setCoach] = useState(false);
+  const [chat, setChat] = useState(null);       // staff id of the open adviser chat
+  const [bubble, setBubble] = useState(null);     // the Reception greeting bubble
   const [bob, setBob] = useState(() => readFlag(BOB_KEY, '1') !== '0');
 
   const paintOverlay = useCallback((s) => {
@@ -126,7 +129,9 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
 
   // keep the explorer in sync with the UI
   useEffect(() => { const x = explorerRef.current; if (x) { x.setReduced(reduced); x.setBob(bob && !reduced); } const e = api.current.engine; if (e && e.products) e.products.setReduced(reduced); }, [reduced, bob]);
-  useEffect(() => { const x = explorerRef.current; if (x) x.setUiOpen(deptOpen || !!st.paused); }, [deptOpen, st.paused]);
+  useEffect(() => { const x = explorerRef.current; if (x) x.setUiOpen(deptOpen || !!st.paused || !!chat); }, [deptOpen, st.paused, chat]);
+  useEffect(() => { if (st.talk && st.talkN) { setBubble(null); setChat(st.talk); } }, [st.talkN]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (st.greet === 'reception' && st.greetN && !chat) { setBubble(true); const id = setTimeout(() => setBubble(null), 6500); return () => clearTimeout(id); } return undefined; }, [st.greetN]);   // eslint-disable-line react-hooks/exhaustive-deps
   // the control scheme follows the last input device (touch overlay for fingers, keyboard + mouse otherwise)
   useEffect(() => {
     const f = (e) => setTouch(e.pointerType === 'touch');
@@ -154,11 +159,13 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
     <div className="sr-stage" ref={wrapRef} data-phase={phase} data-touch={touch ? "1" : "0"} data-loaded={loaded ? '1' : '0'} data-focus={st.focus ? '1' : '0'}>
       <canvas ref={canvasRef} className="sr-canvas" tabIndex={-1} aria-label={t('pageTitle', lang)} role="img" />
       <IntroLayer ref={{ veil: veilRef, logo: logoRef, bars: barsRef }} lang={lang} caption={intro ? caption : null} onSkip={onSkip} active={intro} />
-      {showHud && <Hud lang={lang} tier={tierId} touch={touch} st={st} explorerRef={explorerRef} homeHref={home} onDepts={() => setDeptOpen(true)} onMenu={() => explorerRef.current && explorerRef.current.pause()} onInteract={onInteract} coach={coach} />}
+      {showHud && <Hud lang={lang} tier={tierId} touch={touch} st={st} explorerRef={explorerRef} homeHref={home} onDepts={() => setDeptOpen(true)} onMenu={() => explorerRef.current && explorerRef.current.pause()} onInteract={onInteract} onTalk={() => { const x = explorerRef.current; if (x) x.talkToStaff(); }} chatOpen={!!chat} coach={coach} />}
       {showHud && st.focus && (st.focusKind === 'vip' ? <VipPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} /> : st.focusKind === 'stage' ? <CampaignPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} /> : <ProductPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} />)}
+      {showHud && chat && <StaffChat lang={lang} reduced={reduced} explorerRef={explorerRef} engineRef={api} staffId={chat} onClose={() => { setChat(null); const c = canvasRef.current; if (c && c.focus) c.focus({ preventScroll: true }); }} />}
+      {showHud && bubble && !chat && <p className="sr-bubble" role="status" data-testid="sr-greet-bubble">{t('chatGreetBubble', lang)}</p>}
       {showHud && coach && !st.paused && !deptOpen && !st.focus && <CoachMarks lang={lang} touch={touch} onDone={closeCoach} />}
       {showHud && deptOpen && <DeptMenu lang={lang} touch={touch} onPick={onPick} onClose={() => setDeptOpen(false)} fallbackFocus={canvasFocus} />}
-      {showHud && st.paused && <PauseMenu lang={lang} touch={touch} reduced={reduced} bob={bob} homeHref={home} onResume={onResume} onDepts={() => { onResume(false); setDeptOpen(true); }} onReplay={onReplay} onLang={onLang} onBob={onBob} onTips={() => { onResume(false); setCoach(true); }} fallbackFocus={canvasFocus} />}
+      {showHud && st.paused && <PauseMenu lang={lang} touch={touch} reduced={reduced} bob={bob} explorerRef={explorerRef} st={st} homeHref={home} onResume={onResume} onDepts={() => { onResume(false); setDeptOpen(true); }} onReplay={onReplay} onLang={onLang} onBob={onBob} onTips={() => { onResume(false); setCoach(true); }} fallbackFocus={canvasFocus} />}
       {loaderOn ? <LoadingScreen pct={pct} lang={lang} leaving={leaving} /> : null}
     </div>
   );

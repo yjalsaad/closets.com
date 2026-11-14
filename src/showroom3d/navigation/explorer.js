@@ -15,10 +15,14 @@ import { cycleFinish } from '../products/finishes';
 import { Walker, wrapPi, clamp } from './walker';
 import { yawPitchFromLookAt } from './lookAround';
 import { VIP_VIEWS } from '../scenes/vip/layout';
-import { stepStation, arrowDir } from '../products/vipContent';
 import { PERMANENT_DECKS } from '../vip/decks';
 import { makeDeckStore } from '../vip/deckStore';
 import { initDeckState, deckReducer } from '../vip/deckState';
+import { followCamera } from '../characters/follow';
+import { TALK_RADIUS } from '../staff/roster';
+import { nextAvatar, AVATARS } from '../characters/visitorAvatar';
+const store = { get(k, d) { try { return window.localStorage.getItem(k) || d; } catch (e) { return d; } }, set(k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* ignore */ } } };
+import { stepStation, arrowDir } from '../products/vipContent';
 import { loadSiteProjects } from '../products/projectsFeed';
 
 export const SENS = { mouse: 0.0022, drag: 0.0036, touch: 0.0052 };   // radians per pixel
@@ -30,6 +34,7 @@ export class Explorer {
   constructor({ engine, canvas, reduced = false, bob = true, onState = () => {}, projectsLoader = loadSiteProjects, deckStore = makeDeckStore() }) {
     this.projectsLoader = projectsLoader; this.projectsPromise = null;
     this.deckStore = deckStore; this.userDecks = deckStore.list(); this.vipDialog = false; this.decksRev = 0; this.ds = initDeckState(this.deckIds(), 'default', 0, this.deckCounts());
+    this.camMode = store.get('closets_yb_cam', 'first') === 'third' ? 'third' : 'first'; this.avatarKind = AVATARS[store.get('closets_yb_avatar', 'female')] ? store.get('closets_yb_avatar', 'female') : 'female'; this.tp = null;
     this.engine = engine; this.canvas = canvas; this.onState = onState; this.reduced = reduced;
     this.graph = buildGraph(); this.zones = allZones();
     this.doorOpen = true; this.vipOpen = true; this.colliders = buildColliders({ doorOpen: 1, oliveCount: engine.tierId === 'low' ? 2 : 4, vipOpen: 1 });
@@ -63,7 +68,8 @@ export class Explorer {
     this.walker.setPose(pose.p[0], pose.p[2], yp.yaw, yp.pitch); this.walker.travelled = 0; this.moveReported = false;
     cam.near = NEAR.explore; cam.rotation.order = 'YXZ'; cam.updateProjectionMatrix();
     this.paused = false; this.uiOpen = false; this.apply();
-    this.emit({ active: true, paused: false, gliding: false });
+    if (this.engine.avatar) this.engine.avatar.setKind(this.avatarKind);
+    this.emit({ active: true, paused: false, gliding: false, camMode: this.camMode, avatar: this.avatarKind });
   }
   disable() {
     if (!this.enabled) return;
@@ -75,11 +81,17 @@ export class Explorer {
     this.releaseLock(); c.style.cursor = '';
     const cam = this.engine.camera; cam.near = NEAR.intro; cam.rotation.order = 'XYZ'; cam.updateProjectionMatrix();
     if (this.engine.bays) { this.engine.bays.highlight.setNear(null); }
+    if (this.engine.avatar) this.engine.avatar.group.visible = false;
     this.zone = null; this.emit({ active: false, paused: false, zone: null, locked: false, gliding: false });
   }
   dispose() { this.disable(); }
 
   setReduced(v) { this.reduced = !!v; }
+  /** camera mode: 'first' (default) or 'third' (follows the visitor's avatar with a collision-safe camera) */
+  setCameraMode(m) { const v = m === 'third' ? 'third' : 'first'; if (v === this.camMode) return; this.camMode = v; this.tp = null; store.set('closets_yb_cam', v); this.emit({ camMode: v }); this.apply(); }
+  toggleCameraMode() { this.setCameraMode(this.camMode === 'first' ? 'third' : 'first'); }
+  setAvatar(k) { if (!AVATARS[k]) return; this.avatarKind = k; store.set('closets_yb_avatar', k); if (this.engine.avatar) this.engine.avatar.setKind(k); this.emit({ avatar: k }); }
+  cycleAvatar() { this.setAvatar(nextAvatar(this.avatarKind)); }
   setBob(v) { this.walker.bobEnabled = !!v; }
   /** true while a menu / dialog is open: movement input is ignored and the pointer is released */
   setUiOpen(v) { this.uiOpen = !!v; if (v) { this.keys.clear(); this.touch = { x: 0, y: 0, jog: false }; this.releaseLock(); } }
@@ -119,6 +131,7 @@ export class Explorer {
     if (!down) { this.keys.delete(code); return; }
     if (e.repeat) return;
     if (code === 'KeyE') { e.preventDefault(); this.interact(); return; }
+    if (code === 'KeyT') { e.preventDefault(); this.talkToStaff(); return; }
     // keyboard-only turning: , and . (or Alt + Left / Right)
     if (code === 'Comma' || (e.altKey && code === 'ArrowLeft')) { e.preventDefault(); this.walker.lookSmooth(0.2, 0); return; }
     if (code === 'Period' || (e.altKey && code === 'ArrowRight')) { e.preventDefault(); this.walker.lookSmooth(-0.2, 0); return; }
@@ -158,6 +171,7 @@ export class Explorer {
   interact() {
     if (!this.enabled || this.paused || this.uiOpen) return;
     if (this.focus) return;
+    { const S = this.engine.staff, np = S && S.nearest(this.walker.pos[0], this.walker.pos[1], 1.9), rec = S && S.nearest(this.walker.pos[0], this.walker.pos[1], TALK_RADIUS); if ((np || (rec && rec.id === 'reception')) && this.talkToStaff((np || rec).id)) return; }   // E next to an adviser (or in front of the Reception desk) talks to her
     this.interactions++;
     const z = this.zone, P = this.products;
     if (z && z.vip && P && P.vip) { this.focusVip(0); return; }
@@ -443,7 +457,22 @@ export class Explorer {
     else if (!this.glide && !this.paused && !this.uiOpen) this.walker.step(dt, this.inputVector(), this.reduced);
     else if (this.paused || this.uiOpen) this.walker.step(dt, {}, this.reduced);
     this.apply(dt);
+    if (this.engine.avatar) this.engine.avatar.update(dt, this.walker, { visible: this.camMode === 'third' && !this.fc && !this.focus && (this.tpDist == null || this.tpDist > 0.7), reduced: this.reduced });
+    this.updateStaff(dt);
     this.crosshairHover(dt);
+  }
+  /** the advisers: animate, notice the nearest one within talking range (HUD button / T), greet once */
+  updateStaff(dt) {
+    const S = this.engine.staff; if (!S) return;
+    if (!S.onGreet) S.onGreet = (def) => { this.greetN = (this.greetN || 0) + 1; this.emit({ greet: def.id, greetN: this.greetN }); };
+    S.update(dt, this.walker, { reduced: this.reduced, visible: true });
+    const near = !this.focus && !this.fc ? S.nearest(this.walker.pos[0], this.walker.pos[1], TALK_RADIUS) : null; this.emit({ staff: near ? near.id : null });
+  }
+  /** open the chat with an adviser (the React layer listens for `talk`); id defaults to the nearest one in range */
+  talkToStaff(id) {
+    const S = this.engine.staff; if (!this.enabled || this.paused || this.uiOpen || !S) return false;
+    const def = id ? S.item(id) && S.item(id).def : S.nearest(this.walker.pos[0], this.walker.pos[1], TALK_RADIUS); if (!def) return false;
+    this.talkN = (this.talkN || 0) + 1; this.emit({ talk: def.id, talkN: this.talkN }); return true;
   }
   /** hover outline for whatever is under the crosshair / pointer within reach (explore mode only; focus mode hovers from pointer events) */
   crosshairHover(dt) {
@@ -462,6 +491,10 @@ export class Explorer {
       const f = this.fc; cam.position.set(f.x, f.y, f.z); cam.rotation.set(f.pitch + f.dp, f.yaw + f.dy, 0, 'YXZ');
       if (Math.abs((this.engine.baseFov || 0) - f.fov) > 1e-3) { this.engine.baseFov = f.fov; this.engine.applyFov(); }
       if (this.engine.setViewShift) this.engine.setViewShift(f.sx || 0, f.sy || 0);
+    } else if (this.camMode === 'third' && this.engine.avatar) {
+      const f = followCamera({ pos: w.pos, yaw: w.yaw, pitch: w.pitch }, this.colliders, this.tpOpt || {}), k = this.tp && dt && !this.reduced ? 1 - Math.exp(-12 * dt) : 1;
+      this.tp = this.tp ? { x: this.tp.x + (f.x - this.tp.x) * k, y: this.tp.y + (f.y - this.tp.y) * k, z: this.tp.z + (f.z - this.tp.z) * k, pitch: this.tp.pitch + (f.pitch - this.tp.pitch) * k } : f;
+      this.tpDist = f.dist; cam.position.set(this.tp.x, this.tp.y, this.tp.z); cam.rotation.set(this.tp.pitch, c.yaw, 0, 'YXZ');
     } else { cam.position.set(c.x, c.y, c.z); cam.rotation.set(c.pitch, c.yaw, c.roll, 'YXZ'); }
     const z = zoneAt(this.zones, w.pos[0], w.pos[1]);
     if ((z && z.id) !== (this.zone && this.zone.id)) { this.zone = z; if (this.engine.bays) this.engine.bays.highlight.setNear(z ? z.id : null); this.emit({ zone: z ? z.id : null }); }
@@ -474,7 +507,7 @@ export class Explorer {
     const w = this.walker;
     return {
       pos: () => [w.pos[0], w.pos[1]], yaw: () => w.yaw, pitch: () => w.pitch, speed: () => w.speed, camY: () => w.camera().y, zone: () => this.zone && this.zone.id,
-      state: () => ({ enabled: this.enabled, paused: this.paused, uiOpen: this.uiOpen, gliding: !!this.glide, locked: this.locked, dragMode: this.dragMode, lockFails: this.lockFails, door: this.doorOpen }),
+      state: () => ({ camMode: this.camMode, avatar: this.avatarKind, enabled: this.enabled, paused: this.paused, uiOpen: this.uiOpen, gliding: !!this.glide, locked: this.locked, dragMode: this.dragMode, lockFails: this.lockFails, door: this.doorOpen }),
       /** place the walker (collision-resolved) and optionally turn it */
       teleport: (x, z, yaw, pitch) => { w.setPose(x, z, yaw, pitch); w.step(1e-4, {}); this.apply(); if (this.products && this.products.snap) this.products.snap(this.engine.camera); return [w.pos[0], w.pos[1]]; },
       /** run the real Walker + collision for `secs` seconds of simulated time at a fixed step (no rendering needed) */
