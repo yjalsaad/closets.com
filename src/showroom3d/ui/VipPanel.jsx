@@ -103,13 +103,13 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
         {!big && raw.builtin === 'contact' && <a className="sr-btn sr-quote" href={C.contactUrl(lang)} data-testid="sr-vip-cta">{t('vipContactCta', lang)}</a>}
         {!big && raw.builtin === 'contact' && <p className="sr-note">{t('vipContactNote', lang)}</p>}
         {nextItem && !isAgenda && <button type="button" className="sr-btn sr-vip-meet-next" onClick={() => ex.nextAgenda()} data-testid="sr-vip-meet-next">{t('meetNext', lang)}: {resolveDeck({ id: 'x', title: nextItem.title, slides: [] }, lang).title}{!touch && <kbd className="sr-kbd" aria-hidden="true">N</kbd>}</button>}
-        {isAgenda && big && <button type="button" className="sr-btn sr-vip-meet-next" onClick={() => ex.startMeeting()} data-testid="sr-vip-meet-start-bar">{t('meetStart', lang)}</button>}
+        {isAgenda && <button type="button" className="sr-btn sr-vip-meet-next" onClick={() => ex.startMeeting()} data-testid="sr-vip-meet-start">{t('meetStart', lang)}</button>}
         {isFilm && <FilmControls lang={lang} ex={ex} fs={fs} touch={touch} big={big} />}
         {!isFilm && <div className="sr-vip-present" role="group" aria-label={t('vipPresenter', lang)} data-testid="sr-vip-presenter">
           {big && <p className="sr-vip-pbar-title" data-testid="sr-vip-pbar-title">{deck.slides.length > 1 ? `${idx + 1} / ${n} · ` : ''}{slide.title}</p>}
-          <button type="button" className="sr-btn" onClick={() => ex.togglePlay()} aria-pressed={play.playing} data-testid="sr-vip-play">{play.playing ? t('vipPause', lang) : t('vipPlay', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">P</kbd>}</button>
-          <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.cycleSpeed()} aria-label={`${t('vipSpeed', lang)}: ${play.speed}x`} data-testid="sr-vip-speed">{play.speed}x</button>
-          <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.toggleLoop()} aria-pressed={play.loop} data-testid="sr-vip-loop">{t('vipLoop', lang)}</button>
+          {!deck.meeting && <button type="button" className="sr-btn" onClick={() => ex.togglePlay()} aria-pressed={play.playing} data-testid="sr-vip-play">{play.playing ? t('vipPause', lang) : t('vipPlay', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">P</kbd>}</button>}
+          {!deck.meeting && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.cycleSpeed()} aria-label={`${t('vipSpeed', lang)}: ${play.speed}x`} data-testid="sr-vip-speed">{play.speed}x</button>}
+          {!deck.meeting && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.toggleLoop()} aria-pressed={play.loop} data-testid="sr-vip-loop">{t('vipLoop', lang)}</button>}
           {!big && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setPresentMode('big')} data-testid="sr-vip-big">{t('vipPresent', lang)}</button>}
           {!big && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setPresentMode('read')} data-testid="sr-vip-read">{t('vipReading', lang)}</button>}
           {!big && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setPresentMode('full')} data-testid="sr-vip-full">{t('vipPresentFull', lang)}</button>}

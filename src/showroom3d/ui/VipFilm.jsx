@@ -60,7 +60,6 @@ export function MeetingBody({ lang, ex }) {
     <div className="sr-vip-slide sr-vip-meeting" data-testid="sr-vip-meeting">
       <p className="sr-lead">{t('meetAgenda', lang)}</p>
       <p className="sr-note">{t('meetIntro', lang)}</p>
-      <button type="button" className="sr-btn sr-vip-meet-start" onClick={() => ex.startMeeting()} data-testid="sr-vip-meet-start">{t('meetStart', lang)}</button>
       <ol className="sr-vip-agenda" data-testid="sr-vip-agenda">{AGENDA.map((a, i) => (
         <li key={a.id}><button type="button" className="sr-vip-agenda-item" aria-current={i === now ? 'step' : undefined} onClick={() => ex.goAgenda(a)} data-testid={'sr-vip-agenda-' + a.id} data-real={a.real ? '1' : undefined}>
           <span className="sr-step-n" aria-hidden="true">{i + 1}</span><span><b>{L(a.title, lang)}</b><em>{L(KIND_LABEL[a.kind], lang)}{a.real ? ' · ' + t('meetReal', lang) : ''}{a.label ? ' · ' + L(a.label, lang) : ''}</em></span></button></li>))}</ol>

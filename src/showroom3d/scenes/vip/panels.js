@@ -137,12 +137,12 @@ const ACCENT = { orange: P.brandOrange, brass: P.brassPale, sand: P.sand, sage: 
 /** deck chips along the top of the wall screen (only drawn when there is more than one deck). Pure layout in design pixels, shared by the drawing and the click hit-test. */
 export function chipLayout(titles, w, rtl, max = 3, active = 0) {
   const n = Math.min(titles.length, max), start = Math.max(0, Math.min(titles.length - n, active - 1)), gap = 12, h = 46, y = 18; let total = 0;   // a window of `max` chips that always contains the active deck
-  const widths = titles.slice(start, start + n).map((t) => { const cw = Math.min(250, 36 + t.length * 11); total += cw; return cw; }); total += gap * (n - 1);
+  const widths = titles.slice(start, start + n).map((t) => { const cw = Math.min(250, 40 + t.length * 12); total += cw; return cw; }); total += gap * (n - 1);
   let x = rtl ? 70 : w - 70 - total; return widths.map((cw, i) => { const r = { i: start + i, x, y, w: cw, h }; x += cw + gap; return r; });
 }
 export function drawDeckChips(g, w, h, o) {
   const k = kit(g, w, h, o.lang), titles = o.decks; if (!titles || titles.length < 2) return; const rects = chipLayout(titles, w, k.rtl, o.max || 3, o.deckIndex || 0);
-  rects.forEach((r) => { const on = r.i === o.deckIndex; k.card(r.x, r.y, r.w, r.h, { fill: on ? rgba(P.brandOrange, 0.3) : rgba(P.sand, 0.08), line: on ? rgba(P.brandOrange, 0.95) : rgba(P.sand, 0.35), r: 23 }); k.text(titles[r.i], r.x + r.w / 2, r.y + 31, { size: 22, weight: on ? 700 : 600, color: on ? P.sand : P.taupe, align: 'center' }); });
+  rects.forEach((r) => { const on = r.i === o.deckIndex; k.card(r.x, r.y, r.w, r.h, { fill: on ? rgba(P.brandOrange, 0.3) : rgba(P.sand, 0.08), line: on ? rgba(P.brandOrange, 0.95) : rgba(P.sand, 0.35), r: 23 }); g.font = `${on ? 700 : 600} 22px ${FONT}`; let label = titles[r.i]; while (label.length > 4 && g.measureText(label).width > r.w - 26) label = label.slice(0, -2).trimEnd() + '\u2026'; k.text(label, r.x + r.w / 2, r.y + 31, { size: 22, weight: on ? 700 : 600, color: on ? P.sand : P.taupe, align: 'center' }); });
   if (titles.length > rects.length) k.text(`+${titles.length - rects.length}`, k.rtl ? 70 : w - 70, 86, { size: 22, weight: 700, color: P.taupe, align: k.rtl ? 'left' : 'right' });
 }
 
