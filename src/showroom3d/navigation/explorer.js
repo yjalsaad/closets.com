@@ -19,6 +19,7 @@ import { PERMANENT_DECKS } from '../vip/decks';
 import { makeDeckStore } from '../vip/deckStore';
 import { initDeckState, deckReducer } from '../vip/deckState';
 import { initPlay, playReducer, playTick, slideSeconds } from '../vip/motion';
+import { FilmPlayer } from '../vip/filmPlayer';
 import { followCamera } from '../characters/follow';
 import { TALK_RADIUS } from '../staff/roster';
 import { nextAvatar, AVATARS } from '../characters/visitorAvatar';
@@ -85,7 +86,7 @@ export class Explorer {
     if (this.engine.avatar) this.engine.avatar.group.visible = false;
     this.zone = null; this.emit({ active: false, paused: false, zone: null, locked: false, gliding: false });
   }
-  dispose() { this.disable(); }
+  dispose() { this.disable(); if (this.film) this.film.dispose(); if (this._filmHost && this._filmHost.parentNode) this._filmHost.parentNode.removeChild(this._filmHost); if (this._filmVis && typeof document !== 'undefined') document.removeEventListener('visibilitychange', this._filmVis); }
 
   setReduced(v) { this.reduced = !!v; }
   /** camera mode: 'first' (default) or 'third' (follows the visitor's avatar with a collision-safe camera) */
@@ -286,6 +287,7 @@ export class Explorer {
   syncVip(fly = true, extra = {}) {
     const P = this.products, f = this.focus, idx = this.ds.slide, d = this.deck; this.decksRev++;
     if (P && P.vip) P.vip.setDeck(d, this.allDecks(), idx);
+    this.syncFilm();
     if (f && f.kind === 'vip') { f.station = idx; f.view = this.vipSlideId(idx); if (fly) { const v = this.vipView(idx); this.flyTo({ pos: v.pos, look: v.look, fov: v.fov }); } }
     this.emit({ vipStation: idx, vipDeck: d.id, vipDecksRev: this.decksRev, focusView: this.vipSlideId(idx), prod: ++this.rev, ...extra });
   }
@@ -293,7 +295,7 @@ export class Explorer {
   focusVip(i = 0) {
     const P = this.products; if (!this.enabled || !P || !P.vip) return false;
     this.ds = deckReducer(this.ds, { type: 'slide', index: i }); const idx = this.ds.slide; this.startFocus('vip', 'vip'); this.focus.view = this.vipSlideId(idx); this.focus.station = idx;
-    P.setFocusPart(null); P.setHover(null); P.vip.setFocus(true); P.vip.enter(); P.vip.setDeck(this.deck, this.allDecks(), idx); this.ensureProjects();
+    P.setFocusPart(null); P.setHover(null); P.vip.setFocus(true); P.vip.enter(); P.vip.setDeck(this.deck, this.allDecks(), idx); this.syncFilm(); this.ensureProjects();
     const v = this.vipView(idx); this.flyTo({ pos: v.pos, look: v.look, fov: v.fov });
     this.decksRev++; this.emit({ focus: 'vip', focusKind: 'vip', focusView: this.vipSlideId(idx), vipStation: idx, vipDeck: this.deck.id, vipDecksRev: this.decksRev, partFocus: null, prod: ++this.rev }); return true;
   }
@@ -317,14 +319,49 @@ export class Explorer {
     this.userDecks = r.decks; this.ds = deckReducer(this.ds, { type: 'decks', ids: this.deckIds(), counts: this.deckCounts() }); this.syncVip(); return r;
   }
   /** the "Add presentation" dialog is open: the explorer ignores keys (typing, Tab, Esc belong to the dialog) */
-  setVipDialog(v) { this.vipDialog = !!v; if (v && this.play.playing) this.setPlaying(false); }
+  setVipDialog(v) { this.vipDialog = !!v; if (v && this.play.playing) this.setPlaying(false); if (v && this.film) this.film.pause(); }
+  // ---- FILM mode ("Watch our story"): a one-slide pseudo-deck. The player (vip/filmPlayer.js) is created the first time the entry is chosen; nothing plays without a user gesture.
+  get filmOn() { return !!this.deck.film; }
+  ensureFilm() {
+    if (this.film) return this.film; const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl', w = (this.canvas && this.canvas.clientWidth) || 1280;
+    const mobile = w <= 700 || (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches), saveData = typeof navigator !== 'undefined' && navigator.connection && navigator.connection.saveData;
+    this.film = new FilmPlayer({ lang: rtl ? 'ar' : 'en', device: { tier: this.engine.tierId, mobile, saveData: !!saveData }, onChange: () => this.onFilm() });
+    if (typeof document !== 'undefined') { this._filmVis = () => { if (document.hidden && this.film) this.film.pause(); }; document.addEventListener('visibilitychange', this._filmVis); }
+    return this.film;
+  }
+  /** the video element lives (hidden, 1 px) in the stage so the wall texture and the cinema overlay share it and it never has to be re-parented (re-parenting pauses a video) */
+  filmHost() {
+    const v = this.film && this.film.ensureVideo(); if (!v || typeof document === 'undefined') return null;
+    if (!this._filmHost) { const h = document.createElement('div'); h.className = 'sr-vip-filmhost'; h.setAttribute('data-testid', 'sr-vip-filmhost'); const st = this.canvas && this.canvas.parentNode; (st || document.body).appendChild(h); this._filmHost = h; }
+    if (v.parentNode !== this._filmHost) this._filmHost.appendChild(v); return this._filmHost;
+  }
+  filmView() {
+    const F = this.film; if (!this.filmOn || !F) return null; const st = F.state, live = st.status === 'playing' || st.status === 'paused';
+    return { status: st.status, title: st.film ? st.film.title : null, poster: F.poster, video: live ? F.video : null, cue: st.caption === 'off' ? '' : st.cue, caption: st.caption, time: st.time, duration: st.duration };
+  }
+  onFilm() { const P = this.products; if (P && P.vip && P.vip.setFilm) P.vip.setFilm(this.filmView()); this.emit({ vipFilmRev: (this.filmRev = (this.filmRev || 0) + 1) }); }
+  /** called whenever the deck / slide changes: the film entry loads its manifest; any other deck pauses the film and gives the wall back to the slides */
+  syncFilm() {
+    const P = this.products;
+    if (this.filmOn) { const F = this.ensureFilm(); F.load(); if (this.play.playing) this.play = playReducer(this.play, { type: 'pause' }); if (P && P.vip) { P.vip.setPlayback({ progress: -1 }); if (P.vip.setFilm) P.vip.setFilm(this.filmView()); } }
+    else { if (this.film) this.film.pause(); if (this.cinema) this.setCinema(false); if (P && P.vip && P.vip.setFilm) P.vip.setFilm(null); }
+  }
+  /** play / pause from a user gesture (button, key, click on the wall) */
+  filmToggle() { if (!this.filmOn || !this.film) return false; const st = this.film.state.status; if (st === 'missing' || st === 'loading' || st === 'idle') return false; if (st !== 'playing') this.filmHost(); return this.film.toggle(); }
+  filmSeek(t) { if (this.film) this.film.seek(t); } filmSeekBy(dt) { if (this.film) this.film.seekBy(dt); }
+  filmVolume(v) { if (this.film) this.film.setVolume(v); } filmMute() { if (this.film) this.film.toggleMute(); } filmCaptions() { if (this.film) this.film.cycleCaptions(); }
+  /** cinema mode: the same <video> as a normal HTML5 overlay with native controls and native captions */
+  setCinema(on) {
+    const F = this.film, want = !!on && this.filmOn && !!F && !!F.state.film && F.state.status !== 'missing'; if (want === !!this.cinema) return;
+    this.cinema = want; if (F) { if (want) this.filmHost(); F.setCinema(want); } if (this._filmHost) this._filmHost.classList.toggle('is-cinema', want); this.emit({ vipCinema: want, vipFilmRev: (this.filmRev = (this.filmRev || 0) + 1) });
+  }
   // ---- presenting: auto-play (play / pause, speed, loop), the big-screen view and full screen. State machine: vip/motion.js; the wall shows the badge + progress bar.
   emitPlay(extra = {}) { this.emit({ vipPlaying: this.play.playing, vipSpeed: this.play.speed, vipLoop: this.play.loop, vipMode: this.presMode, ...extra }); }
   setPlaying(on) {
-    const f = this.focus; if (!f || f.kind !== 'vip') return; this.play = playReducer(this.play, { type: on ? 'play' : 'pause' });
+    const f = this.focus; if (!f || f.kind !== 'vip' || (on && this.filmOn)) return; this.play = playReducer(this.play, { type: on ? 'play' : 'pause' });
     const v = this.products && this.products.vip; if (v) v.setPlayback({ progress: this.play.playing ? 0 : -1, speed: this.play.speed }); this.lastProg = -1; this.emitPlay({ vipProgress: this.play.playing ? 0 : -1 });
   }
-  togglePlay() { this.setPlaying(!this.play.playing); }
+  togglePlay() { if (this.filmOn) { this.filmToggle(); return; } this.setPlaying(!this.play.playing); }
   cycleSpeed() { this.play = playReducer(this.play, { type: 'cycleSpeed' }); const v = this.products && this.products.vip; if (v) v.setPlayback({ progress: this.play.playing ? this.lastProg : -1, speed: this.play.speed }); this.emitPlay(); }
   toggleLoop() { this.play = playReducer(this.play, { type: 'loop' }); this.emitPlay(); }
   /** 'panel' (side panel / bottom sheet), 'big' (camera fronts the wall, slim presenter bar), 'read' (READING MODE: the wall fills the whole view edge to edge, minimal controls) or 'full' (as big, plus the browser's full screen) */
@@ -340,7 +377,7 @@ export class Explorer {
     if (!this.enabled || !this.allDecks().some((d) => d.id === id)) return false;
     this.ds = deckReducer(deckReducer(this.ds, { type: 'deck', id }), { type: 'slide', index: 0 });
     if (!this.focus || this.focus.kind !== 'vip') { if (!this.focusVip(0)) return false; } else this.syncVip();
-    this.setPresentMode(mode); if (autoplay) this.setPlaying(true); return true;
+    this.setPresentMode(mode); if (autoplay && !this.filmOn) this.setPlaying(true); return true;   // the film never starts by itself: it waits for the visitor's Play
   }
   /** advance auto-play (called every frame while a VIP deck is in focus) */
   tickPlay(dt) {
@@ -376,6 +413,7 @@ export class Explorer {
   exitFocus() {
     if (!this.focus) return false; const P = this.products;
     if (P) { P.setFocusPart(null); P.setHover(null); if (P.vip) { P.vip.setFocus(false); P.vip.setPlayback({ progress: -1 }); } }
+    if (this.film) this.film.pause(); if (this.cinema) this.setCinema(false);
     if (this.presMode === 'full') this.leaveFullscreen(); const wasVip = this.focus && this.focus.kind === 'vip'; this.presMode = 'panel'; this.play = playReducer(this.play, { type: 'pause' });
     const s = this.saved, fc = this.fc; this.focus = null; this.pdown = null; if (wasVip) this.emitPlay({ vipProgress: -1 });
     this.emit({ focus: null, focusKind: null, partFocus: null, partHover: null, prod: ++this.rev });
@@ -390,13 +428,19 @@ export class Explorer {
   /** keys while a product / stage is focused. Returns true when the key was consumed. */
   focusKey(e, down) {
     const code = e.code, tag = e.target && e.target.tagName, onControl = tag === 'BUTTON' || tag === 'A' || tag === 'INPUT' || tag === 'SELECT';
-    if (code === 'Escape') { if (down) { e.preventDefault(); if (this.focus && this.focus.kind === 'vip' && this.presMode !== 'panel') this.setPresentMode('panel'); else this.exitFocus(); } return true; }
+    if (code === 'Escape') { if (down) { e.preventDefault(); if (this.cinema) this.setCinema(false); else if (this.focus && this.focus.kind === 'vip' && this.presMode !== 'panel') this.setPresentMode('panel'); else this.exitFocus(); } return true; }
     if (!down || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return !!(code in MOVE_KEYS);
     if (onControl && (code === 'Enter' || code === 'Space')) return false;             // let the focused button do its own thing
     const f = this.focus, P = this.products; if (!f || !P) return false;
     if (f.kind === 'vip') {
       const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl', d = arrowDir(code, rtl), dig = /^(?:Digit|Numpad)([1-9])$/.exec(code), n = this.deck.slides.length;
       if (onControl && (code === 'ArrowLeft' || code === 'ArrowRight' || code === 'ArrowUp' || code === 'ArrowDown')) return false;
+      if (this.filmOn) {   // film keys: P / Space play or pause, arrows seek 10 s, M mute, C captions, F or Z cinema
+        if (code === 'KeyP' || (code === 'Space' && !onControl)) { e.preventDefault(); this.filmToggle(); return true; }
+        if (code === 'ArrowRight' || code === 'ArrowLeft') { e.preventDefault(); this.filmSeekBy(code === 'ArrowRight' ? 10 : -10); return true; }
+        if (code === 'KeyM') { e.preventDefault(); this.filmMute(); return true; } if (code === 'KeyC') { e.preventDefault(); this.filmCaptions(); return true; }
+        if (code === 'KeyF' || code === 'KeyZ') { e.preventDefault(); this.setCinema(!this.cinema); return true; }
+      }
       if (d) { e.preventDefault(); this.stepStation(d); return true; }
       if (code === 'ArrowDown' || code === 'ArrowUp') { e.preventDefault(); this.stepStation(code === 'ArrowDown' ? 1 : -1); return true; }
       if (dig) { e.preventDefault(); if (Number(dig[1]) <= n) this.setStation(Number(dig[1]) - 1); return true; }
@@ -429,7 +473,7 @@ export class Explorer {
     const P = this.products, v = P && P.vip; if (!v || !v.screenMesh || this.allDecks().length < 2) return;
     const n = this.ndc(e.clientX, e.clientY), cam = this.engine.camera; cam.updateMatrixWorld(true); this.raycaster.setFromCamera({ x: n.x, y: n.y }, cam);
     const hit = this.raycaster.intersectObject(v.screenMesh, false)[0]; if (!hit || !hit.uv) return;
-    const i = v.chipAt(hit.uv.x, 1 - hit.uv.y); if (i >= 0) this.setDeck(this.allDecks()[i].id);
+    const i = v.chipAt(hit.uv.x, 1 - hit.uv.y); if (i >= 0) this.setDeck(this.allDecks()[i].id); else if (this.filmOn) this.filmToggle();   // a click on the film itself plays / pauses it
   }
   focusPointer(e, kind) {
     if (!this.focus) { if (kind === 'up') this.pdown = null; return; }

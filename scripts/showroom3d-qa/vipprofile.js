@@ -1,6 +1,6 @@
 /* VIP profile decks + big screen QA (headless Chromium on SwiftShader): the two new decks in the picker, the big-screen view (EN / AR, desktop / mobile), presenter bar, auto-play,
  * motion frame sequences (the animation clock is pinned so each frame is deterministic), the adviser's "let me present", reduced motion.
- * Needs a served build:  node scripts/showroom3d-qa/serve.js build 5066   then   BASE=http://localhost:5066 node scripts/showroom3d-qa/vipprofile.js [flows|seq|ar|mobile|reduced|advisor|legible] */
+ * Needs a served build:  node scripts/showroom3d-qa/serve.js build 5066   then   BASE=http://localhost:5066 node scripts/showroom3d-qa/vipprofile.js [flows|seq|ar|mobile|reduced|advisor|legible|film]   (film playback needs QA_FILM_DIR=<dir with journey-720.webm, journey-1080.webm, journey-poster.jpg test fixtures>) */
 const L = require('./lib.js');
 const { check, ex, shot } = L;
 const FAST = 'debug=1&quality=low&aa=0&scale=0.5', MED = 'debug=1&quality=medium&aa=0&scale=0.5';
@@ -26,8 +26,8 @@ const wallBox = (page) => vip(page, (v, x) => { const m = v.screenMesh, g = m.ge
 
 async function flows(b) {
   const o = await L.openShowroom(b, { query: MED, viewport: { width: 1280, height: 720 } }); const page = o.page; await mockProjects(page); await enterVip(page);
-  check('the room now has three permanent decks in the picker: investor deck (default), The Closets profile, YAS profile', JSON.stringify(await page.$$eval('[data-testid="sr-vip-deck-select"] option', (o2) => o2.map((x) => x.value))) === '["default","closets-profile","yas-profile"]');
-  check('default deck unchanged: station 1 of 5 "Company story and brand"', /Station\s*1\s*\/\s*5/.test(await panelText(page)) && /Company story and brand/.test(await panelText(page)));
+  check('the picker lists the company deck (default), The Closets profile, YAS profile and the film entry', JSON.stringify(await page.$$eval('[data-testid="sr-vip-deck-select"] option', (o2) => o2.map((x) => x.value))) === '["default","closets-profile","yas-profile","film"]');
+  check('default deck: station 1 of 4 "Company story and brand"; no "join and invest" / investor station anywhere in the deck (removed at the owner request)', /Station\s*1\s*\/\s*4/.test(await panelText(page)) && /Company story and brand/.test(await panelText(page)) && !(await vip(page, (v, x) => /invest|briefing/i.test(JSON.stringify(x.deck.slides.map((s) => [s.id, s.title]))))));
   await page.selectOption('[data-testid="sr-vip-deck-select"]', 'closets-profile'); await settle(page, 800); await imagesReady(page); await wait(page, 1500);
   let txt = await panelText(page); check('pick The Closets profile: slide 1 / 23 (22 + the closing notice), title on the panel, wall shows the same deck', /Slide\s*1\s*\/\s*23/.test(txt) && (await vip(page, (v) => v.state.deck.id)) === 'closets-profile');
   await shot(page, 'vipprofile-01-panel-closets-cover', { quality: 55 });
@@ -151,10 +151,62 @@ async function legible(b) {
   check('legible: no page errors', o.errors.filter((e) => !/ERR_TUNNEL|Failed to load resource/.test(e)).length === 0, o.errors.slice(0, 3)); await o.ctx.close();
 }
 
+const MANIFEST = { title: { en: 'The Closets: The Journey of Ambition', ar: 'الخزائن: حكاية طموح' }, durationSec: 4, sources: [{ src: '/yas-bloom/film/journey-720.webm', width: 1280, height: 720, bytes: 0 }, { src: '/yas-bloom/film/journey-1080.webm', width: 1920, height: 1080, bytes: 0 }], poster: '/yas-bloom/film/journey-poster.jpg', captions: [{ lang: 'ar', src: '/yas-bloom/film/journey.ar.vtt' }, { lang: 'en', src: '/yas-bloom/film/journey.en.vtt' }], notes: 'AI-generated illustration' };
+const VTT = (a, b) => `WEBVTT\n\n00:00.000 --> 00:02.000\n${a}\n\n00:02.000 --> 00:04.000\n${b}\n`;
+/** FILM mode. The real film is produced elsewhere, so (1) the missing state is tested against the plain build, and (2) playback is tested with a 4 s TEST FIXTURE clip (QA_FILM_DIR: a VP9 .webm, because this
+ *  Chromium build has no H.264 decoder) served through route mocks: manifest, poster, captions. The fixture is a colour-bar test pattern, not the film. */
+async function film(b) {
+  const fs = require('fs'), path = require('path'), dir = process.env.QA_FILM_DIR;
+  // ---- (1) no film yet
+  { const o = await L.openShowroom(b, { query: MED, viewport: { width: 1280, height: 720 } }); const page = o.page; await mockProjects(page); const reqs = []; page.on('request', (r) => { if (/yas-bloom\/film/.test(r.url())) reqs.push(r.url().replace(/^.*\/yas-bloom/, '')); });
+    await enterVip(page); check('before the film entry is chosen nothing under /yas-bloom/film is requested', reqs.length === 0, reqs);
+    await page.selectOption('[data-testid="sr-vip-deck-select"]', 'film'); await settle(page, 900); await page.waitForFunction(() => { const f = window.__showroom.explore.explorer.film; return f && f.state.status !== 'loading' && f.state.status !== 'idle'; }, null, { timeout: 30000 });
+    check('no film.json on the server: status "missing", the panel says "Film coming soon", Play and Cinema are disabled, only the manifest was asked for', (await vip(page, (v, x) => x.film.state.status)) === 'missing' && /Film coming soon/.test(await panelText(page)) && (await page.isDisabled('[data-testid="sr-vip-film-play"]')) && (await page.isDisabled('[data-testid="sr-vip-film-cinema"]')) && reqs.length === 1 && /film\.json$/.test(reqs[0]), reqs);
+    await page.click('[data-testid="sr-vip-big"]'); await settle(page, 900); await wait(page, 600); await shot(page, 'vipprofile-50-film-coming-soon', { quality: 58 });
+    await press(page, 'KeyP'); check('pressing P in the missing state does nothing (no video element, no error)', (await vip(page, (v, x) => !x.film.video)) && o.errors.filter((e) => !/ERR_TUNNEL|Failed to load resource|404/.test(e)).length === 0, o.errors.slice(0, 3));
+    await press(page, 'BracketLeft'); await settle(page, 600); check('"[" goes back to the previous deck (YAS profile): the room still works', (await vip(page, (v, x) => x.ds.deckId)) === 'yas-profile'); await o.ctx.close(); }
+  if (!dir || !fs.existsSync(path.join(dir, 'journey-720.webm'))) { check('film playback fixture present (set QA_FILM_DIR)', false, dir); return; }
+  // ---- (2) with a manifest + the test clip
+  for (const lang of ['en', 'ar']) {
+    const o = await L.openShowroom(b, { url: lang === 'ar' ? '/ar/yas-bloom' : '/yas-bloom', query: MED, viewport: { width: 1280, height: 720 } }); const page = o.page; await mockProjects(page); const reqs = []; page.on('request', (r) => { if (/yas-bloom\/film/.test(r.url())) reqs.push(r.url().replace(/^.*\/yas-bloom\/film\//, '')); });
+    await page.route('**/yas-bloom/film/**', (r) => { const f = r.request().url().split('/').pop().split('?')[0]; if (f === 'film.json') return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(MANIFEST) }); if (/\.vtt$/.test(f)) return r.fulfill({ status: 200, contentType: 'text/vtt', body: /\.ar\./.test(f) ? VTT('منذ عام 2007', 'نصنع في البحرين') : VTT('Since 2007', 'Made in Bahrain') }); const p = path.join(dir, f); if (!fs.existsSync(p)) return r.fulfill({ status: 404, body: '' }); return r.fulfill({ status: 200, contentType: /\.webm$/.test(f) ? 'video/webm' : 'image/jpeg', body: fs.readFileSync(p), headers: { 'accept-ranges': 'bytes' } }); });
+    await enterVip(page); await page.selectOption('[data-testid="sr-vip-deck-select"]', 'film'); await settle(page, 900); await page.waitForFunction(() => { const f = window.__showroom.explore.explorer.film; return f && f.state.status === 'ready' && f.poster; }, null, { timeout: 30000 }); await wait(page, 700);
+    const st0 = await vip(page, (v, x) => ({ s: x.film.state.status, src: x.film.state.src, cap: x.film.state.caption, video: !!x.film.video, onWall: v.filmOnWall }));
+    check(`${lang}: manifest read -> ready and PAUSED: poster on the wall, no <video> yet, only film.json and the poster were requested (no video bytes), captions default to ${lang.toUpperCase()}, the 1080 source on a desktop medium tier`, st0.s === 'ready' && !st0.video && !st0.onWall && st0.cap === lang && /1080/.test(st0.src) && reqs.every((u) => /film\.json|poster/.test(u)), { st0, reqs });
+    await page.click('[data-testid="sr-vip-big"]'); await settle(page, 900); await wait(page, 500); await shot(page, `vipprofile-51-film-poster-${lang}`, { quality: 58 });
+    await page.click('[data-testid="sr-vip-film-play"]'); await page.waitForFunction(() => { const f = window.__showroom.explore.explorer.film; return f.state.status === 'playing' && f.video && f.video.currentTime > 0.6; }, null, { timeout: 30000 }).catch(() => {});
+    const st1 = await vip(page, (v, x) => ({ s: x.film.state.status, t: x.film.video && x.film.video.currentTime, muted: x.film.video && x.film.video.muted, vol: x.film.video && x.film.video.volume, preload: x.film.video && x.film.video.preload, onWall: v.filmOnWall, cs: v.state.videoTex && v.state.videoTex.colorSpace, cue: x.film.state.cue, strip: v.group.getObjectByName('vip-film-strip').visible }));
+    check(`${lang}: Play (a click) starts the film WITH SOUND (not muted, volume 1), preload was "none", the wall shows the sRGB VideoTexture, the caption strip is visible with the ${lang.toUpperCase()} cue`, st1.s === 'playing' && st1.t > 0.5 && st1.muted === false && st1.vol === 1 && st1.preload === 'none' && st1.onWall && st1.cs === 'srgb' && st1.strip && (lang === 'ar' ? /منذ|نصنع/.test(st1.cue) : /Since|Made/.test(st1.cue)), st1);
+    await setHud(page, false, true); await wait(page, 250); await shot(page, `vipprofile-52-film-playing-${lang}`, { quality: 58 }); await setHud(page, true);
+    await press(page, 'KeyP'); await wait(page, 400); check(`${lang}: P pauses; the paused frame stays on the wall`, (await vip(page, (v, x) => x.film.state.status === 'paused' && x.film.video.paused && v.filmOnWall)));
+    if (lang === 'en') {
+      await page.click('[data-testid="sr-vip-film-cc"]'); await wait(page, 300); check('Captions button cycles EN -> AR -> off', (await vip(page, (v, x) => x.film.state.caption)) === 'ar'); await page.click('[data-testid="sr-vip-film-cc"]'); check('captions off', (await vip(page, (v, x) => x.film.state.caption)) === 'off'); await page.click('[data-testid="sr-vip-film-cc"]');
+      await press(page, 'ArrowRight'); await wait(page, 300); await vip(page, (v, x) => x.filmSeek(1)); await wait(page, 300); check('seek works (to 1 s)', Math.abs((await vip(page, (v, x) => x.film.video.currentTime)) - 1) < 0.3);
+      await press(page, 'KeyM'); check('M mutes / unmutes', (await vip(page, (v, x) => x.film.video.muted)) === true); await press(page, 'KeyM');
+      await page.click('[data-testid="sr-vip-film-cinema"]'); await wait(page, 600); const host = await page.locator('[data-testid="sr-vip-filmhost"]').boundingBox();
+      check('Cinema mode: the same <video> covers the whole stage as a normal HTML5 player with native controls and native captions; an exit button and the AI label are shown', host.width >= 1279 && host.height >= 719 && (await vip(page, (v, x) => x.film.video.controls && [...x.film.video.textTracks].some((t) => t.mode === 'showing'))) && (await page.locator('[data-testid="sr-vip-cinema-exit"]').count()) === 1 && /AI-generated illustration/.test(await page.locator('[data-testid="sr-vip-cinema"]').innerText()), host);
+      await vip(page, (v, x) => x.film.video.play()); await wait(page, 900); await shot(page, 'vipprofile-53-film-cinema-mode', { quality: 58 });
+      await press(page, 'Escape'); await wait(page, 500); check('Esc leaves cinema mode back to the room (the video keeps its position, controls off)', (await vip(page, (v, x) => !x.cinema && !x.film.video.controls && x.film.video.currentTime > 0.5)) && (await page.locator('[data-testid="sr-vip-cinema"]').count()) === 0);
+      await vip(page, (v, x) => x.film.video.play()); await wait(page, 500); await press(page, 'Escape'); await settle(page, 600); await press(page, 'Escape'); await wait(page, 900);
+      check('leaving the presentation (Esc, Esc) pauses the film and gives the wall back to the slides', (await vip(page, (v, x) => !x.focus && x.film.video.paused)));
+      await press(page, 'KeyE'); await page.waitForSelector('[data-testid="sr-vip-panel"]'); await settle(page, 600); await vip(page, (v, x) => x.film.video.play()); await wait(page, 500); await page.selectOption('[data-testid="sr-vip-deck-select"]', 'default'); await settle(page, 600);
+      check('choosing another deck pauses the film and puts the slide canvas back on the wall', (await vip(page, (v, x) => x.film.video.paused && !v.filmOnWall && !v.group.getObjectByName('vip-film-strip').visible)));
+    }
+    check(`${lang} film: no page errors`, o.errors.filter((e) => !/ERR_TUNNEL|Failed to load resource/.test(e)).length === 0, o.errors.slice(0, 3)); await o.ctx.close();
+  }
+  // ---- (3) phone / low tier picks the 720 file; a manifest whose video is missing ends in "coming soon"
+  { const o = await L.openShowroom(b, { query: FAST, viewport: { width: 390, height: 844 }, mobile: true }); const page = o.page; await mockProjects(page);
+    await page.route('**/yas-bloom/film/**', (r) => { const f = r.request().url().split('/').pop(); if (f === 'film.json') return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(MANIFEST) }); return r.fulfill({ status: 404, body: '' }); });
+    await enterVip(page, true); await page.selectOption('[data-testid="sr-vip-deck-select"]', 'film'); await settle(page, 900); await page.waitForFunction(() => window.__showroom.explore.explorer.film.state.status === 'ready', null, { timeout: 30000 });
+    check('phone: the 720 source is chosen', /720/.test(await vip(page, (v, x) => x.film.state.src))); await shot(page, 'vipprofile-54-film-mobile-panel', { quality: 55 });
+    await page.tap('[data-testid="sr-vip-film-play"]'); await page.waitForFunction(() => window.__showroom.explore.explorer.film.state.status === 'missing', null, { timeout: 30000 }).catch(() => {});
+    check('manifest present but the video file is missing (404): Play ends in "Film coming soon", no crash', (await vip(page, (v, x) => x.film.state.status)) === 'missing' && /Film coming soon/.test(await panelText(page))); await o.ctx.close(); }
+}
+
 (async () => {
   const b = await L.launch(); const only = process.argv[2];
   const run = async (name, fn) => { if (only && only !== name) return; try { await fn(b); } catch (e) { check(`suite "${name}" ran to the end`, false, String(e && e.message).slice(0, 400)); } };
-  try { await run('flows', flows); await run('seq', seq); await run('ar', ar); await run('mobile', mobile); await run('reduced', reduced); await run('advisor', advisor); await run('legible', legible); } finally { await b.close(); }
+  try { await run('flows', flows); await run('seq', seq); await run('ar', ar); await run('mobile', mobile); await run('reduced', reduced); await run('advisor', advisor); await run('legible', legible); await run('film', film); } finally { await b.close(); }
   const bad = L.results.filter((r) => !r.ok); console.log(`\n${L.results.length - bad.length}/${L.results.length} checks passed`); bad.forEach((r) => console.log('FAILED:', r.name, JSON.stringify(r.detail)));
   process.exit(bad.length ? 1 : 0);
 })();

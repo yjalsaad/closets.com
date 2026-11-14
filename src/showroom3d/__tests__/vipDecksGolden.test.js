@@ -26,7 +26,7 @@ describe('golden: default deck == old vipContent output', () => {
     }
   });
   test('the default deck is the first permanent deck, in the owner\'s station order, four slides, "station" wording', () => {
-    expect(PERMANENT_DECKS[0]).toBe(DEFAULT_DECK); expect(PERMANENT_DECKS.map((d) => d.id)).toEqual(['default', 'closets-profile', 'yas-profile']); expect(DEFAULT_DECK.slides.map((s) => s.builtin)).toEqual(['story', 'projects', 'hub', 'contact']); expect(DEFAULT_DECK.unit).toBe('station'); expect(DEFAULT_DECK.slides).toHaveLength(4);
+    expect(PERMANENT_DECKS[0]).toBe(DEFAULT_DECK); expect(PERMANENT_DECKS.map((d) => d.id)).toEqual(['default', 'closets-profile', 'yas-profile', 'film']); expect(DEFAULT_DECK.slides.map((s) => s.builtin)).toEqual(['story', 'projects', 'hub', 'contact']); expect(DEFAULT_DECK.unit).toBe('station'); expect(DEFAULT_DECK.slides).toHaveLength(4);
   });
   test('the default deck still ends on a slide that shows the disclaimer, and withDisclaimer does not append a second one', () => {
     expect(deckHasDisclaimer(DEFAULT_DECK)).toBe(true); expect(withDisclaimer(DEFAULT_DECK).slides).toHaveLength(4);

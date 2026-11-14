@@ -4,6 +4,7 @@
 import { PALETTE as P, hex, rgba } from '../../3d/palette';
 import { FONT, wrap, roundedRect } from '../products/screens';
 import * as C from '../../products/vipContent';
+import { FILM_TITLE, FILM_ENTRY, FILM_AI_LABEL, FILM_SOON, fmtTime } from '../../vip/film';
 import { businessLines } from '../../products/vipContent';
 import { projectCard } from '../../products/projectsFeed';
 import { clamp01, easeOutCubic, stagger, countValue, formatNumber } from '../../vip/motion';
@@ -129,16 +130,17 @@ export function drawHolo(g, w, h, o) {
 
 // ================================================================ decks: generic slides + deck chips on the wall screen
 /** the rich built-in renderers, by the `builtin` key of a default-deck slide */
-export const BUILTIN_DRAW = { story: drawStory, projects: drawProjectsScreen, hub: drawHub, contact: drawContact };
+export const BUILTIN_DRAW = { story: drawStory, projects: drawProjectsScreen, hub: drawHub, contact: drawContact, film: drawFilmIdle };
 const ACCENT = { orange: P.brandOrange, brass: P.brassPale, sand: P.sand, sage: P.ikMint };
 
 /** deck chips along the top of the wall screen (only drawn when there is more than one deck). Pure layout in design pixels, shared by the drawing and the click hit-test. */
-export function chipLayout(titles, w, rtl, max = 3) {
-  const n = Math.min(titles.length, max), gap = 12, h = 46, y = 18; let total = 0; const widths = titles.slice(0, n).map((t) => { const cw = Math.min(300, 44 + t.length * 12.5); total += cw; return cw; }); total += gap * (n - 1);
-  let x = rtl ? 70 : w - 70 - total; return widths.map((cw, i) => { const r = { i, x, y, w: cw, h }; x += cw + gap; return r; });
+export function chipLayout(titles, w, rtl, max = 3, active = 0) {
+  const n = Math.min(titles.length, max), start = Math.max(0, Math.min(titles.length - n, active - 1)), gap = 12, h = 46, y = 18; let total = 0;   // a window of `max` chips that always contains the active deck
+  const widths = titles.slice(start, start + n).map((t) => { const cw = Math.min(300, 44 + t.length * 12.5); total += cw; return cw; }); total += gap * (n - 1);
+  let x = rtl ? 70 : w - 70 - total; return widths.map((cw, i) => { const r = { i: start + i, x, y, w: cw, h }; x += cw + gap; return r; });
 }
 export function drawDeckChips(g, w, h, o) {
-  const k = kit(g, w, h, o.lang), titles = o.decks; if (!titles || titles.length < 2) return; const rects = chipLayout(titles, w, k.rtl, o.max || 3);
+  const k = kit(g, w, h, o.lang), titles = o.decks; if (!titles || titles.length < 2) return; const rects = chipLayout(titles, w, k.rtl, o.max || 3, o.deckIndex || 0);
   rects.forEach((r) => { const on = r.i === o.deckIndex; k.card(r.x, r.y, r.w, r.h, { fill: on ? rgba(P.brandOrange, 0.3) : rgba(P.sand, 0.08), line: on ? rgba(P.brandOrange, 0.95) : rgba(P.sand, 0.35), r: 23 }); k.text(titles[r.i], r.x + r.w / 2, r.y + 31, { size: 22, weight: on ? 700 : 600, color: on ? P.sand : P.taupe, align: 'center' }); });
   if (titles.length > rects.length) k.text(`+${titles.length - rects.length}`, k.rtl ? 70 : w - 70, 86, { size: 22, weight: 700, color: P.taupe, align: k.rtl ? 'left' : 'right' });
 }
@@ -246,4 +248,30 @@ export function drawPlayOverlay(g, w, h, o) {
   if (!(o.progress >= 0)) return; const k = kit(g, w, h, o.lang), bw = w - 140, x = 70;
   g.fillStyle = rgba(P.sand, 0.2); g.fillRect(x, h - 24, bw, 8); g.fillStyle = hex(P.brandOrange); g.fillRect(k.rtl ? x + bw - bw * o.progress : x, h - 24, bw * clamp01(o.progress), 8);
   k.text((o.lang === 'ar' ? 'عرض تلقائي · ' : 'AUTO-PLAY · ') + o.speed + 'x', k.mx(w - 70), h - 36, { size: 22, weight: 700, color: P.brassPale, align: k.rtl ? 'left' : 'right' });
+}
+
+// ================================================================ FILM mode
+/** the wall while the film is NOT running: the poster (when the manifest gave one) with the title and a Play hint, "Loading", or "Film coming soon" when there is no film yet.
+ *  o.film = { status, title, poster: HTMLImageElement|null, duration } (explorer.filmView()) */
+export function drawFilmIdle(g, w, h, o) {
+  const k = kit(g, w, h, o.lang, o.metrics || null), { lang } = o, f = o.film || { status: 'idle' }, X = TYPE.safeX, missing = f.status === 'missing', title = Lx(f.title || FILM_TITLE, lang);
+  g.fillStyle = hex(P.ink); g.fillRect(0, 0, w, h); if (f.poster && f.poster.width && !missing) drawCover(g, f.poster, 0, 0, w, h, 1, 0.5, 0); else k.bg(P.brandBrown, P.ink);
+  const gr = g.createLinearGradient(0, h * 0.15, 0, h); gr.addColorStop(0, 'rgba(10,8,6,0.35)'); gr.addColorStop(0.55, 'rgba(10,8,6,0.8)'); gr.addColorStop(1, 'rgba(10,8,6,0.96)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  g.fillStyle = 'rgba(10,8,6,0.55)'; g.fillRect(0, 0, w, 100); g.fillStyle = hex(P.brandOrange); g.fillRect(k.rtl ? w - X - 90 : X, 32, 90, 5); k.text(Lx(FILM_ENTRY, lang), k.mx(X), 76, { size: TYPE.stamp, weight: 600, color: P.brassPale });
+  if (!missing && f.status !== 'loading' && f.status !== 'idle') {   // play button
+    const cx = w / 2, cy = 290, r = 74; g.fillStyle = rgba(P.brandOrange, 0.92); g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.fill(); g.fillStyle = hex(P.ink); g.beginPath(); g.moveTo(cx - 22, cy - 36); g.lineTo(cx + 40, cy); g.lineTo(cx - 22, cy + 36); g.closePath(); g.fill();
+  }
+  let y = k.para(title, k.mx(X), 470, w - 2 * X, { size: TYPE.hero, weight: 800, color: P.sand, lh: 88 });
+  const line = missing ? Lx(FILM_SOON, lang) : f.status === 'loading' || f.status === 'idle' ? (lang === 'ar' ? 'جارٍ التحميل…' : 'Loading…') : f.status === 'ended' ? (lang === 'ar' ? 'اضغط تشغيل للمشاهدة من جديد.' : 'Press Play to watch again.') : (lang === 'ar' ? 'اضغط تشغيل للمشاهدة. الصوت مفعَّل والتعليق بالعربية.' : 'Press Play to watch. Sound on; narration in Arabic, captions in English.');
+  y = k.para(line, k.mx(X), y + 4, w - 2 * X, { size: missing ? 52 : TYPE.lead, weight: 700, color: P.brandOrange, lh: 56 });
+  const meta = [missing ? '' : Lx(FILM_AI_LABEL, lang), !missing && f.duration ? fmtTime(f.duration) : ''].filter(Boolean).join(' · ');
+  if (meta) k.para(meta, k.mx(X), h - TYPE.safeBottom - 40, w - 2 * X, { size: TYPE.meta, weight: 600, color: P.brassPale, lh: 28 });
+  k.para(Lx(C.DISCLAIMER, lang), k.mx(X), h - TYPE.safeBottom + 6, w - 2 * X, { size: TYPE.fine, weight: 500, color: P.sand, lh: 28 });
+}
+/** the strip over the bottom of the playing film: the current caption (large, on a dark band) and the small "AI-generated illustration" label. Drawn on its own transparent canvas (w x h = 1536 x 220). */
+export function drawFilmOverlay(g, w, h, o) {
+  const k = kit(g, w, h, o.lang), { lang } = o; g.clearRect(0, 0, w, h);
+  if (o.cue) { g.font = `700 40px ${FONT}`; const lines = []; let line = ''; for (const wd of String(o.cue).split(/\s+/)) { const t = line ? line + ' ' + wd : wd; if (g.measureText(t).width > w - 240 && line) { lines.push(line); line = wd; } else line = t; } if (line) lines.push(line); const ls = lines.slice(0, 2), bh = ls.length * 52 + 28, by = h - 58 - bh;
+    const bw = Math.min(w - 120, Math.max(...ls.map((l) => g.measureText(l).width)) + 64); g.fillStyle = 'rgba(8,6,5,0.78)'; roundedRect(g, (w - bw) / 2, by, bw, bh, 14); g.fill(); g.direction = o.capLang === 'ar' ? 'rtl' : 'ltr'; ls.forEach((l, i) => k.text(l, w / 2, by + 50 + i * 52, { size: 40, weight: 700, color: P.sand, align: 'center' })); g.direction = lang === 'ar' ? 'rtl' : 'ltr'; }
+  const lab = Lx(FILM_AI_LABEL, lang); g.font = `600 22px ${FONT}`; const lw = g.measureText(lab).width + 28, lx = k.rtl ? 40 : w - 40 - lw; g.fillStyle = 'rgba(8,6,5,0.6)'; roundedRect(g, lx, h - 46, lw, 34, 8); g.fill(); k.text(lab, lx + lw / 2, h - 21, { size: 22, weight: 600, color: P.sand, align: 'center' });
 }

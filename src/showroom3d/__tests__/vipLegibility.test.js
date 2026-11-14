@@ -20,7 +20,7 @@ function draw(deck, i, lang) {
   const rd = resolveDeck({ ...deck, slides: [deck.slides[i]] }, lang), metrics = []; drawSlide(fakeCtx(), W, H, { lang, slide: rd.slides[0], index: i, count: deck.slides.length, deckTitle: rd.title, images: new Map(), metrics });
   return { rd: rd.slides[0], metrics };
 }
-const DECKS = PERMANENT_DECKS.filter((d) => d.id !== 'default');
+const DECKS = PERMANENT_DECKS.filter((d) => d.id !== 'default' && !d.film);
 const CASES = DECKS.flatMap((d) => d.slides.map((s, i) => [`${d.id}/${s.id}`, d, i]));
 
 describe.each(['en', 'ar'])('wall legibility (%s)', (lang) => {

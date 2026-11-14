@@ -31,7 +31,7 @@ async function flows(b) {
   await enterVip(page);
   // ---- default deck: unchanged behaviour
   let txt = await panelText(page);
-  check('default deck: station 1 of 4 "Company story and brand", picker shows the three built-in decks, no delete / local note', /Station\s*1\s*\/\s*4/.test(txt) && /Company story and brand/.test(txt) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 3 && (await page.locator('[data-testid="sr-vip-deck-delete"]').count()) === 0);
+  check('default deck: station 1 of 4 "Company story and brand", picker shows the four built-in entries (three decks and the film), no delete / local note', /Station\s*1\s*\/\s*4/.test(txt) && /Company story and brand/.test(txt) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 4 && (await page.locator('[data-testid="sr-vip-deck-delete"]').count()) === 0);
   check('default deck: placeholders still "To be confirmed by management"; warranty fact from facts.js', (await page.$$eval('[data-testid="sr-vip-facts"] li', (l) => l.length === 4 && l.every((e) => e.dataset.confirmed === '0' && /To be confirmed by management/.test(e.innerText)))) && /10 years on cabinetry/.test(txt));
   await press(page, 'Digit4'); await settle(page, 300); check('default deck: key 4 jumps to station 4 (contact) with the disclaimer; key 9 does nothing (only 5 stations)', /Station\s*4\s*\/\s*4/.test(await panelText(page)) && /Information only, not an offer or financial advice/.test(await panelText(page)));
   await press(page, 'Digit9'); await settle(page, 200); check('key 9 ignored', /Station\s*4\s*\/\s*4/.test(await panelText(page))); await press(page, 'Digit1'); await settle(page, 300);
@@ -57,8 +57,8 @@ async function flows(b) {
   await page.fill('[data-testid="sr-vd-text"]', MD); await page.waitForTimeout(200);
   await page.click('[data-testid="sr-vd-save"]'); await page.waitForSelector('[data-testid="sr-vd-dialog"]', { state: 'detached' }); await settle(page, 600);
   const ids = await stored(page); txt = await panelText(page);
-  check('save: stored under one localStorage key on this device, the new deck is shown (Slide 1 / 3), local label visible, picker has 4 decks', ids.length === 1 && /Slide\s*1\s*\/\s*3/.test(txt) && /Who we are/.test(txt) && /Saved on this device only/.test(txt) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 4, ids);
-  check('wall screen state follows: deck id, 2 decks (chips), slide 1', await (async () => { const w = await wall(page); return w.deck === ids[0] && w.decks === 4 && w.slide === 0; })());
+  check('save: stored under one localStorage key on this device, the new deck is shown (Slide 1 / 3), local label visible, picker has 5 entries', ids.length === 1 && /Slide\s*1\s*\/\s*3/.test(txt) && /Who we are/.test(txt) && /Saved on this device only/.test(txt) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 5, ids);
+  check('wall screen state follows: deck id, 2 decks (chips), slide 1', await (async () => { const w = await wall(page); return w.deck === ids[0] && w.decks === 5 && w.slide === 0; })());
   await wallShot(page, 'vipdecks-04-wall-generic-slide', 3500);
   await shot(page, 'vipdecks-05-saved-deck-panel', { quality: 60 });
   // ---- pick decks: Next on the generic deck, the last slide is the disclaimer, then [ ] and the select, and a real click on the wall chip
@@ -87,7 +87,7 @@ async function flows(b) {
   await shot(page, 'vipdecks-07-delete-confirm', { quality: 60 });
   await page.click('[data-testid="sr-vip-deck-delete-no"]'); check('delete: "Keep it" cancels', (await stored(page)).length === 1 && (await page.locator('[data-testid="sr-vip-deck-confirm"]').count()) === 0);
   await page.click('[data-testid="sr-vip-deck-delete"]'); await page.click('[data-testid="sr-vip-deck-delete-yes"]'); await settle(page, 500);
-  check('delete: the deck is removed from storage, the view falls back to the default deck, picker back to three decks', (await stored(page)).length === 0 && (await wall(page)).deck === 'default' && (await wall(page)).decks === 3 && /Station\s*1\s*\/\s*4/.test(await panelText(page)) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 3);
+  check('delete: the deck is removed from storage, the view falls back to the default deck, picker back to four entries', (await stored(page)).length === 0 && (await wall(page)).deck === 'default' && (await wall(page)).decks === 4 && /Station\s*1\s*\/\s*4/.test(await panelText(page)) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 4);
   check('the whole session made no network write and no request to anything but the local server (no backend, no upload)', net.writes.length === 0 && net.net.filter((u) => !/supabase\.co\/rest\/v1\/website_projects/.test(u)).length === 0, net.net.slice(0, 4));
   check('flows: no page errors', o.errors.length === 0, o.errors.slice(0, 3)); await o.ctx.close();
 }
@@ -116,7 +116,7 @@ async function fail(b) {
   const page = o.page; await mockProjects(page); await enterVip(page);
   await page.click('[data-testid="sr-vip-deck-add"]'); await paste(page, MD); await page.click('[data-testid="sr-vd-save"]'); await page.waitForTimeout(400);
   const msg = await page.locator('[data-testid="sr-vd-saveerr"]').innerText().catch(() => '');
-  check('storage failure: a clear message in the dialog ("Could not save ... not enough storage"), the dialog stays open, nothing was added, the room still works', /Could not save/.test(msg) && /storage/i.test(msg) && (await page.locator('[data-testid="sr-vd-dialog"]').count()) === 1 && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 3, msg);
+  check('storage failure: a clear message in the dialog ("Could not save ... not enough storage"), the dialog stays open, nothing was added, the room still works', /Could not save/.test(msg) && /storage/i.test(msg) && (await page.locator('[data-testid="sr-vd-dialog"]').count()) === 1 && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 4, msg);
   await shot(page, 'vipdecks-08-save-failed', { quality: 60 });
   await page.click('[data-testid="sr-vd-close"]'); await page.waitForSelector('[data-testid="sr-vd-dialog"]', { state: 'detached' });
   check('after cancelling, focus returns to the "Add presentation" button and Escape-less keys work again (key 2 -> station 2)', (await page.evaluate(() => document.activeElement && document.activeElement.dataset.testid)) === 'sr-vip-deck-add' && await (async () => { await page.evaluate(() => document.activeElement.blur()); await press(page, 'Digit2'); return /Station\s*2\s*\/\s*4/.test(await panelText(page)); })());
@@ -146,7 +146,7 @@ async function mobile(b) {
   check('mobile: the dialog fits the screen (no horizontal overflow) and its Save is reachable', d.width <= 390 && !(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)));
   await paste(page, MD); await page.locator('[data-testid="sr-vd-save"]').scrollIntoViewIfNeeded(); await shot(page, 'vipdecks-13-mobile-dialog', { quality: 55 });
   await page.tap('[data-testid="sr-vd-save"]'); await page.waitForSelector('[data-testid="sr-vd-dialog"]', { state: 'detached' }); await settle(page, 500);
-  check('mobile: saving by tap shows the new deck; Next by tap works; picker (select) lists both decks', /Slide\s*1\s*\/\s*3/.test(await panelText(page)) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 4);
+  check('mobile: saving by tap shows the new deck; Next by tap works; picker (select) lists both decks', /Slide\s*1\s*\/\s*3/.test(await panelText(page)) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 5);
   await page.tap('[data-testid="sr-vip-next"]'); await settle(page, 300); check('mobile: Next by tap', /2\s*\/\s*3/.test(await panelText(page)));
   await shot(page, 'vipdecks-14-mobile-saved-deck', { quality: 55 });
   check('mobile: no horizontal overflow, no page errors', !(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)) && o.errors.length === 0, o.errors.slice(0, 3)); await o.ctx.close();

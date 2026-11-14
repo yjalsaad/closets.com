@@ -8,6 +8,7 @@ import { MAX_USER_DECKS } from '../vip/deckStore';
 import { SlideBody } from './VipSlide';
 import { VipDeckDialog } from './VipDeckDialog';
 import { VipReader } from './VipReader';
+import { FilmBody, FilmControls, VipCinema } from './VipFilm';
 
 const reading0 = (e) => (e.presMode || 'panel') === 'read';
 const BUILTIN_IDX = { story: 0, projects: 1, hub: 2, contact: 3 };
@@ -69,7 +70,8 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
   useEffect(() => { if (headRef.current) headRef.current.focus({ preventScroll: true }); }, [st.focus, idx, deck.id]);
   useEffect(() => { setConfirmDel(false); }, [deck.id]);
   const rtl = lang === 'ar', unit = deck.unit === 'station' ? t('vipStationOf', lang) : t('vipSlideOf', lang), user = !deck.builtin, bi = raw.builtin ? BUILTIN_IDX[raw.builtin] : -1;
-  const portrait = !!(ex.canvas && ex.canvas.clientWidth && ex.canvas.clientHeight / ex.canvas.clientWidth > 1.1), dom = reading0(ex) && portrait;
+  const isFilm = !!deck.film, fs = isFilm && ex.film ? ex.film.state : null;
+  const portrait = !!(ex.canvas && ex.canvas.clientWidth && ex.canvas.clientHeight / ex.canvas.clientWidth > 1.1), dom = reading0(ex) && portrait && !isFilm;
   const play = ex.play || { playing: false, speed: 1, loop: true }, mode = ex.presMode || 'panel', prog = typeof st.vipProgress === 'number' ? st.vipProgress : -1, big = mode !== 'panel', reading = mode === 'read';
   const del = () => { ex.removeDeck(deck.id); setConfirmDel(false); if (selRef.current) selRef.current.focus(); };
   return (
@@ -92,11 +94,12 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
             <button type="button" className="sr-btn sr-btn-line" onClick={() => setConfirmDel(false)} data-testid="sr-vip-deck-delete-no">{t('vipDeckKeep', lang)}</button></div>}
         </div>
       </header>
-      <div className="sr-panel-body" aria-live="polite">{bi >= 0 ? <Station lang={lang} idx={bi} ex={ex} st={st} /> : <SlideBody key={deck.id + ':' + raw.id} lang={lang} slide={slide} reduced={reduced} tier={tier} />}</div>
+      <div className="sr-panel-body" aria-live="polite">{isFilm ? <FilmBody lang={lang} fs={fs} /> : bi >= 0 ? <Station lang={lang} idx={bi} ex={ex} st={st} /> : <SlideBody key={deck.id + ':' + raw.id} lang={lang} slide={slide} reduced={reduced} tier={tier} />}</div>
       <footer className="sr-panel-foot">
         {!big && raw.builtin === 'contact' && <a className="sr-btn sr-quote" href={C.contactUrl(lang)} data-testid="sr-vip-cta">{t('vipContactCta', lang)}</a>}
         {!big && raw.builtin === 'contact' && <p className="sr-note">{t('vipContactNote', lang)}</p>}
-        <div className="sr-vip-present" role="group" aria-label={t('vipPresenter', lang)} data-testid="sr-vip-presenter">
+        {isFilm && <FilmControls lang={lang} ex={ex} fs={fs} touch={touch} big={big} />}
+        {!isFilm && <div className="sr-vip-present" role="group" aria-label={t('vipPresenter', lang)} data-testid="sr-vip-presenter">
           {big && <p className="sr-vip-pbar-title" data-testid="sr-vip-pbar-title">{deck.slides.length > 1 ? `${idx + 1} / ${n} · ` : ''}{slide.title}</p>}
           <button type="button" className="sr-btn" onClick={() => ex.togglePlay()} aria-pressed={play.playing} data-testid="sr-vip-play">{play.playing ? t('vipPause', lang) : t('vipPlay', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">P</kbd>}</button>
           <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.cycleSpeed()} aria-label={`${t('vipSpeed', lang)}: ${play.speed}x`} data-testid="sr-vip-speed">{play.speed}x</button>
@@ -107,15 +110,16 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
           {big && !reading && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setPresentMode('read')} data-testid="sr-vip-read">{t('vipReading', lang)}</button>}
           {big && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setPresentMode('panel')} data-testid="sr-vip-exit-present">{t('vipPresentExit', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">Esc</kbd>}</button>}
           {(play.playing || big) && <div className="sr-vip-prog" role="progressbar" aria-label={t('vipProgress', lang)} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((prog >= 0 ? prog : 0) * 100)} data-testid="sr-vip-prog"><i style={{ '--p': prog >= 0 ? prog : 0 }} /></div>}
-        </div>
-        <nav className="sr-vip-nav" aria-label={t('vipSlides', lang)}>
+        </div>}
+        {!isFilm && <nav className="sr-vip-nav" aria-label={t('vipSlides', lang)}>
           <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.stepStation(-1)} disabled={idx === 0} data-testid="sr-vip-prev">{t('vipPrev', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">{rtl ? '→' : '←'}</kbd>}</button>
           <ol className="sr-vip-dots">{rd.slides.map((x, i) => <li key={x.id}><button type="button" className="sr-vip-dot" aria-label={`${unit} ${i + 1}: ${x.title}`} aria-current={i === idx ? 'step' : undefined} onClick={() => ex.setStation(i)} data-testid={'sr-vip-dot-' + i} /></li>)}</ol>
           <button type="button" className="sr-btn" onClick={() => ex.stepStation(1)} disabled={idx === n - 1} data-testid="sr-vip-next">{t('vipNext', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">{rtl ? '←' : '→'}</kbd>}</button>
-        </nav>
-        {!touch && !big && decks.length > 1 && <p className="sr-note sr-vip-keys">{t('vipDeckKeys', lang)}. {t('vipPresentKeys', lang)}</p>}
+        </nav>}
+        {!touch && !big && decks.length > 1 && <p className="sr-note sr-vip-keys">{t('vipDeckKeys', lang)}. {t(isFilm ? 'filmKeys' : 'vipPresentKeys', lang)}</p>}
       </footer>
       {dom && createPortal(<VipReader lang={lang} deckTitle={rd.title} slide={slide} raw={raw} idx={idx} n={n} touch={touch} reduced={reduced} tier={tier} onPrev={() => ex.stepStation(-1)} onNext={() => ex.stepStation(1)} onExit={() => ex.setPresentMode('panel')} />, (ex.canvas && ex.canvas.parentNode) || document.body)}
+      {isFilm && ex.cinema && createPortal(<VipCinema lang={lang} ex={ex} />, (ex.canvas && ex.canvas.parentNode) || document.body)}
       {adding && createPortal(<VipDeckDialog lang={lang} ex={ex} max={MAX_USER_DECKS} onClose={() => { setAdding(false); }} />, (ex.canvas && ex.canvas.parentNode) || document.body)}
     </aside>
   );

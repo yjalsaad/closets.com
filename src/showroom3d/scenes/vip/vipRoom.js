@@ -8,7 +8,7 @@ import { mergeGeometries } from '../../3d/geom';
 import { PALETTE as P } from '../../3d/palette';
 import { VIP } from './layout';
 import { makePanel } from '../products/screens';
-import { BUILTIN_DRAW, drawSlide, drawDeckChips, drawPlayOverlay, chipLayout, drawGallery, drawHubWall, drawFloorMap, drawHolo } from './panels';
+import { BUILTIN_DRAW, drawSlide, drawDeckChips, drawPlayOverlay, drawFilmOverlay, chipLayout, drawGallery, drawHubWall, drawFloorMap, drawHolo } from './panels';
 import { resolveDeck } from '../../vip/deckSchema';
 import { motionLevel, settleSeconds, easeInOut as eio } from '../../vip/motion';
 import { DEFAULT_DECK } from '../../vip/decks/default';
@@ -87,7 +87,7 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   const drawScreen = (g, w, h, l) => {
     g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
     const d = state.deck, sl = d.slides[state.station] || d.slides[0], bi = sl.builtin && BUILTIN_DRAW[sl.builtin], live = state.inside || state.focus;
-    if (bi) bi(g, w, h, { lang: l, t: state.t, logo: logoImg, projects: state.projects });
+    if (bi) bi(g, w, h, { lang: l, t: state.t, logo: logoImg, projects: state.projects, film: state.film });
     else {
       const rd = resolveDeck({ ...d, slides: [sl] }, l);
       drawSlide(g, w, h, { lang: l, slide: rd.slides[0], index: state.station, count: d.slides.length, deckTitle: rd.title, images: state.images, anim: state.motion.on && live ? { t: state.slideT, level: state.motion } : null });
@@ -110,6 +110,9 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   for (const [bw, bh, bx, by] of [[S.w + 0.34, 0.016, 0, S.h / 2 + 0.17], [S.w + 0.34, 0.016, 0, -S.h / 2 - 0.17], [0.016, S.h + 0.34, S.w / 2 + 0.17, 0], [0.016, S.h + 0.34, -S.w / 2 - 0.17, 0]]) add(placed(bevelBox(bw, bh, 0.012, { b: 0.002 }), { x: cx + bx, y: S.y + by, z: S.z + 0.012 }), brass);
   { const ls = []; for (const [bw, bh, bx, by] of [[S.w + 0.5, 0.02, 0, S.h / 2 + 0.3], [S.w + 0.5, 0.02, 0, -S.h / 2 - 0.3], [0.02, S.h + 0.6, S.w / 2 + 0.25, 0], [0.02, S.h + 0.6, -S.w / 2 - 0.25, 0]]) ls.push(prep(placed(new THREE.BoxGeometry(bw, bh, 0.012), { x: cx + bx, y: S.y + by, z: S.z + 0.016 }))); mesh(mergeGeometries(ls), led(2.4), { receive: false, name: 'vip-screen-led' }); }
   const glowMat = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g2 = c.getContext('2d'), gr = g2.createRadialGradient(64, 64, 8, 64, 64, 64); gr.addColorStop(0, 'rgba(255,214,160,0.55)'); gr.addColorStop(0.55, 'rgba(255,190,120,0.16)'); gr.addColorStop(1, 'rgba(255,190,120,0)'); g2.fillStyle = gr; g2.fillRect(0, 0, 128, 128); const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; return new THREE.MeshBasicMaterial({ map: tx, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, opacity: 0.35 }); })();
+  // FILM mode: the playing video replaces the canvas on the screen material; captions + the AI label sit on a thin transparent strip in front of its lower edge (redrawn only when the cue changes)
+  const filmStrip = makePanel(1536, 220, (g, w, h, l) => drawFilmOverlay(g, w, h, { lang: l, cue: state.film ? state.film.cue : '', capLang: state.film ? state.film.caption : l }), lang, { anisotropy: aniso });
+  const filmStripMesh = mesh(new THREE.PlaneGeometry(S.w, S.h * 220 / 864), new THREE.MeshBasicMaterial({ map: filmStrip.tex, transparent: true, depthWrite: false, toneMapped: false }), { pos: [cx, S.y - S.h / 2 + (S.h * 220 / 864) / 2, S.z + 0.018], receive: false, name: 'vip-film-strip' }); filmStripMesh.visible = false;
   const glow = mesh(new THREE.PlaneGeometry(S.w * 1.45, S.h * 1.55), glowMat, { pos: [cx, S.y, S.z + 0.006], receive: false, name: 'vip-screen-glow' }); glow.renderOrder = -1;
   { const Lx0 = 3.7, Lz0 = -34.35; add(placed(bevelBox(0.5, 1.02, 0.38, { b: 0.012, grain: 'y' }), { x: Lx0, y: 0.51, z: Lz0 }), wood); add(placed(bevelBox(0.58, 0.03, 0.44, { b: 0.006 }), { x: Lx0, y: 1.04, z: Lz0, rx: -0.12 }), brass); add(placed(bevelBox(0.06, 0.012, 0.1, { b: 0.003 }), { x: Lx0, y: 1.07, z: Lz0 + 0.02 }), M.bronze);   // presenter lectern
     add(placed(bevelBox(0.16, 0.014, 0.05, { b: 0.004 }), { x: -0.9, y: VIP.table.h + 0.018, z: VIP.table.z + 0.3 }), brass); }   // the presenter's remote on the table
@@ -132,7 +135,7 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
     group, lights, state, screen, screenMesh, gallery, hubWall, mapMesh, holos,
     get doorOpen() { return state.door; }, get station() { return state.station; },
     redraw() { screen.redraw(state.lang); gallery.redraw(state.lang); },
-    setLanguage(l) { state.lang = l === 'ar' ? 'ar' : 'en'; for (const p of [screen, gallery, hubWall, mapP, ...holos.map((h) => h.p)]) p.redraw(state.lang); },
+    setLanguage(l) { state.lang = l === 'ar' ? 'ar' : 'en'; for (const p of [screen, gallery, hubWall, mapP, filmStrip, ...holos.map((h) => h.p)]) p.redraw(state.lang); },
     setReduced(v) { state.reduced = !!v; state.motion = motionLevel(tier.id, !!v); if (v) state.enter = 1; },
     setStation(i) { const n = Math.max(0, Math.min(state.deck.slides.length - 1, i | 0)); if (n !== state.station) { snapshot(); state.transDir = n > state.station ? 1 : -1; state.slideT = 0; } state.station = n; state.t = 0; screen.redraw(state.lang); },
     /** presentation motion for this tier / reduced-motion setting, and the auto-play badge (progress -1 hides it) */
@@ -147,9 +150,18 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
     /** click on the wall screen at (u, v in 0..1, v down): a deck chip -> its deck index, else -1 */
     chipAt(u, v) {
       if (state.decks.length < 2) return -1; const x = u * DW, y = v * DH, titles = state.decks.map((d) => resolveDeck({ ...d, slides: [] }, state.lang).title);
-      const hit = chipLayout(titles, DW, state.lang === 'ar').find((r) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h); return hit ? hit.i : -1;
+      const hit = chipLayout(titles, DW, state.lang === 'ar', 3, state.decks.indexOf(state.deck)).find((r) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h); return hit ? hit.i : -1;
     },
     setFocus(v) { state.focus = !!v; },
+    /** FILM mode. view = { status, title, poster, video, cue, caption, duration } or null (not the film entry). The video (sRGB VideoTexture) is on the wall only while it plays or is paused. */
+    setFilm(view) {
+      const was = state.film, useVideo = !!(view && view.video); state.film = view;
+      if (useVideo) { if (!state.videoTex || state.videoTex.image !== view.video) { if (state.videoTex) state.videoTex.dispose(); const vt = new THREE.VideoTexture(view.video); vt.colorSpace = THREE.SRGBColorSpace; vt.minFilter = THREE.LinearFilter; vt.magFilter = THREE.LinearFilter; vt.generateMipmaps = false; state.videoTex = vt; } if (screenMat.map !== state.videoTex) { screenMat.map = state.videoTex; screenMat.needsUpdate = true; } }
+      else if (screenMat.map !== screen.tex) { screenMat.map = screen.tex; screenMat.needsUpdate = true; }
+      filmStripMesh.visible = useVideo; if (useVideo && (!was || was.cue !== view.cue || was.caption !== view.caption || !was.video)) filmStrip.redraw(state.lang);
+      if (!useVideo && (!was || !view || was.status !== view.status || was.poster !== view.poster || was.video)) screen.redraw(state.lang);
+    },
+    get filmOnWall() { return screenMat.map === state.videoTex && !!state.videoTex; },
     /** QA: draw slide `i` of the current deck on a scratch canvas with the REAL font metrics and return every text it drew (size, weight, position, wrapped extent) */
     legibility(i, l = state.lang) { const c = document.createElement('canvas'); c.width = DW; c.height = DH; const g = c.getContext('2d'), d = state.deck, sl = d.slides[i]; if (!sl || sl.builtin) return null; const rd = resolveDeck({ ...d, slides: [sl] }, l), metrics = []; g.direction = l === 'ar' ? 'rtl' : 'ltr'; drawSlide(g, DW, DH, { lang: l, slide: rd.slides[0], index: i, count: d.slides.length, deckTitle: rd.title, images: state.images, metrics }); return { w: DW, h: DH, metrics }; },
     /** QA / tests: pin the slide's animation clock to `t` seconds (null releases it) and redraw, so a motion sequence can be captured frame by frame */
@@ -184,7 +196,7 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
         } else if (state.progress >= 0 && state.redrawT > 0.25) { state.redrawT = 0; screen.redraw(state.lang); }
       }
     },
-    dispose() { for (const p of [screen, gallery, hubWall, mapP, ...holos.map((h) => h.p)]) p.tex.dispose(); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); },
+    dispose() { if (state.videoTex) state.videoTex.dispose(); for (const p of [screen, gallery, hubWall, mapP, filmStrip, ...holos.map((h) => h.p)]) p.tex.dispose(); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); },
   };
   return api;
 }
