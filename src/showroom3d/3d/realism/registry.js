@@ -10,12 +10,12 @@ const NAMES = ['oak', 'walnut', 'limestone', 'stucco', 'greyplaster', 'linen', '
 /** derived sets: { source set, multiply tint (rgb 0..1), optional brightness normalisation target } */
 export const VARIANTS = {
   oak: { from: 'oak' },
-  walnut: { from: 'walnut', mul: [0.66, 0.56, 0.5] },
-  walnutMid: { from: 'walnut', mul: [0.78, 0.66, 0.58] },
-  stone: { from: 'limestone', mul: [0.97, 0.93, 0.88] },
+  walnut: { from: 'walnut', mul: [0.54, 0.51, 0.49] },
+  walnutMid: { from: 'walnut', mul: [0.7, 0.68, 0.65] },
+  stone: { from: 'limestone', mul: [1, 0.98, 0.95], sat: 0.5 },
   plaster: { from: 'stucco', mul: [0.9, 0.84, 0.76] },
-  microcement: { from: 'greyplaster', mul: [1, 0.985, 0.96], norm: 0.86 },
-  concreteWall: { from: 'greyplaster', mul: [0.9, 0.86, 0.8], norm: 0.5 },
+  microcement: { from: 'greyplaster', mul: [1, 0.995, 0.985], norm: 0.74, sat: 0.2 },
+  concreteWall: { from: 'greyplaster', mul: [0.94, 0.9, 0.85], norm: 0.5, sat: 0.3 },
   planks: { from: 'planks' },
   planksDark: { from: 'parquet', mul: [0.62, 0.52, 0.46] },
   linen: { from: 'linen' },
@@ -48,9 +48,10 @@ export async function loadRealism(tierId = 'high', { onProgress, signal } = {}) 
 }
 
 function drawTo(bm, size) { const c = canvas(size), g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(bm, 0, 0, size, size); return c; }
-function tint(c, mul, norm) {
+function tint(c, mul = [1, 1, 1], norm, sat = 1) {
   const g = c.getContext('2d'), img = g.getImageData(0, 0, c.width, c.height), d = img.data; let k = 1;
   if (norm) { let s = 0; for (let i = 0; i < d.length; i += 64) s += (d[i] + d[i + 1] + d[i + 2]) / 765; k = norm / (s / (d.length / 64)); }
+  if (sat !== 1) for (let i = 0; i < d.length; i += 4) { const l = 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2]; d[i] = l + (d[i] - l) * sat; d[i + 1] = l + (d[i + 1] - l) * sat; d[i + 2] = l + (d[i + 2] - l) * sat; }   // pull stained / yellow captures toward neutral before the tint
   for (let i = 0; i < d.length; i += 4) { d[i] = Math.min(255, d[i] * mul[0] * k); d[i + 1] = Math.min(255, d[i + 1] * mul[1] * k); d[i + 2] = Math.min(255, d[i + 2] * mul[2] * k); }
   g.putImageData(img, 0, 0); return c;
 }
@@ -66,7 +67,7 @@ export function realSet(name, size = 1024) {
   const v = VARIANTS[name]; if (!REG.ok || !v) return null;
   const b = REG.bitmaps[v.from]; if (!b || !b.a) return null;
   const S = Math.min(size, TIER_TEX[REG.tier] || 512), key = name + ':' + S; if (REG.cache[key]) return REG.cache[key];
-  let map = drawTo(b.a, S); if (v.mul) map = tint(map, v.mul, v.norm);
+  let map = drawTo(b.a, S); if (v.mul || v.sat != null) map = tint(map, v.mul, v.norm, v.sat == null ? 1 : v.sat);
   const orm = b.orm ? drawTo(b.orm, Math.min(S, 512)) : null;
   const set = { map, normal: b.n ? drawTo(b.n, Math.min(S, 512)) : null, rough: orm ? channel(orm, 1) : null, ao: orm ? channel(orm, 0) : null };
   return (REG.cache[key] = set);
@@ -81,7 +82,7 @@ export async function loadInteriorHdr(renderer) {
     const tex = await new Promise((res, rej) => loader.load(`${REAL_BASE}studio_warm_512.hdr`, res, undefined, rej));
     const d = tex.image.data, W = tex.image.width, H = tex.image.height;
     // grade the capture toward the brand's warm walnut / travertine interior: warm multiply, darker floor half (a dim reflected floor), brighter lamps stay bright
-    for (let y = 0; y < H; y++) { const lat = y / H, k = lat > 0.5 ? 0.55 + 0.45 * (1 - (lat - 0.5) * 2) : 1; for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; d[i] *= 1.0 * k; d[i + 1] *= 0.95 * k; d[i + 2] *= 0.86 * k; } }
+    for (let y = 0; y < H; y++) { const lat = y / H, k = lat > 0.5 ? 0.55 + 0.45 * (1 - (lat - 0.5) * 2) : 1; for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; d[i] *= 1.0 * k; d[i + 1] *= 0.96 * k; d[i + 2] *= 0.9 * k; } }
     tex.mapping = THREE.EquirectangularReflectionMapping; tex.needsUpdate = true;
     const pm = new THREE.PMREMGenerator(renderer); REG.env = pm.fromEquirectangular(tex).texture; pm.dispose(); tex.dispose();
   } catch (e) { REG.env = null; }

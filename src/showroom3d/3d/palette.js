@@ -66,7 +66,7 @@ export const PALETTE = {
   // overlay
   veil: 0xf6efe4,
   // material tints
-  floorTint: 0xf0ebe3, ceilingTint: 0xd8cdbd, water: 0x1d3b3f, hemiSky: 0xfff3e2, signTint: 0xe8e8e8,
+  floorTint: 0xf2f1ee, ceilingTint: 0xd8cdbd, water: 0x1d3b3f, hemiSky: 0xfff3e2, signTint: 0xe8e8e8,
 };
 
 export const hex = (n) => '#' + (n >>> 0).toString(16).padStart(6, '0').slice(-6);

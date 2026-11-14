@@ -190,7 +190,7 @@ export const STRINGS = {
   chatAiWait: { en: 'Please wait a moment before asking again.', ar: 'يرجى الانتظار قليلًا قبل السؤال مرة أخرى.' },
   chatVoice: { en: 'Read answers aloud', ar: 'قراءة الإجابات بصوت عالٍ' },
   chatYou: { en: 'You', ar: 'أنت' },
-  chatGreetBubble: { en: 'Welcome! Talk to me any time.', ar: 'أهلًا بك! تحدّث معي في أي وقت.' },
+  chatGreetBubble: { en: 'Welcome! I am {name} (AI assistant). Talk to me any time.', ar: 'أهلًا بك! أنا {name} (مساعد ذكاء اصطناعي). تحدّث معي في أي وقت.' },
 };
 
 export const t = (key, lang) => { const e = STRINGS[key]; return e ? (lang === 'ar' ? e.ar : e.en) : key; };

@@ -102,10 +102,11 @@ describe('roster, colliders and the 3D adviser behaviour', () => {
   const { buildColliders, PLAYER } = require('../navigation/colliders');
   const { isFree } = require('../navigation/colliders');
   const { buildGraph, deptStops } = require('../navigation/navgraph');
-  test('one adviser per room: reception, the eight departments and VIP, each with a distinct look and a role-based placeholder name', () => {
+  test('one adviser per room: reception, the eight departments and VIP, each with a distinct look, an Arabic first name (owner decision) and her role as the subtitle', () => {
     const r = staffRoster(); expect(r.map((s) => s.id)).toEqual(['reception', ...DEPARTMENTS.map((d) => d.id), 'vip']);
     const looks = r.map((s) => JSON.stringify([s.look.outfit, s.look.color, s.look.scarfColor || s.look.hair, s.look.skin])); expect(new Set(looks).size).toBe(r.length);
-    for (const s of r) { expect(s.look.gender).toBe('f'); expect(s.name.en).toMatch(/advisor$/); expect(s.name.ar).toMatch(/^مستشارة/); }
+    for (const s of r) { expect(s.look.gender).toBe('f'); expect(s.name.en).toMatch(/^[A-Z][a-z]+, .+ advisor$/); expect(s.name.ar).toMatch(/^[\u0600-\u06FF]+، مستشارة/); expect(s.name.en.startsWith(s.first.en + ', ')).toBe(true); expect(s.role.en).toMatch(/advisor$/); }
+    expect(new Set(r.map((s) => s.first.en)).size).toBe(r.length); expect(r.map((s) => s.first.en)).toEqual(['Noor', 'Maryam', 'Layla', 'Dana', 'Reem', 'Hessa', 'Sara', 'Aisha', 'Fatima', 'Zainab']);
   });
   test('advisers and the desk are solid, never on a stand point, a graph node, or inside any other obstacle', () => {
     const r = staffRoster(), cols = buildColliders({ doorOpen: 1, vipOpen: 1 }), mine = new Set(staffColliders(r).map((c) => c.id));
@@ -134,5 +135,20 @@ describe('roster, colliders and the 3D adviser behaviour', () => {
       expect(Math.hypot(ri.pos[0] - h2[0], ri.pos[1] - h2[1])).toBeLessThan(1e-6);                       // reduced motion: she does not walk
       R.say('walkin', 'Hello and welcome'); R.update(0.1, w); R.update(0.1, w); expect(ri.anim.w.talk).toBeGreaterThan(0); S.dispose(); R.dispose();
     } finally { proto.getContext = old; }
+  });
+});
+
+describe('adviser names (owner decision): first name + role, always disclosed as AI', () => {
+  const { staffRoster } = require('../staff/roster');
+  const { opening } = require('../staff/guide');
+  const { STRINGS } = require('../strings');
+  test('the opening line introduces the adviser by first name and role and still says she is an AI assistant (EN + AR)', () => {
+    for (const s of staffRoster()) {
+      const en = opening(s, 'en').text, ar = opening(s, 'ar').text;
+      expect(en).toContain(`I am ${s.first.en}, the ${s.role.en}, an AI assistant`); expect(ar).toContain(`${s.first.ar}، ${s.role.ar}`); expect(ar).toContain('مساعد ذكاء اصطناعي');
+    }
+  });
+  test('the Talk button and chat badge keep the AI label next to the name', () => {
+    expect(STRINGS.staffTalk.en).toMatch(/\{name\} \(AI\)/); expect(STRINGS.staffTalk.ar).toMatch(/ذكاء اصطناعي/); expect(STRINGS.chatBadge.en).toBe('AI assistant');
   });
 });

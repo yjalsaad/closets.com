@@ -30,7 +30,8 @@ export function createMaterials(sets, tier, envMap, envInterior = null) {
   M.plaster = stdI({ map: T(sets.plaster.map, [1, 1]), normalMap: nm ? T(sets.plaster.normal, [1, 1], false) : null, normalScale: new THREE.Vector2(0.4, 0.4), roughness: 0.92, envMapIntensity: 0.4 });
   M.ceiling = stdI({ map: T(sets.plaster.map, [1, 1]), color: new THREE.Color(PALETTE.ceilingTint), roughness: 0.95, envMapIntensity: 0.25 });
   M.ceilDark = stdI({ color: PALETTE.ceilDark, roughness: 0.95, envMapIntensity: 0.15 });
-  M.slat = stdI({ map: T(sets.walnut.map, [1, 1]), normalMap: nm ? T(sets.walnut.normal, [1, 1], false) : null, color: new THREE.Color(PALETTE.slatTint), roughness: 0.66, envMapIntensity: 0.25 });   // ceiling slats: matte, never a mirror for the spots
+  M.slat = stdI({ map: T(sets.walnut.map, [1, 1]), normalMap: nm ? T(sets.walnut.normal, [1, 1], false) : null, color: new THREE.Color(PALETTE.slatTint), roughness: 0.66, envMapIntensity: 0.25,
+    emissive: new THREE.Color(PALETTE.ledWarm), emissiveMap: T(sets.walnut.map, [1, 1]), emissiveIntensity: tier.pointLights ? 0.05 : 0.3 });   // low tier has no hall point lights: a baked warm bounce keeps the slats readable instead of black   // ceiling slats: matte, never a mirror for the spots
   M.paver = std({ map: T(sets.paver.map, [1, 1]), normalMap: nm ? T(sets.paver.normal, [1, 1], false) : null, roughness: 0.82, envMapIntensity: 0.7 });
   M.grass = std({ map: T(sets.grass.map, [1, 1]), roughness: 0.95, envMapIntensity: 0.5 });
   M.sand = std({ map: T(sets.sand.map, [1, 1]), roughness: 0.98, envMapIntensity: 0.5 });

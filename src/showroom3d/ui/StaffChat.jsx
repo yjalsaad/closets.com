@@ -21,7 +21,7 @@ export default function StaffChat({ lang, reduced, explorerRef, engineRef, staff
   const [voice, setVoice] = useState(readVoice);
   const [busy, setBusy] = useState(false);
   const mem = useRef(newMemory()), history = useRef([]), logRef = useRef(null), inputRef = useRef(null), timers = useRef([]), alive = useRef(true);
-  const staff = useMemo(() => ({ id: def && def.id, room: def && def.room, name: def && def.name }), [def]);
+  const staff = useMemo(() => ({ id: def && def.id, room: def && def.room, name: def && def.name, first: def && def.first, role: def && def.role }), [def]);
   const later = (fn, ms) => { if (reduced || ms <= 0) { fn(); return; } const id = setTimeout(() => { if (alive.current) fn(); }, ms); timers.current.push(id); };
   const say = useCallback((s) => {
     const E = engineRef && engineRef.current && engineRef.current.engine; if (E && E.staff && def) E.staff.say(def.id, s);

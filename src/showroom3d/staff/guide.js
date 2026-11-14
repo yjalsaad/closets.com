@@ -273,11 +273,13 @@ function vipReply(lang, mem) {
 }
 function greetReply(lang, mem, staff) {
   const nm = staff && staff.name ? pick(staff.name, lang) : '';
-  const room = staff && staff.room;
+  const room = staff && staff.room, first = staff && staff.first ? pick(staff.first, lang) : '', role = staff && staff.role ? pick(staff.role, lang) : '';
+  // with a first name: "I am Noor, the Reception advisor, an AI assistant"; the AI disclosure always follows the name
+  const who = first ? (AR(lang) ? `${first}، ${role}` : `${first}, the ${role}`) : '';
   const text = room === 'reception'
-    ? (AR(lang) ? `أهلًا بك في المعرض. أنا ${nm || 'مستشارة الاستقبال'} (مساعد ذكاء اصطناعي). أستطيع أن أعرض لك كل ما نقدمه، أو آخذك إلى أي غرفة، أو أساعدك في تخطيط مساحتك وحجز زيارة.` : `Welcome to the showroom. I am the ${nm || 'Reception advisor'}, an AI assistant. I can show you everything we offer, take you to any room, or help you plan your space and book a visit.`)
-    : room === 'vip' ? (AR(lang) ? `أهلًا بك في غرفة الاجتماعات. أنا ${nm} (مساعد ذكاء اصطناعي). أشرح لك المحطات وكيفية طلب إحاطة خاصة، دون أرقام أو وعود.` : `Welcome to the meeting room. I am the ${nm}, an AI assistant. I can explain the stations and how to request a private briefing, with no figures and no promises.`)
-      : (AR(lang) ? `أهلًا بك. أنا ${nm || 'مستشارة'} هذه الغرفة (مساعد ذكاء اصطناعي). يسعدني أن أشرح لك ما تراه هنا وأساعدك في اختيار ما يناسبك.` : `Welcome. I am the ${nm || 'adviser'} for this room, an AI assistant. I am glad to explain what you see here and help you choose what suits you.`);
+    ? (AR(lang) ? `أهلًا بك في المعرض. أنا ${who || nm || 'مستشارة الاستقبال'} (مساعد ذكاء اصطناعي). أستطيع أن أعرض لك كل ما نقدمه، أو آخذك إلى أي غرفة، أو أساعدك في تخطيط مساحتك وحجز زيارة.` : `Welcome to the showroom. I am ${who || 'the ' + (nm || 'Reception advisor')}, an AI assistant. I can show you everything we offer, take you to any room, or help you plan your space and book a visit.`)
+    : room === 'vip' ? (AR(lang) ? `أهلًا بك في غرفة الاجتماعات. أنا ${who || nm} (مساعد ذكاء اصطناعي). أشرح لك المحطات وكيفية طلب إحاطة خاصة، دون أرقام أو وعود.` : `Welcome to the meeting room. I am ${who || 'the ' + nm}, an AI assistant. I can explain the stations and how to request a private briefing, with no figures and no promises.`)
+      : (AR(lang) ? `أهلًا بك. أنا ${who || (nm || 'مستشارة') + ' هذه الغرفة'} (مساعد ذكاء اصطناعي). يسعدني أن أشرح لك ما تراه هنا وأساعدك في اختيار ما يناسبك.` : `Welcome. I am ${who || 'the ' + (nm || 'adviser') + ' for this room'}, an AI assistant. I am glad to explain what you see here and help you choose what suits you.`);
   return { intent: 'greeting', text, chips: baseChips(room), actions: [], memory: mem, askAi: false, auto: null };
 }
 /** the first thing an adviser says when the chat opens (also used by the Reception greeting bubble) */

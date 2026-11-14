@@ -3,6 +3,7 @@
  * Needs a served build:  node scripts/showroom3d-qa/serve.js build 5055 */
 const L = require('./lib.js');
 const fs = require('fs'), path = require('path');
+const EXTRA = process.env.EXTRA ? '&' + process.env.EXTRA : '';   // e.g. EXTRA=ao=1 to try the opt-in GTAO pass
 const LABEL = process.env.LABEL || 'after', TIER = process.env.TIER || 'high', ONLY = (process.env.ONLY || '').split(',').filter(Boolean);
 const SP = Math.PI / 2;
 const VIEWS = [
@@ -22,7 +23,7 @@ const dismiss = (page) => page.evaluate(() => { try { localStorage.setItem('clos
 async function run() {
   const b = await L.launch(); const stats = {};
   const want = (n) => !ONLY.length || ONLY.includes(n);
-  const o = await L.openShowroom(b, { query: `debug=1&quality=${TIER}&aa=0`, viewport: { width: 1100, height: 620 } }); const page = o.page;
+  const o = await L.openShowroom(b, { query: `debug=1&quality=${TIER}&aa=0${EXTRA}`, viewport: { width: 1100, height: 620 } }); const page = o.page;
   await enter(page); await dismiss(page); await page.waitForTimeout(3000);
   const wait = TIER === 'high' ? 6500 : 3500;
   let i = 0;
@@ -40,6 +41,11 @@ async function run() {
     await L.ex(page, (e, a) => e.teleport(...a), [near[0], near[1], yaw, 0.02]); await page.waitForTimeout(wait + 1500); await setHud(page, false); await page.waitForTimeout(250);
     await L.shot(page, `${LABEL}-${String(i).padStart(2, '0')}-char-${id}`, { quality: 82 }); await setHud(page, true);
   }
+  if (want('face')) {   // honest face close-up: 0.95 m from the kitchens adviser
+    const pos = await page.evaluate(() => window.__showroom.engine.staff.item('kitchens').def.at); const near = [pos[0] + 0.95, pos[1] + 0.25], yaw = Math.atan2(-(pos[0] - near[0]), -(pos[1] - near[1]));
+    await L.ex(page, (e, a) => e.teleport(...a), [near[0], near[1], yaw, -0.08]); await page.waitForTimeout(wait + 1500); await setHud(page, false); await page.waitForTimeout(250); await L.shot(page, `${LABEL}-17-face`, { quality: 84 }); await setHud(page, true);
+  }
+  stats.post = await page.evaluate(() => { const e = window.__showroom.engine; return { bloom: !!e.post, ao: !!(e.post && e.post.hasAo), mirror: !!e.mirror }; });
   await o.ctx.close();
   // Arabic + mobile
   if (want('ar')) {
