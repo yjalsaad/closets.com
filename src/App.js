@@ -436,7 +436,7 @@ const I18N = {
   // [WEB-STUDIO 2026-10-31]
   navNeoDesigners:{ en:'Neo designers', ar:'مصممو نيو' },
   // [ROOM-VIZ 2026-11-07]
-  navVizCol:{ en:'Room visualizer', ar:'مُصوِّر الغرف' }, navlViz:{ en:'🎨 Room visualizer', ar:'🎨 مُصوِّر الغرف' }, navlViz360:{ en:'360° rooms', ar:'غرف 360°' },
+  navVizCol:{ en:'Room visualizer', ar:'مُصوِّر الغرف' }, navlViz:{ en:'🎨 Room visualizer', ar:'🎨 مُصوِّر الغرف' }, navlViz360:{ en:'360° rooms', ar:'غرف 360°' }, navlYb:{ en:'YAS Bloom', ar:'ياس بلوم' },
   navlVizPhoto:{ en:'Visualize your room photo', ar:'جرّب على صورة غرفتك' }, navlVizPdf:{ en:'Finishes catalogue (PDF)', ar:'كتالوج التشطيبات (PDF)' },
   navlNeoKitchen:{ en:'Neo Kitchen Designer', ar:'مصمم المطابخ نيو' }, navlNeoClosets:{ en:'Neo Closets Designer', ar:'مصمم الخزائن نيو' },
   navlNeoCustom:{ en:'Neo Custom Designer', ar:'مصمم القطع الخاصة نيو' }, navlNeoBathroom:{ en:'Neo Bathroom Designer', ar:'مصمم الحمامات نيو' },
@@ -2766,7 +2766,7 @@ const NAV_GROUPS = [
         ['✨ AI YAS', 'ai-yas'], ['How it works', 'how-it-works'], ['Wardrobe planner', 'wardrobe-planner'], ['Kitchen planner', 'kitchen-planner'], ['TV unit planner', 'tv-planner'], ['Office planner', 'office-planner'], ['Wood door planner', 'door-planner'], ['AI interior designer', 'ai'],
       ] },
       { title: 'Room visualizer', items: [
-        ['🎨 Room visualizer', 'viz:'], ['360° rooms', 'viz:room/living?mode=360'], ['Visualize your room photo', 'viz:photo'], ['Finishes catalogue (PDF)', 'viz:catalog'],
+        ['🎨 Room visualizer', 'viz:'], ['360° rooms', 'viz:room/living?mode=360'], ['YAS Bloom', 'yb:'], ['Visualize your room photo', 'viz:photo'], ['Finishes catalogue (PDF)', 'viz:catalog'],
       ] }, // [ROOM-VIZ 2026-11-07]
       { title: 'Neo designers', items: [
         ['Neo Kitchen Designer', 'neo:kitchen'], ['Neo Closets Designer', 'neo:closets'], ['Neo Custom Designer', 'neo:custom'], ['Neo Bathroom Designer', 'neo:bathroom'],
@@ -2842,7 +2842,7 @@ const NAV_LABEL_KEY = {
   'Build & spec': 'navBuildSpec', 'Rooms & products': 'navRoomsProducts', 'Explore': 'navExplore',
   'Plan it yourself': 'navPlanYourself', 'Talk to a designer': 'navTalkDesigner',
   // [WEB-STUDIO 2026-10-31] Neo designers column
-  'Room visualizer': 'navVizCol', '🎨 Room visualizer': 'navlViz', '360° rooms': 'navlViz360', 'Visualize your room photo': 'navlVizPhoto', 'Finishes catalogue (PDF)': 'navlVizPdf', // [ROOM-VIZ]
+  'Room visualizer': 'navVizCol', '🎨 Room visualizer': 'navlViz', '360° rooms': 'navlViz360', 'YAS Bloom': 'navlYb', 'Visualize your room photo': 'navlVizPhoto', 'Finishes catalogue (PDF)': 'navlVizPdf', // [ROOM-VIZ]
   'Neo designers': 'navNeoDesigners', 'Neo Kitchen Designer': 'navlNeoKitchen', 'Neo Closets Designer': 'navlNeoClosets', 'Neo Custom Designer': 'navlNeoCustom',
   'Neo Bathroom Designer': 'navlNeoBathroom', 'Neo Laundry Designer': 'navlNeoLaundry', 'Neo TV Unit Designer': 'navlNeoTv', 'Neo Office Designer': 'navlNeoOffice',
   'Neo Doors Designer': 'navlNeoDoors', 'My designs & quotes →': 'navlNeoAccount',
@@ -16726,7 +16726,10 @@ function pageToPath(p) {
 function neoStudioPath(target) { const k = String(target).slice(4); return k === 'account' ? '/studio/account' : k ? '/studio/' + k : '/studio'; }
 // [ROOM-VIZ 2026-11-07] 'viz:<path>' = the Room Visualizer app (/visualizer/<path>)
 function vizPath(target) { const k = String(target).slice(4); return k ? '/visualizer/' + k : '/visualizer'; }
+// [YAS-BLOOM] 'yb:' = the virtual showroom (/yas-bloom, /ar/yas-bloom): its own app shell mounted by src/index.js, so it always loads as a full page
+function ybPath() { let ar = false; try { ar = localStorage.getItem('closets_lang') === 'ar'; } catch (e) { /* ignore */ } return ar ? '/ar/yas-bloom' : '/yas-bloom'; }
 function navToPath(target) {
+  if (target === 'yb:') return ybPath();
   if (typeof target === 'string' && target.startsWith('neo:')) return neoStudioPath(target);
   if (typeof target === 'string' && target.startsWith('viz:')) return vizPath(target);
   if (target === 'cat:Doors') return pageToPath('door-planner');
@@ -16809,9 +16812,10 @@ function AppInner() {
   const location = useLocation();
   const navigate = useNavigate();
   const page = pathToPage(location.pathname);
-  useEffect(() => { if (/^\/(studio|visualizer)(\/|$)/i.test(location.pathname)) window.location.reload(); }, [location.pathname]); // [WEB-STUDIO] the studio is its own app shell (src/index.js)
+  useEffect(() => { if (/^\/(studio|visualizer|yas-bloom|ar\/yas-bloom)(\/|$)/i.test(location.pathname)) window.location.reload(); }, [location.pathname]); // [WEB-STUDIO] the studio is its own app shell (src/index.js)
   const setPage = useCallback((p) => {
     if (typeof p === 'string' && p.startsWith('neo:')) { window.location.assign(neoStudioPath(p)); return; }   // [WEB-STUDIO] separate app shell
+    if (p === 'yb:') { window.location.assign(ybPath()); return; }   // [YAS-BLOOM] separate app shell
     if (typeof p === 'string' && p.startsWith('viz:')) { window.location.assign(vizPath(p)); return; }        // [ROOM-VIZ] separate app shell
     if (p != null) navigate(pageToPath(p));
   }, [navigate]);
