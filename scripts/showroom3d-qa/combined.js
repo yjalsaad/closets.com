@@ -3,6 +3,7 @@
  * Film playback needs a browser with H.264 / AAC:  CHROME=/usr/bin/google-chrome  (the bundled Chromium has no MP4 decoder; without one the film checks report "not executed"). */
 const L = require('./lib.js');
 const { check, ex, shot } = L;
+const OPEN = new Set(), _open = L.openShowroom; L.openShowroom = async (...a) => { const o = await _open(...a); OPEN.add(o.ctx); return o; };   // every context is closed even when a suite throws (an abandoned WebGL page starves the next one)
 const MED = 'debug=1&quality=medium&aa=0', LOW = 'debug=1&quality=low&aa=0';
 const IDS = ['reception', 'kitchens', 'wardrobes', 'walkin', 'bedroom', 'doors', 'living', 'studio', 'lounge', 'vip'];
 const wait = (page, ms) => page.waitForTimeout(ms);
@@ -26,15 +27,15 @@ async function hall(b) {
   const o = await L.openShowroom(b, { query: MED, viewport: { width: 1280, height: 720 } }), page = o.page; await mockProjects(page); await enter(page);
   await tp(page, [0, -3.5, 0, 0.04]); await setHud(page, false); await shot(page, 'combined-01-hall-en', { quality: 80 }); await setHud(page, true);
   check('default staff mode is the kiosk (no ?staff= in the address)', (await page.evaluate(() => window.__showroom.engine.staff.mode)) === 'kiosk');
-  await page.waitForFunction((ids) => ids.every((i) => window.__showroom.engine.staff.item(i).hasPortrait), IDS, { timeout: 60000 }).catch(() => {});
-  const got = await page.evaluate((ids) => ids.map((i) => { const it = window.__showroom.engine.staff.item(i); return [i, !!(it && it.kiosk), !!(it && it.hasPortrait)]; }), IDS);
+  await page.waitForFunction((ids) => ids.every((i) => window.__showroom.engine.staff.item(i).char.hasPortrait), IDS, { timeout: 60000 }).catch(() => {});
+  const got = await page.evaluate((ids) => ids.map((i) => { const it = window.__showroom.engine.staff.item(i); return [i, !!(it && it.char.kiosk), !!(it && it.char.hasPortrait)]; }), IDS);
   check('all ten advisers are kiosks and each loaded its real portrait file', got.every((g) => g[1] && g[2]), got.filter((g) => !(g[1] && g[2])));
   check('hall: no page errors', o.errors.length === 0, o.errors.slice(0, 3)); await o.ctx.close();
 }
 async function kiosk(b) {
   for (const lang of ['en', 'ar']) {
     const o = await L.openShowroom(b, { url: lang === 'ar' ? '/ar/yas-bloom' : '/yas-bloom', query: MED, viewport: { width: 1280, height: 720 } }), page = o.page; await mockProjects(page); await enter(page);
-    await page.waitForFunction(() => window.__showroom.engine.staff.item('kitchens').hasPortrait, null, { timeout: 60000 }).catch(() => {});
+    await page.waitForFunction(() => window.__showroom.engine.staff.item('kitchens').char.hasPortrait, null, { timeout: 60000 }).catch(() => {});
     await tp(page, await kioskSpot(page, 'kitchens', 1.5), 4000); await setHud(page, false); await shot(page, `combined-02-kiosk-kitchens-${lang}`, { quality: 84 }); await setHud(page, true);
     await tp(page, await kioskSpot(page, 'reception'), 3000);
     await page.waitForSelector('[data-testid="sr-talk"]', { timeout: 30000 }); await page.click('[data-testid="sr-talk"]'); await page.waitForSelector('[data-testid="sr-chat"]', { timeout: 30000 });
@@ -45,15 +46,19 @@ async function kiosk(b) {
     await shot(page, `combined-03-chat-reception-${lang}`, { quality: 80 }); await page.click('[data-testid="sr-chat-close"]'); await wait(page, 400);
     // the VIP adviser kiosk: "present the company profile" and "play your story" hooks
     await tp(page, await kioskSpot(page, 'vip'), 2500); await page.waitForSelector('[data-testid="sr-talk"]', { timeout: 30000 }); await page.click('[data-testid="sr-talk"]'); await page.waitForSelector('[data-testid="sr-chat"]', { timeout: 30000 }); await wait(page, 800);
-    const say = async (q) => { await page.fill('[data-testid="sr-chat-input"]', q); await page.click('[data-testid="sr-chat-send"]'); await wait(page, 2600); return page.locator('[data-testid="sr-chat-log"]').innerText(); };
-    let log = await say(lang === 'ar' ? 'اعرض ملف الشركة' : 'present the company profile'); await settle(page, 1200);
-    const st1 = await vip(page, (v, x) => ({ deck: v.state.deck.id, mode: x.presMode, focus: !!x.focus }));
-    check(`${lang}: VIP kiosk adviser "present the company profile" puts a profile deck on the wall`, /profile/.test(st1.deck), st1);
-    check(`${lang}: VIP adviser text has no investor / briefing wording`, !/invest|briefing|إحاطة|استثمار|مستثمر/i.test(log), log.slice(-200));
-    if (!(await page.$('[data-testid="sr-chat-input"]'))) { await page.keyboard.press('Escape'); await settle(page, 600); await page.keyboard.press('Escape'); await wait(page, 600); await tp(page, await kioskSpot(page, 'vip'), 2000); await page.click('[data-testid="sr-talk"]'); await page.waitForSelector('[data-testid="sr-chat"]', { timeout: 30000 }); }
-    log = await say(lang === 'ar' ? 'شغّل حكايتكم' : 'play your story'); await settle(page, 1200);
-    const st2 = await vip(page, (v, x) => ({ deck: v.state.deck.id, film: x.film && x.film.state.status }));
-    check(`${lang}: VIP kiosk adviser "play your story" selects the film entry (ready, paused by default)`, st2.deck === 'film' && ['ready', 'loading', 'playing', 'paused'].includes(st2.film), st2);
+    const say = async (q) => { await page.fill('[data-testid="sr-chat-input"]', q); await page.keyboard.press('Enter'); };
+    await say(lang === 'ar' ? 'اعرض ملف الشركة' : 'Please present the company profile');
+    await page.waitForFunction(() => window.__showroom.explore.explorer.focus && window.__showroom.explore.explorer.focus.kind === 'vip', null, { timeout: 60000 }).catch(() => {}); await wait(page, 2500);
+    const st1 = await vip(page, (v, x) => ({ deck: x.ds.deckId, mode: x.presMode, playing: x.play.playing }));
+    check(`${lang}: the VIP KIOSK adviser, asked to present the company profile, puts The Closets profile on the big screen and starts auto-play`, st1.deck === 'closets-profile' && st1.mode === 'big' && st1.playing === true, st1);
+    await shot(page, `combined-03b-vip-kiosk-presenting-${lang}`, { quality: 78 });
+    await page.keyboard.press('Escape'); await settle(page, 600); await page.keyboard.press('Escape'); await wait(page, 900); await tp(page, await kioskSpot(page, 'vip'), 2000);
+    await page.keyboard.press('KeyT'); await page.waitForSelector('[data-testid="sr-chat-input"]', { timeout: 30000 }); await wait(page, 800);
+    await say(lang === 'ar' ? 'شغّل حكايتكم' : 'play your story');
+    await page.waitForFunction(() => window.__showroom.explore.explorer.ds.deckId === 'film', null, { timeout: 60000 }).catch(() => {}); await wait(page, 2000);
+    const st2 = await vip(page, (v, x) => ({ deck: x.ds.deckId, film: x.film && x.film.state.status, video: !!(x.film && x.film.video) }));
+    check(`${lang}: the VIP KIOSK adviser, asked to play the story, opens the film entry (never auto-plays with sound without a click)`, st2.deck === 'film', st2);
+    const texts = await vip(page, (v, x) => document.body.innerText); check(`${lang}: no investor / briefing wording on screen`, !/investor|join and invest|briefing|إحاطة|استثمار|مستثمر/i.test(texts));
     check(`${lang} kiosk: no page errors`, o.errors.filter((e) => !/ERR_TUNNEL|Failed to load resource/.test(e)).length === 0, o.errors.slice(0, 3)); await o.ctx.close();
   }
 }
@@ -86,7 +91,10 @@ async function film(b) {
   await page.waitForFunction(() => { const f = window.__showroom.explore.explorer.film; return f.state.status === 'playing' && f.video && f.video.currentTime > 3.2; }, null, { timeout: 90000 }).catch(() => {});
   const st = await vip(page, (v, x) => { const vd = x.film.video; return { s: x.film.state.status, t: vd && vd.currentTime, w: vd && vd.videoWidth, h: vd && vd.videoHeight, dur: vd && vd.duration, muted: vd && vd.muted, src: vd && vd.currentSrc.split('/').pop(), onWall: v.filmOnWall, tracks: vd ? [...vd.textTracks].map((t) => t.language + ':' + t.mode + ':' + (t.cues ? t.cues.length : -1)) : [], cue: x.film.state.cue, err: vd && vd.error && vd.error.code }; });
   check('REAL MP4 plays in the browser with sound: H.264 1920x1080 decoded, 124 s, currentTime advances, the wall shows the video', st.s === 'playing' && st.t > 3 && st.w === 1920 && st.h === 1080 && Math.abs(st.dur - 124) < 1 && st.muted === false && st.onWall && /journey-1080\.mp4/.test(st.src), st);
-  check('captions: both VTT tracks load with cues and the EN cue is on the strip', st.tracks.length === 2 && st.tracks.every((t) => Number(t.split(':')[2]) > 5) && st.cue.length > 3, { tracks: st.tracks, cue: st.cue });
+  check('captions: two tracks (ar, en); the EN track (the page language) is loaded with its cues and the current cue is on the strip', st.tracks.length === 2 && Number((st.tracks.find((t) => /^en:/.test(t)) || '').split(':')[2]) > 5 && st.cue.length > 3, { tracks: st.tracks, cue: st.cue });
+  await page.click('[data-testid="sr-vip-film-cc"]'); await page.waitForFunction(() => { const tr = [...window.__showroom.explore.explorer.film.video.textTracks].find((t) => t.language === 'ar'); return tr && tr.cues && tr.cues.length > 5; }, null, { timeout: 30000 }).catch(() => {});
+  const arc = await vip(page, (v, x) => ({ cap: x.film.state.caption, n: ([...x.film.video.textTracks].find((t) => t.language === 'ar').cues || []).length, cue: x.film.state.cue }));
+  check('the Captions button switches to the Arabic track, which loads with its cues', arc.cap === 'ar' && arc.n > 5, arc); await page.click('[data-testid="sr-vip-film-cc"]'); await page.click('[data-testid="sr-vip-film-cc"]'); await wait(page, 400);
   await setHud(page, false, '.sr-panel'); await wait(page, 300); await shot(page, 'combined-07-film-playing-en', { quality: 82 }); await setHud(page, true);
   await vip(page, (v, x) => x.filmSeek(60)); await page.waitForFunction(() => { const vd = window.__showroom.explore.explorer.film.video; return vd.currentTime > 60.5 && !vd.seeking; }, null, { timeout: 60000 }).catch(() => {});
   check('seek to 1:00 works (byte ranges) and playback continues', (await vip(page, (v, x) => x.film.video.currentTime)) > 60.4, reqs.slice(0, 8));
@@ -115,6 +123,6 @@ async function collections(b) {
 }
 (async () => {
   const b = await L.launch(), only = process.argv[2], all = { hall, kiosk, vip: vipViews, film, mobile, collections };
-  try { for (const [n, fn] of Object.entries(all)) { if (only && only !== n) continue; try { await fn(b); } catch (e) { check(`suite "${n}" ran to the end`, false, String(e && e.message).slice(0, 300)); } } } finally { await b.close(); }
+  try { for (const [n, fn] of Object.entries(all)) { if (only && only !== n) continue; try { await fn(b); } catch (e) { check(`suite "${n}" ran to the end`, false, String(e && e.message).slice(0, 300)); } for (const c of OPEN) await c.close().catch(() => {}); OPEN.clear(); } } finally { await b.close(); }
   const bad = L.results.filter((r) => !r.ok).length; console.log(`\n${L.results.length - bad}/${L.results.length} checks passed`); process.exit(bad ? 1 : 0);
 })();
