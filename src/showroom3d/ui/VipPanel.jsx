@@ -8,7 +8,8 @@ import { MAX_USER_DECKS } from '../vip/deckStore';
 import { SlideBody } from './VipSlide';
 import { VipDeckDialog } from './VipDeckDialog';
 import { VipReader } from './VipReader';
-import { FilmBody, FilmControls, VipCinema } from './VipFilm';
+import { FilmBody, FilmControls, VipCinema, MeetingBody } from './VipFilm';
+import { nextAgendaItem } from '../vip/meeting';
 
 const reading0 = (e) => (e.presMode || 'panel') === 'read';
 const BUILTIN_IDX = { story: 0, projects: 1, hub: 2, contact: 3 };
@@ -70,7 +71,7 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
   useEffect(() => { if (headRef.current) headRef.current.focus({ preventScroll: true }); }, [st.focus, idx, deck.id]);
   useEffect(() => { setConfirmDel(false); }, [deck.id]);
   const rtl = lang === 'ar', unit = deck.unit === 'station' ? t('vipStationOf', lang) : t('vipSlideOf', lang), user = !deck.builtin, bi = raw.builtin ? BUILTIN_IDX[raw.builtin] : -1;
-  const isFilm = !!deck.film, fs = isFilm && ex.film ? ex.film.state : null;
+  const isFilm = raw.builtin === 'film', isAgenda = raw.builtin === 'meeting', fs = isFilm && ex.film ? ex.film.state : null, nextItem = ex.agendaNow && (ex.meetingOn || deck.meeting) ? nextAgendaItem(ex.agendaNow()) : null;
   const portrait = !!(ex.canvas && ex.canvas.clientWidth && ex.canvas.clientHeight / ex.canvas.clientWidth > 1.1), dom = reading0(ex) && portrait && !isFilm;
   const play = ex.play || { playing: false, speed: 1, loop: true }, mode = ex.presMode || 'panel', prog = typeof st.vipProgress === 'number' ? st.vipProgress : -1, big = mode !== 'panel', reading = mode === 'read';
   const cine = !!ex.cinema;
@@ -97,10 +98,12 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
             <button type="button" className="sr-btn sr-btn-line" onClick={() => setConfirmDel(false)} data-testid="sr-vip-deck-delete-no">{t('vipDeckKeep', lang)}</button></div>}
         </div>
       </header>
-      <div className="sr-panel-body" aria-live="polite">{isFilm ? <FilmBody lang={lang} fs={fs} /> : bi >= 0 ? <Station lang={lang} idx={bi} ex={ex} st={st} /> : <SlideBody key={deck.id + ':' + raw.id} lang={lang} slide={slide} reduced={reduced} tier={tier} />}</div>
+      <div className="sr-panel-body" aria-live="polite">{isAgenda ? <MeetingBody lang={lang} ex={ex} /> : isFilm ? <FilmBody lang={lang} fs={fs} fallbackTitle={raw.title} /> : bi >= 0 ? <Station lang={lang} idx={bi} ex={ex} st={st} /> : <SlideBody key={deck.id + ':' + raw.id} lang={lang} slide={slide} reduced={reduced} tier={tier} />}</div>
       <footer className="sr-panel-foot">
         {!big && raw.builtin === 'contact' && <a className="sr-btn sr-quote" href={C.contactUrl(lang)} data-testid="sr-vip-cta">{t('vipContactCta', lang)}</a>}
         {!big && raw.builtin === 'contact' && <p className="sr-note">{t('vipContactNote', lang)}</p>}
+        {nextItem && !isAgenda && <button type="button" className="sr-btn sr-vip-meet-next" onClick={() => ex.nextAgenda()} data-testid="sr-vip-meet-next">{t('meetNext', lang)}: {resolveDeck({ id: 'x', title: nextItem.title, slides: [] }, lang).title}{!touch && <kbd className="sr-kbd" aria-hidden="true">N</kbd>}</button>}
+        {isAgenda && big && <button type="button" className="sr-btn sr-vip-meet-next" onClick={() => ex.startMeeting()} data-testid="sr-vip-meet-start-bar">{t('meetStart', lang)}</button>}
         {isFilm && <FilmControls lang={lang} ex={ex} fs={fs} touch={touch} big={big} />}
         {!isFilm && <div className="sr-vip-present" role="group" aria-label={t('vipPresenter', lang)} data-testid="sr-vip-presenter">
           {big && <p className="sr-vip-pbar-title" data-testid="sr-vip-pbar-title">{deck.slides.length > 1 ? `${idx + 1} / ${n} · ` : ''}{slide.title}</p>}
@@ -114,7 +117,7 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
           {big && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setPresentMode('panel')} data-testid="sr-vip-exit-present">{t('vipPresentExit', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">Esc</kbd>}</button>}
           {(play.playing || big) && <div className="sr-vip-prog" role="progressbar" aria-label={t('vipProgress', lang)} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((prog >= 0 ? prog : 0) * 100)} data-testid="sr-vip-prog"><i style={{ '--p': prog >= 0 ? prog : 0 }} /></div>}
         </div>}
-        {!isFilm && <nav className="sr-vip-nav" aria-label={t('vipSlides', lang)}>
+        {(!isFilm || n > 1) && <nav className="sr-vip-nav" aria-label={t('vipSlides', lang)}>
           <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.stepStation(-1)} disabled={idx === 0} data-testid="sr-vip-prev">{t('vipPrev', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">{rtl ? '→' : '←'}</kbd>}</button>
           {n <= 8 ? <ol className="sr-vip-dots">{rd.slides.map((x, i) => <li key={x.id}><button type="button" className="sr-vip-dot" aria-label={`${unit} ${i + 1}: ${x.title}`} aria-current={i === idx ? 'step' : undefined} onClick={() => ex.setStation(i)} data-testid={'sr-vip-dot-' + i} /></li>)}</ol>
             : <label className="sr-vip-scrub"><span className="sr-vip-sronly">{t('vipSlides', lang)}</span><input type="range" min={1} max={n} step={1} value={idx + 1} onChange={(e) => ex.setStation(Number(e.target.value) - 1)} aria-label={t('vipSlides', lang)} aria-valuetext={`${unit} ${idx + 1} / ${n}: ${slide.title}`} data-testid="sr-vip-scrub" /></label>}

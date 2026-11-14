@@ -200,6 +200,7 @@ export function reply(input, ctx = {}) {
 
   // ---- free text intents, in priority order
   if (!n) return done('empty', AR(lang) ? 'تفضّل بالسؤال، أو اختر من الاقتراحات.' : 'Go ahead and ask, or pick one of the suggestions.');
+  if (has(n, [/\b(management meeting|start the meeting|begin the meeting|the meeting|agenda)\b/, 'اجتماع الاداره', 'ابدا الاجتماع', 'جدول الاعمال', 'الاجتماع'])) return presentReply(lang, mem, 'meeting');
   if (has(n, [/\b(film|video|documentary|your story|our story|the story|journey)\b/, 'فيلم', 'الفيلم', 'فيديو', 'حكايه', 'حكايتكم', 'حكايتنا', 'قصتكم', 'وثائقي'])) return presentReply(lang, mem, 'film');
   if (has(n, OFFTOPIC)) return done('offtopic', AR(lang) ? 'أعتذر، أنا هنا لأساعدك في خدمات ذا كلوزتس فقط: المطابخ والخزائن وغرف الملابس والأبواب وغيرها. بماذا أخدمك؟' : 'Sorry, I can only help with The Closets Co. and its services: kitchens, wardrobes, walk-in closets, doors and more. What can I help you with?');
   if (has(n, [/\b(take me|bring me|walk me|guide me|lead me|go to|show me the|where is|where are|how do i get)\b/, 'خذني', 'اوصلني', 'خذنا', 'وين', 'اين', 'ارني', 'وجهني'])) { const r = detectRoom(n); if (r) return goReply(lang, mem, r); return done('goto', AR(lang) ? 'إلى أي غرفة أخذك؟' : 'Which room shall I take you to?', [...roomChips(), chip('#go:vip', 'VIP Meeting Room', 'غرفة الاجتماعات VIP'), chip('#go:studio', 'Custom Studio', 'استوديو التصميم'), chip('#go:lounge', 'Consultation Lounge', 'صالة الاستشارات')]); }
@@ -272,12 +273,14 @@ function contactReply(lang, mem, here) {
 const PRESENTABLE = [
   { id: 'closets-profile', name: { en: 'The Closets company profile', ar: 'ملف شركة ذا كلوزتس' }, kw: [/\b(closets|company|factory|profile)\b/, 'ذا كلوزتس', 'ملف الشركة', 'المصنع'] },
   { id: 'yas-profile', name: { en: 'the YAS Wood profile', ar: 'ملف YAS Wood' }, kw: [/\b(yas|wood|decor\w*|panels?|laminates?)\b/, 'ياس', 'الواح', 'ألواح'] },
+  { id: 'meeting', meeting: true, name: { en: 'the management meeting', ar: 'اجتماع الإدارة' }, kw: [/\b(meeting|agenda)\b/, 'اجتماع'] },
   { id: 'film', film: true, name: { en: 'our story (the film)', ar: 'حكايتنا (الفيلم)' }, kw: [/\b(film|movie|video|story)\b/, 'فيلم', 'حكايه'] },
   { id: 'default', name: { en: 'the company presentation', ar: 'عرض الشركة' }, kw: [/\b(overview|stations?|vip)\b/, 'نظره عامه', 'المحطات'] },
 ];
 function presentReply(lang, mem, id) {
   const d = PRESENTABLE.find((x) => x.id === id) || PRESENTABLE[0]; mem.room = 'vip';
-  const others0 = PRESENTABLE.filter((x) => x.id !== id).map((x) => chip('#present:' + x.id, (x.film ? 'Play ' : 'Present ') + x.name.en, (x.film ? 'شغّل ' : 'اعرض ') + x.name.ar));
+  const others0 = PRESENTABLE.filter((x) => x.id !== id).map((x) => chip('#present:' + x.id, (x.film ? 'Play ' : x.meeting ? 'Start ' : 'Present ') + x.name.en, (x.film ? 'شغّل ' : x.meeting ? 'ابدأ ' : 'اعرض ') + x.name.ar));
+  if (d.meeting) return { intent: 'meeting', text: AR(lang) ? 'بكل سرور، لنبدأ اجتماع الإدارة. سأفتح جدول الأعمال على الشاشة الكبيرة: فيلما الشركة أولًا ثم العروض التقديمية. اضغط «ابدأ الاجتماع» ليبدأ الفيلم الأول بالصوت.' : 'With pleasure, let us start the management meeting. I will open the agenda on the big screen: our two company films first, then the presentations. Press "Start meeting" and the first film plays with sound.', chips: [chip('#present:closets-profile', 'Present the company profile', 'اعرض ملف الشركة'), chip('#book', 'Book a free consultation', 'احجز استشارة مجانية')], actions: [], memory: mem, askAi: false, auto: { type: 'present', deck: 'meeting' } };
   if (d.film) return { intent: 'film', text: AR(lang) ? 'بكل سرور، دعني أشغّل حكايتنا. سأفتح الفيلم على الشاشة الكبيرة في غرفة الاجتماعات VIP؛ اضغط «شغّل الفيلم» ليبدأ بالصوت. الصور فيه توضيحية مولَّدة بالذكاء الاصطناعي.' : 'With pleasure, let me play our story. I will open the film on the big screen in the VIP Meeting Room; press "Play film" and it starts with sound. Its pictures are AI-generated illustrations.', chips: [...others0, chip('#book', 'Book a free consultation', 'احجز استشارة مجانية')], actions: [], memory: mem, askAi: false, auto: { type: 'present', deck: 'film' } };
   const text = AR(lang)
     ? `بكل سرور، سأعرض ${pick(d.name, lang)} على الشاشة الكبيرة في غرفة الاجتماعات VIP. المحتوى من الملفات التي قدمتها الإدارة، وتذكر كل شريحة صفحة مصدرها. ` + pick(DISCLAIMER, lang)
@@ -287,9 +290,9 @@ function presentReply(lang, mem, id) {
 }
 function vipReply(lang, mem) {
   const st = STATIONS.map((s, i) => `${AR(lang) ? '' : ''}• ${pick(s.title, lang)}`);
-  const text = [AR(lang) ? 'في غرفة الاجتماعات VIP أربع محطات، إضافة إلى عرضين لملف الشركة:' : 'The VIP Meeting Room has four stations, plus two company-profile presentations:', ...st, AR(lang) ? 'لا أستطيع الحديث عن أرقام أو عوائد أو وعود؛ تُناقَش أي تفاصيل مباشرة مع الإدارة. ' + pick(DISCLAIMER, lang) : 'I cannot speak about figures, returns or promises; any details are discussed directly with management. ' + pick(DISCLAIMER, lang)].join('\n');
+  const text = [AR(lang) ? 'غرفة الاجتماعات VIP تبدأ باجتماع الإدارة (فيلما الشركة ثم العروض). في عرض الشركة أربع محطات، إضافة إلى عرضين لملف الشركة:' : 'The VIP Meeting Room opens with the Management meeting (our two company films, then the presentations). The company presentation has four stations, plus two company-profile presentations:', ...st, AR(lang) ? 'لا أستطيع الحديث عن أرقام أو عوائد أو وعود؛ تُناقَش أي تفاصيل مباشرة مع الإدارة. ' + pick(DISCLAIMER, lang) : 'I cannot speak about figures, returns or promises; any details are discussed directly with management. ' + pick(DISCLAIMER, lang)].join('\n');
   mem.room = 'vip';
-  return { intent: 'vip', text, chips: [chip('#go:vip', 'Take me to the VIP room', 'خذني إلى غرفة VIP'), chip('#present:closets-profile', 'Present the company profile', 'اعرض ملف الشركة'), chip('#present:film', 'Watch our story', 'شاهد حكايتنا'), chip('#book', 'Book a free consultation', 'احجز استشارة مجانية'), chip('#services', 'What do you offer?', 'ما الذي تقدمونه؟')], actions: [], memory: mem, askAi: false, auto: null };
+  return { intent: 'vip', text, chips: [chip('#go:vip', 'Take me to the VIP room', 'خذني إلى غرفة VIP'), chip('#present:meeting', 'Start the management meeting', 'ابدأ اجتماع الإدارة'), chip('#present:closets-profile', 'Present the company profile', 'اعرض ملف الشركة'), chip('#present:film', 'Watch our story', 'شاهد حكايتنا'), chip('#book', 'Book a free consultation', 'احجز استشارة مجانية'), chip('#services', 'What do you offer?', 'ما الذي تقدمونه؟')], actions: [], memory: mem, askAi: false, auto: null };
 }
 function greetReply(lang, mem, staff) {
   const nm = staff && staff.name ? pick(staff.name, lang) : '';

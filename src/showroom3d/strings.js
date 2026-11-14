@@ -132,6 +132,14 @@ export const STRINGS = {
   vipAutoplay: { en: 'Auto-play', ar: 'عرض تلقائي' },
   vipPresentKeys: { en: 'P or Space play / pause, B big screen, Z reading mode, F full screen, R speed, L loop', ar: 'P أو المسافة تشغيل / إيقاف، B الشاشة الكبيرة، Z وضع القراءة، F ملء الشاشة، R السرعة، L التكرار' },
   chatPresent: { en: 'Present the company profile', ar: 'اعرض ملف الشركة' },
+  // Management meeting
+  meetStart: { en: 'Start meeting', ar: 'ابدأ الاجتماع' },
+  meetNext: { en: 'Next agenda item', ar: 'البند التالي' },
+  meetAgenda: { en: 'Agenda', ar: 'جدول الأعمال' },
+  meetIntro: { en: 'Our two company films first, then the presentations. Nothing plays until you press a button.', ar: 'فيلما الشركة أولًا ثم العروض التقديمية. لا يُعرض شيء حتى تضغط زرًّا.' },
+  meetReal: { en: 'Company film', ar: 'فيلم الشركة' },
+  filmHintReal: { en: 'Nothing downloads until you press Play. The film plays with sound.', ar: 'لا يُحمَّل شيء حتى تضغط تشغيل. يُعرض الفيلم بالصوت.' },
+  filmBurned: { en: 'Arabic and English subtitles are part of the picture.', ar: 'الترجمة العربية والإنجليزية جزء من الصورة.' },
   // FILM mode ("Watch our story")
   filmPlay: { en: 'Play film', ar: 'شغّل الفيلم' },
   filmPause: { en: 'Pause film', ar: 'أوقف الفيلم مؤقتًا' },

@@ -8,17 +8,19 @@ import { str, arr, isObj } from '../siteBridge';
 import { cleanText } from './deckSchema';
 
 export const FILM_DECK_ID = 'film';
-export const FILM_MANIFEST_URL = '/yas-bloom/film/film.json';
+export const FILM_MANIFEST_URL = '/yas-bloom/film/film.json';          // the single-film manifest the AI documentary ships with
+export const FILMS_MANIFEST_URL = '/yas-bloom/film/films.json';        // the list of films (the owner's real films first)
+export const JOURNEY_ID = 'journey';
 export const FILM_TITLE = { en: 'The Closets: The Journey of Ambition', ar: 'الخزائن: حكاية طموح' };
 export const FILM_ENTRY = { en: 'Watch our story', ar: 'شاهد حكايتنا' };
 export const FILM_AI_LABEL = { en: 'AI-generated illustration', ar: 'صور توضيحية مولَّدة بالذكاء الاصطناعي' };
 export const FILM_SOON = { en: 'Film coming soon', ar: 'الفيلم قريبًا' };
-const FILM_PATH = /^\/yas-bloom\/film\/[A-Za-z0-9._-]+\.(mp4|webm|jpg|jpeg|webp|png|vtt)$/;
+const FILM_PATH = /^\/yas-bloom\/film\/[A-Za-z0-9._-]+\.(mp4|webm|jpg|jpeg|webp|png|vtt|json)$/;
 const ext = (p) => p.slice(p.lastIndexOf('.') + 1).toLowerCase();
 export const filmPath = (v, kinds) => { const s = str(v, '').trim(); return FILM_PATH.test(s) && !s.includes('..') && kinds.includes(ext(s)) ? s : ''; };
 
 /** the film as a one-slide pseudo-deck, so the picker, the wall chips, the keys and the adviser treat it like any other entry */
-export const FILM_DECK = { id: FILM_DECK_ID, unit: 'slide', builtin: true, film: true, title: FILM_ENTRY, slides: [{ id: 'film', builtin: 'film', disclaimer: true, title: FILM_TITLE }] };
+export const FILM_DECK = { id: FILM_DECK_ID, unit: 'slide', builtin: true, film: true, title: FILM_ENTRY, slides: [{ id: 'film', builtin: 'film', filmId: 'journey', disclaimer: true, title: FILM_TITLE }] };
 
 /** -> { ok, film, error }. film = { title: {en, ar}, durationSec, sources: [{src, width, height, bytes}] (largest first), poster, captions: [{lang, src}], note } */
 export function parseFilmManifest(raw) {
@@ -27,16 +29,18 @@ export function parseFilmManifest(raw) {
   const sources = arr(j.sources).map((s) => (isObj(s) ? { src: filmPath(s.src, ['mp4', 'webm']), width: Number(s.width) || 0, height: Number(s.height) || 0, bytes: Number(s.bytes) || 0 } : null))
     .filter((s) => s && s.src && s.width >= 0 && s.height >= 0 && Number.isFinite(s.width) && Number.isFinite(s.height)).slice(0, 6).sort((a, b) => b.height - a.height);
   if (!sources.length) return { ok: false, film: null, error: 'no-sources' };
-  const t = isObj(j.title) ? j.title : {}, en = cleanText(t.en, 90) || FILM_TITLE.en, ar = cleanText(t.ar, 90) || FILM_TITLE.ar;
+  const t = isObj(j.title) ? j.title : {}, en = cleanText(t.en, 90) || cleanText(t.ar, 90) || FILM_TITLE.en, ar = cleanText(t.ar, 90) || (t.en ? cleanText(t.en, 90) : FILM_TITLE.ar);
   const captions = []; for (const c of arr(j.captions)) { const lang = isObj(c) && (c.lang === 'ar' || c.lang === 'en') ? c.lang : '', src = isObj(c) ? filmPath(c.src, ['vtt']) : ''; if (lang && src && !captions.some((x) => x.lang === lang)) captions.push({ lang, src }); }
   const d = Number(j.durationSec);
-  return { ok: true, error: null, film: { title: { en, ar }, durationSec: Number.isFinite(d) && d > 0 && d < 7200 ? d : 0, sources, poster: filmPath(j.poster, ['jpg', 'jpeg', 'webp', 'png']), captions, note: cleanText(isObj(j.notes) ? j.notes.label || j.notes.en : j.notes, 160) } };
+  const realFlag = j.real === true;
+  return { ok: true, error: null, film: { real: realFlag, burnedSubtitles: j.burnedSubtitles === true, title: { en, ar }, durationSec: Number.isFinite(d) && d > 0 && d < 7200 ? d : 0, sources, poster: filmPath(j.poster, ['jpg', 'jpeg', 'webp', 'png']), captions, note: cleanText(isObj(j.notes) ? j.notes.label || j.notes.en : j.notes, 160) } };
 }
-/** the smaller file (<= 720 lines) on phones and on the low tier; otherwise the best one up to 1080 lines. Falls back to whatever exists. */
+/** phones and data saver: the lightest file (fewest bytes; the mobile variant). Low tier: the best file up to 720 lines. Otherwise the best file up to 1080 lines. Falls back to whatever exists. */
 export function pickSource(sources, { tier = 'medium', mobile = false, saveData = false } = {}) {
   const list = arr(sources).filter((s) => s && s.src); if (!list.length) return null;
-  const cap = mobile || tier === 'low' || saveData ? 720 : 1080, sorted = list.slice().sort((a, b) => b.height - a.height);
-  return sorted.find((s) => s.height && s.height <= cap) || sorted[sorted.length - 1];
+  const best = (cap) => { const ok = list.filter((s) => s.height && s.height <= cap).sort((a, b) => b.height - a.height || (b.bytes || 0) - (a.bytes || 0)); return ok[0] || list.slice().sort((a, b) => (a.height || 1e9) - (b.height || 1e9))[0]; };
+  if (mobile || saveData) { const known = list.filter((s) => s.bytes > 0).sort((a, b) => a.bytes - b.bytes); return known.length === list.length ? known[0] : best(720); }
+  return best(tier === 'low' ? 720 : 1080);
 }
 /** caption choices in the order the Captions button cycles them: the page language first (the narration is Arabic, so English readers get English captions and Arabic readers Arabic ones), then the other language, then off */
 export function captionCycle(captions, lang) {
@@ -46,6 +50,26 @@ export const defaultCaption = (captions, lang) => captionCycle(captions, lang)[0
 export const nextCaption = (captions, lang, cur) => { const c = captionCycle(captions, lang), i = c.indexOf(cur); return c[(i + 1) % c.length]; };
 export const fmtTime = (s) => { const t = Math.max(0, Math.floor(Number(s) || 0)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
 
+/** A LIST of films. Accepts both shapes: { films: [ { id, title, sources, poster, captions, real, order, durationSec, burnedSubtitles } | { id, manifest: "/yas-bloom/film/film.json", real, order } ] }
+ *  and the older single-film manifest (it becomes one entry, id "journey", real: false).
+ *  -> { ok, films: [ { id, order, real, ref (a manifest still to be read) | film (parsed) } ] sorted: real films first, then by order; AI-generated ones last } */
+export function parseFilmsManifest(raw) {
+  let j = raw; if (typeof raw === 'string') { try { j = JSON.parse(raw); } catch (e) { return { ok: false, films: [], error: 'not-json' }; } }
+  if (!isObj(j)) return { ok: false, films: [], error: 'not-object' };
+  if (!Array.isArray(j.films)) { const one = parseFilmManifest(j); return one.ok ? { ok: true, error: null, films: [{ id: JOURNEY_ID, order: 99, real: false, film: { ...one.film, real: false } }] } : { ok: false, films: [], error: one.error }; }
+  const out = [], seen = new Set();
+  for (const f of j.films.slice(0, 12)) {
+    if (!isObj(f)) continue; const id = str(f.id, '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40); if (!id || seen.has(id)) continue;
+    const real = f.real === true, order = Number.isFinite(Number(f.order)) ? Number(f.order) : 50, ref = filmPath(f.manifest, ['json']);
+    if (ref) { seen.add(id); out.push({ id, order, real, ref }); continue; }
+    const one = parseFilmManifest(f); if (!one.ok) continue; seen.add(id); out.push({ id, order, real, film: { ...one.film, real } });
+  }
+  out.sort((a, b) => (a.real === b.real ? a.order - b.order : a.real ? -1 : 1));
+  return out.length ? { ok: true, error: null, films: out } : { ok: false, films: [], error: 'no-films' };
+}
+/** the label a film must carry: only films that are NOT real footage are marked "AI-generated illustration" */
+export const filmLabel = (film) => (film && film.real === true ? null : FILM_AI_LABEL);
+
 // ---------------------------------------------------------------- what the screen shows
 /** status: 'idle' (nothing asked yet) | 'loading' (manifest) | 'ready' (poster, paused: a user gesture starts it) | 'playing' | 'paused' | 'ended' | 'missing' (no manifest or no playable file: "Film coming soon") */
 export const initFilm = () => ({ status: 'idle', film: null, time: 0, duration: 0, volume: 1, muted: false, caption: 'off', cue: '', src: '' });
@@ -53,6 +77,7 @@ export function filmReducer(st, a) {
   switch (a.type) {
     case 'load': return st.status === 'idle' ? { ...st, status: 'loading' } : st;
     case 'manifest': { const r = parseFilmManifest(a.raw); if (!r.ok) return { ...st, status: 'missing', film: null }; const src = pickSource(r.film.sources, a.device || {}); return { ...st, status: 'ready', film: r.film, duration: r.film.durationSec, src: src ? src.src : '', caption: defaultCaption(r.film.captions, a.lang) }; }
+    case 'select': { if (!a.film) return { ...initFilm(), status: 'missing', volume: st.volume, muted: st.muted, id: a.id || '' }; const src = pickSource(a.film.sources, a.device || {}); return { ...initFilm(), status: src ? 'ready' : 'missing', film: a.film, id: a.id || '', duration: a.film.durationSec, src: src ? src.src : '', caption: defaultCaption(a.film.captions, a.lang), volume: st.volume, muted: st.muted }; }   // one film of the list is put on the screen (paused)
     case 'missing': return { ...st, status: 'missing', cue: '' };                       // manifest 404 / not JSON / the video element reported an error
     case 'play': return st.film && st.status !== 'missing' ? { ...st, status: 'playing' } : st;
     case 'pause': return st.status === 'playing' ? { ...st, status: 'paused', cue: st.cue } : st;
