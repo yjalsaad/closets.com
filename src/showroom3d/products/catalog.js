@@ -170,7 +170,7 @@ export const PRODUCTS = {
     views: [
       { id: 'overview', label: { en: 'Whole room', ar: 'الغرفة كاملة' }, pos: [3.9, 1.6, 0.0], look: [-2.2, 1.2, 0.0], fov: 56 },
       { id: 'tv', label: { en: 'TV unit', ar: 'وحدة التلفاز' }, pos: [1.3, 1.9, 0.0], look: [-2.6, 1.0, 0.0], fov: 50 },
-      { id: 'display', label: { en: 'Display cabinet', ar: 'خزانة العرض' }, pos: [0.0, 1.5, 1.9], look: [-2.6, 1.3, 2.5], fov: 48 },
+      { id: 'display', label: { en: 'Display cabinet', ar: 'خزانة العرض' }, pos: [0.3, 2.0, 1.3], look: [-2.6, 1.3, 2.5], fov: 50 },
       { id: 'lounge', label: { en: 'Seating and console', ar: 'الجلوس والكونسول' }, pos: [3.5, 1.7, 2.6], look: [-0.4, 0.5, -0.3], fov: 56 },
     ],
   },
