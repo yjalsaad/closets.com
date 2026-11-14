@@ -10,12 +10,12 @@ import { clamp01, easeOutCubic, stagger, countValue, formatNumber } from '../../
 
 const Lx = C.L;
 /** small drawing toolkit bound to a canvas context + language */
-function kit(g, w, h, lang) {
+function kit(g, w, h, lang, rec = null) {
   const rtl = lang === 'ar', al = rtl ? 'right' : 'left';
   return {
     rtl, al, mx: (x) => (rtl ? w - x : x), L: (o) => Lx(o, lang),
-    text(s, x, y, { size = 28, weight = 400, color = P.sand, align = al, max } = {}) { g.font = `${weight} ${size}px ${FONT}`; g.fillStyle = typeof color === 'string' ? color : hex(color); g.textAlign = align; g.textBaseline = 'alphabetic'; if (max) { g.save(); g.fillText(s, x, y, max); g.restore(); } else g.fillText(s, x, y); },
-    para(s, x, y, maxW, { size = 26, weight = 400, color = P.taupe, lh = size * 1.4, align = al } = {}) { g.font = `${weight} ${size}px ${FONT}`; g.fillStyle = hex(color); return wrap(g, s, x, y, maxW, lh, align); },
+    text(s, x, y, { size = 28, weight = 400, color = P.sand, align = al, max } = {}) { if (rec) rec.push({ k: 'text', s: String(s), size, weight, x, y, align, max: max || 0, color: typeof color === 'number' ? color : undefined }); g.font = `${weight} ${size}px ${FONT}`; g.fillStyle = typeof color === 'string' ? color : hex(color); g.textAlign = align; g.textBaseline = 'alphabetic'; if (max) { g.save(); g.fillText(s, x, y, max); g.restore(); } else g.fillText(s, x, y); },
+    para(s, x, y, maxW, { size = 26, weight = 400, color = P.taupe, lh = size * 1.4, align = al } = {}) { g.font = `${weight} ${size}px ${FONT}`; g.fillStyle = hex(color); const y1 = wrap(g, s, x, y, maxW, lh, align); if (rec) rec.push({ k: 'para', s: String(s), size, weight, x, y, y1, maxW, align, color }); return y1; },
     bg(a = P.screenDark, b = P.ink) { const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, hex(a)); gr.addColorStop(1, hex(b)); g.fillStyle = gr; g.fillRect(0, 0, w, h); g.strokeStyle = rgba(P.screenGlow, 0.05); g.lineWidth = 1; for (let x = 0; x < w; x += 64) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); } for (let y = 0; y < h; y += 64) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); } },
     card(x, y, cw, ch, { fill = rgba(P.sand, 0.06), line = rgba(P.sand, 0.18), dash = false, r = 14 } = {}) { roundedRect(g, x, y, cw, ch, r); g.fillStyle = fill; g.fill(); g.strokeStyle = line; g.lineWidth = 2; g.setLineDash(dash ? [10, 7] : []); g.stroke(); g.setLineDash([]); },
     rule(x, y, len, color = P.brandOrange) { g.fillStyle = hex(color); g.fillRect(rtl ? x - len : x, y, len, 5); },
@@ -163,93 +163,101 @@ function drawCover(g, im, x, y, w, h, scale = 1, pan = 0.5, r = 14) {
   g.drawImage(im, x - (iw - w) * pan, y - (ih - h) * 0.5, iw, ih); g.restore();
 }
 const YEAR = /^(\d{4}):\s*(.*)$/;
+/** LEGIBILITY SCALE of the generic slides (design units of the 1536 x 864 wall, i.e. % of the screen height): title 66 (7.6 %), lead 38 (4.4 %), bullets 30-34 (3.5-3.9 %), table / stat labels 28-30,
+ *  captions 24, source + illustrative labels 22, disclaimer 22. Weights 600+ (no thin type), no squeezed text (no maxWidth), safe margins 70 px (sides) and 52 px (bottom). Tested by
+ *  __tests__/vipLegibility.test.js against every slide of every committed deck in both languages. */
+export const TYPE = { title: 66, hero: 80, lead: 38, bullet: [34, 32, 30], cell: 30, stat: 28, caption: 24, meta: 22, fine: 22, stamp: 26, safeX: 70, safeBottom: 52, bodyBottom: 724 };
+const bulletSize = (n) => (n <= 4 ? TYPE.bullet[0] : n <= 6 ? TYPE.bullet[1] : TYPE.bullet[2]);
 /** one generic slide (imported / saved / profile decks): title, lead, bullets, image / table / bar / stat blocks, source + illustrative labels, the disclaimer in the footer.
  *  Layouts: split (default), hero (first image full-bleed, title over it), duo (two images side by side).
- *  o: { lang, slide (resolved), index, count, deckTitle, images: Map url -> HTMLImageElement, anim?: { t seconds since the slide appeared, level (vip/motion.js motionLevel) } }
+ *  o: { lang, slide (resolved), index, count, deckTitle, images: Map url -> HTMLImageElement, anim?: { t seconds since the slide appeared, level (vip/motion.js motionLevel) }, metrics?: [] (collects every text drawn) }
  *  Without `anim` the slide is drawn in its final state (tests, reduced motion). */
 export function drawSlide(g, w, h, o) {
-  const k = kit(g, w, h, o.lang), { lang, slide: s } = o, A = o.anim || null, lv = A && A.level && A.level.on ? A.level : null, t = A && lv ? A.t : 99;
+  const k = kit(g, w, h, o.lang, o.metrics || null), { lang, slide: s } = o, A = o.anim || null, lv = A && A.level && A.level.on ? A.level : null, t = A && lv ? A.t : 99, X = TYPE.safeX;
   const accent = ACCENT[s.accent] !== undefined ? ACCENT[s.accent] : P.brandOrange, imgs = (s.blocks || []).filter((b) => b.type === 'image'), others = (s.blocks || []).filter((b) => b.type !== 'image');
   const rev = (i, base = 0) => (lv && lv.stagger ? stagger(t, i, { delay: 0.3 + base }) : 1);
   const kb = lv && lv.kenBurns ? 1 + 0.07 * clamp01(t / 16) : 1, pan = lv && lv.kenBurns ? 0.5 + 0.35 * Math.sin(clamp01(t / 16) * Math.PI * 0.5) * (k.rtl ? -1 : 1) : 0.5;
   const word = lang === 'ar' ? 'الشريحة' : 'SLIDE', of = lang === 'ar' ? 'من' : 'OF', stamp = `${o.deckTitle} · ${word} ${o.index + 1} ${of} ${o.count}`;
   const tags = [s.illustrative || (s.blocks || []).some((b) => b.illustrative) ? Lx(C.ILLUSTRATIVE, lang) : '', s.source ? (lang === 'ar' ? 'المصدر: ' : 'Source: ') + s.source : '', ...(s.blocks || []).filter((b) => b.source && b.source !== s.source).map((b) => (lang === 'ar' ? 'المصدر: ' : 'Source: ') + b.source)].filter(Boolean);
-  const drawTags = (y0) => tags.slice(0, 2).forEach((tt, i) => k.text(tt, k.mx(70), y0 + i * 26, { size: 19, color: P.brassPale, max: w - 140 }));
+  const tagsAndFine = (hero) => {   // source / illustrative labels and the disclaimer: wrapped, never squeezed
+    let y = h - TYPE.safeBottom - 40; if (hero) { g.fillStyle = 'rgba(10,8,6,0.55)'; g.fillRect(0, y - 70, w, 140); }
+    k.para(Lx(C.DISCLAIMER, lang), k.mx(X), h - TYPE.safeBottom + 6, w - 2 * X, { size: TYPE.fine, weight: 500, color: P.sand, lh: 28 });
+    tags.slice(0, 2).reverse().forEach((tt, i) => { k.para(tt, k.mx(X), y - i * 30, w - 2 * X, { size: TYPE.meta, weight: 600, color: P.brassPale, lh: 28 }); });
+  };
   const titleIn = (fn) => { const e = lv ? easeOutCubic(t / 0.5) : 1; g.save(); g.globalAlpha = e; g.translate((1 - e) * 46 * (k.rtl ? -1 : 1), 0); fn(); g.restore(); };
   const bulletRow = (b, x, y, maxW, size, e) => {   // one bullet (a "2013: ..." line gets the year in the accent colour); returns the next y
-    g.save(); g.globalAlpha = e; g.translate(0, (1 - e) * 22); const m = YEAR.exec(b); let ny;
-    if (m) { k.text(m[1], k.rtl ? x : x, y + size * 0.1, { size: size + 4, weight: 800, color: accent, align: k.al }); ny = k.para(m[2], k.rtl ? x - 96 : x + 96, y + size * 0.1, maxW - 96, { size, weight: 500, color: P.sand, lh: size * 1.3 }) + 10; }
-    else { g.fillStyle = hex(accent); g.beginPath(); g.arc(k.rtl ? x + 6 : x - 22 + 8, y - size * 0.22, 6, 0, Math.PI * 2); g.fill(); ny = k.para(b, x, y, maxW, { size, weight: 500, color: P.sand, lh: size * 1.3 }) + 10; }
+    g.save(); g.globalAlpha = e; g.translate(0, (1 - e) * 22); const m = YEAR.exec(b), yw = Math.round(size * 2.7); let ny;
+    if (m) { k.text(m[1], x, y, { size, weight: 800, color: accent, align: k.al }); ny = k.para(m[2], k.rtl ? x - yw : x + yw, y, maxW - yw, { size, weight: 600, color: P.sand, lh: size * 1.3 }) + 8; }
+    else { g.fillStyle = hex(accent); g.beginPath(); g.arc(k.rtl ? x + 18 : x - 18, y - size * 0.3, 7, 0, Math.PI * 2); g.fill(); ny = k.para(b, x, y, maxW, { size, weight: 600, color: P.sand, lh: size * 1.3 }) + 8; }
     g.restore(); return ny;
   };
+  const head = () => { k.rule(k.mx(X), 32, 90); g.fillStyle = hex(accent); g.fillRect(k.rtl ? w - X - 90 : X, 32, 90, 5); k.text(stamp, k.mx(X), 76, { size: TYPE.stamp, weight: 600, color: P.brassPale }); };
 
   if (s.layout === 'hero' && imgs.length) {   // ---------------- hero: full-bleed photo, gradient, title bottom-start
     const b = imgs[0], im = o.images && o.images.get(b.url); g.fillStyle = hex(P.ink); g.fillRect(0, 0, w, h);
-    if (im && im.width) drawCover(g, im, 0, 0, w, h, kb, pan, 0); else { k.bg(); k.para(b.alt || '', w / 2, h / 2, w * 0.6, { size: 26, color: P.taupe, align: 'center', lh: 32 }); }
-    const gr = g.createLinearGradient(0, h * 0.28, 0, h); gr.addColorStop(0, 'rgba(10,8,6,0)'); gr.addColorStop(0.62, 'rgba(10,8,6,0.78)'); gr.addColorStop(1, 'rgba(10,8,6,0.94)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
-    k.text(stamp, k.mx(70), 70, { size: 24, weight: 600, color: P.brassPale, max: w * 0.7 }); g.fillStyle = hex(accent); g.fillRect(k.rtl ? w - 70 - 90 : 70, 32, 90, 5);
-    let y = h - 300; const bl = s.bullets.slice(0, 3);
-    titleIn(() => { y = k.para(s.title, k.mx(70), y, w - 160, { size: 78, weight: 800, color: P.sand, lh: 84 }); });
-    if (s.lead) { g.save(); g.globalAlpha = rev(0, 0.1); y = k.para(s.lead, k.mx(70), y + 6, w * 0.78, { size: 36, weight: 600, color: accent, lh: 46 }); g.restore(); }
-    bl.forEach((bt, i) => { y = bulletRow(bt, k.mx(70) + (k.rtl ? -22 : 22), y + 4, w * 0.7, 26, rev(i + 1)); });
-    drawTags(h - 150); footer(k, w, h, lang, null); return;
+    if (im && im.width) drawCover(g, im, 0, 0, w, h, kb, pan, 0); else { k.bg(); k.para(b.alt || '', w / 2, h / 2, w * 0.6, { size: 30, weight: 600, color: P.sand, align: 'center', lh: 38 }); }
+    const gr = g.createLinearGradient(0, h * 0.2, 0, h); gr.addColorStop(0, 'rgba(10,8,6,0)'); gr.addColorStop(0.5, 'rgba(10,8,6,0.82)'); gr.addColorStop(1, 'rgba(10,8,6,0.96)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    g.fillStyle = 'rgba(10,8,6,0.55)'; g.fillRect(0, 0, w, 100); head();
+    let y = 410; titleIn(() => { y = k.para(s.title, k.mx(X), y, w - 2 * X, { size: TYPE.hero, weight: 800, color: P.sand, lh: 88 }); });
+    if (s.lead) { g.save(); g.globalAlpha = rev(0, 0.1); y = k.para(s.lead, k.mx(X), y + 4, w - 2 * X, { size: TYPE.lead, weight: 600, color: accent, lh: 50 }); g.restore(); }
+    s.bullets.slice(0, 2).forEach((bt, i) => { y = bulletRow(bt, k.mx(X) + (k.rtl ? -22 : 22), y + 8, w - 2 * X - 44, 32, rev(i + 1)); });
+    tagsAndFine(true); return;
   }
 
-  k.bg(); k.rule(k.mx(70), 32, 90); g.fillStyle = hex(accent); g.fillRect(k.rtl ? w - 70 - 90 : 70, 32, 90, 5);
-  k.text(stamp, k.mx(70), 70, { size: 24, weight: 600, color: P.brassPale, max: w * 0.6 });
-  let ty = 0; titleIn(() => { ty = k.para(s.title, k.mx(70), 136, w - 140 - 120, { size: 58, weight: 700, color: P.sand, lh: 64 }); });
-  let y = ty + 16; if (s.lead) { g.save(); g.globalAlpha = rev(0, 0.1); y = k.para(s.lead, k.mx(70), y + 8, w * 0.8, { size: 32, weight: 600, color: accent, lh: 42 }) + 8; g.restore(); }
-  const bottom = h - 170;
+  k.bg(); head();
+  let ty = 0; titleIn(() => { ty = k.para(s.title, k.mx(X), 150, w - 2 * X, { size: TYPE.title, weight: 800, color: P.sand, lh: 74 }); });
+  let y = ty - 20; if (s.lead) { g.save(); g.globalAlpha = rev(0, 0.1); y = k.para(s.lead, k.mx(X), y + 8, w - 2 * X, { size: TYPE.lead, weight: 600, color: accent, lh: 48 }); g.restore(); }
+  const bottom = TYPE.bodyBottom, top = Math.max(y + 10, 260);
 
   if (s.layout === 'duo' && imgs.length) {   // ---------------- duo: bullets under the title, two photos side by side with captions
-    let by = Math.max(y + 18, 230); const size = 26; s.bullets.slice(0, 3).forEach((bt, i) => { by = bulletRow(bt, k.mx(70) + (k.rtl ? -26 : 26), by, w - 200, size, rev(i + 1)); });
-    const top = Math.min(Math.max(by + 6, 300), bottom - 220), gap = 28, cw = (w - 140 - gap) / 2, ch = bottom - top;
+    let by = top + 28; s.bullets.slice(0, 2).forEach((bt, i) => { by = bulletRow(bt, k.mx(X) + (k.rtl ? -26 : 26), by, w - 2 * X - 52, 32, rev(i + 1)); });
+    const itop = Math.min(Math.max(by - 6, 300), bottom - 250), gap = 28, cw = (w - 2 * X - gap) / 2, ch = bottom - itop;
     imgs.slice(0, 2).forEach((b, i) => {
-      const x = k.rtl ? w - 70 - cw - i * (cw + gap) : 70 + i * (cw + gap), e = rev(i + 1, 0.2), im = o.images && o.images.get(b.url), cap = b.caption ? 40 : 0;
-      g.save(); g.globalAlpha = e; g.translate(0, (1 - e) * 28); k.card(x, top, cw, ch, { fill: rgba(P.sand, 0.05), line: rgba(P.sand, 0.25) });
-      if (im && im.width) drawCover(g, im, x, top, cw, ch - cap, kb, pan); else k.para(b.alt || '', x + cw / 2, top + (ch - cap) / 2, cw - 40, { size: 22, color: P.taupe, align: 'center', lh: 28 });
-      if (b.caption) { g.fillStyle = 'rgba(10,8,6,0.72)'; g.fillRect(x + 1, top + ch - 40, cw - 2, 39); k.text(b.caption, x + cw / 2, top + ch - 12, { size: 22, weight: 700, color: P.sand, align: 'center', max: cw - 24 }); }
+      const x = k.rtl ? w - X - cw - i * (cw + gap) : X + i * (cw + gap), e = rev(i + 1, 0.2), im = o.images && o.images.get(b.url), cap = b.caption ? 48 : 0;
+      g.save(); g.globalAlpha = e; g.translate(0, (1 - e) * 28); k.card(x, itop, cw, ch, { fill: rgba(P.sand, 0.05), line: rgba(P.sand, 0.25) });
+      if (im && im.width) drawCover(g, im, x, itop, cw, ch - cap, kb, pan); else k.para(b.alt || '', x + cw / 2, itop + (ch - cap) / 2, cw - 40, { size: TYPE.caption, weight: 600, color: P.sand, align: 'center', lh: 32 });
+      if (b.caption) { g.fillStyle = 'rgba(10,8,6,0.78)'; g.fillRect(x + 1, itop + ch - 48, cw - 2, 47); k.text(b.caption, x + cw / 2, itop + ch - 14, { size: TYPE.caption + 2, weight: 700, color: P.sand, align: 'center' }); }
       g.restore();
     });
-    drawTags(h - 156); footer(k, w, h, lang, null); return;
+    tagsAndFine(false); return;
   }
 
-  // ---------------- split: bullets on the start side, blocks on the other
-  const blocks = s.blocks || [], hasBlocks = blocks.length > 0, bw = hasBlocks ? w * 0.44 : w - 140, top = Math.max(y + 24, 250);
-  const size = s.bullets.length > 6 ? 22 : s.bullets.length > 5 ? 24 : s.bullets.length > 3 ? 28 : 32; let by = top;
-  s.bullets.forEach((b, i) => { if (by > bottom) return; by = bulletRow(b, k.rtl ? w - 70 - 26 : 70 + 26, by + size * 0.4, bw - 30, size, rev(i + 1)); });
+  // ---------------- split: bullets on the start side, blocks on the other (full width when there are no blocks)
+  const blocks = s.blocks || [], hasBlocks = blocks.length > 0, textW = hasBlocks ? 690 : w - 2 * X - 40, blockW = hasBlocks ? w - 2 * X - 690 - 56 : 0;
+  const size = bulletSize(s.bullets.length), tableOnly = hasBlocks && others.length === blocks.length && others.every((b) => b.type === 'table');
+  let by = top + 28; if (!tableOnly) s.bullets.forEach((b, i) => { by = bulletRow(b, k.rtl ? w - X - 26 : X + 26, by, textW - 26, size, rev(i + 1)); });
   if (hasBlocks) {
-    const bx0 = k.rtl ? 70 : w - 70 - bw, ordered = [...imgs, ...others], bh = (bottom - top - 16 * (ordered.length - 1)) / ordered.length; let cy = top;
+    const ordered = [...imgs, ...others], bx0 = tableOnly ? X : (k.rtl ? X : w - X - blockW), bw = tableOnly ? w - 2 * X : blockW, btop = tableOnly ? top + 12 : Math.max(top, 270), bh = (bottom - btop - 16 * (ordered.length - 1)) / ordered.length; let cy = btop;
     ordered.forEach((b, i) => { const e = rev(s.bullets.length + i + 1, 0.1); g.save(); g.globalAlpha = e; g.translate(0, (1 - e) * 26); drawBlock(k, g, b, bx0, cy, bw, bh, lang, o, accent, { t, lv, kb, pan }); g.restore(); cy += bh + 16; });
   }
-  drawTags(h - 156); footer(k, w, h, lang, null);
+  tagsAndFine(false);
 }
 function drawBlock(k, g, b, x, y, bw, bh, lang, o, accent, mo) {
   const { t, lv, kb, pan } = mo; k.card(x, y, bw, bh, { fill: rgba(P.sand, 0.05), line: rgba(P.sand, 0.25) });
   if (b.type === 'image') {
-    const im = o.images && o.images.get(b.url), cap = b.caption ? 34 : 0;
-    if (im && im.width) drawCover(g, im, x, y, bw, bh - cap, kb, pan); else k.para(b.alt || '', x + bw / 2, y + (bh - cap) / 2, bw - 40, { size: 22, color: P.taupe, align: 'center', lh: 28 });
-    if (b.caption) k.text(b.caption, x + bw / 2, y + bh - 10, { size: 18, color: P.taupe, align: 'center', max: bw - 24 });
+    const im = o.images && o.images.get(b.url), cap = b.caption ? 44 : 0;
+    if (im && im.width) drawCover(g, im, x, y, bw, bh - cap, kb, pan); else k.para(b.alt || '', x + bw / 2, y + (bh - cap) / 2, bw - 40, { size: TYPE.caption, weight: 600, color: P.sand, align: 'center', lh: 32 });
+    if (b.caption) k.text(b.caption, x + bw / 2, y + bh - 12, { size: TYPE.caption, weight: 600, color: P.sand, align: 'center' });
   } else if (b.type === 'table') {
-    const rows = b.rows || [], head = b.head, cols = Math.max(1, rows[0] ? rows[0].length : 1), cw = (bw - 40) / cols, all = head ? [head, ...rows] : rows, rh = Math.min(48, (bh - 24) / all.length), fs = Math.max(14, Math.min(24, rh * 0.5));
-    all.forEach((r, ri) => { const yy = y + 16 + ri * rh; if (head && ri === 0) { g.fillStyle = rgba(P.brandOrange, 0.25); g.fillRect(x + 12, yy, bw - 24, rh - 4); }
-      r.forEach((c, ci) => k.text(c, k.rtl ? x + bw - 20 - ci * cw : x + 20 + ci * cw, yy + rh * 0.62, { size: fs, weight: head && ri === 0 ? 700 : 400, color: P.sand, max: cw - 12 })); });
+    const rows = b.rows || [], head = b.head, cols = Math.max(1, rows[0] ? rows[0].length : 1), cw = (bw - 48) / cols, all = head ? [head, ...rows] : rows, rh = Math.min(76, (bh - 24) / all.length), fs = TYPE.cell;
+    all.forEach((r, ri) => { const yy = y + 12 + ri * rh; if (head && ri === 0) { g.fillStyle = rgba(P.brandOrange, 0.28); g.fillRect(x + 12, yy, bw - 24, rh - 6); }
+      r.forEach((c, ci) => k.para(c, k.rtl ? x + bw - 24 - ci * cw : x + 24 + ci * cw, yy + rh * 0.62, cw - 20, { size: fs, weight: head && ri === 0 ? 800 : 600, color: P.sand, lh: fs * 1.15 })); });
   } else if (b.type === 'bar') {
-    const d = b.data || [], max = Math.max(...d.map((v) => v.value), 1e-9), top = y + (b.title ? 50 : 20), rowH = Math.min(52, (bh - (top - y) - 16) / d.length), labelW = bw * 0.32, maxLen = bw - labelW - 120;
-    if (b.title) k.text(b.title, k.rtl ? x + bw - 20 : x + 20, y + 36, { size: 22, weight: 700, color: P.brassPale, max: bw - 40 });
+    const d = b.data || [], max = Math.max(...d.map((v) => v.value), 1e-9), top = y + (b.title ? 56 : 20), rowH = Math.min(60, (bh - (top - y) - 16) / d.length), labelW = bw * 0.34, maxLen = bw - labelW - 150;
+    if (b.title) k.text(b.title, k.rtl ? x + bw - 20 : x + 20, y + 42, { size: TYPE.stat, weight: 700, color: P.brassPale });
     d.forEach((v, i) => { const yy = top + i * rowH, grow = lv && lv.countUp ? easeOutCubic((t - 0.3 - i * 0.12) / 1.0) : 1, len = Math.max(2, (v.value / max) * maxLen * grow), lx = k.rtl ? x + bw - 20 : x + 20, bx = k.rtl ? x + bw - 20 - labelW : x + 20 + labelW;
-      k.text(v.label, lx, yy + rowH * 0.62, { size: 20, max: labelW - 10, color: P.sand }); g.fillStyle = hex(accent); g.fillRect(k.rtl ? bx - len : bx, yy + rowH * 0.2, len, rowH * 0.5);
-      k.text(formatNumber(lv && lv.countUp ? countValue(v.value, t, { delay: 0.3 + i * 0.12, dur: 1.0 }) : v.value) + (b.unit ? ' ' + b.unit : ''), k.rtl ? bx - len - 8 : bx + len + 8, yy + rowH * 0.62, { size: 18, color: P.taupe, align: k.rtl ? 'right' : 'left' }); });
+      k.text(v.label, lx, yy + rowH * 0.66, { size: TYPE.caption, weight: 600, color: P.sand }); g.fillStyle = hex(accent); g.fillRect(k.rtl ? bx - len : bx, yy + rowH * 0.18, len, rowH * 0.52);
+      k.text(formatNumber(lv && lv.countUp ? countValue(v.value, t, { delay: 0.3 + i * 0.12, dur: 1.0 }) : v.value) + (b.unit ? ' ' + b.unit : ''), k.rtl ? bx - len - 8 : bx + len + 8, yy + rowH * 0.66, { size: TYPE.caption, weight: 700, color: P.sand, align: k.rtl ? 'right' : 'left' }); });
   } else if (b.type === 'stat') {
     const it = b.items || [], n = it.length, gap = 16, cw = (bw - 32 - gap * (n - 1)) / n;
     it.forEach((v, i) => { const cx = k.rtl ? x + bw - 16 - cw - i * (cw + gap) : x + 16 + i * (cw + gap), cur = lv && lv.countUp ? countValue(v.value, t, { delay: 0.3 + i * 0.15 }) : v.value, ax = cx + cw / 2;
-      k.card(cx, y + 16, cw, bh - 32, { fill: rgba(P.brandOrange, 0.08), line: rgba(accent, 0.55) });
-      k.text((v.prefix || '') + formatNumber(cur) + (v.suffix || ''), ax, y + bh * 0.46, { size: Math.min(70, Math.max(34, cw / 4.2)), weight: 800, color: accent, align: 'center', max: cw - 20 }); k.para(v.label, ax, y + bh * 0.46 + 38, cw - 36, { size: 20, color: P.sand, align: 'center', lh: 26 }); });
+      k.card(cx, y + 16, cw, bh - 32, { fill: rgba(P.brandOrange, 0.1), line: rgba(accent, 0.7) });
+      k.text((v.prefix || '') + formatNumber(cur) + (v.suffix || ''), ax, y + 16 + (bh - 32) * 0.34, { size: Math.min(78, Math.max(56, cw / 3.6)), weight: 800, color: accent, align: 'center' }); k.para(v.label, ax, y + 16 + (bh - 32) * 0.34 + 46, cw - 36, { size: TYPE.stat, weight: 600, color: P.sand, align: 'center', lh: 36 }); });
   }
 }
 /** auto-play badge + progress bar along the bottom of the wall (drawn over any slide while playing) */
 export function drawPlayOverlay(g, w, h, o) {
   if (!(o.progress >= 0)) return; const k = kit(g, w, h, o.lang), bw = w - 140, x = 70;
-  g.fillStyle = rgba(P.sand, 0.14); g.fillRect(x, h - 22, bw, 6); g.fillStyle = hex(P.brandOrange); g.fillRect(k.rtl ? x + bw - bw * o.progress : x, h - 22, bw * clamp01(o.progress), 6);
-  k.text((o.lang === 'ar' ? 'عرض تلقائي · ' : 'AUTO-PLAY · ') + o.speed + 'x', k.mx(w - 70), h - 34, { size: 16, weight: 700, color: P.brassPale, align: k.rtl ? 'left' : 'right' });
+  g.fillStyle = rgba(P.sand, 0.2); g.fillRect(x, h - 24, bw, 8); g.fillStyle = hex(P.brandOrange); g.fillRect(k.rtl ? x + bw - bw * o.progress : x, h - 24, bw * clamp01(o.progress), 8);
+  k.text((o.lang === 'ar' ? 'عرض تلقائي · ' : 'AUTO-PLAY · ') + o.speed + 'x', k.mx(w - 70), h - 36, { size: 22, weight: 700, color: P.brassPale, align: k.rtl ? 'left' : 'right' });
 }

@@ -76,7 +76,7 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
   useEffect(() => { if (headRef.current) headRef.current.focus({ preventScroll: true }); }, [st.focus, idx, deck.id]);
   useEffect(() => { setConfirmDel(false); }, [deck.id]);
   const rtl = lang === 'ar', unit = deck.unit === 'station' ? t('vipStationOf', lang) : t('vipSlideOf', lang), user = !deck.builtin, bi = raw.builtin ? BUILTIN_IDX[raw.builtin] : -1;
-  const play = ex.play || { playing: false, speed: 1, loop: true }, mode = ex.presMode || 'panel', prog = typeof st.vipProgress === 'number' ? st.vipProgress : -1, big = mode !== 'panel';
+  const play = ex.play || { playing: false, speed: 1, loop: true }, mode = ex.presMode || 'panel', prog = typeof st.vipProgress === 'number' ? st.vipProgress : -1, big = mode !== 'panel', reading = mode === 'read';
   const del = () => { ex.removeDeck(deck.id); setConfirmDel(false); if (selRef.current) selRef.current.focus(); };
   return (
     <aside className="sr-panel sr-panel-vip" aria-label={t('vipAria', lang)} data-testid="sr-vip-panel" data-station={raw.id} data-deck={deck.id} data-mode={mode} data-playing={play.playing ? '1' : '0'} dir={rtl ? 'rtl' : 'ltr'}>
@@ -108,7 +108,9 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
           <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.cycleSpeed()} aria-label={`${t('vipSpeed', lang)}: ${play.speed}x`} data-testid="sr-vip-speed">{play.speed}x</button>
           <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.toggleLoop()} aria-pressed={play.loop} data-testid="sr-vip-loop">{t('vipLoop', lang)}</button>
           {!big && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setPresentMode('big')} data-testid="sr-vip-big">{t('vipPresent', lang)}</button>}
+          {!big && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setPresentMode('read')} data-testid="sr-vip-read">{t('vipReading', lang)}</button>}
           {!big && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setPresentMode('full')} data-testid="sr-vip-full">{t('vipPresentFull', lang)}</button>}
+          {big && !reading && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setPresentMode('read')} data-testid="sr-vip-read">{t('vipReading', lang)}</button>}
           {big && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setPresentMode('panel')} data-testid="sr-vip-exit-present">{t('vipPresentExit', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">Esc</kbd>}</button>}
           {(play.playing || big) && <div className="sr-vip-prog" role="progressbar" aria-label={t('vipProgress', lang)} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((prog >= 0 ? prog : 0) * 100)} data-testid="sr-vip-prog"><i style={{ '--p': prog >= 0 ? prog : 0 }} /></div>}
         </div>

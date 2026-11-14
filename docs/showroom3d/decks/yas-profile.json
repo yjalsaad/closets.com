@@ -19,8 +19,8 @@
       },
       "bullets": [
         {
-          "en": "From the YAS Wood profile supplied by management, condensed for this room.",
-          "ar": "من ملف YAS Wood المقدَّم من الإدارة، ومُختصر لهذه الغرفة."
+          "en": "From the YAS Wood profile supplied by management.",
+          "ar": "من ملف YAS Wood المقدَّم من الإدارة."
         }
       ],
       "blocks": [
@@ -34,8 +34,8 @@
         }
       ],
       "source": {
-        "en": "YAS Wood Profile 2023, p. 1. Arabic text is a translation awaiting native review.",
-        "ar": "ملف YAS Wood لعام 2023، ص 1. النص العربي ترجمة بانتظار مراجعة ناطق أصلي."
+        "en": "YAS Wood Profile 2023, p. 1. Arabic text awaits native review.",
+        "ar": "ملف YAS Wood لعام 2023، ص 1. النص العربي بانتظار مراجعة ناطق أصلي."
       }
     },
     {
@@ -45,26 +45,22 @@
         "en": "Introduction",
         "ar": "مقدمة"
       },
-      "lead": {
-        "en": "Surfaces and solutions for furniture and interior design.",
-        "ar": "أسطح وحلول للأثاث والتصميم الداخلي."
-      },
       "bullets": [
         {
-          "en": "YAS WOOD describes itself as an innovative leader in surfaces and solutions for furniture and interior design.",
-          "ar": "تصف YAS WOOD نفسها بأنها رائدة مبتكرة في الأسطح والحلول للأثاث والتصميم الداخلي."
+          "en": "Surfaces and solutions for furniture and interior design.",
+          "ar": "أسطح وحلول للأثاث والتصميم الداخلي."
         },
         {
-          "en": "Faced panels, laminates and edges made with the finest raw materials and advanced technologies.",
-          "ar": "ألواح مكسوّة ولامينيت وحواف مصنوعة من أجود المواد الخام وبتقنيات متقدمة."
+          "en": "Faced panels, laminates and edges made with advanced technologies.",
+          "ar": "ألواح مكسوّة ولامينيت وحواف بتقنيات متقدمة."
         },
         {
           "en": "Delivering products and services since 2007.",
           "ar": "تقدّم منتجاتها وخدماتها منذ عام 2007."
         },
         {
-          "en": "A subsidiary of YAS Holding, with the expertise of its sister company, The Closets.",
-          "ar": "شركة تابعة لـ YAS Holding، وتستفيد من خبرة شقيقتها ذا كلوزتس."
+          "en": "A subsidiary of YAS Holding; sister company of The Closets.",
+          "ar": "تابعة لـ YAS Holding؛ وشقيقة ذا كلوزتس."
         }
       ],
       "blocks": [
@@ -91,12 +87,16 @@
       },
       "bullets": [
         {
-          "en": "Mission: to provide innovative surfaces and solutions for the furniture and interior design industries, using prestigious raw materials and advanced technologies, and to keep researching and developing products to exceed clients' expectations.",
-          "ar": "الرسالة: تقديم أسطح وحلول مبتكرة لصناعتي الأثاث والتصميم الداخلي باستخدام مواد خام مرموقة وتقنيات متقدمة، ومواصلة البحث والتطوير لتجاوز توقعات العملاء."
+          "en": "Mission: innovative surfaces and solutions for furniture and interiors.",
+          "ar": "الرسالة: أسطح وحلول مبتكرة للأثاث والتصميم الداخلي."
         },
         {
-          "en": "Vision: to be the leading provider of innovative, high-quality faced panels, laminates and edges in the Middle East and beyond.",
-          "ar": "الرؤية: أن نكون المزوّد الرائد للألواح المكسوّة واللامينيت والحواف المبتكرة وعالية الجودة في الشرق الأوسط وخارجه."
+          "en": "Mission: keep researching and developing to exceed expectations.",
+          "ar": "الرسالة: مواصلة البحث والتطوير لتجاوز التوقعات."
+        },
+        {
+          "en": "Vision: the leading provider in the Middle East and beyond.",
+          "ar": "الرؤية: المزوّد الرائد في الشرق الأوسط وخارجه."
         }
       ],
       "blocks": [
@@ -121,26 +121,22 @@
         "en": "The product",
         "ar": "المنتج"
       },
-      "lead": {
-        "en": "Faced panels and edges, versatile and customizable.",
-        "ar": "ألواح مكسوّة وحواف، متعددة الاستخدامات وقابلة للتخصيص."
-      },
       "bullets": [
         {
-          "en": "Faced panels are wood-based and covered with decorative papers, foil, PP or PET for a durable finish.",
-          "ar": "الألواح المكسوّة أساسها خشبي ومغطاة بأوراق زخرفية أو فويل أو PP أو PET لإنتاج تشطيب متين."
+          "en": "Wood-based faced panels covered with decorative papers, foil, PP or PET.",
+          "ar": "ألواح مكسوّة أساسها خشبي مغطاة بأوراق زخرفية أو فويل أو PP أو PET."
         },
         {
-          "en": "Designed to be versatile, easy to install and customizable to fit any project.",
-          "ar": "مصممة لتكون متعددة الاستخدامات وسهلة التركيب وقابلة للتخصيص لأي مشروع."
+          "en": "Versatile, easy to install and customizable for any project.",
+          "ar": "متعددة الاستخدامات وسهلة التركيب وقابلة للتخصيص."
         },
         {
-          "en": "Suited to a new kitchen, a commercial space or a residential project.",
-          "ar": "مناسبة لمطبخ جديد أو مساحة تجارية أو مشروع سكني."
+          "en": "For kitchens, commercial spaces and residential projects.",
+          "ar": "للمطابخ والمساحات التجارية والمشاريع السكنية."
         },
         {
-          "en": "A commitment to research and development in technology and design.",
-          "ar": "التزام بالبحث والتطوير في التقنية والتصميم."
+          "en": "Ongoing research and development in technology and design.",
+          "ar": "بحث وتطوير مستمران في التقنية والتصميم."
         }
       ],
       "blocks": [
@@ -165,22 +161,18 @@
         "en": "Partners",
         "ar": "الشركاء"
       },
-      "lead": {
-        "en": "Decorative paper manufacturers from around the world.",
-        "ar": "مصنّعو أوراق زخرفية من حول العالم."
-      },
       "bullets": [
         {
-          "en": "YAS WOOD partners with the decorative papers manufacturers Interprint Impress and Schattdecor.",
-          "ar": "تتعاون YAS WOOD مع مصنّعي الأوراق الزخرفية Interprint Impress وSchattdecor."
+          "en": "Decorative paper makers Interprint Impress and Schattdecor.",
+          "ar": "مصنّعو الأوراق الزخرفية Interprint Impress وSchattdecor."
         },
         {
-          "en": "Access to a library of designs, textures and finishes helps it stay at the forefront of design trends.",
-          "ar": "الوصول إلى مكتبة من التصاميم والملمسات والتشطيبات يبقيها في طليعة اتجاهات التصميم."
+          "en": "A library of designs, textures and finishes.",
+          "ar": "مكتبة من التصاميم والملمسات والتشطيبات."
         },
         {
-          "en": "The page shows partner certification documents and a \"formaldehyde-free\" mark.",
-          "ar": "تعرض الصفحة وثائق اعتماد للشركاء وعلامة «خالٍ من الفورمالدهيد»."
+          "en": "The page shows partner certificates and a formaldehyde-free mark.",
+          "ar": "تعرض الصفحة شهادات للشركاء وعلامة خالٍ من الفورمالدهيد."
         }
       ],
       "source": {
@@ -194,12 +186,8 @@
       "layout": "duo",
       "accent": "brass",
       "title": {
-        "en": "Photo gallery: Fribourg and Agostino Oak",
-        "ar": "معرض الصور: Fribourg وAgostino Oak"
-      },
-      "lead": {
-        "en": "Visualize your vision.",
-        "ar": "تخيّل رؤيتك."
+        "en": "Gallery: Fribourg and Agostino Oak",
+        "ar": "المعرض: Fribourg وAgostino Oak"
       },
       "blocks": [
         {
@@ -237,8 +225,8 @@
       "layout": "duo",
       "accent": "brass",
       "title": {
-        "en": "Photo gallery: Abisko Ash and Montello",
-        "ar": "معرض الصور: Abisko Ash وMontello"
+        "en": "Gallery: Abisko Ash and Montello",
+        "ar": "المعرض: Abisko Ash وMontello"
       },
       "blocks": [
         {
@@ -276,8 +264,8 @@
       "layout": "duo",
       "accent": "brass",
       "title": {
-        "en": "Photo gallery: Lucenta and Celestine Oak",
-        "ar": "معرض الصور: Lucenta وCelestine Oak"
+        "en": "Gallery: Lucenta and Celestine Oak",
+        "ar": "المعرض: Lucenta وCelestine Oak"
       },
       "blocks": [
         {
@@ -314,12 +302,12 @@
       "id": "decors-1",
       "accent": "orange",
       "title": {
-        "en": "A glance at the variety: 1 of 2",
-        "ar": "نظرة على التنوع: 1 من 2"
+        "en": "A glance at the variety (1 of 4)",
+        "ar": "نظرة على التنوع (1 من 4)"
       },
       "lead": {
-        "en": "Decor codes and names as listed in the profile.",
-        "ar": "رموز الديكورات وأسماؤها كما وردت في الملف."
+        "en": "Decor codes and names from the profile.",
+        "ar": "رموز الديكورات وأسماؤها من الملف."
       },
       "blocks": [
         {
@@ -374,7 +362,40 @@
                 "en": "Azul Onyx",
                 "ar": "Azul Onyx"
               }
-            ],
+            ]
+          ]
+        }
+      ],
+      "source": {
+        "en": "YAS Wood Profile 2023, p. 14",
+        "ar": "ملف YAS Wood لعام 2023، ص 14"
+      }
+    },
+    {
+      "id": "decors-2",
+      "accent": "orange",
+      "title": {
+        "en": "A glance at the variety (2 of 4)",
+        "ar": "نظرة على التنوع (2 من 4)"
+      },
+      "lead": {
+        "en": "Decor codes and names from the profile.",
+        "ar": "رموز الديكورات وأسماؤها من الملف."
+      },
+      "blocks": [
+        {
+          "type": "table",
+          "head": [
+            {
+              "en": "Code",
+              "ar": "الرمز"
+            },
+            {
+              "en": "Decor",
+              "ar": "الديكور"
+            }
+          ],
+          "rows": [
             [
               {
                 "en": "71145",
@@ -415,24 +436,24 @@
                 "ar": "Panaro"
               }
             ]
-          ],
-          "source": {
-            "en": "YAS Wood Profile 2023, pp. 14-15",
-            "ar": "ملف YAS Wood لعام 2023، ص 14-15"
-          }
+          ]
         }
       ],
       "source": {
-        "en": "YAS Wood Profile 2023, pp. 14-15",
-        "ar": "ملف YAS Wood لعام 2023، ص 14-15"
+        "en": "YAS Wood Profile 2023, p. 15",
+        "ar": "ملف YAS Wood لعام 2023، ص 15"
       }
     },
     {
-      "id": "decors-2",
+      "id": "decors-3",
       "accent": "orange",
       "title": {
-        "en": "A glance at the variety: 2 of 2",
-        "ar": "نظرة على التنوع: 2 من 2"
+        "en": "A glance at the variety (3 of 4)",
+        "ar": "نظرة على التنوع (3 من 4)"
+      },
+      "lead": {
+        "en": "Decor codes and names from the profile.",
+        "ar": "رموز الديكورات وأسماؤها من الملف."
       },
       "blocks": [
         {
@@ -487,7 +508,40 @@
                 "en": "Akron",
                 "ar": "Akron"
               }
-            ],
+            ]
+          ]
+        }
+      ],
+      "source": {
+        "en": "YAS Wood Profile 2023, p. 16",
+        "ar": "ملف YAS Wood لعام 2023، ص 16"
+      }
+    },
+    {
+      "id": "decors-4",
+      "accent": "orange",
+      "title": {
+        "en": "A glance at the variety (4 of 4)",
+        "ar": "نظرة على التنوع (4 من 4)"
+      },
+      "lead": {
+        "en": "Decor codes and names from the profile.",
+        "ar": "رموز الديكورات وأسماؤها من الملف."
+      },
+      "blocks": [
+        {
+          "type": "table",
+          "head": [
+            {
+              "en": "Code",
+              "ar": "الرمز"
+            },
+            {
+              "en": "Decor",
+              "ar": "الديكور"
+            }
+          ],
+          "rows": [
             [
               {
                 "en": "32352",
@@ -528,20 +582,12 @@
                 "ar": "Infinity Brown"
               }
             ]
-          ],
-          "source": {
-            "en": "YAS Wood Profile 2023, pp. 16-17",
-            "ar": "ملف YAS Wood لعام 2023، ص 16-17"
-          }
+          ]
         }
       ],
-      "lead": {
-        "en": "The profile notes that this is just a \"glance\".",
-        "ar": "يشير الملف إلى أن هذه مجرد «لمحة»."
-      },
       "source": {
-        "en": "YAS Wood Profile 2023, pp. 16-18",
-        "ar": "ملف YAS Wood لعام 2023، ص 16-18"
+        "en": "YAS Wood Profile 2023, p. 17",
+        "ar": "ملف YAS Wood لعام 2023، ص 17"
       }
     }
   ]

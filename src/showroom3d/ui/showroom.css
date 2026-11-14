@@ -361,3 +361,14 @@
 .sr-panel-vip[data-mode="big"] .sr-panel-foot, .sr-panel-vip[data-mode="full"] .sr-panel-foot { padding: var(--space-3) var(--space-4); }
 .sr-panel-vip[data-mode="big"] .sr-vip-dots, .sr-panel-vip[data-mode="full"] .sr-vip-dots { display: none; }
 .sr-vip-pbar-title { margin: 0; font-size: var(--fs-sm); color: var(--sr-on-dark-2); text-align: center; flex: 1 1 100%; }
+
+/* VIP legibility: larger, heavier type in the panel for the generic slides; reading mode keeps only the essential controls */
+.sr-vip-slide .sr-lead { font-size: var(--fs-lg); font-weight: 600; line-height: 1.35; }
+.sr-vip-slide .sr-vip-bullets { font-size: var(--fs-md); line-height: 1.45; gap: var(--space-2); } .sr-vip-slide .sr-vip-bullets li { font-weight: 500; }
+.sr-vip-table { font-size: var(--fs-md); } .sr-vip-table th, .sr-vip-table td { padding: var(--space-3); font-weight: 500; }
+.sr-vip-stat span, .sr-vip-bar { font-size: var(--fs-base); } .sr-vip-block figcaption { font-size: var(--fs-sm); color: var(--sr-on-dark); }
+.sr-vip-slide .sr-note { font-size: var(--fs-sm); color: var(--sr-on-dark); opacity: .9; }
+.sr-panel-vip[data-mode="read"] .sr-vip-present > :not([data-testid="sr-vip-exit-present"]):not(.sr-vip-pbar-title) { display: none; }
+.sr-panel-vip[data-mode="read"] .sr-panel-foot { padding: var(--space-2) var(--space-3); gap: var(--space-2); }
+.sr-panel-vip[data-mode="read"] { opacity: .92; width: min(520px, calc(100% - var(--space-4) * 2)); }
+.sr-panel-vip[data-mode="read"] .sr-vip-pbar-title { display: none; }

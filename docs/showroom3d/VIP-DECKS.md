@@ -32,7 +32,7 @@ Always visible in the dialog: **"Saved on this device only"** and the note that 
 {
   "id": "partner-welcome",              // optional; becomes "user-partner-welcome" (a-z, 0-9, dashes, max 40)
   "title": { "en": "Partner welcome", "ar": "أهلًا بشركائنا" },   // Text, max 80
-  "slides": [                             // 1 to 20 slides (the notice slide is added on top)
+  "slides": [                             // 1 to 24 slides (the notice slide is added on top)
     {
       "id": "who",                        // optional
       "title": "Who we are",              // Text, max 90
@@ -67,7 +67,7 @@ The bar chart is drawn from exactly the numbers supplied: nothing is calculated,
 * strips HTML tags, `<script>`/`<style>` blocks, comments, entity-encoded tags, `javascript:` text, control characters and bidi-override characters; collapses whitespace; truncates to the caps above. Text is only ever rendered as text (React escapes it; the wall is canvas text), never as HTML.
 * images: **https only**, no credentials in the address, must parse as a URL with a dotted host, at most 500 characters, no spaces. `http:`, `data:`, `javascript:`, `file:`, relative and protocol-relative addresses are rejected with a message naming the slide.
 * drops unknown fields, `builtin`, `data` and `disclaimer` (those keys are reserved for committed decks); ids are slugged and made unique; a user slide cannot take the reserved `disclaimer` id.
-* refuses input longer than 100,000 characters before parsing and more than 20 slides; truncates bullets, blocks, rows, columns and bars with a warning.
+* refuses input longer than 100,000 characters before parsing and more than 24 slides; truncates bullets, blocks, rows, columns and bars with a warning.
 * uses the site's `src/safety/sanitize.js` helpers (`str`, `arr`, `isObj`) through the single adapter `src/showroom3d/siteBridge.js`.
 * stored decks are **re-sanitised on every load**, so edited or corrupted storage cannot reach the renderer.
 

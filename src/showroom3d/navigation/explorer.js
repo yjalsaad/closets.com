@@ -278,7 +278,7 @@ export class Explorer {
   get deck() { return this.allDecks().find((d) => d.id === this.ds.deckId) || PERMANENT_DECKS[0]; }
   /** camera pose for a slide: the built-in stations keep their own poses, every other slide faces the wall screen */
   vipView(i) {
-    if (this.presMode !== 'panel') { const r = this.canvas.getBoundingClientRect(); return bigScreenView((r.width || 16) / (r.height || 9), 46); }   // presenting: the whole wall fills the view
+    if (this.presMode !== 'panel') { const r = this.canvas.getBoundingClientRect(), a = (r.width || 16) / (r.height || 9); return this.presMode === 'read' ? bigScreenView(a, 40, 1.0) : bigScreenView(a, 46); }   // presenting: the whole wall fills the view
     const sl = this.deck.slides[i]; return sl && sl.builtin && VIP_VIEWS[i] ? VIP_VIEWS[i] : VIP_VIEWS[0];
   }
   vipSlideId(i) { const sl = this.deck.slides[i]; return sl ? sl.id : ''; }
@@ -327,9 +327,9 @@ export class Explorer {
   togglePlay() { this.setPlaying(!this.play.playing); }
   cycleSpeed() { this.play = playReducer(this.play, { type: 'cycleSpeed' }); const v = this.products && this.products.vip; if (v) v.setPlayback({ progress: this.play.playing ? this.lastProg : -1, speed: this.play.speed }); this.emitPlay(); }
   toggleLoop() { this.play = playReducer(this.play, { type: 'loop' }); this.emitPlay(); }
-  /** 'panel' (side panel / bottom sheet), 'big' (camera fronts the wall, slim presenter bar) or 'full' (as big, plus the browser's full screen) */
+  /** 'panel' (side panel / bottom sheet), 'big' (camera fronts the wall, slim presenter bar), 'read' (READING MODE: the wall fills the whole view edge to edge, minimal controls) or 'full' (as big, plus the browser's full screen) */
   setPresentMode(mode) {
-    const f = this.focus; if (!f || f.kind !== 'vip') return; const m = mode === 'big' || mode === 'full' ? mode : 'panel', was = this.presMode; if (m === was) return;
+    const f = this.focus; if (!f || f.kind !== 'vip') return; const m = mode === 'big' || mode === 'full' || mode === 'read' ? mode : 'panel', was = this.presMode; if (m === was) return;
     this.presMode = m; if (m === 'full') this.requestFullscreen(); else if (was === 'full') this.leaveFullscreen();
     const v = this.vipView(this.ds.slide); this.flyTo({ pos: v.pos, look: v.look, fov: v.fov }); this.emitPlay({ prod: ++this.rev });
   }
@@ -404,6 +404,7 @@ export class Explorer {
       if (code === 'Home') { e.preventDefault(); this.setStation(0); return true; } if (code === 'End') { e.preventDefault(); this.setStation(n - 1); return true; }
       if (code === 'KeyV') { e.preventDefault(); this.stepStation(e.shiftKey ? -1 : 1); return true; }
       if (code === 'KeyP' || (code === 'Space' && !onControl)) { e.preventDefault(); this.togglePlay(); return true; }
+      if (code === 'KeyZ') { e.preventDefault(); this.setPresentMode(this.presMode === 'read' ? 'panel' : 'read'); return true; }
       if (code === 'KeyB') { e.preventDefault(); this.setPresentMode(this.presMode === 'panel' ? 'big' : 'panel'); return true; }
       if (code === 'KeyF') { e.preventDefault(); this.setPresentMode(this.presMode === 'full' ? 'panel' : 'full'); return true; }
       if (code === 'KeyL') { e.preventDefault(); this.toggleLoop(); return true; }

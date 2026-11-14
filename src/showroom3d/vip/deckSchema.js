@@ -21,7 +21,7 @@ export const DISCLAIMER_SLIDE_ID = 'disclaimer';
 export const DISCLAIMER_TITLE = { en: 'Important information', ar: 'معلومات مهمة' };
 
 export const LIMITS = Object.freeze({
-  maxSlides: 20, maxBullets: 8, maxBlocks: 3, maxLinks: 3, maxDeckTitle: 80, maxSlideTitle: 90, maxLead: 200, maxBullet: 220, maxAlt: 140, maxCaption: 140, maxSource: 140,
+  maxSlides: 24, maxBullets: 8, maxBlocks: 3, maxLinks: 3, maxDeckTitle: 80, maxSlideTitle: 90, maxLead: 200, maxBullet: 220, maxAlt: 140, maxCaption: 140, maxSource: 140,
   maxStats: 4, maxStatText: 8, maxTableCols: 6, maxTableRows: 12, maxCell: 60, maxBars: 8, maxLabel: 30, maxUnit: 12, maxUrl: 500, maxId: 40, maxInput: 100000,
 });
 export const ACCENTS = ['orange', 'brass', 'sand', 'sage'];

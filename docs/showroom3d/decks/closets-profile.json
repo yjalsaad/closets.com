@@ -19,8 +19,8 @@
       },
       "bullets": [
         {
-          "en": "From the company profile supplied by management, condensed for this room.",
-          "ar": "من ملف الشركة المقدَّم من الإدارة، ومُختصر لهذه الغرفة."
+          "en": "From the profile supplied by management.",
+          "ar": "من الملف المقدَّم من الإدارة."
         }
       ],
       "blocks": [
@@ -34,8 +34,8 @@
         }
       ],
       "source": {
-        "en": "The Closets Company Profile, pp. 1-2. Arabic text is a translation awaiting native review.",
-        "ar": "ملف شركة ذا كلوزتس، ص 1-2. النص العربي ترجمة بانتظار مراجعة ناطق أصلي."
+        "en": "The Closets Company Profile, pp. 1-2. Arabic text awaits native review.",
+        "ar": "ملف شركة ذا كلوزتس، ص 1-2. النص العربي بانتظار مراجعة ناطق أصلي."
       }
     },
     {
@@ -51,16 +51,16 @@
       },
       "bullets": [
         {
-          "en": "Described in its profile as one of the leading closets and kitchen furniture manufacturers in the Kingdom of Bahrain.",
-          "ar": "يصفها ملفها بأنها من الشركات الرائدة في تصنيع الخزائن وأثاث المطابخ في مملكة البحرين."
+          "en": "Closets and kitchen furniture manufacturer, as the profile describes it.",
+          "ar": "مصنّع خزائن وأثاث مطابخ، كما يصفها الملف."
         },
         {
           "en": "Headquarters and showrooms in Bahrain, Saudi Arabia and Qatar.",
-          "ar": "المقر الرئيسي وصالات العرض في البحرين والسعودية وقطر."
+          "ar": "المقر وصالات العرض في البحرين والسعودية وقطر."
         },
         {
-          "en": "A specialist in commercial and residential interior design, and a supplier and installer of modular closets and kitchen fittings.",
-          "ar": "متخصصة في التصميم الداخلي التجاري والسكني، ومورّد ومركّب للخزائن المعيارية وتجهيزات المطابخ."
+          "en": "Supplier and installer of modular closets and kitchen fittings.",
+          "ar": "مورّد ومركّب للخزائن المعيارية وتجهيزات المطابخ."
         }
       ],
       "blocks": [
@@ -71,15 +71,15 @@
               "value": 200,
               "suffix": "+",
               "label": {
-                "en": "employees across headquarters and showrooms",
-                "ar": "موظف في المقر وصالات العرض"
+                "en": "employees",
+                "ar": "موظف"
               }
             },
             {
               "value": 3,
               "label": {
-                "en": "countries: Bahrain, Saudi Arabia, Qatar",
-                "ar": "دول: البحرين والسعودية وقطر"
+                "en": "countries",
+                "ar": "دول"
               }
             }
           ],
@@ -101,18 +101,22 @@
         "en": "Vision and mission",
         "ar": "الرؤية والرسالة"
       },
-      "lead": {
-        "en": "Quality products, steady growth, lasting client relationships.",
-        "ar": "منتجات عالية الجودة، ونمو مطّرد، وعلاقات طويلة الأمد مع العملاء."
-      },
       "bullets": [
         {
-          "en": "Vision: to be the leading organization by continuously providing high quality products, maintaining growth at a steady pace and building new, long-term relationships with clients.",
-          "ar": "الرؤية: أن نكون المؤسسة الرائدة عبر تقديم منتجات عالية الجودة باستمرار، والحفاظ على نمو مطّرد، وبناء علاقات جديدة طويلة الأمد مع العملاء."
+          "en": "Vision: the leading organization, with consistently high quality products.",
+          "ar": "الرؤية: المؤسسة الرائدة بمنتجات عالية الجودة باستمرار."
         },
         {
-          "en": "Mission: to become the industry leader by producing quality products and excellent services, and by raising customer satisfaction through meeting customer expectations.",
-          "ar": "الرسالة: أن نصبح روّاد الصناعة بإنتاج منتجات عالية الجودة وخدمات ممتازة، ورفع رضا العملاء بتلبية توقعاتهم."
+          "en": "Vision: steady growth and new, long-term client relationships.",
+          "ar": "الرؤية: نمو مطّرد وعلاقات جديدة طويلة الأمد مع العملاء."
+        },
+        {
+          "en": "Mission: industry leader through quality products and excellent service.",
+          "ar": "الرسالة: ريادة الصناعة بمنتجات عالية الجودة وخدمة ممتازة."
+        },
+        {
+          "en": "Mission: raise customer satisfaction by meeting expectations.",
+          "ar": "الرسالة: رفع رضا العملاء بتلبية توقعاتهم."
         }
       ],
       "source": {
@@ -122,36 +126,47 @@
       "blocks": []
     },
     {
-      "id": "values",
+      "id": "values-1",
       "accent": "sage",
       "title": {
-        "en": "Our values",
-        "ar": "قيمنا"
-      },
-      "lead": {
-        "en": "Ten values, spelled out as T-H-E C-L-O-S-E-T-S in the profile.",
-        "ar": "عشر قيم، يوضحها الملف بحروف T-H-E C-L-O-S-E-T-S."
+        "en": "Our values (1 of 2)",
+        "ar": "قيمنا (1 من 2)"
       },
       "bullets": [
         {
-          "en": "Fresh, creative and innovative, contemporary designs.",
-          "ar": "تصاميم مبتكرة وعصرية وإبداعية."
+          "en": "Fresh, creative and contemporary designs.",
+          "ar": "تصاميم مبتكرة وعصرية."
         },
         {
-          "en": "Flexibility: different product models can be mixed and matched to create a unique range.",
-          "ar": "المرونة: يمكن مزج نماذج المنتجات المختلفة لإنشاء مجموعة فريدة."
+          "en": "Flexibility: models mixed and matched into a unique range.",
+          "ar": "المرونة: نماذج تُمزج لإنشاء مجموعة فريدة."
         },
         {
           "en": "Eco-credentials: eco-friendly materials and recycled wood.",
           "ar": "الاعتبارات البيئية: مواد صديقة للبيئة وخشب معاد تدويره."
         },
         {
-          "en": "Leading the regional market by providing valued products and services.",
-          "ar": "ريادة السوق الإقليمي بتقديم منتجات وخدمات ذات قيمة."
-        },
+          "en": "Leading the regional market with valued products and services.",
+          "ar": "ريادة السوق الإقليمي بمنتجات وخدمات ذات قيمة."
+        }
+      ],
+      "source": {
+        "en": "The Closets Company Profile, p. 4",
+        "ar": "ملف شركة ذا كلوزتس، ص 4"
+      },
+      "blocks": []
+    },
+    {
+      "id": "values-2",
+      "accent": "sage",
+      "title": {
+        "en": "Our values (2 of 2)",
+        "ar": "قيمنا (2 من 2)"
+      },
+      "bullets": [
         {
-          "en": "A manufacturing facility with advanced machinery and automated panel processing.",
-          "ar": "منشأة تصنيع بآلات متقدمة ومعالجة آلية للألواح."
+          "en": "Advanced machinery and automated panel processing.",
+          "ar": "آلات متقدمة ومعالجة آلية للألواح."
         },
         {
           "en": "Excellent, long-term relationships with clients.",
@@ -162,8 +177,8 @@
           "ar": "كفالة {{fact:warrantyYears}} سنوات هي المعيار في الشركة."
         },
         {
-          "en": "Specialised in rigid carcass elements, for greater strength and robustness.",
-          "ar": "متخصصة في هياكل الخزائن المتينة لمزيد من القوة والصلابة."
+          "en": "Specialised in rigid carcass elements for strength.",
+          "ar": "متخصصة في هياكل الخزائن المتينة لمزيد من القوة."
         }
       ],
       "source": {
@@ -176,37 +191,25 @@
       "id": "history-1",
       "accent": "orange",
       "title": {
-        "en": "Milestones 2007 to 2012",
-        "ar": "محطات 2007 إلى 2012"
-      },
-      "lead": {
-        "en": "From a first showroom in Hamala to a first showroom in Saudi Arabia.",
-        "ar": "من أول صالة عرض في الحملة إلى أول صالة في السعودية."
+        "en": "Milestones: 2007 to 2010",
+        "ar": "محطات: 2007 إلى 2010"
       },
       "bullets": [
         {
-          "en": "2007: starts in Bahrain as a showroom in the Hamala area.",
-          "ar": "2007: انطلاقة في البحرين بصالة عرض في منطقة الحملة."
+          "en": "2007: starts as a showroom in the Hamala area, Bahrain.",
+          "ar": "2007: انطلاقة بصالة عرض في منطقة الحملة بالبحرين."
         },
         {
-          "en": "2008: the first factory is installed, 500 sqm.",
+          "en": "2008: first factory installed, 500 sqm.",
           "ar": "2008: تركيب أول مصنع بمساحة 500 متر مربع."
         },
         {
-          "en": "2009: EGGER, SCHUCO and REHAU become official suppliers; second showroom opens in Salmaniya.",
-          "ar": "2009: أصبحت EGGER وSCHUCO وREHAU موردين رسميين؛ وافتتحت صالة العرض الثانية في السلمانية."
+          "en": "2009: EGGER, SCHUCO and REHAU become official suppliers; showroom in Salmaniya.",
+          "ar": "2009: EGGER وSCHUCO وREHAU موردون رسميون؛ وصالة عرض في السلمانية."
         },
         {
           "en": "2010: third showroom opens in Arad.",
           "ar": "2010: افتتاح صالة العرض الثالثة في عراد."
-        },
-        {
-          "en": "2011: fourth showroom opens in the Sanad area.",
-          "ar": "2011: افتتاح صالة العرض الرابعة في منطقة سند."
-        },
-        {
-          "en": "2012: first showroom in Khobar, Kingdom of Saudi Arabia.",
-          "ar": "2012: أول صالة عرض في الخبر بالمملكة العربية السعودية."
         }
       ],
       "source": {
@@ -219,22 +222,41 @@
       "id": "history-2",
       "accent": "orange",
       "title": {
-        "en": "Milestones 2013 to 2019",
-        "ar": "محطات 2013 إلى 2019"
-      },
-      "lead": {
-        "en": "Quality certification, a larger factory and new markets.",
-        "ar": "شهادة جودة، ومصنع أكبر، وأسواق جديدة."
+        "en": "Milestones: 2011 to 2014",
+        "ar": "محطات: 2011 إلى 2014"
       },
       "bullets": [
         {
-          "en": "2013: ISO 9001:2008 quality management system earned; Franke added to the official suppliers.",
-          "ar": "2013: الحصول على نظام إدارة الجودة ISO 9001:2008؛ وإضافة Franke إلى الموردين الرسميين."
+          "en": "2011: fourth showroom opens in the Sanad area.",
+          "ar": "2011: افتتاح صالة العرض الرابعة في منطقة سند."
         },
         {
-          "en": "2014: Kesseböhmer added for the closets; grand opening of the Closets factory, 5000 sqm.",
-          "ar": "2014: إضافة Kesseböhmer للخزائن؛ والافتتاح الكبير لمصنع ذا كلوزتس بمساحة 5000 متر مربع."
+          "en": "2012: first showroom in Khobar, Saudi Arabia.",
+          "ar": "2012: أول صالة عرض في الخبر بالسعودية."
         },
+        {
+          "en": "2013: ISO 9001:2008 earned; Franke joins the official suppliers.",
+          "ar": "2013: الحصول على ISO 9001:2008؛ وانضمام Franke إلى الموردين الرسميين."
+        },
+        {
+          "en": "2014: Kesseböhmer joins; the 5000 sqm Closets factory opens.",
+          "ar": "2014: انضمام Kesseböhmer؛ وافتتاح مصنع ذا كلوزتس بمساحة 5000 م²."
+        }
+      ],
+      "source": {
+        "en": "The Closets Company Profile, p. 20",
+        "ar": "ملف شركة ذا كلوزتس، ص 20"
+      },
+      "blocks": []
+    },
+    {
+      "id": "history-3",
+      "accent": "orange",
+      "title": {
+        "en": "Milestones: 2016 to 2019",
+        "ar": "محطات: 2016 إلى 2019"
+      },
+      "bullets": [
         {
           "en": "2016: first showroom in Qatar, Doha.",
           "ar": "2016: أول صالة عرض في قطر، الدوحة."
@@ -244,8 +266,8 @@
           "ar": "2017: صالة العرض الثانية في السعودية، الرياض."
         },
         {
-          "en": "2018: described as one of the leading closets and kitchens manufacturers in Bahrain, Saudi Arabia and Qatar, with more than 200 staff.",
-          "ar": "2018: توصف بأنها من الشركات الرائدة في تصنيع الخزائن والمطابخ في البحرين والسعودية وقطر، بأكثر من 200 موظف."
+          "en": "2018: more than 200 staff in Bahrain, Saudi Arabia and Qatar.",
+          "ar": "2018: أكثر من 200 موظف في البحرين والسعودية وقطر."
         },
         {
           "en": "2019: Dubai Design District.",
@@ -259,37 +281,60 @@
       "blocks": []
     },
     {
-      "id": "team-quality",
+      "id": "team",
       "accent": "brass",
       "title": {
-        "en": "Management and quality",
-        "ar": "الإدارة والجودة"
-      },
-      "lead": {
-        "en": "A quality management system certified to ISO 9001.",
-        "ar": "نظام إدارة جودة معتمد وفق ISO 9001."
+        "en": "Management",
+        "ar": "الإدارة"
       },
       "bullets": [
         {
-          "en": "Ali Alhaddad, Managing Director: BSc in Mechanical Engineering (University of Bahrain), H.N.D. in Mechanical Engineering (Bahrain Training Institute).",
-          "ar": "علي الحداد، المدير العام: بكالوريوس هندسة ميكانيكية (جامعة البحرين)، ودبلوم وطني عالٍ في الهندسة الميكانيكية (معهد البحرين للتدريب)."
+          "en": "Ali Alhaddad, Managing Director.",
+          "ar": "علي الحداد، المدير العام."
         },
         {
-          "en": "Yasser Fardan, Managing Partner: BSc in Banking and Finance (University of Bahrain), associated with the Gulf Insurance Institute (AGII).",
-          "ar": "ياسر فردان، الشريك الإداري: بكالوريوس في المصارف والتمويل (جامعة البحرين)، وعضو مرتبط بمعهد الخليج للتأمين (AGII)."
+          "en": "BSc Mechanical Engineering, University of Bahrain; H.N.D., Bahrain Training Institute.",
+          "ar": "بكالوريوس هندسة ميكانيكية، جامعة البحرين؛ ودبلوم وطني عالٍ، معهد البحرين للتدريب."
         },
         {
-          "en": "Certifications listed: ISO 9001:2015 and ISO 9001:2008 quality management systems.",
-          "ar": "الشهادات المذكورة: نظاما إدارة الجودة ISO 9001:2015 وISO 9001:2008."
+          "en": "Yasser Fardan, Managing Partner.",
+          "ar": "ياسر فردان، الشريك الإداري."
         },
         {
-          "en": "BID Quality Award, \"Century International Gold Quality Era Control Certificate\".",
-          "ar": "جائزة BID للجودة: «Century International Gold Quality Era Control Certificate»."
+          "en": "BSc Banking and Finance, University of Bahrain; AGII, Gulf Insurance Institute.",
+          "ar": "بكالوريوس مصارف وتمويل، جامعة البحرين؛ AGII، معهد الخليج للتأمين."
         }
       ],
       "source": {
-        "en": "The Closets Company Profile, pp. 5-6",
-        "ar": "ملف شركة ذا كلوزتس، ص 5-6"
+        "en": "The Closets Company Profile, p. 5",
+        "ar": "ملف شركة ذا كلوزتس، ص 5"
+      },
+      "blocks": []
+    },
+    {
+      "id": "quality",
+      "accent": "brass",
+      "title": {
+        "en": "Quality and certifications",
+        "ar": "الجودة والشهادات"
+      },
+      "bullets": [
+        {
+          "en": "ISO 9001:2015 quality management system.",
+          "ar": "نظام إدارة الجودة ISO 9001:2015."
+        },
+        {
+          "en": "ISO 9001:2008 quality management system.",
+          "ar": "نظام إدارة الجودة ISO 9001:2008."
+        },
+        {
+          "en": "BID Quality Award: Century International Gold Quality Era Control Certificate.",
+          "ar": "جائزة BID للجودة: Century International Gold Quality Era Control Certificate."
+        }
+      ],
+      "source": {
+        "en": "The Closets Company Profile, p. 6",
+        "ar": "ملف شركة ذا كلوزتس، ص 6"
       },
       "blocks": []
     },
@@ -300,10 +345,6 @@
         "en": "Products at a glance",
         "ar": "المنتجات في لمحة"
       },
-      "lead": {
-        "en": "What the profile presents, page by page.",
-        "ar": "ما يعرضه الملف، صفحة بصفحة."
-      },
       "blocks": [
         {
           "type": "table",
@@ -313,8 +354,8 @@
               "ar": "المجموعة"
             },
             {
-              "en": "As described in the profile",
-              "ar": "كما يصفها الملف"
+              "en": "In the profile",
+              "ar": "في الملف"
             }
           ],
           "rows": [
@@ -325,7 +366,7 @@
               },
               {
                 "en": "Custom closets, home and office storage",
-                "ar": "خزائن مخصصة وحلول تخزين للمنزل والمكتب"
+                "ar": "خزائن مخصصة وتخزين للمنزل والمكتب"
               }
             ],
             [
@@ -344,8 +385,8 @@
                 "ar": "الأرضيات"
               },
               {
-                "en": "Wooden floorings: natural beauty, warm colouring",
-                "ar": "أرضيات خشبية: جمال طبيعي وألوان دافئة"
+                "en": "Wooden floorings",
+                "ar": "أرضيات خشبية"
               }
             ],
             [
@@ -354,8 +395,8 @@
                 "ar": "غرف النوم"
               },
               {
-                "en": "Focus on the essential, with elegance",
-                "ar": "تركيز على الأساسي بأناقة"
+                "en": "Elegant bedrooms",
+                "ar": "غرف نوم أنيقة"
               }
             ],
             [
@@ -364,15 +405,11 @@
                 "ar": "المزيد"
               },
               {
-                "en": "Pantries, TV units, accessories, living rooms",
-                "ar": "مخازن وملحقات ووحدات تلفاز وغرف معيشة"
+                "en": "Pantries, TV units, living rooms",
+                "ar": "مخازن ووحدات تلفاز وغرف معيشة"
               }
             ]
-          ],
-          "source": {
-            "en": "The Closets Company Profile, pp. 7-15",
-            "ar": "ملف شركة ذا كلوزتس، ص 7-15"
-          }
+          ]
         }
       ],
       "source": {
@@ -394,8 +431,8 @@
       },
       "bullets": [
         {
-          "en": "Kitchen models shown (Dilmonia Kitchens): Arkaan, Aseel, Dana, Maya, Rewaq, Jory, Sundos and Sahara.",
-          "ar": "نماذج المطابخ المعروضة (Dilmonia Kitchens): Arkaan وAseel وDana وMaya وRewaq وJory وSundos وSahara."
+          "en": "Kitchen models: Arkaan, Aseel, Dana, Maya, Rewaq, Jory, Sundos, Sahara.",
+          "ar": "نماذج المطابخ: Arkaan وAseel وDana وMaya وRewaq وJory وSundos وSahara."
         }
       ],
       "blocks": [
@@ -434,8 +471,8 @@
       "layout": "duo",
       "accent": "sage",
       "title": {
-        "en": "Bedrooms, floorings and more",
-        "ar": "غرف النوم والأرضيات والمزيد"
+        "en": "Bedrooms and living",
+        "ar": "غرف النوم والمعيشة"
       },
       "lead": {
         "en": "Custom design for the whole home.",
@@ -443,8 +480,8 @@
       },
       "bullets": [
         {
-          "en": "Pantries, TV units, accessories and living rooms: the profile says the company customises the home to the one in mind.",
-          "ar": "مخازن ووحدات تلفاز وملحقات وغرف معيشة: يذكر الملف أن الشركة تفصّل المنزل بحسب ما يتصوره العميل."
+          "en": "Pantries, TV units, accessories and living rooms.",
+          "ar": "مخازن ووحدات تلفاز وملحقات وغرف معيشة."
         }
       ],
       "blocks": [
@@ -486,21 +523,21 @@
         "ar": "المصنع والإنتاج"
       },
       "lead": {
-        "en": "Located in Askar, with automated panel processing.",
-        "ar": "يقع في عسكر، مع معالجة آلية للألواح."
+        "en": "Located in Askar.",
+        "ar": "يقع في عسكر."
       },
       "bullets": [
         {
-          "en": "Manufactures kitchens, bedrooms and bathroom furniture elements from pre-finished sheet material.",
-          "ar": "يصنّع المطابخ وغرف النوم وعناصر أثاث الحمامات من ألواح مسبقة التشطيب."
+          "en": "Automated panel processing on a large scale.",
+          "ar": "معالجة آلية للألواح على نطاق واسع."
         },
         {
-          "en": "In-house capability to cut, edge, bore, insert and assemble carcass components.",
-          "ar": "قدرة داخلية على القص والتحديد والثقب والتركيب وتجميع هياكل الخزائن."
+          "en": "In-house cutting, edging, boring and carcass assembly.",
+          "ar": "قص وتحديد وثقب وتجميع الهياكل داخليًا."
         },
         {
-          "en": "Doors can be made in-house or, for specialist finishes, bought from specialist suppliers.",
-          "ar": "يمكن تصنيع الأبواب داخليًا أو شراؤها من موردين متخصصين للتشطيبات الخاصة."
+          "en": "Doors made in-house, or bought for specialist finishes.",
+          "ar": "أبواب تُصنع داخليًا أو تُشترى للتشطيبات الخاصة."
         }
       ],
       "blocks": [
@@ -511,30 +548,54 @@
             "en": "The factory floor with panel saws and stacked boards",
             "ar": "أرضية المصنع مع مناشير الألواح ولوحات مكدّسة"
           }
+        }
+      ],
+      "source": {
+        "en": "The Closets Company Profile, p. 16",
+        "ar": "ملف شركة ذا كلوزتس، ص 16"
+      }
+    },
+    {
+      "id": "capacity",
+      "accent": "orange",
+      "title": {
+        "en": "Capacity",
+        "ar": "الطاقة الإنتاجية"
+      },
+      "bullets": [
+        {
+          "en": "Capacity as stated in the profile, on a single shift.",
+          "ar": "الطاقة كما ورد في الملف، في وردية واحدة."
         },
+        {
+          "en": "First factory, 2008: 500 sqm.",
+          "ar": "المصنع الأول، 2008: 500 متر مربع."
+        },
+        {
+          "en": "Closets factory, 2014: 5000 sqm.",
+          "ar": "مصنع ذا كلوزتس، 2014: 5000 متر مربع."
+        }
+      ],
+      "blocks": [
         {
           "type": "stat",
           "items": [
             {
               "value": 70000,
               "label": {
-                "en": "kitchen units per year on a single shift (capacity, as stated in the profile)",
-                "ar": "وحدة مطبخ سنويًا في وردية واحدة (الطاقة، كما ورد في الملف)"
+                "en": "kitchen units per year",
+                "ar": "وحدة مطبخ سنويًا"
               }
             },
             {
               "value": 5000,
               "suffix": " sqm",
               "label": {
-                "en": "factory opened in 2014 (the first, in 2008, was 500 sqm)",
-                "ar": "مصنع افتُتح عام 2014 (الأول عام 2008 بمساحة 500 م²)"
+                "en": "factory area",
+                "ar": "مساحة المصنع"
               }
             }
-          ],
-          "source": {
-            "en": "The Closets Company Profile, pp. 16, 18, 20",
-            "ar": "ملف شركة ذا كلوزتس، ص 16, 18, 20"
-          }
+          ]
         }
       ],
       "source": {
@@ -546,29 +607,21 @@
       "id": "machinery",
       "accent": "brass",
       "title": {
-        "en": "Machinery and technology",
-        "ar": "الآلات والتقنية"
-      },
-      "lead": {
-        "en": "Advanced machinery, backed by craftsmen and designers.",
-        "ar": "آلات متقدمة يدعمها حرفيون ومصممون."
+        "en": "Machinery",
+        "ar": "الآلات"
       },
       "bullets": [
         {
-          "en": "Machinery named in the profile: SCHELLING FH4, HOMAG-BRANDT, SCM CNC, CPC packaging line, SCM automatic cabinet assembly clamps and SCM drilling machine CYFLEX HP.",
-          "ar": "الآلات المذكورة في الملف: SCHELLING FH4 وHOMAG-BRANDT وSCM CNC وخط التغليف CPC ومشابك التجميع الآلي SCM وماكينة الثقب SCM CYFLEX HP."
+          "en": "SCHELLING FH4, HOMAG-BRANDT, SCM CNC, CPC packaging line.",
+          "ar": "SCHELLING FH4 وHOMAG-BRANDT وSCM CNC وخط التغليف CPC."
         },
         {
-          "en": "Products undergo quality tests that conform to international quality standards.",
-          "ar": "تخضع المنتجات لاختبارات جودة تتوافق مع المعايير الدولية."
+          "en": "SCM automatic cabinet assembly clamps and drilling machine CYFLEX HP.",
+          "ar": "مشابك التجميع الآلي SCM وماكينة الثقب CYFLEX HP."
         },
         {
-          "en": "An ERP system gives an integrated view of core business processes.",
-          "ar": "يوفّر نظام تخطيط موارد المؤسسات (ERP) رؤية متكاملة لعمليات الأعمال الأساسية."
-        },
-        {
-          "en": "CAD+T and CAD software are used to design, improve design quality and build a database for manufacturing.",
-          "ar": "تُستخدم برمجيات CAD+T وCAD للتصميم وتحسين جودته وبناء قاعدة بيانات للتصنيع."
+          "en": "Quality tests conform to international standards.",
+          "ar": "اختبارات جودة تتوافق مع المعايير الدولية."
         }
       ],
       "blocks": [
@@ -582,49 +635,95 @@
         }
       ],
       "source": {
-        "en": "The Closets Company Profile, pp. 18-19",
-        "ar": "ملف شركة ذا كلوزتس، ص 18-19"
+        "en": "The Closets Company Profile, p. 18",
+        "ar": "ملف شركة ذا كلوزتس، ص 18"
       }
     },
     {
-      "id": "clients",
-      "accent": "sage",
+      "id": "technology",
+      "accent": "brass",
       "title": {
-        "en": "Clients and developments",
-        "ar": "العملاء والمشاريع"
-      },
-      "lead": {
-        "en": "Projects the profile lists as completed, in interior decoration and modular kitchens.",
-        "ar": "مشاريع يذكر الملف أنها أُنجزت، في الديكور الداخلي والمطابخ المعيارية."
+        "en": "Technology",
+        "ar": "التقنية"
       },
       "bullets": [
         {
-          "en": "Bin Faqeeh Real Estate Investment: Water Bay, Water Bay Residences by Roberto Cavalli, The Grand Tower, Hidd Heights, Dar Al Salam, Al Sidra Development, The Storm, The Home.",
-          "ar": "Bin Faqeeh Real Estate Investment: Water Bay وWater Bay Residences by Roberto Cavalli وThe Grand Tower وHidd Heights وDar Al Salam وAl Sidra Development وThe Storm وThe Home."
+          "en": "ERP system: an integrated view of core business processes.",
+          "ar": "نظام ERP: رؤية متكاملة لعمليات الأعمال الأساسية."
         },
         {
-          "en": "Eagle Hills: Marrasi Residences, Marrasi Shoreline, Marrassi Boulevard.",
-          "ar": "Eagle Hills: Marrasi Residences وMarrasi Shoreline وMarrassi Boulevard."
+          "en": "CAD+T and CAD: faster, better designs.",
+          "ar": "CAD+T وCAD: تصاميم أسرع وأفضل."
         },
         {
-          "en": "Ministry of Housing: East Hidd village (Dar ul Khaleej and Ahmad Isa Contracting).",
-          "ar": "وزارة الإسكان: East Hidd village (Dar ul Khaleej وAhmad Isa Contracting)."
+          "en": "CAD data builds a database for manufacturing.",
+          "ar": "بيانات CAD تبني قاعدة بيانات للتصنيع."
+        }
+      ],
+      "source": {
+        "en": "The Closets Company Profile, p. 19",
+        "ar": "ملف شركة ذا كلوزتس، ص 19"
+      },
+      "blocks": []
+    },
+    {
+      "id": "clients-1",
+      "accent": "sage",
+      "title": {
+        "en": "Clients and developments (1 of 2)",
+        "ar": "العملاء والمشاريع (1 من 2)"
+      },
+      "lead": {
+        "en": "Projects the profile lists as completed.",
+        "ar": "مشاريع يذكر الملف أنها أُنجزت."
+      },
+      "bullets": [
+        {
+          "en": "Bin Faqeeh: Water Bay, The Grand Tower, Hidd Heights, Dar Al Salam.",
+          "ar": "Bin Faqeeh: Water Bay وThe Grand Tower وHidd Heights وDar Al Salam."
         },
         {
-          "en": "Villas: AlGosaibi Real Estate (300), Yateem Real Estate (18), Alhilal Construction (8), Danial Garden (7).",
-          "ar": "فلل: AlGosaibi Real Estate (300) وYateem Real Estate (18) وAlhilal Construction (8) وDanial Garden (7)."
+          "en": "Eagle Hills: Marrasi Residences, Shoreline and Boulevard.",
+          "ar": "Eagle Hills: Marrasi Residences وShoreline وBoulevard."
         },
         {
-          "en": "Towers: Capital Plus Tower (25 stories), Classic Hotel (19 stories), Alkhupra Project (7 stories).",
-          "ar": "أبراج: Capital Plus Tower (25 طابقًا) وClassic Hotel (19 طابقًا) وAlkhupra Project (7 طوابق)."
+          "en": "Ministry of Housing: East Hidd village.",
+          "ar": "وزارة الإسكان: East Hidd village."
         },
         {
-          "en": "Marina Reef Project, ACS: 73 kitchen cabinets and 145 granite worktops.",
-          "ar": "Marina Reef Project, ACS: 73 خزانة مطبخ و145 سطح عمل من الغرانيت."
+          "en": "Marina Reef Project, ACS: 73 kitchen cabinets, 145 granite worktops.",
+          "ar": "Marina Reef Project, ACS: 73 خزانة مطبخ و145 سطح عمل غرانيت."
+        }
+      ],
+      "source": {
+        "en": "The Closets Company Profile, p. 21",
+        "ar": "ملف شركة ذا كلوزتس، ص 21"
+      },
+      "blocks": []
+    },
+    {
+      "id": "clients-2",
+      "accent": "sage",
+      "title": {
+        "en": "Clients and developments (2 of 2)",
+        "ar": "العملاء والمشاريع (2 من 2)"
+      },
+      "bullets": [
+        {
+          "en": "AlGosaibi Real Estate: 300 villas. Yateem Real Estate: 18 villas.",
+          "ar": "AlGosaibi Real Estate: 300 فيلا. Yateem Real Estate: 18 فيلا."
         },
         {
-          "en": "Offices and showrooms: Ministry of Information, GPIC, KFH head office, Mazda showroom.",
-          "ar": "مكاتب وصالات عرض: وزارة الإعلام وGPIC والمقر الرئيسي لـ KFH وصالة Mazda."
+          "en": "Capital Plus Tower: 25 stories. Classic Hotel: 19 stories.",
+          "ar": "Capital Plus Tower: 25 طابقًا. Classic Hotel: 19 طابقًا."
+        },
+        {
+          "en": "Offices: Ministry of Information, GPIC, KFH head office.",
+          "ar": "مكاتب: وزارة الإعلام وGPIC والمقر الرئيسي لـ KFH."
+        },
+        {
+          "en": "Closets for all projects of Impact Interiors and United Arab Construction.",
+          "ar": "خزائن لجميع مشاريع Impact Interiors وUnited Arab Construction."
         }
       ],
       "source": {
@@ -638,21 +737,17 @@
       "layout": "duo",
       "accent": "orange",
       "title": {
-        "en": "360° Durrat Marina and Dar Al Salam",
-        "ar": "360° درة مارينا ودار السلام"
-      },
-      "lead": {
-        "en": "Closets provided for the whole development.",
-        "ar": "خزائن لكامل المشروع."
+        "en": "Durrat Marina and Dar Al Salam",
+        "ar": "درة مارينا ودار السلام"
       },
       "bullets": [
         {
-          "en": "360° Durrat Marina: 14 stories of one and two bedroom sea-view apartments; the company contributed to its facilities.",
-          "ar": "360° درة مارينا: 14 طابقًا من الشقق المطلة على البحر بغرفة وغرفتين؛ وساهمت الشركة في تجهيزاتها."
+          "en": "360° Durrat Marina: 14 stories of sea-view apartments.",
+          "ar": "360° درة مارينا: 14 طابقًا من الشقق المطلة على البحر."
         },
         {
-          "en": "Dar Al Salam, Reef Island: an eight-story residential project of 56 units, fully provided with custom-design closets.",
-          "ar": "دار السلام، جزيرة ريف: مشروع سكني من ثمانية طوابق و56 وحدة، زُوّد بالكامل بخزائن مصممة خصيصًا."
+          "en": "Dar Al Salam, Reef Island: 56 units, closets throughout.",
+          "ar": "دار السلام، جزيرة ريف: 56 وحدة بخزائن في جميعها."
         }
       ],
       "blocks": [
@@ -694,18 +789,14 @@
         "en": "The Grand Tower and Hidd Heights",
         "ar": "The Grand Tower وHidd Heights"
       },
-      "lead": {
-        "en": "Apartments with fitted closets.",
-        "ar": "شقق بخزائن مركّبة."
-      },
       "bullets": [
         {
-          "en": "The Grand Tower, Seef: a free hold tower near the Financial Harbour; the company provided and assembled all of the closets.",
-          "ar": "The Grand Tower، السيف: برج تملك حر قرب المرفأ المالي؛ وفرّت الشركة جميع الخزائن وركّبتها."
+          "en": "The Grand Tower, Seef: all closets provided and assembled.",
+          "ar": "The Grand Tower، السيف: جميع الخزائن موفّرة ومركّبة."
         },
         {
-          "en": "Hidd Heights, Hidd: a 13-storey building with studios, one and two bedroom apartments.",
-          "ar": "Hidd Heights، الحد: مبنى من 13 طابقًا يضم استوديوهات وشققًا بغرفة وغرفتين."
+          "en": "Hidd Heights: 13 storeys of studios and one and two bedroom apartments.",
+          "ar": "Hidd Heights: 13 طابقًا من الاستوديوهات والشقق بغرفة وغرفتين."
         }
       ],
       "blocks": [
@@ -747,18 +838,14 @@
         "en": "The Homes and Alsidra",
         "ar": "The Homes والسدرة"
       },
-      "lead": {
-        "en": "Villas with customised closets.",
-        "ar": "فلل بخزائن مفصّلة."
-      },
       "bullets": [
         {
-          "en": "The Homes, Hamala: 20 contemporary villas of four and five bedrooms, with customised closets.",
-          "ar": "The Homes، الحملة: 20 فيلا عصرية من أربع وخمس غرف نوم، بخزائن مفصّلة."
+          "en": "The Homes, Hamala: 20 villas with customised closets.",
+          "ar": "The Homes، الحملة: 20 فيلا بخزائن مفصّلة."
         },
         {
-          "en": "Alsidra, Diyar Al Muharraq: a gated community of over 450 villas, from two to five bedrooms.",
-          "ar": "السدرة، ديار المحرق: مجتمع مسوّر يضم أكثر من 450 فيلا من غرفتين إلى خمس غرف نوم."
+          "en": "Alsidra, Diyar Al Muharraq: over 450 villas, two to five bedrooms.",
+          "ar": "السدرة، ديار المحرق: أكثر من 450 فيلا من غرفتين إلى خمس."
         }
       ],
       "blocks": [

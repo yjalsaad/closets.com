@@ -66,7 +66,7 @@ describe('the figures taken from the PDFs (listed in VIP-ROOM-OWNER-INPUTS.md)',
     const years = CLOSETS_PROFILE_DECK.slides.filter((s) => /^history/.test(s.id)).flatMap((s) => s.bullets.map((b) => b.en.slice(0, 4))); expect(years).toEqual(['2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2016', '2017', '2018', '2019']);
   });
   test('deliberate omissions stay omitted: no "100%" recycled-wood claim, no third-party development value, no phone / fax numbers', () => {
-    const all = JSON.stringify(DECKS); expect(all).not.toMatch(/100\s?%|recycled wood and eco-friendly materials, 100|billion|\$\s?\d|Tel:|Fax:/i);
+    const all = JSON.stringify(DECKS); expect(all).not.toMatch(/100\s?%|recycled wood and eco-friendly materials, 100|billion|\$\s?\d|\bTel:|\bFax:/i);
   });
 });
 

@@ -85,6 +85,7 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   const logoImg = logoTex && logoTex.image ? logoTex.image : null;
   /** the slide on the wall: a built-in station keeps its rich renderer; any other slide (imported / saved decks) uses the generic slide drawing. With more than one deck, deck chips sit along the top. */
   const drawScreen = (g, w, h, l) => {
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
     const d = state.deck, sl = d.slides[state.station] || d.slides[0], bi = sl.builtin && BUILTIN_DRAW[sl.builtin], live = state.inside || state.focus;
     if (bi) bi(g, w, h, { lang: l, t: state.t, logo: logoImg, projects: state.projects });
     else {
@@ -98,7 +99,7 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   };
   /** keep the last frame so the next slide can cross-fade from it */
   const snapshot = () => { if (!state.motion.on || !(state.inside || state.focus) || state.motion.transition <= 0) { state.prev = null; return; } const c = screen && screen.canvas; if (!c) return; if (!state.prevC) state.prevC = document.createElement('canvas'); if (state.prevC.width !== c.width) { state.prevC.width = c.width; state.prevC.height = c.height; } state.prevC.getContext('2d').drawImage(c, 0, 0); state.prev = state.prevC; };
-  const hiRes = tier.id === 'high', SW = hiRes ? 2048 : DW, SH = hiRes ? 1152 : DH, aniso = hiRes ? 8 : 4;
+  const hiRes = tier.id === 'high', SW = hiRes ? 2560 : 1920, SH = hiRes ? 1440 : 1080, aniso = 8;   // the big screen is read from across the room: a crisp 1080p / 1440p texture, mipmapped + anisotropic
   const screen = makePanel(SW, SH, (g, w, h, l) => drawScreen(g, w, h, l), lang, { design: { w: DW, h: DH }, anisotropy: aniso });
   const screenMat = new THREE.MeshBasicMaterial({ map: screen.tex, toneMapped: false, color: new THREE.Color(1, 1, 1) });
   const S = VIP.screen; add2(placed(bevelBox(S.w + 0.3, S.h + 0.3, 0.06, { b: 0.01 }), { x: cx, y: S.y, z: S.z - 0.02 }), M.darkInterior); const screenMesh = mesh(new THREE.PlaneGeometry(S.w, S.h), screenMat, { pos: [cx, S.y, S.z + 0.012], receive: false, name: 'vip-screen' });
@@ -149,6 +150,10 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
       const hit = chipLayout(titles, DW, state.lang === 'ar').find((r) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h); return hit ? hit.i : -1;
     },
     setFocus(v) { state.focus = !!v; },
+    /** QA: draw slide `i` of the current deck on a scratch canvas with the REAL font metrics and return every text it drew (size, weight, position, wrapped extent) */
+    legibility(i, l = state.lang) { const c = document.createElement('canvas'); c.width = DW; c.height = DH; const g = c.getContext('2d'), d = state.deck, sl = d.slides[i]; if (!sl || sl.builtin) return null; const rd = resolveDeck({ ...d, slides: [sl] }, l), metrics = []; g.direction = l === 'ar' ? 'rtl' : 'ltr'; drawSlide(g, DW, DH, { lang: l, slide: rd.slides[0], index: i, count: d.slides.length, deckTitle: rd.title, images: state.images, metrics }); return { w: DW, h: DH, metrics }; },
+    /** QA / tests: pin the slide's animation clock to `t` seconds (null releases it) and redraw, so a motion sequence can be captured frame by frame */
+    freezeAnim(t) { state.fixedT = t == null ? null : t; if (t != null) state.slideT = t; screen.redraw(state.lang); },
     setLevel(k) { state.level = k; },
     /** the site's real project rows (or an empty / error state) -> gallery cards; images load lazily and redraw the wall as they arrive */
     setProjects({ status, rows }) {
@@ -171,7 +176,7 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
       // the screen animates only while somebody is in the room (or presenting); static otherwise (a redraw is a canvas upload)
       state.redrawT += dt;
       if ((state.inside || state.focus) && !state.reduced) {
-        const sl = state.deck.slides[state.station]; state.slideT += dt;
+        const sl = state.deck.slides[state.station]; state.slideT = state.fixedT != null ? state.fixedT : state.slideT + dt;
         if (sl && sl.builtin) { if ((state.station !== 0 && state.redrawT > 0.14) || (state.progress >= 0 && state.redrawT > 0.25)) { state.redrawT = 0; screen.redraw(state.lang); } }
         else if (sl && state.motion.on) {
           const kbOn = state.motion.kenBurns && (sl.blocks || []).some((b) => b.type === 'image') && state.slideT < 18, active = state.slideT < settleSeconds(state.motion, sl) + 0.1 || kbOn, period = active ? 1 / state.motion.hz : (state.progress >= 0 ? 0.25 : 0);

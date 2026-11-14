@@ -121,6 +121,7 @@ export const STRINGS = {
   // presenting on the big screen (auto-play, motion)
   vipPresent: { en: 'Present on big screen', ar: 'اعرض على الشاشة الكبيرة' },
   vipPresentFull: { en: 'Full screen presentation', ar: 'عرض بملء الشاشة' },
+  vipReading: { en: 'Reading mode', ar: 'وضع القراءة' },
   vipPresentExit: { en: 'Back to the panel', ar: 'العودة إلى اللوحة' },
   vipPlay: { en: 'Play', ar: 'تشغيل' },
   vipPause: { en: 'Pause', ar: 'إيقاف مؤقت' },
@@ -129,7 +130,7 @@ export const STRINGS = {
   vipPresenter: { en: 'Presenter controls', ar: 'أدوات العرض' },
   vipProgress: { en: 'Presentation progress', ar: 'تقدم العرض' },
   vipAutoplay: { en: 'Auto-play', ar: 'عرض تلقائي' },
-  vipPresentKeys: { en: 'P or Space play / pause, B big screen, F full screen, R speed, L loop', ar: 'P أو المسافة تشغيل / إيقاف، B الشاشة الكبيرة، F ملء الشاشة، R السرعة، L التكرار' },
+  vipPresentKeys: { en: 'P or Space play / pause, B big screen, Z reading mode, F full screen, R speed, L loop', ar: 'P أو المسافة تشغيل / إيقاف، B الشاشة الكبيرة، Z وضع القراءة، F ملء الشاشة، R السرعة، L التكرار' },
   chatPresent: { en: 'Present the company profile', ar: 'اعرض ملف الشركة' },
   vdTitle: { en: 'Add a presentation', ar: 'أضف عرضًا تقديميًا' },
   vdIntro: { en: 'Import a JSON file, or paste simple text. You will see a preview before anything is saved. Nothing is uploaded: it stays in this browser.', ar: 'استورد ملف JSON أو الصق نصًا بسيطًا. ستشاهد معاينة قبل الحفظ. لا يُرفع شيء: يبقى في هذا المتصفح.' },
