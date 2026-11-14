@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, createContext, useContext, Component, Fragment, createElement } from 'react';
 import GlassLayer from './glass/GlassLayer'; // [GLASS 2026-11-14]
 import TypeShowcase from './glass/TypeShowcase'; // [GLASS 2026-11-14] stage 2
+import GlassStat from './glass/GlassStat'; // [GLASS 2026-11-14] the figures
 import KitchenScene3D from './KitchenScene3D';
 import TVUnit3D from './TVUnit3D';
 import Door3D from './Door3D';
@@ -3481,21 +3482,7 @@ function Photo({ src, alt = '', style, className = '', imgClass = '', par }) {
 }
 // Animated count-up statistic.
 function Stat({ to, suffix = '', label }) {
-  const ref = useRef(null); const [v, setV] = useState(0); const done = useRef(false);
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const obs = new IntersectionObserver(es => es.forEach(e => {
-      if (e.isIntersecting && !done.current) { done.current = true; const dur = 1500, t0 = performance.now();
-        const tick = t => { const p = Math.min(1, (t - t0) / dur); setV(Math.round(to * (1 - Math.pow(1 - p, 3)))); if (p < 1) requestAnimationFrame(tick); };
-        requestAnimationFrame(tick);
-      }
-    }), { threshold: 0.4 });
-    obs.observe(el); return () => obs.disconnect();
-  }, [to]);
-  return <div ref={ref} style={{ textAlign: 'center' }}>
-    <div className="display stat-num" style={{ fontSize: 'clamp(40px,5vw,64px)', color: 'var(--ink)', lineHeight: 1 }}>{v}{suffix}</div>
-    <div style={{ fontSize: 13, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--muted)', marginTop: 10 }}>{label}</div>
-  </div>;
+  return <GlassStat to={to} suffix={suffix} label={label} />; // [GLASS 2026-11-14] counting, the arc and the glass tile live in ./glass/GlassStat
 }
 // Scroll progress bar + lightweight parallax for .par[data-par] elements.
 function useHomeFx() {
@@ -8539,7 +8526,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
           <h2 className="display" style={{ fontSize: mobile ? 30 : 46, color: 'var(--ink)' }}>{cms('home.why.title', 'A workshop, not a warehouse.')}</h2>
           <p style={{ fontSize: mobile ? 16 : 18, color: 'var(--ink-soft)', lineHeight: 1.7, marginTop: 18 }}>{cms('home.why.subtitle', 'Everything we make is designed, built and installed by our own people in Bahrain — so the piece you imagine is the piece you live with.')}</p>
         </div>
-        <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 28 : 20 }}>
+        <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 12 : 16 }}>
           <Stat to={10} suffix="K+" label={t('swStatProjects')} />
           <Stat to={19} suffix={t('swStatYrs')} label={t('swStatCraft')} />
           <Stat to={4} label={t('swStatShowrooms')} />
