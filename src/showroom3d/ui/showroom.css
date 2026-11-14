@@ -427,3 +427,4 @@
 .sr-vip-scrub { display: block; } .sr-vip-scrub input { width: 100%; min-height: 32px; accent-color: var(--sr-orange); }
 
 @media (max-width: 640px), (pointer: coarse) and (max-height: 700px) { .sr-panel-vip[data-mode="panel"] { max-height: 62dvh; } .sr-panel-vip[data-mode="panel"] .sr-eyebrow { display: none; } }
+.sr-panel-vip[data-mode="big"] .sr-vip-scrub, .sr-panel-vip[data-mode="full"] .sr-vip-scrub, .sr-panel-vip[data-mode="read"] .sr-vip-scrub { display: none; }
