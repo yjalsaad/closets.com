@@ -16,7 +16,7 @@ const FAR_AT = 11, ANIM_AT = 20;
 function drawSign(g, w, h, lang, L) {
   g.fillStyle = '#25201c'; g.fillRect(0, 0, w, h); g.strokeStyle = '#c9a25b'; g.lineWidth = 3; roundedRect(g, 10, 10, w - 20, h - 20, 14); g.stroke();
   g.fillStyle = '#f2ebdf'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `600 ${Math.round(h * 0.38)}px ${FONT}`; g.fillText(L('Reception', 'الاستقبال'), w / 2, h * 0.42);
-  g.fillStyle = '#c9a25b'; g.font = `500 ${Math.round(h * 0.16)}px ${FONT}`; g.fillText(L('Ask me anything. I am an AI assistant.', 'اسألني أي شيء. أنا مساعد ذكاء اصطناعي.'), w / 2, h * 0.76);
+  g.fillStyle = '#c9a25b'; g.font = `500 ${Math.round(h * 0.125)}px ${FONT}`; g.fillText(L('Ask me anything. I am an AI assistant.', 'اسألني أي شيء. أنا مساعد ذكاء اصطناعي.'), w / 2, h * 0.76);
 }
 
 export class StaffManager {

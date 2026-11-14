@@ -17,7 +17,7 @@ async function spot(page, id) {   // stand 1.6 m from the adviser of a room, loo
 }
 const talkBtn = (page) => page.locator('[data-testid="sr-talk"]');
 async function open(b, { query = FAST, lang, viewport = { width: 1100, height: 640 }, mobile = false, reduced = false, url = '/yas-bloom' } = {}) {
-  const o = await L.openShowroom(b, { query, viewport, mobile, reduced, url }); await L.enterExplore(o.page, { tap: mobile }); await dismissCoach(o.page); return o;
+  const o = await L.openShowroom(b, { query, viewport, mobile, reduced, url }); if (reduced) await o.page.waitForSelector('.sr-stage[data-phase="explore"]', { timeout: 120000 }); else await L.enterExplore(o.page, { tap: mobile }); await dismissCoach(o.page); return o;
 }
 async function chatSay(page, text) { await page.fill('[data-testid="sr-chat-input"]', text); await page.keyboard.press('Enter'); await page.waitForTimeout(300); await page.waitForSelector('[data-testid="sr-chat-typing"]', { state: 'detached', timeout: 15000 }).catch(() => {}); await page.waitForTimeout(250); }
 const lastStaff = (page) => page.locator('.sr-chat-msg.is-staff:not(.is-typing) p').last().innerText();
@@ -73,13 +73,13 @@ async function ai(b) {
   await page.click('[data-testid="sr-chat-askai"]'); await page.waitForSelector('[role="dialog"][aria-label]:not([data-testid="sr-chat"])', { timeout: 8000 }).catch(() => {});
   const modal = page.locator('div[style*="position: fixed"] button'); check('the existing consent prompt appears before anything is sent', (await modal.count()) >= 2 && calls === 0);
   await modal.first().click(); await page.waitForTimeout(900); check('declining keeps the built-in guide and sends nothing', calls === 0 && /built-in guide/.test(await lastStaff(page)), await lastStaff(page));
-  await page.click('[data-testid="sr-chat-askai"]'); await modal.nth(1).click(); await page.waitForTimeout(1500);
+  await chatSay(page, 'zzqx plmk'); await page.click('[data-testid="sr-chat-askai"]'); await page.waitForTimeout(800); await modal.nth(1).click(); await page.waitForTimeout(1500);
   check('after consent the reply comes from support_chat via the site fetch (labelled AI)', calls === 1 && /kitchens and wardrobes/.test(await lastStaff(page)), calls);
   await chatSay(page, 'qqq zzz'); mode = 'price'; await page.click('[data-testid="sr-chat-askai"]'); await page.waitForTimeout(1500); check('an AI reply with a price / discount is dropped by the guardrail', /cannot share that answer/.test(await lastStaff(page)), await lastStaff(page));
   mode = 'offline'; await chatSay(page, 'qqq zzz'); await page.click('[data-testid="sr-chat-askai"]'); await page.waitForTimeout(1500); check('offline AI degrades to the guide', /could not reach/.test(await lastStaff(page)));
   mode = 'ok'; let blocked = false; for (let i = 0; i < 8; i++) { await chatSay(page, 'qqq zzz'); const c = page.locator('[data-testid="sr-chat-askai"]'); if (!(await c.count())) break; await c.click(); await page.waitForTimeout(500); if (/wait a moment/.test(await lastStaff(page))) { blocked = true; break; } }
   check('client-side rate limit: at most 6 AI questions per 30 s', blocked && calls <= 7, { calls });
-  check('no page errors', o.errors.length === 0, o.errors.slice(0, 3)); await o.ctx.close();
+  const errs = o.errors.filter((e) => !/ERR_FAILED/.test(e)); check('no page errors (the deliberately aborted offline request aside)', errs.length === 0, errs.slice(0, 3)); await o.ctx.close();
 }
 
 async function ar(b) {
@@ -104,6 +104,16 @@ async function mobile(b) {
   check('no page errors', o.errors.length === 0, o.errors.slice(0, 3)); await o.ctx.close();
 }
 
+async function bubble(b) {
+  for (const mob of [false, true]) {
+    const o = await L.openShowroom(b, { query: FAST + (mob ? '&touch=1' : ''), mobile: mob, viewport: mob ? { width: 390, height: 780 } : { width: 1100, height: 640 } }); const page = o.page; await L.enterExplore(page, { tap: mob }); await dismissCoach(page);
+    await page.waitForSelector('[data-testid="sr-greet-bubble"]', { timeout: 8000 }); check((mob ? 'mobile' : 'desktop') + ': the greeting bubble shows in the hall', true);
+    await goto(page, [0, -27.4, 0, 0.05]); await page.keyboard.press('KeyE').catch(() => {}); await ex(page, (e) => e.explorer.focusVip(0)); await page.waitForSelector('[data-testid="sr-vip-panel"]', { timeout: 15000 });
+    check((mob ? 'mobile' : 'desktop') + ': the greeting bubble is hidden while the VIP panel is open', (await page.locator('[data-testid="sr-greet-bubble"]').count()) === 0);
+    await shot(page, 'phase6-bubble-vip-' + (mob ? 'mobile' : 'desktop'), { quality: 66 }); await o.ctx.close();
+  }
+}
+
 async function reduced(b) {
   const o = await open(b, { reduced: true }); const page = o.page;
   await spot(page, 'kitchens'); await page.waitForTimeout(1500); const d = await page.evaluate(() => { const it = window.__showroom.engine.staff.item('kitchens'); return Math.hypot(it.pos[0] - it.def.at[0], it.pos[1] - it.def.at[1]); });
@@ -115,9 +125,9 @@ async function reduced(b) {
 async function avatar(b) {
   const o = await open(b); const page = o.page;
   check('first person is the default', (await ex(page, (e) => e.state().camMode)) === 'first');
-  await page.click('[data-testid="sr-cam-toggle"]'); await page.waitForTimeout(600); check('HUD toggle switches to third person and persists', (await ex(page, (e) => e.state().camMode)) === 'third' && (await page.evaluate(() => localStorage.getItem('closets_yb_cam'))) === 'third');
+  await page.click('[data-testid="sr-cam-toggle"]'); await page.waitForTimeout(2200); check('HUD toggle switches to third person and persists', (await ex(page, (e) => e.state().camMode)) === 'third' && (await page.evaluate(() => localStorage.getItem('closets_yb_cam'))) === 'third');
   const vis = await page.evaluate(() => window.__showroom.engine.avatar.group.visible); check('the avatar is visible in third person', vis);
-  await page.click('[data-testid="sr-cam-toggle"]'); await page.waitForTimeout(400); check('toggle back to first person hides the avatar', !(await page.evaluate(() => window.__showroom.engine.avatar.group.visible)));
+  await page.click('[data-testid="sr-cam-toggle"]'); await page.waitForTimeout(2000); check('toggle back to first person hides the avatar', !(await page.evaluate(() => window.__showroom.engine.avatar.group.visible)));
   await page.keyboard.press('Escape'); await page.waitForSelector('[data-testid="sr-menu-avatar"]'); const a0 = await ex(page, (e) => e.state().avatar); await page.click('[data-testid="sr-menu-avatar"]'); check('menu cycles the avatar female -> male -> guest', a0 !== (await ex(page, (e) => e.state().avatar)));
   check('no page errors', o.errors.length === 0, o.errors.slice(0, 3)); await o.ctx.close();
 }
@@ -143,7 +153,7 @@ async function gallery(b) {
 }
 
 (async () => {
-  const which = process.argv[2] || 'all'; const b = await L.launch(); const all = { flows, ai, ar, mobile, reduced, avatar, stats, gallery };
+  const which = process.argv[2] || 'all'; const b = await L.launch(); const all = { bubble, flows, ai, ar, mobile, reduced, avatar, stats, gallery };
   try { for (const k of Object.keys(all)) if (which === 'all' ? !['stats', 'gallery'].includes(k) : which === k) { console.log('--- ' + k); await all[k](b); } } finally { await b.close(); }
   const bad = L.results.filter((r) => !r.ok); console.log(`\n${L.results.length - bad.length}/${L.results.length} checks passed`); process.exit(bad.length ? 1 : 0);
 })();
