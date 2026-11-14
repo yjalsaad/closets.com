@@ -409,3 +409,5 @@
 .sr-panel-vip[data-mode="big"] [data-testid="sr-vip-prev"], .sr-panel-vip[data-mode="full"] [data-testid="sr-vip-prev"], .sr-panel-vip[data-mode="read"] [data-testid="sr-vip-prev"] { order: -1; }
 .sr-panel-vip[data-mode="big"] .sr-vip-film-seek { flex: 1 1 100%; order: -2; } .sr-panel-vip[data-mode="big"] .sr-vip-film-range input { min-height: 28px; }
 .sr-vip-film-range span { direction: ltr; unicode-bidi: isolate; }
+.sr-stage.sr-presenting .sr-hud { opacity: 0; pointer-events: none; transition: opacity .25s ease; }
+@media (prefers-reduced-motion: reduce) { .sr-stage.sr-presenting .sr-hud { transition: none; } }

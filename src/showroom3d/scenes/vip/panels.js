@@ -240,7 +240,7 @@ function drawBlock(k, g, b, x, y, bw, bh, lang, o, accent, mo) {
     const it = b.items || [], n = it.length, gap = 16, cw = (bw - 32 - gap * (n - 1)) / n;
     it.forEach((v, i) => { const cx = k.rtl ? x + bw - 16 - cw - i * (cw + gap) : x + 16 + i * (cw + gap), cur = lv && lv.countUp ? countValue(v.value, t, { delay: 0.3 + i * 0.15 }) : v.value, ax = cx + cw / 2;
       k.card(cx, y + 16, cw, bh - 32, { fill: rgba(P.brandOrange, 0.1), line: rgba(accent, 0.7) });
-      k.text((v.prefix || '') + formatNumber(cur) + (v.suffix || ''), ax, y + 16 + (bh - 32) * 0.34, { size: Math.min(78, Math.max(56, cw / 3.6)), weight: 800, color: accent, align: 'center' }); k.para(v.label, ax, y + 16 + (bh - 32) * 0.34 + 46, cw - 36, { size: TYPE.stat, weight: 600, color: P.sand, align: 'center', lh: 36 }); });
+      k.text((v.prefix || '') + formatNumber(cur) + (v.suffix || ''), ax, y + 16 + (bh - 32) * 0.44, { size: Math.min(84, Math.max(56, cw / 3.4)), weight: 800, color: accent, align: 'center' }); k.para(v.label, ax, y + 16 + (bh - 32) * 0.44 + 50, cw - 36, { size: TYPE.stat, weight: 600, color: P.sand, align: 'center', lh: 36 }); });
   }
 }
 /** auto-play badge + progress bar along the bottom of the wall (drawn over any slide while playing) */

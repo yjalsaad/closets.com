@@ -124,7 +124,8 @@ async function advisor(b) {
 const POSES = { standing: { pos: [0, 1.7, -30.2], look: [0, 2.0, -35.34], fov: 54 }, doorway: { pos: [0, 1.7, -28.9], look: [0, 2.0, -35.34], fov: 54 }, seated: { pos: [0.7, 1.15, -31.7], look: [0, 2.0, -35.34], fov: 54 } };
 /** LEGIBILITY: every generic slide measured with the real font metrics, then the screen cropped from the standing, seated and doorway positions and in Reading mode: text height in screen pixels */
 async function legible(b) {
-  const o = await L.openShowroom(b, { query: MED, viewport: { width: 1280, height: 720 } }); const page = o.page; await mockProjects(page); await enterVip(page);
+  const o = await L.openShowroom(b, { query: 'debug=1&quality=medium&aa=0',   // FULL render resolution here (the other suites render at half resolution to save time), so the crops show the real sharpness
+    viewport: { width: 1280, height: 720 } }); const page = o.page; await mockProjects(page); await enterVip(page);
   for (const id of ['closets-profile', 'yas-profile']) {
     await page.selectOption('[data-testid="sr-vip-deck-select"]', id); await settle(page, 700); const n = await vip(page, (v) => v.state.deck.slides.length); let worst = { under: 0, overflow: 0, minBody: 99, minTitle: 999, narrow: 0 }, drawn = 0;
     for (let i = 0; i < n; i++) {

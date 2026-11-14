@@ -73,6 +73,9 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
   const isFilm = !!deck.film, fs = isFilm && ex.film ? ex.film.state : null;
   const portrait = !!(ex.canvas && ex.canvas.clientWidth && ex.canvas.clientHeight / ex.canvas.clientWidth > 1.1), dom = reading0(ex) && portrait && !isFilm;
   const play = ex.play || { playing: false, speed: 1, loop: true }, mode = ex.presMode || 'panel', prog = typeof st.vipProgress === 'number' ? st.vipProgress : -1, big = mode !== 'panel', reading = mode === 'read';
+  const cine = !!ex.cinema;
+  // while presenting (big screen / reading / cinema) the showroom's own HUD steps aside so nothing sits over the wall
+  useEffect(() => { const stage = ex.canvas && ex.canvas.parentNode; if (!stage || !stage.classList) return undefined; stage.classList.toggle('sr-presenting', big || cine); return () => stage.classList.remove('sr-presenting'); }, [ex, big, cine]);
   const del = () => { ex.removeDeck(deck.id); setConfirmDel(false); if (selRef.current) selRef.current.focus(); };
   return (
     <aside className="sr-panel sr-panel-vip" aria-label={t('vipAria', lang)} data-testid="sr-vip-panel" data-station={raw.id} data-deck={deck.id} data-mode={mode} data-playing={play.playing ? '1' : '0'} dir={rtl ? 'rtl' : 'ltr'}>
