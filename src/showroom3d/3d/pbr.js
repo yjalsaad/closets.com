@@ -3,6 +3,7 @@
  * shadows / light pools, and a generated warm INTERIOR environment (PMREM) for reflections on brass, stone and glass.
  * Everything is canvas ImageData from seeded noise: no photographs. Not photoreal; it is a plausible, consistent material language. */
 import * as THREE from 'three';
+import { realSet, interiorEnv } from './realism/registry';
 import { PALETTE as P } from './palette';
 import { makeNoise2D, fbm, clamp01, lerp } from './noise';
 import { heightToNormal } from './textures';
@@ -28,6 +29,7 @@ function gray(arr, w, h) {
  * Returns { map, rough, normal }. The map is mid-tone: finishes tint it with material.color.
  */
 export function timberSet(size, seed = 3, tone = 0) {
+  { const R = realSet(tone ? 'walnutMid' : 'oak', size); if (R) return R; }
   const n = makeNoise2D(seed), n2 = makeNoise2D(seed + 7), n3 = makeNoise2D(seed + 19);
   const A = tone ? rgb(0x6d5546) : rgb(0xb09a7d), B = tone ? rgb(0x2f2017) : rgb(0x7f6a4f);
   const rings = tone ? 16 : 7, cath = tone ? 0.55 : 1.1;
@@ -108,6 +110,7 @@ export function rugSet(size = 512, seed = 31) {
 
 /** plank floor: 6 long boards across V, each with its own grain offset + tone, dark seams with a bevel in the normal map. {map, rough, normal}. tone 0 oak / 1 walnut */
 export function plankSet(size, seed = 61, tone = 0) {
+  { const R = realSet(tone ? 'planksDark' : 'planks', size); if (R) return R; }
   const base = timberSet(size, seed, tone), rows = 6, rh = size / rows, map = cv(size), g = map.getContext('2d'), rough = cv(size), gr = rough.getContext('2d'), norm = cv(size), gn = norm.getContext('2d');
   const r = makeNoise2D(seed + 3);
   gn.fillStyle = 'rgb(128,128,255)'; gn.fillRect(0, 0, size, size);
@@ -124,6 +127,7 @@ export function plankSet(size, seed = 61, tone = 0) {
 
 /** upholstery weave: a fine cross-hatch with soft slub variation. {map: flat white (tint comes from material.color), rough, normal} */
 export function weaveSet(size = 256, seed = 71) {
+  { const R = realSet('linen', 512); if (R && R.normal && R.rough) return { rough: R.rough, normal: R.normal }; }
   const n = makeNoise2D(seed), h = new Float32Array(size * size), r = new Float32Array(size * size);
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const u = x / size, v = y / size, a = Math.sin(u * size * 0.7) * 0.5 + 0.5, b = Math.sin(v * size * 0.7) * 0.5 + 0.5, slub = fbm(n, u * 6, v * 40, 2, 6);
@@ -172,6 +176,7 @@ export function toTex(canvas, { srgb = true, repeat, anisotropy = 4 } = {}) {
  * Emissive panels are HDR (> 1), which PMREM keeps in half-float.
  */
 export function buildInteriorEnv(renderer) {
+  { const hdr = interiorEnv(); if (hdr) return hdr; }   // the real (graded) HDRI when it has loaded
   const scene = new THREE.Scene(); const col = (hex, k) => new THREE.Color(hex).multiplyScalar(k);
   const room = new THREE.Mesh(new THREE.BoxGeometry(24, 9, 24), new THREE.MeshBasicMaterial({ color: col(P.sand, 0.15), side: THREE.BackSide })); room.position.y = 4.5; scene.add(room);
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(24, 24), new THREE.MeshBasicMaterial({ color: col(P.concrete, 0.16) })); floor.rotation.x = -Math.PI / 2; floor.position.y = 0.02; scene.add(floor);
@@ -187,6 +192,7 @@ export function buildInteriorEnv(renderer) {
 
 /** large-format polished stone / porcelain: 2 x 2 tiles of the veined stone generator (each tile flipped / offset so no two match), dark grout, grout normal. */
 export function tileSet(size, seed = 41, variant = 'white') {
+  { const R = variant === 'sand' ? realSet('stone', size) : variant === 'grey' ? realSet('microcement', size) : null; if (R) return R; }
   const half = size >> 1, base = marbleSet(half, seed, variant, true), c = cv(size), g = c.getContext('2d'), cr = cv(size), gr = cr.getContext('2d');
   const flips = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
   for (let i = 0; i < 4; i++) {

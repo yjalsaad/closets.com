@@ -20,6 +20,10 @@ import { buildBays } from '../scenes/main-hall/bays';
 import { layoutBays } from '../scenes/main-hall/departments';
 import { buildProducts } from '../scenes/products';
 import { ensureFonts } from '../scenes/main-hall/signs';
+import { loadRealism, loadInteriorHdr, realSet, interiorEnv, disposeRealism } from './realism/registry';
+import { LOOK, kelvin } from './realism/look';
+import { buildGalleryFrames } from './realism/gallery';
+import { HALL } from './dimensions';
 
 const nextFrame = () => new Promise((r) => { let done = false; const f = () => { if (!done) { done = true; r(); } }; requestAnimationFrame(f); setTimeout(f, 40); });
 
@@ -40,7 +44,7 @@ export class ShowroomEngine {
     try { const gl = renderer.getContext(); const e = gl.getExtension('WEBGL_debug_renderer_info'); this.stats.gpu = e ? String(gl.getParameter(e.UNMASKED_RENDERER_WEBGL)) : ''; this.stats.software = isSoftwareRenderer(this.stats.gpu); } catch (e) { /* ignore */ }
     renderer.info.autoReset = false;      // draw calls / triangles are summed over every pass (scene + bloom) and reset once per frame
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.9;
+    renderer.toneMapping = LOOK.toneMapping; renderer.toneMappingExposure = LOOK.exposure;
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = tier.id === 'low' ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
     renderer.setClearColor(PALETTE.skyHorizon, 1);
     this.camera = new THREE.PerspectiveCamera(40, 1, 0.25, 1500);
@@ -51,10 +55,12 @@ export class ShowroomEngine {
     const logoTex = await this.loadLogo(); this.report('logo', 1);
     await ensureFonts(); this.report('fonts', 1);
 
+    // real CC0 PBR sets + the warm interior HDRI (add-only: every failure falls back to the procedural generators below); they download while the loader / intro is showing
+    await Promise.all([loadRealism(this.tierId), loadInteriorHdr(renderer)]); if (this.disposed) return;
     // procedural texture sets, one at a time so the loading bar moves for real
     const S = tier.texSize, sets = {};
     const jobs = [
-      ['stone', () => stoneSet(S, 7)], ['floor', () => tileSet(S, 47, 'white')], ['oak', () => woodSet(S, 3, 0)], ['walnut', () => woodSet(Math.max(256, S >> 1), 8, 1)], ['plaster', () => plasterSet(Math.max(256, S >> 1), 5)],
+      ['stone', () => stoneSet(S, 7)], ['floor', () => realSet('microcement', S) || tileSet(S, 47, 'white')], ['oak', () => woodSet(S, 3, 0)], ['walnut', () => woodSet(Math.max(256, S >> 1), 8, 1)], ['plaster', () => plasterSet(Math.max(256, S >> 1), 5)],
       ['paver', () => paverSet(Math.max(256, S >> 1), 9)], ['grass', () => grassSet(Math.max(256, S >> 1), 21)], ['sand', () => sandSet(Math.max(128, S >> 2), 31)],
       ['leaf', () => leafSet(Math.max(128, S >> 2), 41)], ['trunk', () => trunkSet(Math.max(128, S >> 2), 51)], ['frond', () => frondCanvas(256, 512)],
     ];
@@ -63,7 +69,7 @@ export class ShowroomEngine {
     // image-based lighting from the same sky, then materials
     await nextFrame();
     this.envMap = buildEnvironment(renderer, tier.clouds); this.report('environment', 1);
-    const M = this.M = createMaterials(sets, tier, this.envMap);
+    const M = this.M = createMaterials(sets, tier, this.envMap, interiorEnv());
     this.baseLed = { warm: M.led.color.clone(), cool: M.ledCool.color.clone() };
     const glowTex = this.glowTex = glowTexture();
     const ctx = { M, tier, logoTex, glowTex, lang: this.lang };
@@ -96,7 +102,9 @@ export class ShowroomEngine {
     if (tier.id === 'high' && !this.noBloom) {
       try { const { createBloom } = await import('./post'); this.post = await createBloom(renderer, this.scene, this.camera, { width: this.width, height: this.height, pixelRatio: effectivePixelRatio(this.tierId, window.devicePixelRatio, this.scale) }); } catch (e) { this.post = null; }
     }
+    this.gallery = buildGalleryFrames({ depth: HALL.depth, lang: this.lang }); this.scene.add(this.gallery.group);
     this.renderOnce(); this.report('firstFrame', 1);
+    setTimeout(() => { if (!this.disposed && this.gallery) this.gallery.load(); }, 1500);   // lazy: the four YAS Wood pictures (180 KB) load after the intro has started
   }
 
   loadLogo() {
@@ -114,9 +122,9 @@ export class ShowroomEngine {
     const c = sun.shadow.camera; c.left = -52; c.right = 52; c.top = 46; c.bottom = -46; c.near = 20; c.far = 300;
     sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.05; sun.shadow.radius = 2.5;
     scene.add(sun); this.sun = sun;
-    this.hemi = new THREE.HemisphereLight(PALETTE.hemiSky, PALETTE.stoneMid, 0.55); scene.add(this.hemi);
-    const spots = [[-8, 7.4, -8], [8, 7.4, -8], [0, 7.4, -18], [-8, 7.4, -28], [8, 7.4, -28], [0, 7.4, -4]].slice(0, tier.pointLights);
-    this.pointLights = spots.map((p) => { const l = new THREE.PointLight(PALETTE.lightHall, 130, 42, 2); l.position.set(...p); scene.add(l); l.userData.base = 130; return l; });
+    this.hemi = new THREE.HemisphereLight(kelvin(LOOK.fillK), kelvin(LOOK.keyK), 0.55);   // cool fill from above, warm bounce from the floor scene.add(this.hemi);
+    const spots = [[-8, 5.3, -8], [8, 5.3, -8], [0, 5.3, -18], [-8, 5.3, -28], [8, 5.3, -28], [0, 5.3, -4]].slice(0, tier.pointLights);
+    this.pointLights = spots.map((p) => { const l = new THREE.PointLight(kelvin(LOOK.keyK), 70, 34, 2); l.position.set(...p); scene.add(l); l.userData.base = 70; return l; });
   }
 
   /** push the cinematic state (door opening, interior light level) into the scene */
@@ -128,7 +136,7 @@ export class ShowroomEngine {
     this.glowMats.forEach((m, i) => { m.opacity = this.glowBase[i] * k; });
     this.pointLights.forEach((l) => { l.intensity = l.userData.base * k; });
     if (this.products) this.products.setLevel(k);
-    if (this.hemi) this.hemi.intensity = 0.42 + 0.2 * k;
+    if (this.hemi) this.hemi.intensity = 0.22 + 0.2 * k;
   }
 
   setPose(p, l, fov) {
@@ -162,7 +170,7 @@ export class ShowroomEngine {
     if (this.mirror && z < -0.5 && fwdY > -0.42) { this.mirror.setSize(this.width * (this.scale || 1), this.height * (this.scale || 1)); this.mirror.mesh.visible = true; this.mirror.render(this.camera, [this.hall && this.hall.group, this.exterior && this.exterior.group, this.entrance && this.entrance.group, ...(this.products ? [...this.products.outlines, this.products.vip && this.products.vip.group, ...this.products.farGroups(this.camera, 13)] : [])]); }
     else if (this.mirror) this.mirror.mesh.visible = false;
   }
-  setLanguage(lang) { this.lang = lang; if (this.bays) this.bays.relabel(lang); if (this.products) this.products.setLanguage(lang); if (this.staff) this.staff.setLanguage(lang); }
+  setLanguage(lang) { this.lang = lang; if (this.gallery) this.gallery.setLanguage(lang); if (this.bays) this.bays.relabel(lang); if (this.products) this.products.setLanguage(lang); if (this.staff) this.staff.setLanguage(lang); }
 
   setSize(w, h) {
     this.width = Math.max(2, w); this.height = Math.max(2, h);
@@ -216,6 +224,7 @@ export class ShowroomEngine {
     if (this.post) { try { this.post.dispose(); } catch (e) { /* ignore */ } }
     if (this.products) this.products.dispose();
     if (this.envMap) this.envMap.dispose();
+    disposeRealism();
     if (this.glowTex) this.glowTex.dispose();
     if (this.renderer) { this.renderer.dispose(); try { this.renderer.forceContextLoss(); } catch (e) { /* ignore */ } }
   }

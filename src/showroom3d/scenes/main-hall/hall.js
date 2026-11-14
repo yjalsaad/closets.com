@@ -6,6 +6,8 @@ import { HALL } from '../../3d/dimensions';
 import { box, mesh, instanced, worldUV } from '../../3d/geom';
 import { buildOlive } from '../../3d/vegetation';
 import { LOGO_ASPECT } from '../../logo';
+import { PALETTE } from '../../3d/palette';
+import { poolTexture } from '../../3d/pbr';
 
 export function buildHallShell({ M, tier, logoTex, glowTex }) {
   const g = new THREE.Group(); g.name = 'hall';
@@ -22,7 +24,7 @@ export function buildHallShell({ M, tier, logoTex, glowTex }) {
 
   // ceiling
   const cg = new THREE.PlaneGeometry(W, D); cg.rotateX(Math.PI / 2); worldUV(cg, 3);
-  const ceil = new THREE.Mesh(cg, M.ceiling); ceil.position.set(0, h, -D / 2); ceil.receiveShadow = true; g.add(ceil);
+  const ceil = new THREE.Mesh(cg, M.ceilDark || M.ceiling); ceil.position.set(0, h, -D / 2); ceil.receiveShadow = true; g.add(ceil);
 
   // side walls: walnut base + oak slat rhythm to 4.5 m, plaster above with a daylight slot
   const slatStep = 0.16 / tier.slatDensity;
@@ -56,21 +58,28 @@ export function buildHallShell({ M, tier, logoTex, glowTex }) {
   g.add(mesh(box(lw + 0.7, lh + 0.7, 0.12), M.brass, { x: 0, y: 5.1, z: -D + 0.12 }));
   if (logoTex) g.add(mesh(new THREE.PlaneGeometry(lw, lh), new THREE.MeshBasicMaterial({ map: logoTex, toneMapped: false }), { x: 0, y: 5.1, z: -D + 0.23 }));
 
-  // cross beams + LED lines (segments between the beams) + glow
-  const beamZ = []; for (let z = -3; z > -D; z -= 6) beamZ.push(z);
-  g.add(instanced(box(W, 0.34, 0.6, 1.2), M.walnut, beamZ.map((z) => ({ x: 0, y: h - 0.17, z })), { cast: true, receive: true }));
-  const lineX = []; for (let x = -13.5; x <= 13.5; x += 4.5) lineX.push(x);
-  const segs = []; for (let i = 0; i < beamZ.length - 1; i++) for (const x of lineX) segs.push({ x, y: h - 0.03, z: (beamZ[i] + beamZ[i + 1]) / 2 });
-  segs.push(...lineX.map((x) => ({ x, y: h - 0.03, z: (beamZ[beamZ.length - 1] + (-D)) / 2 + 0.1 })));
-  g.add(instanced(box(0.15, 0.04, 4.9), M.led, segs));
-  for (const x of lineX) addGlow(1.9, D - 1, x, h - 0.06, -D / 2, 0.32).rotation.x = Math.PI / 2;
-
-  // suspended light bars over the nave
-  const bars = []; for (const x of [-9, 0, 9]) bars.push({ x, y: 6.6, z: -20 });
-  g.add(instanced(box(0.2, 0.07, 11), M.led, bars));
-  const wires = []; for (const b of bars) for (const dz of [-4, 4]) wires.push({ x: b.x, y: (6.6 + h) / 2, z: b.z + dz });
-  g.add(instanced(new THREE.CylinderGeometry(0.008, 0.008, h - 6.6, 4), M.charcoal, wires));
-  for (const b of bars) { const m = addGlow(2.6, 12, b.x, 6.5, b.z, 0.4); m.rotation.x = Math.PI / 2; }
+  // suspended walnut slat ceiling over the nave (4-4.8 m reads as a premium showroom; the double-height volume stays above it as a lit plenum),
+  // linear LED coves on every edge, recessed spots on a grid with soft light pools on the floor, and a warm LED guide line on the floor along the aisle
+  const cy = 6.1, cw = (H.glassHalf + 2) * 2 - 4.4, cz0 = -2.2, cz1 = -D + 1.2, cl = cz0 - cz1, cx = (cz0 + cz1) / 2;
+  const slatSp = 0.13 / tier.slatDensity, slats = []; for (let x = -cw / 2 + 0.05; x <= cw / 2; x += slatSp) slats.push({ x, y: cy - 0.05, z: cx });
+  g.add(instanced(box(0.065, 0.1, cl, 0.8), M.slat || M.walnut, slats, { receive: true }));
+  g.add(mesh(box(cw, 0.04, cl), M.ceilDark || M.charcoal, { x: 0, y: cy, z: cx }));
+  const coves = [];   // four edge coves: slim emissive strips just inside the slat field edge, facing down + a wash up the wall
+  coves.push({ x: -cw / 2 - 0.1, y: cy - 0.1, z: cx, sx: 0.07, sz: cl }, { x: cw / 2 + 0.1, y: cy - 0.1, z: cx, sx: 0.07, sz: cl });
+  g.add(instanced(box(1, 0.035, 1), M.led, coves.map((c) => ({ ...c, sy: 1 })), {}));
+  g.add(mesh(box(cw + 0.3, 0.035, 0.07), M.led, { x: 0, y: cy - 0.1, z: cz1 - 0.1 })); g.add(mesh(box(cw + 0.3, 0.035, 0.07), M.led, { x: 0, y: cy - 0.1, z: cz0 + 0.1 }));
+  // recessed spots (HDR discs, one draw call) + their light pools on the floor (one additive draw call)
+  const spotsAt = []; for (let x = -12; x <= 12; x += 6) for (let z = -5; z > -D + 2; z -= 5.5) if (Math.abs(x) > 6 || z > -14 || z < -28) spotsAt.push({ x, z });
+  const disc = new THREE.CircleGeometry(0.085, 14); disc.rotateX(Math.PI / 2);
+  g.add(instanced(disc, M.led, spotsAt.map((p) => ({ x: p.x, y: cy - 0.062, z: p.z })), {}));
+  const pool = new THREE.PlaneGeometry(3.4, 3.4); pool.rotateX(-Math.PI / 2);
+  const poolMat = new THREE.MeshBasicMaterial({ map: poolTexture(0.0), color: new THREE.Color(PALETTE.ledWarm).multiplyScalar(0.5), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, opacity: 0.55 });
+  g.add(instanced(pool, poolMat, spotsAt.map((p) => ({ x: p.x, y: 0.012, z: p.z })), {})); glows.push(poolMat);
+  // floor guide line: two continuous warm LED lines along the aisle (flush, emissive) with a soft glow either side
+  for (const x of [-5.4, 5.4]) {
+    g.add(mesh(box(0.05, 0.012, D - 3), M.led, { x, y: 0.011, z: -D / 2 }));
+    const f = addGlow(0.7, D - 3, x, 0.016, -D / 2, 0.55); f.rotation.x = -Math.PI / 2;
+  }
 
   // planted stone benches along the nave axis + two specimen trees by the entrance
   for (const z of [-15, -26]) {

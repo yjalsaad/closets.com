@@ -2,6 +2,7 @@
  * There are NO photographic or Blender assets in this build: every surface you see is generated here.
  * Each generator is async-friendly (returns plain canvases); `toTexture` wraps them for three. */
 import * as THREE from 'three';
+import { realSet } from './realism/registry';
 import { PALETTE } from './palette';
 import { makeNoise2D, fbm, mulberry32, clamp01, lerp } from './noise';
 
@@ -35,6 +36,7 @@ function pixels(w, h, fn) {
 
 /** Large-format limestone / travertine floor (texture = 2 x 2 tiles with grout, per-tile tone shift, veining, pores) */
 export function stoneSet(size, seed = 7, opts = {}) {
+  if (!opts.light && !opts.tiles) { const R = realSet('stone', size); if (R) return R; }   // real CC0 limestone (Poly Haven marble_01) when loaded
   const tiles = opts.tiles || 2;
   const n = makeNoise2D(seed), n2 = makeNoise2D(seed + 11), rnd = mulberry32(seed * 13 + 1);
   const light = rgb(opts.light || PALETTE.stoneLight), mid = rgb(opts.mid || PALETTE.stoneMid), dark = rgb(opts.dark || PALETTE.stoneDark);
@@ -71,6 +73,7 @@ function grayCanvas(arr, w, h) {
 
 /** Timber: long grain running along V (use with vertical slats). tone 0 = oak, 1 = walnut */
 export function woodSet(size, seed = 3, tone = 0) {
+  { const R = realSet(tone ? 'walnut' : 'oak', size); if (R) return R; }
   const n = makeNoise2D(seed), n2 = makeNoise2D(seed + 5);
   const oakA = rgb(PALETTE.oak), oakB = mix(rgb(PALETTE.oak), [60, 36, 18], 0.45);
   const walA = rgb(PALETTE.walnut), walB = mix(rgb(PALETTE.walnut), [18, 10, 6], 0.55);
@@ -91,6 +94,7 @@ export function woodSet(size, seed = 3, tone = 0) {
 
 /** Warm plaster / microcement: soft cloudy variation + fine grain */
 export function plasterSet(size, seed = 5, base = PALETTE.plaster, dark = PALETTE.taupe) {
+  if (base === PALETTE.plaster) { const R = realSet('plaster', size); if (R) return R; }
   const n = makeNoise2D(seed), a = rgb(base), b = rgb(dark);
   const height = new Float32Array(size * size);
   const alb = pixels(size, size, (x, y, u, v) => {

@@ -43,7 +43,7 @@ export function pose(a, { reduced = false } = {}) {
     spineX: 0.02 * br * idle + 0.04 * W.walk, chestLift: 0.006 * br, chestScale: 1 + 0.012 * br,
     neckX: 0, headX: Math.sin(t * 0.7) * 0.015 * idle, headY: reduced ? 0 : Math.sin(t * 0.33) * 0.05 * idle, headZ: 0, jaw: 0, blink: a.blink,
     shL: { x: -sw * 0.5 * W.walk, z: 0.06 }, shR: { x: sw * 0.5 * W.walk, z: -0.06 }, elL: { x: -0.12 - Math.max(0, sw) * 0.3 * W.walk }, elR: { x: -0.12 - Math.max(0, -sw) * 0.3 * W.walk }, wrR: { x: 0, z: 0 },
-    hipL: { x: sw * 0.55 * W.walk }, hipR: { x: -sw * 0.55 * W.walk }, knL: { x: kneeL * 0.7 * W.walk }, knR: { x: kneeR * 0.7 * W.walk }, skirtSway: sw2 * 0.04 * W.walk + (reduced ? 0 : Math.sin(t * 0.45) * 0.01),
+    eyeX: reduced ? 0 : Math.sin(t * 0.9 + Math.sin(t * 2.3) * 2) * (0.6 + 0.4 * Math.sin(t * 0.37)) * (Math.sin(t * 0.61) > 0.55 ? 1 : 0.2), eyeY: reduced ? 0 : Math.sin(t * 1.3) * 0.3, hipL: { x: sw * 0.55 * W.walk }, hipR: { x: -sw * 0.55 * W.walk }, knL: { x: kneeL * 0.7 * W.walk }, knR: { x: kneeR * 0.7 * W.walk }, skirtSway: sw2 * 0.04 * W.walk + (reduced ? 0 : Math.sin(t * 0.45) * 0.01),
   };
   if (W.talk > 0.01) {   // talking: the jaw follows the speech level, the head nods on the beat, the left hand makes small beats
     const lv = a.level * W.talk; P.jaw = lv * 0.85; P.headX += Math.sin(t * 2.4) * 0.035 * lv + 0.02 * W.talk; P.headY += Math.sin(t * 1.3) * 0.06 * W.talk;

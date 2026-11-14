@@ -54,7 +54,7 @@ export const PALETTE = {
   artA: 0x8a5a44, artB: 0xd8c3a0, artC: 0x2f4a47, artD: 0xe9e2d6, artE: 0xb9873c,
   lightHall: 0xffe8d0,
   plasterWarm: 0xcdbfa9, velvetDark: 0x2a2226, velvetWine: 0x4b2a30, screenDark: 0x0b0c0e, screenGlow: 0x9fb6c4, paperWhite: 0xf4f0e8, brassPale: 0xd9bf86, mirrorEdge: 0xcfd8da,
-  ceilingLight: 0xf2ebdf, wallGreige: 0x6f685e,
+  ceilingLight: 0xf2ebdf, ceilDark: 0x120d0a, wallGreige: 0x6f685e,
   focusRing: 0xffb067, hoverRing: 0xfff0d6,
   // Ikhtarha campaign brand: mirrored from src/campaign/IkhtarhaRoot.jsx BRAND (primary / accent / sand / taupe / charcoal). The campaign
   // page can override these per campaign from the Hub; the showroom mirrors the shipped defaults and does not read the live config.
@@ -62,7 +62,7 @@ export const PALETTE = {
   // characters (procedural staff / visitor avatars): stylised skin tones, hair, modest professional outfits
   skinA: 0xf0c9a4, skinB: 0xd9a47c, skinC: 0xb97d57, skinD: 0x8a5a3c, hairBlack: 0x1c1512, hairBrown: 0x4a3224, hairDark: 0x2a1d16,
   abayaBlack: 0x211e22, abayaNavy: 0x1f2a44, abayaSage: 0x5f705c, abayaPlum: 0x5a3347, abayaSand: 0xb9a07f, coatTeal: 0x2e6b68, coatBrick: 0x8a4a3a,
-  scarfCream: 0xefe6d6, scarfRose: 0xc7a0a0, scarfGrey: 0x8c8f93, thobeWhite: 0xf3f0e8, ghutraWhite: 0xfafafa, agalBlack: 0x141214, suitGrey: 0x55585d, suitNavy: 0x28324a, shirtWhite: 0xf1f1ee, shoeDark: 0x1b1715, eyeDark: 0x1d1512, lipTone: 0x9a5a52,
+  scarfCream: 0xefe6d6, scarfRose: 0xc7a0a0, scarfGrey: 0x8c8f93, thobeWhite: 0xf3f0e8, ghutraWhite: 0xfafafa, agalBlack: 0x141214, suitGrey: 0x55585d, suitNavy: 0x28324a, shirtWhite: 0xf1f1ee, shoeDark: 0x1b1715, eyeDark: 0x1d1512, eyeIris: 0x5a3a24, sclera: 0xe9e5df, mouthDark: 0x3a1c1a, lipTone: 0x9a5a52,
   // overlay
   veil: 0xf6efe4,
   // material tints
