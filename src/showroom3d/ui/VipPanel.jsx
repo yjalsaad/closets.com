@@ -85,13 +85,13 @@ export function VipPanel({ lang, touch, explorerRef, st }) {
         <h2 tabIndex={-1} ref={headRef} data-testid="sr-vip-title">{slide.title}</h2>
         <button type="button" className="sr-btn sr-btn-line sr-panel-close" onClick={() => ex.exitFocus()} data-testid="sr-panel-close">{t('panelBack', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">Esc</kbd>}</button>
         <div className="sr-vip-deckbar" data-testid="sr-vip-deckbar">
-          <label className="sr-vip-decklabel"><span>{t('vipDeckLabel', lang)}</span>
-            <select ref={selRef} value={deck.id} onChange={(e) => ex.setDeck(e.target.value)} aria-label={t('vipDeckSwitch', lang)} data-testid="sr-vip-deck-select">
-              {decks.map((d) => <option key={d.id} value={d.id}>{resolveDeck({ ...d, slides: [] }, lang).title}{d.builtin ? '' : ' · ' + t('vipDeckLocal', lang)}</option>)}
+          <label className="sr-vip-decklabel"><span className="sr-vip-sronly">{t('vipDeckLabel', lang)}</span>
+            <select ref={selRef} value={deck.id} onChange={(e) => ex.setDeck(e.target.value)} aria-label={t('vipDeckSwitch', lang)} title={t('vipDeckSwitch', lang)} data-testid="sr-vip-deck-select">
+              {decks.map((d) => <option key={d.id} value={d.id}>{resolveDeck({ ...d, slides: [] }, lang).title}{d.builtin ? '' : ' · ' + t('vipDeckLocalShort', lang)}</option>)}
             </select></label>
           <button type="button" className="sr-btn sr-btn-line" onClick={() => setAdding(true)} data-testid="sr-vip-deck-add">{t('vipDeckAdd', lang)}</button>
-          {user && !confirmDel && <button type="button" className="sr-btn sr-btn-line" onClick={() => setConfirmDel(true)} data-testid="sr-vip-deck-delete">{t('vipDeckDelete', lang)}</button>}
-          {user && <p className="sr-note sr-vip-local" data-testid="sr-vip-local">{t('vipDeckLocal', lang)}</p>}
+          {user && !confirmDel && <div className="sr-vip-userrow"><p className="sr-note sr-vip-local" data-testid="sr-vip-local">{t('vipDeckLocal', lang)}</p>
+            <button type="button" className="sr-btn sr-btn-line" onClick={() => setConfirmDel(true)} data-testid="sr-vip-deck-delete">{t('vipDeckDelete', lang)}</button></div>}
           {user && confirmDel && <div className="sr-vip-confirm" role="alertdialog" aria-label={t('vipDeckDeleteAsk', lang)} data-testid="sr-vip-deck-confirm"><span>{t('vipDeckDeleteAsk', lang)}</span>
             <button type="button" className="sr-btn" onClick={del} data-testid="sr-vip-deck-delete-yes" autoFocus>{t('vipDeckDeleteYes', lang)}</button>
             <button type="button" className="sr-btn sr-btn-line" onClick={() => setConfirmDel(false)} data-testid="sr-vip-deck-delete-no">{t('vipDeckKeep', lang)}</button></div>}

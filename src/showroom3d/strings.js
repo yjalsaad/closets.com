@@ -112,6 +112,7 @@ export const STRINGS = {
   vipDeckDeleteYes: { en: 'Yes, delete', ar: 'نعم، احذف' },
   vipDeckKeep: { en: 'Keep it', ar: 'أبقِه' },
   vipDeckLocal: { en: 'Saved on this device only', ar: 'محفوظ على هذا الجهاز فقط' },
+  vipDeckLocalShort: { en: 'this device', ar: 'هذا الجهاز' },
   vipDeckBuiltIn: { en: 'Built-in', ar: 'مدمج' },
   vipSlideOf: { en: 'Slide', ar: 'الشريحة' },
   vipSlides: { en: 'Slides', ar: 'الشرائح' },

@@ -156,9 +156,8 @@ export const disclaimerSlide = () => ({ id: DISCLAIMER_SLIDE_ID, title: DISCLAIM
 export const slideHasDisclaimer = (s) => !!s && s.disclaimer === true;
 /** returns the deck with the disclaimer as its FINAL slide (idempotent; any user slide pretending to be the disclaimer id was renamed by sanitizeDeck) */
 export function withDisclaimer(deck) {
-  const slides = deck.slides.slice(); const last = slides[slides.length - 1];
-  if (!slideHasDisclaimer(last)) slides.push(disclaimerSlide());
-  return { ...deck, slides };
+  const last = deck.slides[deck.slides.length - 1]; if (slideHasDisclaimer(last)) return deck;
+  return { ...deck, slides: [...deck.slides, disclaimerSlide()] };
 }
 export const deckHasDisclaimer = (deck) => !!deck && Array.isArray(deck.slides) && slideHasDisclaimer(deck.slides[deck.slides.length - 1]);
 
