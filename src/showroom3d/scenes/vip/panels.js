@@ -136,7 +136,7 @@ const ACCENT = { orange: P.brandOrange, brass: P.brassPale, sand: P.sand, sage: 
 /** deck chips along the top of the wall screen (only drawn when there is more than one deck). Pure layout in design pixels, shared by the drawing and the click hit-test. */
 export function chipLayout(titles, w, rtl, max = 3, active = 0) {
   const n = Math.min(titles.length, max), start = Math.max(0, Math.min(titles.length - n, active - 1)), gap = 12, h = 46, y = 18; let total = 0;   // a window of `max` chips that always contains the active deck
-  const widths = titles.slice(start, start + n).map((t) => { const cw = Math.min(300, 44 + t.length * 12.5); total += cw; return cw; }); total += gap * (n - 1);
+  const widths = titles.slice(start, start + n).map((t) => { const cw = Math.min(250, 36 + t.length * 11); total += cw; return cw; }); total += gap * (n - 1);
   let x = rtl ? 70 : w - 70 - total; return widths.map((cw, i) => { const r = { i: start + i, x, y, w: cw, h }; x += cw + gap; return r; });
 }
 export function drawDeckChips(g, w, h, o) {

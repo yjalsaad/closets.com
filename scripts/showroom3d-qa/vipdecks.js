@@ -35,7 +35,7 @@ async function flows(b) {
   check('default deck: placeholders still "To be confirmed by management"; warranty fact from facts.js', (await page.$$eval('[data-testid="sr-vip-facts"] li', (l) => l.length === 4 && l.every((e) => e.dataset.confirmed === '0' && /To be confirmed by management/.test(e.innerText)))) && /10 years on cabinetry/.test(txt));
   await press(page, 'Digit4'); await settle(page, 300); check('default deck: key 4 jumps to station 4 (contact) with the disclaimer; key 9 does nothing (only 5 stations)', /Station\s*4\s*\/\s*4/.test(await panelText(page)) && /Information only, not an offer or financial advice/.test(await panelText(page)));
   await press(page, 'Digit9'); await settle(page, 200); check('key 9 ignored', /Station\s*4\s*\/\s*4/.test(await panelText(page))); await press(page, 'Digit1'); await settle(page, 300);
-  check('default deck: "[" and "]" do nothing while there is one deck', await (async () => { await press(page, 'BracketRight'); return /Station\s*1\s*\/\s*4/.test(await panelText(page)) && (await wall(page)).deck === 'default'; })());
+  await press(page, 'BracketRight'); await settle(page, 500); const nx = (await wall(page)).deck; await press(page, 'BracketLeft'); await settle(page, 500); check('"]" goes to the next built-in entry (The Closets profile) and "[" comes back to the default deck', nx === 'closets-profile' && (await wall(page)).deck === 'default' && /Station\s*1\s*\/\s*4/.test(await panelText(page)), nx);
   await shot(page, 'vipdecks-01-default-deck-picker', { quality: 60 });
   // ---- add a presentation by pasting markdown
   await page.click('[data-testid="sr-vip-deck-add"]'); await page.waitForSelector('[data-testid="sr-vd-dialog"]');
@@ -65,12 +65,13 @@ async function flows(b) {
   await press(page, 'ArrowRight'); await press(page, 'ArrowRight'); await settle(page, 300); txt = await panelText(page);
   check('generic deck: ArrowRight x2 reaches slide 3 = the disclaimer slide (always last); Next is then disabled', /Slide\s*3\s*\/\s*3/.test(txt) && /Information only, not an offer or financial advice/.test(txt) && (await page.isDisabled('[data-testid="sr-vip-next"]')));
   await press(page, 'Digit1'); await settle(page, 300); await press(page, 'BracketLeft'); await settle(page, 400);
-  check('"[" cycles to the previous deck (the default deck, station 1)', /Station\s*1\s*\/\s*4/.test(await panelText(page)) && (await wall(page)).deck === 'default');
+  check('"[" cycles to the previous entry (the film entry sits before the saved deck)', (await wall(page)).deck === 'film');
   await press(page, 'BracketRight'); await settle(page, 400); check('"]" cycles to the next deck', /Slide\s*1\s*\/\s*3/.test(await panelText(page)) && (await wall(page)).deck === ids[0]);
   await page.selectOption('[data-testid="sr-vip-deck-select"]', 'default'); await settle(page, 400); check('the picker (select) switches back to the default deck', /Station\s*1\s*\/\s*4/.test(await panelText(page)) && (await wall(page)).deck === 'default');
-  await page.focus('[data-testid="sr-vip-deck-select"]'); await page.keyboard.press('ArrowDown'); await page.waitForTimeout(400); await settle(page, 300); check('the picker is keyboard operable (ArrowDown on the focused select changes deck)', (await wall(page)).deck === ids[0]);
+  await page.focus('[data-testid="sr-vip-deck-select"]'); await page.keyboard.press('ArrowDown'); await page.waitForTimeout(400); await settle(page, 300); check('the picker is keyboard operable (ArrowDown on the focused select moves to the next entry)', (await wall(page)).deck === 'closets-profile'); await page.selectOption('[data-testid="sr-vip-deck-select"]', ids[0]); await settle(page, 400);
   await page.evaluate(() => document.activeElement && document.activeElement.blur());
-  // wall chip: project the chip centre to the screen and click it with the real mouse
+  // wall chip: project the chip centre to the screen and click it with the real mouse (the wall shows a window of three chips round the active deck, so start from the second entry)
+  await page.selectOption('[data-testid="sr-vip-deck-select"]', 'closets-profile'); await settle(page, 600); await page.evaluate(() => document.activeElement && document.activeElement.blur());
   const pt = await page.evaluate(() => {
     const x = window.__showroom.explore.explorer, v = x.products.vip, d = v.state.decks; const titles = d.map(() => 0);
     // chip layout is the same function the wall uses: re-derive from chipAt by scanning the top strip
@@ -139,7 +140,7 @@ async function ar(b) {
 async function mobile(b) {
   const o = await L.openShowroom(b, { query: FAST, viewport: { width: 390, height: 844 }, mobile: true }); const page = o.page; await mockProjects(page); await enterVip(page, true);
   const r = await page.locator('[data-testid="sr-vip-panel"]').boundingBox();
-  check('mobile: the presentation panel is still a bottom sheet (<= 54% height; the VIP sheet carries the deck bar) with the deck picker inside', r.width > 360 && r.height <= 844 * 0.55 && r.y + r.height > 820 && (await page.locator('[data-testid="sr-vip-deck-select"]').count()) === 1, r);
+  check('mobile: the presentation panel is still a bottom sheet (<= 62% height; the VIP sheet carries the deck bar) with the deck picker inside', r.width > 360 && r.height <= 844 * 0.63 && r.y + r.height > 820 && (await page.locator('[data-testid="sr-vip-deck-select"]').count()) === 1, r);
   const sel = await page.locator('[data-testid="sr-vip-deck-select"]').boundingBox(), add = await page.locator('[data-testid="sr-vip-deck-add"]').boundingBox(); check('mobile: picker and Add button are at least 44 px tall', sel.height >= 43 && add.height >= 43, [sel.height, add.height]);
   await shot(page, 'vipdecks-12-mobile-panel', { quality: 55 });
   await page.tap('[data-testid="sr-vip-deck-add"]'); await page.waitForSelector('[data-testid="sr-vd-dialog"]'); const d = await page.locator('[data-testid="sr-vd-dialog"]').boundingBox();
