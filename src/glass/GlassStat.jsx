@@ -47,7 +47,7 @@ export default function GlassStat({ to, suffix = '', label, fill }) {
   const part = fill != null ? Math.min(1, Math.max(0, Number(fill) || 0)) : (isPct ? Math.min(1, Math.max(0, end / 100)) : null);
   const measured = part != null;
   const spoken = (String(end) + sfx).trim();
-  // "10K+" and "100%" stay left-to-right inside an Arabic page; a suffix that is itself Arabic ("19 سنة") follows the page
+  // "10K+" and "100%" stay left-to-right inside an Arabic page; a suffix that is itself Arabic ("20 سنة") follows the page
   const dir = hasRtl(sfx) ? undefined : 'ltr';
 
   return (
