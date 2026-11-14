@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, createContext, useContext, Co
 import GlassLayer from './glass/GlassLayer'; // [GLASS 2026-11-14]
 import TypeShowcase from './glass/TypeShowcase'; // [GLASS 2026-11-14] stage 2
 import GlassStat from './glass/GlassStat'; // [GLASS 2026-11-14] the figures
+import ProjectStrip from './glass/ProjectStrip'; // [GLASS 2026-11-14] finished-projects strip on the home page
 import KitchenScene3D from './KitchenScene3D';
 import TVUnit3D from './TVUnit3D';
 import Door3D from './Door3D';
@@ -8616,30 +8617,8 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </section>
       )}
 
-      {/* i. Customer stories — gallery from website_projects */}
-      {projects.length > 0 && (
-        <section style={{ maxWidth: 1280, margin: '0 auto', padding: `${mobile ? 48 : 80}px ${P}` }}>
-          <div className="rv" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
-            <div>
-              <div className="eyebrow" style={{ marginBottom: 14 }}>{t('swStoriesEyebrow')}</div>
-              <h2 className="display" style={{ fontSize: mobile ? 28 : 44, color: 'var(--ink)' }}>{t('swStoriesTitle')}</h2>
-            </div>
-            <button type="button" className="btn-line" onClick={() => setPage('projects')}>{t('swViewGallery')}</button>
-          </div>
-          <div className="rv reveal reveal-stagger" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(3,1fr)', gap: mobile ? 10 : 16 }}>
-            {projects.slice(0, 6).map((pr, i) => (
-              <button type="button" key={pr.id} className="tile-zoom lift" onClick={() => setPage('projects')} style={{ '--d': (i * 0.05) + 's', position: 'relative', border: 'none', padding: 0, borderRadius: 16, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', aspectRatio: '4/3', background: '#15110e' }}>
-                <Photo src={pr.cover_url || pr.after_url || HOME_IMG.walkin} alt={pr.name} imgClass="tz" style={{ position: 'absolute', inset: 0 }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,16,12,0) 45%, rgba(20,16,12,.82) 100%)' }} />
-                <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: mobile ? 12 : 16, zIndex: 2 }}>
-                  <div className="display" style={{ color: '#fff', fontSize: mobile ? 14 : 17 }}>{pr.name}</div>
-                  {pr.location && <div style={{ color: 'rgba(255,255,255,.78)', fontSize: 12, marginTop: 3 }}>{pr.location}</div>}
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* i. Finished projects: the strip takes the place of the old six-tile gallery (same data, one section) */}
+      <ProjectStrip ar={lang === 'ar'} t={t} load={() => api('website_projects?active=eq.true&order=sort_order.asc')} onAll={() => setPage('projects')} />{/* [GLASS 2026-11-14] finished projects, as a strip of film; renders nothing when there are none */}
 
       {/* Testimonials carousel */}
       {testimonials.length > 0 && (
