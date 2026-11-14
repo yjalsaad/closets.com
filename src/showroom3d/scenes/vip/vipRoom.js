@@ -189,6 +189,9 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
       state.redrawT += dt;
       if ((state.inside || state.focus) && !state.reduced) {
         const sl = state.deck.slides[state.station]; state.slideT = state.fixedT != null ? state.fixedT : state.slideT + dt;
+        // a slide / deck change cross-fades from the previous frame: keep redrawing until it is over (also for the built-in stations and the film poster, which otherwise redraw rarely), then drop the old frame
+        if (state.prev && state.motion.on && !api.filmOnWall) { if (state.slideT >= state.motion.transition) { state.prev = null; state.redrawT = 0; screen.redraw(state.lang); } else if (state.redrawT > 1 / state.motion.hz) { state.redrawT = 0; screen.redraw(state.lang); } }
+        if (api.filmOnWall) { /* the video texture updates itself: no canvas uploads while the film is on the wall */ } else
         if (sl && sl.builtin) { if ((state.station !== 0 && state.redrawT > 0.14) || (state.progress >= 0 && state.redrawT > 0.25)) { state.redrawT = 0; screen.redraw(state.lang); } }
         else if (sl && state.motion.on) {
           const kbOn = state.motion.kenBurns && (sl.blocks || []).some((b) => b.type === 'image') && state.slideT < 18, active = state.slideT < settleSeconds(state.motion, sl) + 0.1 || kbOn, period = active ? 1 / state.motion.hz : (state.progress >= 0 ? 0.25 : 0);

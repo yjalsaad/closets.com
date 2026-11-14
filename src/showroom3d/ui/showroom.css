@@ -397,3 +397,15 @@
 .sr-vip-film-range input { width: 100%; min-height: 44px; accent-color: var(--sr-orange); }
 .sr-vip-filmbar .sr-btn[disabled] { opacity: .4; cursor: not-allowed; }
 .sr-panel-vip[data-mode="big"] .sr-vip-film-vol { display: none; }
+
+/* presenter bar, compact: one row of controls with a thin progress line on top, so the wall above it is never covered */
+.sr-panel-vip[data-mode="big"], .sr-panel-vip[data-mode="full"] { width: min(900px, calc(100% - var(--space-4) * 2)); inset-block-end: var(--space-2); }
+.sr-panel-vip[data-mode="read"] { inset-block-end: var(--space-2); }
+.sr-panel-vip[data-mode="big"] .sr-panel-foot, .sr-panel-vip[data-mode="full"] .sr-panel-foot, .sr-panel-vip[data-mode="read"] .sr-panel-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); }
+.sr-panel-vip[data-mode="big"] .sr-vip-present, .sr-panel-vip[data-mode="full"] .sr-vip-present, .sr-panel-vip[data-mode="read"] .sr-vip-present, .sr-panel-vip[data-mode="big"] .sr-vip-nav, .sr-panel-vip[data-mode="full"] .sr-vip-nav, .sr-panel-vip[data-mode="read"] .sr-vip-nav { display: contents; }
+.sr-panel-vip[data-mode="big"] .sr-vip-prog, .sr-panel-vip[data-mode="full"] .sr-vip-prog { order: -2; flex: 1 1 100%; height: 4px; }
+.sr-panel-vip[data-mode="big"] .sr-vip-pbar-title, .sr-panel-vip[data-mode="full"] .sr-vip-pbar-title { display: none; }
+.sr-panel-vip[data-mode="big"] .sr-panel-foot .sr-btn, .sr-panel-vip[data-mode="full"] .sr-panel-foot .sr-btn, .sr-panel-vip[data-mode="read"] .sr-panel-foot .sr-btn { flex: 0 1 auto; min-height: 44px; padding-inline: var(--space-4); }
+.sr-panel-vip[data-mode="big"] [data-testid="sr-vip-prev"], .sr-panel-vip[data-mode="full"] [data-testid="sr-vip-prev"], .sr-panel-vip[data-mode="read"] [data-testid="sr-vip-prev"] { order: -1; }
+.sr-panel-vip[data-mode="big"] .sr-vip-film-seek { flex: 1 1 100%; order: -2; } .sr-panel-vip[data-mode="big"] .sr-vip-film-range input { min-height: 28px; }
+.sr-vip-film-range span { direction: ltr; unicode-bidi: isolate; }

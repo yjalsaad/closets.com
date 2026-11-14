@@ -41,8 +41,8 @@ async function flows(b) {
   await page.click('[data-testid="sr-vip-big"]'); await settle(page, 900);
   const st = await vip(page, (v, x) => ({ mode: x.presMode, panel: !!document.querySelector('[data-testid="sr-vip-panel"]') && document.querySelector('[data-testid="sr-vip-panel"]').dataset.mode }));
   const box = await wallBox(page); const xs = box.pts.map((p) => p[0]), ys = box.pts.map((p) => p[1]); const fillW = (Math.max(...xs) - Math.min(...xs)) / box.w;
-  check('"Present on big screen": camera fronts the wall, panel collapses to the slim presenter bar, the wall fills most of the view width and is fully inside the viewport', st.mode === 'big' && st.panel === 'big' && fillW > 0.75 && Math.min(...xs) >= -2 && Math.max(...xs) <= box.w + 2 && Math.min(...ys) >= -2 && Math.max(...ys) <= box.h + 2, { fillW, xs, ys });
-  const pb = await page.locator('[data-testid="sr-vip-panel"]').boundingBox(); check('the presenter bar is slim (<= 170 px tall), centred, inside the viewport, and does not cover the screen centre', pb.height <= 170 && pb.y > box.h * 0.6 && pb.x >= 0 && pb.x + pb.width <= box.w + 1 && Math.abs(pb.x + pb.width / 2 - box.w / 2) < 4, pb);
+  check('"Present on big screen": camera fronts the wall, panel collapses to the slim presenter bar, the wall fills most of the view width and is fully inside the viewport', st.mode === 'big' && st.panel === 'big' && fillW > 0.7 && Math.min(...xs) >= -2 && Math.max(...xs) <= box.w + 2 && Math.min(...ys) >= -2 && Math.max(...ys) <= box.h + 2, { fillW, xs, ys });
+  const pb = await page.locator('[data-testid="sr-vip-panel"]').boundingBox(); check('the presenter bar is one slim row (<= 100 px tall), centred, inside the viewport, and BELOW the wall (it covers no part of the screen)', pb.height <= 100 && pb.y >= Math.max(...ys) - 2 && pb.x >= 0 && pb.x + pb.width <= box.w + 1 && Math.abs(pb.x + pb.width / 2 - box.w / 2) < 4, pb);
   await imagesReady(page); await wait(page, 600); await vip(page, (v) => v.freezeAnim(3)); await wait(page, 500); await shot(page, 'vipprofile-04-big-screen-closets-en', { quality: 58 });
   await page.click('[data-testid="sr-vip-next"]'); await settle(page, 500); await vip(page, (v) => v.freezeAnim(3)); await wait(page, 400); await shot(page, 'vipprofile-05-big-screen-who-en', { quality: 58 });
   // ---- auto-play
@@ -144,16 +144,16 @@ async function legible(b) {
   }
   await vip(page, (v, x) => x.setPresentMode('panel')); await settle(page, 800); await press(page, 'KeyZ'); await settle(page, 1000); await vip(page, (v) => v.freezeAnim(9)); await wait(page, 700);
   { await setHud(page, false); await wait(page, 300); const box = await wallBox(page), xs = box.pts.map((p) => p[0]), ys = box.pts.map((p) => p[1]), wpx = Math.max(...xs) - Math.min(...xs), hpx = Math.max(...ys) - Math.min(...ys);
-    check('Reading mode (key Z): the wall fills at least 94% of the viewport width and is fully visible; body text >= 24 px on the 1280 px viewport', (await vip(page, (v, x) => x.presMode)) === 'read' && wpx / box.w >= 0.97 && Math.min(...xs) >= -4 && Math.max(...xs) <= box.w + 4 && hpx <= box.h + 4 && 32 * wpx / 1536 >= 24, { wpx, hpx, fill: wpx / box.w });
+    check('Reading mode (key Z): the wall fills at least 88% of the viewport width, is fully visible and sits above the controls; body text >= 23 px on the 1280 px viewport', (await vip(page, (v, x) => x.presMode)) === 'read' && wpx / box.w >= 0.88 && Math.min(...xs) >= -4 && Math.max(...xs) <= box.w + 4 && Math.min(...ys) >= -4 && Math.max(...ys) <= box.h - 60 && 32 * wpx / 1536 >= 23, { wpx, hpx, fill: wpx / box.w });
     await shot(page, 'vipprofile-41-reading-mode', { quality: 78 }); await setHud(page, true); }
-  check('Reading mode: only essential controls remain (exit, previous, next); the panel is slim', (await page.locator('[data-testid="sr-vip-exit-present"]').count()) === 1 && (await page.locator('[data-testid="sr-vip-play"]').isVisible()) === false && (await page.locator('[data-testid="sr-vip-panel"]').boundingBox()).height <= 150);
+  check('Reading mode: only essential controls remain (exit, previous, next); the panel is slim', (await page.locator('[data-testid="sr-vip-exit-present"]').count()) === 1 && (await page.locator('[data-testid="sr-vip-play"]').isVisible()) === false && (await page.locator('[data-testid="sr-vip-panel"]').boundingBox()).height <= 70);
   await press(page, 'KeyZ'); await settle(page, 700); check('Z again returns to the side panel', (await vip(page, (v, x) => x.presMode)) === 'panel');
   check('legible: no page errors', o.errors.filter((e) => !/ERR_TUNNEL|Failed to load resource/.test(e)).length === 0, o.errors.slice(0, 3)); await o.ctx.close();
 }
 
-const MANIFEST = { title: { en: 'The Closets: The Journey of Ambition', ar: 'الخزائن: حكاية طموح' }, durationSec: 4, sources: [{ src: '/yas-bloom/film/journey-720.webm', width: 1280, height: 720, bytes: 0 }, { src: '/yas-bloom/film/journey-1080.webm', width: 1920, height: 1080, bytes: 0 }], poster: '/yas-bloom/film/journey-poster.jpg', captions: [{ lang: 'ar', src: '/yas-bloom/film/journey.ar.vtt' }, { lang: 'en', src: '/yas-bloom/film/journey.en.vtt' }], notes: 'AI-generated illustration' };
-const VTT = (a, b) => `WEBVTT\n\n00:00.000 --> 00:02.000\n${a}\n\n00:02.000 --> 00:04.000\n${b}\n`;
-/** FILM mode. The real film is produced elsewhere, so (1) the missing state is tested against the plain build, and (2) playback is tested with a 4 s TEST FIXTURE clip (QA_FILM_DIR: a VP9 .webm, because this
+const MANIFEST = { title: { en: 'The Closets: The Journey of Ambition', ar: 'الخزائن: حكاية طموح' }, durationSec: 20, sources: [{ src: '/yas-bloom/film/journey-720.webm', width: 1280, height: 720, bytes: 0 }, { src: '/yas-bloom/film/journey-1080.webm', width: 1920, height: 1080, bytes: 0 }], poster: '/yas-bloom/film/journey-poster.jpg', captions: [{ lang: 'ar', src: '/yas-bloom/film/journey.ar.vtt' }, { lang: 'en', src: '/yas-bloom/film/journey.en.vtt' }], notes: 'AI-generated illustration' };
+const VTT = (a, b) => `WEBVTT\n\n00:00.000 --> 00:10.000\n${a}\n\n00:10.000 --> 00:20.000\n${b}\n`;
+/** FILM mode. The real film is produced elsewhere, so (1) the missing state is tested against the plain build, and (2) playback is tested with a 20 s TEST FIXTURE clip (QA_FILM_DIR: a VP9 .webm, because this
  *  Chromium build has no H.264 decoder) served through route mocks: manifest, poster, captions. The fixture is a colour-bar test pattern, not the film. */
 async function film(b) {
   const fs = require('fs'), path = require('path'), dir = process.env.QA_FILM_DIR;

@@ -262,7 +262,8 @@ export class Explorer {
   /** pixels to slide the view so the subject sits in the part of the screen the panel leaves free (side panel on desktop, bottom sheet on phones) */
   panelShift() {
     const w = this.canvas.clientWidth || 0, h = this.canvas.clientHeight || 0, rtl = (typeof document !== 'undefined' && document.documentElement.dir === 'rtl');
-    if (!w || !h || this.presMode !== 'panel') return [0, 0];                 // the big-screen view is centred (the presenter bar is slim)
+    if (!w || !h) return [0, 0];
+    if (this.presMode !== 'panel') return [0, Math.round(this.presBar() / 2)];   // presenting: the wall moves up by half the presenter bar
     if (w <= 700 || h > w) return [0, Math.round(h * 0.2)];                 // bottom sheet: the subject moves up
     return [Math.round((rtl ? -1 : 1) * Math.min(190, w * 0.16)), 0];       // side panel: LTR panel is on the right, the subject moves left
   }
@@ -279,9 +280,11 @@ export class Explorer {
   get deck() { return this.allDecks().find((d) => d.id === this.ds.deckId) || PERMANENT_DECKS[0]; }
   /** camera pose for a slide: the built-in stations keep their own poses, every other slide faces the wall screen */
   vipView(i) {
-    if (this.presMode !== 'panel') { const r = this.canvas.getBoundingClientRect(), a = (r.width || 16) / (r.height || 9); return this.presMode === 'read' ? bigScreenView(a, 40, 1.0, true) : bigScreenView(a, 46); }   // presenting: the whole wall fills the view
+    if (this.presMode !== 'panel') { const r = this.canvas.getBoundingClientRect(), w = r.width || 1280, h = r.height || 720, bar = this.presBar(), read = this.presMode === 'read', fill = Math.max(0.5, Math.min(read ? 1 : 0.94, ((h - bar - 10) * 16 / 9) / w)); return bigScreenView(w / h, read ? 40 : 46, fill, true); }   // presenting: the whole wall fits the view ABOVE the slim presenter bar (nothing on the wall is covered)
     const sl = this.deck.slides[i]; return sl && sl.builtin && VIP_VIEWS[i] ? VIP_VIEWS[i] : VIP_VIEWS[0];
   }
+  /** height (px) the presenter bar takes at the bottom of the view in the big / reading modes */
+  presBar() { const w = (this.canvas && this.canvas.clientWidth) || 1280; return this.presMode === 'read' ? 68 : w > 760 ? (this.filmOn ? 132 : 96) : 190; }
   vipSlideId(i) { const sl = this.deck.slides[i]; return sl ? sl.id : ''; }
   /** push the picker state to the scene, the camera and the UI */
   syncVip(fly = true, extra = {}) {
