@@ -31,7 +31,7 @@ async function flows(b) {
   await enterVip(page);
   // ---- default deck: unchanged behaviour
   let txt = await panelText(page);
-  check('default deck: station 1 of 4 "Company story and brand", picker shows the four built-in entries (three decks and the film), no delete / local note', /Station\s*1\s*\/\s*4/.test(txt) && /Company story and brand/.test(txt) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 6 && (await page.locator('[data-testid="sr-vip-deck-delete"]').count()) === 0);
+  check('default deck: station 1 of 4 "Company story and brand", picker shows the five built-in entries (the meeting, three decks and the AI film), no delete / local note', /Station\s*1\s*\/\s*4/.test(txt) && /Company story and brand/.test(txt) && (await page.locator('[data-testid="sr-vip-deck-select"] option').count()) === 5 && (await page.locator('[data-testid="sr-vip-deck-delete"]').count()) === 0);
   check('default deck: placeholders still "To be confirmed by management"; warranty fact from facts.js', (await page.$$eval('[data-testid="sr-vip-facts"] li', (l) => l.length === 4 && l.every((e) => e.dataset.confirmed === '0' && /To be confirmed by management/.test(e.innerText)))) && /10 years on cabinetry/.test(txt));
   await press(page, 'Digit4'); await settle(page, 300); check('default deck: key 4 jumps to station 4 (contact) with the disclaimer; key 9 does nothing (only 5 stations)', /Station\s*4\s*\/\s*4/.test(await panelText(page)) && /Information only, not an offer or financial advice/.test(await panelText(page)));
   await press(page, 'Digit9'); await settle(page, 200); check('key 9 ignored', /Station\s*4\s*\/\s*4/.test(await panelText(page))); await press(page, 'Digit1'); await settle(page, 300);

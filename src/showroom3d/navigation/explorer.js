@@ -288,7 +288,7 @@ export class Explorer {
     const sl = this.deck.slides[i]; return sl && sl.builtin && VIP_VIEWS[i] ? VIP_VIEWS[i] : VIP_VIEWS[0];
   }
   /** height (px) the presenter bar takes at the bottom of the view in the big / reading modes */
-  presBar() { const w = (this.canvas && this.canvas.clientWidth) || 1280; return this.presMode === 'read' ? 68 : w > 760 ? (this.filmOn ? 132 : 96) : 190; }
+  presBar() { const w = (this.canvas && this.canvas.clientWidth) || 1280; return this.presMode === 'read' ? 68 : w > 760 ? (this.filmOn ? (this.deck.meeting ? 162 : 132) : 96) : 190; }
   vipSlideId(i) { const sl = this.deck.slides[i]; return sl ? sl.id : ''; }
   /** push the picker state to the scene, the camera and the UI */
   syncVip(fly = true, extra = {}) {
