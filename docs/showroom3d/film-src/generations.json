@@ -1,0 +1,756 @@
+{
+ "note": "Ledger of every Higgsfield generation made for the VIP film. Result URLs are on the Higgsfield CDN; re-download them instead of regenerating. Credits are the amounts charged (verified against the account balance: 50.00 -> 4.56).",
+ "account": {
+  "plan": "basic",
+  "credits_before": 50,
+  "credits_after": 4.56,
+  "credits_spent": 45.44,
+  "unlimited_allowance": false
+ },
+ "bakeoff": [
+  {
+   "key": "bakeoff_gpt_image_2_6_medium",
+   "type": "image",
+   "model": "gpt_image_2_6",
+   "params": {
+    "quality": "medium",
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 1.0,
+   "job_id": "18d1c6c9-cbb1-41e8-8876-ae61ca73cb10",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_071419_18d1c6c9-cbb1-41e8-8876-ae61ca73cb10.png",
+   "used_in_film": false,
+   "prompt": "Photorealistic documentary film still, 16:9. Interior of a small, humble carpentry workshop in an old quarter of Manama, Bahrain, a few decades ago. A Bahraini craftsman in his early thirties with a short neat black beard and warm brown skin, wearing a simple white cotton thobe with the sleeves rolled up and a plain white ghutra folded back loosely over his head, leans over a worn wooden workbench and draws a wardrobe design by hand on a large sheet of paper with a pencil and a steel ruler. His hands are anatomically correct with five fingers, rough working hands. Around him: wooden boards leaning against rough plastered walls, hand saws, chisels and a wooden hand plane hanging on the wall, a folding wooden rule, pencil shavings. Fine sawdust floats in a shaft of warm late-afternoon sunlight coming through a small wooden window. Shot on a 35mm cinema camera with an anamorphic lens at eye level, shallow depth of field, natural available light, subtle film grain, muted warm amber colour grade, authentic unposed moment, real skin texture, not glossy, not a stock photo. No text, no logos, no watermark."
+  },
+  {
+   "key": "bakeoff_gpt_image_2_6_low",
+   "type": "image",
+   "model": "gpt_image_2_6",
+   "params": {
+    "quality": "low",
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "7f3a0b26-0757-4e08-b2bf-d3e38165aa9f",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_071419_7f3a0b26-0757-4e08-b2bf-d3e38165aa9f.png",
+   "used_in_film": false,
+   "prompt": "Photorealistic documentary film still, 16:9. Interior of a small, humble carpentry workshop in an old quarter of Manama, Bahrain, a few decades ago. A Bahraini craftsman in his early thirties with a short neat black beard and warm brown skin, wearing a simple white cotton thobe with the sleeves rolled up and a plain white ghutra folded back loosely over his head, leans over a worn wooden workbench and draws a wardrobe design by hand on a large sheet of paper with a pencil and a steel ruler. His hands are anatomically correct with five fingers, rough working hands. Around him: wooden boards leaning against rough plastered walls, hand saws, chisels and a wooden hand plane hanging on the wall, a folding wooden rule, pencil shavings. Fine sawdust floats in a shaft of warm late-afternoon sunlight coming through a small wooden window. Shot on a 35mm cinema camera with an anamorphic lens at eye level, shallow depth of field, natural available light, subtle film grain, muted warm amber colour grade, authentic unposed moment, real skin texture, not glossy, not a stock photo. No text, no logos, no watermark."
+  },
+  {
+   "key": "bakeoff_z_image",
+   "type": "image",
+   "model": "z_image",
+   "params": {
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.0,
+   "job_id": "8bf0831c-0aef-49a9-99c9-28756f3dc64f",
+   "result_url": null,
+   "status": "failed (not charged)",
+   "used_in_film": false,
+   "prompt": "Photorealistic documentary film still, 16:9. Interior of a small, humble carpentry workshop in an old quarter of Manama, Bahrain, a few decades ago. A Bahraini craftsman in his early thirties with a short neat black beard and warm brown skin, wearing a simple white cotton thobe with the sleeves rolled up and a plain white ghutra folded back loosely over his head, leans over a worn wooden workbench and draws a wardrobe design by hand on a large sheet of paper with a pencil and a steel ruler. His hands are anatomically correct with five fingers, rough working hands. Around him: wooden boards leaning against rough plastered walls, hand saws, chisels and a wooden hand plane hanging on the wall, a folding wooden rule, pencil shavings. Fine sawdust floats in a shaft of warm late-afternoon sunlight coming through a small wooden window. Shot on a 35mm cinema camera with an anamorphic lens at eye level, shallow depth of field, natural available light, subtle film grain, muted warm amber colour grade, authentic unposed moment, real skin texture, not glossy, not a stock photo. No text, no logos, no watermark."
+  }
+ ],
+ "stills": [
+  {
+   "key": "1a",
+   "scene": 1,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "0547e3b2-cd63-4263-88e3-8b50dc1c995a",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072053_0547e3b2-cd63-4263-88e3-8b50dc1c995a.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "Aerial drone view at golden hour of an old Bahraini coastal town a few decades ago: low sand-coloured coral-stone houses with flat roofs and traditional square wind towers, narrow winding alleys, courtyards, a few date palms, wooden dhows moored along the calm turquoise shoreline of the Arabian Gulf, soft sea haze, warm low sun, long shadows. Photorealistic documentary film still, 35mm motion-picture film look, anamorphic lens, natural available light, warm amber tones, gentle halation, subtle film grain, authentic unposed moment, not glossy, not a stock photo. No text, no signs, no lettering, no logos, no watermark."
+  },
+  {
+   "key": "1b",
+   "scene": 1,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "681c141f-f13d-4374-9b96-2d393640e778",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072005_681c141f-f13d-4374-9b96-2d393640e778.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "A narrow traditional lane in old Muharraq, Bahrain, a few decades ago, early morning: weathered coral-stone and gypsum walls, carved wooden doors, a small carpentry workshop with its old wooden double doors open, rough planks and boards stacked outside against the wall, a Bahraini man in a white thobe and white ghutra walking away down the lane, an old bicycle leaning on the wall, warm sunlight raking across the lane, dust hanging in the air. Photorealistic documentary film still, 35mm motion-picture film look, anamorphic lens, natural available light, warm amber tones, gentle halation, subtle film grain, authentic unposed moment, not glossy, not a stock photo. No text, no signs, no lettering, no logos, no watermark."
+  },
+  {
+   "key": "1c",
+   "scene": 1,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "bd03f64d-36ff-4a49-9c42-52a0b6ebb79c",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_071419_bd03f64d-36ff-4a49-9c42-52a0b6ebb79c.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "Photorealistic documentary film still, 16:9. Interior of a small, humble carpentry workshop in an old quarter of Manama, Bahrain, a few decades ago. A Bahraini craftsman in his early thirties with a short neat black beard and warm brown skin, wearing a simple white cotton thobe with the sleeves rolled up and a plain white ghutra folded back loosely over his head, leans over a worn wooden workbench and draws a wardrobe design by hand on a large sheet of paper with a pencil and a steel ruler. His hands are anatomically correct with five fingers, rough working hands. Around him: wooden boards leaning against rough plastered walls, hand saws, chisels and a wooden hand plane hanging on the wall, a folding wooden rule, pencil shavings. Fine sawdust floats in a shaft of warm late-afternoon sunlight coming through a small wooden window. Shot on a 35mm cinema camera with an anamorphic lens at eye level, shallow depth of field, natural available light, subtle film grain, muted warm amber colour grade, authentic unposed moment, real skin texture, not glossy, not a stock photo. No text, no logos, no watermark."
+  },
+  {
+   "key": "1d",
+   "scene": 1,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "67640099-baae-494d-9543-d667b82f09f6",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072005_67640099-baae-494d-9543-d667b82f09f6.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "Extreme close-up from above of a carpenter's weathered working hands, five fingers each, holding a pencil and a wooden ruler over a hand-drawn pencil plan of a wardrobe on yellowed paper; pencil shavings, a folding wooden rule, a steel try square, curls of wood shavings and fine sawdust on a worn wooden workbench; warm low side light, very shallow depth of field. The drawing has only lines, no readable writing. Photorealistic documentary film still, 35mm motion-picture film look, anamorphic lens, natural available light, warm amber tones, gentle halation, subtle film grain, authentic unposed moment, not glossy, not a stock photo. No text, no signs, no lettering, no logos, no watermark."
+  },
+  {
+   "key": "1e",
+   "scene": 1,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "96eb99a3-a263-4493-892c-a44bff57bb49",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072319_96eb99a3-a263-4493-892c-a44bff57bb49.png",
+   "reference": "1c",
+   "reference_job_id": "bd03f64d-36ff-4a49-9c42-52a0b6ebb79c",
+   "used_in_film": true,
+   "prompt": "The same Bahraini craftsman from the reference image, same face, same short black beard, same white thobe with rolled sleeves and white ghutra wrapped over his head, in the same small old carpentry workshop, now seen from a different angle: he is sawing a long wooden board with a hand saw at the workbench, one hand steadying the board, fine sawdust spraying and glowing in a shaft of warm sunlight, focused expression. In the soft background a younger apprentice in a simple work shirt planes a board. Medium-wide shot, side angle. Photorealistic documentary film still, 35mm motion-picture film look, anamorphic lens, natural available light, warm amber tones, gentle halation, subtle film grain, authentic unposed moment, anatomically correct hands, not glossy, not a stock photo. No text, no signs, no lettering, no logos, no watermark."
+  },
+  {
+   "key": "2a",
+   "scene": 2,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "3aabc307-6e30-445f-9e02-85f564a12224",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072319_3aabc307-6e30-445f-9e02-85f564a12224.png",
+   "reference": "1c",
+   "reference_job_id": "bd03f64d-36ff-4a49-9c42-52a0b6ebb79c",
+   "used_in_film": true,
+   "prompt": "The same carpentry workshop in Bahrain a few years later, now larger and much busier, wide shot: the same Bahraini master craftsman from the reference image (same face, short black beard, white thobe with rolled sleeves, white ghutra wrapped over his head) stands in the middle pointing at a paper drawing while guiding his team; around him five craftsmen at work, two assembling a tall wooden wardrobe carcass, one sanding a door on trestles, one carrying long boards on his shoulder, one at an old table saw; stacks of timber, half-built cabinets, sawdust haze in warm daylight from open doors. Energetic but natural. Photorealistic documentary film still, 35mm motion-picture film look, anamorphic lens, natural available light, warm amber tones, gentle halation, subtle film grain, authentic unposed moment, anatomically correct hands, not glossy, not a stock photo. No text, no signs, no lettering, no logos, no watermark."
+  },
+  {
+   "key": "2b",
+   "scene": 2,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "0c32920f-19db-490b-a48e-038125d5f016",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072319_0c32920f-19db-490b-a48e-038125d5f016.png",
+   "reference": "1c",
+   "reference_job_id": "bd03f64d-36ff-4a49-9c42-52a0b6ebb79c",
+   "used_in_film": true,
+   "prompt": "At the front of a modest furniture workshop in Bahrain years ago: the same Bahraini craftsman from the reference image (same face, short black beard, white thobe, white ghutra wrapped over his head) warmly shows a finished solid-wood wardrobe door and a few wood finish samples to two customers, a Bahraini couple: the husband in a crisp white thobe and a white ghutra held by a black agal, the wife in an elegant black abaya and black headscarf. The husband runs his hand over the wood, the wife smiles, the craftsman explains with an open hand. Finished wardrobes and a chest of drawers stand behind them, soft daylight from the doorway. Natural, friendly, unposed interaction, medium shot. Photorealistic documentary film still, 35mm motion-picture film look, anamorphic lens, natural available light, warm amber tones, gentle halation, subtle film grain, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no signs, no lettering, no logos, no watermark."
+  },
+  {
+   "key": "2c",
+   "scene": 2,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "b6a0c82c-bd40-49b9-af5b-d40e4b8e61ca",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072052_b6a0c82c-bd40-49b9-af5b-d40e4b8e61ca.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "Top-down flat-lay view, camera pointing straight down, of a hand-drawn pencil technical drawing of a tall three-door wardrobe, centred on a sheet of yellowed paper that lies centred on an old wooden workbench; a pencil and a steel ruler lie to the right of the sheet; warm soft window light from the left. The drawing has only lines, no readable writing. Photorealistic documentary film still, 35mm motion-picture film look, anamorphic lens, natural available light, warm amber tones, gentle halation, subtle film grain, authentic unposed moment, not glossy, not a stock photo. No text, no signs, no lettering, no logos, no watermark."
+  },
+  {
+   "key": "2d",
+   "scene": 2,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "69c702a7-6d14-4c9a-9ecc-228801922fd2",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072319_69c702a7-6d14-4c9a-9ecc-228801922fd2.png",
+   "reference": "2c",
+   "reference_job_id": "b6a0c82c-bd40-49b9-af5b-d40e4b8e61ca",
+   "used_in_film": true,
+   "prompt": "Keep exactly the same top-down flat-lay composition, framing and object positions as the reference image, but transform the scene to the present day: the sheet of paper becomes a large slim graphics tablet screen of the same size and position showing a clean, precise 3D CAD rendering of the same tall three-door wardrobe in the same place, with thin dimension lines but no readable writing; the pencil becomes a modern stylus pen in the same position; the steel ruler becomes a slim smartphone showing a colour material palette; the old wooden workbench becomes a clean modern matte white designer's desk. Cool soft daylight from the left. Photorealistic, shot on a full-frame cinema camera, subtle film grain. No text, no lettering, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "3a",
+   "scene": 3,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "64612c12-123f-4b50-ae88-226ad1fa0524",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072053_64612c12-123f-4b50-ae88-226ad1fa0524.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "Aerial drone photograph of a modern industrial district in Bahrain today, clear morning light: two large modern furniture-manufacturing factory buildings standing side by side, clean light-grey and white metal cladding, wide loading bays with trucks, neatly paved yards with stacked pallets, a few palm trees, flat pale desert ground, and in the distance the Arabian Gulf and the hazy skyline of Manama. Plain building facades without any signage. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, authentic unposed moment, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "3b",
+   "scene": 3,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "46f9ed67-613e-4684-87da-18ca6344e2e9",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072052_46f9ed67-613e-4684-87da-18ca6344e2e9.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "Inside a large, bright, spotless modern furniture factory: a large European-style CNC nesting router machining a white melamine panel on its flat vacuum table, the spindle head cutting with a fine spray of sawdust drawn into the extraction hood, the gantry mid-travel, rows of industrial LED lights overhead, yellow safety lines on a polished grey floor. In the middle distance a Bahraini machine operator wearing a white hard hat, clear safety glasses, ear defenders and a hi-vis vest watches the machine. The machine is plain grey and white with no brand name. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, authentic unposed moment, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "3c",
+   "scene": 3,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "e4f62956-a0a7-47df-afcc-9bddb91f1522",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072132_e4f62956-a0a7-47df-afcc-9bddb91f1522.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "A long automated edge-banding line in a modern furniture factory seen in deep perspective: white and oak-veneer panels travelling on roller conveyors through the machine, neat stacks of finished panels on pallets, a worker wearing a hard hat, safety glasses, cut-resistant gloves, hi-vis vest and safety shoes feeding a panel into the line. Clean, bright, organised, plain grey machines with no brand name. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, authentic unposed moment, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "3d",
+   "scene": 3,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "1e132d9f-f897-4505-9f66-eddcc6c533ae",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072133_1e132d9f-f897-4505-9f66-eddcc6c533ae.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "Two Bahraini engineers in their thirties, Gulf Arab men with short dark beards, wearing white hard hats, clear safety glasses and hi-vis vests over smart shirts, inspect a freshly drilled cabinet side panel at a quality-inspection table in a modern furniture factory; one measures a row of drilled holes with a digital caliper, the other holds a tablet computer; a CNC drilling machine softly out of focus behind them. Calm, focused, natural interaction. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, authentic unposed moment, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "4a",
+   "scene": 4,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "38b82c15-70b1-47e7-9587-e67296d95994",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072412_38b82c15-70b1-47e7-9587-e67296d95994.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "Inside an elegant flagship furniture showroom in Manama, Bahrain, today: a Bahraini sales consultant in his thirties wearing a crisp white thobe and a white ghutra held by a black agal welcomes a Bahraini family, the father in a white thobe and white ghutra with black agal, the mother in an elegant black abaya and headscarf, and their young daughter, beside a luxurious floor-to-ceiling built-in wardrobe display with warm integrated lighting and bronze glass doors. The consultant gestures towards an open wardrobe, the family looks on with interest. Through a tall window in the background, the towers of the Bahrain Financial Harbour and the Manama skyline. Natural, warm, unposed interaction, medium-wide shot. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "4b",
+   "scene": 4,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "96a83a07-2a4e-42ea-87fe-ce5e9cabe17f",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072412_96a83a07-2a4e-42ea-87fe-ce5e9cabe17f.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "Inside a modern furniture showroom in Riyadh, Saudi Arabia: two Saudi men in their forties wearing white thobes and red-and-white checkered shemagh headdresses held by black agals discuss a walnut walk-in closet display with a showroom consultant in a white thobe and red-and-white shemagh; one customer touches the door finish while the other studies a material sample board. Through tall windows in the background, the Riyadh skyline with the Kingdom Centre tower in warm afternoon haze. Natural conversation, relaxed body language, medium shot. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "4c",
+   "scene": 4,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "70913b21-f016-413e-ac5c-7f9925f594f7",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072738_70913b21-f016-413e-ac5c-7f9925f594f7.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "Inside a newly completed luxury villa in Doha, Qatar: a Qatari homeowner in his forties with a short dark beard, wearing a crisp white thobe with a neat stiff collar and a starched plain white ghutra held on his head by a simple black double-ring agal, walks through a bright dressing room beside a project engineer in a light-blue shirt who carries rolled drawings and a tablet. Nothing hangs around the homeowner's neck or chest; his thobe front is plain. Floor-to-ceiling fitted wardrobes in pale oak have just been installed, protective film still on one door. Through a large window, the towers of West Bay, Doha, across the turquoise water. The homeowner looks pleased, the engineer points out a detail of the wardrobe. Natural, unposed, medium-wide shot. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "4c_rejected",
+   "scene": 4,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "516299ad-ac3a-476a-b4ea-51d9b2cada00",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072412_516299ad-ac3a-476a-b4ea-51d9b2cada00.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": false,
+   "prompt": "Inside a newly completed luxury villa in Doha, Qatar: a Qatari homeowner in his forties wearing a crisp white thobe and a white ghutra with a black agal whose two long cords hang down his back walks through a bright dressing room with a project engineer in a smart shirt who carries rolled drawings and a tablet; floor-to-ceiling fitted wardrobes in pale oak have just been installed, protective film still on one door. Through a large window, the towers of West Bay, Doha, across the water. The homeowner looks pleased, the engineer points out a detail. Natural, unposed, medium-wide shot. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "4d",
+   "scene": 4,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "25ed9f73-786c-4b67-ac21-01b6cab17e5e",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072412_25ed9f73-786c-4b67-ac21-01b6cab17e5e.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "Inside a sleek contemporary furniture showroom in Dubai, United Arab Emirates, at dusk: an Emirati couple, the man in a white collarless kandura with a tassel at the neck and a white ghutra held by a black agal, the woman in an elegant black abaya and shayla, explore a minimalist handleless kitchen display in matte graphite and warm oak while a designer in a smart suit shows them options on a tablet. Through floor-to-ceiling glass behind them, the Dubai skyline with the Burj Khalifa glowing at blue hour. Natural, relaxed interaction, medium-wide shot. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "5a",
+   "scene": 5,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "9e0b1eb6-cc6f-491b-8e99-3e1dd1b276f0",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072004_9e0b1eb6-cc6f-491b-8e99-3e1dd1b276f0.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "A finished luxury kitchen in a modern Gulf villa: handleless matte cabinetry in warm walnut and soft stone-white, a long marble island, integrated warm LED lighting under the wall units, built-in ovens, a tall glass door opening to a sunlit courtyard with a palm tree, late-afternoon light. Nobody in the room. Architectural interior photograph, straight verticals. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, authentic unposed moment, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "5b",
+   "scene": 5,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "d77cc3f8-7f2a-4545-a243-ab08152c44c4",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072132_d77cc3f8-7f2a-4545-a243-ab08152c44c4.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "A finished luxury walk-in closet in a Gulf home: floor-to-ceiling wardrobes with bronze-tinted glass doors and warm integrated LED strip lighting, neatly hung white thobes and folded ghutras on one side and elegant abayas on the other, a central island with drawers and a leather top, soft carpet. Nobody in the room. Architectural interior photograph, straight verticals. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, authentic unposed moment, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "5c",
+   "scene": 5,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "557c5584-e8e8-43d9-8b56-04a7b5de1a84",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072133_557c5584-e8e8-43d9-8b56-04a7b5de1a84.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "A serene master bedroom in a modern Bahraini villa with a full-wall floor-to-ceiling fitted wardrobe in matte taupe with slim bronze handles, a large bed with linen bedding, sheer curtains glowing with morning light, a walnut bedside unit. Nobody in the room. Architectural interior photograph, straight verticals. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, authentic unposed moment, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "5d",
+   "scene": 5,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "6b6877b5-6579-40ad-9a15-b86183ab8559",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072005_6b6877b5-6579-40ad-9a15-b86183ab8559.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "An elegant villa hallway in the Gulf with tall interior doors in rich walnut veneer with slim brass handles, matching wall panelling, pale marble floor, one door half open to a bright majlis sitting room, soft daylight. Nobody in the hallway. Architectural interior photograph, straight verticals. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, authentic unposed moment, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "5e",
+   "scene": 5,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "85dba8e8-2e03-4b71-9c67-fdcee95c2070",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072502_85dba8e8-2e03-4b71-9c67-fdcee95c2070.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "Two professional furniture installers in plain dark-grey work polo shirts, work trousers and safety shoes fit a tall wardrobe door inside a bright new villa bedroom in Bahrain: one kneels adjusting a concealed hinge with a cordless screwdriver, the other holds the door steady and checks it with a long spirit level; a tool case and protective floor covering on the marble floor, cardboard corner protectors nearby. Careful, precise, unposed work, medium-wide shot. Plain uniforms without any logo. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "5f",
+   "scene": 5,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "5db35c9b-5b38-4988-b101-15a4bfd88a50",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072502_5db35c9b-5b38-4988-b101-15a4bfd88a50.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "A happy Bahraini family in their newly finished home kitchen in the evening: the father in a white thobe and white ghutra with black agal leans on a marble island smiling, the mother in an elegant abaya and headscarf opens a tall walnut cabinet door, their two young children, a boy in a small white thobe and a girl in a dress, laugh at the island with glasses of juice; warm pendant lights, handleless walnut and stone-white cabinetry. Genuine, candid, joyful moment, medium-wide shot. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "6a",
+   "scene": 6,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "1a72ae33-f840-4d7b-9728-3b6ee691801a",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072503_1a72ae33-f840-4d7b-9728-3b6ee691801a.png",
+   "reference": "1c",
+   "reference_job_id": "bd03f64d-36ff-4a49-9c42-52a0b6ebb79c",
+   "used_in_film": true,
+   "prompt": "A management meeting in a modern glass-walled boardroom in Bahrain today. At the head of the table sits the same man as in the reference image but about thirty years older, now in his sixties: the same facial features, a short neat grey-white beard, calm and dignified, wearing a crisp white thobe and a white ghutra held by a black agal; he listens attentively. Around the long table five Bahraini managers and engineers in white thobes and white ghutras with black agals, and one in a smart shirt, review printed production plans and an open laptop; one manager stands pointing at a large wall screen that shows an abstract production schedule made of coloured bars with no readable writing. Through the glass wall behind them, a glimpse of the factory floor. Serious, engaged, natural. Wide shot. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "6b",
+   "scene": 6,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "84d45f03-66bb-4d0d-b055-58a6eb48389d",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072503_84d45f03-66bb-4d0d-b055-58a6eb48389d.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "A quality-control inspection station in a modern furniture factory in Bahrain: a Bahraini quality inspector, a Gulf Arab man in his thirties with a short dark beard, wearing a white hard hat, clear safety glasses, a hi-vis vest and thin gloves, examines the edge of a finished matte cabinet door under a bright inspection lamp, running a gloved finger along the edge, a clipboard with a ticked checklist and a measuring gauge on the bench beside him, racks of finished doors with small blank coloured tags behind him. Meticulous and calm, medium close shot. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, real skin texture, anatomically correct hands, not glossy, not a stock photo. No readable text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "6c",
+   "scene": 6,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "a1e3e5e9-59dc-43b1-aef8-d4f94673c1d4",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072552_a1e3e5e9-59dc-43b1-aef8-d4f94673c1d4.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "A morning safety briefing on the floor of a modern furniture factory in Bahrain: a Bahraini supervisor, a Gulf Arab man with a short dark beard, in a white hard hat, clear safety glasses and an orange hi-vis vest speaks to a semicircle of seven production workers who all wear yellow hard hats, clear safety glasses, hi-vis vests, gloves and safety shoes; they stand inside a yellow-lined pedestrian walkway, a red fire extinguisher and a first-aid cabinet on the column behind them, large machines softly out of focus in the background. Attentive, disciplined, natural, wide shot at eye level. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, real skin texture, anatomically correct hands, not glossy, not a stock photo. No readable text, no lettering, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "7a",
+   "scene": 7,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "de60bfc3-8153-4dcb-991c-bb6a5203da7e",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072551_de60bfc3-8153-4dcb-991c-bb6a5203da7e.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "A young Bahraini interior designer, a Gulf Arab man in his late twenties with a trimmed dark beard, wearing a crisp white thobe and a white ghutra held by a black agal, sits at a clean modern desk in a bright design studio and draws with a stylus on a large tilted pen display that shows a detailed 3D model of a fitted wardrobe with open doors, shelves and drawers; a second monitor beside it shows the same wardrobe as a line drawing, with abstract interface panels and no readable writing; material sample chips of wood and fabric on the desk. Over-the-shoulder three-quarter view, focused expression. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, real skin texture, anatomically correct hands, not glossy, not a stock photo. No readable text, no lettering, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "7b",
+   "scene": 7,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "59d01a5d-19ab-4eaa-bb6e-d7a9be91eb0b",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072552_59d01a5d-19ab-4eaa-bb6e-d7a9be91eb0b.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "Close-up of the touchscreen control console of a large CNC machine in a modern furniture factory: the screen shows a nesting layout of rectangular cabinet parts arranged on a sheet, drawn as coloured outlines with a progress bar, no readable writing; an operator's hand in a thin work glove taps the screen; behind, softly out of focus, the machine's gantry moves over a white panel under bright LED lights. Shallow depth of field, cool clean light with a warm accent. Photorealistic documentary film still shot on a full-frame cinema camera with a macro-capable 50mm lens, subtle film grain, anatomically correct hand, not glossy, not a stock photo. No readable text, no lettering, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "7c",
+   "scene": 7,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "f4ea1351-4616-4d24-acae-1f561a7a5b79",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072552_f4ea1351-4616-4d24-acae-1f561a7a5b79.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "Inside a large, tidy modern warehouse of a furniture manufacturer in Bahrain: tall steel racking filled with stacked panels, boxed hardware and wrapped finished cabinets recedes in deep perspective; in the foreground a warehouse worker in a hard hat, safety glasses and hi-vis vest scans a label on a wrapped pallet with a handheld scanner while holding a tablet; further down the aisle a forklift with its driver lifts a pallet of panels. Clean epoxy floor with yellow lane markings, bright even light. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, shallow depth of field, restrained cinematic colour grade, subtle film grain, real skin texture, anatomically correct hands, not glossy, not a stock photo. No readable text, no lettering, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "7d",
+   "scene": 7,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "1d6934a8-e326-4481-99fd-fa206f5582a3",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072632_1d6934a8-e326-4481-99fd-fa206f5582a3.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "In a glass-walled operations room overlooking the floor of a modern furniture factory in Bahrain, a Bahraini operations manager in his forties, a Gulf Arab man with a short greying beard, wearing a crisp white thobe and a white ghutra held by a black agal, stands with his back three-quarters to the camera and studies a wall of large screens showing live dashboards: bar charts, line graphs, circular gauges, a map of the Gulf with glowing points and a flow diagram of connected nodes, all abstract with no readable writing. One hand raised towards a chart. Beyond the glass, the bright factory floor with machines. Cool screen glow mixed with warm ambient light, wide shot. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, shallow depth of field, restrained cinematic colour grade, subtle film grain, real skin texture, anatomically correct hands, not glossy, not a stock photo. No readable text, no lettering, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "7e",
+   "scene": 7,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "1f9bcf31-403e-4119-94da-44b88b4c1a9d",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072632_1f9bcf31-403e-4119-94da-44b88b4c1a9d.png",
+   "reference": null,
+   "reference_job_id": null,
+   "used_in_film": true,
+   "prompt": "Macro detail of a finished luxury fitted wardrobe: the perfectly aligned edge of a matte walnut door slightly open, a precise soft-close concealed hinge, a slim brushed-bronze handle, a warm LED strip glowing inside along the shelf edge, flawless edge banding and tiny even gaps between doors. Extreme shallow depth of field, warm light, the feeling of the last perfect detail. Photorealistic product-documentary film still shot on a full-frame cinema camera with a 100mm macro lens, subtle film grain. No text, no lettering, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "8a",
+   "scene": 8,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "df1ee35b-7e63-4f29-a630-e1440dc31cc0",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072631_df1ee35b-7e63-4f29-a630-e1440dc31cc0.png",
+   "reference": "3a",
+   "reference_job_id": "64612c12-123f-4b50-ae88-226ad1fa0524",
+   "used_in_film": true,
+   "prompt": "The same two modern factory buildings as in the reference image, same architecture and layout, seen from a slightly higher and wider aerial drone viewpoint at golden hour just before sunset: warm orange light raking across the light-grey facades, long shadows of the palm trees, interior lights glowing in the open loading bays, two white trucks driving out of the yard loaded with goods, the Arabian Gulf shimmering gold and the Manama skyline silhouetted in a glowing haze on the horizon. Plain facades without any signage. Photorealistic aerial documentary film still, cinema camera, anamorphic lens, rich but natural golden-hour colour grade, subtle film grain. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  },
+  {
+   "key": "8b",
+   "scene": 8,
+   "type": "image",
+   "model": "seedream_5_0_flash",
+   "params": {
+    "resolution": "2k",
+    "aspect_ratio": "16:9"
+   },
+   "credits": 0.5,
+   "job_id": "d17400e1-8b33-4e91-a045-b387ad77087f",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072632_d17400e1-8b33-4e91-a045-b387ad77087f.png",
+   "reference": "1c",
+   "reference_job_id": "bd03f64d-36ff-4a49-9c42-52a0b6ebb79c",
+   "used_in_film": true,
+   "prompt": "A proud team portrait on the floor of a modern furniture factory in Bahrain at the end of the day, golden light pouring in through a tall open bay door. In the centre stands the same man as in the reference image but about thirty years older, now in his sixties: the same facial features, a short neat grey-white beard, a calm proud smile, wearing a crisp white thobe and a white ghutra held by a black agal. Beside him two Bahraini managers in white thobes and white ghutras with black agals, and around them six engineers and production workers in white and yellow hard hats, clear safety glasses and hi-vis vests. They stand relaxed, shoulder to shoulder, looking at the camera with natural, genuine smiles; large CNC machines and stacked panels softly out of focus behind them. Wide group shot at eye level, everyone's face natural and distinct. Photorealistic documentary film still shot on a full-frame cinema camera with a 35mm anamorphic lens, natural available light, restrained cinematic colour grade, subtle film grain, real skin texture, anatomically correct hands, not glossy, not a stock photo. No text, no lettering, no signs, no logos, no brand names, no watermark."
+  }
+ ],
+ "videos": [
+  {
+   "key": "v1_workshop",
+   "scene": 1,
+   "type": "video",
+   "model": "kling2_6",
+   "params": {
+    "aspect_ratio": "16:9",
+    "duration": 5,
+    "sound": false
+   },
+   "credits": 5.0,
+   "job_id": "f2ee0a1f-8ded-4da1-ba66-832540731ebb",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072712_f2ee0a1f-8ded-4da1-ba66-832540731ebb.mp4",
+   "start_image": "1c",
+   "start_image_job_id": "bd03f64d-36ff-4a49-9c42-52a0b6ebb79c",
+   "prompt": "The craftsman slowly draws a straight pencil line along the steel ruler on the paper, his right hand gliding gently from left to right while his left hand holds the ruler still; he stays bent over the drawing, calm and concentrated, blinking naturally. Fine sawdust drifts and sparkles through the shaft of warm sunlight from the window. Very slow, smooth cinematic push-in. Documentary realism, natural subtle motion, stable anatomy, hands keep five fingers, no morphing, no extra objects, no text."
+  },
+  {
+   "key": "v2_cnc",
+   "scene": 3,
+   "type": "video",
+   "model": "kling2_6",
+   "params": {
+    "aspect_ratio": "16:9",
+    "duration": 5,
+    "sound": false
+   },
+   "credits": 5.0,
+   "job_id": "6766b3a9-0e84-440c-873a-04c815d071ec",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072713_6766b3a9-0e84-440c-873a-04c815d071ec.mp4",
+   "start_image": "3b",
+   "start_image_job_id": "46f9ed67-613e-4684-87da-18ca6344e2e9",
+   "prompt": "The CNC router's spindle head glides steadily along the gantry, cutting a clean line through the white panel while a fine plume of sawdust swirls and is drawn up into the extraction hood. The operator in hard hat and hi-vis vest stands still, watching attentively, then turns his head slightly to follow the cut. Slow, smooth lateral dolly move to the right with gentle parallax. Realistic industrial documentary footage, steady, sharp, natural motion, the machine keeps its exact shape, no morphing, no text, no logos."
+  },
+  {
+   "key": "v3_drone",
+   "scene": 8,
+   "type": "video",
+   "model": "kling2_6",
+   "params": {
+    "aspect_ratio": "16:9",
+    "duration": 5,
+    "sound": false
+   },
+   "credits": 5.0,
+   "job_id": "0deb2928-6625-48e9-912e-71c2bdfe74a3",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072824_0deb2928-6625-48e9-912e-71c2bdfe74a3.mp4",
+   "start_image": "8a",
+   "start_image_job_id": "df1ee35b-7e63-4f29-a630-e1440dc31cc0",
+   "prompt": "Slow, smooth aerial drone flight gliding forward and gently rising over the two factory buildings toward the glowing sea and the city skyline at golden hour. The white truck in the yard drives slowly forward, palm fronds sway softly in a light breeze, sunlight shimmers on the water. Steady cinematic drone footage, realistic, the buildings keep their exact shape, no morphing, no text, no logos."
+  }
+ ],
+ "audio": [
+  {
+   "key": "voice_audition_alistair",
+   "type": "audio",
+   "model": "text2speech_v2",
+   "params": {
+    "variant": "elevenlabs",
+    "voice_type": "preset",
+    "voice_id": "d9d5c263-f84e-4752-97b5-3750fcc6fd2f",
+    "voice_name": "Alistair"
+   },
+   "credits": 0.3,
+   "job_id": "91630817-ffb7-499c-95ec-9a678f4badc6",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072043_91630817-ffb7-499c-95ec-9a678f4badc6.mp3",
+   "used_in_film": false,
+   "prompt": "كل حكاية عظيمة... كان لها يوم بداية. وفي البحرين... بدأت حكايتنا من ورشة خشب صغيرة."
+  },
+  {
+   "key": "voice_audition_sterling",
+   "type": "audio",
+   "model": "text2speech_v2",
+   "params": {
+    "variant": "elevenlabs",
+    "voice_type": "preset",
+    "voice_id": "dc382508-c8bd-443c-8cb2-46e57b8d2e6f",
+    "voice_name": "Sterling"
+   },
+   "credits": 0.3,
+   "job_id": "66f773c9-ac18-4597-aa32-200bc45158eb",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072043_66f773c9-ac18-4597-aa32-200bc45158eb.mp3",
+   "used_in_film": false,
+   "prompt": "كل حكاية عظيمة... كان لها يوم بداية. وفي البحرين... بدأت حكايتنا من ورشة خشب صغيرة."
+  },
+  {
+   "key": "narration",
+   "type": "audio",
+   "model": "text2speech_v2",
+   "params": {
+    "variant": "elevenlabs",
+    "voice_type": "preset",
+    "voice_id": "d9d5c263-f84e-4752-97b5-3750fcc6fd2f",
+    "voice_name": "Alistair"
+   },
+   "credits": 3.15,
+   "job_id": "31235220-b585-4123-9f99-4619ad23a20a",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_072227_31235220-b585-4123-9f99-4619ad23a20a.mp3",
+   "duration_sec": 112.12,
+   "used_in_film": true,
+   "prompt": "كل حكاية عظيمة... كان لها يوم بداية. وفي البحرين... بدأت حكايتنا من ورشة خشب صغيرة. أوراق، وأقلام، وأفكار... وأيدٍ تؤمن أن الطموح أكبر من الإمكانيات. ما كان عندنا إلا الشغف، والإصرار، والرغبة في أن نصنع شيئاً مختلفاً. كبر الحلم... وكبرت معاه المسؤولية. من ورشة صغيرة... إلى مصنعين متكاملين، مجهزين بأحدث المكائن والتقنيات الأوروبية. ومن فريق صغير... إلى أكثر من خمسة فروع، وحضور يمتد إلى السعودية وقطر والإمارات. ومن فكرة على ورقة... إلى أكثر من عشرة آلاف مشروع نفذناه، وتركنا فيه بصمتنا في بيوت ومشاريع عملائنا. لكن بالنسبة لنا... النجاح ما كان مجرد توسع في الأعمال. كان مسؤولية أكبر، وتطلعات أكبر. استثمرنا في الإنسان، وفي الجودة، وفي السلامة. وتبنّينا الحوكمة، والمعايير العالمية، وتطوير العمليات. واليوم... نخطو مرحلة جديدة. مرحلة نربط فيها التصميم بالتصنيع، والمصانع بسلاسل التوريد، والمشاريع بالإدارة، وكل تفاصيل العمل بمنظومة رقمية متكاملة. من أول فكرة... إلى آخر تفصيلة في المشروع. رحلتنا بدأت في البحرين... ومن البحرين نواصل صناعة المستقبل. الخزائن العالمية. طموح بدأ صغيراً... وصناعة تتطلع إلى ما هو أكبر."
+  },
+  {
+   "key": "music",
+   "type": "audio",
+   "model": "elevenlabs_music_v2",
+   "params": {
+    "duration": 128,
+    "force_instrumental": true
+   },
+   "credits": 8.19,
+   "job_id": "1578292e-c816-4e90-aa64-4f9143e3ccda",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_073004_1578292e-c816-4e90-aa64-4f9143e3ccda.mp3",
+   "duration_sec": 128.03,
+   "used_in_film": true,
+   "prompt": "Instrumental cinematic documentary underscore for a heritage film about a craftsman's small workshop that grows into a modern industry in the Arabian Gulf. Dignified, emotional, hopeful, never bombastic, leaves space for a narrator. 0:00-0:30 intimate and nostalgic: solo oud and soft felt piano over a warm sustained string pad, slow tempo. 0:30-1:05 the dream grows: gentle pulsing strings, soft frame drum, a rising hopeful motif, steadily building energy. 1:05-1:25 reflective and serious: music pulls back to warm strings and piano. 1:25-1:48 modern and forward-looking: subtle electronic pulse, light percussion and brighter strings, confident momentum. 1:48-2:08 uplifting proud finale: full orchestra swells to a warm climax, then resolves on a long sustained final chord that fades out gently. Blend of subtle Gulf colours (oud, qanun) with a modern Hollywood documentary orchestra. No vocals, no choir, no lyrics."
+  }
+ ],
+ "credits_total_by_ledger": 45.44
+}
