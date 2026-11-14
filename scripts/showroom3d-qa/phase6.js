@@ -58,7 +58,7 @@ async function flows(b) {
   // VIP adviser: stations, briefing link, no promises
   await spot(page, 'vip'); await page.keyboard.press('KeyT'); await page.waitForSelector('[data-testid="sr-chat"]'); await page.waitForSelector('.sr-chat-msg.is-staff:not(.is-typing)'); await chatSay(page, 'tell me about investing'); const vt = await lastStaff(page);
   check('VIP adviser explains the stations and gives no figures or promises', /five stations/.test(vt) && !/\d/.test(vt) && !/(guarantee|return of)/i.test(vt), vt.slice(0, 100));
-  check('VIP adviser offers the briefing request link', (await page.locator('[data-testid="sr-chat-link"]').first().getAttribute('href')).includes('interest=investor-briefing'));
+  check('VIP adviser no longer offers a briefing link (investor path removed); it offers the profile presentation chip', (await page.locator('[data-testid="sr-chat-link"]').count()) === 0);
   await shot(page, 'phase6-vip-adviser-chat', { quality: 70 });
   check('no page errors', o.errors.length === 0, o.errors.slice(0, 3)); await o.ctx.close();
 }

@@ -6,6 +6,8 @@
  *   Block = { type: 'image', url: "https://...", alt: Text, caption?: Text, source?, illustrative? }
  *         | { type: 'table', head?: Text[], rows: Text[][], source?, illustrative? }
  *         | { type: 'bar',   title?: Text, unit?: "string", data: [ { label: Text, value: number } ], source?, illustrative? }
+ *         | { type: 'stat',  items: [ { value: number, prefix?: "string", suffix?: "string", label: Text } ] (1 to 4, counted up on screen), source?, illustrative? }
+ *   slide.layout = 'split' (default) | 'hero' (a full-bleed first image block with the title over it) | 'duo' (two image blocks side by side under the title)
  *   Link  = { label: Text, route: "/kitchen" }                   (route must be on the internal whitelist, never an external URL)
  *
  * Everything a person supplies goes through sanitizeDeck(): tags and control characters are stripped, lengths and counts are capped, images must be https,
@@ -19,10 +21,13 @@ export const DISCLAIMER_SLIDE_ID = 'disclaimer';
 export const DISCLAIMER_TITLE = { en: 'Important information', ar: 'معلومات مهمة' };
 
 export const LIMITS = Object.freeze({
-  maxSlides: 20, maxBullets: 8, maxBlocks: 3, maxLinks: 3, maxDeckTitle: 80, maxSlideTitle: 90, maxLead: 200, maxBullet: 220, maxAlt: 140, maxCaption: 140, maxSource: 140,
-  maxTableCols: 6, maxTableRows: 12, maxCell: 60, maxBars: 8, maxLabel: 30, maxUnit: 12, maxUrl: 500, maxId: 40, maxInput: 100000,
+  maxSlides: 24, maxBullets: 8, maxBlocks: 3, maxLinks: 3, maxDeckTitle: 80, maxSlideTitle: 90, maxLead: 200, maxBullet: 220, maxAlt: 140, maxCaption: 140, maxSource: 140,
+  maxStats: 4, maxStatText: 8, maxTableCols: 6, maxTableRows: 12, maxCell: 60, maxBars: 8, maxLabel: 30, maxUnit: 12, maxUrl: 500, maxId: 40, maxInput: 100000,
 });
 export const ACCENTS = ['orange', 'brass', 'sand', 'sage'];
+export const LAYOUTS = ['split', 'hero', 'duo'];
+/** site-relative image paths a COMMITTED deck may use (never an import: imports are https only) */
+export const SITE_IMAGE = /^\/yas-bloom\/profile\/[a-z0-9-]+\.(webp|jpg)$/;
 /** internal routes a deck may link to (the real pages the showroom already links to elsewhere) */
 export const ROUTE_WHITELIST = ['/kitchen', '/wardrobes', '/doors', '/tv', '/studio', '/design-studio', '/campaign/ikhtarha', '/booking', '/projects'];
 /** facts a {{fact:key}} token may name */
@@ -51,8 +56,9 @@ export function cleanBilingual(v, max) {
   return { en: en || ar, ar: ar || en };
 }
 /** https only, no credentials, no whitespace, parseable, capped: returns the normalised URL or '' */
-export function cleanImageUrl(v) {
+export function cleanImageUrl(v, trusted = false) {
   const s = str(v, '').trim(); if (!s || s.length > LIMITS.maxUrl || /\s/.test(s)) return '';
+  if (trusted && SITE_IMAGE.test(s)) return s;
   let u; try { u = new URL(s); } catch (e) { return ''; }
   if (u.protocol !== 'https:' || u.username || u.password || !u.hostname || !/\./.test(u.hostname)) return '';
   return u.toString();
@@ -66,7 +72,7 @@ const slug = (s, fb) => { const x = str(s, '').toLowerCase().replace(/[^a-z0-9]+
  *   errors   = reasons the deck was rejected (clear, human sentences);  warnings = things that were dropped / shortened or need the owner's care.
  *   deck     = a clean deck (always with the disclaimer slide appended) when ok.
  */
-export function sanitizeDeck(raw, { prefix = 'user-' } = {}) {
+export function sanitizeDeck(raw, { prefix = 'user-', trusted = false } = {}) {
   const errors = [], warnings = [];
   let src = raw;
   if (typeof raw === 'string') {
@@ -95,12 +101,13 @@ export function sanitizeDeck(raw, { prefix = 'user-' } = {}) {
     s.bullets = bl.slice(0, LIMITS.maxBullets).map((b) => cleanBilingual(b, LIMITS.maxBullet)).filter(Boolean);
     s.blocks = [];
     const blocks = arr(rs.blocks); if (blocks.length > LIMITS.maxBlocks) warnings.push(`${at}: only the first ${LIMITS.maxBlocks} blocks are kept.`);
-    blocks.slice(0, LIMITS.maxBlocks).forEach((rb, j) => { const r = cleanBlock(rb, `${at}, block ${j + 1}`, warnings, errors); if (r) s.blocks.push(r); });
+    blocks.slice(0, LIMITS.maxBlocks).forEach((rb, j) => { const r = cleanBlock(rb, `${at}, block ${j + 1}`, warnings, errors, trusted); if (r) s.blocks.push(r); });
     s.links = [];
     arr(rs.links).slice(0, LIMITS.maxLinks).forEach((rl, j) => {
       const label = isObj(rl) ? cleanBilingual(rl.label, 60) : null, route = isObj(rl) ? cleanRoute(rl.route) : '';
       if (!label || !route) errors.push(`${at}, link ${j + 1}: only the site's own pages can be linked (${ROUTE_WHITELIST.join(', ')}), with a label. External links are not allowed.`); else s.links.push({ label, route });
     });
+    if (rs.layout !== undefined) { if (LAYOUTS.includes(rs.layout)) { if (rs.layout !== 'split') s.layout = rs.layout; } else warnings.push(`${at}: layout "${cleanText(rs.layout, 20)}" is not one of ${LAYOUTS.join(', ')}; the default is used.`); }
     if (rs.accent !== undefined) { if (ACCENTS.includes(rs.accent)) s.accent = rs.accent; else warnings.push(`${at}: accent "${cleanText(rs.accent, 20)}" is not one of ${ACCENTS.join(', ')}; the default is used.`); }
     const so = cleanBilingual(rs.source, LIMITS.maxSource); if (so) s.source = so;
     if (rs.illustrative === true) s.illustrative = true;
@@ -112,11 +119,11 @@ export function sanitizeDeck(raw, { prefix = 'user-' } = {}) {
   const fin = deckWarnings(deck); warnings.push(...fin);
   return { ok: true, deck: withDisclaimer(deck), errors, warnings };
 }
-function cleanBlock(rb, at, warnings, errors) {
+function cleanBlock(rb, at, warnings, errors, trusted = false) {
   if (!isObj(rb)) { errors.push(`${at} is not an object.`); return null; }
   const out = { type: rb.type }, so = cleanBilingual(rb.source, LIMITS.maxSource); if (so) out.source = so; if (rb.illustrative === true) out.illustrative = true;
   if (rb.type === 'image') {
-    const u = cleanImageUrl(rb.url); if (!u) { errors.push(`${at}: an image needs a valid https:// address (no http, data:, javascript: or file addresses).`); return null; }
+    const u = cleanImageUrl(rb.url, trusted); if (!u) { errors.push(`${at}: an image needs a valid https:// address (no http, data:, javascript: or file addresses).`); return null; }
     out.url = u; out.alt = cleanBilingual(rb.alt, LIMITS.maxAlt) || { en: 'Image', ar: 'صورة' }; const c = cleanBilingual(rb.caption, LIMITS.maxCaption); if (c) out.caption = c; return out;
   }
   if (rb.type === 'table') {
@@ -137,22 +144,32 @@ function cleanBlock(rb, at, warnings, errors) {
     out.data = data; const t = cleanBilingual(rb.title, 60); if (t) out.title = t; const un = cleanText(rb.unit, LIMITS.maxUnit); if (un) out.unit = un;
     return out;
   }
-  errors.push(`${at}: block type "${cleanText(rb.type, 20)}" is not supported (use image, table or bar).`); return null;
+  if (rb.type === 'stat') {
+    const items = []; arr(rb.items).slice(0, LIMITS.maxStats).forEach((d, k) => {
+      const label = isObj(d) ? cleanBilingual(d.label, LIMITS.maxLabel * 2) : null, v = isObj(d) ? (typeof d.value === 'number' ? d.value : NaN) : NaN;
+      if (!label || !Number.isFinite(v) || v < 0 || v > 1e12) errors.push(`${at}, stat ${k + 1}: each stat needs a "label" and a "value" that is a number from 0 up.`);
+      else { const it = { value: v, label }, pf = cleanText(d.prefix, LIMITS.maxStatText), sf = cleanText(d.suffix, LIMITS.maxStatText); if (pf) it.prefix = pf; if (sf) it.suffix = sf; items.push(it); }
+    });
+    if (arr(rb.items).length > LIMITS.maxStats) warnings.push(`${at}: only the first ${LIMITS.maxStats} stats are kept.`);
+    if (!items.length) { if (!errors.length) errors.push(`${at}: a stat block needs "items" with at least one stat.`); return null; }
+    out.items = items; return out;
+  }
+  errors.push(`${at}: block type "${cleanText(rb.type, 20)}" is not supported (use image, table, bar or stat).`); return null;
 }
-const slideTexts = (s) => { const o = []; const add = (t) => { if (t) o.push(t.en, t.ar); }; add(s.title); add(s.lead); (s.bullets || []).forEach(add); add(s.source); (s.blocks || []).forEach((b) => { add(b.title); add(b.caption); add(b.source); (b.head || []).forEach(add); (b.rows || []).forEach((r) => r.forEach(add)); (b.data || []).forEach((d) => { add(d.label); o.push(String(d.value)); }); }); return o; };
+const slideTexts = (s) => { const o = []; const add = (t) => { if (t) o.push(t.en, t.ar); }; add(s.title); add(s.lead); (s.bullets || []).forEach(add); add(s.source); (s.blocks || []).forEach((b) => { add(b.title); add(b.caption); add(b.source); (b.head || []).forEach(add); (b.rows || []).forEach((r) => r.forEach(add)); (b.data || []).forEach((d) => { add(d.label); o.push(String(d.value)); }); (b.items || []).forEach((d) => { add(d.label); o.push(String(d.value) + (d.suffix || '')); }); }); return o; };
 /** non-blocking notes for the owner: financial wording, charts / tables with no source and not marked illustrative */
 export function deckWarnings(deck) {
   const w = [];
   deck.slides.forEach((s, i) => {
     if (FORBIDDEN_FINANCIAL.test(slideTexts(s).join(' | '))) w.push(`Slide ${i + 1} contains financial wording or figures (returns, valuation, percentages, amounts...). You are responsible for their accuracy.`);
-    (s.blocks || []).forEach((b) => { if ((b.type === 'bar' || b.type === 'table') && !b.source && !s.source && !b.illustrative && !s.illustrative) w.push(`Slide ${i + 1}: a ${b.type === 'bar' ? 'chart' : 'table'} has no "source" and is not marked "illustrative".`); });
+    (s.blocks || []).forEach((b) => { if ((b.type === 'bar' || b.type === 'table' || b.type === 'stat') && !b.source && !s.source && !b.illustrative && !s.illustrative) w.push(`Slide ${i + 1}: a ${b.type === 'bar' ? 'chart' : b.type === 'stat' ? 'stat block' : 'table'} has no "source" and is not marked "illustrative".`); });
   });
   return w;
 }
 
 // ---------------------------------------------------------------- the disclaimer is never optional
 export const disclaimerSlide = () => ({ id: DISCLAIMER_SLIDE_ID, title: DISCLAIMER_TITLE, bullets: [DISCLAIMER], blocks: [], links: [], disclaimer: true });
-/** a slide that already carries the disclaimer: only trusted slides can be flagged `disclaimer: true` (the built-in "invest" and "briefing" stations draw it themselves); sanitizeDeck strips the flag from imports, so an import ALWAYS gets the real one appended */
+/** a slide that already carries the disclaimer: only trusted slides can be flagged `disclaimer: true` (the built-in "contact" station draws it itself); sanitizeDeck strips the flag from imports, so an import ALWAYS gets the real one appended */
 export const slideHasDisclaimer = (s) => !!s && s.disclaimer === true;
 /** returns the deck with the disclaimer as its FINAL slide (idempotent; any user slide pretending to be the disclaimer id was renamed by sanitizeDeck) */
 export function withDisclaimer(deck) {
@@ -182,8 +199,10 @@ export function resolveDeck(deck, lang = 'en', facts = FACTS, has = hasFact) {
     slides: deck.slides.map((s) => ({
       id: s.id, title: R(s.title), lead: s.lead ? R(s.lead) : '', bullets: (s.bullets || []).map(R), accent: s.accent || '', disclaimer: slideHasDisclaimer(s), builtin: s.builtin || '', source: s.source ? R(s.source) : '', illustrative: !!s.illustrative,
       links: (s.links || []).map((l) => ({ label: R(l.label), route: l.route })),
+      layout: s.layout || 'split',
       blocks: (s.blocks || []).map((b) => ({ ...b, alt: b.alt ? R(b.alt) : undefined, caption: b.caption ? R(b.caption) : undefined, title: b.title ? R(b.title) : undefined, source: b.source ? R(b.source) : undefined,
-        head: b.head ? b.head.map(R) : undefined, rows: b.rows ? b.rows.map((r) => r.map(R)) : undefined, data: b.data ? b.data.map((d) => ({ label: R(d.label), value: d.value })) : undefined })),
+        head: b.head ? b.head.map(R) : undefined, rows: b.rows ? b.rows.map((r) => r.map(R)) : undefined, data: b.data ? b.data.map((d) => ({ label: R(d.label), value: d.value })) : undefined,
+        items: b.items ? b.items.map((d) => ({ ...d, label: R(d.label) })) : undefined })),
     })),
   };
 }

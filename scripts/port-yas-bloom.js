@@ -46,11 +46,12 @@ const SKIP = [   // test title prefixes that only make sense on the integration 
 ];
 const TDIR = path.join(SHOW, '__tests__');
 let tchanged = 0;
-for (const f of fs.readdirSync(TDIR)) {
-  if (!/\.(jsx?)$/.test(f) || f === 'addon.test.js') continue;
-  const p = path.join(TDIR, f); let s = fs.readFileSync(p, 'utf8'); const o = s;
+/* every __tests__ directory under src/showroom3d (feature folders such as collections/ carry their own) */
+const testFiles = []; (function find(d) { for (const f of fs.readdirSync(d)) { const p = path.join(d, f); if (fs.statSync(p).isDirectory()) { if (f !== 'vendor' && f !== 'fixtures') find(p); } else if (path.basename(d) === '__tests__' && /\.(jsx?)$/.test(f) && f !== 'addon.test.js') testFiles.push(p); } })(SHOW);
+for (const p of testFiles) {
+  let s = fs.readFileSync(p, 'utf8'); const o = s;
   s = s.replace(/(['"`])\/ar\/(?!yas-bloom|showroom-3d)/gi, '$1/');
-  s = s.split('/^\\/ar\\/booking/').join('/^\\/booking/');                                  // main has no /ar/<page> URLs
+  s = s.split('\\/ar\\/booking').join('\\/booking');                                  // main has no /ar/<page> URLs
   s = s.replace("{ lang: 'ar', path: '/booking' }", "{ lang: 'en', path: '/booking' }");
   s = s.replace(/\.\.\/\.\.\/pages\/(BookingPage|DoorsPage)\.jsx/g, '../../App.js').replace("read('pages/DoorsPage.jsx')", "read('App.js')");
   s = s.replace("read('content/facts.js')", "read('showroom3d/vendor/facts.js')");
@@ -63,6 +64,17 @@ for (const f of fs.readdirSync(TDIR)) {
   const t1 = path.join(TDIR, 'vipDecks.test.js'), t2 = path.join(TDIR, 'vipDecksGolden.test.js');
   if (fs.existsSync(t1)) { const a = fs.readFileSync(t1, 'utf8'); const b = a.split('{{fact:yearsOfCraft}}').join('{{fact:productionModel}}'); if (b !== a) fs.writeFileSync(t1, b); }
   if (fs.existsSync(t2)) { const a = fs.readFileSync(t2, 'utf8'); const b = a.replace('same(C.contestedFacts())).toEqual(golden.contestedFacts)', "same(C.contestedFacts().filter((f) => f.key !== 'yearsOfCraft'))).toEqual(golden.contestedFacts.filter((f) => f.key !== 'yearsOfCraft'))"); let c = b.replace('.toEqual(golden.businessLines)', ".toEqual(JSON.parse(JSON.stringify(golden.businessLines).split('\"href\":\"/' + 'ar/').join('\"href\":\"/')))"); c = c.replace('.toEqual(golden.briefingUrl)', ".toEqual(JSON.parse(JSON.stringify(golden.briefingUrl).split('\"/' + 'ar/booking').join('\"/booking')))"); if (c !== a) fs.writeFileSync(t2, c); }
+}
+/* main's owner-decided fact (vendor/facts.js: yearsOfCraft = 20) re-applied to the copied vip.test.js, whose source asserts that all four contested facts are still null. Idempotent. */
+{
+  const t = path.join(TDIR, 'vip.test.js');
+  if (fs.existsSync(t)) {
+    let a = fs.readFileSync(t, 'utf8'); const o = a;
+    a = a.replace("test('years of craft, homes delivered, production model and showroom count are NOT asserted:", "test('years of craft is decided (20); homes delivered, production model and showroom count are NOT asserted:");
+    a = a.replace("for (const k of ['yearsOfCraft', 'homesDelivered', 'productionModel', 'showroomCount']) expect(FACTS[k]).toBeNull();", "expect(FACTS.yearsOfCraft).toBe(20);   // [2026-11-14] the owner decided: 20 years everywhere\n    for (const k of ['homesDelivered', 'productionModel', 'showroomCount']) expect(FACTS[k]).toBeNull();");
+    a = a.replace("const cf = C.contestedFacts(); expect(cf).toHaveLength(4); for (const f of cf) { expect(f.confirmed).toBe(false); expect(f.value).toBe(C.PLACEHOLDER); }", "const cf = C.contestedFacts(); expect(cf).toHaveLength(4);\n    for (const f of cf) { if (f.key === 'yearsOfCraft') { expect(f.confirmed).toBe(true); expect(f.value.en).toBe('20'); } else { expect(f.confirmed).toBe(false); expect(f.value).toBe(C.PLACEHOLDER); } }");
+    if (a !== o) fs.writeFileSync(t, a);
+  }
 }
 console.log('port-yas-bloom: re-pointed / skipped tests in', tchanged, 'files');
 console.log('port-yas-bloom: rewrote imports in', changed, 'files');

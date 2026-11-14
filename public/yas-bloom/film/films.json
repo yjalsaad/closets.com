@@ -1,0 +1,64 @@
+{
+  "_comment": "VIP big screen films. Real company films first; the AI documentary is referenced through its own manifest (film.json) and only appears when that file exists.",
+  "films": [
+    {
+      "id": "yas-story",
+      "real": true,
+      "order": 1,
+      "burnedSubtitles": true,
+      "title": {
+        "en": "YAS: our story",
+        "ar": "YAS: حكايتنا"
+      },
+      "durationSec": 177,
+      "sources": [
+        {
+          "src": "/yas-bloom/film/yas-story.mp4",
+          "width": 848,
+          "height": 480,
+          "bytes": 13326307
+        },
+        {
+          "src": "/yas-bloom/film/yas-story-mobile.mp4",
+          "width": 848,
+          "height": 480,
+          "bytes": 6762787
+        }
+      ],
+      "poster": "/yas-bloom/film/yas-story-poster.jpg",
+      "captions": []
+    },
+    {
+      "id": "closets-story",
+      "real": true,
+      "order": 2,
+      "title": {
+        "en": "The Closets: our story",
+        "ar": "الخزائن: حكايتنا"
+      },
+      "durationSec": 103,
+      "sources": [
+        {
+          "src": "/yas-bloom/film/closets-story.mp4",
+          "width": 1280,
+          "height": 720,
+          "bytes": 13668266
+        },
+        {
+          "src": "/yas-bloom/film/closets-story-mobile.mp4",
+          "width": 960,
+          "height": 540,
+          "bytes": 6505614
+        }
+      ],
+      "poster": "/yas-bloom/film/closets-story-poster.jpg",
+      "captions": []
+    },
+    {
+      "id": "journey",
+      "manifest": "/yas-bloom/film/film.json",
+      "real": false,
+      "order": 99
+    }
+  ]
+}

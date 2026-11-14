@@ -9,12 +9,14 @@ export const PRODUCT_IDS = ['kitchen', 'wardrobe', 'door', 'bedroom', 'walkin', 
 const timber = (tone, color) => ({ kind: 'timber', tone, color });
 const paint = (color, rough = 0.62) => ({ kind: 'paint', color, rough });
 
+/* Order matters: the FIRST finish of a product is its default. Round 2 of the realism pass moved the dark reference-look finish to the front (graphite kitchen, walnut
+ * door / bedroom / studio / lounge); ids and recipes are unchanged, so saved links and the booking hand-off keep working. */
 export const FINISHES = {
   kitchen: [
+    { id: 'charcoal-white-stone', en: 'Charcoal matt lacquer with white veined stone', ar: 'طلاء مطفي فحمي مع حجر أبيض معرّق', swatch: P.lacquerCharcoal, front: paint(P.lacquerCharcoal), carcass: paint(P.lacquerCharcoal), stone: 'white', metal: 'brass' },
     { id: 'oak-white-stone', en: 'Natural oak with white veined stone', ar: 'بلوط طبيعي مع حجر أبيض معرّق', swatch: P.oakLight, front: timber(0, P.oakLight), carcass: paint(P.lacquerIvory), stone: 'white', metal: 'brass' },
     { id: 'walnut-dark-stone', en: 'Walnut with dark veined stone', ar: 'جوز داكن مع حجر داكن معرّق', swatch: P.walnutDeep, front: timber(1, P.walnutDeep), carcass: paint(P.lacquerCharcoal), stone: 'dark', metal: 'brass' },
     { id: 'sage-sand-stone', en: 'Sage matt lacquer with sand stone', ar: 'طلاء مطفي بلون المريمية مع حجر رملي', swatch: P.lacquerSage, front: paint(P.lacquerSage), carcass: paint(P.lacquerIvory), stone: 'sand', metal: 'brass' },
-    { id: 'charcoal-white-stone', en: 'Charcoal matt lacquer with white veined stone', ar: 'طلاء مطفي فحمي مع حجر أبيض معرّق', swatch: P.lacquerCharcoal, front: paint(P.lacquerCharcoal), carcass: paint(P.lacquerCharcoal), stone: 'white', metal: 'brass' },
   ],
   wardrobe: [
     { id: 'fluted-walnut', en: 'Fluted walnut with bronze and smoked glass', ar: 'جوز محزّز مع برونز وزجاج مدخّن', swatch: P.walnutDeep, front: timber(1, P.walnutDeep), carcass: timber(1, P.smokedOak), metal: 'bronze', fluted: true },
@@ -23,14 +25,14 @@ export const FINISHES = {
     { id: 'ivory-bronze', en: 'Ivory matt lacquer with bronze', ar: 'طلاء مطفي عاجي مع برونز', swatch: P.lacquerIvory, front: paint(P.lacquerIvory), carcass: paint(P.lacquerIvory), metal: 'bronze', fluted: false },
   ],
   door: [
-    { id: 'oak', en: 'Natural oak veneer', ar: 'قشرة بلوط طبيعي', swatch: P.oakLight, leaf: timber(0, P.oakLight), frame: timber(0, P.oakPale), metal: 'brass' },
     { id: 'walnut', en: 'Walnut veneer', ar: 'قشرة جوز', swatch: P.walnutDeep, leaf: timber(1, P.walnutDeep), frame: timber(1, P.smokedOak), metal: 'brass' },
+    { id: 'oak', en: 'Natural oak veneer', ar: 'قشرة بلوط طبيعي', swatch: P.oakLight, leaf: timber(0, P.oakLight), frame: timber(0, P.oakPale), metal: 'brass' },
     { id: 'ivory-paint', en: 'Ivory hand-sprayed paint', ar: 'طلاء مرشوش يدويًا بلون عاجي', swatch: P.lacquerIvory, leaf: paint(P.lacquerIvory), frame: paint(P.lacquerIvory), metal: 'brass' },
     { id: 'ebony-paint', en: 'Deep charcoal hand-sprayed paint', ar: 'طلاء مرشوش يدويًا بلون فحمي داكن', swatch: P.lacquerCharcoal, leaf: paint(P.lacquerCharcoal), frame: paint(P.lacquerCharcoal), metal: 'brass' },
   ],
   bedroom: [
-    { id: 'oak-linen', en: 'Natural oak with oatmeal linen', ar: 'بلوط طبيعي مع كتان بلون الشوفان', swatch: P.oakLight, front: timber(0, P.oakLight), carcass: paint(P.lacquerIvory), metal: 'brass', fluted: true, fabric: P.fabricLinen },
     { id: 'walnut-sage', en: 'Walnut with sage upholstery', ar: 'جوز مع تنجيد بلون المريمية', swatch: P.walnutDeep, front: timber(1, P.walnutDeep), carcass: timber(1, P.smokedOak), metal: 'brass', fluted: true, fabric: P.fabricSage },
+    { id: 'oak-linen', en: 'Natural oak with oatmeal linen', ar: 'بلوط طبيعي مع كتان بلون الشوفان', swatch: P.oakLight, front: timber(0, P.oakLight), carcass: paint(P.lacquerIvory), metal: 'brass', fluted: true, fabric: P.fabricLinen },
     { id: 'stone-blush', en: 'Stone grey matt lacquer with blush upholstery', ar: 'طلاء مطفي رمادي حجري مع تنجيد وردي هادئ', swatch: P.lacquerStone, front: paint(P.lacquerStone), carcass: paint(P.lacquerIvory), metal: 'brass', fluted: false, fabric: P.fabricBlush },
     { id: 'charcoal-navy', en: 'Charcoal matt lacquer with navy upholstery', ar: 'طلاء مطفي فحمي مع تنجيد كحلي', swatch: P.lacquerCharcoal, front: paint(P.lacquerCharcoal), carcass: paint(P.lacquerCharcoal), metal: 'bronze', fluted: false, fabric: P.fabricNavy },
   ],
@@ -47,14 +49,14 @@ export const FINISHES = {
     { id: 'charcoal-linen', en: 'Charcoal matt lacquer with linen seating', ar: 'طلاء مطفي فحمي مع جلوس من الكتان', swatch: P.lacquerCharcoal, front: paint(P.lacquerCharcoal), carcass: paint(P.lacquerCharcoal), metal: 'bronze', fluted: false, fabric: P.fabricLinen },
   ],
   studio: [
-    { id: 'oak', en: 'Natural oak table and cabinets', ar: 'طاولة وخزائن من البلوط الطبيعي', swatch: P.oakLight, front: timber(0, P.oakLight), carcass: timber(0, P.oakPale), stone: 'white', metal: 'brass', fabric: P.fabricLinen },
     { id: 'walnut', en: 'Walnut table and cabinets', ar: 'طاولة وخزائن من الجوز', swatch: P.walnutDeep, front: timber(1, P.walnutDeep), carcass: timber(1, P.smokedOak), stone: 'dark', metal: 'brass', fabric: P.fabricCharcoal },
+    { id: 'oak', en: 'Natural oak table and cabinets', ar: 'طاولة وخزائن من البلوط الطبيعي', swatch: P.oakLight, front: timber(0, P.oakLight), carcass: timber(0, P.oakPale), stone: 'white', metal: 'brass', fabric: P.fabricLinen },
     { id: 'ivory', en: 'Ivory matt lacquer table and cabinets', ar: 'طاولة وخزائن بطلاء مطفي عاجي', swatch: P.lacquerIvory, front: paint(P.lacquerIvory), carcass: paint(P.lacquerIvory), stone: 'sand', metal: 'bronze', fabric: P.fabricSage },
     { id: 'charcoal', en: 'Charcoal matt lacquer table and cabinets', ar: 'طاولة وخزائن بطلاء مطفي فحمي', swatch: P.lacquerCharcoal, front: paint(P.lacquerCharcoal), carcass: paint(P.lacquerCharcoal), stone: 'dark', metal: 'brass', fabric: P.fabricClay },
   ],
   lounge: [
-    { id: 'oak-clay', en: 'Natural oak with clay seating', ar: 'بلوط طبيعي مع جلوس بلون الطين', swatch: P.oakLight, front: timber(0, P.oakLight), carcass: timber(0, P.oakPale), stone: 'white', metal: 'brass', fluted: true, fabric: P.fabricClay },
     { id: 'walnut-cream', en: 'Walnut with cream seating', ar: 'جوز مع جلوس بلون الكريم', swatch: P.walnutDeep, front: timber(1, P.walnutDeep), carcass: timber(1, P.smokedOak), stone: 'dark', metal: 'brass', fluted: true, fabric: P.fabricCream },
+    { id: 'oak-clay', en: 'Natural oak with clay seating', ar: 'بلوط طبيعي مع جلوس بلون الطين', swatch: P.oakLight, front: timber(0, P.oakLight), carcass: timber(0, P.oakPale), stone: 'white', metal: 'brass', fluted: true, fabric: P.fabricClay },
     { id: 'stone-sage', en: 'Stone grey matt lacquer with sage seating', ar: 'طلاء مطفي رمادي حجري مع جلوس بلون المريمية', swatch: P.lacquerStone, front: paint(P.lacquerStone), carcass: paint(P.lacquerIvory), stone: 'sand', metal: 'brass', fluted: false, fabric: P.fabricSage },
     { id: 'charcoal-blush', en: 'Charcoal matt lacquer with blush seating', ar: 'طلاء مطفي فحمي مع جلوس وردي هادئ', swatch: P.lacquerCharcoal, front: paint(P.lacquerCharcoal), carcass: paint(P.lacquerCharcoal), stone: 'dark', metal: 'bronze', fluted: false, fabric: P.fabricBlush },
   ],

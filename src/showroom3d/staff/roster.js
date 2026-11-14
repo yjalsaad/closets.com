@@ -1,5 +1,5 @@
 /* The showroom advisers: ONE female AI adviser per room (Reception, the eight departments, the VIP room), each with a different outfit / headscarf / hair. PURE data.
- * Names are role-based placeholders on purpose (no invented person names); the owner can replace them in this one file.
+ * Names: a common Arabic first name per adviser + her role (owner decision); they are AI assistants and are always labelled as such. The owner can replace them in this one file.
  * Positions: departments stand at the corner of the bay mouth under the canopy (local frame: +x to the nave, z along the wall), clear of every product collider, the nav lanes and
  * the quick-nav stand points; Reception sits behind its own desk in the lobby; the VIP adviser stands inside the glass door beside the stand point. */
 import { layoutBays } from '../scenes/main-hall/departments';
@@ -23,21 +23,29 @@ const LOOKS = {
   lounge: { gender: 'f', outfit: 'coat', color: P.coatBrick, hair: 'bun', hairColor: P.hairDark, skin: 'skinD' },
   vip: { gender: 'f', outfit: 'abaya', scarf: true, color: P.abayaNavy, scarfColor: P.scarfGrey, skin: 'skinC' },
 };
-const NAMES = {
+/* Owner decision: every adviser carries a common Arabic female first name (EN + AR spelling) with her role as the subtitle. They are AI assistants, not employees:
+ * every place that shows the name (Talk button, chat header and badge, greeting bubble) keeps the "(AI)" label / the AI disclosure. Change a name here only. */
+const ROLES = {
   reception: N('Reception advisor', 'مستشارة الاستقبال'), kitchens: N('Kitchen advisor', 'مستشارة المطابخ'), wardrobes: N('Wardrobe advisor', 'مستشارة الخزائن'), walkin: N('Walk-in advisor', 'مستشارة غرف الملابس'),
   bedroom: N('Bedroom advisor', 'مستشارة غرف النوم'), doors: N('Door advisor', 'مستشارة الأبواب'), living: N('Living advisor', 'مستشارة غرف المعيشة'), studio: N('Studio advisor', 'مستشارة الاستوديو'),
   lounge: N('Lounge advisor', 'مستشارة الصالة'), vip: N('VIP advisor', 'مستشارة VIP'),
 };
+export const FIRST_NAMES = {
+  reception: N('Noor', 'نور'), kitchens: N('Maryam', 'مريم'), wardrobes: N('Layla', 'ليلى'), walkin: N('Dana', 'دانة'), bedroom: N('Reem', 'ريم'),
+  doors: N('Hessa', 'حصة'), living: N('Sara', 'سارة'), studio: N('Aisha', 'عائشة'), lounge: N('Fatima', 'فاطمة'), vip: N('Zainab', 'زينب'),
+};
+/** display name = "<first name>, <role>" (the role stays visible as the subtitle) */
+const NAMES = Object.fromEntries(Object.keys(ROLES).map((id) => [id, N(`${FIRST_NAMES[id].en}, ${ROLES[id].en}`, `${FIRST_NAMES[id].ar}، ${ROLES[id].ar}`)]));
 export const VIP_STAFF_AT = [-4.0, -29.2];
 
 /** [{id, room, name, at:[x,z], yaw, look, seed, radius}] in a fixed order: reception first, then the bays, then VIP */
 export function staffRoster(bays = layoutBays()) {
-  const out = [{ id: 'reception', room: 'reception', name: NAMES.reception, at: [RECEPTION.desk.x, RECEPTION.desk.z - 1.05], yaw: 0, look: LOOKS.reception, seed: 2, radius: 0.3 }];
+  const out = [{ id: 'reception', room: 'reception', name: NAMES.reception, first: FIRST_NAMES.reception, role: ROLES.reception, at: [RECEPTION.desk.x, RECEPTION.desk.z - 1.05], yaw: 0, look: LOOKS.reception, seed: 2, radius: 0.3 }];
   for (const b of bays) {
     const s = b.facing, at = [b.x + s * 1.9, b.z + s * 2.6];
-    out.push({ id: b.id, room: b.id, name: NAMES[b.id], at, yaw: s * Math.PI / 2 - s * 0.35, look: LOOKS[b.id], seed: 3 + b.index, radius: 0.28 });
+    out.push({ id: b.id, room: b.id, name: NAMES[b.id], first: FIRST_NAMES[b.id], role: ROLES[b.id], at, yaw: s * Math.PI / 2 - s * 0.35, look: LOOKS[b.id], seed: 3 + b.index, radius: 0.28 });
   }
-  out.push({ id: 'vip', room: 'vip', name: NAMES.vip, at: [...VIP_STAFF_AT], yaw: 0.5, look: LOOKS.vip, seed: 12, radius: 0.28 });
+  out.push({ id: 'vip', room: 'vip', name: NAMES.vip, first: FIRST_NAMES.vip, role: ROLES.vip, at: [...VIP_STAFF_AT], yaw: 0.5, look: LOOKS.vip, seed: 12, radius: 0.28 });
   return out;
 }
 /** collision footprints (plan view): each adviser's standing circle and the reception desk */

@@ -60,7 +60,7 @@ describe('rig: bounds, budget, outfits, accessibility', () => {
   });
   test('headscarf and ghutra change the head mesh; hair none / bun / long all build', () => {
     const n = (o) => buildCharacter(o).meshes.find((m) => m.name === 'headMesh').geometry.attributes.position.count;
-    expect(n({ scarf: true })).toBeGreaterThan(n({ scarf: false, hair: 'none' })); expect(n({ gender: 'm', outfit: 'thobe' })).toBeGreaterThan(n({ gender: 'm', outfit: 'suit' }));
+    expect(n({ scarf: true })).toBeGreaterThan(n({ scarf: false, hair: 'none' })); expect(n({ gender: 'm', outfit: 'thobe' })).toBeGreaterThan(n({ gender: 'm', outfit: 'suit', hair: 'none' }))   // updated: hair now also carries a sheen-band mesh, so compare against the bald head;
     for (const hair of ['bun', 'long', 'short', 'none']) expect(() => buildCharacter({ hair })).not.toThrow();
   });
 });

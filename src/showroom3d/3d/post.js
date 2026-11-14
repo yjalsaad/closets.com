@@ -3,7 +3,7 @@
  * (ACES tone mapping + sRGB, exactly what the renderer would have done itself). Any failure falls back to the plain renderer. */
 import * as THREE from 'three';
 
-export async function createBloom(renderer, scene, camera, { width, height, pixelRatio = 1 }) {
+export async function createBloom(renderer, scene, camera, { width, height, pixelRatio = 1, ao = false }) {
   const [{ EffectComposer }, { RenderPass }, { UnrealBloomPass }, { OutputPass }, { ShaderPass }] = await Promise.all([
     import('three/examples/jsm/postprocessing/EffectComposer.js'), import('three/examples/jsm/postprocessing/RenderPass.js'),
     import('three/examples/jsm/postprocessing/UnrealBloomPass.js'), import('three/examples/jsm/postprocessing/OutputPass.js'), import('three/examples/jsm/postprocessing/ShaderPass.js'),
@@ -11,6 +11,12 @@ export async function createBloom(renderer, scene, camera, { width, height, pixe
   const target = new THREE.WebGLRenderTarget(width * pixelRatio, height * pixelRatio, { type: THREE.HalfFloatType, samples: 4 });
   const composer = new EffectComposer(renderer, target); composer.setPixelRatio(pixelRatio); composer.setSize(width, height);
   composer.addPass(new RenderPass(scene, camera));
+  // optional ground-truth AO (high tier, opt-in with ?ao=1 until it has been checked on real GPUs): contact shading under furniture / in corners. It re-renders the scene normals, so it roughly doubles draw calls.
+  let gtao = null;
+  if (ao) { try { const { GTAOPass } = await import('three/examples/jsm/postprocessing/GTAOPass.js'); gtao = new GTAOPass(scene, camera, Math.round(width * pixelRatio), Math.round(height * pixelRatio)); gtao.updateGtaoMaterial({ radius: 0.45, distanceExponent: 1.5, thickness: 1.0, scale: 1.0, samples: 8 }); gtao.blendIntensity = 0.7;
+    // the G-buffer pass draws everything with a normal material: additive glows, wash / shadow decals, glass and the planar floor reflector must not write into it (that was the black floor)
+    const ov = gtao.overrideVisibility.bind(gtao); gtao.overrideVisibility = function () { ov(); const cache = this._visibilityCache; this.scene.traverse((o) => { const m = o.material; if (o.isMesh && o.visible && m && !Array.isArray(m) && (m.transparent || m.isShaderMaterial || m.blending === THREE.AdditiveBlending || m.depthWrite === false)) { cache.set(o, true); o.visible = false; } }); };
+    composer.addPass(gtao); } catch (e) { gtao = null; } }
   // HDR safety: a near-mirror specular peak (a polished floor / clearcoat catching the key spot exactly) can exceed the half-float range, become Inf / NaN and bloom into a black frame
   // (seen in the Living bay at some canvas sizes). Clamp to a sane HDR ceiling and drop NaNs before the bloom chain.
   composer.addPass(new ShaderPass({ uniforms: { tDiffuse: { value: null } }, vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
@@ -22,5 +28,5 @@ export async function createBloom(renderer, scene, camera, { width, height, pixe
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
     fragmentShader: 'uniform sampler2D tDiffuse; uniform vec3 uTint; uniform float uContrast, uVig; varying vec2 vUv; void main(){ vec4 c = texture2D(tDiffuse, vUv); vec3 x = c.rgb * uTint; x = (x - 0.5) * uContrast + 0.5; vec2 d = vUv - 0.5; float v = smoothstep(0.35, 0.85, length(d * vec2(1.0, 0.85))); x *= 1.0 - uVig * v; gl_FragColor = vec4(max(x, 0.0), c.a); }' });
   composer.addPass(grade);
-  return { composer, bloom, grade, setGrade(g) { grade.uniforms.uTint.value.set(...g.tint); grade.uniforms.uContrast.value = g.contrast; grade.uniforms.uVig.value = g.vignette; }, setSize(w, h, pr) { composer.setPixelRatio(pr); composer.setSize(w, h); }, render() { composer.render(); }, dispose() { composer.dispose(); target.dispose(); } };
+  return { composer, bloom, grade, setGrade(g) { grade.uniforms.uTint.value.set(...g.tint); grade.uniforms.uContrast.value = g.contrast; grade.uniforms.uVig.value = g.vignette; }, setSize(w, h, pr) { composer.setPixelRatio(pr); composer.setSize(w, h); if (gtao && gtao.setSize) gtao.setSize(Math.round(w * pr), Math.round(h * pr)); }, hasAo: !!gtao, render() { composer.render(); }, dispose() { composer.dispose(); target.dispose(); } };
 }

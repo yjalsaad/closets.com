@@ -9,6 +9,8 @@ import { createKit } from './kit';
 import { buildCanopy, buildWallWash, propMesh } from './stage';
 import * as pr from './props';
 import * as fu from './furnish';
+import * as rl from './reflook';
+
 
 const { fin } = fu;
 const WX0 = -3.0, WX1 = -2.4, Y0 = 0.06, Y1 = 2.62, T = 0.019;
@@ -19,7 +21,7 @@ export function buildWalkin({ M, tier, registry, reduced }) {
   const add = (list, mat) => list.forEach((g) => kit.addStatic(g, mat));
   const hw = [], soft = [], ceramic = [], board = [], band = [], H = Y1 - Y0;
   kit.floor();
-  { const w = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 3.3), M.plaster); w.position.set(-2.995, 1.65, 0); w.rotation.y = Math.PI / 2; w.receiveShadow = true; group.add(w); }
+  { const w = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 3.3), M.travertine); w.position.set(-2.995, 1.65, 0); w.rotation.y = Math.PI / 2; w.receiveShadow = true; group.add(w); }
   add(fu.shell({ x0: WX0, x1: WX1, y0: Y0, y1: Y1, z0: -3.25, z1: 3.25, divs: [-1.55, -0.18, 0.78, 1.72] }), C);
   kit.addStatic(placed(fin(WX1 - WX0 - 0.1, Y0, 6.4, { b: 0.001 }), { x: -2.72, y: Y0 / 2 }), M.plinth);
   kit.addStatic(placed(fin(0.04, 0.02, 6.5, { b: 0.001 }), { x: WX1 - 0.01, y: Y1 + 0.01 }), METAL);
@@ -58,8 +60,14 @@ export function buildWalkin({ M, tier, registry, reduced }) {
     ceramic.push(...pr.vase(-2.7, 1.316, zc + 0.28, { h: 0.2, r: 0.04, color: P.ceramicTerra }), ...pr.vase(-2.7, 0.756 + 0.0, zc, { h: 0.0001, r: 0.001 }));
   }
   // ---- mirror + ottoman ----
-  kit.addStatic(placed(fin(0.03, 2.2, 1.1, { b: 0.004 }), { x: -2.97, y: 1.25, z: 2.5 }), METAL);
-  { const m = new THREE.Mesh(new THREE.PlaneGeometry(0.98, 2.08), M.mirror); m.position.set(-2.951, 1.25, 2.5); m.rotation.y = Math.PI / 2; m.name = 'mirror'; group.add(m); }
+  // reference look: a floating deep-green marble vanity (slab + upstand) under a round mirror in a brass ring
+  kit.addStatic(placed(fin(0.56, 0.09, 1.42, { b: 0.006, tile: 1.2 }), { x: -2.69, y: 0.84, z: 2.5 }), M.greenMarble);
+  kit.addStatic(placed(fin(0.03, 0.36, 1.42, { b: 0.003, tile: 1.2 }), { x: -2.955, y: 1.065, z: 2.5 }), M.greenMarble);
+  { const m = new THREE.Mesh(new THREE.CircleGeometry(0.5, 56), M.mirror); m.position.set(-2.93, 1.8, 2.5); m.rotation.y = Math.PI / 2; m.name = 'mirror'; group.add(m); }
+  kit.mesh(prep(placed(new THREE.TorusGeometry(0.506, 0.014, 10, 64), { x: -2.93, y: 1.8, z: 2.5, ry: Math.PI / 2 })), METAL, { cast: false });
+  ceramic.push(...fu.bottle(-2.72, 0.886, 2.12), ...fu.bottle(-2.78, 0.886, 2.24, { h: 0.1, color: P.ceramicSand }), ...fu.trayOf(-2.66, 0.886, 2.82, { w: 0.36, d: 0.22 }), ...pr.candle(-2.66, 0.898, 2.78));
+  // vertical LED edge strips on the glass-fronted cabinets
+  for (const z of [-0.145, 0.745, 0.825, 1.685]) kit.led({ x: -2.43, y: 1.35, z, len: 2.2, axis: 'y', thick: 0.01, levelOf: (st) => st.accentLevel(), intensity: 1.2 });
   kit.led({ x: -2.975, y: 1.25, z: 3.06, len: 2.1, axis: 'y', thick: 0.01, levelOf: (s) => s.accentLevel(), washPlane: { w: 2.1, h: 0.6, pos: [-2.9, 1.25, 3.0], rot: [0, 0, -Math.PI / 2] } });
   kit.led({ x: -2.975, y: 1.25, z: 1.94, len: 2.1, axis: 'y', thick: 0.01, levelOf: (s) => s.accentLevel() });
   { const p = fu.pouf({ x: -1.9, z: 2.5, r: 0.28, h: 0.42 }); add(p.soft, UP); add(p.hard, M.plinth); }
@@ -86,8 +94,8 @@ export function buildWalkin({ M, tier, registry, reduced }) {
   ceramic.push(...pr.vase(-1.05, IY + 0.04, -0.7, { h: 0.26, r: 0.05, color: P.ceramicDark }), ...fu.bottle(-1.1, IY + 0.04, 0.55), ...fu.bottle(-1.2, IY + 0.04, 0.68, { h: 0.1, color: P.ceramicSand }));
   { const wc = []; for (let k = 0; k < 4; k++) wc.push({ geo: placed(fin(0.1, 0.05, 0.1, { b: 0.02 }), { x: -1.0 + (k % 2) * 0.12, y: IY + 0.065, z: -0.1 + k * 0.1 - (k % 2) * 0.01 }), color: P.velvetDark }, { geo: placed(new THREE.CylinderGeometry(0.03, 0.03, 0.012, 18), { x: -1.0 + (k % 2) * 0.12, y: IY + 0.095, z: -0.1 + k * 0.1 - (k % 2) * 0.01 }), color: P.brassPale }); lod.props.add(propMesh(wc, M.fabric, { cast: false })); }
 
-  const pl = pr.plant(-0.2, 0, -3.0, { h: 1.5, leaves: 46, potR: 0.18, seed: 8 });
-  { const rug = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 2.4), M.rug); rug.rotation.x = -Math.PI / 2; rug.position.set(-1.0, 0.0125, 0); rug.receiveShadow = true; lod.props.add(rug); }
+  const pl = rl.tree(-0.2, -3.0, { h: 2.2, seed: 8, potR: 0.26 });
+  { const rug = new THREE.Mesh(rl.organicRug(3.68, 2.83, 29), M.rugSoft); rug.rotation.x = -Math.PI / 2; rug.position.set(-1.0, 0.0125, 0); rug.receiveShadow = true; lod.props.add(rug); }
   kit.ao([-2.99, 3.05, 0], [0, 0, 1], [0, 1, 0], 6.2, 0.9, '+v', 0.3); kit.ao([-2.38, 0.012, 0], [0, 0, 1], [1, 0, 0], 6.4, 0.3, '-v', 0.3);
   buildCanopy(kit, { downlights: [[-1.8, -2.2], [-1.8, 0], [-1.8, 2.2], [0.9, -2.2], [0.9, 0], [0.9, 2.2]] }); buildWallWash(kit, { z: 0, len: 6.2, x: -2.995 });
   kit.contactShadow({ x: -1.1, z: 0, w: 1.5, d: 2.3, strength: 0.55, blur: 26 }); kit.contactShadow({ x: -2.6, z: 0, w: 0.9, d: 6.4, strength: 0.45, blur: 24 });
