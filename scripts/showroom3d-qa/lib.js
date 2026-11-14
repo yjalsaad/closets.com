@@ -23,7 +23,9 @@ async function openShowroom(browser, { url = '/yas-bloom', viewport = { width: 9
 /** finish the loader and the intro with the real "Skip intro" button, wait for the explore phase */
 async function enterExplore(page, { tap = false } = {}) {
   await page.waitForSelector('[data-testid="sr-skip"]', { timeout: 120000 });
-  if (tap) await page.tap('[data-testid="sr-skip"]'); else await page.click('[data-testid="sr-skip"]');
+  // a software-GL frame can be so slow that Playwright's "stable" check on the button never passes: after one normal try, click through the DOM until the explore phase starts
+  try { if (tap) await page.tap('[data-testid="sr-skip"]', { timeout: 8000 }); else await page.click('[data-testid="sr-skip"]', { timeout: 8000 }); }
+  catch (e) { for (let i = 0; i < 60; i++) { const ph = await page.evaluate(() => { const b = document.querySelector('[data-testid="sr-skip"]'); if (b) b.click(); const st = document.querySelector('.sr-stage'); return st && st.dataset.phase; }); if (ph === 'explore') break; await page.waitForTimeout(1500); } }
   await page.waitForSelector('.sr-stage[data-phase="explore"]', { timeout: 120000 });
   await page.waitForTimeout(800);
 }

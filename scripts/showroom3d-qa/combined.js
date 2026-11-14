@@ -19,7 +19,8 @@ async function enter(page) {
   await page.waitForFunction(() => { const e = window.__showroom && window.__showroom.engine; return !e || e.realism === 'ready' || e.realism === 'procedural'; }, null, { timeout: 180000 }).catch(() => {}); await wait(page, 1500);
 }
 const tp = async (page, p, ms = 3500) => { await ex(page, (e, a) => e.teleport(...a), p); await wait(page, ms); };
-async function enterVip(page) { await tp(page, [0, -30.2, 0, 0.05], 800); await page.evaluate(() => { const b = document.querySelector('[data-testid="sr-interact"]'); if (b) b.click(); }); if (!(await page.$('[data-testid="sr-vip-panel"]'))) await page.keyboard.press('KeyE'); await page.waitForSelector('[data-testid="sr-vip-panel"]', { timeout: 60000 }); await settle(page, 800); }
+async function enterVip(page) { await tp(page, [0, -30.2, 0, 0.05], 800); await page.evaluate(() => { const b = document.querySelector('[data-testid="sr-interact"]'); if (b) b.click(); }); for (let i = 0; i < 8 && !(await page.$('[data-testid="sr-vip-panel"]')); i++) { await page.keyboard.press('KeyE'); await wait(page, 2500); }   // a slow software-GL frame can swallow the first key
+  await page.waitForSelector('[data-testid="sr-vip-panel"]', { timeout: 60000 }); await settle(page, 800); }
 const imagesReady = (page) => page.waitForFunction(() => { const m = window.__showroom.engine.products.vip.state.images; return [...m.values()].length > 0 && [...m.values()].every(Boolean); }, null, { timeout: 60000 }).catch(() => {});
 const kioskSpot = async (page, id, d = 1.7) => { const pos = await page.evaluate((i) => window.__showroom.engine.staff.item(i).def.at, id); const near = id === 'reception' ? [pos[0] + 0.9, pos[1] + 2.1] : id === 'vip' ? [pos[0] + 1.2, pos[1] + 1.4] : [pos[0] + (pos[0] < 0 ? d : -d), pos[1] + 0.5]; return [near[0], near[1], Math.atan2(-(pos[0] - near[0]), -(pos[1] - near[1])), 0.02]; };
 
@@ -67,7 +68,7 @@ async function vipViews(b) {
     const o = await L.openShowroom(b, { url: lang === 'ar' ? '/ar/yas-bloom' : '/yas-bloom', query: MED, viewport: { width: 1280, height: 720 } }), page = o.page; await mockProjects(page); await enter(page); await enterVip(page);
     await page.selectOption('[data-testid="sr-vip-deck-select"]', 'closets-profile'); await settle(page, 800); await imagesReady(page); await page.keyboard.press('Digit2'); await settle(page, 600);
     await page.click('[data-testid="sr-vip-big"]'); await settle(page, 1200); await vip(page, (v) => v.freezeAnim(3)); await wait(page, 800); await shot(page, `combined-04-vip-big-who-${lang}`, { quality: 82 });
-    const titles = await vip(page, (v) => v.state.decks.map((d) => d.id)); check(`${lang}: four entries on the wall (company deck, two profiles, film)`, JSON.stringify(titles) === '["default","closets-profile","yas-profile","film"]', titles);
+    const titles = await vip(page, (v) => v.state.decks.map((d) => d.id)); check(`${lang}: five entries on the wall (management meeting first, company deck, two profiles, the AI film last)`, JSON.stringify(titles) === '["meeting","default","closets-profile","yas-profile","film"]', titles);
     if (lang === 'ar') { const all = await vip(page, (v, x) => JSON.stringify(v.state.decks)); check('ar: the Arabic deck text uses the logo name, not the transliteration', !/ذا كلوزتس/.test(all) && /الخزائن/.test(all)); }
     await page.keyboard.press('Escape'); await settle(page, 600);
     await page.selectOption('[data-testid="sr-vip-deck-select"]', 'default'); await settle(page, 800); await page.click('[data-testid="sr-vip-big"]'); await settle(page, 1200); await wait(page, 800); await shot(page, `combined-05-vip-big-default-${lang}`, { quality: 82 }); await page.keyboard.press('Escape'); await settle(page, 600);
@@ -121,8 +122,16 @@ async function collections(b) {
   await tp(page, [9, -5.5, Math.PI * 0.75, 0.02], 3500); await setHud(page, false); await shot(page, 'combined-13-collections-from-hall', { quality: 82 }); await setHud(page, true);
   check('collections: no page errors', o.errors.length === 0, o.errors.slice(0, 3)); await o.ctx.close();
 }
+async function meta(b) {
+  for (const [url, lang, dir] of [['/yas-bloom', 'en', 'ltr'], ['/ar/yas-bloom', 'ar', 'rtl']]) {
+    const o = await L.openShowroom(b, { url, query: LOW, viewport: { width: 1280, height: 720 } }), page = o.page; await mockProjects(page); await enter(page);
+    const m = await page.evaluate(() => ({ lang: document.documentElement.lang, dir: document.documentElement.dir, robots: [...document.querySelectorAll('meta[name="robots"]')].map((x) => x.content).join('|'), canvas: !!document.querySelector('.sr3d canvas'), w: (document.querySelector('.sr3d canvas') || {}).width, title: document.title }));
+    check(`${url}: canvas mounted, <html lang="${lang}" dir="${dir}">, robots noindex`, m.canvas && m.w > 100 && m.lang === lang && m.dir === dir && /noindex/.test(m.robots), m);
+    check(`${url}: no page errors`, o.errors.length === 0, o.errors.slice(0, 3)); await o.ctx.close();
+  }
+}
 (async () => {
-  const b = await L.launch(), only = process.argv[2], all = { hall, kiosk, vip: vipViews, film, mobile, collections };
+  const b = await L.launch(), only = process.argv[2], all = { meta, hall, kiosk, vip: vipViews, film, mobile, collections };
   try { for (const [n, fn] of Object.entries(all)) { if (only && only !== n) continue; try { await fn(b); } catch (e) { check(`suite "${n}" ran to the end`, false, String(e && e.message).slice(0, 300)); } for (const c of OPEN) await c.close().catch(() => {}); OPEN.clear(); } } finally { await b.close(); }
   const bad = L.results.filter((r) => !r.ok).length; console.log(`\n${L.results.length - bad}/${L.results.length} checks passed`); process.exit(bad ? 1 : 0);
 })();
