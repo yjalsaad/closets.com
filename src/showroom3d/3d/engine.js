@@ -1,7 +1,7 @@
 /* ShowroomEngine: owns the renderer, scene, lights, the procedural build (with real progress reporting), the render loop,
  * adaptive resolution and disposal. React only mounts a canvas and talks to this class. */
 import * as THREE from 'three';
-import { TIERS, adaptScale, effectivePixelRatio, isSoftwareRenderer } from './quality';
+import { TIERS, adaptQuality, minScale, effectivePixelRatio, isSoftwareRenderer, SHED_MAX } from './quality';
 import { PALETTE } from './palette';
 import { SUN_DIR, buildEnvironment } from './sky';
 import { tileSet } from './pbr';
@@ -33,7 +33,7 @@ export class ShowroomEngine {
   constructor(canvas, { tier = 'high', lang = 'en', progress, adaptive = true, aa = null, bloom = true } = {}) {
     this.aaOverride = aa; this.noBloom = !bloom;
     this.canvas = canvas; this.tierId = tier; this.tier = TIERS[tier] || TIERS.low; this.lang = lang; this.progress = progress; this.adaptive = adaptive;
-    this.scale = 1; this.frames = 0; this.fpsAcc = 0; this.fpsT = 0; this.fps = 0; this.running = false; this.disposed = false;
+    this.scale = 1; this.shed = 0; this.frames = 0; this.fpsAcc = 0; this.fpsT = 0; this.fps = 0; this.running = false; this.disposed = false;
     this.state = { doorOpen: 0, led: 0.55 }; this.pointLights = []; this.glowMats = []; this.onFrame = null; this.stats = { gpu: '' };
   }
 
@@ -101,7 +101,7 @@ export class ShowroomEngine {
     this.report('compile', 1);
     // restrained bloom on the high tier only (lazy chunk); anything that goes wrong keeps the plain renderer
     if (tier.id === 'high' && !this.noBloom) {
-      try { const { createBloom } = await import('./post'); this.post = await createBloom(renderer, this.scene, this.camera, { width: this.width, height: this.height, pixelRatio: effectivePixelRatio(this.tierId, window.devicePixelRatio, this.scale), ao: /[?&]ao=1/.test(window.location.search) }); } catch (e) { this.post = null; }
+      try { const { createBloom } = await import('./post'); this.post = await createBloom(renderer, this.scene, this.camera, { width: this.width, height: this.height, pixelRatio: this.pixelRatio(), ao: /[?&]ao=1/.test(window.location.search) }); } catch (e) { this.post = null; }
     }
     this.gallery = buildGalleryFrames({ depth: HALL.depth, lang: this.lang }); this.scene.add(this.gallery.group);
     this.renderOnce(); this.report('firstFrame', 1);
@@ -127,7 +127,7 @@ export class ShowroomEngine {
 
   loadLogo() {
     return new Promise((resolve) => {
-      new THREE.TextureLoader().load(LOGO_URL, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 1; resolve(t); }, undefined, () => resolve(null));
+      new THREE.TextureLoader().load(LOGO_URL, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; resolve(t); }, undefined, () => resolve(null));
     });
   }
 
@@ -137,7 +137,7 @@ export class ShowroomEngine {
     const target = new THREE.Object3D(); target.position.set(0, 0, -6); scene.add(target); sun.target = target;
     sun.position.copy(SUN_DIR).multiplyScalar(130).add(target.position);
     const sm = tier.id === 'high' ? Math.min(4096, this.renderer.capabilities.maxTextureSize) : tier.shadowMap;   // high tier: a 4k sun map (2.5 cm texels in the hall) for clean soft edges
-    sun.castShadow = true; sun.shadow.mapSize.set(sm, sm);
+    sun.castShadow = true; sun.shadow.mapSize.set(sm, sm); this.sunMapSize = sm;
     const c = sun.shadow.camera; c.left = -52; c.right = 52; c.top = 46; c.bottom = -46; c.near = 20; c.far = 300;
     sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.05; sun.shadow.radius = 2.5;
     scene.add(sun); this.sun = sun;
@@ -186,26 +186,45 @@ export class ShowroomEngine {
       const id = z < 0.6 ? this.products.anchorId() : 'neutral', want = gradeFor(id); this.grade = this.grade ? mixGrade(this.grade, want, 1 - Math.exp(-2.5 * dt)) : want; this.post.setGrade(this.grade);
     }
     const fwdY = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion).y;   // looking steeply down: the mirrored camera sees nothing useful and the overlay misrenders, so skip the pass
-    if (this.mirror && z < -0.5 && fwdY > -0.42) { this.mirror.setSize(this.width * (this.scale || 1), this.height * (this.scale || 1)); this.mirror.mesh.visible = true; this.mirror.render(this.camera, [this.hall && this.hall.group, this.exterior && this.exterior.group, this.entrance && this.entrance.group, ...(this.products ? [...this.products.outlines, this.products.vip && this.products.vip.group, ...this.products.farGroups(this.camera, 13)] : [])]); }
+    if (this.mirror && !this.mirrorOff && z < -0.5 && fwdY > -0.42) { this.mirror.setSize(this.width * (this.scale || 1), this.height * (this.scale || 1)); this.mirror.mesh.visible = true; this.mirror.render(this.camera, [this.hall && this.hall.group, this.exterior && this.exterior.group, this.entrance && this.entrance.group, ...(this.products ? [...this.products.outlines, this.products.vip && this.products.vip.group, ...this.products.farGroups(this.camera, 13)] : [])]); }
     else if (this.mirror) this.mirror.mesh.visible = false;
   }
   setLanguage(lang) { this.lang = lang; if (this.gallery) this.gallery.setLanguage(lang); if (this.hall && this.hall.relabel) this.hall.relabel(lang); if (this.exterior && this.exterior.relabel) this.exterior.relabel(lang); if (this.bays) this.bays.relabel(lang); if (this.collections) this.collections.setLanguage(lang); if (this.products) this.products.setLanguage(lang); if (this.staff) this.staff.setLanguage(lang); }
 
   setSize(w, h) {
-    this.width = Math.max(2, w); this.height = Math.max(2, h);
+    const nw = Math.max(2, w), nh = Math.max(2, h), dprNow = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+    if (nw === this.width && nh === this.height && dprNow === this.dpr) return;   // nothing changed: do not reallocate (and clear) the drawing buffer
+    this.width = nw; this.height = nh;
     this.camera.aspect = this.width / this.height;
     // wide fov on portrait phones so the facade still fits
     this.camera.updateProjectionMatrix(); this.applyFov();
     this.applyPixelRatio();
   }
+  /** device pixels per CSS pixel of the drawing buffer. `debugScale` (QA only, ?debug=1&scale=) may go below the visitor floor because software GL is slow. */
+  pixelRatio() {
+    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+    return this.debugScale ? Math.max(0.3, Math.min(this.tier.pixelRatioCap, dpr) * this.scale) : effectivePixelRatio(this.tierId, dpr, this.scale);
+  }
+  /** the canvas is sized by CSS (100% of the stage); the drawing buffer is CSS size x pixelRatio (never a small buffer stretched by CSS), and the post chain uses the same ratio */
   applyPixelRatio() {
-    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio : 1;
-    this.renderer.setPixelRatio(effectivePixelRatio(this.tierId, dpr, this.scale));
+    const pr = this.pixelRatio(); this.dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+    this.renderer.setPixelRatio(pr);
     this.renderer.setSize(this.width, this.height, false);
-    if (this.post) this.post.setSize(this.width, this.height, effectivePixelRatio(this.tierId, dpr, this.scale));
+    if (this.post) this.post.setSize(this.width, this.height, pr);
+  }
+  /** adaptive quality: costs shed in order BEFORE the resolution (see quality.js SHED_STEPS). Reversible. */
+  applyShed(level) {
+    const n = Math.max(0, Math.min(SHED_MAX, level | 0)); this.shed = n;
+    if (this.sun && this.sunMapSize) {   // 1: smaller sun shadow map
+      const want = n >= 1 ? Math.max(512, this.sunMapSize / 2) : this.sunMapSize;
+      if (this.sun.shadow.mapSize.x !== want) { this.sun.shadow.mapSize.set(want, want); if (this.sun.shadow.map) { this.sun.shadow.map.dispose(); this.sun.shadow.map = null; } this.renderer.shadowMap.needsUpdate = true; }
+    }
+    this.postOff = n >= 2;                                   // 2: plain renderer instead of the bloom / grade chain (same tone mapping, MSAA from the canvas)
+    this.mirrorOff = n >= 3; if (this.mirrorOff && this.mirror) this.mirror.mesh.visible = false;   // 3: no planar floor reflections
+    const live = n < 4; if (this.renderer.shadowMap.autoUpdate !== live) { this.renderer.shadowMap.autoUpdate = live; this.renderer.shadowMap.needsUpdate = true; }   // 4: shadows drawn once, not every frame
   }
 
-  renderOnce() { this.renderer.info.reset(); if (this.post) this.post.render(); else this.renderer.render(this.scene, this.camera); }
+  renderOnce() { this.renderer.info.reset(); if (this.post && !this.postOff) this.post.render(); else this.renderer.render(this.scene, this.camera); }
 
   start() {
     if (this.running) return; this.running = true; let last = performance.now();
@@ -216,7 +235,7 @@ export class ShowroomEngine {
       if (this.onFrame) this.onFrame(dt, now);
       if (this.products) this.products.update(dt, this.camera);
       this.daylight(dt);
-      if (this.post) this.post.render(); else this.renderer.render(this.scene, this.camera);
+      if (this.post && !this.postOff) this.post.render(); else this.renderer.render(this.scene, this.camera);
       this.measure(dt);
     };
     this.raf = requestAnimationFrame(loop);
@@ -228,13 +247,15 @@ export class ShowroomEngine {
     if (this.fpsT >= 2) {
       this.fps = this.frames / this.fpsT; this.frames = 0; this.fpsT = 0;
       if (this.adaptive && this.width) {
-        const next = adaptScale({ scale: this.scale, fps: this.fps, min: 0.5, max: 1 });
-        if (next !== this.scale) { this.scale = next; this.applyPixelRatio(); }
+        const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+        const next = adaptQuality({ shed: this.shed, scale: this.scale, fps: this.fps, min: minScale(this.tierId, dpr) });
+        if (next.shed !== this.shed) this.applyShed(next.shed);
+        if (next.scale !== this.scale) { this.scale = next.scale; this.applyPixelRatio(); }
       }
     }
   }
 
-  info() { const i = this.renderer.info; return { calls: i.render.calls, triangles: i.render.triangles, textures: i.memory.textures, geometries: i.memory.geometries, fps: Math.round(this.fps * 10) / 10, scale: this.scale, tier: this.tierId, gpu: this.stats.gpu }; }
+  info() { const i = this.renderer.info; return { calls: i.render.calls, triangles: i.render.triangles, textures: i.memory.textures, geometries: i.memory.geometries, fps: Math.round(this.fps * 10) / 10, scale: this.scale, shed: this.shed, pixelRatio: Math.round(this.pixelRatio() * 100) / 100, buffer: [this.renderer.domElement.width, this.renderer.domElement.height], css: [this.width, this.height], dpr: typeof window !== 'undefined' ? window.devicePixelRatio : 1, antialias: !!(this.renderer.getContextAttributes && this.renderer.getContextAttributes() || {}).antialias, tier: this.tierId, gpu: this.stats.gpu }; }
 
   dispose() {
     this.disposed = true; this.stop();

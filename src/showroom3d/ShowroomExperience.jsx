@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import StaffChat from './ui/StaffChat';
 import { ShowroomEngine } from './3d/engine';
 import { createProgress } from './3d/progress';
-import { pickTier, readSignals, probeRenderer, isSoftwareRenderer } from './3d/quality';
+import { pickTier, readSignals, probeRenderer, isSoftwareRenderer, writeGraphicsMode } from './3d/quality';
 import { createDirector } from './cinematic/director';
 import { HANDOVER, DURATION } from './cinematic/timeline';
 import gsap from 'gsap';
@@ -45,6 +45,9 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   const [loaderOn, setLoaderOn] = useState(true);
   const [caption, setCaption] = useState(null);
   const [tierId, setTierId] = useState('high');
+  const [gfxMode, setGfxMode] = useState('auto');
+  // the Graphics setting is stored, then the page reloads: a tier decides texture sizes and the geometry that is built, so it cannot be swapped live
+  const onGraphics = useCallback((m) => { if (writeGraphicsMode(m)) { setGfxMode(m); try { window.location.reload(); } catch (e) { /* ignore */ } } }, []);
   const capRef = useRef(null);
   const explorerRef = useRef(null);
   const [st, setSt] = useState({});
@@ -69,11 +72,11 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   }, []);
 
   useEffect(() => {
-    let cancelled = false, ro = null, onVis = null;
+    let cancelled = false, ro = null, onVis = null, onSize = null;
     const q = new URLSearchParams(window.location.search);
     const debug = q.get('debug') === '1';
     const sig = readSignals(); sig.softwareRenderer = isSoftwareRenderer(probeRenderer());
-    const tier = pickTier(sig); setTierId(tier);
+    const tier = pickTier(sig); setTierId(tier); setGfxMode(sig.mode || 'auto');
     const progress = createProgress(); const unsub = progress.subscribe((v) => setPct(v));
     const engine = new ShowroomEngine(canvasRef.current, { tier, lang: langRef.current, progress, adaptive: !sig.override && !debug, aa: debug && q.get('aa') === '0' ? false : null, bloom: !(debug && q.get('bloom') === '0') });
     const director = createDirector({
@@ -82,6 +85,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       },
       onComplete: () => { if (!cancelled) handover(); },
     });
+    if (debug && q.get('scale')) engine.debugScale = true;
     if (debug && q.get('scale')) engine.scale = Math.max(0.3, Math.min(1, parseFloat(q.get('scale')) || 1));   // QA: render at a fraction of the resolution (software GL is slow)
     if (debug) engine.maxDt = 0.5;    // QA under software GL runs at ~1-2 fps: let animations (drawers, doors) finish in fewer frames
     api.current = { engine, director, progress };
@@ -97,6 +101,10 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       if (engine.products) engine.products.setReduced(reducedRef.current);   // the products are built after the first render of this component: apply the reduced-motion setting now
       ro = new ResizeObserver(() => { const w = wrapRef.current; if (w) engine.setSize(w.clientWidth, w.clientHeight); });
       ro.observe(wrapRef.current);
+      // the ResizeObserver does not fire when only the device pixel ratio changes (browser zoom, moving the window to another screen), and some mobile browsers resize the
+      // visual viewport (URL bar) without a layout change: re-apply the size + pixel ratio on those too
+      onSize = () => { const w = wrapRef.current; if (w && w.clientWidth && w.clientHeight) engine.setSize(w.clientWidth, w.clientHeight); };
+      window.addEventListener('resize', onSize); window.addEventListener('orientationchange', onSize); if (window.visualViewport) window.visualViewport.addEventListener('resize', onSize);
       engine.setSize(wrapRef.current.clientWidth, wrapRef.current.clientHeight);
       engine.setLanguage(langRef.current);
       engine.start();
@@ -120,7 +128,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
     })();
 
     return () => {
-      cancelled = true; unsub(); if (ro) ro.disconnect(); if (onVis) document.removeEventListener('visibilitychange', onVis);
+      cancelled = true; unsub(); if (ro) ro.disconnect(); if (onSize) { window.removeEventListener('resize', onSize); window.removeEventListener('orientationchange', onSize); if (window.visualViewport) window.visualViewport.removeEventListener('resize', onSize); } if (onVis) document.removeEventListener('visibilitychange', onVis);
       explorer.dispose(); explorerRef.current = null;
       director.kill(); engine.dispose(); api.current = {}; if (window.__showroom) delete window.__showroom;
     };
@@ -171,7 +179,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       {showHud && colOpen && !st.paused && <CollectionsPanel lang={lang} touch={touch} onClose={() => setColOpen(false)} fallbackFocus={canvasFocus} />}
       {showHud && coach && !st.paused && !deptOpen && !st.focus && <CoachMarks lang={lang} touch={touch} onDone={closeCoach} />}
       {showHud && deptOpen && <DeptMenu lang={lang} touch={touch} onPick={onPick} onClose={() => setDeptOpen(false)} fallbackFocus={canvasFocus} />}
-      {showHud && st.paused && <PauseMenu lang={lang} touch={touch} reduced={reduced} bob={bob} explorerRef={explorerRef} st={st} homeHref={home} onResume={onResume} onDepts={() => { onResume(false); setDeptOpen(true); }} onReplay={onReplay} onLang={onLang} onBob={onBob} onTips={() => { onResume(false); setCoach(true); }} fallbackFocus={canvasFocus} />}
+      {showHud && st.paused && <PauseMenu lang={lang} touch={touch} tier={tierId} gfxMode={gfxMode} onGraphics={onGraphics} reduced={reduced} bob={bob} explorerRef={explorerRef} st={st} homeHref={home} onResume={onResume} onDepts={() => { onResume(false); setDeptOpen(true); }} onReplay={onReplay} onLang={onLang} onBob={onBob} onTips={() => { onResume(false); setCoach(true); }} fallbackFocus={canvasFocus} />}
       {loaderOn ? <LoadingScreen pct={pct} lang={lang} leaving={leaving} /> : null}
     </div>
   );

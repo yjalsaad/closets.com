@@ -162,8 +162,8 @@ describe('legibility, quality tiers, lazy loading', () => {
   test('finish names are at least 5 cm tall on the wall under a swatch, 6 cm on a text-only tile (readable from the 3.2 m stand point)', () => {
     const emMetres = (px) => px * WALL.panelH / 1000; expect(emMetres(27)).toBeGreaterThanOrEqual(0.05); expect(emMetres(20)).toBeGreaterThanOrEqual(0.04); expect(emMetres(31)).toBeGreaterThanOrEqual(0.06); expect(emMetres(25)).toBeGreaterThanOrEqual(0.05);
   });
-  test('low tier: half-size canvases, small images, no over-bright backlight (no bloom) and no LED line; unknown tier = low', () => {
-    expect(TIER.low).toMatchObject({ tex: 512, glow: 1, picLight: false, image: 'small' }); expect(TIER.high.glow).toBeGreaterThan(1); expect(TIER.medium.glow).toBe(1); expect(tierOf('nope')).toBe(TIER.low);
+  test('low tier: full-size lettering canvases (sharpness first), small images, no over-bright backlight (no bloom) and no LED line; unknown tier = low', () => {
+    expect(TIER.low).toMatchObject({ tex: 1024, glow: 1, picLight: false, image: 'small' }); expect(TIER.low.anisotropy).toBeGreaterThanOrEqual(4); expect(TIER.high.glow).toBeGreaterThan(1); expect(TIER.medium.glow).toBe(1); expect(tierOf('nope')).toBe(TIER.low);
   });
   test('images load only near the wall', () => {
     expect(shouldLoad(STAND[0], STAND[1])).toBe(true); expect(shouldLoad(0, -9)).toBe(false); expect(shouldLoad(0, 20)).toBe(false); expect(shouldLoad(WALL.x - LOAD_RADIUS, WALL.z)).toBe(true);

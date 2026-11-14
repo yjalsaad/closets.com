@@ -100,7 +100,7 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   };
   /** keep the last frame so the next slide can cross-fade from it */
   const snapshot = () => { if (!state.motion.on || !(state.inside || state.focus) || state.motion.transition <= 0) { state.prev = null; return; } const c = screen && screen.canvas; if (!c) return; if (!state.prevC) state.prevC = document.createElement('canvas'); if (state.prevC.width !== c.width) { state.prevC.width = c.width; state.prevC.height = c.height; } state.prevC.getContext('2d').drawImage(c, 0, 0); state.prev = state.prevC; };
-  const hiRes = tier.id === 'high', SW = hiRes ? 2560 : 1920, SH = hiRes ? 1440 : 1080, aniso = 8;   // the big screen is read from across the room: a crisp 1080p / 1440p texture, mipmapped + anisotropic
+  const hiRes = tier.id === 'high' || (typeof window !== 'undefined' && (window.devicePixelRatio || 1) >= 2 && tier.id !== 'low'), SW = hiRes ? 2560 : 1920, SH = hiRes ? 1440 : 1080, aniso = 8;   // the big screen is read from across the room: a crisp 1080p / 1440p texture, mipmapped + anisotropic
   const screen = makePanel(SW, SH, (g, w, h, l) => drawScreen(g, w, h, l), lang, { design: { w: DW, h: DH }, anisotropy: aniso });
   const screenMat = new THREE.MeshBasicMaterial({ map: screen.tex, toneMapped: false, color: new THREE.Color(1, 1, 1) });
   const S = VIP.screen; add2(placed(bevelBox(S.w + 0.3, S.h + 0.3, 0.06, { b: 0.01 }), { x: cx, y: S.y, z: S.z - 0.02 }), M.darkInterior); const screenMesh = mesh(new THREE.PlaneGeometry(S.w, S.h), screenMat, { pos: [cx, S.y, S.z + 0.012], receive: false, name: 'vip-screen' });

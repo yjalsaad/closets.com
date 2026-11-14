@@ -60,8 +60,8 @@ export function withCollections(graph) {
 /* ---- quality tiers: texture size of each lightbox, whether the lightboxes are over-bright (bloom), and which image a tile uses ---- */
 export const TIER = {
   high:   { tex: 1024, glow: 1.08, picLight: true,  image: 'thumb', anisotropy: 8 },
-  medium: { tex: 1024, glow: 1.0,  picLight: true,  image: 'thumb', anisotropy: 4 },
-  low:    { tex: 512,  glow: 1.0,  picLight: false, image: 'small', anisotropy: 1 },   // no backlight bloom, half-size canvases
+  medium: { tex: 1024, glow: 1.0,  picLight: true,  image: 'thumb', anisotropy: 8 },
+  low:    { tex: 1024, glow: 1.0,  picLight: false, image: 'small', anisotropy: 4 },   // no backlight bloom, lighter swatch images; the lettering canvases stay full size (sharpness first)
 };
 export const tierOf = (id) => TIER[id] || TIER.low;
 /** swatch images are only fetched once the visitor is this close to the wall (or opens the panel) */
