@@ -1,0 +1,27 @@
+/* Collections UI strings (EN / AR). Kept here, not in ../strings.js, so the feature stays add-only. Collection copy itself comes from data.js (the owner's site). */
+export const CS = {
+  title: { en: 'Collections', ar: 'المجموعات' },
+  panelAria: { en: 'Collection details', ar: 'تفاصيل المجموعة' },
+  back: { en: 'Back to the showroom', ar: 'العودة إلى المعرض' },
+  about: { en: 'About this collection', ar: 'عن هذه المجموعة' },
+  materials: { en: 'Materials', ar: 'المواد' },
+  finishes: { en: 'Finishes', ar: 'التشطيبات' },
+  gallery: { en: 'Finish gallery', ar: 'معرض التشطيبات' },
+  prev: { en: 'Previous finish', ar: 'التشطيب السابق' },
+  next: { en: 'Next finish', ar: 'التشطيب التالي' },
+  of: { en: '{n} of {total}', ar: '{n} من {total}' },
+  code: { en: 'Reference code', ar: 'رمز المرجع' },
+  noCode: { en: 'No reference code listed', ar: 'لا يوجد رمز مرجع مذكور' },
+  noImage: { en: 'Swatch image not loaded yet. The name and reference code are from our website.', ar: 'صورة العيّنة غير متوفرة بعد. الاسم ورمز المرجع من موقعنا.' },
+  keysHint: { en: 'Use the arrow keys or swipe to browse.', ar: 'استخدم مفاتيح الأسهم أو اسحب للتصفّح.' },
+  quote: { en: 'Request a quote', ar: 'اطلب عرض سعر' },
+  quoteNote: { en: 'Opens our booking page with this collection and finish in the notes. Nothing is sent until you submit the form.', ar: 'يفتح صفحة الحجز مع إضافة هذه المجموعة والتشطيب إلى الملاحظات. لا يُرسل شيء حتى تضغط إرسال النموذج.' },
+  site: { en: 'See on yas-holding website', ar: 'شاهدها على موقع يس القابضة' },
+  siteNote: { en: 'Opens in a new tab.', ar: 'يفتح في تبويب جديد.' },
+  wallHint: { en: 'Press E to browse', ar: 'اضغط E للتصفّح' },
+  wallHintTouch: { en: 'Tap Interact to browse', ar: 'اضغط تفاعل للتصفّح' },
+  guideReply: { en: 'Of course. Our collections wall is by the entrance: the YAS Wood finishes with their reference codes. I will take you there.', ar: 'بكل سرور. جدار المجموعات بجانب المدخل: تشطيبات يس وود مع رموز المرجع. سآخذك إلى هناك.' },
+  guideGo: { en: 'Walk me to the collections', ar: 'خذني إلى المجموعات' },
+  guideBlurb: { en: 'YAS Wood finishes with reference codes', ar: 'تشطيبات يس وود مع رموز المرجع' },
+};
+export const ct = (key, lang) => { const s = CS[key]; return s ? (lang === 'ar' ? s.ar : s.en) : key; };

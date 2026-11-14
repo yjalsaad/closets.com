@@ -24,6 +24,7 @@ import { nextAvatar, AVATARS } from '../characters/visitorAvatar';
 const store = { get(k, d) { try { return window.localStorage.getItem(k) || d; } catch (e) { return d; } }, set(k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* ignore */ } } };
 import { stepStation, arrowDir } from '../products/vipContent';
 import { loadSiteProjects } from '../products/projectsFeed';
+import { withCollections, collectionsZones } from '../collections/layout';
 
 export const SENS = { mouse: 0.0022, drag: 0.0036, touch: 0.0052 };   // radians per pixel
 export const NEAR = { explore: 0.15, intro: 0.25 };                    // camera near plane (explore must stay below PLAYER.radius)
@@ -36,7 +37,7 @@ export class Explorer {
     this.deckStore = deckStore; this.userDecks = deckStore.list(); this.vipDialog = false; this.decksRev = 0; this.ds = initDeckState(this.deckIds(), 'default', 0, this.deckCounts());
     this.camMode = store.get('closets_yb_cam', 'first') === 'third' ? 'third' : 'first'; this.avatarKind = AVATARS[store.get('closets_yb_avatar', 'female')] ? store.get('closets_yb_avatar', 'female') : 'female'; this.tp = null;
     this.engine = engine; this.canvas = canvas; this.onState = onState; this.reduced = reduced;
-    this.graph = buildGraph(); this.zones = allZones();
+    this.graph = withCollections(buildGraph()); this.zones = [...collectionsZones(), ...allZones()];
     this.doorOpen = true; this.vipOpen = true; this.colliders = buildColliders({ doorOpen: 1, oliveCount: engine.tierId === 'low' ? 2 : 4, vipOpen: 1 });
     this.walker = new Walker({ pos: [HANDOVER.p[0], HANDOVER.p[2]], colliders: this.colliders, bob });
     this.keys = new Set(); this.touch = { x: 0, y: 0, jog: false };
@@ -174,6 +175,7 @@ export class Explorer {
     { const S = this.engine.staff, np = S && S.nearest(this.walker.pos[0], this.walker.pos[1], 1.9), rec = S && S.nearest(this.walker.pos[0], this.walker.pos[1], TALK_RADIUS); if ((np || (rec && rec.id === 'reception')) && this.talkToStaff((np || rec).id)) return; }   // E next to an adviser (or in front of the Reception desk) talks to her
     this.interactions++;
     const z = this.zone, P = this.products;
+    if (z && z.collections) { this.emit({ collections: this.interactions }); return; }          // the Collections wall: the React layer opens its panel
     if (z && z.vip && P && P.vip) { this.focusVip(0); return; }
     if (z && z.stage && P) { this.focusStage('overview'); return; }          // (no "later release" toast: the panel is the response)
     const pid = z && P ? P.productAt(z.id) : null;

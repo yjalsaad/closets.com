@@ -1,0 +1,38 @@
+/* Collections panel. Extends the .sr-panel language from ../ui/showroom.css. Tokens only: --sr-* (palette.js), --space-*, --radius-*, --fs-*. No colour literals, no url(). */
+.sr-panel-col { z-index: 16; width: min(420px, calc(100vw - var(--space-5))); }
+.sr-col-gallery { outline: none; }
+.sr-col-gallery:focus-visible .sr-col-stage { outline: 2px solid var(--sr-focus); outline-offset: 2px; }
+.sr-col-stage { position: relative; aspect-ratio: 4 / 3; border-radius: var(--radius-lg); overflow: hidden; background: var(--sr-sand); border: 1px solid var(--sr-line); touch-action: pan-y; }
+.sr-col-stage img { width: 100%; height: 100%; object-fit: cover; display: block; -webkit-user-drag: none; }
+.sr-col-card { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: var(--space-2); padding: var(--space-5); text-align: center; color: var(--sr-ink); background: radial-gradient(closest-side, var(--sr-paper), var(--sr-sand)); }
+.sr-col-card b { font-family: var(--font-display); font-weight: 500; font-size: var(--fs-2xl); line-height: var(--lh-snug); }
+.sr-col-card span { font-size: var(--fs-sm); letter-spacing: .06em; color: var(--sr-brown); font-weight: 600; }
+.sr-col-card .sr-col-n { font-size: var(--fs-xs); }
+.sr-col-nav { position: absolute; inset-block-start: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--sr-glass-line); background: var(--sr-glass); color: var(--sr-on-dark); font-size: var(--fs-xl); line-height: 1; display: grid; place-items: center; cursor: pointer; }
+.sr-col-nav:hover { background: var(--sr-charcoal); border-color: var(--sr-orange); }
+.sr-col-nav:focus-visible, .sr-col-item:focus-visible, .sr-col-site:focus-visible { outline: 2px solid var(--sr-focus); outline-offset: 2px; }
+.sr-col-prev { inset-inline-start: var(--space-2); }
+.sr-col-next { inset-inline-end: var(--space-2); }
+.sr-col-cap { display: grid; gap: var(--space-1); }
+.sr-col-name { margin: 0; display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); font-size: var(--fs-md); }
+.sr-col-name b { font-family: var(--font-display); font-weight: 500; font-size: var(--fs-lg); }
+.sr-col-count { font-size: var(--fs-xs); color: var(--sr-on-dark-2); font-weight: 500; letter-spacing: 0; text-transform: none; font-variant-numeric: tabular-nums; }
+.sr-col-desc { margin: 0; font-size: var(--fs-sm); line-height: var(--lh-body); }
+.sr-col-mats { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.sr-col-mats li { padding: var(--space-1) var(--space-3); border-radius: var(--radius-pill); border: 1px solid var(--sr-brass); color: var(--sr-brass); font-size: var(--fs-xs); font-weight: 600; }
+.sr-col-strip { margin: 0; padding: 0 0 var(--space-2); list-style: none; display: grid; grid-auto-flow: column; grid-template-rows: repeat(2, auto); grid-auto-columns: max-content; gap: var(--space-2); overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+.sr-col-item { display: flex; align-items: center; gap: var(--space-2); min-height: 44px; padding: var(--space-1) var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--sr-line); background: transparent; color: inherit; font: 500 var(--fs-xs) var(--font-sans); text-align: start; cursor: pointer; }
+.sr-col-item img { width: 32px; height: 32px; border-radius: var(--radius-sm); object-fit: cover; }
+.sr-col-item span { display: grid; }
+.sr-col-item b { font-weight: 600; font-size: var(--fs-sm); }
+.sr-col-item em { font-style: normal; color: var(--sr-on-dark-2); min-height: 1em; }
+.sr-col-item[aria-current="true"] { border-color: var(--sr-brass); background: var(--sr-glass); }
+.sr-col-item[aria-current="true"] em { color: var(--sr-brass); }
+.sr-col-site { justify-self: start; display: inline-flex; align-items: center; gap: var(--space-1); min-height: 44px; }
+@media (max-width: 640px), (pointer: coarse) and (max-height: 700px) {
+  .sr-panel-col { max-height: 72dvh; width: auto; border-end-start-radius: 0; border-end-end-radius: 0; inset-block-end: 0; inset-inline: 0; }
+  .sr-panel-col .sr-panel-close { white-space: nowrap; min-height: 40px; }
+  .sr-col-stage { aspect-ratio: 16 / 9; }
+  .sr-col-card b { font-size: var(--fs-xl); }
+  .sr-panel-col .sr-panel-foot { grid-template-columns: 1fr auto; align-items: center; column-gap: var(--space-4); }
+}
