@@ -1,11 +1,14 @@
 {
- "note": "Ledger of every Higgsfield generation made for the VIP film. Result URLs are on the Higgsfield CDN; re-download them instead of regenerating. Credits are the amounts charged (verified against the account balance: 50.00 -> 4.56).",
+ "note": "Ledger of every Higgsfield generation made for the VIP film (45.44 credits). The ten adviser portraits (2.5 credits) are in public/yas-bloom/staff/portraits.json. Result URLs are on the Higgsfield CDN; re-download them instead of regenerating. Balance: 50.00 -> 4.56 after the film -> 2.06 after the portraits.",
  "account": {
   "plan": "basic",
   "credits_before": 50,
-  "credits_after": 4.56,
-  "credits_spent": 45.44,
-  "unlimited_allowance": false
+  "credits_after": 2.06,
+  "credits_spent": 47.94,
+  "unlimited_allowance": false,
+  "credits_after_film": 4.56,
+  "credits_spent_film": 45.44,
+  "credits_spent_portraits": 2.5
  },
  "bakeoff": [
   {
