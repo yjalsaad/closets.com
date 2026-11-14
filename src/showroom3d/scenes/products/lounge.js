@@ -10,6 +10,9 @@ import { buildCanopy, buildWallWash, propMesh } from './stage';
 import { makePanel, drawConsultPanel } from './screens';
 import * as pr from './props';
 import * as fu from './furnish';
+import { mergeGeometries } from '../../3d/geom';
+import * as rl from './reflook';
+
 
 const { fin } = fu;
 const T = 0.019, Y0 = 0.06;
@@ -20,7 +23,7 @@ export function buildLounge({ M, tier, registry, reduced, lang = 'en', logoTex =
   const add = (list, mat) => list.forEach((g) => kit.addStatic(g, mat));
   const soft = [], ceramic = [];
   kit.floor();
-  { const w = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 3.3), M.plaster); w.position.set(-2.995, 1.65, 0); w.rotation.y = Math.PI / 2; w.receiveShadow = true; group.add(w); }
+  { const w = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 3.3), M.travertine); w.position.set(-2.995, 1.65, 0); w.rotation.y = Math.PI / 2; w.receiveShadow = true; group.add(w); }
   // ---- logo wall behind the desk: fluted panel + the owner's logo on a brass-framed panel ----
   { const f = new THREE.Mesh(flutedPanel(3.2, 3.3, 0.04, { pitch: 0.05, relief: 0.014, off: [0.2, 0.1] }).rotateY(Math.PI / 2), FL); f.position.set(-2.96, 1.65, -1.45); f.receiveShadow = true; group.add(f); }
   { const lw = 1.9, lh = lw / LOGO_ASPECT; kit.addStatic(placed(fin(0.03, lh + 0.1, lw + 0.1, { b: 0.004 }), { x: -2.91, y: 2.1, z: -1.45 }), M.brass); if (logoTex) { const m = new THREE.Mesh(new THREE.PlaneGeometry(lw, lh), new THREE.MeshBasicMaterial({ map: logoTex, toneMapped: false })); m.position.set(-2.893, 2.1, -1.45); m.rotation.y = Math.PI / 2; m.name = 'logo'; group.add(m); } }
@@ -57,9 +60,11 @@ export function buildLounge({ M, tier, registry, reduced, lang = 'en', logoTex =
   { const s = fu.sofa({ x: -0.4, z: 1.95, ry: Math.PI, w: 1.9, d: 0.95, seats: 2 }); add(s.soft, UP); add(s.hard, METAL); }
   for (const [z, ry] of [[0.8, -Math.PI / 2], [3.0, Math.PI / 2]]) { const s = fu.sofa({ x: -1.35, z, ry, w: 0.95, d: 0.9, seats: 1 }); add(s.soft, UP); add(s.hard, METAL); }
   { const t = fu.tableTop({ x: -1.35, z: 1.95, w: 0.9, d: 0.9, h: 0.4, th: 0.05, legInset: 0.07 }); add(t.top, STONE); add(t.legs, METAL); }
-  { const rug = new THREE.Mesh(new THREE.PlaneGeometry(3.3, 3.0), M.rug); rug.rotation.x = -Math.PI / 2; rug.position.set(-1.0, 0.0125, 1.95); rug.receiveShadow = true; lod.props.add(rug); }
+  { const rug = new THREE.Mesh(rl.organicRug(3.79, 3.54, 11), M.rugRust); rug.rotation.x = -Math.PI / 2; rug.position.set(-1.0, 0.0125, 1.95); rug.receiveShadow = true; lod.props.add(rug); }
   ceramic.push(...pr.bowl(-1.35, 0.425, 1.95, { r: 0.13, h: 0.06, color: P.ceramicSand }), ...pr.vase(-1.45, 0.425, 2.2, { h: 0.18, r: 0.04, color: P.ceramicTerra })); soft.push(...pr.books(-1.3, 0.425, 1.7, { n: 3, seed: 15 }));
-  { const pl = pr.plant(-0.5, 0, -3.0, { h: 1.6, leaves: 50, potR: 0.19, seed: 22 }); lod.props.add(propMesh(pl.body, M.leaves, { cast: false }), propMesh(pl.cards, M.leafCard, { cast: false })); }
+  { const pl = rl.tree(-0.5, -3.0, { h: 2.3, seed: 22 }); lod.props.add(propMesh(pl.body, M.leaves, { cast: false }), propMesh(pl.cards, M.leafCard, { cast: false })); }
+  kit.mesh(rl.curtain(3.2, 3.26, { seed: 5 }), M.curtain, { x: -0.9, y: 0.01, z: 3.36, cast: false, receive: false, parent: lod.props, name: 'curtain' });
+  kit.mesh(mergeGeometries(rl.sideTable(-0.38, 0.72, { r: 0.18, h: 0.48 })), M.mirrorSteel, { parent: lod.props });
   kit.ao([-2.99, 3.05, 0], [0, 0, 1], [0, 1, 0], 6.2, 0.9, '+v', 0.3);
   buildCanopy(kit, { downlights: [[-1.8, -2.0], [-1.8, 0.2], [-1.8, 2.2], [0.9, -2.0], [0.9, 0.2], [0.9, 2.2]] }); buildWallWash(kit, { z: 0, len: 6.2, x: -2.995 });
   kit.contactShadow({ x: -1.6, z: DZc, w: 1.2, d: 2.8, strength: 0.5, blur: 26 }); kit.contactShadow({ x: -0.4, z: 1.95, w: 1.3, d: 2.1, strength: 0.45, blur: 24 });

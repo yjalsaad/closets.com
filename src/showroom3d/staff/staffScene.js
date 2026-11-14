@@ -3,6 +3,11 @@
  * while the chat panel is answering. Far advisers collapse to one baked draw call and are not animated. Everything here is cosmetic: no state outside this module depends on it. */
 import * as THREE from 'three';
 import { buildCharacter } from '../characters/rig';
+import { GLB_CHARACTERS, DRACO_PATH } from '../characters/glbConfig';
+import { loadGlbCharacter } from '../characters/glbCharacter';
+import { buildKiosk } from './kiosk';
+import { STAFF_MODE } from './config';
+import { puff } from '../scenes/products/reflook';
 import { createAnim, updateAnim, pose, playGesture, speechEnvelope } from '../characters/anim';
 import { staffRoster, RECEPTION, NOTICE_RADIUS, APPROACH, TALK_RADIUS } from './roster';
 import { bevelBox, placed, prep, mergeColored } from '../3d/builders';
@@ -20,20 +25,27 @@ function drawSign(g, w, h, lang, L) {
 }
 
 export class StaffManager {
-  constructor({ tier = 'high', lang = 'en', roster = staffRoster() } = {}) {
+  constructor({ tier = 'high', lang = 'en', roster = staffRoster(), mode = STAFF_MODE } = {}) {
+    this.mode = mode === 'character' ? 'character' : 'kiosk';   // 'kiosk' (default, owner decision): a portrait totem per adviser; 'character': the procedural / GLB 3D character
     this.q = tier === 'low' ? 0 : 1; this.lang = lang; this.roster = roster; this.group = new THREE.Group(); this.group.name = 'staff'; this.t = 0; this.greeted = {}; this.talk = null; this.nearId = null;
     this.items = roster.map((def) => {
-      const char = buildCharacter({ ...def.look, q: this.q }); char.group.position.set(def.at[0], 0, def.at[1]); char.group.rotation.y = def.yaw; this.group.add(char.group);
+      const char = this.mode === 'kiosk' ? buildKiosk(def, { lang, q: this.q }) : buildCharacter({ ...def.look, q: this.q }); char.group.position.set(def.at[0], 0, def.at[1]); char.group.rotation.y = def.yaw; this.group.add(char.group);
       return { def, char, anim: createAnim({ seed: def.seed }), pos: [def.at[0], def.at[1]], yaw: def.yaw, cool: 0, moving: 0, far: false, text: '' };
     });
     this.positions = this.items.map((i) => i.pos);
+    if (this.mode === 'character') this.items.forEach((it) => { const c = GLB_CHARACTERS[it.def.id]; if (c) this.swapGlb(it, c); });   // optional licensed GLB per adviser (config is empty by default)
     this.reception = this.buildReception(); this.group.add(this.reception.group);
+  }
+  /** replace one adviser's procedural character by a licensed rigged GLB (bone-name retarget); on any failure the procedural one stays */
+  async swapGlb(it, cfg) {
+    const c = await loadGlbCharacter(cfg.url, { height: cfg.height, dracoPath: DRACO_PATH, label: it.char.label }); if (!c) return false;
+    c.group.position.copy(it.char.group.position); c.group.rotation.copy(it.char.group.rotation); this.group.remove(it.char.group); it.char.dispose(); this.group.add(c.group); it.char = c; return true;
   }
   buildReception() {
     const d = RECEPTION.desk, bk = RECEPTION.backdrop, g = new THREE.Group(); g.name = 'reception';
     const items = [
-      { geo: placed(bevelBox(d.hx * 2, d.h - 0.06, d.hz * 2 - 0.1, { b: 0.01 }), { x: d.x, y: (d.h - 0.06) / 2, z: d.z }), color: P.walnutDeep },
-      { geo: placed(bevelBox(d.hx * 2 + 0.12, 0.06, d.hz * 2 + 0.1, { b: 0.012 }), { x: d.x, y: d.h - 0.03, z: d.z }), color: P.marbleWhite },
+      { geo: placed(puff(d.hx * 2, d.h - 0.06, d.hz * 2 - 0.1, 0.07, { k: this.q ? 3 : 1 }), { x: d.x, y: (d.h - 0.06) / 2, z: d.z }), color: P.walnutDeep },                 // soft-cornered desk body (was a sharp box)
+      { geo: placed(puff(d.hx * 2 + 0.12, 0.06, d.hz * 2 + 0.1, 0.028, { k: this.q ? 2 : 1 }), { x: d.x, y: d.h - 0.03, z: d.z }), color: P.marbleWhite },   // rounded stone top
       { geo: placed(bevelBox(d.hx * 2 - 0.2, 0.025, 0.02), { x: d.x, y: 0.62, z: d.z + d.hz - 0.04 }), color: P.brass },
       { geo: placed(bevelBox(d.hx * 2 - 0.2, 0.025, 0.02), { x: d.x, y: 0.2, z: d.z + d.hz - 0.04 }), color: P.brass },
       { geo: placed(bevelBox(bk.w + 0.2, bk.h + 0.2, 0.08, { b: 0.01 }), { x: d.x, y: bk.y, z: bk.z - 0.05 }), color: P.bronzeDark },
@@ -46,7 +58,7 @@ export class StaffManager {
     const sign = new THREE.Mesh(new THREE.PlaneGeometry(bk.w, bk.h), new THREE.MeshBasicMaterial({ map: panel.tex, toneMapped: false })); sign.position.set(d.x, bk.y, bk.z - 0.005); sign.name = 'reception-sign'; g.add(sign);
     return { group: g, panel, mat, furn, sign };
   }
-  setLanguage(lang) { this.lang = lang; this.reception.panel.redraw(lang); this.reception.panel.tex.needsUpdate = true; }
+  setLanguage(lang) { this.lang = lang; this.reception.panel.redraw(lang); this.reception.panel.tex.needsUpdate = true; for (const it of this.items) if (it.char.setLanguage) it.char.setLanguage(lang); }
   item(id) { return this.items.find((i) => i.def.id === id) || null; }
   /** advisers' current standing spots, aligned with the roster */
   nearest(x, z, r = TALK_RADIUS) { let best = null, bd = r; for (const it of this.items) { const d = Math.hypot(it.pos[0] - x, it.pos[1] - z); if (d < bd) { bd = d; best = it.def; } } return best; }
@@ -58,6 +70,15 @@ export class StaffManager {
   /** w = the walker (pos, speed); opts.reduced */
   update(dt, w, { reduced = false, visible = true } = {}) {
     this.group.visible = visible; if (!visible || !(dt > 0)) return; this.t += dt; const vx = w.pos[0], vz = w.pos[1];
+    if (this.mode === 'kiosk') {   // kiosks never move: they light up and greet when the visitor is near, and show a waveform while answering
+      for (const it of this.items) {
+        const { def, char } = it, dHome = Math.hypot(vx - def.at[0], vz - def.at[1]), far = dHome > FAR_AT; if (far !== it.far) { it.far = far; char.setFar(far); }
+        const near = dHome < NOTICE_RADIUS; if (near && !this.greeted[def.id]) { this.greeted[def.id] = true; this.onGreet && this.onGreet(def); }
+        if (far && char.awake < 0.01) continue;
+        const talking = it.until > this.t; char.update(dt, { awake: near && dHome < 6.5, talking, level: talking ? speechEnvelope(it.text, this.t) : 0, reduced, t: this.t });
+      }
+      return;
+    }
     for (const it of this.items) {
       const { def, char, anim } = it, hx = def.at[0], hz = def.at[1], dHome = Math.hypot(vx - hx, vz - hz), dNow = Math.hypot(vx - it.pos[0], vz - it.pos[1]);
       const far = dHome > FAR_AT; if (far !== it.far) { it.far = far; char.setFar(far); }

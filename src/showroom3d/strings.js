@@ -2,6 +2,8 @@
  * Arabic is written, not machine-converted; it has NOT had a native copy review yet (see docs/showroom3d/ARCHITECTURE.md). */
 export const STRINGS = {
   brand: { en: 'The Closets', ar: 'الخزائن' },
+  brandByline: { en: 'by YAS WOOD', ar: 'من ياس وود' },   // owner decision: "THE CLOSETS by YAS WOOD"; the Arabic wording is a draft pending the owner's confirmation
+  chatPortraitNote: { en: 'AI-generated portrait', ar: 'صورة مولّدة بالذكاء الاصطناعي' },
   pageTitle: { en: 'YAS Bloom | The Closets', ar: 'ياس بلوم | الخزائن' },
   loadingTitle: { en: 'Preparing the showroom', ar: 'نجهّز المعرض' },
   loadingSub: { en: 'Building the architecture, materials and light in your browser.', ar: 'نبني العمارة والخامات والإضاءة داخل متصفحك.' },
@@ -190,7 +192,7 @@ export const STRINGS = {
   chatAiWait: { en: 'Please wait a moment before asking again.', ar: 'يرجى الانتظار قليلًا قبل السؤال مرة أخرى.' },
   chatVoice: { en: 'Read answers aloud', ar: 'قراءة الإجابات بصوت عالٍ' },
   chatYou: { en: 'You', ar: 'أنت' },
-  chatGreetBubble: { en: 'Welcome! Talk to me any time.', ar: 'أهلًا بك! تحدّث معي في أي وقت.' },
+  chatGreetBubble: { en: 'Welcome! I am {name} (AI assistant). Talk to me any time.', ar: 'أهلًا بك! أنا {name} (مساعد ذكاء اصطناعي). تحدّث معي في أي وقت.' },
 };
 
 export const t = (key, lang) => { const e = STRINGS[key]; return e ? (lang === 'ar' ? e.ar : e.en) : key; };

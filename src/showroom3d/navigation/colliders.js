@@ -9,7 +9,7 @@
  * Where a scene file hard-codes a number (benches, planters, basins, hedges) it is repeated here and annotated with its source.
  * Solid slabs are made deliberately thick (many metres, extending AWAY from the walkable side) so a bad frame can never put the
  * circle on the far side of a wall. */
-import { HALL, SITE } from '../3d/dimensions';
+import { HALL, SITE, COLUMNS, COLUMN_SIZE } from '../3d/dimensions';
 import { layoutBays } from '../scenes/main-hall/departments';
 import { vipBoxes, vipDoorBox } from '../scenes/vip/layout';
 import { productColliders } from './productColliders';
@@ -54,6 +54,7 @@ export function buildColliders({ doorOpen = 1, oliveCount = 4, vipOpen = 1 } = {
   // ---- interior fixtures ----
   for (const z of [-15, -26]) list.push(box('bench@' + z, -3.2, 3.2, z - 0.75, z + 0.75));                 // hall.js stone benches 6.4 x 1.5
   for (const x of [-13, 13]) list.push(circle('planter@' + x, x, -5.2, 0.95));                             // hall.js planters + olive trunks
+  for (const c of COLUMNS) list.push(box('column@' + c.x + ',' + c.z, c.x - COLUMN_SIZE / 2, c.x + COLUMN_SIZE / 2, c.z - COLUMN_SIZE / 2, c.z + COLUMN_SIZE / 2));   // hall.js walnut columns
   for (const b of layoutBays()) {                                                                           // bays.js timber portal posts either side of each alcove
     const s = b.side === 'left' ? -1 : 1, cx = s * W - s * 0.32;
     for (const dz of [-1, 1]) list.push(box('post-' + b.id + (dz < 0 ? '-a' : '-b'), cx - 0.17, cx + 0.17, b.z + dz * (b.width / 2 - 0.15) - 0.15, b.z + dz * (b.width / 2 - 0.15) + 0.15));

@@ -9,6 +9,8 @@ import { createKit } from './kit';
 import { buildCanopy, buildWallWash, propMesh } from './stage';
 import * as pr from './props';
 import * as fu from './furnish';
+import * as rl from './reflook';
+
 
 const { fin } = fu;
 const T = 0.019, Y0 = 0.06, Y1 = 2.62;
@@ -63,7 +65,7 @@ export function buildLiving({ M, tier, registry, reduced }) {
   { const s = fu.sofa({ x: -0.62, z: 0, ry: Math.PI, w: 2.6, d: 0.98, seats: 3 }); add(s.soft, UP); add(s.hard, METAL); }
   for (const [z, ry] of [[2.25, Math.PI / 2], [-2.25, -Math.PI / 2]]) { const s = fu.sofa({ x: -1.5, z, ry, w: 0.95, d: 0.9, seats: 1 }); add(s.soft, UP); add(s.hard, METAL); }
   { const t = fu.tableTop({ x: -1.62, z: 0, w: 1.1, d: 0.62, h: 0.38, th: 0.05, legInset: 0.07 }); add(t.top, M.stones.living); add(t.legs, METAL); }
-  { const rug = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 3.0), M.rug); rug.rotation.x = -Math.PI / 2; rug.position.set(-1.35, 0.0125, 0); rug.receiveShadow = true; lod.props.add(rug); }
+  { const rug = new THREE.Mesh(rl.organicRug(4.14, 3.54, 5), M.rugSoft); rug.rotation.x = -Math.PI / 2; rug.position.set(-1.35, 0.0125, 0); rug.receiveShadow = true; lod.props.add(rug); }
   ceramic.push(...pr.bowl(-1.62, 0.405, 0.1, { r: 0.12, h: 0.06, color: P.ceramicDark }), ...pr.vase(-1.7, 0.405, -0.25, { h: 0.2, r: 0.045, color: P.ceramicSand })); soft.push(...pr.books(-1.55, 0.405, 0.28, { n: 3, seed: 9 }));
   // pillows on the sofa
   soft.push({ geo: placed(fin(0.2, 0.4, 0.4, { b: 0.07 }), { x: -0.45, y: 0.72, z: -0.85, rz: 0.2 }), color: P.fabricClay }, { geo: placed(fin(0.2, 0.4, 0.4, { b: 0.07 }), { x: -0.45, y: 0.72, z: 0.85, rz: 0.2 }), color: P.fabricSage });
@@ -75,7 +77,11 @@ export function buildLiving({ M, tier, registry, reduced }) {
   ceramic.push(...pr.vase(0.3, 0.82, 0.55, { h: 0.34, r: 0.07, color: P.ceramicSand })); soft.push(...pr.books(0.3, 0.82, 0.05, { n: 4, seed: 12, w: 0.24 }), ...pr.stems(0.3, 1.16, 0.55, { n: 6, h: 0.5, seed: 2 }));
   // floor lamp + plant
   { const stem = placed(new THREE.CylinderGeometry(0.012, 0.012, 1.55, 8), { x: -0.8, y: 0.8, z: 2.75 }), base = placed(new THREE.CylinderGeometry(0.12, 0.14, 0.02, 20), { x: -0.8, y: 0.01, z: 2.75 }); kit.mesh(mergeGeometries([prep(stem), prep(base)]), METAL, { cast: false, parent: lod.props }); kit.mesh(prep(new THREE.CylinderGeometry(0.17, 0.22, 0.28, 24, 1, true).translate(-0.8, 1.7, 2.75)), new THREE.MeshBasicMaterial({ color: new THREE.Color(P.shadeLinen).multiplyScalar(2.0), side: THREE.DoubleSide, toneMapped: false }), { cast: false, parent: lod.props }); }
-  const pl = pr.plant(-0.8, 0, -3.0, { h: 1.5, leaves: 46, potR: 0.19, seed: 14 });
+  const pl = rl.tree(-0.8, -3.0, { h: 2.35, seed: 14 });
+  // reference look: sheer floor-to-ceiling curtains closing both sides of the room, a mirror-steel and a brass drum side table
+  for (const z of [-3.34, 3.34]) kit.mesh(rl.curtain(3.4, 3.26, { seed: z > 0 ? 3 : 8 }), M.curtain, { x: -0.75, y: 0.01, z, cast: false, receive: false, parent: lod.props, name: 'curtain' });
+  kit.mesh(mergeGeometries(rl.sideTable(-0.72, 1.66)), M.mirrorSteel, { parent: lod.props }); kit.mesh(mergeGeometries(rl.sideTable(-0.72, -1.66, { r: 0.17, h: 0.5 })), M.brass, { parent: lod.props });
+  ceramic.push(...pr.vase(-0.72, 0.472, 1.66, { h: 0.2, r: 0.045, color: P.ceramicDark }));
   kit.ao([-2.97, 3.05, 0], [0, 0, 1], [0, 1, 0], 6.2, 0.9, '+v', 0.3); kit.ao([-2.5, 0.011, 0], [0, 0, 1], [1, 0, 0], 3.6, 0.3, '-v', 0.35);
   buildCanopy(kit, { downlights: [[-1.8, -2.0], [-1.8, 0], [-1.8, 2.0], [0.9, -2.0], [0.9, 0], [0.9, 2.0]] }); buildWallWash(kit, { z: 0, len: 6.2, x: -2.995 });
   kit.contactShadow({ x: -0.62, z: 0, w: 1.4, d: 2.9, strength: 0.5, blur: 26 }); kit.contactShadow({ x: -1.5, z: 2.25, w: 1.1, d: 1.1, strength: 0.4, blur: 22 }); kit.contactShadow({ x: -1.5, z: -2.25, w: 1.1, d: 1.1, strength: 0.4, blur: 22 });

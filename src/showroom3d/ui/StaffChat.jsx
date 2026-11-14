@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { t } from '../strings';
 import { reply, opening, newMemory, pick, guardAiReply, createRateLimiter } from '../staff/guide';
 import { staffById } from '../staff/roster';
+import { portraitUrl } from '../staff/config';
 import { supportChatFetch, tr, hasConsent } from '../siteBridge';
 
 const VOICE_KEY = 'closets_yb_voice';
@@ -20,8 +21,10 @@ export default function StaffChat({ lang, reduced, explorerRef, engineRef, staff
   const [text, setText] = useState('');
   const [voice, setVoice] = useState(readVoice);
   const [busy, setBusy] = useState(false);
+  const [portrait, setPortrait] = useState(false);   // true only once the adviser's portrait file has really loaded (otherwise the monogram avatar, and no "AI-generated portrait" note)
+  useEffect(() => { setPortrait(false); if (!def || typeof Image === 'undefined') return undefined; let on = true; const im = new Image(); im.onload = () => { if (on && im.naturalWidth > 8) setPortrait(true); }; im.onerror = () => {}; im.src = portraitUrl(def.id); return () => { on = false; }; }, [def]);
   const mem = useRef(newMemory()), history = useRef([]), logRef = useRef(null), inputRef = useRef(null), timers = useRef([]), alive = useRef(true);
-  const staff = useMemo(() => ({ id: def && def.id, room: def && def.room, name: def && def.name }), [def]);
+  const staff = useMemo(() => ({ id: def && def.id, room: def && def.room, name: def && def.name, first: def && def.first, role: def && def.role }), [def]);
   const later = (fn, ms) => { if (reduced || ms <= 0) { fn(); return; } const id = setTimeout(() => { if (alive.current) fn(); }, ms); timers.current.push(id); };
   const say = useCallback((s) => {
     const E = engineRef && engineRef.current && engineRef.current.engine; if (E && E.staff && def) E.staff.say(def.id, s);
@@ -78,7 +81,8 @@ export default function StaffChat({ lang, reduced, explorerRef, engineRef, staff
   return (
     <aside className="sr-panel sr-chat" role="dialog" aria-label={fill(t('chatTitle', lang), name)} data-testid="sr-chat" data-staff={staffId} onKeyDown={onKey}>
       <header className="sr-panel-head">
-        <div className="sr-chat-title"><h2 tabIndex={-1}>{name}</h2><span className="sr-chat-badge" data-testid="sr-chat-badge">{t('chatBadge', lang)}</span></div>
+        <span className="sr-chat-avatar" aria-hidden="true" data-testid="sr-chat-avatar">{portrait && def ? <img src={portraitUrl(def.id)} alt="" width="44" height="58" /> : <b>{Array.from(def && def.first ? pick(def.first, lang) : name)[0] || ''}</b>}</span>
+        <div className="sr-chat-title"><h2 tabIndex={-1}>{name}</h2><span className="sr-chat-badge" data-testid="sr-chat-badge">{t('chatBadge', lang)}</span>{portrait && <span className="sr-chat-note" data-testid="sr-chat-portrait-note">{t('chatPortraitNote', lang)}</span>}</div>
         <button type="button" className="sr-btn sr-btn-line sr-chat-close" onClick={onClose} aria-label={t('chatClose', lang)} data-testid="sr-chat-close">{'×'}</button>
       </header>
       <p className="sr-chat-note" data-testid="sr-chat-disclosure">{t('chatDisclosure', lang)}</p>
