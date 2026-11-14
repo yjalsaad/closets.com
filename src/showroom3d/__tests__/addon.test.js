@@ -19,10 +19,9 @@ describe('YAS Bloom add-on hooks', () => {
     const v = JSON.parse(read('vercel.json'));
     expect(v.rewrites).toEqual([{ source: '/(.*)', destination: '/index.html' }]);
     expect(v.buildCommand).toBe('CI=false npm run build');
-    expect(v.headers).toEqual([{ source: '/(ar/)?yas-bloom(/.*)?', headers: [{ key: 'X-Robots-Tag', value: 'noindex' }] }]);
-    const re = new RegExp('^' + v.headers[0].source + '$');
-    for (const p of ['/yas-bloom', '/ar/yas-bloom', '/yas-bloom/x']) expect(re.test(p)).toBe(true);
-    for (const p of ['/', '/kitchen', '/ar/kitchen']) expect(re.test(p)).toBe(false);
+    // PR #11/#12 replaced the single regex rule by six explicit rules (path-to-regexp does not take `(ar/)?`): every header rule is noindex and only for the showroom
+    expect(v.headers.map((h) => h.source).sort()).toEqual(['/ar/yas-bloom', '/ar/yas-bloom/', '/ar/yas-bloom/:path*', '/yas-bloom', '/yas-bloom/', '/yas-bloom/:path*']);
+    for (const h of v.headers) expect(h.headers).toEqual([{ key: 'X-Robots-Tag', value: 'noindex' }]);
   });
   test('vendored routes: /ar exists only for the showroom; links out to the main site are never prefixed', () => {
     expect(withLang('/booking', 'ar')).toBe('/booking');
