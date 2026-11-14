@@ -2,7 +2,7 @@
  * Arabic is written, not machine-converted; it has NOT had a native copy review yet (see docs/showroom3d/ARCHITECTURE.md). */
 export const STRINGS = {
   brand: { en: 'The Closets', ar: 'الخزائن' },
-  pageTitle: { en: 'Virtual Showroom | The Closets', ar: 'المعرض الافتراضي | الخزائن' },
+  pageTitle: { en: 'YAS Bloom | The Closets', ar: 'ياس بلوم | الخزائن' },
   loadingTitle: { en: 'Preparing the showroom', ar: 'نجهّز المعرض' },
   loadingSub: { en: 'Building the architecture, materials and light in your browser.', ar: 'نبني العمارة والخامات والإضاءة داخل متصفحك.' },
   loadStageLabel: { en: 'Loading', ar: 'جارٍ التحميل' },
@@ -13,7 +13,8 @@ export const STRINGS = {
   exit: { en: 'Back to website', ar: 'العودة إلى الموقع' },
   langToggle: { en: 'العربية', ar: 'English' },
   langToggleLabel: { en: 'Switch to Arabic', ar: 'التبديل إلى الإنجليزية' },
-  capBrand: { en: 'Virtual Showroom', ar: 'المعرض الافتراضي' },
+  capBrand: { en: 'YAS Bloom', ar: 'ياس بلوم' },
+  yasBloom: { en: 'YAS Bloom', ar: 'ياس بلوم' },
   capCraft: { en: 'Designed, made and fitted in Bahrain.', ar: 'تصميم وتصنيع وتركيب في البحرين.' },
   capWelcome: { en: 'Welcome.', ar: 'أهلاً بك.' },
   capLook: { en: 'Look around the hall.', ar: 'تجوّل بنظرك في القاعة.' },

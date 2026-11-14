@@ -24,8 +24,31 @@ describe('GSAP director', () => {
 });
 
 describe('route', () => {
-  test('the shell matches /showroom-3d and /ar/showroom-3d only', () => {
-    for (const p of ['/showroom-3d', '/showroom-3d/', '/ar/showroom-3d', '/Showroom-3D']) expect(isShowroomPath(p)).toBe(true);
-    for (const p of ['/', '/showroom', '/showrooms', '/showroom-3dx', '/ar/showrooms', '/x/showroom-3d', '']) expect(isShowroomPath(p)).toBe(false);
+  test('the shell matches /yas-bloom and /ar/yas-bloom (and the legacy /showroom-3d, which is redirected) only', () => {
+    for (const p of ['/yas-bloom', '/yas-bloom/', '/ar/yas-bloom', '/Yas-Bloom', '/showroom-3d', '/ar/showroom-3d', '/Showroom-3D']) expect(isShowroomPath(p)).toBe(true);
+    for (const p of ['/', '/showroom', '/showrooms', '/showroom-3dx', '/yas-bloomx', '/ar/yas-blooms', '/yas', '/ar/showrooms', '/x/showroom-3d', '']) expect(isShowroomPath(p)).toBe(false);
+  });
+});
+
+describe('YAS Bloom routing (P1)', () => {
+  const fs = require('fs'), path = require('path');
+  const { canonicalShowroomPath, isLegacyShowroomPath, BRAND } = require('../route');
+  test('legacy paths map to the canonical ones, keeping language and sub-paths; everything else is untouched', () => {
+    expect(canonicalShowroomPath('/showroom-3d')).toBe('/yas-bloom'); expect(canonicalShowroomPath('/ar/showroom-3d')).toBe('/ar/yas-bloom'); expect(canonicalShowroomPath('/ar/Showroom-3D/x')).toBe('/ar/yas-bloom/x');
+    expect(canonicalShowroomPath('/yas-bloom')).toBe('/yas-bloom'); expect(canonicalShowroomPath('/showroom-3dx')).toBe('/showroom-3dx'); expect(isLegacyShowroomPath('/ar/showroom-3d')).toBe(true); expect(isLegacyShowroomPath('/yas-bloom')).toBe(false);
+  });
+  test('brand label in EN and AR', () => { expect(BRAND).toEqual({ en: 'YAS Bloom', ar: 'ياس بلوم' }); });
+  test('vercel.json: rewrites + noindex for the new paths, redirects for the old ones (EN + AR, with sub-paths)', () => {
+    const v = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../../vercel.json'), 'utf8'));
+    for (const s of ['/yas-bloom', '/ar/yas-bloom']) expect(v.rewrites.some((r) => r.source === s && r.destination === '/app-shell.html')).toBe(true);
+    expect(v.rewrites.some((r) => /showroom-3d/.test(r.source))).toBe(false);
+    for (const [a, b] of [['/showroom-3d', '/yas-bloom'], ['/ar/showroom-3d', '/ar/yas-bloom'], ['/showroom-3d/:path*', '/yas-bloom/:path*'], ['/ar/showroom-3d/:path*', '/ar/yas-bloom/:path*']]) expect(v.redirects.some((r) => r.source === a && r.destination === b)).toBe(true);
+    const h = v.headers.find((x) => /yas-bloom/.test(x.source)); expect(h.headers).toEqual([{ key: 'X-Robots-Tag', value: 'noindex' }]); expect(new RegExp('^' + h.source.replace(/\(\/\.\*\)\?$/, '(/.*)?') + '$').test('/yas-bloom')).toBe(true);
+  });
+  test('robots Disallow and the seo-check route list know the new path; the site shell links to it (EN + AR label)', () => {
+    expect(fs.readFileSync(path.resolve(__dirname, '../../../scripts/seo-build.js'), 'utf8')).toContain("'/yas-bloom'");
+    expect(fs.readFileSync(path.resolve(__dirname, '../../../scripts/seo-check.js'), 'utf8')).toContain("'/ar/yas-bloom'");
+    const app = fs.readFileSync(path.resolve(__dirname, '../../App.js'), 'utf8'); expect(app).toContain("['🌸 YAS Bloom', 'yb:']"); expect(app).toContain("target === 'yb:'");
+    const ar = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../i18n/ar-dict.txt'), 'utf8')); expect(ar.i18n.navlYB).toContain('ياس بلوم');
   });
 });

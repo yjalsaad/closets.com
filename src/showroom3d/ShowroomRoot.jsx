@@ -1,4 +1,4 @@
-/* /showroom-3d and /ar/showroom-3d: the virtual showroom app shell (its own lazy chunk; mounted from src/index.js like the Visualizer).
+/* /yas-bloom and /ar/yas-bloom (formerly /showroom-3d): the virtual showroom app shell (its own lazy chunk; mounted from src/index.js like the Visualizer).
  * The 3D experience only mounts when WebGL works (src/safety/WebGLGate); otherwise a 2D page with the same departments and links. */
 import React, { useEffect, useState } from 'react';
 import WebGLGate from '../safety/WebGLGate';

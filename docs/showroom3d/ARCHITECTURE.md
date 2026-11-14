@@ -1,6 +1,6 @@
-# Virtual Showroom 3D: architecture (Phases 0 to 3, Phase 4 furnishing, Phase 5 interaction core)
+# YAS Bloom (virtual showroom 3D): architecture (Phases 0 to 3, Phase 4 furnishing, Phase 5 interaction core)
 
-Route: `/showroom-3d` and `/ar/showroom-3d` (noindex, own lazy chunk, own full-screen shell like `/visualizer`).
+Route: **`/yas-bloom` and `/ar/yas-bloom`** (brand **YAS Bloom** / **ياس بلوم**; noindex until the owner decides, own lazy chunk, own full-screen shell like `/visualizer`). The former `/showroom-3d` and `/ar/showroom-3d` (with sub-paths) redirect to them (`vercel.json` redirects; `src/index.js` also replaces the URL client-side for hosts without that rule). The site shell links to it from the mega-menu column "Room visualizer" (`🌸 YAS Bloom` / `🌸 ياس بلوم`, target `yb:`). Robots Disallow, the `X-Robots-Tag: noindex` header and `seo-check` know the new path. Source attributes in booking links stay `showroom-3d*` (analytics continuity).
 Status: **Phase 0 (this doc), Phase 1 (architectural environment), Phase 2 (cinematic intro, loader, hand-over), Phase 3 (first-person roaming, collision, department quick-nav), Phase 4 (Kitchens, Wardrobes, Doors furnished as procedural, animated sample configurations + the Ikhtarha stage), Phase 5 interaction core (focus, picking, panel, finishes, LED, quotation hand-off).**
 **Phase 5b furnishes the other five departments (Bedrooms, Walk-in Closets, Living, Custom Studio, Consultation Lounge) and adds a 9th room, the VIP Meeting Room (investor / partner boardroom).** All eight bays are furnished; nothing is "to be furnished" any more. Favourites / backend quote workflow, sound and production assets are not built (see the end).
 

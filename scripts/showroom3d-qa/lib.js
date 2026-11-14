@@ -10,7 +10,7 @@ const results = [];
 function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); console.log((ok ? 'PASS ' : 'FAIL ') + name + (detail !== undefined ? '  ' + JSON.stringify(detail) : '')); }
 async function launch() { return chromium.launch({ executablePath: CHROME, headless: true, args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-webgl'] }); }
 
-async function openShowroom(browser, { url = '/showroom-3d', viewport = { width: 960, height: 540 }, mobile = false, query = 'debug=1&quality=low&aa=0', init, reduced = false, locale } = {}) {
+async function openShowroom(browser, { url = '/yas-bloom', viewport = { width: 960, height: 540 }, mobile = false, query = 'debug=1&quality=low&aa=0', init, reduced = false, locale } = {}) {
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: 1, isMobile: mobile, hasTouch: mobile, reducedMotion: reduced ? 'reduce' : 'no-preference', locale, userAgent: mobile ? 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36' : undefined });
   if (init) await ctx.addInitScript(init);
   const page = await ctx.newPage(); const errors = [];

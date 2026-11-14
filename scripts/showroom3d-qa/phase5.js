@@ -90,7 +90,7 @@ async function mobile(b) {
 }
 
 async function ar(b) {
-  const o = await L.openShowroom(b, { url: '/ar/showroom-3d', query: FAST, viewport: { width: 1100, height: 640 } }); const page = o.page;
+  const o = await L.openShowroom(b, { url: '/ar/yas-bloom', query: FAST, viewport: { width: 1100, height: 640 } }); const page = o.page;
   await L.enterExplore(page); await dismissCoach(page);
   for (const [id, re, sig] of [['bedroom', /غرفة نوم/, 'bd-bs-l1'], ['lounge', /الاستقبال وصالة الاستشارات/, 'lg-desk-1'], ['studio', /طاولة تصميم/, 'st-table-1']]) {
     await goto(page, POSE[id]); await press(page, 'KeyE'); await page.waitForSelector(`[data-testid="sr-panel"][data-product="${id}"]`, { timeout: 30000 }); await settle(page, 600);

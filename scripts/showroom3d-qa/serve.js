@@ -1,4 +1,4 @@
-/* Tiny static server for QA: serves a CRA build dir with the same SPA fallback Vercel's rewrites give /showroom-3d and /ar/showroom-3d.
+/* Tiny static server for QA: serves a CRA build dir with the same SPA fallback Vercel's rewrites give /yas-bloom and /ar/yas-bloom (the old /showroom-3d redirects client-side).
  * usage: node scripts/showroom3d-qa/serve.js <buildDir> [port] */
 const http = require('http'), fs = require('fs'), path = require('path');
 const dir = path.resolve(process.argv[2] || 'build'), port = Number(process.argv[3] || 5055);

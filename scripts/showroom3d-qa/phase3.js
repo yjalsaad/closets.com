@@ -188,7 +188,7 @@ async function pointerLock(b) {
 
 async function mobile(b, lang) {
   const ar = lang === 'ar';
-  const { ctx, page, errors } = await L.openShowroom(b, { url: ar ? '/ar/showroom-3d' : '/showroom-3d', viewport: { width: 390, height: 844 }, mobile: true });
+  const { ctx, page, errors } = await L.openShowroom(b, { url: ar ? '/ar/yas-bloom' : '/yas-bloom', viewport: { width: 390, height: 844 }, mobile: true });
   const cdp = await ctx.newCDPSession(page);
   const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y, id]) => ({ x, y, id, radiusX: 8, radiusY: 8, force: 1 })) });
   await L.enterExplore(page, { tap: true });
@@ -242,7 +242,7 @@ async function mobile(b, lang) {
 }
 
 async function arDesktop(b) {
-  const { ctx, page, errors } = await L.openShowroom(b, { url: '/ar/showroom-3d' });
+  const { ctx, page, errors } = await L.openShowroom(b, { url: '/ar/yas-bloom' });
   await L.enterExplore(page);
   check('AR desktop: html dir=rtl lang=ar, Arabic coach marks', (await page.evaluate(() => document.documentElement.dir)) === 'rtl' && /كيف تتجول/.test(await page.locator('[data-testid="sr-coach"]').innerText()));
   const logo = await page.evaluate(() => document.querySelector('.sr-pill-logo').getBoundingClientRect().x), dep = await page.evaluate(() => document.querySelector('[data-testid="sr-open-depts"]').getBoundingClientRect().x);

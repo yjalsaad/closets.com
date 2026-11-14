@@ -15,7 +15,7 @@
     { "source": "/visualizer/embed/:path*", "headers": [
       { "key": "Content-Security-Policy-Report-Only", "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.gstatic.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' data: blob: https://jflmbfxbhpioyniibjsj.supabase.co https://cdn.jsdelivr.net https://www.gstatic.com https://*.google-analytics.com https://*.analytics.google.com; worker-src 'self' blob:; frame-src 'self' blob: about:; object-src 'none'; base-uri 'self'; form-action 'self' https:" }
     ] },
-    { "source": "/(studio|visualizer|campaign|ikhtarha|showroom-3d|ar/showroom-3d)(/.*)?", "headers": [
+    { "source": "/(studio|visualizer|campaign|ikhtarha|yas-bloom|ar/yas-bloom|showroom-3d|ar/showroom-3d)(/.*)?", "headers": [
       { "key": "X-Robots-Tag", "value": "noindex" }
     ] },
     { "source": "/static/(.*)", "headers": [
@@ -35,6 +35,10 @@
     ] }
   ],
   "redirects": [
+    { "source": "/showroom-3d/:path*", "destination": "/yas-bloom/:path*", "permanent": false },
+    { "source": "/showroom-3d", "destination": "/yas-bloom", "permanent": false },
+    { "source": "/ar/showroom-3d/:path*", "destination": "/ar/yas-bloom/:path*", "permanent": false },
+    { "source": "/ar/showroom-3d", "destination": "/ar/yas-bloom", "permanent": false },
     { "source": "/home", "destination": "/", "permanent": true },
     { "source": "/ar/home", "destination": "/ar", "permanent": true },
     { "source": "/kitchens", "destination": "/kitchen", "permanent": true },
@@ -101,7 +105,7 @@
     { "source": "/visualizer/:path*", "destination": "/app-shell.html" },
     { "source": "/campaign/:path*", "destination": "/app-shell.html" },
     { "source": "/ikhtarha/:path*", "destination": "/app-shell.html" },
-    { "source": "/showroom-3d", "destination": "/app-shell.html" },
-    { "source": "/ar/showroom-3d", "destination": "/app-shell.html" }
+    { "source": "/yas-bloom", "destination": "/app-shell.html" },
+    { "source": "/ar/yas-bloom", "destination": "/app-shell.html" }
   ]
 }

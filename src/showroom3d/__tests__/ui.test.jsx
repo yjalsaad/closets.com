@@ -28,7 +28,7 @@ describe('showroom UI', () => {
     expect(screen.getByText('المطابخ')).toBeTruthy();
   });
   test('without WebGL (jsdom) the route renders the 2D fallback instead of crashing', () => {
-    window.history.pushState(null, '', '/showroom-3d');
+    window.history.pushState(null, '', '/yas-bloom');
     render(<ShowroomRoot />);
     expect(screen.getByTestId('sr-fallback')).toBeTruthy();
     expect(document.documentElement.getAttribute('lang')).toBe('en');

@@ -87,7 +87,7 @@ async function nav(b) {
 }
 
 async function ar(b) {
-  const o = await L.openShowroom(b, { url: '/ar/showroom-3d', query: FAST, viewport: { width: 1100, height: 640 } }); const page = o.page; await mockProjects(page, 'rows'); await L.enterExplore(page); await dismissCoach(page); await goto(page, VIP_STAND);
+  const o = await L.openShowroom(b, { url: '/ar/yas-bloom', query: FAST, viewport: { width: 1100, height: 640 } }); const page = o.page; await mockProjects(page, 'rows'); await L.enterExplore(page); await dismissCoach(page); await goto(page, VIP_STAND);
   check('AR: the prompt names the room in Arabic', /غرفة الاجتماعات VIP/.test(await page.locator('[data-testid="sr-prompt"]').innerText()));
   await press(page, 'KeyE'); await page.waitForSelector('[data-testid="sr-vip-panel"]'); await settle(page, 600); let txt = await panelText(page);
   check('AR: Arabic panel (kicker, station count, title) and the page is rtl, panel on the LEFT', /عرض موجّه/.test(txt) && /قصة الشركة وهويتها/.test(txt) && (await page.evaluate(() => document.documentElement.dir)) === 'rtl' && (await page.locator('[data-testid="sr-vip-panel"]').boundingBox()).x < 40);

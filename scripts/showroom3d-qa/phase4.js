@@ -142,7 +142,7 @@ async function mobile(b) {
 }
 
 async function ar(b) {
-  const o = await L.openShowroom(b, { url: '/ar/showroom-3d', query: FAST, viewport: { width: 1100, height: 640 } }); const page = o.page;
+  const o = await L.openShowroom(b, { url: '/ar/yas-bloom', query: FAST, viewport: { width: 1100, height: 640 } }); const page = o.page;
   await L.enterExplore(page); await dismissCoach(page); await goto(page, KITCHEN); await press(page, 'KeyE'); await page.waitForSelector('[data-testid="sr-panel"]', { timeout: 30000 }); await settle(page, 500);
   const txt = await page.locator('[data-testid="sr-panel"]').innerText();
   check('AR: Arabic product panel (name, kicker, controls)', /جزيرة مطبخ/.test(txt) && /نموذج تصميم/.test(txt) && /افتح الكل/.test(txt) && /اطلب عرض سعر/.test(txt));

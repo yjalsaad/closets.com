@@ -282,7 +282,7 @@ const I18N = {
   // [WEB-STUDIO 2026-10-31]
   navNeoDesigners:{ en:'Neo designers' },
   // [ROOM-VIZ 2026-11-07]
-  navVizCol:{ en:'Room visualizer' }, navlViz:{ en:'🎨 Room visualizer' }, navlViz360:{ en:'360° rooms' },
+  navVizCol:{ en:'Room visualizer' }, navlViz:{ en:'🎨 Room visualizer' }, navlViz360:{ en:'360° rooms' }, navlYB:{ en:'🌸 YAS Bloom' },
   navlVizPhoto:{ en:'Visualize your room photo' }, navlVizPdf:{ en:'Finishes catalogue (PDF)' },
   navlNeoKitchen:{ en:'Neo Kitchen Designer' }, navlNeoClosets:{ en:'Neo Closets Designer' },
   navlNeoCustom:{ en:'Neo Custom Designer' }, navlNeoBathroom:{ en:'Neo Bathroom Designer' },
@@ -2447,8 +2447,8 @@ const NAV_GROUPS = [
         ['✨ AI YAS', 'ai-yas'], ['How it works', 'how-it-works'], ['Wardrobe planner', 'wardrobe-planner'], ['Kitchen planner', 'kitchen-planner'], ['TV unit planner', 'tv-planner'], ['Office planner', 'office-planner'], ['Wood door planner', 'door-planner'], ['AI interior designer', 'ai'],
       ] },
       { title: 'Room visualizer', items: [
-        ['🎨 Room visualizer', 'viz:'], ['360° rooms', 'viz:room/living?mode=360'], ['Visualize your room photo', 'viz:photo'], ['Finishes catalogue (PDF)', 'viz:catalog'],
-      ] }, // [ROOM-VIZ 2026-11-07]
+        ['🎨 Room visualizer', 'viz:'], ['360° rooms', 'viz:room/living?mode=360'], ['Visualize your room photo', 'viz:photo'], ['Finishes catalogue (PDF)', 'viz:catalog'], ['🌸 YAS Bloom', 'yb:'],
+      ] }, // [ROOM-VIZ 2026-11-07]; YAS Bloom = the virtual showroom (its own app shell, noindex)
       { title: 'Neo designers', items: [
         ['Neo Kitchen Designer', 'neo:kitchen'], ['Neo Closets Designer', 'neo:closets'], ['Neo Custom Designer', 'neo:custom'], ['Neo Bathroom Designer', 'neo:bathroom'],
         ['Neo Laundry Designer', 'neo:laundry'], ['Neo TV Unit Designer', 'neo:tv'], ['Neo Office Designer', 'neo:office'], ['Neo Doors Designer', 'neo:doors'],
@@ -2523,7 +2523,7 @@ const NAV_LABEL_KEY = {
   'Build & spec': 'navBuildSpec', 'Rooms & products': 'navRoomsProducts', 'Explore': 'navExplore',
   'Plan it yourself': 'navPlanYourself', 'Talk to a designer': 'navTalkDesigner',
   // [WEB-STUDIO 2026-10-31] Neo designers column
-  'Room visualizer': 'navVizCol', '🎨 Room visualizer': 'navlViz', '360° rooms': 'navlViz360', 'Visualize your room photo': 'navlVizPhoto', 'Finishes catalogue (PDF)': 'navlVizPdf', // [ROOM-VIZ]
+  'Room visualizer': 'navVizCol', '🎨 Room visualizer': 'navlViz', '360° rooms': 'navlViz360', '🌸 YAS Bloom': 'navlYB', 'Visualize your room photo': 'navlVizPhoto', 'Finishes catalogue (PDF)': 'navlVizPdf', // [ROOM-VIZ]
   'Neo designers': 'navNeoDesigners', 'Neo Kitchen Designer': 'navlNeoKitchen', 'Neo Closets Designer': 'navlNeoClosets', 'Neo Custom Designer': 'navlNeoCustom',
   'Neo Bathroom Designer': 'navlNeoBathroom', 'Neo Laundry Designer': 'navlNeoLaundry', 'Neo TV Unit Designer': 'navlNeoTv', 'Neo Office Designer': 'navlNeoOffice',
   'Neo Doors Designer': 'navlNeoDoors', 'My designs & quotes →': 'navlNeoAccount',
@@ -3669,7 +3669,9 @@ function pageToPath(p) {
 function neoStudioPath(target) { const k = String(target).slice(4); return k === 'account' ? '/studio/account' : k ? '/studio/' + k : '/studio'; }
 // [ROOM-VIZ 2026-11-07] 'viz:<path>' = the Room Visualizer app (/visualizer/<path>)
 function vizPath(target) { const k = String(target).slice(4); return k ? '/visualizer/' + k : '/visualizer'; }
+// [YAS-BLOOM] 'yb:' = the virtual showroom experience (/yas-bloom, own app shell, noindex)
 function navToPath(target) {
+  if (target === 'yb:') return '/yas-bloom';
   if (typeof target === 'string' && target.startsWith('neo:')) return neoStudioPath(target);
   if (typeof target === 'string' && target.startsWith('viz:')) return vizPath(target);
   if (target === 'cat:Doors') return pageToPath('door-planner');
@@ -3809,13 +3811,14 @@ function AppInner() {
   const barePath = urlInfo.path;
   const page = pathToPage(barePath);
   const notFound = !isKnownPage(page);
-  useEffect(() => { if (/^\/(studio|visualizer)(\/|$)/i.test(location.pathname)) window.location.reload(); }, [location.pathname]); // [WEB-STUDIO] the studio is its own app shell (src/index.js)
+  useEffect(() => { if (/^\/(ar\/)?yas-bloom(\/|$)/i.test(location.pathname) || /^\/(studio|visualizer)(\/|$)/i.test(location.pathname)) window.location.reload(); }, [location.pathname]); // [WEB-STUDIO] the studio is its own app shell (src/index.js)
   const [legacyLang, setLegacyLang] = useState(() => { try { return localStorage.getItem('closets_lang') || 'en'; } catch { return 'en'; } });
   const lang = ENABLE_AR_URLS ? urlInfo.lang : legacyLang;
   // Navigate to a path in the CURRENT language (setPage / cart / redirects).
   const goPath = useCallback((path, opts) => navigate(withLang(path, lang), opts), [navigate, lang]);
   const setPage = useCallback((p) => {
     if (typeof p === 'string' && p.startsWith('neo:')) { window.location.assign(neoStudioPath(p)); return; }   // [WEB-STUDIO] separate app shell
+    if (p === 'yb:') { window.location.assign(withLang('/yas-bloom', lang)); return; }                       // [YAS-BLOOM] separate app shell
     if (typeof p === 'string' && p.startsWith('viz:')) { window.location.assign(vizPath(p)); return; }        // [ROOM-VIZ] separate app shell
     if (p != null) goPath(pageToPath(p));
   }, [goPath]);
