@@ -8,7 +8,9 @@ import { mergeGeometries } from '../../3d/geom';
 import { PALETTE as P } from '../../3d/palette';
 import { VIP } from './layout';
 import { makePanel } from '../products/screens';
-import { STATION_DRAW, drawGallery, drawHubWall, drawFloorMap, drawHolo } from './panels';
+import { BUILTIN_DRAW, drawSlide, drawDeckChips, chipLayout, drawGallery, drawHubWall, drawFloorMap, drawHolo } from './panels';
+import { resolveDeck } from '../../vip/deckSchema';
+import { DEFAULT_DECK } from '../../vip/decks/default';
 import { projectCard } from '../../products/projectsFeed';
 import * as fu from '../products/furnish';
 import * as pr from '../products/props';
@@ -77,13 +79,19 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   for (const [mat, list] of statics) { const m = new THREE.Mesh(mergeGeometries(list), mat); m.castShadow = false; m.receiveShadow = true; m.matrixAutoUpdate = false; m.updateMatrix(); group.add(m); }
 
   // ---- screens / panels (canvas textures) ----
-  const state = { lang, station: 0, projects: { status: 'idle', cards: [] }, t: 0, enter: reduced ? 1 : 0, inside: false, door: 0, doorTarget: 0, redrawT: 0, animated: false, reduced, focus: false };
+  const state = { lang, station: 0, deck: DEFAULT_DECK, decks: [DEFAULT_DECK], images: new Map(), projects: { status: 'idle', cards: [] }, t: 0, enter: reduced ? 1 : 0, inside: false, door: 0, doorTarget: 0, redrawT: 0, animated: false, reduced, focus: false };
   const logoImg = logoTex && logoTex.image ? logoTex.image : null;
-  const drawScreen = (g, w, h, l) => STATION_DRAW[state.station](g, w, h, { lang: l, t: state.t, logo: logoImg, projects: state.projects });
+  /** the slide on the wall: a built-in station keeps its rich renderer; any other slide (imported / saved decks) uses the generic slide drawing. With more than one deck, deck chips sit along the top. */
+  const drawScreen = (g, w, h, l) => {
+    const d = state.deck, sl = d.slides[state.station] || d.slides[0], bi = sl.builtin && BUILTIN_DRAW[sl.builtin];
+    if (bi) bi(g, w, h, { lang: l, t: state.t, logo: logoImg, projects: state.projects });
+    else { const rd = resolveDeck({ ...d, slides: [sl] }, l); drawSlide(g, w, h, { lang: l, slide: rd.slides[0], index: state.station, count: d.slides.length, deckTitle: rd.title, images: state.images }); }
+    if (state.decks.length > 1) drawDeckChips(g, w, h, { lang: l, decks: state.decks.map((x) => resolveDeck({ ...x, slides: [] }, l).title), deckIndex: state.decks.indexOf(state.deck) });
+  };
   const hiRes = tier.id === 'high', SW = hiRes ? 2048 : DW, SH = hiRes ? 1152 : DH, aniso = hiRes ? 8 : 4;
   const screen = makePanel(SW, SH, (g, w, h, l) => drawScreen(g, w, h, l), lang, { design: { w: DW, h: DH }, anisotropy: aniso });
   const screenMat = new THREE.MeshBasicMaterial({ map: screen.tex, toneMapped: false, color: new THREE.Color(1, 1, 1) });
-  const S = VIP.screen; add2(placed(bevelBox(S.w + 0.3, S.h + 0.3, 0.06, { b: 0.01 }), { x: cx, y: S.y, z: S.z - 0.02 }), M.darkInterior); mesh(new THREE.PlaneGeometry(S.w, S.h), screenMat, { pos: [cx, S.y, S.z + 0.012], receive: false, name: 'vip-screen' });
+  const S = VIP.screen; add2(placed(bevelBox(S.w + 0.3, S.h + 0.3, 0.06, { b: 0.01 }), { x: cx, y: S.y, z: S.z - 0.02 }), M.darkInterior); const screenMesh = mesh(new THREE.PlaneGeometry(S.w, S.h), screenMat, { pos: [cx, S.y, S.z + 0.012], receive: false, name: 'vip-screen' });
   function add2(geo, mat) { const m = new THREE.Mesh(prep(geo), mat); group.add(m); return m; }
   mesh(new THREE.BoxGeometry(S.w, 0.012, 0.03), led(2.8), { pos: [cx, S.y - S.h / 2 - 0.16, S.z + 0.05], receive: false });
   const gallery = makePanel(hiRes ? 2048 : 1536, hiRes ? 1365 : 1024, (g, w, h, l) => drawGallery(g, w, h, { lang: l, projects: state.projects }), lang, { design: { w: 1536, h: 1024 }, anisotropy: aniso });
@@ -102,17 +110,29 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   const SPOT_I = 300, FILL_I = 45, tableLed = group.getObjectByName('table-led');
 
   const api = {
-    group, lights, state, screen, gallery, hubWall, mapMesh, holos,
+    group, lights, state, screen, screenMesh, gallery, hubWall, mapMesh, holos,
     get doorOpen() { return state.door; }, get station() { return state.station; },
     redraw() { screen.redraw(state.lang); gallery.redraw(state.lang); },
     setLanguage(l) { state.lang = l === 'ar' ? 'ar' : 'en'; for (const p of [screen, gallery, hubWall, mapP, ...holos.map((h) => h.p)]) p.redraw(state.lang); },
     setReduced(v) { state.reduced = !!v; if (v) state.enter = 1; },
-    setStation(i) { state.station = Math.max(0, Math.min(STATION_DRAW.length - 1, i | 0)); state.t = 0; screen.redraw(state.lang); },
+    setStation(i) { state.station = Math.max(0, Math.min(state.deck.slides.length - 1, i | 0)); state.t = 0; screen.redraw(state.lang); },
+    /** show `deck` (one of `decks`) on the wall; remote images of generic slides load once (anonymous CORS, no referrer) and redraw when they arrive */
+    setDeck(deck, decks = [deck], slide = 0) {
+      state.deck = deck; state.decks = decks; api.setStation(slide);
+      for (const s of deck.slides) for (const b of s.blocks || []) if (b.type === 'image' && !state.images.has(b.url) && typeof Image !== 'undefined') {
+        const im = new Image(); state.images.set(b.url, null); im.crossOrigin = 'anonymous'; im.referrerPolicy = 'no-referrer'; im.onload = () => { state.images.set(b.url, im); screen.redraw(state.lang); }; im.onerror = () => { /* keep the alt-text frame */ }; im.src = b.url;
+      }
+    },
+    /** click on the wall screen at (u, v in 0..1, v down): a deck chip -> its deck index, else -1 */
+    chipAt(u, v) {
+      if (state.decks.length < 2) return -1; const x = u * DW, y = v * DH, titles = state.decks.map((d) => resolveDeck({ ...d, slides: [] }, state.lang).title);
+      const hit = chipLayout(titles, DW, state.lang === 'ar').find((r) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h); return hit ? hit.i : -1;
+    },
     setFocus(v) { state.focus = !!v; },
     setLevel(k) { state.level = k; },
     /** the site's real project rows (or an empty / error state) -> gallery cards; images load lazily and redraw the wall as they arrive */
     setProjects({ status, rows }) {
-      const cards = (rows || []).map((r) => ({ ...projectCard(r, state.lang), img: null })); state.projects = { status, cards }; gallery.redraw(state.lang); if (state.station === 1) screen.redraw(state.lang);
+      const cards = (rows || []).map((r) => ({ ...projectCard(r, state.lang), img: null })); state.projects = { status, cards }; gallery.redraw(state.lang); if (state.deck.slides[state.station] && state.deck.slides[state.station].builtin === 'projects') screen.redraw(state.lang);
       cards.forEach((c) => { if (!c.image || typeof Image === 'undefined') return; const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => { c.img = im; gallery.redraw(state.lang); }; im.onerror = () => { /* keep the procedural card */ }; im.src = c.image; });
     },
     enter() { state.enter = state.reduced ? 1 : 0; state.entered = true; },
@@ -129,7 +149,7 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
       const sw = ease(state.enter * 1.25); spot.target.position.set(0, T.h, VIP.z1 - 0.8 + (T.z - VIP.z1 + 0.8) * sw); spot.target.updateMatrixWorld(); if (tableLed) tableLed.scale.set(0.15 + 0.85 * ease(state.enter * 1.5 - 0.3), 1, 1);
       mapMat.opacity = 0.9 * ease(state.enter * 1.3); mapMesh.scale.setScalar(0.7 + 0.3 * ease(state.enter)); if (!state.reduced) mapMesh.rotation.z = state.t * 0.05;
       // the screen animates only while somebody is in the room (or presenting); static otherwise (a redraw is a canvas upload)
-      state.redrawT += dt; if ((state.inside || state.focus) && !state.reduced && state.station !== 0 && state.redrawT > 0.14) { state.redrawT = 0; screen.redraw(state.lang); }
+      state.redrawT += dt; if ((state.inside || state.focus) && !state.reduced && state.deck.slides[state.station] && state.deck.slides[state.station].builtin && state.station !== 0 && state.redrawT > 0.14) { state.redrawT = 0; screen.redraw(state.lang); }
     },
     dispose() { for (const p of [screen, gallery, hubWall, mapP, ...holos.map((h) => h.p)]) p.tex.dispose(); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); },
   };
