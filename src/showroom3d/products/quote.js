@@ -47,8 +47,7 @@ export function campaignLinks(lang = 'en') {
 export function parseBookingPrefill(search = '') {
   const q = new URLSearchParams(search);
   const raw = q.get('interest');
-  // the VIP room's "private investor briefing" has no option of its own on the booking form: it maps to the form's existing 'Other' (the notes carry the request)
-  const interest = raw === 'investor-briefing' ? 'Other' : Object.values(INTEREST).includes(raw) ? raw : null;
+  const interest = Object.values(INTEREST).includes(raw) ? raw : null;
   const notes = clean(q.get('notes')).slice(0, NOTES_MAX);
   return { interest, notes: notes || null };
 }

@@ -5,6 +5,6 @@ import { createSkyDome } from '../../3d/sky';
 
 export function buildExterior(ctx) {
   const group = new THREE.Group(); group.name = 'exterior';
-  group.add(buildFacade(ctx).group, buildLandscape(ctx).group, createSkyDome(ctx.tier.clouds));
-  return { group };
+  const facade = buildFacade(ctx); group.add(facade.group, buildLandscape(ctx).group, createSkyDome(ctx.tier.clouds));
+  return { group, relabel: facade.relabel };
 }

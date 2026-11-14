@@ -1,0 +1,421 @@
+{
+ "note": "Playwright + SwiftShader (CPU), 1100x620, aa=0. calls/tris are summed over every pass of one frame (shadow + floor mirror + scene + bloom).",
+ "before_high": {
+  "hall": {
+   "calls": 410,
+   "tris": 186692,
+   "tex": 115,
+   "geo": 691
+  },
+  "entrance": {
+   "calls": 214,
+   "tris": 140652,
+   "tex": 115,
+   "geo": 696
+  },
+  "reception": {
+   "calls": 480,
+   "tris": 211038,
+   "tex": 119,
+   "geo": 708
+  },
+  "kitchen": {
+   "calls": 516,
+   "tris": 256666,
+   "tex": 123,
+   "geo": 733
+  },
+  "wardrobe": {
+   "calls": 866,
+   "tris": 477462,
+   "tex": 124,
+   "geo": 744
+  },
+  "walkin": {
+   "calls": 609,
+   "tris": 286020,
+   "tex": 124,
+   "geo": 753
+  },
+  "bedroom": {
+   "calls": 477,
+   "tris": 215384,
+   "tex": 124,
+   "geo": 754
+  },
+  "doors": {
+   "calls": 393,
+   "tris": 189162,
+   "tex": 130,
+   "geo": 787
+  },
+  "living": {
+   "calls": 609,
+   "tris": 229424,
+   "tex": 132,
+   "geo": 813
+  },
+  "studio": {
+   "calls": 550,
+   "tris": 208942,
+   "tex": 132,
+   "geo": 814
+  },
+  "lounge": {
+   "calls": 476,
+   "tris": 188202,
+   "tex": 132,
+   "geo": 815
+  },
+  "vip": {
+   "calls": 248,
+   "tris": 135852,
+   "tex": 132,
+   "geo": 815
+  },
+  "hall-far": {
+   "calls": 491,
+   "tris": 204470,
+   "tex": 132,
+   "geo": 816
+  }
+ },
+ "after_high": {
+  "hall": {
+   "calls": 445,
+   "tris": 205974,
+   "tex": 124
+  },
+  "entrance": {
+   "calls": 233,
+   "tris": 150160,
+   "tex": 124
+  },
+  "reception": {
+   "calls": 515,
+   "tris": 251394,
+   "tex": 128
+  },
+  "kitchen": {
+   "calls": 523,
+   "tris": 333474,
+   "tex": 132
+  },
+  "wardrobe": {
+   "calls": 872,
+   "tris": 597872,
+   "tex": 133
+  },
+  "walkin": {
+   "calls": 610,
+   "tris": 357852,
+   "tex": 133
+  },
+  "bedroom": {
+   "calls": 490,
+   "tris": 258660,
+   "tex": 133
+  },
+  "doors": {
+   "calls": 399,
+   "tris": 223344,
+   "tex": 139
+  },
+  "living": {
+   "calls": 609,
+   "tris": 292114,
+   "tex": 141
+  },
+  "studio": {
+   "calls": 552,
+   "tris": 271620,
+   "tex": 141
+  },
+  "lounge": {
+   "calls": 489,
+   "tris": 253848,
+   "tex": 141
+  },
+  "vip": {
+   "calls": 270,
+   "tris": 148850,
+   "tex": 141
+  },
+  "hall-far": {
+   "calls": 498,
+   "tris": 223160,
+   "tex": 141
+  }
+ },
+ "after_medium": {
+  "hall": {
+   "calls": 368,
+   "tris": 179680,
+   "tex": 110,
+   "geo": 712
+  },
+  "kitchen": {
+   "calls": 390,
+   "tris": 268720,
+   "tex": 118,
+   "geo": 746
+  },
+  "walkin": {
+   "calls": 432,
+   "tris": 284318,
+   "tex": 118,
+   "geo": 757
+  },
+  "living": {
+   "calls": 419,
+   "tris": 237786,
+   "tex": 126,
+   "geo": 813
+  },
+  "vip": {
+   "calls": 241,
+   "tris": 144316,
+   "tex": 126,
+   "geo": 813
+  },
+  "post": {
+   "bloom": false,
+   "ao": false,
+   "mirror": false
+  }
+ },
+ "after_low": {
+  "hall": {
+   "calls": 339,
+   "tris": 127736,
+   "tex": 89,
+   "geo": 704
+  },
+  "kitchen": {
+   "calls": 337,
+   "tris": 145354,
+   "tex": 96,
+   "geo": 738
+  },
+  "walkin": {
+   "calls": 375,
+   "tris": 158526,
+   "tex": 96,
+   "geo": 749
+  },
+  "living": {
+   "calls": 368,
+   "tris": 130110,
+   "tex": 104,
+   "geo": 805
+  },
+  "vip": {
+   "calls": 212,
+   "tris": 92268,
+   "tex": 104,
+   "geo": 805
+  },
+  "post": {
+   "bloom": false,
+   "ao": false,
+   "mirror": false
+  }
+ },
+ "after_high_with_opt_in_gtao": {
+  "kitchen": {
+   "calls": 899,
+   "tris": 605300,
+   "tex": 138,
+   "geo": 748
+  },
+  "living": {
+   "calls": 1015,
+   "tris": 536036,
+   "tex": 146,
+   "geo": 804
+  },
+  "post": {
+   "bloom": true,
+   "ao": true,
+   "mirror": true
+  }
+ },
+ "round2_high": {
+  "hall": {
+   "calls": 465,
+   "tris": 186140,
+   "tex": 141,
+   "geo": 578
+  },
+  "entrance": {
+   "calls": 262,
+   "tris": 126866,
+   "tex": 147,
+   "geo": 597
+  },
+  "reception": {
+   "calls": 533,
+   "tris": 196846,
+   "tex": 156,
+   "geo": 609
+  },
+  "kitchen": {
+   "calls": 474,
+   "tris": 242784,
+   "tex": 166,
+   "geo": 648
+  },
+  "wardrobe": {
+   "calls": 808,
+   "tris": 460040,
+   "tex": 167,
+   "geo": 660
+  },
+  "walkin": {
+   "calls": 572,
+   "tris": 267608,
+   "tex": 168,
+   "geo": 671
+  },
+  "bedroom": {
+   "calls": 473,
+   "tris": 209304,
+   "tex": 168,
+   "geo": 673
+  },
+  "doors": {
+   "calls": 398,
+   "tris": 209642,
+   "tex": 179,
+   "geo": 723
+  },
+  "living": {
+   "calls": 588,
+   "tris": 263450,
+   "tex": 181,
+   "geo": 751
+  },
+  "studio": {
+   "calls": 531,
+   "tris": 239808,
+   "tex": 182,
+   "geo": 754
+  },
+  "lounge": {
+   "calls": 461,
+   "tris": 213976,
+   "tex": 183,
+   "geo": 757
+  },
+  "vip": {
+   "calls": 273,
+   "tris": 137700,
+   "tex": 183,
+   "geo": 758
+  },
+  "hall-far": {
+   "calls": 517,
+   "tris": 202266,
+   "tex": 183,
+   "geo": 765
+  },
+  "post": {
+   "bloom": true,
+   "ao": false,
+   "mirror": true
+  }
+ },
+ "round2_medium": {
+  "hall": {
+   "calls": 379,
+   "tris": 172902,
+   "tex": 141,
+   "geo": 626
+  },
+  "kitchen": {
+   "calls": 350,
+   "tris": 194172,
+   "tex": 152,
+   "geo": 662
+  },
+  "walkin": {
+   "calls": 397,
+   "tris": 206946,
+   "tex": 157,
+   "geo": 677
+  },
+  "living": {
+   "calls": 401,
+   "tris": 211304,
+   "tex": 165,
+   "geo": 736
+  },
+  "vip": {
+   "calls": 243,
+   "tris": 133034,
+   "tex": 165,
+   "geo": 737
+  },
+  "post": {
+   "bloom": false,
+   "ao": false,
+   "mirror": false
+  }
+ },
+ "round2_low": {
+  "hall": {
+   "calls": 350,
+   "tris": 115842,
+   "tex": 117,
+   "geo": 618
+  },
+  "kitchen": {
+   "calls": 297,
+   "tris": 137698,
+   "tex": 126,
+   "geo": 653
+  },
+  "walkin": {
+   "calls": 339,
+   "tris": 149522,
+   "tex": 129,
+   "geo": 668
+  },
+  "living": {
+   "calls": 348,
+   "tris": 124712,
+   "tex": 138,
+   "geo": 728
+  },
+  "vip": {
+   "calls": 214,
+   "tris": 91334,
+   "tex": 138,
+   "geo": 729
+  },
+  "post": {
+   "bloom": false,
+   "ao": false,
+   "mirror": false
+  }
+ },
+ "round2_high_with_opt_in_gtao": {
+  "kitchen": {
+   "calls": 782,
+   "tris": 360758,
+   "tex": 147,
+   "geo": 577
+  },
+  "living": {
+   "calls": 942,
+   "tris": 475670,
+   "tex": 165,
+   "geo": 652
+  },
+  "post": {
+   "bloom": true,
+   "ao": true,
+   "mirror": true
+  }
+ }
+}

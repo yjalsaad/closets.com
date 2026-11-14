@@ -4,7 +4,9 @@
  * renderOrder-sorted glass on the lighter tiers. */
 import * as THREE from 'three';
 import { PALETTE as P } from '../../3d/palette';
-import { timberSet, marbleSet, brushedSet, peelSet, rugSet, toTex, hobTexture, tileSet, leafCardTexture, aoTexture, plankSet, weaveSet } from '../../3d/pbr';
+import { timberSet, marbleSet, brushedSet, peelSet, rugSet, toTex, hobTexture, tileSet, leafCardTexture, aoTexture, plankSet, weaveSet, boucleSet, terrazzoSet } from '../../3d/pbr';
+import { viaReal } from '../../3d/realism/registry';
+import { addMacroVariation } from '../../3d/materials';
 import { getFinish } from '../../products/finishes';
 
 const C = (n) => new THREE.Color(n);
@@ -16,7 +18,10 @@ export function createProductTextures(tier) {
   const marbleS = Math.max(256, S >> 1);
   return {
     oak: mk(timberSet(S, 3, 0)), walnut: mk(timberSet(S, 8, 1)),
-    marble: { white: mk(marbleSet(marbleS, 11, 'white')), dark: mk(marbleSet(marbleS, 12, 'dark')), sand: mk(marbleSet(marbleS, 13, 'sand')) },
+    marble: { white: mk(marbleSet(marbleS, 11, 'white')), dark: mk(marbleSet(marbleS, 12, 'dark')), sand: mk(marbleSet(marbleS, 13, 'sand')), green: mk(marbleSet(marbleS, 14, 'green')), terrazzo: mk(terrazzoSet(marbleS, 91)) },
+    boucle: mk(boucleSet(256, 77)),
+    // real CC0 sets that have no procedural twin: an empty set until the lazy download lands (materials fall back to their plain colour / other maps)
+    velvet: mk(viaReal('velvet', 512, () => ({}))), leather: mk(viaReal('leather', 512, () => ({}))), stucco: mk(viaReal('plaster', S, () => ({}))), travertine: mk(viaReal('stone', S, () => ({}))),
     tiles: { sand: mk(tileSet(S >= 1024 ? 1024 : S, 41, 'sand')), white: mk(tileSet(S >= 1024 ? 1024 : S, 42, 'white')), dark: mk(tileSet(S >= 1024 ? 1024 : S, 43, 'dark')), grey: mk(tileSet(S >= 1024 ? 1024 : S, 44, 'grey')) },
     leaf: leafCardTexture(), ao: aoTexture(),
     planks: { oak: mk(plankSet(S >= 1024 ? 1024 : S, 61, 0)), walnut: mk(plankSet(S >= 1024 ? 1024 : S, 62, 1)) }, weave: mk(weaveSet(256, 71)),
@@ -45,8 +50,9 @@ export function createProductMaterials({ tier, env, tex }) {
   M.interior = std({ map: tex.oak.map, roughnessMap: tex.oak.rough, normalMap: tex.oak.normal, color: C(0xf2e6d2), roughness: 1, envMapIntensity: 0.5 });
   M.stone = phys({ color: C(0xe9e6df), map: tex.marble.white.map, roughness: 0.14, metalness: 0, envMapIntensity: 1.0, clearcoat: hi ? 0.5 : 0, clearcoatRoughness: 0.08, roughnessMap: tex.marble.white.rough });
   M.stones = { kitchen: M.stone, ...mapIds(['bedroom', 'walkin', 'living', 'studio', 'lounge'], () => M.stone.clone()) };     // one stone per department, so finishes never leak between bays
-  M.plaster = std({ map: white, roughnessMap: tex.peel.rough, normalMap: tex.peel.normal, normalScale: new THREE.Vector2(0.4, 0.4), color: C(P.plasterWarm), roughness: 0.85, envMapIntensity: 0.3 });
+  M.plaster = std({ map: tex.stucco.map || white, roughnessMap: tex.peel.rough, normalMap: tex.stucco.normal || tex.peel.normal, normalScale: new THREE.Vector2(0.4, 0.4), color: C(P.plasterWarm), roughness: 0.85, envMapIntensity: 0.3 });
   M.mirror = phys({ color: 0x8d9a9e, metalness: 1, roughness: 0.14, envMapIntensity: 0.7 });
+  M.mirrorSteel = phys({ color: C(P.steel), metalness: 1, roughness: 0.06, envMapIntensity: 1.3 });
   // per-bay floor zones (large-format polished stone, a different stone per room, so each bay reads as its own room): kitchen sand, wardrobe pale grey, door deep grey
   const floor = (t, ei = 0.85) => phys({ map: t.map, roughnessMap: t.rough, normalMap: t.normal, normalScale: new THREE.Vector2(0.5, 0.5), roughness: 1, metalness: 0, clearcoat: tier.id === 'low' ? 0 : 0.75, clearcoatRoughness: 0.06, envMapIntensity: ei });
   const plank = (t) => phys({ map: t.map, roughnessMap: t.rough, normalMap: t.normal, normalScale: new THREE.Vector2(0.6, 0.6), roughness: 1, metalness: 0, clearcoat: tier.id === 'low' ? 0 : 0.35, clearcoatRoughness: 0.28, envMapIntensity: 0.45 });
@@ -54,6 +60,20 @@ export function createProductMaterials({ tier, env, tex }) {
   // upholstery: woven micro-relief, tinted by the finish (bed, sofas, chairs, stools). One per department so a finish swap in one bay never touches another.
   const uph = () => std({ map: white, roughnessMap: tex.weave.rough, normalMap: tex.weave.normal, normalScale: new THREE.Vector2(0.9, 0.9), color: C(P.fabricLinen), roughness: 1, envMapIntensity: 0.3 });
   M.uphol = mapIds(['bedroom', 'walkin', 'living', 'studio', 'lounge'], uph);
+  // upholstery character per room (reference look): bouclé in living / lounge / bedroom, velvet in the walk-in, leather on the studio chairs
+  for (const id of ['living', 'lounge', 'bedroom']) { const u = M.uphol[id]; u.normalMap = tex.boucle.normal; u.roughnessMap = tex.boucle.rough; u.normalScale.set(1.5, 1.5); u.userData.uvScale = 2.2; }
+  { const u = M.uphol.walkin; if (tex.velvet.normal) { u.normalMap = tex.velvet.normal; u.roughnessMap = tex.velvet.rough; u.normalScale.set(0.8, 0.8); } }
+  { const u = M.uphol.studio; if (tex.leather.normal) { u.normalMap = tex.leather.normal; u.roughnessMap = tex.leather.rough; u.normalScale.set(0.9, 0.9); u.roughness = 0.75; } }
+  // rugs: looped-wool organic rugs (oat / rust), a sheer curtain, the green marble of the walk-in vanity, travertine feature walls, opal globe pendants
+  const rugOf = (color) => std({ map: white, normalMap: tier.normalMaps ? tex.boucle.normal : null, roughnessMap: tex.boucle.rough, normalScale: new THREE.Vector2(1.8, 1.8), color: C(color), roughness: 1, envMapIntensity: 0.15 });
+  M.rugSoft = rugOf(P.rugOat); M.rugRust = rugOf(P.rugRust);
+  M.curtain = new THREE.MeshStandardMaterial(E({ color: C(P.sheer), roughness: 1, metalness: 0, transparent: true, opacity: 0.6, side: THREE.DoubleSide, depthWrite: false, envMapIntensity: 0.25, emissive: C(P.ledWarm), emissiveIntensity: 0.05 })); M.curtain.name = 'curtain';
+  M.greenMarble = phys({ color: C(0xffffff), map: tex.marble.green.map, roughnessMap: tex.marble.green.rough, roughness: 0.16, metalness: 0, envMapIntensity: 1.0, clearcoat: hi ? 0.6 : 0, clearcoatRoughness: 0.06 });
+  M.terrazzo = phys({ map: tex.marble.terrazzo.map, roughnessMap: tex.marble.terrazzo.rough, roughness: 1, metalness: 0, envMapIntensity: 0.9, clearcoat: hi ? 0.4 : 0, clearcoatRoughness: 0.1 });
+  M.travertine = std({ map: tex.travertine.map || white, normalMap: tex.travertine.normal || null, roughnessMap: tex.travertine.rough || null, color: C(tex.travertine.map ? 0xffffff : P.travertineTint), roughness: tex.travertine.rough ? 1 : 0.8, envMapIntensity: 0.35 });
+  for (const k of ['map', 'normalMap', 'roughnessMap']) if (M.travertine[k]) M.travertine[k].repeat.set(2.4, 1.3);   // the 6.2 x 3.3 m wall planes carry 0..1 UVs: about 2.6 m slabs
+  if (tier.id !== 'low') { Object.values(M.floorBay).forEach((m) => addMacroVariation(m, 0.06, 0.45)); addMacroVariation(M.travertine, 0.07, 0.5); }
+  M.globe = new THREE.MeshBasicMaterial({ color: C(P.globeOpal).multiplyScalar(1.9), toneMapped: false });
   // baked ambient occlusion decals (one shared material; geometry carries per-quad strength in the vertex alpha)
   M.ao = new THREE.MeshBasicMaterial({ map: tex.ao, vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, toneMapped: true });
   M.leafCard = new THREE.MeshStandardMaterial(E({ map: tex.leaf, alphaTest: 0.5, side: THREE.DoubleSide, vertexColors: true, roughness: 0.5, envMapIntensity: 0.5 }));
@@ -61,8 +81,8 @@ export function createProductMaterials({ tier, env, tex }) {
   M.plinth = std({ color: C(P.ink), roughness: 0.85, envMapIntensity: 0.2 });
 
   // ---- metals (anisotropic brushed brass / bronze) ----
-  const metal = (color, rough) => phys({ color: C(color), metalness: 1, roughness: rough, anisotropy: hi || tier.id === 'medium' ? 0.65 : 0, anisotropyRotation: 0, roughnessMap: tex.brushed.rough, normalMap: tier.normalMaps ? tex.brushed.normal : null, normalScale: new THREE.Vector2(0.25, 0.25), envMapIntensity: 0.55 });
-  M.brass = metal(P.brassBrushed, 0.3);
+  const metal = (color, rough) => phys({ color: C(color), metalness: 1, roughness: rough, anisotropy: hi || tier.id === 'medium' ? 0.65 : 0, anisotropyRotation: 0, roughnessMap: tex.brushed.rough, normalMap: tier.normalMaps ? tex.brushed.normal : null, normalScale: new THREE.Vector2(0.25, 0.25), envMapIntensity: 1.15 });
+  M.brass = metal(P.brassBrushed, 0.26);
   M.bronze = metal(P.bronzeDark, 0.42);
   M.metal = mapIds(IDS, (id) => (id === 'wardrobe' ? metal(P.bronzeDark, 0.42) : metal(P.brassBrushed, 0.3)));   // recoloured by applyFinish
   M.steel = phys({ color: C(P.steel), metalness: 1, roughness: 0.3, anisotropy: hi ? 0.5 : 0, roughnessMap: tex.brushed.rough, envMapIntensity: 1.0 });

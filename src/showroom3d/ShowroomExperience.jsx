@@ -1,9 +1,10 @@
 /* The mounted 3D experience: canvas + engine + GSAP director + overlays. Everything heavy is created in effects and disposed on unmount. */
+import { FIRST_NAMES } from './staff/roster';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import StaffChat from './ui/StaffChat';
 import { ShowroomEngine } from './3d/engine';
 import { createProgress } from './3d/progress';
-import { pickTier, readSignals, probeRenderer, isSoftwareRenderer } from './3d/quality';
+import { pickTier, readSignals, probeRenderer, isSoftwareRenderer, writeGraphicsMode } from './3d/quality';
 import { createDirector } from './cinematic/director';
 import { HANDOVER, DURATION } from './cinematic/timeline';
 import gsap from 'gsap';
@@ -16,6 +17,7 @@ import Hud from './ui/Hud';
 import { DeptMenu, PauseMenu, CoachMarks } from './ui/Menus';
 import { ProductPanel, CampaignPanel } from './ui/ProductPanel';
 import { VipPanel } from './ui/VipPanel';
+import { CollectionsPanel } from './collections/CollectionsPanel';
 import { withLang } from '../seo/routes';
 
 const COACH_KEY = 'closets_showroom_coach', BOB_KEY = 'closets_showroom_bob';
@@ -43,6 +45,9 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   const [loaderOn, setLoaderOn] = useState(true);
   const [caption, setCaption] = useState(null);
   const [tierId, setTierId] = useState('high');
+  const [gfxMode, setGfxMode] = useState('auto');
+  // the Graphics setting is stored, then the page reloads: a tier decides texture sizes and the geometry that is built, so it cannot be swapped live
+  const onGraphics = useCallback((m) => { if (writeGraphicsMode(m)) { setGfxMode(m); try { window.location.reload(); } catch (e) { /* ignore */ } } }, []);
   const capRef = useRef(null);
   const explorerRef = useRef(null);
   const [st, setSt] = useState({});
@@ -51,6 +56,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   const [coach, setCoach] = useState(false);
   const [chat, setChat] = useState(null);       // staff id of the open adviser chat
   const [bubble, setBubble] = useState(null);     // the Reception greeting bubble
+  const [colOpen, setColOpen] = useState(false);  // the Collections panel (opened with E / Interact at the Collections wall)
   const [bob, setBob] = useState(() => readFlag(BOB_KEY, '1') !== '0');
 
   const paintOverlay = useCallback((s) => {
@@ -66,11 +72,11 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   }, []);
 
   useEffect(() => {
-    let cancelled = false, ro = null, onVis = null;
+    let cancelled = false, ro = null, onVis = null, onSize = null;
     const q = new URLSearchParams(window.location.search);
     const debug = q.get('debug') === '1';
     const sig = readSignals(); sig.softwareRenderer = isSoftwareRenderer(probeRenderer());
-    const tier = pickTier(sig); setTierId(tier);
+    const tier = pickTier(sig); setTierId(tier); setGfxMode(sig.mode || 'auto');
     const progress = createProgress(); const unsub = progress.subscribe((v) => setPct(v));
     const engine = new ShowroomEngine(canvasRef.current, { tier, lang: langRef.current, progress, adaptive: !sig.override && !debug, aa: debug && q.get('aa') === '0' ? false : null, bloom: !(debug && q.get('bloom') === '0') });
     const director = createDirector({
@@ -79,6 +85,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       },
       onComplete: () => { if (!cancelled) handover(); },
     });
+    if (debug && q.get('scale')) engine.debugScale = true;
     if (debug && q.get('scale')) engine.scale = Math.max(0.3, Math.min(1, parseFloat(q.get('scale')) || 1));   // QA: render at a fraction of the resolution (software GL is slow)
     if (debug) engine.maxDt = 0.5;    // QA under software GL runs at ~1-2 fps: let animations (drawers, doors) finish in fewer frames
     api.current = { engine, director, progress };
@@ -94,6 +101,10 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       if (engine.products) engine.products.setReduced(reducedRef.current);   // the products are built after the first render of this component: apply the reduced-motion setting now
       ro = new ResizeObserver(() => { const w = wrapRef.current; if (w) engine.setSize(w.clientWidth, w.clientHeight); });
       ro.observe(wrapRef.current);
+      // the ResizeObserver does not fire when only the device pixel ratio changes (browser zoom, moving the window to another screen), and some mobile browsers resize the
+      // visual viewport (URL bar) without a layout change: re-apply the size + pixel ratio on those too
+      onSize = () => { const w = wrapRef.current; if (w && w.clientWidth && w.clientHeight) engine.setSize(w.clientWidth, w.clientHeight); };
+      window.addEventListener('resize', onSize); window.addEventListener('orientationchange', onSize); if (window.visualViewport) window.visualViewport.addEventListener('resize', onSize);
       engine.setSize(wrapRef.current.clientWidth, wrapRef.current.clientHeight);
       engine.setLanguage(langRef.current);
       engine.start();
@@ -117,7 +128,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
     })();
 
     return () => {
-      cancelled = true; unsub(); if (ro) ro.disconnect(); if (onVis) document.removeEventListener('visibilitychange', onVis);
+      cancelled = true; unsub(); if (ro) ro.disconnect(); if (onSize) { window.removeEventListener('resize', onSize); window.removeEventListener('orientationchange', onSize); if (window.visualViewport) window.visualViewport.removeEventListener('resize', onSize); } if (onVis) document.removeEventListener('visibilitychange', onVis);
       explorer.dispose(); explorerRef.current = null;
       director.kill(); engine.dispose(); api.current = {}; if (window.__showroom) delete window.__showroom;
     };
@@ -129,7 +140,9 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
 
   // keep the explorer in sync with the UI
   useEffect(() => { const x = explorerRef.current; if (x) { x.setReduced(reduced); x.setBob(bob && !reduced); } const e = api.current.engine; if (e && e.products) e.products.setReduced(reduced); }, [reduced, bob]);
-  useEffect(() => { const x = explorerRef.current; if (x) x.setUiOpen(deptOpen || !!st.paused || !!chat); }, [deptOpen, st.paused, chat]);
+  useEffect(() => { const x = explorerRef.current; if (x) x.setUiOpen(deptOpen || !!st.paused || !!chat || colOpen); }, [deptOpen, st.paused, chat, colOpen]);
+  useEffect(() => { if (st.collections) setColOpen(true); }, [st.collections]);
+  useEffect(() => { const c = api.current.engine && api.current.engine.collections; if (c) { c.setTouch(touch); if (colOpen) c.load(); } }, [touch, colOpen, phase]);
   useEffect(() => { if (st.talk && st.talkN) { setBubble(null); setChat(st.talk); } }, [st.talkN]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (st.greet === 'reception' && st.greetN && !chat) { setBubble(true); const id = setTimeout(() => setBubble(null), 6500); return () => clearTimeout(id); } return undefined; }, [st.greetN]);   // eslint-disable-line react-hooks/exhaustive-deps
   // the control scheme follows the last input device (touch overlay for fingers, keyboard + mouse otherwise)
@@ -160,12 +173,13 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       <canvas ref={canvasRef} className="sr-canvas" tabIndex={-1} aria-label={t('pageTitle', lang)} role="img" />
       <IntroLayer ref={{ veil: veilRef, logo: logoRef, bars: barsRef }} lang={lang} caption={intro ? caption : null} onSkip={onSkip} active={intro} />
       {showHud && <Hud lang={lang} tier={tierId} touch={touch} st={st} explorerRef={explorerRef} homeHref={home} onDepts={() => setDeptOpen(true)} onMenu={() => explorerRef.current && explorerRef.current.pause()} onInteract={onInteract} onTalk={() => { const x = explorerRef.current; if (x) x.talkToStaff(); }} chatOpen={!!chat} coach={coach} />}
-      {showHud && st.focus && (st.focusKind === 'vip' ? <VipPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} /> : st.focusKind === 'stage' ? <CampaignPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} /> : <ProductPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} />)}
+      {showHud && st.focus && (st.focusKind === 'vip' ? <VipPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} reduced={reduced} tier={tierId} /> : st.focusKind === 'stage' ? <CampaignPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} /> : <ProductPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} />)}
       {showHud && chat && <StaffChat lang={lang} reduced={reduced} explorerRef={explorerRef} engineRef={api} staffId={chat} onClose={() => { setChat(null); const c = canvasRef.current; if (c && c.focus) c.focus({ preventScroll: true }); }} />}
-      {showHud && bubble && !chat && !st.focus && !st.paused && !deptOpen && <p className="sr-bubble" role="status" data-testid="sr-greet-bubble">{t('chatGreetBubble', lang)}</p>}
+      {showHud && bubble && !chat && !st.focus && !st.paused && !deptOpen && <p className="sr-bubble" role="status" data-testid="sr-greet-bubble">{t('chatGreetBubble', lang).replace('{name}', FIRST_NAMES.reception[lang === 'ar' ? 'ar' : 'en'])}</p>}
+      {showHud && colOpen && !st.paused && <CollectionsPanel lang={lang} touch={touch} onClose={() => setColOpen(false)} fallbackFocus={canvasFocus} />}
       {showHud && coach && !st.paused && !deptOpen && !st.focus && <CoachMarks lang={lang} touch={touch} onDone={closeCoach} />}
       {showHud && deptOpen && <DeptMenu lang={lang} touch={touch} onPick={onPick} onClose={() => setDeptOpen(false)} fallbackFocus={canvasFocus} />}
-      {showHud && st.paused && <PauseMenu lang={lang} touch={touch} reduced={reduced} bob={bob} explorerRef={explorerRef} st={st} homeHref={home} onResume={onResume} onDepts={() => { onResume(false); setDeptOpen(true); }} onReplay={onReplay} onLang={onLang} onBob={onBob} onTips={() => { onResume(false); setCoach(true); }} fallbackFocus={canvasFocus} />}
+      {showHud && st.paused && <PauseMenu lang={lang} touch={touch} tier={tierId} gfxMode={gfxMode} onGraphics={onGraphics} reduced={reduced} bob={bob} explorerRef={explorerRef} st={st} homeHref={home} onResume={onResume} onDepts={() => { onResume(false); setDeptOpen(true); }} onReplay={onReplay} onLang={onLang} onBob={onBob} onTips={() => { onResume(false); setCoach(true); }} fallbackFocus={canvasFocus} />}
       {loaderOn ? <LoadingScreen pct={pct} lang={lang} leaving={leaving} /> : null}
     </div>
   );

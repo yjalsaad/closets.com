@@ -6,8 +6,33 @@ import { HALL } from '../../3d/dimensions';
 import { box, mesh, instanced, worldUV } from '../../3d/geom';
 import { buildOlive } from '../../3d/vegetation';
 import { LOGO_ASPECT } from '../../logo';
+import { PALETTE, hex } from '../../3d/palette';
+import { COLUMNS, COLUMN_SIZE } from '../../3d/dimensions';
+import { poolTexture } from '../../3d/pbr';
+import { puff } from '../products/reflook';
 
-export function buildHallShell({ M, tier, logoTex, glowTex }) {
+/** brand wording on 3D signage (owner decision): "THE CLOSETS by YAS WOOD". The Arabic line is a draft for the owner to confirm (see docs/showroom3d/REALISM.md). */
+export const BRAND_LINE = { en: ['THE CLOSETS', 'by YAS WOOD'], ar: ['الخزائن', 'من ياس وود'] };
+/** the small backlit column plate: brand name + "by YAS WOOD", crisp (2x canvas, mipmapped), redrawn on a language change */
+function drawPlate(c, lang) {
+  const g = c.getContext('2d'), L = BRAND_LINE[lang === 'ar' ? 'ar' : 'en'], ar = lang === 'ar';
+  g.fillStyle = hex(PALETTE.ink); g.fillRect(0, 0, 1024, 512); g.strokeStyle = hex(PALETTE.brass); g.lineWidth = 8; g.strokeRect(14, 14, 996, 484);
+  g.direction = ar ? 'rtl' : 'ltr'; g.fillStyle = hex(PALETTE.sand); g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = ar ? '700 150px "Noto Naskh Arabic", "IBM Plex Sans Arabic", serif' : '600 118px "Fraunces", Georgia, serif'; g.fillText(L[0], 512, 210);
+  g.fillStyle = hex(PALETTE.brassPale); g.font = ar ? '600 76px "IBM Plex Sans Arabic", sans-serif' : '600 62px "Inter", sans-serif'; g.fillText(L[1], 512, 368);
+}
+function columnPlateTexture(lang) { const c = document.createElement('canvas'); c.width = 1024; c.height = 512; drawPlate(c, lang); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; }
+/** the clean secondary line under a logo image ("by YAS WOOD"): the logo artwork itself is never redrawn */
+function drawByline(c, lang, dark) {
+  const g = c.getContext('2d'), ar = lang === 'ar'; g.clearRect(0, 0, c.width, c.height); g.direction = ar ? 'rtl' : 'ltr';
+  g.fillStyle = hex(dark ? PALETTE.brandBrown : PALETTE.sand); g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = ar ? '600 150px "IBM Plex Sans Arabic", sans-serif' : '600 132px "Inter", sans-serif'; g.fillText(BRAND_LINE[ar ? 'ar' : 'en'][1], c.width / 2, c.height / 2 + 6);
+}
+export function bylinePlane(w, lang, { dark = false } = {}) {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 256; drawByline(c, lang, dark); const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, w / 4), new THREE.MeshBasicMaterial({ map: tex, transparent: true, toneMapped: false, depthWrite: false })); m.name = 'byline';
+  return { mesh: m, redraw(l) { drawByline(c, l, dark); tex.needsUpdate = true; } };
+}
+
+export function buildHallShell({ M, tier, logoTex, glowTex, lang = 'en' }) {
   const g = new THREE.Group(); g.name = 'hall';
   const H = HALL, W = H.halfWidth * 2, D = H.depth, h = H.height;
   const glows = [];
@@ -22,7 +47,7 @@ export function buildHallShell({ M, tier, logoTex, glowTex }) {
 
   // ceiling
   const cg = new THREE.PlaneGeometry(W, D); cg.rotateX(Math.PI / 2); worldUV(cg, 3);
-  const ceil = new THREE.Mesh(cg, M.ceiling); ceil.position.set(0, h, -D / 2); ceil.receiveShadow = true; g.add(ceil);
+  const ceil = new THREE.Mesh(cg, M.ceilDark || M.ceiling); ceil.position.set(0, h, -D / 2); ceil.receiveShadow = true; g.add(ceil);
 
   // side walls: walnut base + oak slat rhythm to 4.5 m, plaster above with a daylight slot
   const slatStep = 0.16 / tier.slatDensity;
@@ -33,8 +58,9 @@ export function buildHallShell({ M, tier, logoTex, glowTex }) {
     const slats = []; for (let z = -0.4; z > -D + 0.2; z -= slatStep) slats.push({ x: x + inward * 0.05, y: 2.25, z });
     g.add(instanced(box(0.09, 4.4, 0.07, 1.2), M.oak, slats, { receive: true }));
     const up = new THREE.PlaneGeometry(D, h - 4.5); worldUV(up, 3);
-    const wu = new THREE.Mesh(up, M.plaster); wu.position.set(x + inward * 0.005, 4.5 + (h - 4.5) / 2, -D / 2); wu.rotation.y = inward * Math.PI / 2; wu.receiveShadow = true; g.add(wu);
+    const wu = new THREE.Mesh(up, M.stoneWall); wu.position.set(x + inward * 0.005, 4.5 + (h - 4.5) / 2, -D / 2); wu.rotation.y = inward * Math.PI / 2; wu.receiveShadow = true; g.add(wu);
     g.add(mesh(box(0.12, 0.1, D), M.brass, { x: x + inward * 0.06, y: 4.55, z: -D / 2 }));
+    g.add(instanced(box(0.03, 0.035, D), M.ceilDark || M.charcoal, [6.2, 7.6].map((y) => ({ x: x + inward * 0.012, y, z: -D / 2 })), {}));   // shadow-gap reveals between the travertine courses
     g.add(mesh(box(0.1, 0.16, D - 1), M.ledCool, { x: x + inward * 0.07, y: 8.3, z: -D / 2 }));      // daylight slot
     const gl = addGlow(1.8, D - 2, 0, 0, 0, 0.5); gl.rotation.set(0, inward * Math.PI / 2, Math.PI / 2); gl.position.set(x + inward * 0.02, 8.3, -D / 2);
   }
@@ -43,7 +69,7 @@ export function buildHallShell({ M, tier, logoTex, glowTex }) {
   for (const s of [-1, 1]) {
     const cx = s * (H.glassHalf + H.halfWidth) / 2, ww = H.halfWidth - H.glassHalf;
     const wb = new THREE.PlaneGeometry(ww, 4.5); worldUV(wb, 2.4); const lo = new THREE.Mesh(wb, M.walnut); lo.position.set(cx, 2.25, -0.81); lo.rotation.y = Math.PI; lo.receiveShadow = true; g.add(lo);
-    const wu = new THREE.PlaneGeometry(ww, h - 4.5); worldUV(wu, 3); const hi = new THREE.Mesh(wu, M.plaster); hi.position.set(cx, 4.5 + (h - 4.5) / 2, -0.81); hi.rotation.y = Math.PI; hi.receiveShadow = true; g.add(hi);
+    const wu = new THREE.PlaneGeometry(ww, h - 4.5); worldUV(wu, 3); const hi = new THREE.Mesh(wu, M.stoneWall); hi.position.set(cx, 4.5 + (h - 4.5) / 2, -0.81); hi.rotation.y = Math.PI; hi.receiveShadow = true; g.add(hi);
     g.add(mesh(box(ww, 0.1, 0.12), M.brass, { x: cx, y: 4.55, z: -0.87 }));
   }
 
@@ -55,30 +81,49 @@ export function buildHallShell({ M, tier, logoTex, glowTex }) {
   const lw = 12.4, lh = lw / LOGO_ASPECT;
   g.add(mesh(box(lw + 0.7, lh + 0.7, 0.12), M.brass, { x: 0, y: 5.1, z: -D + 0.12 }));
   if (logoTex) g.add(mesh(new THREE.PlaneGeometry(lw, lh), new THREE.MeshBasicMaterial({ map: logoTex, toneMapped: false }), { x: 0, y: 5.1, z: -D + 0.23 }));
+  const byline = bylinePlane(5.2, lang); byline.mesh.position.set(0, 5.1 - lh / 2 - 1.05, -D + 0.2); g.add(byline.mesh);   // "by YAS WOOD" as a clean secondary line under the logo artwork
 
-  // cross beams + LED lines (segments between the beams) + glow
-  const beamZ = []; for (let z = -3; z > -D; z -= 6) beamZ.push(z);
-  g.add(instanced(box(W, 0.34, 0.6, 1.2), M.walnut, beamZ.map((z) => ({ x: 0, y: h - 0.17, z })), { cast: true, receive: true }));
-  const lineX = []; for (let x = -13.5; x <= 13.5; x += 4.5) lineX.push(x);
-  const segs = []; for (let i = 0; i < beamZ.length - 1; i++) for (const x of lineX) segs.push({ x, y: h - 0.03, z: (beamZ[i] + beamZ[i + 1]) / 2 });
-  segs.push(...lineX.map((x) => ({ x, y: h - 0.03, z: (beamZ[beamZ.length - 1] + (-D)) / 2 + 0.1 })));
-  g.add(instanced(box(0.15, 0.04, 4.9), M.led, segs));
-  for (const x of lineX) addGlow(1.9, D - 1, x, h - 0.06, -D / 2, 0.32).rotation.x = Math.PI / 2;
+  // suspended walnut slat ceiling over the nave (4-4.8 m reads as a premium showroom; the double-height volume stays above it as a lit plenum),
+  // linear LED coves on every edge, recessed spots on a grid with soft light pools on the floor, and a warm LED guide line on the floor along the aisle
+  const cy = 6.1, cw = (H.glassHalf + 2) * 2 - 4.4, cz0 = -2.2, cz1 = -D + 1.2, cl = cz0 - cz1, cx = (cz0 + cz1) / 2;
+  const slatSp = 0.13 / tier.slatDensity, slats = []; for (let x = -cw / 2 + 0.05; x <= cw / 2; x += slatSp) slats.push({ x, y: cy - 0.05, z: cx });
+  g.add(instanced(box(0.065, 0.1, cl, 0.8), M.slat || M.walnut, slats, { receive: true }));
+  g.add(mesh(box(cw, 0.04, cl), M.ceilDark || M.charcoal, { x: 0, y: cy, z: cx }));
+  const coves = [];   // four edge coves: slim emissive strips just inside the slat field edge, facing down + a wash up the wall
+  coves.push({ x: -cw / 2 - 0.1, y: cy - 0.1, z: cx, sx: 0.07, sz: cl }, { x: cw / 2 + 0.1, y: cy - 0.1, z: cx, sx: 0.07, sz: cl });
+  g.add(instanced(box(1, 0.035, 1), M.led, coves.map((c) => ({ ...c, sy: 1 })), {}));
+  g.add(mesh(box(cw + 0.3, 0.035, 0.07), M.led, { x: 0, y: cy - 0.1, z: cz1 - 0.1 })); g.add(mesh(box(cw + 0.3, 0.035, 0.07), M.led, { x: 0, y: cy - 0.1, z: cz0 + 0.1 }));
+  // recessed spots (HDR discs, one draw call) + their light pools on the floor (one additive draw call)
+  const spotsAt = []; for (let x = -12; x <= 12; x += 6) for (let z = -5; z > -D + 2; z -= 5.5) if (Math.abs(x) > 6 || z > -14 || z < -28) spotsAt.push({ x, z });
+  const disc = new THREE.CircleGeometry(0.085, 14); disc.rotateX(Math.PI / 2);
+  g.add(instanced(disc, M.led, spotsAt.map((p) => ({ x: p.x, y: cy - 0.062, z: p.z })), {}));
+  const pool = new THREE.PlaneGeometry(3.4, 3.4); pool.rotateX(-Math.PI / 2);
+  const poolMat = new THREE.MeshBasicMaterial({ map: poolTexture(0.0), color: new THREE.Color(PALETTE.ledWarm).multiplyScalar(0.5), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, opacity: 0.55 });
+  g.add(instanced(pool, poolMat, spotsAt.map((p) => ({ x: p.x, y: 0.012, z: p.z })), {})); glows.push(poolMat);
+  // floor guide line: two continuous warm LED lines along the aisle (flush, emissive) with a soft glow either side
+  for (const x of [-5.4, 5.4]) {
+    g.add(mesh(box(0.05, 0.012, D - 3), M.led, { x, y: 0.011, z: -D / 2 }));
+    const f = addGlow(0.7, D - 3, x, 0.016, -D / 2, 0.55); f.rotation.x = -Math.PI / 2;
+  }
 
-  // suspended light bars over the nave
-  const bars = []; for (const x of [-9, 0, 9]) bars.push({ x, y: 6.6, z: -20 });
-  g.add(instanced(box(0.2, 0.07, 11), M.led, bars));
-  const wires = []; for (const b of bars) for (const dz of [-4, 4]) wires.push({ x: b.x, y: (6.6 + h) / 2, z: b.z + dz });
-  g.add(instanced(new THREE.CylinderGeometry(0.008, 0.008, h - 6.6, 4), M.charcoal, wires));
-  for (const b of bars) { const m = addGlow(2.6, 12, b.x, 6.5, b.z, 0.4); m.rotation.x = Math.PI / 2; }
-
+  // skirting boards + shadow gap along the back wall and front wings (dark recess line under a bevelled brass-edged board)
+  for (const [w, x, z, ry] of [[W, 0, -D + 0.04, 0], [H.halfWidth - H.glassHalf, -(H.glassHalf + H.halfWidth) / 2, -0.84, 0], [H.halfWidth - H.glassHalf, (H.glassHalf + H.halfWidth) / 2, -0.84, 0]]) {
+    g.add(mesh(box(w, 0.14, 0.035), M.walnut, { x, y: 0.12, z: z + (z < -1 ? 0.0 : -0.0), ry })); g.add(mesh(box(w, 0.04, 0.02), M.ceilDark || M.charcoal, { x, y: 0.02, z: z + 0.01, ry }));
+  }
+  // walnut-clad columns at the bay gaps (the reference look: columns carry a small lit brand plate); footprints are mirrored in navigation/colliders.js (COLUMNS)
+  const colItems = COLUMNS.map((c) => ({ x: c.x, y: cy / 2, z: c.z }));
+  g.add(instanced(box(COLUMN_SIZE, cy, COLUMN_SIZE, 0.9), M.slat ? M.walnut : M.walnut, colItems, { cast: true, receive: true }));
+  g.add(instanced(box(COLUMN_SIZE + 0.05, 0.12, COLUMN_SIZE + 0.05), M.brass, COLUMNS.map((c) => ({ x: c.x, y: 0.06, z: c.z })), {}));   // brass plinth ring: a shadow-gap / skirting detail
+  g.add(instanced(box(COLUMN_SIZE + 0.05, 0.06, COLUMN_SIZE + 0.05), M.led, COLUMNS.map((c) => ({ x: c.x, y: cy - 0.03, z: c.z })), {}));   // cap light line
+  const plate = columnPlateTexture(lang); const plateGeo = new THREE.PlaneGeometry(0.46, 0.23);
+  g.add(instanced(plateGeo, new THREE.MeshBasicMaterial({ map: plate, toneMapped: false }), COLUMNS.map((c) => ({ x: c.x - c.s * (COLUMN_SIZE / 2 + 0.006), y: 1.95, z: c.z, ry: -c.s * Math.PI / 2 })), {}));
   // planted stone benches along the nave axis + two specimen trees by the entrance
   for (const z of [-15, -26]) {
-    g.add(mesh(box(6.4, 0.42, 1.5, 2.4), M.stoneInlay, { x: 0, y: 0.21, z, cast: true, receive: true }));
+    g.add(mesh(puff(6.4, 0.42, 1.5, 0.07, { tile: 2.4, k: tier.id === 'low' ? 1 : 3 }), M.stoneInlay, { x: 0, y: 0.21, z, cast: true, receive: true }));   // soft-edged stone bench (was a sharp box)
       }
   for (const x of [-13, 13]) {
     const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.85, 0.7, 24), M.stoneInlay); pot.position.set(x, 0.35, -5.2); pot.castShadow = pot.receiveShadow = true; g.add(pot);
     g.add(buildOlive(M, x, -5.2, 1.0, 0.7));
   }
-  return { group: g, glows };
+  return { group: g, glows, relabel(l) { drawPlate(plate.image, l); plate.needsUpdate = true; byline.redraw(l); } };
 }
