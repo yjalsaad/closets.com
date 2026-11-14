@@ -31,6 +31,10 @@ function walk(d) {
 }
 walk(SHOW);
 
+/* siteBridge.js (the showroom's only link to site internals) is replaced by the vendored add-on copy (consent/strings/PAGES without src/privacy or src/seo). */
+const BRIDGE = path.join(SHOW, 'vendor/siteBridge.js');
+if (fs.existsSync(BRIDGE)) { fs.writeFileSync(path.join(SHOW, 'siteBridge.js'), fs.readFileSync(BRIDGE, 'utf8').replace(/(from |import\()'\.\//g, "$1'./vendor/")); console.log('port-yas-bloom: siteBridge.js <- vendor/siteBridge.js'); }
+
 /* ---- test compat: the copied unit tests assert things about the integration branch (/ar/* page URLs, pages/*.jsx files, vercel rewrites, App.js shell links).
  * On production main those do not exist, so the expectations are re-pointed (same intent) or skipped (integration-only coupling; listed in docs/showroom3d/ADDON-PORT.md). */
 const SKIP = [   // test title prefixes that only make sense on the integration branch

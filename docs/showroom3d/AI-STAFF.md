@@ -31,3 +31,27 @@
 - Whether voice output (browser speech synthesis, off by default) should ship, and which wording to disclose about the AI vendor.
 - Whether `support_chat` may be given room context (needs its owner to confirm the function accepts it) or the proposed new function should be built.
 - Confirm the service list the reception names (it is derived from the site pages and Neo designers; walk-in closets and bedrooms have no page of their own).
+
+
+## Status after round 2 (implemented, tested)
+
+What exists and works (Jest 491 tests, CI build 0 warnings, Playwright `scripts/showroom3d-qa/phase6.js`, all flows pass on SwiftShader):
+
+- Reception: desk, backdrop sign (EN/AR), adviser behind the desk, greeting bubble when the visitor enters the hall after the intro, lists ALL services from existing site data, "take me to <room>" glides along the nav graph, hand-off to /booking.
+- One female AI adviser per room (different outfit / headscarf / hair): reception, kitchens, wardrobes, walk-in, bedrooms, doors, living, studio, lounge, VIP. Each turns to the visitor, waves once, may step up to 0.9 m towards them (never closer than 2.1 m, not at all with reduced motion) and talks (jaw / head / hand beats) while the chat answers.
+- Chat panel: "Talk to <name> (AI)" HUD button, T key, E next to an adviser (E in front of the Reception desk); EN/AR with RTL, typing indicator, quick-reply chips, "AI assistant" badge and disclosure line, optional read-aloud (off by default).
+- Offline guide first (`staff/guide.js`, deterministic): intents EN + AR, needs discovery (room, look, rough budget BAND asked but never quoted), recommended real finish, hand-off `/booking?interest=<existing option>&source=showroom-3d-staff&finish=<id>&notes=<summary>` (controlled vocabulary only; VIP uses `interest=investor-briefing`).
+- Opt-in AI fallback: only when the guide does not understand, per question, through the site's existing consent-gated `aiFetch` to `support_chat` (all site imports live in `siteBridge.js`). Decline / offline / blocked replies fall back to the guide. Replies are stripped of markup and dropped when they contain digits, currency or promise phrases. Client-side limit 6 per 30 s. No new backend, no new keys.
+- Guardrail test scans every canned answer, chip label and planning-flow ending (EN + AR) for digits, currency and promise phrases (apart from the existing contact facts and the warranty years).
+
+Not built: server-side AI context (no `yas_bloom_chat` function, kept as the proposal above), real voice input, native Arabic review of every string, per-room product-aware answers beyond catalog names / finishes / spec lines.
+
+### Cost (SwiftShader, `debug=1`, scale 0.4; draw calls / triangles; fps is meaningless on software GL)
+
+| tier | hall (spawn) | reception | kitchens | adviser draw calls (all ten) |
+|---|---|---|---|---|
+| low | 314 / 122k | 354 / 130k | 452 / 151k | 49 |
+| medium | 343 / 162k | 383 / 173k | 509 / 213k | 49 |
+| high | 404 / 185k | 450 / 199k | 597 / 242k | 49 |
+
+Per character: about 2645 triangles near (medium / high), about 2.7k far (baked single mesh, 1 call), 14 draw calls near. Advisers further than 11 m are one draw call and are not animated.

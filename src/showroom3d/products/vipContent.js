@@ -10,26 +10,17 @@
  *  - what management must still supply is listed in OWNER_INPUTS (and in docs/showroom3d/VIP-ROOM-OWNER-INPUTS.md). */
 import { FACTS, hasFact } from '../vendor/facts';
 import { withLang } from '../vendor/routes';
+import { DISCLAIMER, PLACEHOLDER, FORBIDDEN_FINANCIAL, L, resolveText } from '../vip/deckSchema';
+import { DEFAULT_DECK } from '../vip/decks/default';
+
+export { DISCLAIMER, PLACEHOLDER, FORBIDDEN_FINANCIAL, L };
 
 export const VIP_ID = 'vip';
 export const VIP_DEPT = { id: VIP_ID, en: 'VIP Meeting Room', ar: 'غرفة الاجتماعات VIP', index: 9, vip: true };
 
-export const L = (o, lang) => (lang === 'ar' ? o.ar || o.en : o.en);
-export const PLACEHOLDER = { en: 'To be confirmed by management', ar: 'يؤكَّد من الإدارة' };
-export const DISCLAIMER = { en: 'Information only, not an offer or financial advice; details provided directly by management.', ar: 'للاطلاع فقط، وليس عرضًا ولا نصيحة مالية؛ تُقدَّم التفاصيل مباشرة من الإدارة.' };
 
-export const STATIONS = [
-  { id: 'story', title: { en: 'Company story and brand', ar: 'قصة الشركة وهويتها' },
-    lead: { en: 'Designed, made and fitted in Bahrain.', ar: 'تصميم وتصنيع وتركيب في البحرين.' } },
-  { id: 'projects', title: { en: 'Our projects and business lines', ar: 'مشاريعنا وخطوط أعمالنا' },
-    lead: { en: 'The departments you can walk through in this showroom, and the projects listed on our website.', ar: 'الأقسام التي يمكنك التجول فيها في هذا المعرض، والمشاريع المعروضة على موقعنا.' } },
-  { id: 'hub', title: { en: 'The power of the Bonsai Hub', ar: 'قوة منصة بونساي هب' },
-    lead: { en: 'The management platform behind the business: one place for leads, quotes, orders, production, finance and people.', ar: 'منصة الإدارة خلف الأعمال: مكان واحد للعملاء المحتملين وعروض الأسعار والطلبات والإنتاج والمالية والموظفين.' } },
-  { id: 'invest', title: { en: 'How to join and invest', ar: 'كيف تنضم وتستثمر' },
-    lead: { en: 'A clear, step-by-step process. It contains no figures and no promises.', ar: 'مسار واضح خطوة بخطوة. لا يتضمن أرقامًا ولا وعودًا.' } },
-  { id: 'briefing', title: { en: 'Request a private investor briefing', ar: 'اطلب إحاطة خاصة للمستثمرين' },
-    lead: { en: 'Start with a conversation. Our management answers directly.', ar: 'ابدأ بحوار. تجيب إدارتنا مباشرة.' } },
-];
+/** the five stations of the DEFAULT deck (src/showroom3d/vip/decks/default.js): id, title, lead */
+export const STATIONS = DEFAULT_DECK.slides.map(({ id, title, lead }) => ({ id, title, lead }));
 export const stationIds = () => STATIONS.map((s) => s.id);
 /** station state machine (pure): clamp, no wrap-around, so "Next" on the last station is disabled and the briefing CTA stays the end of the path */
 export function stepStation(i, dir, n = STATIONS.length) { return Math.max(0, Math.min(n - 1, (Number.isInteger(i) ? i : 0) + (dir > 0 ? 1 : dir < 0 ? -1 : 0))); }
@@ -48,14 +39,7 @@ const CONTESTED = [
 export function contestedFacts(facts = FACTS, has = hasFact) {
   return CONTESTED.map(([key, label]) => { const ok = facts === FACTS ? has(key) : facts[key] !== null && facts[key] !== undefined; return { key, label, confirmed: ok, value: ok ? (typeof facts[key] === 'object' ? facts[key] : { en: String(facts[key]), ar: String(facts[key]) }) : PLACEHOLDER }; });
 }
-export function storyLines() {
-  return [
-    { en: 'The Closets Co. designs, makes and fits kitchens, wardrobes, walk-in closets, bedrooms, doors and living-room units for homes in Bahrain.', ar: 'ذا كلوزتس تصمّم وتصنّع وتركّب المطابخ وخزائن الملابس وغرف الملابس وغرف النوم والأبواب ووحدات المعيشة للمنازل في البحرين.' },
-    { en: `${FACTS.warrantyYears} years on cabinetry and soft-close hardware.`, ar: `${FACTS.warrantyYears} سنوات على الخزائن وملحقات الإغلاق الهادئ.` },
-    { en: 'Every piece is made to measure: we survey, design, make and fit.', ar: 'كل قطعة تُصنع على المقاس: نقيس ونصمّم ونصنّع ونركّب.' },
-    { en: 'Customers can plan a room online in the Design Studio, then book a designer.', ar: 'يمكن للعملاء تخطيط غرفتهم عبر الإنترنت في استوديو التصميم ثم حجز مصمّم.' },
-  ];
-}
+export function storyLines() { return DEFAULT_DECK.slides[0].bullets.map((b) => ({ en: resolveText(b, 'en'), ar: resolveText(b, 'ar') })); }
 
 // ---- station 2: business lines (real departments of this showroom + the site's own services), each with its REAL route ----
 /** route: site-relative path of an existing page (localised with /ar where the page is), or null when the department has no page of its own */
@@ -103,15 +87,7 @@ export const HUB_KPI_NAMES = [{ en: 'Total leads', ar: 'إجمالي العمل�
 export const ILLUSTRATIVE = { en: 'Illustrative: simplified mock-up, not real data', ar: 'توضيحي: نموذج مبسّط وليس بيانات حقيقية' };
 
 // ---- station 4: the investor path (a PROCESS, no figures) ----
-export const INVEST_STEPS = [
-  { id: 'brief', title: { en: 'Request a private briefing', ar: 'اطلب إحاطة خاصة' }, body: { en: 'Tell us you would like to talk. A member of management replies directly.', ar: 'أخبرنا برغبتك في الحديث. يرد عليك أحد أفراد الإدارة مباشرة.' } },
-  { id: 'pack', title: { en: 'Receive the information pack', ar: 'استلم الحزمة التعريفية' }, body: { en: 'Management provides the company information it chooses to give.', ar: 'تقدّم الإدارة معلومات الشركة التي تختار تقديمها.' } },
-  { id: 'meet', title: { en: 'Meet the team and visit', ar: 'قابل الفريق وزر المعرض' }, body: { en: 'Meet the people, see the showroom and how the work is done.', ar: 'تعرّف على الفريق وزر المعرض وطريقة العمل.' } },
-  { id: 'diligence', title: { en: 'Due diligence', ar: 'العناية الواجبة' }, body: { en: 'You review what matters to you, with your own advisers.', ar: 'تراجع ما يهمك مع مستشاريك.' } },
-  { id: 'terms', title: { en: 'Terms', ar: 'الشروط' }, body: { en: 'Any terms are discussed and agreed directly with management.', ar: 'تُناقَش أي شروط وتُتفق مباشرة مع الإدارة.' } },
-];
-/** words that must never appear in the investor content (tested): figures, returns, valuation, equity, guarantees */
-export const FORBIDDEN_FINANCIAL = /\b(roi|returns?|yields?|valuation|equity|stakes?|shares?|dividends?|profits?|guarantee[sd]?|BHD|BD|USD|per\s?cent)\b|[0-9]+\s?(x|times)\b|دينار|عائد|ربح|تقييم|أسهم|ضمان|%/i;
+export const INVEST_STEPS = DEFAULT_DECK.slides[3].data.steps;
 
 // ---- station 5: the CTA, routed to the EXISTING booking flow ----
 export const BRIEFING_INTEREST = 'investor-briefing';
