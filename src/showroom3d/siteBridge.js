@@ -8,6 +8,9 @@ import { hasConsent } from '../privacy/consent';
 import { tr } from '../privacy/strings';
 
 export { FACTS, withLang, PAGES, aiFetch, hasConsent, tr };
+/** sanitising helpers and fact lookup used by the VIP decks (src/showroom3d/vip) */
+export { str, arr, isObj, num } from '../safety/sanitize';
+export { hasFact } from '../content/facts';
 /** the existing Supabase function URL + anon headers the site already uses for support_chat (read from the same constants App.js exports lazily; no key is stored here) */
 export async function supportChatFetch(messages) {
   const { SUPA_URL, SUPA_KEY } = await import('../App');
