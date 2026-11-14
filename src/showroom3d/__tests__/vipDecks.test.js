@@ -107,7 +107,7 @@ describe('financial wording and the disclaimer', () => {
 
 describe('{{fact:key}} placeholders resolve from facts.js', () => {
   test('unconfirmed facts show "To be confirmed by management" (EN + AR); confirmed ones appear automatically; unknown keys are placeholders, never injected', () => {
-    expect(resolveText({ en: 'Years: {{fact:yearsOfCraft}}', ar: 'سنوات: {{fact:yearsOfCraft}}' }, 'en')).toBe('Years: ' + PLACEHOLDER.en); expect(resolveText({ en: 'x', ar: 'سنوات: {{fact:homesDelivered}}' }, 'ar')).toBe('سنوات: ' + PLACEHOLDER.ar);
+    expect(resolveText({ en: 'Years: {{fact:productionModel}}', ar: 'سنوات: {{fact:productionModel}}' }, 'en')).toBe('Years: ' + PLACEHOLDER.en); expect(resolveText({ en: 'x', ar: 'سنوات: {{fact:homesDelivered}}' }, 'ar')).toBe('سنوات: ' + PLACEHOLDER.ar);
     expect(resolveFact('yearsOfCraft', { yearsOfCraft: { en: '12 years', ar: '12 سنة' } })).toEqual({ en: '12 years', ar: '12 سنة' }); expect(resolveFact('showroomCount', { showroomCount: 4 })).toEqual({ en: '4', ar: '4' });
     expect(resolveFact('secretKey', { secretKey: 'leak' })).toBe(PLACEHOLDER); expect(resolveText('{{fact:__proto__}} {{fact:constructor}}', 'en')).toBe(PLACEHOLDER.en + ' ' + PLACEHOLDER.en);
   });

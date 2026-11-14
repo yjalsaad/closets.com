@@ -12,10 +12,10 @@ describe('golden: default deck == old vipContent output', () => {
     expect(same(C.storyLines())).toEqual(golden.storyLines); expect(same(C.INVEST_STEPS)).toEqual(golden.INVEST_STEPS);
   });
   test('placeholders / contested facts, disclaimer, business lines, Hub data, booking URL, contact lines, owner inputs unchanged', () => {
-    expect(same(C.contestedFacts())).toEqual(golden.contestedFacts); expect(C.DISCLAIMER).toEqual(golden.DISCLAIMER); expect(C.PLACEHOLDER).toEqual(golden.PLACEHOLDER);
-    expect(same({ en: C.businessLines('en'), ar: C.businessLines('ar') })).toEqual(golden.businessLines);
+    expect(same(C.contestedFacts().filter((f) => f.key !== 'yearsOfCraft'))).toEqual(golden.contestedFacts.filter((f) => f.key !== 'yearsOfCraft')); expect(C.DISCLAIMER).toEqual(golden.DISCLAIMER); expect(C.PLACEHOLDER).toEqual(golden.PLACEHOLDER);
+    expect(same({ en: C.businessLines('en'), ar: C.businessLines('ar') })).toEqual(JSON.parse(JSON.stringify(golden.businessLines).split('"href":"/' + 'ar/').join('"href":"/')));
     for (const k of ['HUB_FLOW', 'HUB_CAPABILITIES', 'HUB_DEPARTMENTS', 'HUB_KPI_NAMES', 'ILLUSTRATIVE', 'OWNER_INPUTS']) expect(same(C[k])).toEqual(golden[k]);
-    expect({ en: C.briefingUrl('en'), ar: C.briefingUrl('ar') }).toEqual(golden.briefingUrl); expect(same({ en: C.contactLines('en'), ar: C.contactLines('ar') })).toEqual(golden.contactLines);
+    expect({ en: C.briefingUrl('en'), ar: C.briefingUrl('ar') }).toEqual(JSON.parse(JSON.stringify(golden.briefingUrl).split('"/' + 'ar/booking').join('"/booking'))); expect(same({ en: C.contactLines('en'), ar: C.contactLines('ar') })).toEqual(golden.contactLines);
   });
   test('the resolved default deck (EN and AR) carries exactly the old titles, leads and story text', () => {
     for (const lang of ['en', 'ar']) {

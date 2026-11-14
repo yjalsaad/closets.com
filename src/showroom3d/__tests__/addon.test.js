@@ -19,10 +19,9 @@ describe('YAS Bloom add-on hooks', () => {
     const v = JSON.parse(read('vercel.json'));
     expect(v.rewrites).toEqual([{ source: '/(.*)', destination: '/index.html' }]);
     expect(v.buildCommand).toBe('CI=false npm run build');
-    expect(v.headers).toEqual([{ source: '/(ar/)?yas-bloom(/.*)?', headers: [{ key: 'X-Robots-Tag', value: 'noindex' }] }]);
-    const re = new RegExp('^' + v.headers[0].source + '$');
-    for (const p of ['/yas-bloom', '/ar/yas-bloom', '/yas-bloom/x']) expect(re.test(p)).toBe(true);
-    for (const p of ['/', '/kitchen', '/ar/kitchen']) expect(re.test(p)).toBe(false);
+    const NOI = [{ key: 'X-Robots-Tag', value: 'noindex' }];
+    expect(v.headers).toEqual(['/yas-bloom', '/yas-bloom/', '/yas-bloom/:path*', '/ar/yas-bloom', '/ar/yas-bloom/', '/ar/yas-bloom/:path*'].map((source) => ({ source, headers: NOI })));
+    for (const h of v.headers) expect(h.source).toMatch(/^\/(ar\/)?yas-bloom/);   // nothing but the showroom paths gets the header
   });
   test('vendored routes: /ar exists only for the showroom; links out to the main site are never prefixed', () => {
     expect(withLang('/booking', 'ar')).toBe('/booking');

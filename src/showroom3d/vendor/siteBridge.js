@@ -7,6 +7,8 @@ import { withLang } from './routes';
 import { PAGES } from './pages';
 
 export { FACTS, withLang, PAGES };
+export { str, arr, isObj, num } from './sanitize';   // VIP decks
+export { hasFact } from './facts';
 
 const KEY = 'sr3d_ai_consent';
 const STR = {
