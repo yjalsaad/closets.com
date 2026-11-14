@@ -40,6 +40,7 @@ export default function Hud({ lang, tier, touch, st, explorerRef, homeHref, onDe
         </div>
         <div className="sr-hud-actions">
           <button type="button" className="sr-btn" onClick={onDepts} data-testid="sr-open-depts">{t('departments', lang)}</button>
+          <button type="button" className="sr-btn sr-btn-line" onClick={() => explorerRef.current && explorerRef.current.toggleCameraMode()} aria-pressed={st.camMode === 'third'} data-testid="sr-cam-toggle" title={t('camToggleTitle', lang)}>{t(st.camMode === 'third' ? 'camThird' : 'camFirst', lang)}</button>
           <button type="button" className="sr-btn sr-btn-line" onClick={onMenu} aria-haspopup="dialog" data-testid="sr-open-menu">{t('menu', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">Esc</kbd>}</button>
         </div>
       </header>

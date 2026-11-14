@@ -158,7 +158,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       {showHud && st.focus && (st.focusKind === 'vip' ? <VipPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} /> : st.focusKind === 'stage' ? <CampaignPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} /> : <ProductPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} />)}
       {showHud && coach && !st.paused && !deptOpen && !st.focus && <CoachMarks lang={lang} touch={touch} onDone={closeCoach} />}
       {showHud && deptOpen && <DeptMenu lang={lang} touch={touch} onPick={onPick} onClose={() => setDeptOpen(false)} fallbackFocus={canvasFocus} />}
-      {showHud && st.paused && <PauseMenu lang={lang} touch={touch} reduced={reduced} bob={bob} homeHref={home} onResume={onResume} onDepts={() => { onResume(false); setDeptOpen(true); }} onReplay={onReplay} onLang={onLang} onBob={onBob} onTips={() => { onResume(false); setCoach(true); }} fallbackFocus={canvasFocus} />}
+      {showHud && st.paused && <PauseMenu lang={lang} touch={touch} reduced={reduced} bob={bob} explorerRef={explorerRef} st={st} homeHref={home} onResume={onResume} onDepts={() => { onResume(false); setDeptOpen(true); }} onReplay={onReplay} onLang={onLang} onBob={onBob} onTips={() => { onResume(false); setCoach(true); }} fallbackFocus={canvasFocus} />}
       {loaderOn ? <LoadingScreen pct={pct} lang={lang} leaving={leaving} /> : null}
     </div>
   );

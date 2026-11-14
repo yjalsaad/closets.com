@@ -9,6 +9,7 @@ import { stoneSet, woodSet, plasterSet, paverSet, grassSet, sandSet, leafSet, tr
 import { createMaterials, glowTexture } from './materials';
 import { disposeTree } from './geom';
 import { FloorMirror } from './mirror';
+import { VisitorAvatar } from '../characters/visitorAvatar';
 import { sunScale, gradeFor, mixGrade } from './lighting';
 import { LOGO_URL } from '../logo';
 import { buildExterior } from '../scenes/exterior';
@@ -73,6 +74,7 @@ export class ShowroomEngine {
     // Phase 4: furnished departments (kitchens, wardrobes, doors) + the Ikhtarha stage; they build their own materials from the generated interior environment
     this.products = buildProducts({ renderer, hallM: M, tier, lang: this.lang, bays: layoutBays(), reduced: !!this.reduced, logoTex });
     this.scene.add(this.products.group); this.products.lights.forEach((l) => this.scene.add(l)); this.report('products', 0.6);
+    this.avatar = new VisitorAvatar({ tier: this.tierId }); this.scene.add(this.avatar.group);
     this.bays = buildBays({ ...ctx, products: this.products }); this.scene.add(this.bays.group); this.report('products', 1);
     if (tier.id === 'high') {   // planar floor reflections of the furnished bays + stage (high tier only)
       const rects = layoutBays().filter((b) => b.product).map((b) => (b.facing > 0 ? { x0: b.x - 3, x1: b.x + 6.5, z0: b.z - 3.3, z1: b.z + 3.3 } : { x0: b.x - 6.5, x1: b.x + 3, z0: b.z - 3.3, z1: b.z + 3.3 }));
