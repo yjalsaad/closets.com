@@ -61,8 +61,7 @@ export class StaffManager {
     for (const it of this.items) {
       const { def, char, anim } = it, hx = def.at[0], hz = def.at[1], dHome = Math.hypot(vx - hx, vz - hz), dNow = Math.hypot(vx - it.pos[0], vz - it.pos[1]);
       const far = dHome > FAR_AT; if (far !== it.far) { it.far = far; char.setFar(far); }
-      if (dHome > ANIM_AT && !it.moving) continue;                                   // too far to matter: frozen, one draw call
-      if (far) { continue; }
+      if (far) { if (it.pos[0] !== hx || it.pos[1] !== hz) { it.pos[0] = hx; it.pos[1] = hz; it.yaw = def.yaw; char.group.position.set(hx, 0, hz); char.group.rotation.y = def.yaw; } continue; }   // out of sight: back at the post
       it.cool = Math.max(0, it.cool - dt);
       const near = dHome < NOTICE_RADIUS, chatting = this.chatting === def.id;
       if (near && !this.greeted[def.id] && !anim.gesture) { this.greeted[def.id] = true; it.cool = 30; playGesture(anim, 'wave'); this.onGreet && this.onGreet(def); }

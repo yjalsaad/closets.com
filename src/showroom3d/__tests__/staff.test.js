@@ -96,3 +96,43 @@ describe('guardrails', () => {
   test('Arabic normalisation unifies alef / ya / ta-marbuta and strips diacritics', () => { expect(norm('الأَبْوَابُ')).toBe(norm('الابواب')); expect(norm('غرفة')).toBe(norm('غرفه')); });
   test('looks and budget bands are word labels only', () => { for (const o of [...Object.values(STYLES), ...Object.values(BUDGETS)]) { expect(violation(o.en)).toBeNull(); expect(violation(o.ar)).toBeNull(); } });
 });
+
+describe('roster, colliders and the 3D adviser behaviour', () => {
+  const { staffRoster, staffColliders, RECEPTION, TALK_RADIUS, nearestStaff } = require('../staff/roster');
+  const { buildColliders, PLAYER } = require('../navigation/colliders');
+  const { isFree } = require('../navigation/colliders');
+  const { buildGraph, deptStops } = require('../navigation/navgraph');
+  test('one adviser per room: reception, the eight departments and VIP, each with a distinct look and a role-based placeholder name', () => {
+    const r = staffRoster(); expect(r.map((s) => s.id)).toEqual(['reception', ...DEPARTMENTS.map((d) => d.id), 'vip']);
+    const looks = r.map((s) => JSON.stringify([s.look.outfit, s.look.color, s.look.scarfColor || s.look.hair, s.look.skin])); expect(new Set(looks).size).toBe(r.length);
+    for (const s of r) { expect(s.look.gender).toBe('f'); expect(s.name.en).toMatch(/advisor$/); expect(s.name.ar).toMatch(/^مستشارة/); }
+  });
+  test('advisers and the desk are solid, never on a stand point, a graph node, or inside any other obstacle', () => {
+    const r = staffRoster(), cols = buildColliders({ doorOpen: 1, vipOpen: 1 }), mine = new Set(staffColliders(r).map((c) => c.id));
+    expect(cols.filter((c) => mine.has(c.id)).length).toBe(r.length + 1);
+    const others = cols.filter((c) => !mine.has(c.id)), g = buildGraph();
+    for (const s of r) { expect(isFree(s.at[0], s.at[1], s.radius, others)).toBe(true); for (const [k, p] of Object.entries(g.nodes)) expect({ k, ok: Math.hypot(p[0] - s.at[0], p[1] - s.at[1]) > s.radius + PLAYER.radius + 0.05 }).toEqual({ k, ok: true }); }
+    const d = RECEPTION.desk; expect(isFree(d.x, d.z, 0.1, others)).toBe(true);
+    for (const st of deptStops()) expect(isFree(st.stand[0], st.stand[1], PLAYER.radius, cols)).toBe(true);
+  });
+  test('the nearest-adviser lookup honours the talk radius', () => {
+    const r = staffRoster(), rec = r[0]; expect(nearestStaff(r, null, rec.at[0], rec.at[1] + 1.5).id).toBe('reception'); expect(nearestStaff(r, null, 0, 0, TALK_RADIUS)).toBeNull();
+  });
+  test('StaffManager: notices, greets once, approaches only within range and not with reduced motion; talks while speaking; far advisers are one draw call', () => {
+    const proto = HTMLCanvasElement.prototype, old = proto.getContext; proto.getContext = () => new Proxy({}, { get: (t, k) => (k === 'measureText' ? () => ({ width: 10 }) : () => {}), set: () => true });
+    try {
+      const { StaffManager } = require('../staff/staffScene'); const S = new StaffManager({ tier: 'low' }), it = S.item('kitchens'), home = [...it.def.at], greets = [];
+      S.onGreet = (d) => greets.push(d.id);
+      const w = { pos: [0, -9], speed: 0 }; S.update(0.05, w); expect(it.char.farOn).toBe(true); expect(S.item('reception').char.farOn).toBe(false); expect(S.item('vip').char.farOn).toBe(true);   // 11+ m away: baked, 1 call each
+      w.pos = [home[0] + (home[0] < 0 ? 4.4 : -4.4), home[1]];
+      for (let i = 0; i < 90; i++) S.update(1 / 30, w);
+      expect(it.char.farOn).toBe(false); expect(greets).toContain('kitchens'); expect(greets.filter((g) => g === 'kitchens').length).toBe(1);
+      expect(Math.hypot(it.pos[0] - home[0], it.pos[1] - home[1])).toBeGreaterThan(0.2); expect(Math.hypot(it.pos[0] - home[0], it.pos[1] - home[1])).toBeLessThanOrEqual(0.95);
+      expect(Math.hypot(it.pos[0] - w.pos[0], it.pos[1] - w.pos[1])).toBeGreaterThanOrEqual(2.0);
+      w.pos = [0, -9]; for (let i = 0; i < 200; i++) S.update(1 / 30, w); expect(Math.hypot(it.pos[0] - home[0], it.pos[1] - home[1])).toBeLessThan(0.05);   // back at her post
+      const R = new StaffManager({ tier: 'low' }), ri = R.item('walkin'), h2 = [...ri.def.at]; w.pos = [h2[0] + (h2[0] < 0 ? 4.4 : -4.4), h2[1]]; for (let i = 0; i < 90; i++) R.update(1 / 30, w, { reduced: true });
+      expect(Math.hypot(ri.pos[0] - h2[0], ri.pos[1] - h2[1])).toBeLessThan(1e-6);                       // reduced motion: she does not walk
+      R.say('walkin', 'Hello and welcome'); R.update(0.1, w); R.update(0.1, w); expect(ri.anim.w.talk).toBeGreaterThan(0); S.dispose(); R.dispose();
+    } finally { proto.getContext = old; }
+  });
+});
