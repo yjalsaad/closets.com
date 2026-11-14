@@ -1,0 +1,119 @@
+{
+ "low": {
+  "spawn": {
+   "calls": 304,
+   "triangles": 110060
+  },
+  "bedroom": {
+   "calls": 260,
+   "triangles": 113818
+  },
+  "walkin": {
+   "calls": 307,
+   "triangles": 142960
+  },
+  "living": {
+   "calls": 316,
+   "triangles": 117172
+  },
+  "studio": {
+   "calls": 284,
+   "triangles": 106432
+  },
+  "lounge": {
+   "calls": 252,
+   "triangles": 97736
+  },
+  "kitchen": {
+   "calls": 269,
+   "triangles": 129800
+  },
+  "wardrobe": {
+   "calls": 290,
+   "triangles": 148994
+  },
+  "door": {
+   "calls": 229,
+   "triangles": 105140
+  },
+  "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+ },
+ "medium": {
+  "spawn": {
+   "calls": 333,
+   "triangles": 147704
+  },
+  "bedroom": {
+   "calls": 310,
+   "triangles": 159666
+  },
+  "walkin": {
+   "calls": 364,
+   "triangles": 195500
+  },
+  "living": {
+   "calls": 367,
+   "triangles": 164632
+  },
+  "studio": {
+   "calls": 327,
+   "triangles": 146200
+  },
+  "lounge": {
+   "calls": 294,
+   "triangles": 140524
+  },
+  "kitchen": {
+   "calls": 322,
+   "triangles": 179250
+  },
+  "wardrobe": {
+   "calls": 336,
+   "triangles": 203282
+  },
+  "door": {
+   "calls": 260,
+   "triangles": 146046
+  },
+  "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+ },
+ "high": {
+  "spawn": {
+   "calls": 389,
+   "triangles": 160193
+  },
+  "bedroom": {
+   "calls": 429,
+   "triangles": 195959
+  },
+  "walkin": {
+   "calls": 525,
+   "triangles": 252275
+  },
+  "living": {
+   "calls": 540,
+   "triangles": 201701
+  },
+  "studio": {
+   "calls": 483,
+   "triangles": 181223
+  },
+  "lounge": {
+   "calls": 408,
+   "triangles": 160591
+  },
+  "kitchen": {
+   "calls": 436,
+   "triangles": 223713
+  },
+  "wardrobe": {
+   "calls": 744,
+   "triangles": 426595
+  },
+  "door": {
+   "calls": 356,
+   "triangles": 174647
+  },
+  "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+ }
+}
