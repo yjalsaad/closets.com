@@ -2,6 +2,7 @@
  * There are NO photographic or Blender assets in this build: every surface you see is generated here.
  * Each generator is async-friendly (returns plain canvases); `toTexture` wraps them for three. */
 import * as THREE from 'three';
+import { viaReal, trackTexture } from './realism/registry';
 import { PALETTE } from './palette';
 import { makeNoise2D, fbm, mulberry32, clamp01, lerp } from './noise';
 
@@ -34,7 +35,8 @@ function pixels(w, h, fn) {
 }
 
 /** Large-format limestone / travertine floor (texture = 2 x 2 tiles with grout, per-tile tone shift, veining, pores) */
-export function stoneSet(size, seed = 7, opts = {}) {
+export function stoneSet(size, seed = 7, opts = {}) { return !opts.light && !opts.tiles ? viaReal('stone', size, () => stoneProc(size, seed, opts)) : stoneProc(size, seed, opts); }   // real CC0 limestone (Poly Haven marble_01) once loaded
+function stoneProc(size, seed = 7, opts = {}) {
   const tiles = opts.tiles || 2;
   const n = makeNoise2D(seed), n2 = makeNoise2D(seed + 11), rnd = mulberry32(seed * 13 + 1);
   const light = rgb(opts.light || PALETTE.stoneLight), mid = rgb(opts.mid || PALETTE.stoneMid), dark = rgb(opts.dark || PALETTE.stoneDark);
@@ -70,7 +72,8 @@ function grayCanvas(arr, w, h) {
 }
 
 /** Timber: long grain running along V (use with vertical slats). tone 0 = oak, 1 = walnut */
-export function woodSet(size, seed = 3, tone = 0) {
+export function woodSet(size, seed = 3, tone = 0) { return viaReal(tone ? 'walnut' : 'oak', size, () => woodProc(size, seed, tone)); }
+function woodProc(size, seed = 3, tone = 0) {
   const n = makeNoise2D(seed), n2 = makeNoise2D(seed + 5);
   const oakA = rgb(PALETTE.oak), oakB = mix(rgb(PALETTE.oak), [60, 36, 18], 0.45);
   const walA = rgb(PALETTE.walnut), walB = mix(rgb(PALETTE.walnut), [18, 10, 6], 0.55);
@@ -90,7 +93,8 @@ export function woodSet(size, seed = 3, tone = 0) {
 }
 
 /** Warm plaster / microcement: soft cloudy variation + fine grain */
-export function plasterSet(size, seed = 5, base = PALETTE.plaster, dark = PALETTE.taupe) {
+export function plasterSet(size, seed = 5, base = PALETTE.plaster, dark = PALETTE.taupe) { return base === PALETTE.plaster ? viaReal('plaster', size, () => plasterProc(size, seed, base, dark)) : plasterProc(size, seed, base, dark); }
+function plasterProc(size, seed = 5, base = PALETTE.plaster, dark = PALETTE.taupe) {
   const n = makeNoise2D(seed), a = rgb(base), b = rgb(dark);
   const height = new Float32Array(size * size);
   const alb = pixels(size, size, (x, y, u, v) => {
@@ -178,5 +182,5 @@ export function toTexture(canvas, { srgb = true, repeat, anisotropy = 4 } = {}) 
   t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
   t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = anisotropy; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
   if (repeat) t.repeat.set(repeat[0], repeat[1]);
-  return t;
+  return trackTexture(t, canvas);
 }

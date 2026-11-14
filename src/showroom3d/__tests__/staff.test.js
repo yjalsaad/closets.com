@@ -102,10 +102,11 @@ describe('roster, colliders and the 3D adviser behaviour', () => {
   const { buildColliders, PLAYER } = require('../navigation/colliders');
   const { isFree } = require('../navigation/colliders');
   const { buildGraph, deptStops } = require('../navigation/navgraph');
-  test('one adviser per room: reception, the eight departments and VIP, each with a distinct look and a role-based placeholder name', () => {
+  test('one adviser per room: reception, the eight departments and VIP, each with a distinct look, an Arabic first name (owner decision) and her role as the subtitle', () => {
     const r = staffRoster(); expect(r.map((s) => s.id)).toEqual(['reception', ...DEPARTMENTS.map((d) => d.id), 'vip']);
     const looks = r.map((s) => JSON.stringify([s.look.outfit, s.look.color, s.look.scarfColor || s.look.hair, s.look.skin])); expect(new Set(looks).size).toBe(r.length);
-    for (const s of r) { expect(s.look.gender).toBe('f'); expect(s.name.en).toMatch(/advisor$/); expect(s.name.ar).toMatch(/^مستشارة/); }
+    for (const s of r) { expect(s.look.gender).toBe('f'); expect(s.name.en).toMatch(/^[A-Z][a-z]+, .+ advisor$/); expect(s.name.ar).toMatch(/^[\u0600-\u06FF]+، مستشارة/); expect(s.name.en.startsWith(s.first.en + ', ')).toBe(true); expect(s.role.en).toMatch(/advisor$/); }
+    expect(new Set(r.map((s) => s.first.en)).size).toBe(r.length); expect(r.map((s) => s.first.en)).toEqual(['Noor', 'Maryam', 'Layla', 'Dana', 'Reem', 'Hessa', 'Sara', 'Aisha', 'Fatima', 'Zainab']);
   });
   test('advisers and the desk are solid, never on a stand point, a graph node, or inside any other obstacle', () => {
     const r = staffRoster(), cols = buildColliders({ doorOpen: 1, vipOpen: 1 }), mine = new Set(staffColliders(r).map((c) => c.id));
@@ -118,10 +119,10 @@ describe('roster, colliders and the 3D adviser behaviour', () => {
   test('the nearest-adviser lookup honours the talk radius', () => {
     const r = staffRoster(), rec = r[0]; expect(nearestStaff(r, null, rec.at[0], rec.at[1] + 1.5).id).toBe('reception'); expect(nearestStaff(r, null, 0, 0, TALK_RADIUS)).toBeNull();
   });
-  test('StaffManager: notices, greets once, approaches only within range and not with reduced motion; talks while speaking; far advisers are one draw call', () => {
+  test('StaffManager in character mode (kept behind staffMode): notices, greets once, approaches only within range and not with reduced motion; talks while speaking; far advisers are one draw call', () => {
     const proto = HTMLCanvasElement.prototype, old = proto.getContext; proto.getContext = () => new Proxy({}, { get: (t, k) => (k === 'measureText' ? () => ({ width: 10 }) : () => {}), set: () => true });
     try {
-      const { StaffManager } = require('../staff/staffScene'); const S = new StaffManager({ tier: 'low' }), it = S.item('kitchens'), home = [...it.def.at], greets = [];
+      const { StaffManager } = require('../staff/staffScene'); const S = new StaffManager({ tier: 'low', mode: 'character' }), it = S.item('kitchens'), home = [...it.def.at], greets = [];
       S.onGreet = (d) => greets.push(d.id);
       const w = { pos: [0, -9], speed: 0 }; S.update(0.05, w); expect(it.char.farOn).toBe(true); expect(S.item('reception').char.farOn).toBe(false); expect(S.item('vip').char.farOn).toBe(true);   // 11+ m away: baked, 1 call each
       w.pos = [home[0] + (home[0] < 0 ? 4.4 : -4.4), home[1]];
@@ -130,9 +131,58 @@ describe('roster, colliders and the 3D adviser behaviour', () => {
       expect(Math.hypot(it.pos[0] - home[0], it.pos[1] - home[1])).toBeGreaterThan(0.2); expect(Math.hypot(it.pos[0] - home[0], it.pos[1] - home[1])).toBeLessThanOrEqual(0.95);
       expect(Math.hypot(it.pos[0] - w.pos[0], it.pos[1] - w.pos[1])).toBeGreaterThanOrEqual(2.0);
       w.pos = [0, -9]; for (let i = 0; i < 200; i++) S.update(1 / 30, w); expect(Math.hypot(it.pos[0] - home[0], it.pos[1] - home[1])).toBeLessThan(0.05);   // back at her post
-      const R = new StaffManager({ tier: 'low' }), ri = R.item('walkin'), h2 = [...ri.def.at]; w.pos = [h2[0] + (h2[0] < 0 ? 4.4 : -4.4), h2[1]]; for (let i = 0; i < 90; i++) R.update(1 / 30, w, { reduced: true });
+      const R = new StaffManager({ tier: 'low', mode: 'character' }), ri = R.item('walkin'), h2 = [...ri.def.at]; w.pos = [h2[0] + (h2[0] < 0 ? 4.4 : -4.4), h2[1]]; for (let i = 0; i < 90; i++) R.update(1 / 30, w, { reduced: true });
       expect(Math.hypot(ri.pos[0] - h2[0], ri.pos[1] - h2[1])).toBeLessThan(1e-6);                       // reduced motion: she does not walk
       R.say('walkin', 'Hello and welcome'); R.update(0.1, w); R.update(0.1, w); expect(ri.anim.w.talk).toBeGreaterThan(0); S.dispose(); R.dispose();
     } finally { proto.getContext = old; }
+  });
+});
+
+describe('adviser names (owner decision): first name + role, always disclosed as AI', () => {
+  const { staffRoster } = require('../staff/roster');
+  const { opening } = require('../staff/guide');
+  const { STRINGS } = require('../strings');
+  test('the opening line introduces the adviser by first name and role and still says she is an AI assistant (EN + AR)', () => {
+    for (const s of staffRoster()) {
+      const en = opening(s, 'en').text, ar = opening(s, 'ar').text;
+      expect(en).toContain(`I am ${s.first.en}, the ${s.role.en}, an AI assistant`); expect(ar).toContain(`${s.first.ar}، ${s.role.ar}`); expect(ar).toContain('مساعد ذكاء اصطناعي');
+    }
+  });
+  test('the Talk button and chat badge keep the AI label next to the name', () => {
+    expect(STRINGS.staffTalk.en).toMatch(/\{name\} \(AI\)/); expect(STRINGS.staffTalk.ar).toMatch(/ذكاء اصطناعي/); expect(STRINGS.chatBadge.en).toBe('AI assistant');
+  });
+});
+
+describe('adviser kiosks (owner decision: staffMode "kiosk" is the default)', () => {
+  const stubCanvas = () => { const proto = HTMLCanvasElement.prototype, old = proto.getContext; proto.getContext = () => new Proxy({}, { get: (t, k) => (k === 'measureText' ? () => ({ width: 10 }) : k === 'createLinearGradient' || k === 'createRadialGradient' ? () => ({ addColorStop() {} }) : () => {}), set: () => true }); return () => { proto.getContext = old; }; };
+  test('config: kiosk is the default, ?staff=character previews the 3D characters, portraits live under /yas-bloom/staff/<id>.webp', () => {
+    const { STAFF_MODE, staffModeFrom, portraitUrl } = require('../staff/config');
+    expect(STAFF_MODE).toBe('kiosk'); expect(staffModeFrom('')).toBe('kiosk'); expect(staffModeFrom('?debug=1&staff=character')).toBe('character'); expect(staffModeFrom('?staff=robot')).toBe('kiosk');
+    expect(portraitUrl('reception')).toMatch(/\/yas-bloom\/staff\/reception\.webp$/);
+  });
+  test('a kiosk is a 1.75 m totem inside the adviser collision circle, with the monogram fallback until a portrait really loads', () => {
+    const restore = stubCanvas();
+    try {
+      const { buildKiosk, KIOSK } = require('../staff/kiosk'); const { staffRoster } = require('../staff/roster');
+      for (const def of staffRoster()) {
+        const k = buildKiosk(def, { q: 0, loader: false });
+        expect(k.kiosk).toBe(true); expect(k.hasPortrait).toBe(false); expect(k.label).toMatch(/AI assistant/); expect(KIOSK.h).toBeCloseTo(1.75, 2);
+        expect(Math.hypot(KIOSK.footprint.hx, KIOSK.footprint.hz)).toBeLessThanOrEqual(def.radius + 0.08);     // the footprint stays inside the existing staff collider (plus the walker's own radius)
+        ['group', 'setFar', 'drawCalls', 'dispose', 'meshes', 'bounds', 'setPose', 'update', 'setLanguage'].forEach((m) => expect(k[m]).toBeDefined());
+        k.update(1, { awake: true, t: 1 }); expect(k.awake).toBeGreaterThan(0.9); k.setFar(true); expect(k.drawCalls()).toBe(3); k.setLanguage('ar'); k.dispose();
+      }
+    } finally { restore(); }
+  });
+  test('StaffManager in kiosk mode: same roster / positions / greeting / talking API, but nobody walks', () => {
+    const restore = stubCanvas();
+    try {
+      const { StaffManager } = require('../staff/staffScene'); const S = new StaffManager({ tier: 'low' }), it = S.item('kitchens'), home = [...it.def.at], greets = [];
+      expect(S.mode).toBe('kiosk'); expect(S.items).toHaveLength(10); expect(it.char.kiosk).toBe(true); S.onGreet = (d) => greets.push(d.id);
+      const w = { pos: [0, -9], speed: 0 }; S.update(0.05, w); expect(it.char.farOn).toBe(true);
+      w.pos = [home[0] + (home[0] < 0 ? 3 : -3), home[1]]; for (let i = 0; i < 90; i++) S.update(1 / 30, w);
+      expect(it.char.farOn).toBe(false); expect(greets.filter((g) => g === 'kitchens')).toHaveLength(1); expect(it.char.awake).toBeGreaterThan(0.9);          // lights up and greets once
+      expect(it.pos).toEqual(home); expect(S.nearest(w.pos[0], w.pos[1]).id).toBe('kitchens');                                                                // never leaves her station; Talk still finds her
+      S.say('kitchens', 'Hello and welcome'); S.update(0.1, w); expect(it.char.talking).toBe(true); S.setLanguage('ar'); S.dispose();
+    } finally { restore(); }
   });
 });
