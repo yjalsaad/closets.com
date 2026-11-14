@@ -6,6 +6,7 @@ import { FONT, wrap, roundedRect } from '../products/screens';
 import * as C from '../../products/vipContent';
 import { businessLines } from '../../products/vipContent';
 import { projectCard } from '../../products/projectsFeed';
+import { clamp01, easeOutCubic, stagger, countValue, formatNumber } from '../../vip/motion';
 
 const Lx = C.L;
 /** small drawing toolkit bound to a canvas context + language */
@@ -156,42 +157,99 @@ export function drawDeckChips(g, w, h, o) {
   if (titles.length > rects.length) k.text(`+${titles.length - rects.length}`, k.rtl ? 70 + 0 : w - 70, 70, { size: 16, color: P.taupe, align: k.rtl ? 'left' : 'right' });
 }
 
-/** one generic slide (imported / saved decks): title, lead, bullets on one side, image / table / bar chart on the other, source + illustrative labels, the disclaimer in the footer.
- *  o: { lang, slide (resolved), index, count, deckTitle, unit, images: Map url -> HTMLImageElement } */
-export function drawSlide(g, w, h, o) {
-  const k = kit(g, w, h, o.lang), { lang, slide: s } = o, accent = ACCENT[s.accent] !== undefined ? ACCENT[s.accent] : P.brandOrange; k.bg();
-  const word = lang === 'ar' ? 'الشريحة' : 'SLIDE', of = lang === 'ar' ? 'من' : 'OF';
-  k.rule(k.mx(70), 32, 90); g.fillStyle = hex(accent); g.fillRect(k.rtl ? w - 70 - 90 : 70, 32, 90, 5);
-  k.text(`${o.deckTitle} · ${word} ${o.index + 1} ${of} ${o.count}`, k.mx(70), 70, { size: 24, weight: 600, color: P.brassPale, max: w * 0.6 });
-  const ty = k.para(s.title, k.mx(70), 136, w - 140 - 120, { size: 58, weight: 700, color: P.sand, lh: 64 });
-  let y = ty + 16; if (s.lead) y = k.para(s.lead, k.mx(70), y + 8, w * 0.8, { size: 32, weight: 600, color: accent, lh: 42 }) + 8;
-  const blocks = s.blocks || [], hasBlocks = blocks.length > 0, bw = hasBlocks ? w * 0.44 : w - 140, top = Math.max(y + 24, 250), bottom = h - 170;
-  const size = s.bullets.length > 5 ? 24 : s.bullets.length > 3 ? 28 : 32; let by = top;
-  s.bullets.forEach((b) => { if (by > bottom) return; g.fillStyle = hex(accent); g.beginPath(); g.arc(k.rtl ? w - 70 - 8 : 78, by + size * 0.15, 6, 0, Math.PI * 2); g.fill(); by = k.para(b, k.rtl ? w - 70 - 26 : 70 + 26, by + size * 0.4, bw - 30, { size, weight: 500, color: P.sand, lh: size * 1.3 }) + 10; });
-  if (hasBlocks) {
-    const bx0 = k.rtl ? 70 : w - 70 - bw, bh = (bottom - top - 16 * (blocks.length - 1)) / blocks.length; let cy = top;
-    blocks.forEach((b) => { drawBlock(k, g, b, bx0, cy, bw, bh, lang, o, accent); cy += bh + 16; });
-  }
-  const tags = [s.illustrative || blocks.some((b) => b.illustrative) ? Lx(C.ILLUSTRATIVE, lang) : '', s.source ? (lang === 'ar' ? 'المصدر: ' : 'Source: ') + s.source : '', ...blocks.filter((b) => b.source).map((b) => (lang === 'ar' ? 'المصدر: ' : 'Source: ') + b.source)].filter(Boolean);
-  tags.slice(0, 2).forEach((t, i) => k.text(t, k.mx(70), h - 156 + i * 26, { size: 20, color: P.brassPale, max: w - 140 }));
-  footer(k, w, h, lang, null);
+/** cover-fit an image into a rounded rect, with an optional slow zoom (Ken Burns): scale >= 1 and a pan in 0..1 across the spare room */
+function drawCover(g, im, x, y, w, h, scale = 1, pan = 0.5, r = 14) {
+  g.save(); roundedRect(g, x, y, w, h, r); g.clip(); const s0 = Math.max(w / im.width, h / im.height) * scale, iw = im.width * s0, ih = im.height * s0;
+  g.drawImage(im, x - (iw - w) * pan, y - (ih - h) * 0.5, iw, ih); g.restore();
 }
-function drawBlock(k, g, b, x, y, bw, bh, lang, o, accent) {
-  k.card(x, y, bw, bh, { fill: rgba(P.sand, 0.05), line: rgba(P.sand, 0.25) });
+const YEAR = /^(\d{4}):\s*(.*)$/;
+/** one generic slide (imported / saved / profile decks): title, lead, bullets, image / table / bar / stat blocks, source + illustrative labels, the disclaimer in the footer.
+ *  Layouts: split (default), hero (first image full-bleed, title over it), duo (two images side by side).
+ *  o: { lang, slide (resolved), index, count, deckTitle, images: Map url -> HTMLImageElement, anim?: { t seconds since the slide appeared, level (vip/motion.js motionLevel) } }
+ *  Without `anim` the slide is drawn in its final state (tests, reduced motion). */
+export function drawSlide(g, w, h, o) {
+  const k = kit(g, w, h, o.lang), { lang, slide: s } = o, A = o.anim || null, lv = A && A.level && A.level.on ? A.level : null, t = A && lv ? A.t : 99;
+  const accent = ACCENT[s.accent] !== undefined ? ACCENT[s.accent] : P.brandOrange, imgs = (s.blocks || []).filter((b) => b.type === 'image'), others = (s.blocks || []).filter((b) => b.type !== 'image');
+  const rev = (i, base = 0) => (lv && lv.stagger ? stagger(t, i, { delay: 0.3 + base }) : 1);
+  const kb = lv && lv.kenBurns ? 1 + 0.07 * clamp01(t / 16) : 1, pan = lv && lv.kenBurns ? 0.5 + 0.35 * Math.sin(clamp01(t / 16) * Math.PI * 0.5) * (k.rtl ? -1 : 1) : 0.5;
+  const word = lang === 'ar' ? 'الشريحة' : 'SLIDE', of = lang === 'ar' ? 'من' : 'OF', stamp = `${o.deckTitle} · ${word} ${o.index + 1} ${of} ${o.count}`;
+  const tags = [s.illustrative || (s.blocks || []).some((b) => b.illustrative) ? Lx(C.ILLUSTRATIVE, lang) : '', s.source ? (lang === 'ar' ? 'المصدر: ' : 'Source: ') + s.source : '', ...(s.blocks || []).filter((b) => b.source && b.source !== s.source).map((b) => (lang === 'ar' ? 'المصدر: ' : 'Source: ') + b.source)].filter(Boolean);
+  const drawTags = (y0) => tags.slice(0, 2).forEach((tt, i) => k.text(tt, k.mx(70), y0 + i * 26, { size: 19, color: P.brassPale, max: w - 140 }));
+  const titleIn = (fn) => { const e = lv ? easeOutCubic(t / 0.5) : 1; g.save(); g.globalAlpha = e; g.translate((1 - e) * 46 * (k.rtl ? -1 : 1), 0); fn(); g.restore(); };
+  const bulletRow = (b, x, y, maxW, size, e) => {   // one bullet (a "2013: ..." line gets the year in the accent colour); returns the next y
+    g.save(); g.globalAlpha = e; g.translate(0, (1 - e) * 22); const m = YEAR.exec(b); let ny;
+    if (m) { k.text(m[1], k.rtl ? x : x, y + size * 0.1, { size: size + 4, weight: 800, color: accent, align: k.al }); ny = k.para(m[2], k.rtl ? x - 96 : x + 96, y + size * 0.1, maxW - 96, { size, weight: 500, color: P.sand, lh: size * 1.3 }) + 10; }
+    else { g.fillStyle = hex(accent); g.beginPath(); g.arc(k.rtl ? x + 6 : x - 22 + 8, y - size * 0.22, 6, 0, Math.PI * 2); g.fill(); ny = k.para(b, x, y, maxW, { size, weight: 500, color: P.sand, lh: size * 1.3 }) + 10; }
+    g.restore(); return ny;
+  };
+
+  if (s.layout === 'hero' && imgs.length) {   // ---------------- hero: full-bleed photo, gradient, title bottom-start
+    const b = imgs[0], im = o.images && o.images.get(b.url); g.fillStyle = hex(P.ink); g.fillRect(0, 0, w, h);
+    if (im && im.width) drawCover(g, im, 0, 0, w, h, kb, pan, 0); else { k.bg(); k.para(b.alt || '', w / 2, h / 2, w * 0.6, { size: 26, color: P.taupe, align: 'center', lh: 32 }); }
+    const gr = g.createLinearGradient(0, h * 0.28, 0, h); gr.addColorStop(0, 'rgba(10,8,6,0)'); gr.addColorStop(0.62, 'rgba(10,8,6,0.78)'); gr.addColorStop(1, 'rgba(10,8,6,0.94)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    k.text(stamp, k.mx(70), 70, { size: 24, weight: 600, color: P.brassPale, max: w * 0.7 }); g.fillStyle = hex(accent); g.fillRect(k.rtl ? w - 70 - 90 : 70, 32, 90, 5);
+    let y = h - 300; const bl = s.bullets.slice(0, 3);
+    titleIn(() => { y = k.para(s.title, k.mx(70), y, w - 160, { size: 78, weight: 800, color: P.sand, lh: 84 }); });
+    if (s.lead) { g.save(); g.globalAlpha = rev(0, 0.1); y = k.para(s.lead, k.mx(70), y + 6, w * 0.78, { size: 36, weight: 600, color: accent, lh: 46 }); g.restore(); }
+    bl.forEach((bt, i) => { y = bulletRow(bt, k.mx(70) + (k.rtl ? -22 : 22), y + 4, w * 0.7, 26, rev(i + 1)); });
+    drawTags(h - 150); footer(k, w, h, lang, null); return;
+  }
+
+  k.bg(); k.rule(k.mx(70), 32, 90); g.fillStyle = hex(accent); g.fillRect(k.rtl ? w - 70 - 90 : 70, 32, 90, 5);
+  k.text(stamp, k.mx(70), 70, { size: 24, weight: 600, color: P.brassPale, max: w * 0.6 });
+  let ty = 0; titleIn(() => { ty = k.para(s.title, k.mx(70), 136, w - 140 - 120, { size: 58, weight: 700, color: P.sand, lh: 64 }); });
+  let y = ty + 16; if (s.lead) { g.save(); g.globalAlpha = rev(0, 0.1); y = k.para(s.lead, k.mx(70), y + 8, w * 0.8, { size: 32, weight: 600, color: accent, lh: 42 }) + 8; g.restore(); }
+  const bottom = h - 170;
+
+  if (s.layout === 'duo' && imgs.length) {   // ---------------- duo: bullets under the title, two photos side by side with captions
+    let by = Math.max(y + 18, 230); const size = 26; s.bullets.slice(0, 3).forEach((bt, i) => { by = bulletRow(bt, k.mx(70) + (k.rtl ? -26 : 26), by, w - 200, size, rev(i + 1)); });
+    const top = Math.min(Math.max(by + 6, 300), bottom - 220), gap = 28, cw = (w - 140 - gap) / 2, ch = bottom - top;
+    imgs.slice(0, 2).forEach((b, i) => {
+      const x = k.rtl ? w - 70 - cw - i * (cw + gap) : 70 + i * (cw + gap), e = rev(i + 1, 0.2), im = o.images && o.images.get(b.url), cap = b.caption ? 40 : 0;
+      g.save(); g.globalAlpha = e; g.translate(0, (1 - e) * 28); k.card(x, top, cw, ch, { fill: rgba(P.sand, 0.05), line: rgba(P.sand, 0.25) });
+      if (im && im.width) drawCover(g, im, x, top, cw, ch - cap, kb, pan); else k.para(b.alt || '', x + cw / 2, top + (ch - cap) / 2, cw - 40, { size: 22, color: P.taupe, align: 'center', lh: 28 });
+      if (b.caption) { g.fillStyle = 'rgba(10,8,6,0.72)'; g.fillRect(x + 1, top + ch - 40, cw - 2, 39); k.text(b.caption, x + cw / 2, top + ch - 12, { size: 22, weight: 700, color: P.sand, align: 'center', max: cw - 24 }); }
+      g.restore();
+    });
+    drawTags(h - 156); footer(k, w, h, lang, null); return;
+  }
+
+  // ---------------- split: bullets on the start side, blocks on the other
+  const blocks = s.blocks || [], hasBlocks = blocks.length > 0, bw = hasBlocks ? w * 0.44 : w - 140, top = Math.max(y + 24, 250);
+  const size = s.bullets.length > 6 ? 22 : s.bullets.length > 5 ? 24 : s.bullets.length > 3 ? 28 : 32; let by = top;
+  s.bullets.forEach((b, i) => { if (by > bottom) return; by = bulletRow(b, k.rtl ? w - 70 - 26 : 70 + 26, by + size * 0.4, bw - 30, size, rev(i + 1)); });
+  if (hasBlocks) {
+    const bx0 = k.rtl ? 70 : w - 70 - bw, ordered = [...imgs, ...others], bh = (bottom - top - 16 * (ordered.length - 1)) / ordered.length; let cy = top;
+    ordered.forEach((b, i) => { const e = rev(s.bullets.length + i + 1, 0.1); g.save(); g.globalAlpha = e; g.translate(0, (1 - e) * 26); drawBlock(k, g, b, bx0, cy, bw, bh, lang, o, accent, { t, lv, kb, pan }); g.restore(); cy += bh + 16; });
+  }
+  drawTags(h - 156); footer(k, w, h, lang, null);
+}
+function drawBlock(k, g, b, x, y, bw, bh, lang, o, accent, mo) {
+  const { t, lv, kb, pan } = mo; k.card(x, y, bw, bh, { fill: rgba(P.sand, 0.05), line: rgba(P.sand, 0.25) });
   if (b.type === 'image') {
     const im = o.images && o.images.get(b.url), cap = b.caption ? 34 : 0;
-    if (im && im.width) { g.save(); roundedRect(g, x, y, bw, bh - cap, 14); g.clip(); const sc = Math.min(bw / im.width, (bh - cap) / im.height); g.drawImage(im, x + (bw - im.width * sc) / 2, y + (bh - cap - im.height * sc) / 2, im.width * sc, im.height * sc); g.restore(); }
-    else k.para(b.alt || '', x + bw / 2, y + (bh - cap) / 2, bw - 40, { size: 22, color: P.taupe, align: 'center', lh: 28 });
+    if (im && im.width) drawCover(g, im, x, y, bw, bh - cap, kb, pan); else k.para(b.alt || '', x + bw / 2, y + (bh - cap) / 2, bw - 40, { size: 22, color: P.taupe, align: 'center', lh: 28 });
     if (b.caption) k.text(b.caption, x + bw / 2, y + bh - 10, { size: 18, color: P.taupe, align: 'center', max: bw - 24 });
   } else if (b.type === 'table') {
     const rows = b.rows || [], head = b.head, cols = Math.max(1, rows[0] ? rows[0].length : 1), cw = (bw - 40) / cols, all = head ? [head, ...rows] : rows, rh = Math.min(48, (bh - 24) / all.length), fs = Math.max(14, Math.min(24, rh * 0.5));
     all.forEach((r, ri) => { const yy = y + 16 + ri * rh; if (head && ri === 0) { g.fillStyle = rgba(P.brandOrange, 0.25); g.fillRect(x + 12, yy, bw - 24, rh - 4); }
       r.forEach((c, ci) => k.text(c, k.rtl ? x + bw - 20 - ci * cw : x + 20 + ci * cw, yy + rh * 0.62, { size: fs, weight: head && ri === 0 ? 700 : 400, color: P.sand, max: cw - 12 })); });
   } else if (b.type === 'bar') {
-    const d = b.data || [], max = Math.max(...d.map((v) => v.value), 1e-9), lh = 30, top = y + (b.title ? 50 : 20), rowH = Math.min(52, (bh - (top - y) - 16) / d.length), labelW = bw * 0.32, maxLen = bw - labelW - 120;
+    const d = b.data || [], max = Math.max(...d.map((v) => v.value), 1e-9), top = y + (b.title ? 50 : 20), rowH = Math.min(52, (bh - (top - y) - 16) / d.length), labelW = bw * 0.32, maxLen = bw - labelW - 120;
     if (b.title) k.text(b.title, k.rtl ? x + bw - 20 : x + 20, y + 36, { size: 22, weight: 700, color: P.brassPale, max: bw - 40 });
-    d.forEach((v, i) => { const yy = top + i * rowH, len = Math.max(2, (v.value / max) * maxLen), lx = k.rtl ? x + bw - 20 : x + 20, bx = k.rtl ? x + bw - 20 - labelW : x + 20 + labelW;
-      k.text(v.label, lx, yy + rowH * 0.62, { size: Math.min(lh, 20), max: labelW - 10, color: P.sand }); g.fillStyle = hex(accent); g.fillRect(k.rtl ? bx - len : bx, yy + rowH * 0.2, len, rowH * 0.5);
-      k.text(String(v.value) + (b.unit ? ' ' + b.unit : ''), k.rtl ? bx - len - 8 : bx + len + 8, yy + rowH * 0.62, { size: 18, color: P.taupe, align: k.rtl ? 'right' : 'left' }); });
+    d.forEach((v, i) => { const yy = top + i * rowH, grow = lv && lv.countUp ? easeOutCubic((t - 0.3 - i * 0.12) / 1.0) : 1, len = Math.max(2, (v.value / max) * maxLen * grow), lx = k.rtl ? x + bw - 20 : x + 20, bx = k.rtl ? x + bw - 20 - labelW : x + 20 + labelW;
+      k.text(v.label, lx, yy + rowH * 0.62, { size: 20, max: labelW - 10, color: P.sand }); g.fillStyle = hex(accent); g.fillRect(k.rtl ? bx - len : bx, yy + rowH * 0.2, len, rowH * 0.5);
+      k.text(formatNumber(lv && lv.countUp ? countValue(v.value, t, { delay: 0.3 + i * 0.12, dur: 1.0 }) : v.value) + (b.unit ? ' ' + b.unit : ''), k.rtl ? bx - len - 8 : bx + len + 8, yy + rowH * 0.62, { size: 18, color: P.taupe, align: k.rtl ? 'right' : 'left' }); });
+  } else if (b.type === 'stat') {
+    const it = b.items || [], n = it.length, gap = 16, cw = (bw - 32 - gap * (n - 1)) / n;
+    it.forEach((v, i) => { const cx = k.rtl ? x + bw - 16 - cw - i * (cw + gap) : x + 16 + i * (cw + gap), cur = lv && lv.countUp ? countValue(v.value, t, { delay: 0.3 + i * 0.15 }) : v.value, ax = cx + cw / 2;
+      k.card(cx, y + 16, cw, bh - 32, { fill: rgba(P.brandOrange, 0.08), line: rgba(accent, 0.55) });
+      k.text((v.prefix || '') + formatNumber(cur) + (v.suffix || ''), ax, y + bh * 0.46, { size: Math.min(70, Math.max(34, cw / 4.2)), weight: 800, color: accent, align: 'center', max: cw - 20 }); k.para(v.label, ax, y + bh * 0.46 + 38, cw - 36, { size: 20, color: P.sand, align: 'center', lh: 26 }); });
   }
+}
+/** auto-play badge + progress bar along the bottom of the wall (drawn over any slide while playing) */
+export function drawPlayOverlay(g, w, h, o) {
+  if (!(o.progress >= 0)) return; const k = kit(g, w, h, o.lang), bw = w - 140, x = 70;
+  g.fillStyle = rgba(P.sand, 0.14); g.fillRect(x, h - 22, bw, 6); g.fillStyle = hex(P.brandOrange); g.fillRect(k.rtl ? x + bw - bw * o.progress : x, h - 22, bw * clamp01(o.progress), 6);
+  k.text((o.lang === 'ar' ? 'عرض تلقائي · ' : 'AUTO-PLAY · ') + o.speed + 'x', k.mx(w - 70), h - 34, { size: 16, weight: 700, color: P.brassPale, align: k.rtl ? 'left' : 'right' });
 }

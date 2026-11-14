@@ -70,15 +70,16 @@ function Station({ lang, idx, ex, st }) {
 
 /** VIP meeting room: guided presentation panel. A deck picker, then one slide at a time with Previous / Next + slide dots; arrow keys work too (mirrored in RTL),
  *  1-9 jump to a slide, [ and ] switch deck. The built-in stations keep their rich layouts; any other deck uses the generic slide layout. */
-export function VipPanel({ lang, touch, explorerRef, st }) {
+export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier = 'medium' }) {
   const ex = explorerRef.current, headRef = useRef(null), selRef = useRef(null), [adding, setAdding] = useState(false), [confirmDel, setConfirmDel] = useState(false);
   const idx = Number.isInteger(st.vipStation) ? st.vipStation : 0, deck = ex.deck, decks = ex.allDecks(), rd = resolveDeck(deck, lang), n = deck.slides.length, slide = rd.slides[Math.min(idx, n - 1)], raw = deck.slides[Math.min(idx, n - 1)];
   useEffect(() => { if (headRef.current) headRef.current.focus({ preventScroll: true }); }, [st.focus, idx, deck.id]);
   useEffect(() => { setConfirmDel(false); }, [deck.id]);
   const rtl = lang === 'ar', unit = deck.unit === 'station' ? t('vipStationOf', lang) : t('vipSlideOf', lang), user = !deck.builtin, bi = raw.builtin ? BUILTIN_IDX[raw.builtin] : -1;
+  const play = ex.play || { playing: false, speed: 1, loop: true }, mode = ex.presMode || 'panel', prog = typeof st.vipProgress === 'number' ? st.vipProgress : -1, big = mode !== 'panel';
   const del = () => { ex.removeDeck(deck.id); setConfirmDel(false); if (selRef.current) selRef.current.focus(); };
   return (
-    <aside className="sr-panel sr-panel-vip" aria-label={t('vipAria', lang)} data-testid="sr-vip-panel" data-station={raw.id} data-deck={deck.id} dir={rtl ? 'rtl' : 'ltr'}>
+    <aside className="sr-panel sr-panel-vip" aria-label={t('vipAria', lang)} data-testid="sr-vip-panel" data-station={raw.id} data-deck={deck.id} data-mode={mode} data-playing={play.playing ? '1' : '0'} dir={rtl ? 'rtl' : 'ltr'}>
       <header className="sr-panel-head">
         <p className="sr-eyebrow">{t('vipKicker', lang)}</p>
         <p className="sr-vip-count" data-testid="sr-vip-count">{unit} <b>{idx + 1}</b> / {n}</p>
@@ -97,16 +98,26 @@ export function VipPanel({ lang, touch, explorerRef, st }) {
             <button type="button" className="sr-btn sr-btn-line" onClick={() => setConfirmDel(false)} data-testid="sr-vip-deck-delete-no">{t('vipDeckKeep', lang)}</button></div>}
         </div>
       </header>
-      <div className="sr-panel-body" aria-live="polite">{bi >= 0 ? <Station lang={lang} idx={bi} ex={ex} st={st} /> : <SlideBody lang={lang} slide={slide} />}</div>
+      <div className="sr-panel-body" aria-live="polite">{bi >= 0 ? <Station lang={lang} idx={bi} ex={ex} st={st} /> : <SlideBody key={deck.id + ':' + raw.id} lang={lang} slide={slide} reduced={reduced} tier={tier} />}</div>
       <footer className="sr-panel-foot">
-        {raw.builtin === 'briefing' && <a className="sr-btn sr-quote" href={C.briefingUrl(lang)} data-testid="sr-vip-cta">{t('vipBriefing', lang)}</a>}
-        {raw.builtin === 'briefing' && <p className="sr-note">{t('vipBriefingNote', lang)}</p>}
+        {!big && raw.builtin === 'briefing' && <a className="sr-btn sr-quote" href={C.briefingUrl(lang)} data-testid="sr-vip-cta">{t('vipBriefing', lang)}</a>}
+        {!big && raw.builtin === 'briefing' && <p className="sr-note">{t('vipBriefingNote', lang)}</p>}
+        <div className="sr-vip-present" role="group" aria-label={t('vipPresenter', lang)} data-testid="sr-vip-presenter">
+          {big && <p className="sr-vip-pbar-title" data-testid="sr-vip-pbar-title">{deck.slides.length > 1 ? `${idx + 1} / ${n} · ` : ''}{slide.title}</p>}
+          <button type="button" className="sr-btn" onClick={() => ex.togglePlay()} aria-pressed={play.playing} data-testid="sr-vip-play">{play.playing ? t('vipPause', lang) : t('vipPlay', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">P</kbd>}</button>
+          <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.cycleSpeed()} aria-label={`${t('vipSpeed', lang)}: ${play.speed}x`} data-testid="sr-vip-speed">{play.speed}x</button>
+          <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.toggleLoop()} aria-pressed={play.loop} data-testid="sr-vip-loop">{t('vipLoop', lang)}</button>
+          {!big && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setPresentMode('big')} data-testid="sr-vip-big">{t('vipPresent', lang)}</button>}
+          {!big && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setPresentMode('full')} data-testid="sr-vip-full">{t('vipPresentFull', lang)}</button>}
+          {big && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setPresentMode('panel')} data-testid="sr-vip-exit-present">{t('vipPresentExit', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">Esc</kbd>}</button>}
+          {(play.playing || big) && <div className="sr-vip-prog" role="progressbar" aria-label={t('vipProgress', lang)} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((prog >= 0 ? prog : 0) * 100)} data-testid="sr-vip-prog"><i style={{ '--p': prog >= 0 ? prog : 0 }} /></div>}
+        </div>
         <nav className="sr-vip-nav" aria-label={t('vipSlides', lang)}>
           <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.stepStation(-1)} disabled={idx === 0} data-testid="sr-vip-prev">{t('vipPrev', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">{rtl ? '→' : '←'}</kbd>}</button>
           <ol className="sr-vip-dots">{rd.slides.map((x, i) => <li key={x.id}><button type="button" className="sr-vip-dot" aria-label={`${unit} ${i + 1}: ${x.title}`} aria-current={i === idx ? 'step' : undefined} onClick={() => ex.setStation(i)} data-testid={'sr-vip-dot-' + i} /></li>)}</ol>
           <button type="button" className="sr-btn" onClick={() => ex.stepStation(1)} disabled={idx === n - 1} data-testid="sr-vip-next">{t('vipNext', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">{rtl ? '←' : '→'}</kbd>}</button>
         </nav>
-        {!touch && decks.length > 1 && <p className="sr-note sr-vip-keys">{t('vipDeckKeys', lang)}</p>}
+        {!touch && !big && decks.length > 1 && <p className="sr-note sr-vip-keys">{t('vipDeckKeys', lang)}. {t('vipPresentKeys', lang)}</p>}
       </footer>
       {adding && createPortal(<VipDeckDialog lang={lang} ex={ex} max={MAX_USER_DECKS} onClose={() => { setAdding(false); }} />, (ex.canvas && ex.canvas.parentNode) || document.body)}
     </aside>

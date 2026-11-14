@@ -8,8 +8,9 @@ import { mergeGeometries } from '../../3d/geom';
 import { PALETTE as P } from '../../3d/palette';
 import { VIP } from './layout';
 import { makePanel } from '../products/screens';
-import { BUILTIN_DRAW, drawSlide, drawDeckChips, chipLayout, drawGallery, drawHubWall, drawFloorMap, drawHolo } from './panels';
+import { BUILTIN_DRAW, drawSlide, drawDeckChips, drawPlayOverlay, chipLayout, drawGallery, drawHubWall, drawFloorMap, drawHolo } from './panels';
 import { resolveDeck } from '../../vip/deckSchema';
+import { motionLevel, settleSeconds, easeInOut as eio } from '../../vip/motion';
 import { DEFAULT_DECK } from '../../vip/decks/default';
 import { projectCard } from '../../products/projectsFeed';
 import * as fu from '../products/furnish';
@@ -63,7 +64,8 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   mesh(new THREE.BoxGeometry(T.w - 1.4, 0.006, 0.02), led(3.0), { pos: [T.x, T.h + 0.012, T.z], receive: false, name: 'table-led' });
   // chairs (leather seat + back, brass feet)
   { const soft = [], hard = []; const ch = (x, z, ry) => { const c = fu.chair({ x, z, ry }); soft.push(...c.soft); hard.push(...c.hard); };
-    for (const x of [-2.1, -0.7, 0.7, 2.1]) { ch(x, T.z + 1.05, Math.PI / 2); ch(x, T.z - 1.05, -Math.PI / 2); } ch(-3.45, T.z, 0); ch(3.45, T.z, Math.PI);
+    for (const x of [-2.1, -0.7, 0.7, 2.1]) ch(x, T.z + 1.05, Math.PI / 2);   // the whole row faces the big screen; no chair stands between the table and the wall any more (backs used to hide the screen's foot)
+    ch(-3.45, T.z, 0); ch(3.45, T.z, Math.PI);
     soft.forEach((g) => add(g, leather)); hard.forEach((g) => add(g, brass)); }
   // ---- lounge corner (front right) and credenza (front left), rug ----
   { const s = fu.sofa({ x: 6.2, z: -30.35, ry: Math.PI, w: 2.1, d: 0.95, seats: 3 }); s.soft.forEach((g) => add(g, fabric)); s.hard.forEach((g) => add(g, brass));
@@ -79,21 +81,37 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   for (const [mat, list] of statics) { const m = new THREE.Mesh(mergeGeometries(list), mat); m.castShadow = false; m.receiveShadow = true; m.matrixAutoUpdate = false; m.updateMatrix(); group.add(m); }
 
   // ---- screens / panels (canvas textures) ----
-  const state = { lang, station: 0, deck: DEFAULT_DECK, decks: [DEFAULT_DECK], images: new Map(), projects: { status: 'idle', cards: [] }, t: 0, enter: reduced ? 1 : 0, inside: false, door: 0, doorTarget: 0, redrawT: 0, animated: false, reduced, focus: false };
+  const state = { lang, station: 0, slideT: 99, motion: motionLevel(tier.id, reduced), progress: -1, speed: 1, prev: null, transDir: 1, deck: DEFAULT_DECK, decks: [DEFAULT_DECK], images: new Map(), projects: { status: 'idle', cards: [] }, t: 0, enter: reduced ? 1 : 0, inside: false, door: 0, doorTarget: 0, redrawT: 0, animated: false, reduced, focus: false };
   const logoImg = logoTex && logoTex.image ? logoTex.image : null;
   /** the slide on the wall: a built-in station keeps its rich renderer; any other slide (imported / saved decks) uses the generic slide drawing. With more than one deck, deck chips sit along the top. */
   const drawScreen = (g, w, h, l) => {
-    const d = state.deck, sl = d.slides[state.station] || d.slides[0], bi = sl.builtin && BUILTIN_DRAW[sl.builtin];
+    const d = state.deck, sl = d.slides[state.station] || d.slides[0], bi = sl.builtin && BUILTIN_DRAW[sl.builtin], live = state.inside || state.focus;
     if (bi) bi(g, w, h, { lang: l, t: state.t, logo: logoImg, projects: state.projects });
-    else { const rd = resolveDeck({ ...d, slides: [sl] }, l); drawSlide(g, w, h, { lang: l, slide: rd.slides[0], index: state.station, count: d.slides.length, deckTitle: rd.title, images: state.images }); }
+    else {
+      const rd = resolveDeck({ ...d, slides: [sl] }, l);
+      drawSlide(g, w, h, { lang: l, slide: rd.slides[0], index: state.station, count: d.slides.length, deckTitle: rd.title, images: state.images, anim: state.motion.on && live ? { t: state.slideT, level: state.motion } : null });
+    }
+    // slide change: the previous frame fades out and drifts away over the new slide (a cross-fade; skipped under reduced motion)
+    if (state.prev && state.motion.on && state.slideT < state.motion.transition) { const e = eio(state.slideT / state.motion.transition); g.save(); g.globalAlpha = 1 - e; g.drawImage(state.prev, -state.transDir * (l === 'ar' ? -1 : 1) * e * 56, 0, w, h); g.restore(); }
     if (state.decks.length > 1) drawDeckChips(g, w, h, { lang: l, decks: state.decks.map((x) => resolveDeck({ ...x, slides: [] }, l).title), deckIndex: state.decks.indexOf(state.deck) });
+    if (state.progress >= 0) drawPlayOverlay(g, w, h, { lang: l, progress: state.progress, speed: state.speed });
   };
+  /** keep the last frame so the next slide can cross-fade from it */
+  const snapshot = () => { if (!state.motion.on || !(state.inside || state.focus) || state.motion.transition <= 0) { state.prev = null; return; } const c = screen && screen.canvas; if (!c) return; if (!state.prevC) state.prevC = document.createElement('canvas'); if (state.prevC.width !== c.width) { state.prevC.width = c.width; state.prevC.height = c.height; } state.prevC.getContext('2d').drawImage(c, 0, 0); state.prev = state.prevC; };
   const hiRes = tier.id === 'high', SW = hiRes ? 2048 : DW, SH = hiRes ? 1152 : DH, aniso = hiRes ? 8 : 4;
   const screen = makePanel(SW, SH, (g, w, h, l) => drawScreen(g, w, h, l), lang, { design: { w: DW, h: DH }, anisotropy: aniso });
   const screenMat = new THREE.MeshBasicMaterial({ map: screen.tex, toneMapped: false, color: new THREE.Color(1, 1, 1) });
   const S = VIP.screen; add2(placed(bevelBox(S.w + 0.3, S.h + 0.3, 0.06, { b: 0.01 }), { x: cx, y: S.y, z: S.z - 0.02 }), M.darkInterior); const screenMesh = mesh(new THREE.PlaneGeometry(S.w, S.h), screenMat, { pos: [cx, S.y, S.z + 0.012], receive: false, name: 'vip-screen' });
   function add2(geo, mat) { const m = new THREE.Mesh(prep(geo), mat); group.add(m); return m; }
   mesh(new THREE.BoxGeometry(S.w, 0.012, 0.03), led(2.8), { pos: [cx, S.y - S.h / 2 - 0.16, S.z + 0.05], receive: false });
+  // ---- the big screen's surround: a stone border with a brass edge, a warm LED back-light line round it, a soft glow on the wall, a lectern for the presenter ----
+  add(placed(bevelBox(S.w + 1.1, S.h + 0.7, 0.04, { b: 0.01, tile: 2 }), { x: cx, y: S.y, z: S.z - 0.045 }), stone);
+  for (const [bw, bh, bx, by] of [[S.w + 0.34, 0.016, 0, S.h / 2 + 0.17], [S.w + 0.34, 0.016, 0, -S.h / 2 - 0.17], [0.016, S.h + 0.34, S.w / 2 + 0.17, 0], [0.016, S.h + 0.34, -S.w / 2 - 0.17, 0]]) add(placed(bevelBox(bw, bh, 0.012, { b: 0.002 }), { x: cx + bx, y: S.y + by, z: S.z + 0.012 }), brass);
+  { const ls = []; for (const [bw, bh, bx, by] of [[S.w + 0.5, 0.02, 0, S.h / 2 + 0.3], [S.w + 0.5, 0.02, 0, -S.h / 2 - 0.3], [0.02, S.h + 0.6, S.w / 2 + 0.25, 0], [0.02, S.h + 0.6, -S.w / 2 - 0.25, 0]]) ls.push(prep(placed(new THREE.BoxGeometry(bw, bh, 0.012), { x: cx + bx, y: S.y + by, z: S.z + 0.016 }))); mesh(mergeGeometries(ls), led(2.4), { receive: false, name: 'vip-screen-led' }); }
+  const glowMat = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g2 = c.getContext('2d'), gr = g2.createRadialGradient(64, 64, 8, 64, 64, 64); gr.addColorStop(0, 'rgba(255,214,160,0.55)'); gr.addColorStop(0.55, 'rgba(255,190,120,0.16)'); gr.addColorStop(1, 'rgba(255,190,120,0)'); g2.fillStyle = gr; g2.fillRect(0, 0, 128, 128); const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; return new THREE.MeshBasicMaterial({ map: tx, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, opacity: 0.35 }); })();
+  const glow = mesh(new THREE.PlaneGeometry(S.w * 1.45, S.h * 1.55), glowMat, { pos: [cx, S.y, S.z + 0.006], receive: false, name: 'vip-screen-glow' }); glow.renderOrder = -1;
+  { const Lx0 = 3.7, Lz0 = -34.35; add(placed(bevelBox(0.5, 1.02, 0.38, { b: 0.012, grain: 'y' }), { x: Lx0, y: 0.51, z: Lz0 }), wood); add(placed(bevelBox(0.58, 0.03, 0.44, { b: 0.006 }), { x: Lx0, y: 1.04, z: Lz0, rx: -0.12 }), brass); add(placed(bevelBox(0.06, 0.012, 0.1, { b: 0.003 }), { x: Lx0, y: 1.07, z: Lz0 + 0.02 }), M.bronze);   // presenter lectern
+    add(placed(bevelBox(0.16, 0.014, 0.05, { b: 0.004 }), { x: -0.9, y: VIP.table.h + 0.018, z: VIP.table.z + 0.3 }), brass); }   // the presenter's remote on the table
   const gallery = makePanel(hiRes ? 2048 : 1536, hiRes ? 1365 : 1024, (g, w, h, l) => drawGallery(g, w, h, { lang: l, projects: state.projects }), lang, { design: { w: 1536, h: 1024 }, anisotropy: aniso });
   add2(placed(bevelBox(0.04, 2.95, 4.4, { b: 0.006 }), { x: VIP.x0 + 0.08, y: 2.0, z: cz - 0.8 }), brass); mesh(new THREE.PlaneGeometry(4.2, 2.8), new THREE.MeshBasicMaterial({ map: gallery.tex, toneMapped: false }), { pos: [VIP.x0 + 0.115, 2.0, cz - 0.8], rot: [0, Math.PI / 2, 0], receive: false, name: 'vip-gallery' });
   const hubWall = makePanel(hiRes ? 1536 : 1024, hiRes ? 1080 : 720, (g, w, h, l) => drawHubWall(g, w, h, { lang: l }), lang, { design: { w: 1024, h: 720 }, anisotropy: aniso });
@@ -114,11 +132,13 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
     get doorOpen() { return state.door; }, get station() { return state.station; },
     redraw() { screen.redraw(state.lang); gallery.redraw(state.lang); },
     setLanguage(l) { state.lang = l === 'ar' ? 'ar' : 'en'; for (const p of [screen, gallery, hubWall, mapP, ...holos.map((h) => h.p)]) p.redraw(state.lang); },
-    setReduced(v) { state.reduced = !!v; if (v) state.enter = 1; },
-    setStation(i) { state.station = Math.max(0, Math.min(state.deck.slides.length - 1, i | 0)); state.t = 0; screen.redraw(state.lang); },
+    setReduced(v) { state.reduced = !!v; state.motion = motionLevel(tier.id, !!v); if (v) state.enter = 1; },
+    setStation(i) { const n = Math.max(0, Math.min(state.deck.slides.length - 1, i | 0)); if (n !== state.station) { snapshot(); state.transDir = n > state.station ? 1 : -1; state.slideT = 0; } state.station = n; state.t = 0; screen.redraw(state.lang); },
+    /** presentation motion for this tier / reduced-motion setting, and the auto-play badge (progress -1 hides it) */
+    setPlayback({ progress = -1, speed = 1 } = {}) { const was = state.progress; state.progress = progress; state.speed = speed; if ((was >= 0) !== (progress >= 0)) screen.redraw(state.lang); },
     /** show `deck` (one of `decks`) on the wall; remote images of generic slides load once (anonymous CORS, no referrer) and redraw when they arrive */
     setDeck(deck, decks = [deck], slide = 0) {
-      state.deck = deck; state.decks = decks; api.setStation(slide);
+      if (deck !== state.deck) { snapshot(); state.transDir = 1; state.slideT = 0; } state.deck = deck; state.decks = decks; api.setStation(slide);
       for (const s of deck.slides) for (const b of s.blocks || []) if (b.type === 'image' && !state.images.has(b.url) && typeof Image !== 'undefined') {
         const im = new Image(); state.images.set(b.url, null); im.crossOrigin = 'anonymous'; im.referrerPolicy = 'no-referrer'; im.onload = () => { state.images.set(b.url, im); screen.redraw(state.lang); }; im.onerror = () => { /* keep the alt-text frame */ }; im.src = b.url;
       }
@@ -144,12 +164,20 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
       if (inside && !state.inside) api.enter(); state.inside = inside;
       state.enter = Math.min(1, state.enter + (state.reduced ? 1 : dt / 2.4)); state.t += dt;
       const k = ease(state.inside || state.focus ? state.enter : 0.25 + 0.15 * state.door), lv = state.level == null ? 1 : state.level;
-      spot.intensity = SPOT_I * k * lv; fill.intensity = FILL_I * (0.4 + 0.6 * k) * lv; const sc = 0.04 + 0.96 * ease((state.enter - 0.05) / 0.7);   // the screen wakes up: dark, then a fast rise screenMat.color.setScalar(state.inside || state.focus ? sc : 1.0 + 0.25 * state.door);
+      spot.intensity = SPOT_I * k * lv; fill.intensity = FILL_I * (0.4 + 0.6 * k) * lv; const sc = 0.04 + 0.96 * ease((state.enter - 0.05) / 0.7);   // the screen wakes up: dark, then a fast rise screenMat.color.setScalar(state.inside || state.focus ? sc : 1.0 + 0.25 * state.door); glowMat.opacity = 0.18 + 0.2 * (state.inside || state.focus ? sc : 0.7);
       holos.forEach((h, i) => { const a = ease((state.enter * 1.6 - i * 0.28)); h.m.opacity = (state.focus ? 0 : state.inside ? 0.95 : 0.3) * a; h.g.position.y = h.base + (state.reduced ? 0 : 0.04 * Math.sin(state.t * 0.9 + i * 1.7) - (1 - a) * 0.25); });
       const sw = ease(state.enter * 1.25); spot.target.position.set(0, T.h, VIP.z1 - 0.8 + (T.z - VIP.z1 + 0.8) * sw); spot.target.updateMatrixWorld(); if (tableLed) tableLed.scale.set(0.15 + 0.85 * ease(state.enter * 1.5 - 0.3), 1, 1);
       mapMat.opacity = 0.9 * ease(state.enter * 1.3); mapMesh.scale.setScalar(0.7 + 0.3 * ease(state.enter)); if (!state.reduced) mapMesh.rotation.z = state.t * 0.05;
       // the screen animates only while somebody is in the room (or presenting); static otherwise (a redraw is a canvas upload)
-      state.redrawT += dt; if ((state.inside || state.focus) && !state.reduced && state.deck.slides[state.station] && state.deck.slides[state.station].builtin && state.station !== 0 && state.redrawT > 0.14) { state.redrawT = 0; screen.redraw(state.lang); }
+      state.redrawT += dt;
+      if ((state.inside || state.focus) && !state.reduced) {
+        const sl = state.deck.slides[state.station]; state.slideT += dt;
+        if (sl && sl.builtin) { if ((state.station !== 0 && state.redrawT > 0.14) || (state.progress >= 0 && state.redrawT > 0.25)) { state.redrawT = 0; screen.redraw(state.lang); } }
+        else if (sl && state.motion.on) {
+          const kbOn = state.motion.kenBurns && (sl.blocks || []).some((b) => b.type === 'image') && state.slideT < 18, active = state.slideT < settleSeconds(state.motion, sl) + 0.1 || kbOn, period = active ? 1 / state.motion.hz : (state.progress >= 0 ? 0.25 : 0);
+          if (period && state.redrawT > period) { state.redrawT = 0; screen.redraw(state.lang); }
+        } else if (state.progress >= 0 && state.redrawT > 0.25) { state.redrawT = 0; screen.redraw(state.lang); }
+      }
     },
     dispose() { for (const p of [screen, gallery, hubWall, mapP, ...holos.map((h) => h.p)]) p.tex.dispose(); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); },
   };

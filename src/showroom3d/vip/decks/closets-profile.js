@@ -98,7 +98,7 @@ export const CLOSETS_PROFILE_DECK = {
         T('Doors can be made in-house or, for specialist finishes, bought from specialist suppliers.', 'يمكن تصنيع الأبواب داخليًا أو شراؤها من موردين متخصصين للتشطيبات الخاصة.'),
       ],
       blocks: [IMG('closets-factory-floor', T('The factory floor with panel saws and stacked boards', 'أرضية المصنع مع مناشير الألواح ولوحات مكدّسة')),
-        { type: 'stat', items: [{ value: 70000, prefix: '70,000 ', label: T('kitchen units per year on a single shift (capacity, as stated in the profile)', 'وحدة مطبخ سنويًا في وردية واحدة (الطاقة، كما ورد في الملف)') }, { value: 5000, suffix: ' sqm', label: T('factory opened in 2014 (the first, in 2008, was 500 sqm)', 'مصنع افتُتح عام 2014 (الأول عام 2008 بمساحة 500 م²)') }], source: SRC('16, 18, 20') }],
+        { type: 'stat', items: [{ value: 70000, label: T('kitchen units per year on a single shift (capacity, as stated in the profile)', 'وحدة مطبخ سنويًا في وردية واحدة (الطاقة، كما ورد في الملف)') }, { value: 5000, suffix: ' sqm', label: T('factory opened in 2014 (the first, in 2008, was 500 sqm)', 'مصنع افتُتح عام 2014 (الأول عام 2008 بمساحة 500 م²)') }], source: SRC('16, 18, 20') }],
       source: SRC('16, 18, 20') },
     { id: 'machinery', accent: 'brass', title: T('Machinery and technology', 'الآلات والتقنية'),
       lead: T('Advanced machinery, backed by craftsmen and designers.', 'آلات متقدمة يدعمها حرفيون ومصممون.'),

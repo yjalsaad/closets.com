@@ -189,6 +189,7 @@ export function reply(input, ctx = {}) {
   if (T === 'services') return servicesReply(lang, mem, here);
   if (T === 'goto') return done('goto', AR(lang) ? 'إلى أي غرفة أخذك؟' : 'Which room shall I take you to?', [...roomChips(), chip('#go:vip', 'VIP Meeting Room', 'غرفة الاجتماعات VIP'), chip('#go:studio', 'Custom Studio', 'استوديو التصميم'), chip('#go:lounge', 'Consultation Lounge', 'صالة الاستشارات')]);
   if (T === 'go' && roomById(A)) return goReply(lang, mem, A);
+  if (T === 'present' && PRESENTABLE.some((d) => d.id === A)) return presentReply(lang, mem, A);
   if (T === 'book') return bookReply(lang, mem, here);
   if (T === 'info' && roomById(A)) return infoReply(lang, mem, A, here);
 
@@ -213,6 +214,7 @@ export function reply(input, ctx = {}) {
   if (has(n, [/\b(services|service|what do you (offer|do|make|sell)|products|everything|all (rooms|departments)|catalog)\b/, 'خدمات', 'ماذا تقدمون', 'شو تقدمون', 'ايش تقدمون', 'منتجات', 'كل الاقسام', 'ماذا تصنعون'])) return servicesReply(lang, mem, here);
   if (has(n, [/\b(finish|finishes|colour|colours|color|colors|material|materials|options|samples?)\b/, 'تشطيب', 'تشطيبات', 'لون', 'الوان', 'خامه', 'خامات', 'مواد', 'خيارات'])) { const r = detectRoom(n) || here; if (r && roomById(r) && roomById(r).product) return finishesReply(lang, mem, r); return done('finishes', AR(lang) ? 'لأي غرفة تريد رؤية التشطيبات؟' : 'For which room would you like to see the finishes?', roomChips()); }
   if (has(n, [/\b(want|looking for|need|plan|planning|renovat\w*|build|building|redo|new home|moving|help me (choose|decide|pick)|recommend\w*|suggest\w*|advice)\b/, 'اريد', 'ابغى', 'ابي', 'احتاج', 'ابحث', 'اخطط', 'تجديد', 'انصحني', 'اقترح', 'ساعدني'])) { const r = detectRoom(n) || (here && roomById(here) && roomById(here).product ? here : null); mem.style = null; mem.budget = null; mem.finish = null; if (r && roomById(r).product) { mem.room = r; return withStyle(lang, mem); } return { ...askRoom(lang, mem), intent: 'plan', memory: mem, askAi: false, auto: null }; }
+  if (has(n, [/\b(present|presenting|presentation|slides?|company profile|profile|big screen)\b/, 'اعرض', 'عرض تقديمي', 'ملف الشركة', 'قدم لي', 'الشاشة الكبيرة'])) { const d = PRESENTABLE.find((x) => has(n, x.kw)) || PRESENTABLE[0]; return presentReply(lang, mem, d.id); }
   if (has(n, [/\b(investor\w*|invest\w*|partner\w*|join|briefing|boardroom)\b/, 'مستثمر', 'استثمار', 'شراكه', 'شراكة', 'انضم', 'احاطه', 'إحاطة'])) return vipReply(lang, mem);
   if (has(n, [/\b(ai|assistant|bot|robot|human|real person|who are you|are you)\b/, 'ذكاء', 'روبوت', 'من انت', 'انسان'])) return done('about', AR(lang) ? 'أنا مستشارة المعرض الافتراضية (مساعد ذكاء اصطناعي). أجيب من معلومات موقع ذا كلوزتس، ولا أعطي أسعارًا أو وعودًا؛ فريقنا يؤكد كل التفاصيل.' : 'I am the showroom adviser, an AI assistant. I answer from The Closets Co. website information and I never give prices or promises; the team confirms every detail.');
   const r = detectRoom(n); if (r) return infoReply(lang, mem, r, here);
@@ -265,11 +267,25 @@ function contactReply(lang, mem, here) {
   const actions = []; if (FACTS.phoneHref) actions.push({ type: 'link', href: FACTS.phoneHref, label: { en: 'Call us', ar: 'اتصل بنا' } }); if (FACTS.whatsappHref) actions.push({ type: 'link', href: FACTS.whatsappHref, label: { en: 'WhatsApp', ar: 'واتساب' } });
   return { intent: 'contact', text: [AR(lang) ? 'يمكنك التواصل معنا مباشرة:' : 'You can reach the team directly:', ...bits].join('\n'), chips: baseChips(here), actions, memory: mem, askAi: false, auto: null };
 }
+/** the decks the adviser can put on the VIP big screen (ids = src/showroom3d/vip/decks); `kw` picks one from free text, the first is the default */
+const PRESENTABLE = [
+  { id: 'closets-profile', name: { en: 'The Closets company profile', ar: 'ملف شركة ذا كلوزتس' }, kw: [/\b(closets|company|factory|profile)\b/, 'ذا كلوزتس', 'ملف الشركة', 'المصنع'] },
+  { id: 'yas-profile', name: { en: 'the YAS Wood profile', ar: 'ملف YAS Wood' }, kw: [/\b(yas|wood|decor\w*|panels?|laminates?)\b/, 'ياس', 'الواح', 'ألواح'] },
+  { id: 'default', name: { en: 'the investor and partner presentation', ar: 'عرض المستثمرين والشركاء' }, kw: [/\b(investor\w*|partner\w*|vip)\b/, 'مستثمر', 'شريك'] },
+];
+function presentReply(lang, mem, id) {
+  const d = PRESENTABLE.find((x) => x.id === id) || PRESENTABLE[0]; mem.room = 'vip';
+  const text = AR(lang)
+    ? `بكل سرور، سأعرض ${pick(d.name, lang)} على الشاشة الكبيرة في غرفة الاجتماعات VIP. المحتوى من الملفات التي قدمتها الإدارة، وتذكر كل شريحة صفحة مصدرها. ` + pick(DISCLAIMER, lang)
+    : `Happy to. Let me present ${pick(d.name, lang)} on the big screen in the VIP Meeting Room. The content comes from the documents management supplied, and each slide cites its source page. ` + pick(DISCLAIMER, lang);
+  const others = PRESENTABLE.filter((x) => x.id !== id).map((x) => chip('#present:' + x.id, 'Present ' + x.name.en, 'اعرض ' + x.name.ar));
+  return { intent: 'present', text, chips: [...others, chip('#book', 'Request a private briefing', 'اطلب إحاطة خاصة')], actions: [], memory: mem, askAi: false, auto: { type: 'present', deck: id } };
+}
 function vipReply(lang, mem) {
   const st = STATIONS.map((s, i) => `${AR(lang) ? '' : ''}• ${pick(s.title, lang)}`);
   const text = [AR(lang) ? 'في غرفة الاجتماعات VIP خمس محطات:' : 'The VIP Meeting Room has five stations:', ...st, AR(lang) ? 'لا أستطيع الحديث عن أرقام أو عوائد أو وعود؛ تُناقَش أي تفاصيل مباشرة مع الإدارة. ' + pick(DISCLAIMER, lang) : 'I cannot speak about figures, returns or promises; any details are discussed directly with management. ' + pick(DISCLAIMER, lang)].join('\n');
   mem.room = 'vip';
-  return { intent: 'vip', text, chips: [chip('#go:vip', 'Take me to the VIP room', 'خذني إلى غرفة VIP'), chip('#book', 'Request a private briefing', 'اطلب إحاطة خاصة'), chip('#services', 'What do you offer?', 'ما الذي تقدمونه؟')], actions: [{ type: 'link', href: briefingUrl(lang), label: { en: 'Request a private briefing', ar: 'اطلب إحاطة خاصة' } }], memory: mem, askAi: false, auto: null };
+  return { intent: 'vip', text, chips: [chip('#go:vip', 'Take me to the VIP room', 'خذني إلى غرفة VIP'), chip('#present:closets-profile', 'Present the company profile', 'اعرض ملف الشركة'), chip('#book', 'Request a private briefing', 'اطلب إحاطة خاصة'), chip('#services', 'What do you offer?', 'ما الذي تقدمونه؟')], actions: [{ type: 'link', href: briefingUrl(lang), label: { en: 'Request a private briefing', ar: 'اطلب إحاطة خاصة' } }], memory: mem, askAi: false, auto: null };
 }
 function greetReply(lang, mem, staff) {
   const nm = staff && staff.name ? pick(staff.name, lang) : '';
