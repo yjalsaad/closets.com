@@ -1,0 +1,137 @@
+{
+ "low": {
+  "spawn": {
+   "calls": 283,
+   "triangles": 102988,
+   "textures": 39,
+   "geometries": 316,
+   "fps": 5
+  },
+  "kitchen": {
+   "calls": 368,
+   "triangles": 154574,
+   "textures": 60,
+   "geometries": 368,
+   "fps": 2.2
+  },
+  "wardrobe": {
+   "calls": 372,
+   "triangles": 150724,
+   "textures": 60,
+   "geometries": 369,
+   "fps": 2.2
+  },
+  "door": {
+   "calls": 263,
+   "triangles": 99664,
+   "textures": 64,
+   "geometries": 386,
+   "fps": 2.2
+  },
+  "stage": {
+   "calls": 279,
+   "triangles": 116456,
+   "textures": 64,
+   "geometries": 386,
+   "fps": 2.7
+  },
+  "outside": {
+   "calls": 255,
+   "triangles": 77542,
+   "textures": 64,
+   "geometries": 386,
+   "fps": 2
+  },
+  "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+ },
+ "medium": {
+  "spawn": {
+   "calls": 312,
+   "triangles": 140632,
+   "textures": 49,
+   "geometries": 324,
+   "fps": 5.2
+  },
+  "kitchen": {
+   "calls": 431,
+   "triangles": 205604,
+   "textures": 76,
+   "geometries": 376,
+   "fps": 5.2
+  },
+  "wardrobe": {
+   "calls": 427,
+   "triangles": 205934,
+   "textures": 76,
+   "geometries": 377,
+   "fps": 2.5
+  },
+  "door": {
+   "calls": 297,
+   "triangles": 140582,
+   "textures": 81,
+   "geometries": 394,
+   "fps": 2.5
+  },
+  "stage": {
+   "calls": 308,
+   "triangles": 154100,
+   "textures": 81,
+   "geometries": 394,
+   "fps": 2.9
+  },
+  "outside": {
+   "calls": 276,
+   "triangles": 114734,
+   "textures": 81,
+   "geometries": 394,
+   "fps": 2.9
+  },
+  "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+ },
+ "high": {
+  "spawn": {
+   "calls": 392,
+   "triangles": 153159,
+   "textures": 63,
+   "geometries": 326,
+   "fps": 0
+  },
+  "kitchen": {
+   "calls": 918,
+   "triangles": 387719,
+   "textures": 91,
+   "geometries": 378,
+   "fps": 0
+  },
+  "wardrobe": {
+   "calls": 929,
+   "triangles": 383937,
+   "textures": 91,
+   "geometries": 379,
+   "fps": 0
+  },
+  "door": {
+   "calls": 929,
+   "triangles": 383937,
+   "textures": 91,
+   "geometries": 379,
+   "fps": 0
+  },
+  "stage": {
+   "calls": 929,
+   "triangles": 383937,
+   "textures": 91,
+   "geometries": 379,
+   "fps": 0
+  },
+  "outside": {
+   "calls": 291,
+   "triangles": 119085,
+   "textures": 91,
+   "geometries": 379,
+   "fps": 0
+  },
+  "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+ }
+}

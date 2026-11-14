@@ -1,5 +1,8 @@
 {
   "buildCommand": "CI=false npm run build",
+  "headers": [
+    { "source": "/(ar/)?yas-bloom(/.*)?", "headers": [ { "key": "X-Robots-Tag", "value": "noindex" } ] }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]

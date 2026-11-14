@@ -4,6 +4,7 @@ import './index.css';
 import App from './App';
 import ErrorBoundary from './ErrorBoundary';
 import reportWebVitals from './reportWebVitals';
+import { SHOWROOM_PATH_RE } from './showroom3d/route';
 
 const container = document.getElementById('root');
 
@@ -20,12 +21,24 @@ const IkhtarhaRoot = React.lazy(() => import('./campaign/IkhtarhaRoot'));
 // [IKHTARHA GAMES 2026-11-09] /ikhtarha/games = the Games Hub (extra activity of the campaign; its own lazy chunk)
 const isGames = /^\/ikhtarha\/games(\/|$)/i.test(window.location.pathname || '');
 const GamesRoot = React.lazy(() => import('./games/GamesRoot'));
+// [YAS-BLOOM] /yas-bloom (+ /ar/yas-bloom) = the cinematic virtual showroom: its own lazy chunk (three + gsap load only there), full-screen shell, additive
+const isShowroom = SHOWROOM_PATH_RE.test(window.location.pathname || '');
+const ShowroomRoot = React.lazy(() => import(/* webpackChunkName: "showroom3d" */ './showroom3d/ShowroomRoot'));
 
 // When the page was prerendered (the postbuild puppeteer crawl writes static
 // markup into #root), hydrate it so the prerendered DOM is reused — no flash of
 // empty content, and crawlers see real text. Otherwise (normal dev / a route
 // that wasn't prerendered) mount fresh with createRoot.
-if (isGames) {
+if (isShowroom) {
+  if (container.hasChildNodes()) container.innerHTML = '';
+  ReactDOM.createRoot(container).render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <React.Suspense fallback={null}><ShowroomRoot /></React.Suspense>
+      </ErrorBoundary>
+    </React.StrictMode>
+  );
+} else if (isGames) {
   if (container.hasChildNodes()) container.innerHTML = '';
   ReactDOM.createRoot(container).render(
     <React.StrictMode>
