@@ -3,6 +3,7 @@ import { t } from '../strings';
 import { DEPARTMENTS } from '../scenes/main-hall/departments';
 import { useDialog } from './useDialog';
 import { VIP_DEPT } from '../products/vipContent';
+import { COLLECTIONS_DEPT } from '../collections/layout';
 
 const name = (d, lang) => (lang === 'ar' ? d.ar : d.en);
 
@@ -18,12 +19,12 @@ export function DeptMenu({ lang, touch, onPick, onClose, fallbackFocus }) {
         </div>
         <p className="sr-dialog-sub">{t('departmentsHint', lang)}</p>
         <ol className="sr-dept-list">
-          {[...DEPARTMENTS, VIP_DEPT].map((d, i) => (
+          {[...DEPARTMENTS, VIP_DEPT, COLLECTIONS_DEPT].map((d, i) => (
             <li key={d.id}>
               <button type="button" className="sr-dept" onClick={() => onPick(d.id)} data-dept={d.id} data-autofocus={i === 0 ? '' : undefined}>
                 <span className="sr-dept-n" aria-hidden="true">{i + 1}</span>
                 <span className="sr-dept-name">{name(d, lang)}</span>
-                {!touch && <kbd className="sr-kbd" aria-hidden="true">{i + 1}</kbd>}
+                {!touch && i < 9 && <kbd className="sr-kbd" aria-hidden="true">{i + 1}</kbd>}
               </button>
             </li>
           ))}

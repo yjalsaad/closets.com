@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { t } from '../strings';
 import { reply, opening, newMemory, pick, guardAiReply, createRateLimiter } from '../staff/guide';
+import { collectionsReply } from '../collections/logic';
 import { staffById } from '../staff/roster';
 import { portraitUrl } from '../staff/config';
 import { supportChatFetch, tr, hasConsent } from '../siteBridge';
@@ -42,7 +43,7 @@ export default function StaffChat({ lang, reduced, explorerRef, engineRef, staff
     if (label) push({ from: 'me', text: label });
     setTyping(true);
     later(() => {
-      const r = reply(input, { lang, staff, memory: mem.current }); mem.current = r.memory;
+      const r = collectionsReply(input, { lang, memory: mem.current }) || reply(input, { lang, staff, memory: mem.current }); mem.current = r.memory;
       setTyping(false); push({ from: 'staff', text: r.text, chips: r.chips, actions: r.actions, askAi: r.askAi, intent: r.intent }); say(r.text);
       if (r.auto) later(() => run(r.auto), 1500);
     }, 380 + Math.min(700, 0));
