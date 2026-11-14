@@ -39,7 +39,7 @@ export const CLOSETS_PROFILE_DECK = {
         T('Leading the regional market by providing valued products and services.', 'ريادة السوق الإقليمي بتقديم منتجات وخدمات ذات قيمة.'),
         T('A manufacturing facility with advanced machinery and automated panel processing.', 'منشأة تصنيع بآلات متقدمة ومعالجة آلية للألواح.'),
         T('Excellent, long-term relationships with clients.', 'علاقات ممتازة وطويلة الأمد مع العملاء.'),
-        T('{{fact:warrantyYears}} years of warranty is the company standard.', 'ضمان {{fact:warrantyYears}} سنوات هو المعيار في الشركة.'),
+        T('{{fact:warrantyYears}} years of warranty is the company standard.', 'كفالة {{fact:warrantyYears}} سنوات هي المعيار في الشركة.'),
         T('Specialised in rigid carcass elements, for greater strength and robustness.', 'متخصصة في هياكل الخزائن المتينة لمزيد من القوة والصلابة.'),
       ], source: SRC('4') },
     { id: 'history-1', accent: 'orange', title: T('Milestones 2007 to 2012', 'محطات 2007 إلى 2012'),
