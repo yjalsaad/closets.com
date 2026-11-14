@@ -1,14 +1,14 @@
 {
-  "note": "What the Collections wall adds while it is in view (SwiftShader, measured by toggling its group). textureKB = canvas textures incl. mipmaps; swatch images add nothing here because none are downloaded yet.",
+  "note": "What the Collections wall adds while it is in view (SwiftShader, measured by toggling its group). textureKB = canvas textures incl. mipmaps; swatch images are drawn into those canvases, so they add no GPU textures of their own.",
   "added": {
     "medium": {
-      "drawCalls": 9,
-      "triangles": 78,
-      "textureKB": 13984,
-      "measuredCallsDelta": 9,
-      "measuredTrianglesDelta": 78,
-      "sceneCalls": 240,
-      "sceneTriangles": 140942
+      "drawCalls": 12,
+      "triangles": 84,
+      "textureKB": 13988,
+      "measuredCallsDelta": -1,
+      "measuredTrianglesDelta": -12,
+      "sceneCalls": 244,
+      "sceneTriangles": 128386
     },
     "low": {
       "drawCalls": 8,
@@ -16,17 +16,17 @@
       "textureKB": 3496,
       "measuredCallsDelta": 8,
       "measuredTrianglesDelta": 66,
-      "sceneCalls": 196,
-      "sceneTriangles": 83398
+      "sceneCalls": 197,
+      "sceneTriangles": 82448
     },
     "high": {
-      "drawCalls": 9,
-      "triangles": 78,
-      "textureKB": 13984,
+      "drawCalls": 12,
+      "triangles": 84,
+      "textureKB": 13988,
       "measuredCallsDelta": 0,
       "measuredTrianglesDelta": 0,
-      "sceneCalls": 439,
-      "sceneTriangles": 205946
+      "sceneCalls": 459,
+      "sceneTriangles": 184480
     }
   },
   "checks": [
@@ -37,6 +37,10 @@
         18,
         -4
       ]
+    },
+    {
+      "name": "all 36 swatch images are drawn on the wall",
+      "ok": true
     },
     {
       "name": "prompt names the wall",
@@ -50,6 +54,10 @@
       "name": "arrow keys browse the finishes",
       "ok": true,
       "detail": "Callahan"
+    },
+    {
+      "name": "the panel shows the real swatch image",
+      "ok": true
     },
     {
       "name": "site link: source URL, new tab, noopener",

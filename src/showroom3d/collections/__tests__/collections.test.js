@@ -49,6 +49,11 @@ describe('collections data (generated from the owner site)', () => {
 describe('collection images on disk', () => {
   const L = COLLECTIONS_META.limits, files = [];
   for (const c of COLLECTIONS) for (const it of c.items) if (it.image) for (const k of ['small', 'thumb', 'hero']) if (it.image[k]) files.push({ it, k, rel: it.image[k] });
+  test('all 36 finishes of the collection have their swatch: a small copy and a thumb each (a hero only where the source is larger than the thumb)', () => {
+    const items = COLLECTIONS[0].items; expect(items.every((x) => x.image && x.image.small && x.image.thumb)).toBe(true); expect(files.length).toBeGreaterThanOrEqual(72);
+    for (const it of items) { expect(it.image.w).toBeGreaterThan(100); expect(it.image.h).toBeGreaterThan(100); expect(Math.max(it.image.w, it.image.h)).toBeLessThanOrEqual(it.image.hero ? L.heroPx : L.thumbPx); }
+    expect(COLLECTIONS[0].images).toHaveLength(36); for (const im of COLLECTIONS[0].images) { expect(both(im.alt)).toBe(true); expect(fs.existsSync(path.join(PUB, im.src))).toBe(true); }
+  });
   test('every referenced image exists, is WebP under /yas-bloom/collections and within its size limit', () => {
     for (const f of files) {
       expect(f.rel).toMatch(/^\/yas-bloom\/collections\/[a-z0-9-]+\/[a-z0-9-]+\.webp$/); const p = path.join(PUB, f.rel);
@@ -154,8 +159,8 @@ describe('legibility, quality tiers, lazy loading', () => {
     expect(contrast(PALETTE.walnutDeep, PALETTE.shadeLinen)).toBeGreaterThan(4.5); expect(contrast(PALETTE.paperWhite, PALETTE.ink)).toBeGreaterThan(12);     // the hint pill is reversed
     expect(contrast(0x000000, 0xffffff)).toBeCloseTo(21, 5);
   });
-  test('finish names are at least 6 cm tall on the wall (readable from the 3.2 m stand point)', () => {
-    const emMetres = (px) => px * WALL.panelH / 1000; expect(emMetres(31)).toBeGreaterThanOrEqual(0.06); expect(emMetres(25)).toBeGreaterThanOrEqual(0.05);
+  test('finish names are at least 5 cm tall on the wall under a swatch, 6 cm on a text-only tile (readable from the 3.2 m stand point)', () => {
+    const emMetres = (px) => px * WALL.panelH / 1000; expect(emMetres(27)).toBeGreaterThanOrEqual(0.05); expect(emMetres(20)).toBeGreaterThanOrEqual(0.04); expect(emMetres(31)).toBeGreaterThanOrEqual(0.06); expect(emMetres(25)).toBeGreaterThanOrEqual(0.05);
   });
   test('low tier: half-size canvases, small images, no over-bright backlight (no bloom) and no LED line; unknown tier = low', () => {
     expect(TIER.low).toMatchObject({ tex: 512, glow: 1, picLight: false, image: 'small' }); expect(TIER.high.glow).toBeGreaterThan(1); expect(TIER.medium.glow).toBe(1); expect(tierOf('nope')).toBe(TIER.low);

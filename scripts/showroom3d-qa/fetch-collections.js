@@ -82,7 +82,7 @@ function fetchImages(cols) {
     }
     for (const [it, raw] of got) {                                   // heroes in page order while the budget lasts
       const file = path.join(dir, it.id + '.webp'); const h = convert(raw, file, LIMITS.heroPx, LIMITS.heroBytes);
-      if (h.bytes > LIMITS.heroBytes || total + h.bytes > LIMITS.totalBytes) { fs.unlinkSync(file); continue; }
+      if (h.bytes > LIMITS.heroBytes || total + h.bytes > LIMITS.totalBytes || Math.max(h.w, h.h) <= Math.max(out[it.id].w, out[it.id].h)) { fs.unlinkSync(file); continue; }   // a source no larger than the thumb gets no separate hero (it would be the same file twice)
       total += h.bytes; Object.assign(out[it.id], { hero: `/yas-bloom/collections/${c.id}/${it.id}.webp`, w: h.w, h: h.h });
     }
   }

@@ -11,6 +11,7 @@ import { PRODUCTS } from '../products/catalog';
 import { FINISHES, finishList } from '../products/finishes';
 import { INTEREST, NOTES_MAX } from '../products/quote';
 import { STATIONS, DISCLAIMER } from '../products/vipContent';
+import { collectionsService } from '../collections/logic';
 
 const AR = (lang) => lang === 'ar';
 export const pick = (o, lang) => (o && typeof o === 'object' ? (AR(lang) ? o.ar || o.en : o.en) : o);
@@ -58,6 +59,7 @@ export function services(lang = 'en') {
   for (const r of ROOMS.filter((x) => x.product)) out.push({ id: r.id, label: roomName(r.id, lang), blurb: nameOf(r.product, lang), room: r.id, href: null });
   for (const id of ['office']) out.push({ id, label: pageLabel(id, lang), blurb: pageBlurb(id, lang), room: null, href: pageHref(id, lang) });
   for (const id of ['services', 'maintenance', 'warranty', 'booking']) out.push({ id, label: pageLabel(id, lang), blurb: pageBlurb(id, lang), room: null, href: pageHref(id, lang) });
+  out.push(collectionsService(lang));                                          // the Collections wall (YAS Wood finishes)
   return out;
 }
 
@@ -187,7 +189,7 @@ export function reply(input, ctx = {}) {
   if (T === 'budget' && BUDGETS[A]) { mem.budget = A; return { ...recommend(lang, mem), intent: 'plan', memory: mem, askAi: false, auto: null }; }
   if (T === 'plan') { mem.style = null; mem.budget = null; mem.finish = null; mem.room = (here && roomById(here) && roomById(here).product) ? here : null; return { ...(mem.room ? askStyle(lang, mem) : askRoom(lang, mem)), intent: 'plan', memory: mem, askAi: false, auto: null }; }
   if (T === 'services') return servicesReply(lang, mem, here);
-  if (T === 'goto') return done('goto', AR(lang) ? 'إلى أي غرفة أخذك؟' : 'Which room shall I take you to?', [...roomChips(), chip('#go:vip', 'VIP Meeting Room', 'غرفة الاجتماعات VIP'), chip('#go:studio', 'Custom Studio', 'استوديو التصميم'), chip('#go:lounge', 'Consultation Lounge', 'صالة الاستشارات')]);
+  if (T === 'goto') return done('goto', AR(lang) ? 'إلى أي غرفة أخذك؟' : 'Which room shall I take you to?', [...roomChips(), chip('#go:vip', 'VIP Meeting Room', 'غرفة الاجتماعات VIP'), chip('#go:studio', 'Custom Studio', 'استوديو التصميم'), chip('#go:lounge', 'Consultation Lounge', 'صالة الاستشارات'), chip('#go:collections', 'Collections', 'المجموعات')]);
   if (T === 'go' && roomById(A)) return goReply(lang, mem, A);
   if (T === 'present' && PRESENTABLE.some((d) => d.id === A)) return presentReply(lang, mem, A);
   if (T === 'book') return bookReply(lang, mem, here);

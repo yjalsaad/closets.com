@@ -12,7 +12,8 @@ async function enter(page) {
   await page.waitForTimeout(800); await dom(page, '[data-testid="sr-coach-done"]');
 }
 async function goViaMenu(page) {
-  await dom(page, '[data-testid="sr-open-depts"]'); await page.waitForSelector('[data-dept="collections"]', { state: 'attached', timeout: 120000 }); await dom(page, '[data-dept="collections"]'); await arrived(page); await page.waitForTimeout(2500);
+  await dom(page, '[data-testid="sr-open-depts"]'); await page.waitForSelector('[data-dept="collections"]', { state: 'attached', timeout: 120000 }); await dom(page, '[data-dept="collections"]'); await arrived(page);
+  await page.waitForFunction(() => window.__showroom.engine.collections.state.loaded, null, { timeout: 180000 }); await page.waitForTimeout(3000);       // the swatches load once the wall is in view
 }
 /* the panel pops in with a CSS animation that only advances with rendered frames: wait until it is fully opaque */
 const settled = async (page) => { await page.waitForFunction(() => { const el = document.querySelector('[data-testid="sr-collections-panel"]'); return el && getComputedStyle(el).opacity === '1' && el.getAnimations().every((a) => a.playState === 'finished'); }, null, { timeout: 120000 }); await page.waitForTimeout(1200); };
@@ -32,6 +33,7 @@ async function measure(page) {
     const { ctx, page, errors } = await openShowroom(browser, { viewport: { width: 1100, height: 620 }, query: 'debug=1&quality=medium&aa=0' });
     await enter(page); await goViaMenu(page);
     check('menu glide ends at the Collections stand point, in the collections zone', (await ex(page, (e) => e.zone())) === 'collections', await ex(page, (e) => e.pos()));
+    check('all 36 swatch images are drawn on the wall', (await page.evaluate(() => Object.keys(window.__showroom.engine.collections.state.images).length)) === 36);
     check('prompt names the wall', /Collections/.test(await page.textContent('[data-testid="sr-prompt"]')));
     await shot(page, 'collections-01-wall-en', { quality: 84 });
     stats.medium = await measure(page);
@@ -39,6 +41,7 @@ async function measure(page) {
     check('E opens the panel with the site collection', (await page.textContent('[data-testid="sr-collections-panel"] h2')) === 'Collection 2023–2025');
     await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight');
     check('arrow keys browse the finishes', (await page.textContent('[data-testid="sr-col-name"]')) !== 'Abisko Ash', await page.textContent('[data-testid="sr-col-name"]'));
+    check('the panel shows the real swatch image', await page.waitForFunction(() => { const i = document.querySelector('[data-testid="sr-col-hero"]'); return i && i.complete && i.naturalWidth > 100; }, null, { timeout: 60000 }).then(() => true, () => false));
     const site = await page.$eval('[data-testid="sr-col-site"]', (a) => [a.href, a.target, a.rel]); check('site link: source URL, new tab, noopener', site[0] === 'https://yas-holding-website.vercel.app/collection' && site[1] === '_blank' && /noopener/.test(site[2]), site);
     check('quote link is the booking hand-off', /^\/booking\?interest=Other&source=showroom-3d-collections/.test(await page.getAttribute('[data-testid="sr-col-quote"]', 'href')));
     await settled(page); await shot(page, 'collections-02-panel-en', { quality: 84 });
@@ -79,6 +82,6 @@ async function measure(page) {
     check('no page errors (high, reduced motion)', errors.length === 0, errors.slice(0, 3)); await ctx.close();
   }
   await browser.close();
-  fs.writeFileSync(path.resolve(__dirname, '../../docs/showroom3d/collections-stats.json'), JSON.stringify({ note: 'What the Collections wall adds while it is in view (SwiftShader, measured by toggling its group). textureKB = canvas textures incl. mipmaps; swatch images add nothing here because none are downloaded yet.', added: stats, checks: results }, null, 2) + '\n');
+  fs.writeFileSync(path.resolve(__dirname, '../../docs/showroom3d/collections-stats.json'), JSON.stringify({ note: 'What the Collections wall adds while it is in view (SwiftShader, measured by toggling its group). textureKB = canvas textures incl. mipmaps; swatch images are drawn into those canvases, so they add no GPU textures of their own.', added: stats, checks: results }, null, 2) + '\n');
   const bad = results.filter((r) => !r.ok); console.log(`\n${results.length - bad.length}/${results.length} checks passed; screenshots in ${OUT}`); process.exit(bad.length ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
