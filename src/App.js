@@ -1404,7 +1404,7 @@ const I18N = {
   swStatShowrooms:{ en:'Showrooms', ar:'معارض' },
   swStatBespoke:{ en:'Bespoke & fitted', ar:'حسب الطلب ومركّب' },
   swBadgeWorkshop:{ en:'Our own workshop', ar:'ورشتنا الخاصة' },
-  swBadge15:{ en:'15 years of craft', ar:'15 عاماً من الحرفية' },
+  swBadge15:{ en:'20 years of craft', ar:'20 عاماً من الحرفية' },
   swBadge2yr:{ en:'10-year warranty', ar:'ضمان 10 سنوات' },
   swBadgeFreeDesign:{ en:'Free design service', ar:'خدمة تصميم مجانية' },
   // Process timeline
@@ -1422,7 +1422,7 @@ const I18N = {
   swMarqWorkshop:{ en:'Own Bahrain workshop', ar:'ورشة خاصة في البحرين' },
   swMarqConsult:{ en:'Free design consultation', ar:'استشارة تصميم مجانية' },
   swMarqHardware:{ en:'Premium European hardware', ar:'مقابض أوروبية فاخرة' },
-  swMarq15:{ en:'15 years of craft', ar:'15 عاماً من الحرفية' },
+  swMarq15:{ en:'20 years of craft', ar:'20 عاماً من الحرفية' },
   swMarq4:{ en:'4 showrooms', ar:'4 معارض' },
   swMarq2yr:{ en:'10-year warranty', ar:'ضمان 10 سنوات' },
   swMarqInstall:{ en:'Installed by our own team', ar:'يركّبه فريقنا الخاص' },
@@ -1619,7 +1619,7 @@ const I18N = {
   swFootBadge2yr:{ en:'10-year warranty', ar:'ضمان 10 سنوات' },
   swFootBadgeFreeDesign:{ en:'Free design service', ar:'خدمة تصميم مجانية' },
   swFootBadgeInstall:{ en:'Installed by our team', ar:'يركّبه فريقنا' },
-  swFootBadge15:{ en:'15 years of craft', ar:'15 عاماً من الحرفية' },
+  swFootBadge15:{ en:'20 years of craft', ar:'20 عاماً من الحرفية' },
   // Footer link labels (rendered via trLabel)
   swFlHowItWorks:{ en:'How it works', ar:'كيف تعمل' },
   swFlFaq:{ en:'FAQ', ar:'الأسئلة الشائعة' },
@@ -8527,7 +8527,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </div>
         <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 12 : 16 }}>
           <Stat to={10} suffix="K+" label={t('swStatProjects')} />
-          <Stat to={19} suffix={t('swStatYrs')} label={t('swStatCraft')} />
+          <Stat to={20} suffix={t('swStatYrs')} label={t('swStatCraft')} />
           <Stat to={4} label={t('swStatShowrooms')} />
           <Stat to={100} suffix="%" label={t('swStatBespoke')} />
         </div>
