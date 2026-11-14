@@ -57,7 +57,7 @@ export function drawFinishes(canvas, { items, lang, images = {}, cols = WALL.col
       g.textAlign = 'center';
       g.fillStyle = hex(SOFT); g.font = `600 20px ${EN_SANS}`; g.fillText(String(startIndex + i + 1).padStart(2, '0'), cx, y + 34);
       g.fillStyle = hex(INK); g.font = `600 31px ${EN_SANS}`; g.fillText(it.name.en, cx, y + th / 2 + 2, tw - 30);
-      g.fillStyle = hex(SOFT); g.font = `500 23px ${EN_SANS}`; g.fillText(it.code || '—', cx, y + th - 36, tw - 30);
+      g.fillStyle = hex(SOFT); g.font = `500 25px ${EN_SANS}`; g.fillText(it.code || '—', cx, y + th - 36, tw - 30);
     }
   });
 }
@@ -68,8 +68,8 @@ export function buildCollectionsWall({ tier = 'high', lang = 'en', collection = 
   const state = { lang, touch: false, images: {}, loading: false, loaded: false, disposed: false };
   const total = wallWidth(), parts = splitItems(collection), disposables = [];
   const keep = (o) => { disposables.push(o); return o; };
-  const backM = keep(new THREE.MeshStandardMaterial({ color: PALETTE.bronzeDark, roughness: 0.55, metalness: 0.35 }));
-  const frameM = keep(new THREE.MeshStandardMaterial({ color: PALETTE.brassBrushed, roughness: 0.38, metalness: 0.9 }));
+  const backM = keep(new THREE.MeshStandardMaterial({ color: PALETTE.walnutDeep, roughness: 0.7, emissive: PALETTE.walnutDeep, emissiveIntensity: 0.9 }));   // the wing is in shade: a little self-light keeps the board reading as dark walnut, not black
+  const frameM = keep(new THREE.MeshStandardMaterial({ color: PALETTE.brassBrushed, roughness: 0.5, metalness: 0.35, emissive: PALETTE.brassBrushed, emissiveIntensity: 0.3 }));   // a fully metallic frame has nothing to reflect on this shaded wall and renders black
   const stoneM = keep(new THREE.MeshStandardMaterial({ color: PALETTE.stoneLight, roughness: 0.62 }));
   const add = (geo, mat, pos) => { const m = mesh(keep(geo), mat, pos); group.add(m); return m; };
   add(box(total + 0.5, WALL.panelH + 0.62, 0.05), backM, { z: 0.025 }).receiveShadow = true;

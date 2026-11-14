@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { COLLECTIONS, COLLECTIONS_META } from '../data';
 import { CS, ct } from '../strings';
-import { WALL, PLINTH, STAND, LOOK, COLLECTIONS_ID, COLLECTIONS_DEPT, wallPanels, wallWidth, collectionsColliders, collectionsZones, withCollections, splitItems, TIER, tierOf, shouldLoad, LOAD_RADIUS, contrast } from '../layout';
+import { FACE_ASPECT, WALL, PLINTH, STAND, LOOK, COLLECTIONS_ID, COLLECTIONS_DEPT, wallPanels, wallWidth, collectionsColliders, collectionsZones, withCollections, splitItems, TIER, tierOf, shouldLoad, LOAD_RADIUS, contrast } from '../layout';
 import { buildCollectionQuoteUrl, collectionsReply, collectionsService, isCollectionsIntent, itemLabel, keyStep, stepIndex, swipeStep } from '../logic';
 import { HALL, BAY, COLUMNS } from '../../3d/dimensions';
 import { PALETTE } from '../../3d/palette';
@@ -95,6 +95,7 @@ describe('feature wall placement, collider, zone', () => {
   test('the wall sits on the inside face of the right front wing, inside the wing width, below the 4.5 m walnut line', () => {
     expect(WALL.x - half).toBeGreaterThan(HALL.glassHalf); expect(WALL.x + half).toBeLessThan(HALL.halfWidth); expect(WALL.z).toBeCloseTo(-0.81, 6);
     expect(WALL.y + WALL.panelH / 2 + 0.31).toBeLessThan(4.5); expect(WALL.y - WALL.panelH / 2).toBeGreaterThan(PLINTH.h);
+    expect(WALL.titleW / WALL.panelH).toBeCloseTo(FACE_ASPECT.title, 9); expect(WALL.sideW / WALL.panelH).toBeCloseTo(FACE_ASPECT.finishes, 9);            // faces are not stretched
     const ps = wallPanels(); expect(ps.map((p) => p.kind)).toEqual(['finishes', 'title', 'finishes']);
     for (let i = 1; i < ps.length; i++) expect(ps[i - 1].x - ps[i].x).toBeGreaterThanOrEqual((ps[i - 1].w + ps[i].w) / 2 + WALL.gap - 1e-9);    // no overlap; left of the viewer = +x
   });
@@ -120,7 +121,7 @@ describe('feature wall placement, collider, zone', () => {
     expect(zoneAt(interactionZones(), STAND[0], STAND[1])).toBeNull(); expect(zoneAt([zone], 0, -9)).toBeNull(); expect(zoneAt([zone], 8, -3.5)).toBeNull();
   });
   test('from the stand point the whole composition fits a 16:9 view and the look target is the wall', () => {
-    const d = Math.abs(STAND[1] - WALL.z), halfFov = Math.atan(half / d) * 180 / Math.PI; expect(d).toBeGreaterThanOrEqual(3); expect(halfFov).toBeLessThan(50);
+    const d = Math.abs(STAND[1] - WALL.z), halfFov = Math.atan(half / d) * 180 / Math.PI; expect(d).toBeGreaterThanOrEqual(3); expect(halfFov).toBeLessThan(42); expect(wallWidth()).toBeLessThan(5.7);
     expect(LOOK[0]).toBe(WALL.x); expect(LOOK[2]).toBe(WALL.z); expect(isFree(STAND[0], STAND[1], R, open)).toBe(true);
   });
 });
@@ -154,7 +155,7 @@ describe('legibility, quality tiers, lazy loading', () => {
     expect(contrast(0x000000, 0xffffff)).toBeCloseTo(21, 5);
   });
   test('finish names are at least 6 cm tall on the wall (readable from the 3.2 m stand point)', () => {
-    const emMetres = (px) => px * WALL.panelH / 1000; expect(emMetres(31)).toBeGreaterThanOrEqual(0.06); expect(emMetres(23)).toBeGreaterThanOrEqual(0.05);
+    const emMetres = (px) => px * WALL.panelH / 1000; expect(emMetres(31)).toBeGreaterThanOrEqual(0.06); expect(emMetres(25)).toBeGreaterThanOrEqual(0.05);
   });
   test('low tier: half-size canvases, small images, no over-bright backlight (no bloom) and no LED line; unknown tier = low', () => {
     expect(TIER.low).toMatchObject({ tex: 512, glow: 1, picLight: false, image: 'small' }); expect(TIER.high.glow).toBeGreaterThan(1); expect(TIER.medium.glow).toBe(1); expect(tierOf('nope')).toBe(TIER.low);

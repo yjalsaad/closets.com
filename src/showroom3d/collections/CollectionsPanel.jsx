@@ -13,21 +13,26 @@ export function CollectionsPanel({ lang, touch, collectionId, onClose, fallbackF
   const [i, setI] = useState(0), drag = useRef(null), strip = useRef(null);
   const n = col ? col.items.length : 0, it = col ? col.items[i] : null;
   const go = (step) => setI((v) => (step === 'first' ? 0 : step === 'last' ? n - 1 : stepIndex(v, step, n)));
-  useEffect(() => { const el = strip.current && strip.current.querySelector('[aria-current="true"]'); if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }, [i]);
+  // keep the current finish visible in the horizontal list WITHOUT scrollIntoView (that would also scroll the panel body away from the picture)
+  useEffect(() => {
+    const box = strip.current, el = box && box.querySelector('[aria-current="true"]'); if (!el) return;
+    const b = box.getBoundingClientRect(), r = el.getBoundingClientRect();
+    if (r.left < b.left) box.scrollLeft += r.left - b.left - 8; else if (r.right > b.right) box.scrollLeft += r.right - b.right + 8;
+  }, [i]);
   if (!col || !it) return null;
-  const onKey = (e) => { const s = keyStep(e.key, rtl); if (s) { e.preventDefault(); go(s); } };
+  const onKey = (e) => { const s = keyStep(e.key, rtl); if (s) { e.preventDefault(); e.stopPropagation(); go(s); } };       // anywhere in the panel (focus starts on the heading)
   const down = (e) => { drag.current = { x: e.clientX, y: e.clientY }; };
   const up = (e) => { const d = drag.current; drag.current = null; if (!d) return; const s = swipeStep(e.clientX - d.x, e.clientY - d.y, rtl); if (s) go(s); };
   const img = it.image && (it.image.hero || it.image.thumb), quote = buildCollectionQuoteUrl({ collectionId: col.id, itemId: it.id, lang });
   return (
-    <aside className="sr-panel sr-panel-col" role="dialog" aria-modal="false" aria-label={ct('panelAria', lang)} ref={ref} data-testid="sr-collections-panel" data-collection={col.id}>
+    <aside className="sr-panel sr-panel-col" role="dialog" aria-modal="false" aria-label={ct('panelAria', lang)} ref={ref} onKeyDown={onKey} data-testid="sr-collections-panel" data-collection={col.id}>
       <header className="sr-panel-head">
         <p className="sr-eyebrow">{pickL(col.eyebrow, lang)}</p>
         <h2 tabIndex={-1} data-autofocus>{pickL(col.name, lang)}</h2>
         <button type="button" className="sr-btn sr-btn-line sr-panel-close" onClick={onClose} data-testid="sr-collections-close">{ct('back', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">Esc</kbd>}</button>
       </header>
       <div className="sr-panel-body">
-        <div className="sr-panel-sec sr-col-gallery" role="group" aria-roledescription="carousel" aria-label={ct('gallery', lang)} tabIndex={0} onKeyDown={onKey} data-testid="sr-col-gallery">
+        <div className="sr-panel-sec sr-col-gallery" role="group" aria-roledescription="carousel" aria-label={ct('gallery', lang)} tabIndex={0} data-testid="sr-col-gallery">
           <div className="sr-col-stage" onPointerDown={down} onPointerUp={up} onPointerCancel={() => { drag.current = null; }} data-has-image={img ? '1' : '0'}>
             {img
               ? <img key={it.id} src={img} alt={pickL(it.alt, lang)} width={it.image.w} height={it.image.h} loading="lazy" decoding="async" draggable={false} data-testid="sr-col-hero" />
