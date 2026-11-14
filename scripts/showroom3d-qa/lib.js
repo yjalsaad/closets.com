@@ -1,7 +1,7 @@
 /* Shared helpers for the Showroom 3D Playwright QA (headless Chromium on SwiftShader, i.e. CPU rendering). */
 const { chromium } = require('/opt/node-tools/node_modules/playwright');
 const path = require('path'), fs = require('fs');
-const CHROME = '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome';
+const CHROME = process.env.CHROME || '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome';   // CHROME=/usr/bin/google-chrome for H.264 / AAC (the bundled Chromium has no MP4 decoder)
 const BASE = process.env.BASE || 'http://localhost:5055';
 const OUT = process.env.OUT || path.resolve(__dirname, '../../docs/showroom3d/screenshots');
 fs.mkdirSync(OUT, { recursive: true });
