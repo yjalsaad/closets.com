@@ -15,7 +15,7 @@ let _mat = null;
 /** one shared material: vertex colours carry the albedo; a soft sheen lobe gives skin / cloth the cheap 'soft light' look of subsurface scattering, and the real linen normal map (CC0, Poly Haven rough_linen) gives cloth a woven micro relief */
 const material = () => {
   if (_mat) return _mat;
-  const m = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.72, metalness: 0.02, envMapIntensity: 0.45, sheen: 0.55, sheenRoughness: 0.45, sheenColor: new THREE.Color(P.skinB).lerp(new THREE.Color(0xffffff), 0.25) });
+  const m = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.72, metalness: 0.02, envMapIntensity: 0.45, sheen: 0.28, sheenRoughness: 0.5, sheenColor: new THREE.Color(P.sheenSoft) });   // restrained: a strong skin-coloured sheen turned black abayas brown
   const R = realSet('linen', 512); if (R && R.normal) { m.normalMap = toTex(R.normal, { srgb: false, repeat: [4, 4], anisotropy: 4 }); m.normalScale.set(0.55, 0.55); }
   return (_mat = m);
 };
@@ -103,7 +103,8 @@ export function buildCharacter(o = {}) {
   const wedge = (r, extra = 0.7) => new THREE.SphereGeometry(r, q ? 36 : 8, q ? 22 : 6, Math.PI / 2 + extra, Math.PI * 2 - 2 * extra, 0, 1.95);
   const covered = o.scarf || (male && outfit === 'thobe');
   if (covered) {
-    headItems.push(G(wedge(0.124, 0.7), scarfC, { y: 0.012, z: -0.008 }), G(new THREE.LatheGeometry(V([[0.125, -0.02], [0.2, -0.17], [0.215, -0.27], [0.001, -0.27]]).reverse(), q ? 36 : 8), scarfC, { y: -0.01, z: -0.02, s: [1, 1, 0.82] }));
+    headItems.push(G(wedge(0.124, 0.7), scarfC, { y: 0.012, z: -0.008 }), G(new THREE.LatheGeometry(V([[0.1, -0.085], [0.19, -0.19], [0.212, -0.29], [0.001, -0.29]]).reverse(), q ? 36 : 8), scarfC, { y: -0.01, z: -0.03, s: [1, 1, 0.82] }),
+      G(sph(0.086, q), scarfC, { y: -0.092, z: -0.016, s: [1.08, 0.72, 0.98] }));   // the drape now starts under the chin (it used to hide the mouth) with a soft wrap round the neck
     if (male) headItems.push(G(new THREE.TorusGeometry(0.115, 0.009, 4, q ? 14 : 8), P.agalBlack, { y: 0.065, rx: Math.PI / 2 }));
   } else if (o.hair !== 'none') {
     const hs = o.hair || (male || guest ? 'short' : 'bun');
@@ -113,10 +114,10 @@ export function buildCharacter(o = {}) {
     if (hs === 'long') headItems.push(G(limb(0.085, 0.06, 0.28, q), hairC, { y: -0.04, z: -0.07, s: [1.1, 1, 0.55] }));
   }
   const headMesh = M(headItems, head, 'headMesh');
-  const blush = new THREE.Color(skin).lerp(new THREE.Color(P.lipTone), 0.2).getHex(), lipHi = new THREE.Color(P.lipTone).lerp(new THREE.Color(0xffffff), 0.08).getHex(), iris = o.iris != null ? o.iris : P.eyeIris;
+  const blush = new THREE.Color(skin).lerp(new THREE.Color(P.lipTone), 0.2).getHex(), lipHi = new THREE.Color(P.lipTone).lerp(new THREE.Color(P.ikWhite), 0.08).getHex(), iris = o.iris != null ? o.iris : P.eyeIris;
   // eyes: sclera (slightly grey toward the corners), coloured iris with a darker limbal rim, pupil and a tiny specular catch-light; blink / saccade move the whole eye group
   const eyes = M([-1, 1].flatMap((x) => [G(sph(0.0128, q), P.sclera, { x: x * 0.036, s: [1.3, 0.88, 0.5] }), G(sph(0.0082, q), shade(iris, 0.55), { x: x * 0.036, z: 0.0035, s: [1, 1, 0.5] }), G(sph(0.0066, q), iris, { x: x * 0.036, z: 0.0045, s: [1, 1, 0.5] }),
-    G(sph(0.0034, 0), P.eyeDark, { x: x * 0.036, z: 0.0072, s: [1, 1, 0.45] }), G(sph(0.0014, 0), 0xffffff, { x: x * 0.036 + 0.0032, y: 0.0035, z: 0.0086 })]), head, 'eyes'); eyes.position.set(0, 0.022, 0.087); eyes.castShadow = false;
+    G(sph(0.0034, 0), P.eyeDark, { x: x * 0.036, z: 0.0072, s: [1, 1, 0.45] }), G(sph(0.0014, 0), P.ikWhite, { x: x * 0.036 + 0.0032, y: 0.0035, z: 0.0086 })]), head, 'eyes'); eyes.position.set(0, 0.022, 0.087); eyes.castShadow = false;
   // lids, lashes, brows (arched, three segments each), nose (bridge, tip, nostrils), cheeks and the upper lip live in the head mesh
   for (const x of [-1, 1]) {
     headItems.push(G(sph(0.0138, q), skinD, { x: x * 0.036, y: 0.0305, z: 0.0875, s: [1.32, 0.42, 0.62] }), G(new THREE.BoxGeometry(0.03, 0.0032, 0.004), P.eyeDark, { x: x * 0.036, y: 0.0345, z: 0.0948, rz: x * -0.06 }),
@@ -128,7 +129,7 @@ export function buildCharacter(o = {}) {
   // ---- arms: rounded upper arm + forearm (a bell sleeve on the abaya), mitten hand with a thumb
   const fore0 = outfit === 'suit' && male ? P.shirtWhite : cloth;
   for (const side of [-1, 1]) {
-    const sj = J(chest, side * (sh + 0.018), 0.41, 0, side < 0 ? 'shoulderR' : 'shoulderL'), upper = M([G(limb(0.05, 0.039, 0.25, q), cloth), G(sph(0.056, q), cloth, { y: -0.004, s: [1.0, 1.12, 1.0] })], sj, 'upperArm');   // the round deltoid fills the gap between shoulder and sleeve
+    const sj = J(chest, side * (sh + 0.018), 0.41, 0, side < 0 ? 'shoulderR' : 'shoulderL'), upper = M([G(limb(0.05, 0.039, 0.25, q), cloth), G(sph(0.0515, q), cloth, { y: -0.002, s: [1.0, 1.1, 1.0] })], sj, 'upperArm');   // the round deltoid fills the gap between shoulder and sleeve
     const ej = J(sj, 0, -0.27, 0, 'elbow');
     const fore = M([G(limb(0.039, 0.032 + sleeveW, 0.22, q, sleeveW * 0.5), fore0), G(sph(0.03, q), skin, { y: -0.285, s: [0.62, 1.3, 0.95] }), G(sph(0.024, q), skin, { y: -0.33, z: 0.004, s: [0.6, 1.25, 0.8] }), G(sph(0.0135, 0), skin, { x: -side * 0.022, y: -0.3, z: 0.018, s: [1, 1.7, 1] })], ej, 'foreArm');
     arms[side < 0 ? 'R' : 'L'] = { shoulder: sj, elbow: ej, upper, fore };

@@ -22,11 +22,11 @@ export function buildGalleryFrames({ depth, lang = 'en' }) {
   GALLERY.forEach((g, i) => {
     const x = slots[i], grp = new THREE.Group(); grp.position.set(x, y, z); grp.userData.label = lang === 'ar' ? g.ar : g.en; grp.name = 'frame-' + g.id; group.add(grp);
     grp.add(mesh(box(W + 0.34, H + 0.34, 0.06), frameM, {})); grp.add(mesh(box(W + 0.16, H + 0.16, 0.07), matM, {}));
-    const m = new THREE.MeshBasicMaterial({ color: 0x000000, toneMapped: true }); mats.push(m);
+    const m = new THREE.MeshBasicMaterial({ color: PALETTE.ink, toneMapped: true }); mats.push(m);
     const pic = new THREE.Mesh(new THREE.PlaneGeometry(W, H), m); pic.position.z = 0.04; grp.add(pic);
     grp.add(mesh(box(1.4, 0.04, 0.12), light, { y: H / 2 + 0.34, z: 0.1 }));
   });
   const loader = new THREE.TextureLoader(), tex = [];
-  const load = () => GALLERY.forEach((g, i) => loader.load(galleryUrl(g), (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; tex.push(t); mats[i].map = t; mats[i].color.setHex(0xe6dccf); mats[i].needsUpdate = true; }, undefined, () => { group.children[i].visible = false; }));
+  const load = () => GALLERY.forEach((g, i) => loader.load(galleryUrl(g), (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; tex.push(t); mats[i].map = t; mats[i].color.setHex(PALETTE.photoTint); mats[i].needsUpdate = true; }, undefined, () => { group.children[i].visible = false; }));
   return { group, load, setLanguage(l) { group.children.forEach((c, i) => { c.userData.label = l === 'ar' ? GALLERY[i].ar : GALLERY[i].en; }); }, dispose() { tex.forEach((t) => t.dispose()); mats.forEach((m) => m.dispose()); } };
 }

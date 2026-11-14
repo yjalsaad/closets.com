@@ -62,7 +62,7 @@ export const PALETTE = {
   // characters (procedural staff / visitor avatars): stylised skin tones, hair, modest professional outfits
   skinA: 0xf0c9a4, skinB: 0xd9a47c, skinC: 0xb97d57, skinD: 0x8a5a3c, hairBlack: 0x1c1512, hairBrown: 0x4a3224, hairDark: 0x2a1d16,
   abayaBlack: 0x211e22, abayaNavy: 0x1f2a44, abayaSage: 0x5f705c, abayaPlum: 0x5a3347, abayaSand: 0xb9a07f, coatTeal: 0x2e6b68, coatBrick: 0x8a4a3a,
-  scarfCream: 0xefe6d6, scarfRose: 0xc7a0a0, scarfGrey: 0x8c8f93, thobeWhite: 0xf3f0e8, ghutraWhite: 0xfafafa, agalBlack: 0x141214, suitGrey: 0x55585d, suitNavy: 0x28324a, shirtWhite: 0xf1f1ee, shoeDark: 0x1b1715, eyeDark: 0x1d1512, eyeIris: 0x5a3a24, sclera: 0xe9e5df, mouthDark: 0x3a1c1a, lipTone: 0x9a5a52,
+  scarfCream: 0xefe6d6, scarfRose: 0xc7a0a0, scarfGrey: 0x8c8f93, thobeWhite: 0xf3f0e8, ghutraWhite: 0xfafafa, agalBlack: 0x141214, suitGrey: 0x55585d, suitNavy: 0x28324a, shirtWhite: 0xf1f1ee, shoeDark: 0x1b1715, eyeDark: 0x1d1512, eyeIris: 0x5a3a24, sheenSoft: 0x8a7f78, photoTint: 0xe6dccf, sclera: 0xe9e5df, mouthDark: 0x3a1c1a, lipTone: 0x9a5a52,
   // overlay
   veil: 0xf6efe4,
   // material tints
