@@ -20,6 +20,7 @@ import { makeDeckStore } from '../vip/deckStore';
 import { initDeckState, deckReducer } from '../vip/deckState';
 import { initPlay, playReducer, playTick, slideSeconds } from '../vip/motion';
 import { FilmPlayer } from '../vip/filmPlayer';
+import { agendaIndex, nextAgendaItem, firstAgendaItem } from '../vip/meeting';
 import { followCamera } from '../characters/follow';
 import { TALK_RADIUS } from '../staff/roster';
 import { nextAvatar, AVATARS } from '../characters/visitorAvatar';
@@ -36,7 +37,7 @@ const editable = (el) => !!el && (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) |
 export class Explorer {
   constructor({ engine, canvas, reduced = false, bob = true, onState = () => {}, projectsLoader = loadSiteProjects, deckStore = makeDeckStore() }) {
     this.projectsLoader = projectsLoader; this.projectsPromise = null;
-    this.deckStore = deckStore; this.userDecks = deckStore.list(); this.vipDialog = false; this.decksRev = 0; this.play = initPlay(); this.presMode = 'panel'; this.lastProg = -1; this.ds = initDeckState(this.deckIds(), 'default', 0, this.deckCounts());
+    this.deckStore = deckStore; this.userDecks = deckStore.list(); this.vipDialog = false; this.decksRev = 0; this.play = initPlay(); this.presMode = 'panel'; this.lastProg = -1; this.meetingOn = false; this.ds = initDeckState(this.deckIds(), this.initialDeck(), 0, this.deckCounts());
     // owner decision: every visit starts in first person; the toggle (and the stored avatar choice) stays
     this.camMode = 'first'; this.avatarKind = AVATARS[store.get('closets_yb_avatar', 'female')] ? store.get('closets_yb_avatar', 'female') : 'female'; this.tp = null;
     this.engine = engine; this.canvas = canvas; this.onState = onState; this.reduced = reduced;
@@ -311,7 +312,7 @@ export class Explorer {
   }
   stepStation(dir) { const f = this.focus; if (f && f.kind === 'vip') this.setStation(stepStation(this.ds.slide, dir, this.deck.slides.length)); }
   /** switch deck (by id); the first slide shows */
-  setDeck(id) { const f = this.focus; if (!f || f.kind !== 'vip') return; const next = deckReducer(this.ds, { type: 'deck', id }); if (next === this.ds) return; this.ds = next; this.syncVip(); }
+  setDeck(id) { const f = this.focus; if (!f || f.kind !== 'vip') return; const next = deckReducer(this.ds, { type: 'deck', id }); if (next === this.ds) return; this.ds = next; this.meetingOn = id === 'meeting'; this.syncVip(true, { vipMeeting: this.meetingOn }); }
   cycleDeck(dir = 1) { const f = this.focus; if (!f || f.kind !== 'vip') return; const next = deckReducer(this.ds, { type: 'deckStep', dir }); if (next === this.ds) return; this.ds = next; this.syncVip(); }
   /** save a (sanitised) deck on THIS device and show it. Returns the store result { ok, error, deck } */
   addDeck(deck, show = true) {
@@ -326,8 +327,23 @@ export class Explorer {
   }
   /** the "Add presentation" dialog is open: the explorer ignores keys (typing, Tab, Esc belong to the dialog) */
   setVipDialog(v) { this.vipDialog = !!v; if (v && this.play.playing) this.setPlaying(false); if (v && this.film) this.film.pause(); }
+  /** the room opens on the Management meeting (the primary section); ?vipdeck=<id> opens another entry (deep link, QA) */
+  initialDeck() { let want = ''; try { want = new URLSearchParams(window.location.search).get('vipdeck') || ''; } catch (e) { /* ignore */ } return this.deckIds().includes(want) ? want : PERMANENT_DECKS[0].id; }
+  // ---- Management meeting: the agenda (vip/meeting.js). Nothing advances by itself; a film with sound only starts on the visitor's action.
+  agendaNow() { return agendaIndex(this.ds.deckId, this.ds.slide); }
+  goAgenda(item, { play = false } = {}) {
+    if (!item || !this.focus || this.focus.kind !== 'vip') return false; this.meetingOn = true;
+    this.ds = deckReducer(deckReducer(this.ds, { type: 'deck', id: item.deck }), { type: 'slide', index: item.slide }); this.syncVip(true, { vipMeeting: true });
+    if (play && item.kind === 'film') { const F = this.film; if (F) F.load().then(() => { /* the click that asked for it is the user gesture; if the browser no longer honours it the film simply stays on its poster */ this.filmToggle(); }); }
+    return true;
+  }
+  /** "Start meeting": the first agenda item (film 1) goes on the screen and plays (this is called from a click / key press) */
+  startMeeting() { return this.goAgenda(firstAgendaItem(), { play: true }); }
+  /** "Next agenda item": the next film is put up paused (the visitor presses Play), the next deck opens on its first slide */
+  nextAgenda() { const nx = nextAgendaItem(this.agendaNow()); if (!nx) return false; if (this.film) this.film.pause(); return this.goAgenda(nx); }
   // ---- FILM mode ("Watch our story"): a one-slide pseudo-deck. The player (vip/filmPlayer.js) is created the first time the entry is chosen; nothing plays without a user gesture.
-  get filmOn() { return !!this.deck.film; }
+  get filmOn() { const sl = this.deck.slides[this.ds.slide]; return !!sl && sl.builtin === 'film'; }
+  get filmId() { const sl = this.deck.slides[this.ds.slide]; return (sl && sl.filmId) || 'journey'; }
   ensureFilm() {
     if (this.film) return this.film; const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl', w = (this.canvas && this.canvas.clientWidth) || 1280;
     const mobile = w <= 700 || (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches), saveData = typeof navigator !== 'undefined' && navigator.connection && navigator.connection.saveData;
@@ -339,17 +355,18 @@ export class Explorer {
   filmHost() {
     const v = this.film && this.film.ensureVideo(); if (!v || typeof document === 'undefined') return null;
     if (!this._filmHost) { const h = document.createElement('div'); h.className = 'sr-vip-filmhost'; h.setAttribute('data-testid', 'sr-vip-filmhost'); const st = this.canvas && this.canvas.parentNode; (st || document.body).appendChild(h); this._filmHost = h; }
-    if (v.parentNode !== this._filmHost) this._filmHost.appendChild(v); return this._filmHost;
+    if (v.parentNode !== this._filmHost) { while (this._filmHost.firstChild) this._filmHost.removeChild(this._filmHost.firstChild); this._filmHost.appendChild(v); } return this._filmHost;
   }
   filmView() {
     const F = this.film; if (!this.filmOn || !F) return null; const st = F.state, live = st.status === 'playing' || st.status === 'paused';
-    return { status: st.status, title: st.film ? st.film.title : null, poster: F.poster, video: live ? F.video : null, cue: st.caption === 'off' ? '' : st.cue, caption: st.caption, time: st.time, duration: st.duration };
+    const sl = this.deck.slides[this.ds.slide];
+    return { status: st.status, id: st.id, real: !!(st.film && st.film.real), burned: !!(st.film && st.film.burnedSubtitles), title: st.film ? st.film.title : (sl ? sl.title : null), poster: F.poster, video: live ? F.video : null, cue: st.caption === 'off' ? '' : st.cue, caption: st.caption, time: st.time, duration: st.duration };
   }
   onFilm() { const P = this.products; if (P && P.vip && P.vip.setFilm) P.vip.setFilm(this.filmView()); this.emit({ vipFilmRev: (this.filmRev = (this.filmRev || 0) + 1) }); }
   /** called whenever the deck / slide changes: the film entry loads its manifest; any other deck pauses the film and gives the wall back to the slides */
   syncFilm() {
     const P = this.products;
-    if (this.filmOn) { const F = this.ensureFilm(); F.load(); if (this.play.playing) this.play = playReducer(this.play, { type: 'pause' }); if (P && P.vip) { P.vip.setPlayback({ progress: -1 }); if (P.vip.setFilm) P.vip.setFilm(this.filmView()); } }
+    if (this.filmOn) { const F = this.ensureFilm(); F.select(this.filmId); if (this.play.playing) this.play = playReducer(this.play, { type: 'pause' }); if (P && P.vip) { P.vip.setPlayback({ progress: -1 }); if (P.vip.setFilm) P.vip.setFilm(this.filmView()); } }
     else { if (this.film) this.film.pause(); if (this.cinema) this.setCinema(false); if (P && P.vip && P.vip.setFilm) P.vip.setFilm(null); }
   }
   /** play / pause from a user gesture (button, key, click on the wall) */
@@ -441,6 +458,7 @@ export class Explorer {
     if (f.kind === 'vip') {
       const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl', d = arrowDir(code, rtl), dig = /^(?:Digit|Numpad)([1-9])$/.exec(code), n = this.deck.slides.length;
       if (onControl && (code === 'ArrowLeft' || code === 'ArrowRight' || code === 'ArrowUp' || code === 'ArrowDown')) return false;
+      if (code === 'KeyN') { e.preventDefault(); this.nextAgenda(); return true; }
       if (this.filmOn) {   // film keys: P / Space play or pause, arrows seek 10 s, M mute, C captions, F or Z cinema
         if (code === 'KeyP' || (code === 'Space' && !onControl)) { e.preventDefault(); this.filmToggle(); return true; }
         if (code === 'ArrowRight' || code === 'ArrowLeft') { e.preventDefault(); this.filmSeekBy(code === 'ArrowRight' ? 10 : -10); return true; }
@@ -479,7 +497,7 @@ export class Explorer {
     const P = this.products, v = P && P.vip; if (!v || !v.screenMesh || this.allDecks().length < 2) return;
     const n = this.ndc(e.clientX, e.clientY), cam = this.engine.camera; cam.updateMatrixWorld(true); this.raycaster.setFromCamera({ x: n.x, y: n.y }, cam);
     const hit = this.raycaster.intersectObject(v.screenMesh, false)[0]; if (!hit || !hit.uv) return;
-    const i = v.chipAt(hit.uv.x, 1 - hit.uv.y); if (i >= 0) this.setDeck(this.allDecks()[i].id); else if (this.filmOn) this.filmToggle();   // a click on the film itself plays / pauses it
+    const i = v.chipAt(hit.uv.x, 1 - hit.uv.y); if (i >= 0) this.setDeck(this.allDecks()[i].id); else if (this.filmOn) this.filmToggle(); else { const sl = this.deck.slides[this.ds.slide]; if (sl && sl.builtin === 'meeting') this.startMeeting(); }   // a click on the film plays / pauses it; a click on the agenda card starts the meeting
   }
   focusPointer(e, kind) {
     if (!this.focus) { if (kind === 'up') this.pdown = null; return; }

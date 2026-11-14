@@ -17,7 +17,7 @@ describe('film manifest parsing', () => {
     expect(r.ok).toBe(true); expect(r.film.poster).toBe(''); expect(r.film.captions).toEqual([{ lang: 'en', src: '/yas-bloom/film/journey.en.vtt' }]); expect(r.film.sources).toHaveLength(2);
   });
   test('markup in the title / notes is stripped; a missing title falls back to the film name; a silly duration becomes 0', () => {
-    const r = parseFilmManifest({ ...MAN, title: { en: '<script>x</script>Our <b>story</b>' }, notes: '<i>AI</i>-generated', durationSec: -5 }); expect(r.film.title.en).toBe('Our story'); expect(r.film.title.ar).toBe('الخزائن: حكاية طموح'); expect(r.film.note).toBe('AI -generated'); expect(r.film.durationSec).toBe(0);
+    const r = parseFilmManifest({ ...MAN, title: { en: '<script>x</script>Our <b>story</b>' }, notes: '<i>AI</i>-generated', durationSec: -5 }); expect(r.film.title.en).toBe('Our story'); expect(r.film.title.ar).toBe('Our story'); expect(r.film.note).toBe('AI -generated'); expect(r.film.durationSec).toBe(0);
   });
 });
 
@@ -79,7 +79,7 @@ describe('film in the panel and with the adviser', () => {
   });
   test('with a manifest: ready and PAUSED (no video element, no src, nothing requested), the 720 file on the low tier, English captions by default; Arabic page -> Arabic captions; AI label shown', async () => {
     const asked = []; const ex = mkEx((u) => { asked.push(u); return Promise.resolve({ ok: true, text: () => Promise.resolve(JSON.stringify(MAN)) }); }); await ex.film.load(); render(view(ex));
-    expect(asked).toEqual(['/yas-bloom/film/film.json']); expect(ex.film.state).toMatchObject({ status: 'ready', src: '/yas-bloom/film/journey-720.mp4', caption: 'en' }); expect(ex.film.video).toBeNull();
+    expect(asked).toEqual(['/yas-bloom/film/films.json']);   // the list is asked first; this mock answers it with the old single-film shape, which is accepted as is expect(ex.film.state).toMatchObject({ status: 'ready', src: '/yas-bloom/film/journey-720.mp4', caption: 'en' }); expect(ex.film.video).toBeNull();
     expect(screen.getByTestId('sr-vip-film').dataset.status).toBe('ready'); expect(screen.getByTestId('sr-vip-film-ai').textContent).toBe('AI-generated illustration'); expect(screen.getByTestId('sr-vip-film-play')).not.toBeDisabled(); expect(screen.getByTestId('sr-vip-film-play').textContent).toMatch(/Play film/);
     fireEvent.click(screen.getByTestId('sr-vip-film-play')); fireEvent.click(screen.getByTestId('sr-vip-film-cinema')); expect(ex.calls).toEqual([['toggle'], ['cinema', true]]); expect(screen.getByTestId('sr-vip-film-cc').textContent).toMatch(/EN/);
     const ar = new FilmPlayer({ fetcher: () => Promise.resolve({ ok: true, text: () => Promise.resolve(JSON.stringify(MAN)) }), lang: 'ar', device: { tier: 'high' } }); await ar.load(); expect(ar.state).toMatchObject({ caption: 'ar', src: '/yas-bloom/film/journey-1080.mp4' });

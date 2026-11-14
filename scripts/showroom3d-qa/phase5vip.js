@@ -6,7 +6,7 @@ const L = require('./lib.js');
 const { check, ex, shot } = L;
 const fs = require('fs'), path = require('path');
 
-const FAST = 'debug=1&quality=low&aa=0&scale=0.5';
+const FAST = 'debug=1&quality=low&aa=0&scale=0.5&vipdeck=default';
 const FIX = [{ id: 1, name: 'Test fixture project A', category: 'Kitchens', location: 'Test location', client_type: 'Villa' }, { id: 2, name: 'Test fixture project B', category: 'Wardrobes', location: 'Test location' }, { id: 3, name: 'Test fixture project C', category: 'Doors' }];
 const FORBIDDEN = /\b(roi|returns?|yields?|valuation|equity|stakes?|shares?|dividends?|profits?|guarantee[sd]?|BHD|USD|per\s?cent)\b|%|دينار|عائد|ربح|تقييم|أسهم|ضمان/i;
 const VIP_IN = [0, -27.4, 0, 0.05], VIP_STAND = [0, -30.2, 0, 0.05];
@@ -132,7 +132,7 @@ async function stats(b) {
 }
 
 async function gallery(b) {
-  const o = await L.openShowroom(b, { query: 'debug=1&quality=high&aa=0', viewport: { width: 1280, height: 720 } }); const page = o.page; await mockProjects(page, 'rows'); await L.enterExplore(page); await dismissCoach(page);
+  const o = await L.openShowroom(b, { query: 'debug=1&quality=high&aa=0&vipdeck=default', viewport: { width: 1280, height: 720 } }); const page = o.page; await mockProjects(page, 'rows'); await L.enterExplore(page); await dismissCoach(page);
   const snap = async (name, wait = 7000, hud = false) => { await page.waitForTimeout(wait); await setHud(page, hud); await page.waitForTimeout(250); await shot(page, name, { quality: 62 }); await setHud(page, true); };
   await goto(page, [0, -21, 0, 0.06]); await snap('phase5-vip-00-glass-room-from-hall', 7000);
   await goto(page, [0, -26.4, 0, 0.1]); await snap('phase5-vip-01-door-opening', 6000);

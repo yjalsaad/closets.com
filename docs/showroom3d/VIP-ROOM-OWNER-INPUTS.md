@@ -86,3 +86,19 @@ Source files (supplied by the owner, not in the repository): `THE_CLOSET_-_Compa
 ## The film ("Watch our story")
 
 The room has a film entry for "The Closets: The Journey of Ambition" / "الخزائن: حكاية طموح". It needs the files listed in `VIP-DECKS.md` section 9 under `public/yas-bloom/film/`; until they are deployed the room says "Film coming soon". The film is labelled "AI-generated illustration" on the screen, in the panel and in cinema mode. Please confirm: (1) the final title in both languages, (2) that the Arabic narration and both caption files were reviewed, (3) that the label wording is what you want shown.
+
+## Management meeting: the two company films - please confirm
+
+The room opens on "Management meeting" with your two films (transcoded for the web, content unchanged).
+
+| Film | What it shows (from viewing frames) | Length |
+|---|---|---|
+| "YAS: our story" / "YAS: حكايتنا" | Bahrain skyline and fort, the YAS factory and production lines (panel presses, lamination, roller lines), finished interiors (a study, an apartment, a bathroom), wood samples, a globe with the YAS logo, a man choosing samples, a presenter. YAS logo in the corner; Arabic and English subtitles are part of the picture. | 2 min 57 s |
+| "The Closets: our story" / "ذا كلوزتس: حكايتنا" | Machining close-ups, the factory floor from above, wardrobe interiors with shirts, staff reviewing drawings, designers at CAD screens, two people walking through the showroom, the panel saw and CNC, a finished bedroom, The Closets logo with social icons at the end. No subtitles. | 1 min 43 s |
+
+Please confirm:
+1. **Titles** in both languages (ours are descriptive placeholders; the Arabic needs native review).
+2. **People**: identifiable staff and other people appear in both films (factory workers, office staff, a presenter). Confirm they consent to public use on the website.
+3. **Music and footage licensing**: both films have a music track, and the YAS film includes what look like stock shots (skyline, globe, lifestyle interiors). Confirm the licences cover public web use.
+4. **Spoken language**: not determined here (no transcription tool in this environment). The YAS film's burned-in subtitles suggest Arabic narration. If the Closets film has narration you want subtitled, supply caption files (`.vtt`) and they can be added to `films.json`.
+5. The Closets film ends on a card with social-media icons; confirm that is still current.
