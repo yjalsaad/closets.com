@@ -8336,7 +8336,6 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
   // i. Offers strip — from store_offers (with customer_offers fallback).
   const [offers, setOffers] = useState([]);
   // i(stories). Customer stories — from website_projects.
-  const [projects, setProjects] = useState([]);
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   useEffect(() => {
@@ -8344,7 +8343,6 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
       if (Array.isArray(d) && d.length) { setOffers(d); return; }
       api('customer_offers?active=eq.true&order=sort_order.asc&limit=3').then(c => { if (Array.isArray(c)) setOffers(c); }).catch(()=>{});
     }).catch(()=>{});
-    api('website_projects?active=eq.true&order=sort_order.asc&limit=6').then(d => { if (Array.isArray(d)) setProjects(d); }).catch(()=>{});
   }, []);
   const subscribe = () => {
     const e = email.trim();
