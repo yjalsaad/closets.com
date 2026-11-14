@@ -116,7 +116,8 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
         </div>}
         {!isFilm && <nav className="sr-vip-nav" aria-label={t('vipSlides', lang)}>
           <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.stepStation(-1)} disabled={idx === 0} data-testid="sr-vip-prev">{t('vipPrev', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">{rtl ? '→' : '←'}</kbd>}</button>
-          <ol className="sr-vip-dots">{rd.slides.map((x, i) => <li key={x.id}><button type="button" className="sr-vip-dot" aria-label={`${unit} ${i + 1}: ${x.title}`} aria-current={i === idx ? 'step' : undefined} onClick={() => ex.setStation(i)} data-testid={'sr-vip-dot-' + i} /></li>)}</ol>
+          {n <= 8 ? <ol className="sr-vip-dots">{rd.slides.map((x, i) => <li key={x.id}><button type="button" className="sr-vip-dot" aria-label={`${unit} ${i + 1}: ${x.title}`} aria-current={i === idx ? 'step' : undefined} onClick={() => ex.setStation(i)} data-testid={'sr-vip-dot-' + i} /></li>)}</ol>
+            : <label className="sr-vip-scrub"><span className="sr-vip-sronly">{t('vipSlides', lang)}</span><input type="range" min={1} max={n} step={1} value={idx + 1} onChange={(e) => ex.setStation(Number(e.target.value) - 1)} aria-label={t('vipSlides', lang)} aria-valuetext={`${unit} ${idx + 1} / ${n}: ${slide.title}`} data-testid="sr-vip-scrub" /></label>}
           <button type="button" className="sr-btn" onClick={() => ex.stepStation(1)} disabled={idx === n - 1} data-testid="sr-vip-next">{t('vipNext', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">{rtl ? '←' : '→'}</kbd>}</button>
         </nav>}
         {!touch && !big && decks.length > 1 && <p className="sr-note sr-vip-keys">{t('vipDeckKeys', lang)}. {t(isFilm ? 'filmKeys' : 'vipPresentKeys', lang)}</p>}
