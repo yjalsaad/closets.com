@@ -151,11 +151,19 @@ function drawCover(g, im, x, y, w, h, scale = 1, pan = 0.5, r = 14) {
   g.drawImage(im, x - (iw - w) * pan, y - (ih - h) * 0.5, iw, ih); g.restore();
 }
 const YEAR = /^(\d{4}):\s*(.*)$/;
-/** LEGIBILITY SCALE of the generic slides (design units of the 1536 x 864 wall, i.e. % of the screen height): title 66 (7.6 %), lead 38 (4.4 %), bullets 30-40 (3.5-4.6 %), table / stat labels 28-30,
+/** LEGIBILITY SCALE of the generic slides (design units of the 1536 x 864 wall, i.e. % of the screen height): title 66 (7.6 %), lead 38 (4.4 %), bullets 30-52 (3.5-6 %; the largest size that fits the slide is chosen), table / stat labels 28-30,
  *  captions 24, source + illustrative labels 22, disclaimer 22. Weights 600+ (no thin type), no squeezed text (no maxWidth), safe margins 70 px (sides) and 52 px (bottom). Tested by
  *  __tests__/vipLegibility.test.js against every slide of every committed deck in both languages. */
-export const TYPE = { title: 66, hero: 80, lead: 38, bullet: [40, 38, 36, 32, 30], cell: 30, stat: 30, caption: 24, meta: 22, fine: 22, stamp: 26, safeX: 70, safeBottom: 52, bodyBottom: 724 };
-const bulletSize = (n) => (n <= 2 ? TYPE.bullet[0] : n <= 3 ? TYPE.bullet[1] : n <= 4 ? TYPE.bullet[2] : n <= 6 ? TYPE.bullet[3] : TYPE.bullet[4]);
+export const TYPE = { title: 66, hero: 80, lead: 38, bullet: [52, 48, 44, 40, 36, 34, 32, 30], cell: 30, stat: 30, caption: 24, meta: 22, fine: 22, stamp: 26, safeX: 70, safeBottom: 52, bodyBottom: 724 };
+/** the LARGEST bullet size whose wrapped text fits the space (so short slides use big type instead of leaving the screen half empty); never below the 30 px floor */
+function fitBullets(g, bullets, maxW, availH, sizes) {
+  for (const size of sizes) {
+    g.font = `600 ${size}px ${FONT}`; let hgt = 0;
+    for (const b of bullets) { const m = YEAR.exec(b), txt = m ? m[2] : b, mw = m ? maxW - Math.round(size * 3.3) : maxW; let line = '', lines = 1; for (const wd of String(txt).split(/\s+/)) { const t = line ? line + ' ' + wd : wd; if (g.measureText(t).width > mw && line) { lines++; line = wd; } else line = t; } hgt += lines * size * 1.3 + 8 + size * 0.25; }
+    if (hgt <= availH) return size;
+  }
+  return sizes[sizes.length - 1];
+}
 /** one generic slide (imported / saved / profile decks): title, lead, bullets, image / table / bar / stat blocks, source + illustrative labels, the disclaimer in the footer.
  *  Layouts: split (default), hero (first image full-bleed, title over it), duo (two images side by side).
  *  o: { lang, slide (resolved), index, count, deckTitle, images: Map url -> HTMLImageElement, anim?: { t seconds since the slide appeared, level (vip/motion.js motionLevel) }, metrics?: [] (collects every text drawn) }
@@ -212,8 +220,8 @@ export function drawSlide(g, w, h, o) {
 
   // ---------------- split: bullets on the start side, blocks on the other (full width when there are no blocks)
   const blocks = s.blocks || [], hasBlocks = blocks.length > 0, textW = hasBlocks ? 690 : w - 2 * X - 40, blockW = hasBlocks ? w - 2 * X - 690 - 56 : 0;
-  const size = hasBlocks ? Math.min(34, bulletSize(s.bullets.length)) : bulletSize(s.bullets.length), tableOnly = hasBlocks && others.length === blocks.length && others.every((b) => b.type === 'table');
-  let by = top + 28; if (!tableOnly) s.bullets.forEach((b, i) => { by = bulletRow(b, k.rtl ? w - X - 26 : X + 26, by, textW - 26, size, rev(i + 1)); });
+  const tableOnly = hasBlocks && others.length === blocks.length && others.every((b) => b.type === 'table'), size = s.bullets.length ? fitBullets(g, s.bullets, textW - 26, bottom - top - 34, hasBlocks ? TYPE.bullet.filter((z) => z <= 40) : TYPE.bullet) : TYPE.bullet[4];
+  let by = top + 16 + size; if (!tableOnly) s.bullets.forEach((b, i) => { by = bulletRow(b, k.rtl ? w - X - 26 : X + 26, by, textW - 26, size, rev(i + 1)) + size * 0.25; });
   if (hasBlocks) {
     const ordered = [...imgs, ...others], bx0 = tableOnly ? X : (k.rtl ? X : w - X - blockW), bw = tableOnly ? w - 2 * X : blockW, btop = tableOnly ? top + 12 : Math.max(top, 270), bh = (bottom - btop - 16 * (ordered.length - 1)) / ordered.length; let cy = btop;
     ordered.forEach((b, i) => { const e = rev(s.bullets.length + i + 1, 0.1); g.save(); g.globalAlpha = e; g.translate(0, (1 - e) * 26); drawBlock(k, g, b, bx0, cy, bw, bh, lang, o, accent, { t, lv, kb, pan }); g.restore(); cy += bh + 16; });

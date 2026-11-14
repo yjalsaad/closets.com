@@ -67,8 +67,8 @@ async function seq(b) {
   await vip(page, (v, x) => { x.setStation(3); }); await settle(page, 600); await vip(page, (v) => v.freezeAnim(9)); await wait(page, 300);
   await vip(page, (v, x) => { x.setStation(5); }); await wait(page, 150);
   let i = 0; for (const t of [0.1, 0.3, 0.55, 1.6]) await frame(page, `vipprofile-seq-a${++i}-transition-values-to-milestones-t${String(t).replace('.', '')}`, t);
-  await vip(page, (v, x) => x.setStation(13)); await wait(page, 200); i = 0; for (const t of [0.15, 0.7, 1.2, 2.6]) await frame(page, `vipprofile-seq-b${++i}-capacity-stats-t${String(t).replace('.', '')}`, t);
-  await vip(page, (v, x) => x.setStation(18)); await wait(page, 200); await imagesReady(page); i = 0; for (const t of [0.2, 0.6, 1.2, 8]) await frame(page, `vipprofile-seq-c${++i}-durrat-dar-duo-t${String(t).replace('.', '')}`, t);
+  await vip(page, (v, x) => x.setStation(14)); await wait(page, 200); i = 0; for (const t of [0.15, 0.7, 1.2, 2.6]) await frame(page, `vipprofile-seq-b${++i}-capacity-stats-t${String(t).replace('.', '')}`, t);
+  await vip(page, (v, x) => x.setStation(19)); await wait(page, 200); await imagesReady(page); i = 0; for (const t of [0.2, 0.6, 1.2, 8]) await frame(page, `vipprofile-seq-c${++i}-durrat-dar-duo-t${String(t).replace('.', '')}`, t);
   check('seq: captured 12 frames', true); await o.ctx.close();
 }
 
