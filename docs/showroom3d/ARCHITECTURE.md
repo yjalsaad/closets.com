@@ -204,6 +204,9 @@ Draw calls / triangles per frame (`renderer.info` summed over every pass, 1280x7
 | high | 389 / 160k | 429 / 196k | 525 / 252k | 540 / 202k* | 483 / 181k | 408 / 161k | 436 / 224k | 744 / 427k | 356 / 175k |
 (*living re-measured after switching its glass to alpha: 842 before, 540 after; the table's other numbers are from the same run.) Low tier is lighter than Phase 4 at the original three departments (kitchen 369 to 269, wardrobe 374 to 290, door 272 to 229) while carrying eight furnished bays and the VIP room. The wardrobe on high is the only spot above 700 (transmission glass pass + mirror + shadow): it was 616 before the realism pass and 918 after the mirror, now 744.
 
+### Bug found and fixed on the way (high tier)
+Screenshots of the Living bay at 1100x640 came out **completely black** on the high tier (every other size and tier was fine). Cause: a near-mirror specular peak (polished floor clearcoat catching the key spot exactly) exceeds the half-float range, becomes Inf / NaN in the HDR target and the bloom chain spreads it over the frame. Fix: a clamp pass (`min(rgb, 48)`, NaN to 0) before the bloom in `3d/post.js`; verified by re-rendering the same frame (mean brightness 3.6 to 106). This could also have affected Phase 4 bays at other canvas sizes on real GPUs.
+
 ## VIP Meeting Room (9th room)
 
 **Where**: a glass-fronted boardroom against the back wall of the hall, centred on the nave, behind the second bench (x -7..7, z -35.5..-28.5, height 4.3 m; layout in `scenes/vip/layout.js`, shared by the scene, collision, navigation and tests). The room's back wall stands 0.5 m in front of the hall's back wall so it hides the hall logo panel behind it.

@@ -97,7 +97,7 @@ export function drawBriefing(g, w, h, o) {
   const px = k.rtl ? 70 : w * 0.58, pw = w * 0.42 - 70; k.card(px, 250, pw, 440, { line: rgba(P.brass, 0.5) }); const ax = k.rtl ? px + pw - 30 : px + 30;
   k.text(lang === 'ar' ? 'ما نحتاجه من الإدارة' : 'Still to be provided by management', ax, 306, { size: 24, weight: 700, color: P.brassPale, max: pw - 60 });
   [[{ en: 'Investor information pack', ar: 'الحزمة التعريفية للمستثمرين' }], [{ en: 'Funding sought', ar: 'التمويل المطلوب' }], [{ en: 'Financial statements', ar: 'القوائم المالية' }], [{ en: 'Dedicated management contact', ar: 'جهة اتصال مخصصة في الإدارة' }]].forEach(([n], i) => { k.card(px + 20, 336 + i * 80, pw - 40, 66, { dash: true, line: rgba(P.brandOrange, 0.7) }); k.text(Lx(n, lang), ax + 4, 366 + i * 80, { size: 21, weight: 600, max: pw - 70 }); k.text(Lx(C.PLACEHOLDER, lang), ax + 4, 392 + i * 80, { size: 16, color: P.brandOrange, max: pw - 70 }); });
-  const ct = C.contactLines(lang); ct.forEach((c, i) => k.text(`${Lx(c.label, lang)}: ${c.text}`, k.mx(70), 640 + i * 38, { size: 26, color: P.sand })); footer(k, w, h, lang);
+  const ct = C.contactLines(lang); ct.forEach((c, i) => k.text(`${Lx(c.label, lang)}: ${c.dir === 'ltr' ? '\u2066' + c.text + '\u2069' : c.text}`, k.mx(70), 640 + i * 38, { size: 26, color: P.sand })); footer(k, w, h, lang);
 }
 export const STATION_DRAW = [drawStory, drawProjectsScreen, drawHub, drawInvest, drawBriefing];
 

@@ -59,7 +59,7 @@ export function extraLinks(product, lang = 'en') {
   if (product === 'studio') return [{ id: 'studio', href: STUDIO_PATH, label: L === 'ar' ? 'افتح استوديو التصميم' : 'Open the Design Studio', note: L === 'ar' ? 'يفتح صفحة استوديو التصميم الحالية.' : 'Opens the existing Design Studio page.' }];
   if (product === 'lounge') {
     const out = [];
-    if (FACTS.phoneHref && FACTS.phone) out.push({ id: 'call', href: FACTS.phoneHref, label: (L === 'ar' ? 'اتصل بنا: ' : 'Call us: ') + FACTS.phone, dir: 'ltr' });
+    if (FACTS.phoneHref && FACTS.phone) out.push({ id: 'call', href: FACTS.phoneHref, label: (L === 'ar' ? 'اتصل بنا: ' : 'Call us: ') + '\u2066' + FACTS.phone + '\u2069' });
     if (FACTS.whatsappHref) out.push({ id: 'whatsapp', href: FACTS.whatsappHref, label: L === 'ar' ? 'واتساب' : 'WhatsApp', external: true });
     if (FACTS.hours) out.push({ id: 'hours', text: (L === 'ar' ? 'ساعات العمل: ' : 'Hours: ') + (FACTS.hours[L] || FACTS.hours.en) });
     return out;
