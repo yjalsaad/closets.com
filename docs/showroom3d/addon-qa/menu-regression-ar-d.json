@@ -1,0 +1,261 @@
+[
+ {
+  "lang": "ar",
+  "vp": "d",
+  "page": "home",
+  "samples": 5,
+  "mainMain": [
+   0,
+   55
+  ],
+  "branchBranch": [
+   0,
+   55
+  ],
+  "mainBranch": [
+   0,
+   55
+  ],
+  "pass": true,
+  "metaMain": {
+   "glassy": true,
+   "back": true,
+   "stat": 4,
+   "strip": 1,
+   "stripPics": 4,
+   "showcase": 0,
+   "h": 14560
+  },
+  "metaBranch": {
+   "glassy": true,
+   "back": true,
+   "stat": 4,
+   "strip": 1,
+   "stripPics": 4,
+   "showcase": 0,
+   "h": 14560
+  }
+ },
+ {
+  "lang": "ar",
+  "vp": "d",
+  "page": "kitchen",
+  "samples": 5,
+  "mainMain": [
+   0,
+   182
+  ],
+  "branchBranch": [
+   0,
+   658
+  ],
+  "mainBranch": [
+   0,
+   750
+  ],
+  "pass": false,
+  "metaMain": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 1,
+   "h": 4866
+  },
+  "metaBranch": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 1,
+   "h": 4866
+  }
+ },
+ {
+  "lang": "ar",
+  "vp": "d",
+  "page": "tv",
+  "samples": 5,
+  "mainMain": [
+   0,
+   0
+  ],
+  "branchBranch": [
+   0,
+   0
+  ],
+  "mainBranch": [
+   0,
+   0
+  ],
+  "pass": true,
+  "metaMain": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 1,
+   "h": 3903
+  },
+  "metaBranch": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 1,
+   "h": 3903
+  }
+ },
+ {
+  "lang": "ar",
+  "vp": "d",
+  "page": "office",
+  "samples": 5,
+  "mainMain": [
+   0,
+   0
+  ],
+  "branchBranch": [
+   0,
+   0
+  ],
+  "mainBranch": [
+   0,
+   0
+  ],
+  "pass": true,
+  "metaMain": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 1,
+   "h": 3985
+  },
+  "metaBranch": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 1,
+   "h": 3985
+  }
+ },
+ {
+  "lang": "ar",
+  "vp": "d",
+  "page": "wardrobe",
+  "samples": 5,
+  "mainMain": [
+   0,
+   55
+  ],
+  "branchBranch": [
+   0,
+   0
+  ],
+  "mainBranch": [
+   0,
+   55
+  ],
+  "pass": true,
+  "metaMain": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 1,
+   "h": 5262
+  },
+  "metaBranch": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 1,
+   "h": 5262
+  }
+ },
+ {
+  "lang": "ar",
+  "vp": "d",
+  "page": "door",
+  "samples": 5,
+  "mainMain": [
+   0,
+   0
+  ],
+  "branchBranch": [
+   0,
+   0
+  ],
+  "mainBranch": [
+   0,
+   0
+  ],
+  "pass": true,
+  "metaMain": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 1,
+   "h": 3744
+  },
+  "metaBranch": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 1,
+   "h": 3744
+  }
+ },
+ {
+  "lang": "ar",
+  "vp": "d",
+  "page": "booking",
+  "samples": 5,
+  "mainMain": [
+   0,
+   20
+  ],
+  "branchBranch": [
+   0,
+   20
+  ],
+  "mainBranch": [
+   0,
+   20
+  ],
+  "pass": true,
+  "metaMain": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 0,
+   "h": 1617
+  },
+  "metaBranch": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 0,
+   "h": 1617
+  }
+ }
+]
