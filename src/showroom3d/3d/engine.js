@@ -20,10 +20,11 @@ import { buildBays } from '../scenes/main-hall/bays';
 import { layoutBays } from '../scenes/main-hall/departments';
 import { buildProducts } from '../scenes/products';
 import { ensureFonts } from '../scenes/main-hall/signs';
-import { loadRealism, loadInteriorHdr, realSet, interiorEnv, disposeRealism } from './realism/registry';
+import { loadRealism, loadInteriorHdr, viaReal, upgradeTextures, disposeRealism } from './realism/registry';
 import { LOOK, kelvin } from './realism/look';
 import { buildGalleryFrames } from './realism/gallery';
 import { HALL } from './dimensions';
+import { staffModeFrom } from '../staff/config';
 
 const nextFrame = () => new Promise((r) => { let done = false; const f = () => { if (!done) { done = true; r(); } }; requestAnimationFrame(f); setTimeout(f, 40); });
 
@@ -55,12 +56,10 @@ export class ShowroomEngine {
     const logoTex = await this.loadLogo(); this.report('logo', 1);
     await ensureFonts(); this.report('fonts', 1);
 
-    // real CC0 PBR sets + the warm interior HDRI (add-only: every failure falls back to the procedural generators below); they download while the loader / intro is showing
-    await Promise.all([loadRealism(this.tierId), loadInteriorHdr(renderer)]); if (this.disposed) return;
     // procedural texture sets, one at a time so the loading bar moves for real
     const S = tier.texSize, sets = {};
     const jobs = [
-      ['stone', () => stoneSet(S, 7)], ['floor', () => realSet('microcement', S) || tileSet(S, 47, 'white')], ['oak', () => woodSet(S, 3, 0)], ['walnut', () => woodSet(Math.max(256, S >> 1), 8, 1)], ['plaster', () => plasterSet(Math.max(256, S >> 1), 5)],
+      ['stone', () => stoneSet(S, 7)], ['floor', () => viaReal('microcement', S, () => tileSet(S, 47, 'white'))], ['oak', () => woodSet(S, 3, 0)], ['walnut', () => woodSet(Math.max(256, S >> 1), 8, 1)], ['plaster', () => plasterSet(Math.max(256, S >> 1), 5)],
       ['paver', () => paverSet(Math.max(256, S >> 1), 9)], ['grass', () => grassSet(Math.max(256, S >> 1), 21)], ['sand', () => sandSet(Math.max(128, S >> 2), 31)],
       ['leaf', () => leafSet(Math.max(128, S >> 2), 41)], ['trunk', () => trunkSet(Math.max(128, S >> 2), 51)], ['frond', () => frondCanvas(256, 512)],
     ];
@@ -69,7 +68,7 @@ export class ShowroomEngine {
     // image-based lighting from the same sky, then materials
     await nextFrame();
     this.envMap = buildEnvironment(renderer, tier.clouds); this.report('environment', 1);
-    const M = this.M = createMaterials(sets, tier, this.envMap, interiorEnv());
+    const M = this.M = createMaterials(sets, tier, this.envMap, null);
     this.baseLed = { warm: M.led.color.clone(), cool: M.ledCool.color.clone() };
     const glowTex = this.glowTex = glowTexture();
     const ctx = { M, tier, logoTex, glowTex, lang: this.lang };
@@ -82,7 +81,7 @@ export class ShowroomEngine {
     this.products = buildProducts({ renderer, hallM: M, tier, lang: this.lang, bays: layoutBays(), reduced: !!this.reduced, logoTex });
     this.scene.add(this.products.group); this.products.lights.forEach((l) => this.scene.add(l)); this.report('products', 0.6);
     this.avatar = new VisitorAvatar({ tier: this.tierId }); this.scene.add(this.avatar.group);
-    this.staff = new StaffManager({ tier: this.tierId, lang: this.lang }); this.scene.add(this.staff.group);
+    this.staff = new StaffManager({ tier: this.tierId, lang: this.lang, mode: staffModeFrom(typeof window !== 'undefined' ? window.location.search : '') }); this.scene.add(this.staff.group);
     this.bays = buildBays({ ...ctx, products: this.products }); this.scene.add(this.bays.group); this.report('products', 1);
     if (tier.id === 'high') {   // planar floor reflections of the furnished bays + stage (high tier only)
       const rects = layoutBays().filter((b) => b.product).map((b) => (b.facing > 0 ? { x0: b.x - 3, x1: b.x + 6.5, z0: b.z - 3.3, z1: b.z + 3.3 } : { x0: b.x - 6.5, x1: b.x + 3, z0: b.z - 3.3, z1: b.z + 3.3 }));
@@ -104,7 +103,24 @@ export class ShowroomEngine {
     }
     this.gallery = buildGalleryFrames({ depth: HALL.depth, lang: this.lang }); this.scene.add(this.gallery.group);
     this.renderOnce(); this.report('firstFrame', 1);
-    setTimeout(() => { if (!this.disposed && this.gallery) this.gallery.load(); }, 1500);   // lazy: the four YAS Wood pictures (180 KB) load after the intro has started
+    setTimeout(() => { if (!this.disposed && this.gallery) this.gallery.load(); }, 1500);
+    this.realism = 'loading'; this.lazyRealism();   // real textures + HDRI download AFTER the first frame: the loader is no longer than before the realism pass   // lazy: the four YAS Wood pictures (180 KB) load after the intro has started
+  }
+
+  /** lazy realism: the scene starts on the procedural sets (exactly the old loader time); the CC0 textures and the HDRI replace them in place when they arrive. Every failure keeps the procedural look. */
+  async lazyRealism() {
+    try {
+      const ok = await loadRealism(this.tierId); if (this.disposed) return;
+      if (ok) upgradeTextures();
+      const env = await loadInteriorHdr(this.renderer); if (this.disposed) return;
+      if (env) {
+        const sky = this.envMap, seen = new Set(), swap = (m) => { if (!m || !m.isMaterial || seen.has(m)) return; seen.add(m); if (m.envMap && (m.envMap !== sky || (m.userData && m.userData.interior))) { m.envMap = env; m.needsUpdate = true; } };
+        const walk = (o, d = 0) => { if (!o || d > 3) return; if (o.isMaterial) swap(o); else if (typeof o === 'object' && !o.isTexture && !o.isObject3D) for (const v of Object.values(o)) walk(v, d + 1); };
+        this.scene.traverse((o) => { if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach(swap); });
+        walk(this.M); if (this.products && this.products.M) walk(this.products.M);
+      }
+      this.realism = ok || env ? 'ready' : 'procedural';
+    } catch (e) { this.realism = 'procedural'; }
   }
 
   loadLogo() {
@@ -118,7 +134,8 @@ export class ShowroomEngine {
     const sun = new THREE.DirectionalLight(PALETTE.sun, 8.2);
     const target = new THREE.Object3D(); target.position.set(0, 0, -6); scene.add(target); sun.target = target;
     sun.position.copy(SUN_DIR).multiplyScalar(130).add(target.position);
-    sun.castShadow = true; sun.shadow.mapSize.set(tier.shadowMap, tier.shadowMap);
+    const sm = tier.id === 'high' ? Math.min(4096, this.renderer.capabilities.maxTextureSize) : tier.shadowMap;   // high tier: a 4k sun map (2.5 cm texels in the hall) for clean soft edges
+    sun.castShadow = true; sun.shadow.mapSize.set(sm, sm);
     const c = sun.shadow.camera; c.left = -52; c.right = 52; c.top = 46; c.bottom = -46; c.near = 20; c.far = 300;
     sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.05; sun.shadow.radius = 2.5;
     scene.add(sun); this.sun = sun;
@@ -170,7 +187,7 @@ export class ShowroomEngine {
     if (this.mirror && z < -0.5 && fwdY > -0.42) { this.mirror.setSize(this.width * (this.scale || 1), this.height * (this.scale || 1)); this.mirror.mesh.visible = true; this.mirror.render(this.camera, [this.hall && this.hall.group, this.exterior && this.exterior.group, this.entrance && this.entrance.group, ...(this.products ? [...this.products.outlines, this.products.vip && this.products.vip.group, ...this.products.farGroups(this.camera, 13)] : [])]); }
     else if (this.mirror) this.mirror.mesh.visible = false;
   }
-  setLanguage(lang) { this.lang = lang; if (this.gallery) this.gallery.setLanguage(lang); if (this.bays) this.bays.relabel(lang); if (this.products) this.products.setLanguage(lang); if (this.staff) this.staff.setLanguage(lang); }
+  setLanguage(lang) { this.lang = lang; if (this.gallery) this.gallery.setLanguage(lang); if (this.hall && this.hall.relabel) this.hall.relabel(lang); if (this.exterior && this.exterior.relabel) this.exterior.relabel(lang); if (this.bays) this.bays.relabel(lang); if (this.products) this.products.setLanguage(lang); if (this.staff) this.staff.setLanguage(lang); }
 
   setSize(w, h) {
     this.width = Math.max(2, w); this.height = Math.max(2, h);

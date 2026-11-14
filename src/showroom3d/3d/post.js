@@ -13,7 +13,10 @@ export async function createBloom(renderer, scene, camera, { width, height, pixe
   composer.addPass(new RenderPass(scene, camera));
   // optional ground-truth AO (high tier, opt-in with ?ao=1 until it has been checked on real GPUs): contact shading under furniture / in corners. It re-renders the scene normals, so it roughly doubles draw calls.
   let gtao = null;
-  if (ao) { try { const { GTAOPass } = await import('three/examples/jsm/postprocessing/GTAOPass.js'); gtao = new GTAOPass(scene, camera, Math.round(width * pixelRatio), Math.round(height * pixelRatio)); gtao.updateGtaoMaterial({ radius: 0.7, distanceExponent: 1.4, thickness: 1.2, scale: 1.0, samples: 8 }); gtao.blendIntensity = 0.85; composer.addPass(gtao); } catch (e) { gtao = null; } }
+  if (ao) { try { const { GTAOPass } = await import('three/examples/jsm/postprocessing/GTAOPass.js'); gtao = new GTAOPass(scene, camera, Math.round(width * pixelRatio), Math.round(height * pixelRatio)); gtao.updateGtaoMaterial({ radius: 0.45, distanceExponent: 1.5, thickness: 1.0, scale: 1.0, samples: 8 }); gtao.blendIntensity = 0.7;
+    // the G-buffer pass draws everything with a normal material: additive glows, wash / shadow decals, glass and the planar floor reflector must not write into it (that was the black floor)
+    const ov = gtao.overrideVisibility.bind(gtao); gtao.overrideVisibility = function () { ov(); const cache = this._visibilityCache; this.scene.traverse((o) => { const m = o.material; if (o.isMesh && o.visible && m && !Array.isArray(m) && (m.transparent || m.isShaderMaterial || m.blending === THREE.AdditiveBlending || m.depthWrite === false)) { cache.set(o, true); o.visible = false; } }); };
+    composer.addPass(gtao); } catch (e) { gtao = null; } }
   // HDR safety: a near-mirror specular peak (a polished floor / clearcoat catching the key spot exactly) can exceed the half-float range, become Inf / NaN and bloom into a black frame
   // (seen in the Living bay at some canvas sizes). Clamp to a sane HDR ceiling and drop NaNs before the bloom chain.
   composer.addPass(new ShaderPass({ uniforms: { tDiffuse: { value: null } }, vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',

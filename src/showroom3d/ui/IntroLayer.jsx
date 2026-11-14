@@ -8,7 +8,8 @@ const IntroLayer = React.forwardRef(function IntroLayer({ lang, caption, onSkip,
     <div className={'sr-intro' + (active ? ' is-active' : '')} aria-hidden={active ? undefined : true}>
       <div className="sr-veil" ref={refs.veil} />
       <div className="sr-logocard" ref={refs.logo}>
-        <LogoImg alt={t('brand', lang)} width="420" height="240" />
+        <LogoImg alt={t('brand', lang) + ' ' + t('brandByline', lang)} width="420" height="240" />
+        <span className="sr-byline">{t('brandByline', lang)}</span>
         <span className="sr-logocard-rule" />
         <span className="sr-logocard-sub">{t('capBrand', lang)}</span>
       </div>

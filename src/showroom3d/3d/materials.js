@@ -6,6 +6,18 @@ import { toTexture } from './textures';
 
 const tex = (c, o) => (c ? toTexture(c, o) : null);
 
+/** cheap anti-repetition: a two-octave world-space value noise multiplies the albedo by +-amount, so large tiled surfaces (floors, walls) lose their visible repeat. No extra texture, medium / high tiers only. */
+export function addMacroVariation(mat, amount = 0.09, scale = 0.21) {
+  const A = amount.toFixed(3), S = scale.toFixed(3);
+  mat.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vMacroW;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvMacroW = (modelMatrix * vec4(position, 1.0)).xyz;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vMacroW;\nfloat mcH(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }\nfloat mcN(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(mcH(i), mcH(i + vec2(1.0, 0.0)), f.x), mix(mcH(i + vec2(0.0, 1.0)), mcH(i + vec2(1.0, 1.0)), f.x), f.y); }')
+      .replace('#include <map_fragment>', '#include <map_fragment>\n{ vec2 mq = vMacroW.xz + vMacroW.y * vec2(0.37, 0.61); float mm = mcN(mq * ' + S + ') * 0.6 + mcN(mq * ' + S + ' * 2.7 + 5.0) * 0.4; diffuseColor.rgb *= 1.0 + ' + A + ' * (mm - 0.5) * 2.0; }');
+  };
+  mat.customProgramCacheKey = () => 'macro:' + A + ':' + S;
+  return mat;
+}
+
 export function createMaterials(sets, tier, envMap, envInterior = null) {
   const an = tier.anisotropy;
   const nm = tier.normalMaps;
@@ -13,7 +25,7 @@ export function createMaterials(sets, tier, envMap, envInterior = null) {
   const std = (o) => new THREE.MeshStandardMaterial({ envMap, ...o });
   const phys = (o) => new THREE.MeshPhysicalMaterial({ envMap, ...o });
   const envI = envInterior || envMap;   // inside the hall every surface is lit by the interior HDRI, the sky only reflects on the exterior
-  const stdI = (o) => std({ envMap: envI, ...o }), physI = (o) => phys({ envMap: envI, ...o });
+  const stdI = (o) => std({ envMap: envI, userData: { interior: true }, ...o }), physI = (o) => phys({ envMap: envI, userData: { interior: true }, ...o });   // tagged so the lazy HDRI can replace the sky on them
   const M = {};
   const floorOpts = {
     map: T((sets.floor || sets.stone).map, [1, 1]), roughnessMap: T((sets.floor || sets.stone).rough, [1, 1], false), roughness: 1,
@@ -29,6 +41,7 @@ export function createMaterials(sets, tier, envMap, envInterior = null) {
   M.walnut = stdI({ map: T(sets.walnut.map, [1, 1]), roughnessMap: T(sets.walnut.rough, [1, 1], false), roughness: 1, normalMap: nm ? T(sets.walnut.normal, [1, 1], false) : null, envMapIntensity: 0.5 });
   M.plaster = stdI({ map: T(sets.plaster.map, [1, 1]), normalMap: nm ? T(sets.plaster.normal, [1, 1], false) : null, normalScale: new THREE.Vector2(0.4, 0.4), roughness: 0.92, envMapIntensity: 0.4 });
   M.ceiling = stdI({ map: T(sets.plaster.map, [1, 1]), color: new THREE.Color(PALETTE.ceilingTint), roughness: 0.95, envMapIntensity: 0.25 });
+  if (tier.id !== 'low') { addMacroVariation(M.floor, 0.07, 0.19); addMacroVariation(M.stoneWall, 0.08, 0.3); addMacroVariation(M.plaster, 0.06, 0.3); }
   M.ceilDark = stdI({ color: PALETTE.ceilDark, roughness: 0.95, envMapIntensity: 0.15 });
   M.slat = stdI({ map: T(sets.walnut.map, [1, 1]), normalMap: nm ? T(sets.walnut.normal, [1, 1], false) : null, color: new THREE.Color(PALETTE.slatTint), roughness: 0.66, envMapIntensity: 0.25,
     emissive: new THREE.Color(PALETTE.ledWarm), emissiveMap: T(sets.walnut.map, [1, 1]), emissiveIntensity: tier.pointLights ? 0.05 : 0.3 });   // low tier has no hall point lights: a baked warm bounce keeps the slats readable instead of black   // ceiling slats: matte, never a mirror for the spots

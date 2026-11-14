@@ -34,7 +34,7 @@ export class Explorer {
   constructor({ engine, canvas, reduced = false, bob = true, onState = () => {}, projectsLoader = loadSiteProjects, deckStore = makeDeckStore() }) {
     this.projectsLoader = projectsLoader; this.projectsPromise = null;
     this.deckStore = deckStore; this.userDecks = deckStore.list(); this.vipDialog = false; this.decksRev = 0; this.ds = initDeckState(this.deckIds(), 'default', 0, this.deckCounts());
-    this.camMode = store.get('closets_yb_cam', 'first') === 'third' ? 'third' : 'first'; this.avatarKind = AVATARS[store.get('closets_yb_avatar', 'female')] ? store.get('closets_yb_avatar', 'female') : 'female'; this.tp = null;
+    this.camMode = 'first';   // owner decision: every visit starts in first person; the toggle (and the stored avatar choice) stays this.avatarKind = AVATARS[store.get('closets_yb_avatar', 'female')] ? store.get('closets_yb_avatar', 'female') : 'female'; this.tp = null;
     this.engine = engine; this.canvas = canvas; this.onState = onState; this.reduced = reduced;
     this.graph = buildGraph(); this.zones = allZones();
     this.doorOpen = true; this.vipOpen = true; this.colliders = buildColliders({ doorOpen: 1, oliveCount: engine.tierId === 'low' ? 2 : 4, vipOpen: 1 });
