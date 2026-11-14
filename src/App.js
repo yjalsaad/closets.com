@@ -3771,7 +3771,7 @@ function ProductInfo({ product, qty, setQty, addToCart, setConfigProduct, setPag
       <h1 className="display" style={{ fontSize: mobile ? 30 : 46, color: 'var(--ink)', marginBottom: 12, lineHeight: 1.08 }}>{product.name}</h1>
       <div style={{ fontSize: mobile ? 24 : 30, fontWeight: 700, color: 'var(--clay)', marginBottom: 20 }}>{fmt(product.price)}</div>
       {product.description && <p style={{ fontSize: mobile ? 15 : 16.5, color: 'var(--ink-soft)', lineHeight: 1.75, marginBottom: 26 }}>{product.description}</p>}
-      <div style={{ background: 'var(--sand)', borderRadius: 16, marginBottom: 26, border: '1px solid var(--line)' }}>
+      <div className="gl-card" style={{ background: 'var(--sand)', borderRadius: 16, marginBottom: 26, border: '1px solid var(--line)' }}>
         {[[t('w4PdMaterials'), product.materials], [t('w4PdLeadTime'), product.lead_time], [t('w4PdSku'), product.sku]].filter(([,v]) => v).map(([k, v], i, arr) => (
           <div key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, padding: '14px 18px', borderBottom: i < arr.length - 1 ? '1px solid var(--line)' : 'none' }}>
             <span style={{ fontSize: 13, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--muted)' }}>{k}</span>
@@ -7294,7 +7294,7 @@ function AboutPage({ setPage = () => {} }) {
       </section>
 
       {/* ── PULL QUOTE ── */}
-      <section style={{ background:'var(--sand)', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
+      <section className="gl-band" style={{ background:'var(--sand)', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
         <div className="rv" style={{ maxWidth:940, margin:'0 auto', padding: mobile?'56px 22px':'96px 40px', textAlign:'center' }}>
           <div style={{ fontSize: mobile?40:64, color:'var(--clay)', lineHeight:0, fontFamily:'var(--font-sans)' }}>“</div>
           <blockquote className="display" style={{ fontSize: mobile?26:40, lineHeight:1.22, color:'var(--ink)', letterSpacing:'-.015em', margin:'12px 0 0' }}>
@@ -7323,7 +7323,7 @@ function AboutPage({ setPage = () => {} }) {
       </section>
 
       {/* ── CRAFT ── */}
-      <section style={{ background:'#fff', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
+      <section className="gl-band" style={{ background:'#fff', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
         <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'60px 22px':'104px 40px', display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?36:72, alignItems:'center' }}>
           <div className="rv-l tile-zoom zoomwrap" style={{ position:'relative', borderRadius:26, overflow:'hidden', minHeight: mobile?300:500, order: mobile?2:1, boxShadow:'0 40px 80px -34px rgba(33,28,24,.5)' }}>
             <Photo src={cms('about.craft.image', HOME_IMG.kitchen)} alt="The Closets workshop and finishing" imgClass="tz" style={{ position:'absolute', inset:0 }} />
@@ -7366,7 +7366,7 @@ function AboutPage({ setPage = () => {} }) {
       </section>
 
       {/* ── FOUNDER SIGNATURE ── */}
-      <section style={{ background:'var(--sand)', borderTop:'1px solid var(--line)' }}>
+      <section className="gl-band" style={{ background:'var(--sand)', borderTop:'1px solid var(--line)' }}>
         <div className="rv" style={{ maxWidth:820, margin:'0 auto', padding: mobile?'56px 22px':'96px 40px', textAlign:'center' }}>
           <p className="display" style={{ fontSize: mobile?21:28, lineHeight:1.45, color:'var(--ink)', letterSpacing:'-.01em' }}>
             {cms('about.founder.quote', 'Every home we finish carries our name. That is why we still walk each site before it’s signed off — and why we’ll still answer the phone years later.')}
@@ -7500,7 +7500,7 @@ function PlannerGuidePage({ setPage }) {
       </section>
 
       {/* HOW IT WORKS — 4 steps */}
-      <section style={{ background:'#fff', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
+      <section className="gl-band" style={{ background:'#fff', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
         <div style={{ maxWidth:1180, margin:'0 auto', padding: mobile?'56px 22px':'88px 40px' }}>
           <div className="rv" style={{ maxWidth:680, marginBottom: mobile?40:64 }}>
             <div className="eyebrow" style={{ marginBottom:14 }}>{t('guideHowEyebrow')}</div>
@@ -7543,7 +7543,7 @@ function PlannerGuidePage({ setPage }) {
               </p>
               <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:14, marginTop:26 }}>
                 {DESIGNER_FEATURES.map(f => (
-                  <div key={f.title} style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'18px 18px' }}>
+                  <div key={f.title} className="gl-card" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:16, padding:'18px 18px' }}>
                     <div style={{ fontSize:22, marginBottom:8 }} aria-hidden="true">{f.icon}</div>
                     <div style={{ fontSize:15.5, fontWeight:700, color:'var(--ink)' }}>{f.title}</div>
                     <div style={{ fontSize:13.5, color:'var(--ink-soft)', marginTop:6, lineHeight:1.6 }}>{f.body}</div>
@@ -7557,7 +7557,7 @@ function PlannerGuidePage({ setPage }) {
       </section>
 
       {/* PLAN ANY PRODUCT */}
-      <section style={{ background:'#fff', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
+      <section className="gl-band" style={{ background:'#fff', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
         <div style={{ maxWidth:1280, margin:'0 auto', padding: mobile?'56px 22px':'88px 40px' }}>
           <div className="rv" style={{ maxWidth:680, marginBottom: mobile?32:48 }}>
             <div className="eyebrow" style={{ marginBottom:14 }}>{t('swGuidePlanEyebrow')}</div>
@@ -7606,7 +7606,7 @@ function PlannerGuidePage({ setPage }) {
       </section>
 
       {/* FAQ */}
-      <section style={{ background:'#fff', borderTop:'1px solid var(--line)' }}>
+      <section className="gl-band" style={{ background:'#fff', borderTop:'1px solid var(--line)' }}>
         <div style={{ maxWidth:900, margin:'0 auto', padding: mobile?'56px 22px':'88px 40px' }}>
           <div className="rv" style={{ marginBottom: mobile?24:36 }}>
             <div className="eyebrow" style={{ marginBottom:14 }}>{t('guideQuestions')}</div>
@@ -7650,7 +7650,7 @@ function CardTile({ c }) {
   const pillBg = { vendor:'#E7F8EE', customer:'#F5EBFE', employee:'#FFF1E6' }[ptype] || '#FFF1E6';
   const pillCol = { vendor:'#1a7a40', customer:'#7a3fb0', employee:'#b5560f' }[ptype] || '#b5560f';
   return (
-    <a href={`${HUB_ORIGIN}/card.html?c=${encodeURIComponent(c.slug)}`} target="_blank" rel="noreferrer"
+    <a href={`${HUB_ORIGIN}/card.html?c=${encodeURIComponent(c.slug)}`} target="_blank" rel="noreferrer" className="gl-card"
        style={{ textDecoration:'none', color:'var(--shop-ink, #1d1d1f)', background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:20, display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', transition:'transform .15s, box-shadow .15s' }}
        onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px)';e.currentTarget.style.boxShadow='0 12px 30px rgba(0,0,0,.08)';}}
        onMouseLeave={e=>{e.currentTarget.style.transform='none';e.currentTarget.style.boxShadow='none';}}>
@@ -7741,13 +7741,13 @@ function ContactPage() {
           ))}
         </div>
         {sent ? (
-          <div className="rv-r" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:22, padding:'56px 32px', textAlign:'center' }}>
+          <div className="rv-r gl-card" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:22, padding:'56px 32px', textAlign:'center' }}>
             <div style={{ width:64, height:64, borderRadius:'50%', background:'rgba(176,97,59,.12)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px', fontSize:28, color:'var(--clay)' }}>✓</div>
             <h3 className="display" style={{ fontSize:26, color:'var(--ink)', marginBottom:10 }}>{t('msgReceived')}</h3>
             <p style={{ color:'var(--ink-soft)', fontSize:15 }}>{t('swContactWithin24')}</p>
           </div>
         ) : (
-          <div className="rv-r" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:22, padding: mobile?22:30, display:'flex', flexDirection:'column', gap:12 }}>
+          <div className="rv-r gl-card" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:22, padding: mobile?22:30, display:'flex', flexDirection:'column', gap:12 }}>
             <input className="inp" placeholder={t("yourName")} aria-label={t("yourName")} value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
             <input className="inp" placeholder={t('swContactEmail')} aria-label={t('swContactEmail')} type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
             <input className="inp" placeholder={t("phone")} aria-label={t("phone")} value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
@@ -8803,7 +8803,7 @@ function CareersPage() {
   };
   return (<PageWrap title={cms('careers.hero.title','Careers')} sub={cms('careers.hero.subtitle','Join a team that builds beautiful, lasting spaces.')}>
     <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-      {rows.map(j=>(<div key={j.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+      {rows.map(j=>(<div key={j.id} className="gl-card" style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
           <div>
             <div style={{ fontSize:18, fontWeight:600, color:'var(--shop-ink, #1d1d1f)' }}>{j.job_title}</div>
@@ -8835,7 +8835,7 @@ function OffersPage({ setPage }) {
   useEffect(()=>{ api('store_offers?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
   return (<PageWrap title={cms('offers.hero.title','Offers & promotions')} sub={cms('offers.hero.subtitle','Current savings on bespoke kitchens, wardrobes and storage.')}>
     <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
-      {rows.map(o=>(<div key={o.id} className="lift" style={{ background:'linear-gradient(135deg,var(--sand),#fff)', border:'1px solid var(--clay)33', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+      {rows.map(o=>(<div key={o.id} className="lift gl-card gl-plain" style={{ background:'linear-gradient(135deg,var(--sand),#fff)', border:'1px solid var(--clay)33', borderRadius:18, padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
         {o.badge && <span style={{ display:'inline-block', background:'var(--clay)', color:'#fff', fontSize:12, fontWeight:700, padding:'5px 12px', borderRadius:980 }}>{trMap(o.badge, OFFER_BADGE_KEY, lang)}</span>}
         <div style={{ fontSize:19, fontWeight:700, color:'var(--shop-ink, #1d1d1f)', marginTop:12 }}>{trMap(o.title, OFFER_TITLE_KEY, lang)}</div>
         <div style={{ fontSize:14, color:'var(--shop-muted, #86868b)', marginTop:6, lineHeight:1.6 }}>{trMap(o.subtitle, OFFER_SUB_KEY, lang)}</div>
@@ -8851,7 +8851,7 @@ function FaqPage() {
   useEffect(()=>{ api('website_faqs?active=eq.true&order=sort_order.asc').then(d=>{ if(Array.isArray(d)) setRows(d); }).catch(()=>{}); },[]);
   return (<PageWrap title={cms('faq.hero.title','Frequently asked questions')} sub={cms('faq.hero.subtitle','Everything you need to know about designing with us.')}>
     <div className="reveal reveal-stagger" style={{ maxWidth:760, display:'flex', flexDirection:'column', gap:12 }}>
-      {rows.map(q=>(<div key={q.id} style={{ background:'#fff', border:'1px solid #ececec', borderRadius:16, overflow:'hidden' }}>
+      {rows.map(q=>(<div key={q.id} className="gl-card" style={{ background:'#fff', border:'1px solid #ececec', borderRadius:16, overflow:'hidden' }}>
         <button type="button" onClick={()=>setOpen(open===q.id?null:q.id)} style={{ width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'18px 20px', fontSize:16, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', display:'flex', justifyContent:'space-between', gap:12 }}>
           <span>{q.question}</span><span style={{ color:'var(--clay)', flexShrink:0 }}>{open===q.id?'–':'+'}</span>
         </button>
@@ -8978,9 +8978,9 @@ function BookingPage({ setPage }) {
     }catch(e){ toast(t('bkSubmitErr'),'error'); }
     finally{ setBusy(false); }
   };
-  if(sent) return (<PageWrap eyebrow={t('bkBooked')} title={t('bkThankYou')}><div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding:36, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div className="display" style={{ fontSize:24, color:'var(--ink)', marginTop:14 }}>{t('bkRequestedPrefix')} {trMap(f.type, APPT_KIND_LC_KEY, lang)} {t('bkRequestedSuffix')}</div><div style={{ fontSize:15, color:'var(--ink-soft)', marginTop:10, lineHeight:1.6 }}>{t('sw3BookCallConfirm')}</div><button type="button" className="btn-clay" onClick={()=>setPage('home')} style={{ marginTop:22 }}>{t('bkBackHome')}</button></div></PageWrap>);
+  if(sent) return (<PageWrap eyebrow={t('bkBooked')} title={t('bkThankYou')}><div className="gl-card" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding:36, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div className="display" style={{ fontSize:24, color:'var(--ink)', marginTop:14 }}>{t('bkRequestedPrefix')} {trMap(f.type, APPT_KIND_LC_KEY, lang)} {t('bkRequestedSuffix')}</div><div style={{ fontSize:15, color:'var(--ink-soft)', marginTop:10, lineHeight:1.6 }}>{t('sw3BookCallConfirm')}</div><button type="button" className="btn-clay" onClick={()=>setPage('home')} style={{ marginTop:22 }}>{t('bkBackHome')}</button></div></PageWrap>);
   return (<PageWrap eyebrow={cms('booking.hero.eyebrow','Free design visit')} title={cms('booking.hero.title','Book your free visit.')} sub={cms('booking.hero.subtitle','A designer measures your space and creates a bespoke 2D & 3D concept — free, with no obligation.')}>
-    <div style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding: mobile?22:30, maxWidth:720 }}>
+    <div className="gl-card" style={{ background:'#fff', border:'1px solid var(--line)', borderRadius:20, padding: mobile?22:30, maxWidth:720 }}>
       <div className="eyebrow" style={{ fontSize:11, marginBottom:10 }}>{t('bkApptType')}</div>
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:18 }}>
         {APPT_KINDS.map(k=>(<button type="button" key={k} onClick={()=>set('type',k)} style={{ padding:'9px 16px', borderRadius:980, cursor:'pointer', fontSize:13, fontWeight:600, background:f.type===k?'var(--clay)':'var(--sand)', color:f.type===k?'#fff':'var(--ink)', border:'1px solid '+(f.type===k?'var(--clay)':'var(--line)') }}>{trMap(k, APPT_KIND_KEY, lang)}</button>))}
@@ -9012,9 +9012,9 @@ function RequestPage({ kind, title, sub, refLabel, kindLabel }) {
       setSent(true); toast(t('swReqReceived'),'success'); }
     catch{ toast(t('swReqFailed'),'error'); } finally{ setBusy(false); }
   };
-  if(sent) return (<PageWrap title={t('swReqThankYou')}><div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:32, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div style={{ fontSize:19, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', marginTop:12 }}>{t('swReqLoggedPrefix')} {kindLabel} {t('swReqLoggedSuffix')}</div><div style={{ fontSize:15, color:'var(--shop-muted, #86868b)', marginTop:8 }}>{t('swReqLoggedSub')}</div></div></PageWrap>);
+  if(sent) return (<PageWrap title={t('swReqThankYou')}><div className="gl-card" style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding:32, maxWidth:560 }}><div style={{ fontSize:40 }}>✅</div><div style={{ fontSize:19, fontWeight:600, color:'var(--shop-ink, #1d1d1f)', marginTop:12 }}>{t('swReqLoggedPrefix')} {kindLabel} {t('swReqLoggedSuffix')}</div><div style={{ fontSize:15, color:'var(--shop-muted, #86868b)', marginTop:8 }}>{t('swReqLoggedSub')}</div></div></PageWrap>);
   return (<PageWrap title={title} sub={sub}>
-    <div style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding: mobile?20:28, maxWidth:640, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+    <div className="gl-card" style={{ background:'#fff', border:'1px solid #ececec', borderRadius:18, padding: mobile?20:28, maxWidth:640, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
       <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:12 }}>
         <input placeholder={t('swReqFullName')} aria-label={t('swReqFullNameAria')} value={f.name} onChange={e=>set('name',e.target.value)} style={inp} />
         <input placeholder={t('swReqPhone')} aria-label={t('swReqPhoneAria')} value={f.phone} onChange={e=>set('phone',e.target.value)} style={inp} />
@@ -9795,7 +9795,7 @@ function SiteFooter({ setPage, siteLogo }) {
   const social=[
     ['Instagram','https://www.instagram.com/theclosets/','M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm5-2.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2z'],
   ];
-  return (<footer style={{ borderTop:'1px solid var(--line)', background:'var(--sand)', padding: mobile?'48px 18px 132px':'72px 40px 116px' }}>
+  return (<footer className="gl-foot" style={{ borderTop:'1px solid var(--line)', background:'var(--sand)', padding: mobile?'48px 18px 132px':'72px 40px 116px' }}>
     <div style={{ maxWidth:1280, margin:'0 auto' }}>
       <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'2fr 1fr 1fr 1fr 1fr', gap: mobile?28:48 }}>
         <div style={{ gridColumn: mobile?'1 / -1':'auto' }}>

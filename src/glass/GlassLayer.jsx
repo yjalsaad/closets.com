@@ -1,7 +1,7 @@
 /* [GLASS 2026-11-14] The site-wide "glass" layer (stage 1 of the new look).
  * What it adds, on every page, without touching any page's content:
  *   · an ambient backdrop behind the whole site: warm drifting light, plus the open page's own hero picture, heavily blurred, cross-fading as you move
- *   · frosted surfaces: cards (.lift and the tiles of a .reveal-stagger grid), fields (.inp) and the top bar sit on the backdrop like glass
+ *   · frosted surfaces: cards (.lift, .gl-card and the tiles of a .reveal-stagger grid), bands (.gl-band), the footer (.gl-foot), fields (.inp) and the top bar sit on the backdrop like glass
  *   · motion: a page rises into place piece by piece when you arrive, and sections sharpen as they scroll into view
  * It is one switch: remove <GlassLayer /> from App.js (or set GLASS_ON to false) and the site is exactly as before.
  * Colours come from the site's own tokens (--cream, --clay, --ink, --line). All motion stops for visitors who ask for reduced motion. */
@@ -62,6 +62,13 @@ html.glassy div[style*="min-height: 100dvh"][style*="var(--cream)"]{background:t
 .glass-back img.on{opacity:.26}
 /* frosted surfaces */
 html.glassy .lift,html.glassy .reveal-stagger>*{background-color:color-mix(in srgb,#fff 58%,transparent)!important;-webkit-backdrop-filter:blur(18px) saturate(1.25);backdrop-filter:blur(18px) saturate(1.25);border-color:color-mix(in srgb,var(--ink) 9%,transparent)}
+/* [GLASS pages] the same frost for the cards and panels of the inner pages (class gl-card), the portfolio cards, the full-width white / sand bands (gl-band) and the footer (gl-foot).
+   background-color only, so a card that carries a picture keeps it; gl-plain drops a decorative gradient so the frost shows. Bands and footer sit straight on the already-blurred backdrop, so they need no blur of their own. */
+html.glassy .gl-card,html.glassy .pf-card{background-color:color-mix(in srgb,#fff 58%,transparent)!important;-webkit-backdrop-filter:blur(18px) saturate(1.25);backdrop-filter:blur(18px) saturate(1.25);border-color:color-mix(in srgb,var(--ink) 9%,transparent)}
+html.glassy .gl-plain{background-image:none!important}
+html.glassy .gl-band{background-color:color-mix(in srgb,#fff 46%,transparent)!important}
+html.glassy .gl-band[style*="var(--sand)"]{background-color:color-mix(in srgb,var(--sand) 58%,transparent)!important}
+html.glassy .gl-foot{background-color:color-mix(in srgb,var(--sand) 66%,transparent)!important}
 html.glassy .inp{background-color:color-mix(in srgb,#fff 66%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 html.glassy .btn-clay,html.glassy .btn,html.glassy .btn-secondary,html.glassy .btn-line{transition:transform .18s cubic-bezier(.2,.7,.2,1),box-shadow .25s ease,background-color .2s ease}
 html.glassy .btn-clay:active,html.glassy .btn:active,html.glassy .btn-secondary:active,html.glassy .btn-line:active{transform:translateY(1px) scale(.985)}
