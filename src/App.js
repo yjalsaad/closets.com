@@ -415,6 +415,7 @@ const I18N = {
   navPricing:  { en:'Pricing & finance', ar:'الأسعار والتمويل' },
   navInspiration:{ en:'Inspiration', ar:'إلهام' },
   navOffers:   { en:'Offers',        ar:'العروض' },
+  navCampaign: { en:'Campaign',      ar:'الحملة' },
   navShowrooms:{ en:'Showrooms',     ar:'المعارض' },
   navMore:     { en:'More',          ar:'المزيد' },
   navAiDesignLab:{ en:'AI + Design Lab', ar:'الذكاء الاصطناعي + مختبر التصميم' },
@@ -1404,7 +1405,7 @@ const I18N = {
   swStatShowrooms:{ en:'Showrooms', ar:'معارض' },
   swStatBespoke:{ en:'Bespoke & fitted', ar:'حسب الطلب ومركّب' },
   swBadgeWorkshop:{ en:'Our own workshop', ar:'ورشتنا الخاصة' },
-  swBadge15:{ en:'15 years of craft', ar:'15 عاماً من الحرفية' },
+  swBadge15:{ en:'20 years of craft', ar:'20 عاماً من الحرفية' },
   swBadge2yr:{ en:'10-year warranty', ar:'ضمان 10 سنوات' },
   swBadgeFreeDesign:{ en:'Free design service', ar:'خدمة تصميم مجانية' },
   // Process timeline
@@ -1422,7 +1423,7 @@ const I18N = {
   swMarqWorkshop:{ en:'Own Bahrain workshop', ar:'ورشة خاصة في البحرين' },
   swMarqConsult:{ en:'Free design consultation', ar:'استشارة تصميم مجانية' },
   swMarqHardware:{ en:'Premium European hardware', ar:'مقابض أوروبية فاخرة' },
-  swMarq15:{ en:'15 years of craft', ar:'15 عاماً من الحرفية' },
+  swMarq15:{ en:'20 years of craft', ar:'20 عاماً من الحرفية' },
   swMarq4:{ en:'4 showrooms', ar:'4 معارض' },
   swMarq2yr:{ en:'10-year warranty', ar:'ضمان 10 سنوات' },
   swMarqInstall:{ en:'Installed by our own team', ar:'يركّبه فريقنا الخاص' },
@@ -1619,7 +1620,7 @@ const I18N = {
   swFootBadge2yr:{ en:'10-year warranty', ar:'ضمان 10 سنوات' },
   swFootBadgeFreeDesign:{ en:'Free design service', ar:'خدمة تصميم مجانية' },
   swFootBadgeInstall:{ en:'Installed by our team', ar:'يركّبه فريقنا' },
-  swFootBadge15:{ en:'15 years of craft', ar:'15 عاماً من الحرفية' },
+  swFootBadge15:{ en:'20 years of craft', ar:'20 عاماً من الحرفية' },
   // Footer link labels (rendered via trLabel)
   swFlHowItWorks:{ en:'How it works', ar:'كيف تعمل' },
   swFlFaq:{ en:'FAQ', ar:'الأسئلة الشائعة' },
@@ -2481,6 +2482,9 @@ const CSS = `
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
   }
+  /* [CAMPAIGN-MENU] one more top link: on laptop widths the main links sit a little closer so nothing overlaps */
+  @media (max-width:1500px){ .nav-mid{ gap:0 !important; } .nav-mid a, .nav-mid button{ padding-left:7px !important; padding-right:7px !important; font-size:13.5px !important; } }
+  @media (max-width:1300px){ .nav-mid a, .nav-mid button{ padding-left:5px !important; padding-right:5px !important; font-size:13px !important; } }
   .display { font-family:var(--font-display); font-weight:700; letter-spacing:-.025em; line-height:1.06; }
   .eyebrow { font-size:12px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--clay); }
   .btn-clay { background:var(--clay); color:#fff; border:none; border-radius:14px; padding:15px 26px; font-size:16px; font-weight:600; letter-spacing:.01em; cursor:pointer; transition:transform .15s, background .2s, box-shadow .2s; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:50px; box-shadow:0 14px 30px -16px rgba(137,57,30,.55); }
@@ -2832,7 +2836,7 @@ const NAV_LABEL_KEY = {
   // group titles
   'Wardrobes': 'navWardrobes', 'Kitchens': 'navKitchens', 'Doors & more': 'navDoors',
   'Design studio': 'navStudio', 'Pricing & finance': 'navPricing', 'Inspiration': 'navInspiration',
-  'Offers': 'navOffers', 'Showrooms': 'navShowrooms',
+  'Offers': 'navOffers', 'Campaign': 'navCampaign', 'Showrooms': 'navShowrooms',
   // mega-menu column headers
   'By style': 'navByStyle', 'By finish': 'navByFinish', 'Get started': 'navGetStarted',
   'Build & spec': 'navBuildSpec', 'Rooms & products': 'navRoomsProducts', 'Explore': 'navExplore',
@@ -3224,7 +3228,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
       )}
 
       {!mobile && (
-        <div onMouseLeave={scheduleClose} style={{ flex:1, minWidth:0, display:'flex', alignItems:'center', justifyContent:'center', gap:2, flexWrap:'nowrap', overflow:'visible' }}>
+        <div className="nav-mid" onMouseLeave={scheduleClose} style={{ flex:1, minWidth:0, display:'flex', alignItems:'center', justifyContent:'center', gap:2, flexWrap:'nowrap', overflow:'visible' }}>
           {NAV_PRIMARY_KEYS.map(key => {
             const g = NAV_GROUPS.find(x=>x.key===key); if (!g) return null;
             const on = openMega===g.key;
@@ -3244,6 +3248,9 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
           {/* Offers — direct visible link after Design studio */}
           <Link to="/offers" onMouseEnter={()=>setOpenMega(null)} onClick={()=>{ setOpenMega(null); setMenuOpen(false); }}
             style={{ textDecoration:'none', padding:'8px 10px', fontSize:14, fontWeight: page==='offers'?600:500, color: page==='offers'?'var(--clay-deep)':'var(--ink)', borderRadius:10, whiteSpace:'nowrap' }}>{trLabel('Offers', lang)}</Link>
+          {/* [CAMPAIGN-MENU] Campaign — the live reward campaign */}
+          <Link to="/campaign" onMouseEnter={()=>setOpenMega(null)} onClick={()=>{ setOpenMega(null); setMenuOpen(false); }}
+            style={{ textDecoration:'none', padding:'8px 10px', fontSize:14, fontWeight: page==='campaign'?600:500, color: page==='campaign'?'var(--clay-deep)':'var(--ink)', borderRadius:10, whiteSpace:'nowrap' }}>{trLabel('Campaign', lang)}</Link>
           {/* More ▾ — demoted groups + utility pages */}
           <div onMouseEnter={()=>openMenu('more')} style={{ position:'static', flexShrink:0 }}>
             <button type="button" onClick={()=>setOpenMega(openMega==='more'?null:'more')} aria-expanded={openMega==='more'}
@@ -3385,6 +3392,8 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
             })}
             {/* Offers — direct link */}
             <Link to="/offers" onClick={()=>{ setMenuOpen(false); setOpenAcc(null); }} style={{ textDecoration:'none', display:'block', width:'100%', textAlign:'left', background: page==='offers'?'var(--sand)':'#fff', border:'1px solid var(--line)', borderRadius:12, padding:'13px 15px', fontSize:15, fontWeight:600, color: page==='offers'?'var(--clay-deep)':'var(--ink)', cursor:'pointer' }}>{trLabel('Offers', lang)}</Link>
+            {/* [CAMPAIGN-MENU] Campaign */}
+            <Link to="/campaign" onClick={()=>{ setMenuOpen(false); setOpenAcc(null); }} style={{ textDecoration:'none', display:'block', width:'100%', textAlign:'left', background: page==='campaign'?'var(--sand)':'#fff', border:'1px solid var(--line)', borderRadius:12, padding:'13px 15px', fontSize:15, fontWeight:600, color: page==='campaign'?'var(--clay-deep)':'var(--ink)', cursor:'pointer' }}>{trLabel('Campaign', lang)}</Link>
             {/* More — demoted groups + utility pages, as an accordion */}
             {(() => {
               const open = openAcc==='more';
@@ -8394,10 +8403,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
     <div style={{ background: 'var(--cream)' }}>
       <div id="scrollProgress" />
       <Hero setPage={setPage} banners={banners} />
-      {/* [IKHTARHA 2026-11-09] live reward campaign — shows only while the campaign is live */}
-      <IkhtarhaSpotlight cfg={ikh} lang={lang} mobile={mobile} cms={cms} setPage={setPage} />
-      <IkhtarhaGames cfg={ikh} lang={lang} cms={cms} />{/* [HOME-GAMES 2026-11-10] «العب الآن» poster for the Games Hub */}
-      <IkhtarhaDesigns cfg={ikh} lang={lang} cms={cms} setPage={setPage} />
+      {/* [CAMPAIGN-MENU 2026-11-14] the «اختارها» sections moved to their own page: Campaign in the menu (the small pill below still points to it while the campaign is live) */}
       {/* [HOME 2026-11-09] walk into the showroom */}
       <ShowroomTour lang={lang} setPage={setPage} img={{ walkin: cms('home.tour.walkin', TOUR_IMG.walkin), kitchen: cms('home.tour.kitchen', TOUR_IMG.kitchen), living: cms('home.tour.living', TOUR_IMG.living), wardrobe: cms('home.tour.wardrobe', TOUR_IMG.wardrobe), door: cms('home.tour.door', TOUR_IMG.door) }} fallback={{ walkin: HOME_IMG.walkin, kitchen: HOME_IMG.kitchen, living: HOME_IMG.living, wardrobe: HERO_IMG.wardrobe, door: HERO_IMG.door }} />
 
@@ -8527,7 +8533,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </div>
         <div className="rv" style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: mobile ? 12 : 16 }}>
           <Stat to={10} suffix="K+" label={t('swStatProjects')} />
-          <Stat to={19} suffix={t('swStatYrs')} label={t('swStatCraft')} />
+          <Stat to={20} suffix={t('swStatYrs')} label={t('swStatCraft')} />
           <Stat to={4} label={t('swStatShowrooms')} />
           <Stat to={100} suffix="%" label={t('swStatBespoke')} />
         </div>
@@ -8792,6 +8798,30 @@ function CareersPage() {
   </PageWrap>);
 }
 const inp = { background:'var(--sand)', border:'1px solid var(--line)', borderRadius:12, padding:'11px 14px', fontSize:14, color:'var(--ink)', width:'100%' };
+
+// [CAMPAIGN-MENU 2026-11-14] Campaign: the live reward campaign («اختارها») on its own page, reached from the menu.
+function CampaignPage({ setPage }) {
+  const { lang } = useI18n();
+  const mobile = useMobile();
+  const ikh = useIkhLanding();   // null = loading, false = no live campaign, object = live
+  useReveal();
+  const ar = lang === 'ar';
+  return (
+    <div style={{ minHeight:'100dvh', background:'var(--cream)', paddingTop: mobile?56:64, paddingBottom:90 }} data-testid="campaign-page">
+      <IkhtarhaSpotlight cfg={ikh} lang={lang} mobile={mobile} cms={cms} setPage={setPage} />
+      <IkhtarhaGames cfg={ikh} lang={lang} cms={cms} />
+      <IkhtarhaDesigns cfg={ikh} lang={lang} cms={cms} setPage={setPage} />
+      {ikh === false && (
+        <div style={{ maxWidth:640, margin:'0 auto', padding: mobile?'72px 24px':'120px 32px', textAlign:'center' }}>
+          <div className="eyebrow" style={{ marginBottom:14 }}>{ar ? 'الحملة' : 'Campaign'}</div>
+          <h1 className="display" style={{ fontSize: mobile?30:44, color:'var(--ink)' }}>{ar ? 'لا توجد حملة حالياً' : 'No campaign is running right now'}</h1>
+          <p style={{ fontSize:16, color:'var(--ink-soft)', marginTop:14, lineHeight:1.7 }}>{ar ? 'تابع عروضنا الحالية، والحملة القادمة ستظهر هنا.' : 'See our current offers. The next campaign will appear here.'}</p>
+          <button type="button" className="btn-clay" style={{ marginTop:24 }} onClick={()=>setPage('offers')}>{ar ? 'شاهد العروض' : 'See the offers'}</button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function OffersPage({ setPage }) {
   const { t, lang } = useI18n();
@@ -16614,12 +16644,13 @@ const PATH_TO_PAGE = { '':'home','/':'home','/home':'home','/kitchen':'kitchen',
   '/design-studio/office-planner':'office-planner','/office-planner':'office-planner',
   '/design-studio/builder':'design-builder','/design-builder':'design-builder',
   '/ai-lab':'design-lab','/ai-lab/yas':'ai-yas',
-  '/warranty':'warranty','/maintenance':'maintenance','/careers':'careers','/checkout':'checkout','/cart':'home' };
+  '/warranty':'warranty','/maintenance':'maintenance','/careers':'careers','/checkout':'checkout','/cart':'home',
+  '/campaign':'campaign' };   // [CAMPAIGN-MENU] /campaign/ikhtarha (the game itself) is routed in index.js, before this table
 // Canonical page → URL path (reverse of PATH_TO_PAGE). Non-listed keys fall back to '/'+key.
 const PAGE_TO_PATH = {
   home:'/', kitchen:'/kitchen', wardrobes:'/wardrobes', tv:'/tv', doors:'/doors', office:'/office',
   about:'/about', contact:'/contact', services:'/services', showrooms:'/showrooms', blog:'/blog',
-  faq:'/faq', offers:'/offers', projects:'/projects', booking:'/booking', directory:'/directory',
+  faq:'/faq', offers:'/offers', campaign:'/campaign', projects:'/projects', booking:'/booking', directory:'/directory',
   'how-it-works':'/how-it-works', ai:'/ai-designer',
   products:'/gallery', portal:'/signin',
   // Design Studio group
@@ -16637,7 +16668,7 @@ const ROUTE_TABLE = [
   '/', '/kitchen', '/wardrobes', '/tv', '/doors', '/office', '/gallery',
   '/design-studio', '/design-studio/kitchen-planner', '/design-studio/wardrobe-planner',
   '/design-studio/tv-planner', '/design-studio/door-planner', '/design-studio/office-planner',
-  '/ai-lab', '/ai-lab/yas', '/offers', '/booking', '/projects', '/services', '/showrooms',
+  '/ai-lab', '/ai-lab/yas', '/offers', '/campaign', '/booking', '/projects', '/services', '/showrooms',
   '/how-it-works', '/faq', '/about', '/contact', '/blog', '/careers', '/warranty', '/maintenance',
 ];
 // Per-route <title> + meta description, bilingual. [title, description] per lang. Falls back to a generic bilingual pair.
@@ -16656,6 +16687,8 @@ const ROUTE_META = {
            ar:['مكتب منزلي — ذا كلوزتس','أثاث ومكاتب وحلول تخزين للمكتب المنزلي مصمّمة حسب طريقة عملك. صناعة بحرينية.'] },
   products:{ en:['Gallery — The Closets Co.','Browse our full collection of bespoke kitchens, wardrobes, closets and storage.'],
              ar:['المعرض — ذا كلوزتس','تصفّح مجموعتنا الكاملة من المطابخ والخزائن وغرف الملابس وحلول التخزين المصمّمة خصيصاً.'] },
+  campaign:{ en:['Campaign — The Closets Co.','The current reward campaign from The Closets Co.: pick your prize box with your quotation.'],
+             ar:['الحملة — ذا كلوزتس','حملة الجوائز الحالية من ذا كلوزتس: اختر صندوق جائزتك مع عرض السعر.'] },
   offers:{ en:['Offers — The Closets Co.','Current offers on bespoke kitchens, wardrobes and storage. Book a free design consultation.'],
            ar:['العروض — ذا كلوزتس','عروضنا الحالية على المطابخ والخزائن وحلول التخزين. احجز استشارة تصميم مجانية.'] },
   booking:{ en:['Book a Free Consultation — The Closets Co.','Book a free home design visit. We measure, design in 3D and install — one team, start to finish.'],
@@ -16914,6 +16947,7 @@ function AppInner() {
       {page==='blog' && <BlogPage />}
       {page==='careers' && <CareersPage />}
       {page==='offers' && <OffersPage setPage={setPage} />}
+      {page==='campaign' && <CampaignPage setPage={setPage} />}
       {page==='faq' && <FaqPage />}
       {page==='booking' && <BookingPage setPage={setPage} />}
       {page==='services' && <ServicesPage user={user} setPage={setPage} openAuth={openAuth} />}

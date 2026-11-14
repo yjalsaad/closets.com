@@ -22,7 +22,7 @@ export const FACTS = {
   warrantyYears: 10,                               // "10 years on cabinetry and soft-close hardware" (consistent everywhere)
 
   // ---- TODO(owner): the site contradicts itself; null = hidden until decided ----
-  yearsOfCraft: null,        // seen as 15 (badge/marquee/footer chip), 19 (home stat), 20 (about stat, projects), "two decades" (about copy)
+  yearsOfCraft: 20,          // [2026-11-14] decided by the owner: 20 years, everywhere (it was 15 / 19 / 20 in different places)
   homesDelivered: null,      // seen as "10K+" (home stat), "500+ Homes fitted" (about), "0+" (projects, computed from an empty table)
   productionModel: null,     // seen as "two factories in Bahrain" (campaign business band) vs "our own workshop" / "one workshop" (home, about, projects)
   showroomCount: null,       // seen as 4 (home stat, about copy, contact) while the Showrooms page lists none

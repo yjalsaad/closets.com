@@ -44,9 +44,11 @@ describe('honesty: no financial promises, contested facts are marked placeholder
   test('the neutral disclaimer is present in both languages and says information only / not an offer / not advice', () => {
     expect(C.DISCLAIMER.en).toMatch(/information only/i); expect(C.DISCLAIMER.en).toMatch(/not an offer/i); expect(C.DISCLAIMER.en).toMatch(/financial advice/i); expect(C.DISCLAIMER.en).toMatch(/management/i); expect(/[؀-ۿ]/.test(C.DISCLAIMER.ar)).toBe(true);
   });
-  test('years of craft, homes delivered, production model and showroom count are NOT asserted: they show the placeholder while facts.js has null', () => {
-    for (const k of ['yearsOfCraft', 'homesDelivered', 'productionModel', 'showroomCount']) expect(FACTS[k]).toBeNull();
-    const cf = C.contestedFacts(); expect(cf).toHaveLength(4); for (const f of cf) { expect(f.confirmed).toBe(false); expect(f.value).toBe(C.PLACEHOLDER); }
+  test('years of craft is decided (20); homes delivered, production model and showroom count are NOT asserted: they show the placeholder while facts.js has null', () => {
+    expect(FACTS.yearsOfCraft).toBe(20);   // [2026-11-14] the owner decided: 20 years everywhere
+    for (const k of ['homesDelivered', 'productionModel', 'showroomCount']) expect(FACTS[k]).toBeNull();
+    const cf = C.contestedFacts(); expect(cf).toHaveLength(4);
+    for (const f of cf) { if (f.key === 'yearsOfCraft') { expect(f.confirmed).toBe(true); expect(f.value.en).toBe('20'); } else { expect(f.confirmed).toBe(false); expect(f.value).toBe(C.PLACEHOLDER); } }
     expect(C.PLACEHOLDER.en).toBe('To be confirmed by management');
   });
   test('a confirmed value (once management decides it in facts.js) appears automatically instead of the placeholder', () => {
