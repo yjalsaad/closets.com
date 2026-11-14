@@ -34,21 +34,10 @@
    }
   },
   {
-   "id": "invest",
+   "id": "contact",
    "title": {
-    "en": "How to join and invest",
-    "ar": "كيف تنضم وتستثمر"
-   },
-   "lead": {
-    "en": "A clear, step-by-step process. It contains no figures and no promises.",
-    "ar": "مسار واضح خطوة بخطوة. لا يتضمن أرقامًا ولا وعودًا."
-   }
-  },
-  {
-   "id": "briefing",
-   "title": {
-    "en": "Request a private investor briefing",
-    "ar": "اطلب إحاطة خاصة للمستثمرين"
+    "en": "Talk to our team",
+    "ar": "تحدث مع فريقنا"
    },
    "lead": {
     "en": "Start with a conversation. Our management answers directly.",
@@ -121,63 +110,6 @@
    "value": {
     "en": "To be confirmed by management",
     "ar": "يؤكَّد من الإدارة"
-   }
-  }
- ],
- "INVEST_STEPS": [
-  {
-   "id": "brief",
-   "title": {
-    "en": "Request a private briefing",
-    "ar": "اطلب إحاطة خاصة"
-   },
-   "body": {
-    "en": "Tell us you would like to talk. A member of management replies directly.",
-    "ar": "أخبرنا برغبتك في الحديث. يرد عليك أحد أفراد الإدارة مباشرة."
-   }
-  },
-  {
-   "id": "pack",
-   "title": {
-    "en": "Receive the information pack",
-    "ar": "استلم الحزمة التعريفية"
-   },
-   "body": {
-    "en": "Management provides the company information it chooses to give.",
-    "ar": "تقدّم الإدارة معلومات الشركة التي تختار تقديمها."
-   }
-  },
-  {
-   "id": "meet",
-   "title": {
-    "en": "Meet the team and visit",
-    "ar": "قابل الفريق وزر المعرض"
-   },
-   "body": {
-    "en": "Meet the people, see the showroom and how the work is done.",
-    "ar": "تعرّف على الفريق وزر المعرض وطريقة العمل."
-   }
-  },
-  {
-   "id": "diligence",
-   "title": {
-    "en": "Due diligence",
-    "ar": "العناية الواجبة"
-   },
-   "body": {
-    "en": "You review what matters to you, with your own advisers.",
-    "ar": "تراجع ما يهمك مع مستشاريك."
-   }
-  },
-  {
-   "id": "terms",
-   "title": {
-    "en": "Terms",
-    "ar": "الشروط"
-   },
-   "body": {
-    "en": "Any terms are discussed and agreed directly with management.",
-    "ar": "تُناقَش أي شروط وتُتفق مباشرة مع الإدارة."
    }
   }
  ],
@@ -646,10 +578,6 @@
   "en": "Illustrative: simplified mock-up, not real data",
   "ar": "توضيحي: نموذج مبسّط وليس بيانات حقيقية"
  },
- "briefingUrl": {
-  "en": "/booking?interest=investor-briefing&source=showroom-3d-vip&notes=Request+for+a+private+investor+briefing+%28from+the+virtual+showroom%29.+Information+only%3A+nothing+has+been+shared+or+agreed.",
-  "ar": "/ar/booking?interest=investor-briefing&source=showroom-3d-vip&notes=%D8%B7%D9%84%D8%A8+%D8%A5%D8%AD%D8%A7%D8%B7%D8%A9+%D8%AE%D8%A7%D8%B5%D8%A9+%D9%84%D9%84%D9%85%D8%B3%D8%AA%D8%AB%D9%85%D8%B1%D9%8A%D9%86+%28%D9%85%D9%86+%D8%A7%D9%84%D9%85%D8%B9%D8%B1%D8%B6+%D8%A7%D9%84%D8%A7%D9%81%D8%AA%D8%B1%D8%A7%D8%B6%D9%8A%29.+%D9%84%D9%84%D8%A7%D8%B7%D9%84%D8%A7%D8%B9+%D9%81%D9%82%D8%B7%3A+%D9%84%D9%85+%D9%8A%D9%8F%D8%B4%D8%A7%D8%B1%D9%8E%D9%83+%D8%A3%D9%88+%D9%8A%D9%8F%D8%AA%D9%8E%D9%91%D9%81%D9%82+%D8%B9%D9%84%D9%89+%D8%B4%D9%8A%D8%A1."
- },
  "contactLines": {
   "en": [
    {
@@ -697,10 +625,6 @@
   "homesDelivered",
   "productionModel",
   "showroomCount",
-  "investorInfoPack",
-  "fundingSought",
-  "financials",
-  "briefingContact",
   "confirmHubFigures",
   "projectsData",
   "arabicReview",
@@ -710,7 +634,7 @@
   "story",
   "projects",
   "hub",
-  "invest",
-  "briefing"
- ]
+  "contact"
+ ],
+ "_note": "Dumped from the pre-deck vipContent.js, then edited ONLY for the owner request to remove \"How to join and invest\" and the investor-briefing station: stations 4 and 5 replaced by a generic contact station, INVEST_STEPS and briefingUrl dropped, four investor-only owner inputs dropped. Everything else is byte-identical to the original."
 }

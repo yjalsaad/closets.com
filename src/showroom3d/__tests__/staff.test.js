@@ -39,10 +39,9 @@ describe('guide intents', () => {
     const u = reply('zzqx plmk', ctx()); expect(u.intent).toBe('unknown'); expect(u.askAi).toBe(true);
     expect(reply('what is the weather', ctx()).askAi).toBe(false);
   });
-  test('VIP staff: stations + briefing link, no figures, no promises', () => {
+  test('VIP staff: lists the stations and the presentations, no briefing link, no figures, no promises', () => {
     const v = reply('tell me about investing', ctx({ staff: { id: 'vip', room: 'vip', name: { en: 'VIP advisor', ar: 'مستشارة VIP' } } }));
-    expect(v.intent).toBe('vip'); expect(v.text).toMatch(/five stations/); expect(v.actions[0].href).toContain('interest=investor-briefing'); expect(violation(v.text)).toBeNull();
-    expect(parseBookingPrefill('?' + v.actions[0].href.split('?')[1]).interest).toBe('Other');
+    expect(v.intent).toBe('vip'); expect(v.text).toMatch(/four stations/); expect(v.actions).toEqual([]); expect(JSON.stringify([v.text, v.chips])).not.toMatch(/briefing|إحاطة/i); expect(violation(v.text)).toBeNull();
   });
 });
 

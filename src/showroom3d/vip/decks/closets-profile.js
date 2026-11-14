@@ -57,8 +57,8 @@ export const CLOSETS_PROFILE_DECK = {
       bullets: [
         T('2011: fourth showroom opens in the Sanad area.', '2011: افتتاح صالة العرض الرابعة في منطقة سند.'),
         T('2012: first showroom in Khobar, Saudi Arabia.', '2012: أول صالة عرض في الخبر بالسعودية.'),
-        T('2013: ISO 9001:2008 earned; Franke joins the official suppliers.', '2013: الحصول على ISO 9001:2008؛ وانضمام Franke إلى الموردين الرسميين.'),
-        T('2014: Kesseböhmer joins; the 5000 sqm Closets factory opens.', '2014: انضمام Kesseböhmer؛ وافتتاح مصنع ذا كلوزتس بمساحة 5000 م².'),
+        T('2013: ISO 9001:2008 earned; Franke added to the official suppliers.', '2013: الحصول على ISO 9001:2008؛ وانضمام Franke إلى الموردين الرسميين.'),
+        T('2014: Kesseböhmer added; the 5000 sqm Closets factory opens.', '2014: انضمام Kesseböhmer؛ وافتتاح مصنع ذا كلوزتس بمساحة 5000 م².'),
       ], source: SRC('20') },
     { id: 'history-3', accent: 'orange', title: T('Milestones: 2016 to 2019', 'محطات: 2016 إلى 2019'),
       bullets: [

@@ -7,8 +7,10 @@ import { resolveDeck } from '../vip/deckSchema';
 import { MAX_USER_DECKS } from '../vip/deckStore';
 import { SlideBody } from './VipSlide';
 import { VipDeckDialog } from './VipDeckDialog';
+import { VipReader } from './VipReader';
 
-const BUILTIN_IDX = { story: 0, projects: 1, hub: 2, invest: 3, briefing: 4 };
+const reading0 = (e) => (e.presMode || 'panel') === 'read';
+const BUILTIN_IDX = { story: 0, projects: 1, hub: 2, contact: 3 };
 
 const Lx = C.L;
 
@@ -51,19 +53,10 @@ function Station({ lang, idx, ex, st }) {
       <p className="sr-note">{Lx(C.ILLUSTRATIVE, lang)}. {t('vipHubSource', lang)}</p>
     </>);
   }
-  if (idx === 3) {
-    return (<>
-      <p className="sr-lead">{Lx(C.STATIONS[3].lead, lang)}</p>
-      <ol className="sr-steps" data-testid="sr-vip-steps">{C.INVEST_STEPS.map((s, i) => <li key={s.id}><span className="sr-step-n" aria-hidden="true">{i + 1}</span><div><b>{Lx(s.title, lang)}</b><span>{Lx(s.body, lang)}</span></div></li>)}</ol>
-      <p className="sr-note sr-vip-disc" data-testid="sr-vip-disclaimer">{Lx(C.DISCLAIMER, lang)}</p>
-    </>);
-  }
   const contact = C.contactLines(lang);
   return (<>
-    <p className="sr-lead">{Lx(C.STATIONS[4].lead, lang)}</p>
+    <p className="sr-lead">{Lx(C.STATIONS[3].lead, lang)}</p>
     <ul className="sr-vip-contact">{contact.map((c) => <li key={c.id}>{Lx(c.label, lang)}: {c.href ? <a href={c.href} dir={c.dir} data-testid={'sr-vip-' + c.id}>{c.text}</a> : <span data-testid={'sr-vip-' + c.id}>{c.text}</span>}</li>)}</ul>
-    <div className="sr-panel-sec"><h3>{t('vipStillNeeded', lang)}</h3>
-      <ul className="sr-vip-facts" data-testid="sr-vip-pending">{['Investor information pack|الحزمة التعريفية للمستثمرين', 'Funding sought|التمويل المطلوب', 'Financial statements|القوائم المالية', 'Dedicated management contact|جهة اتصال مخصصة في الإدارة'].map((s) => { const [en, ar] = s.split('|'); return <li key={en} className="is-ph"><span>{lang === 'ar' ? ar : en}</span><em>{Lx(C.PLACEHOLDER, lang)}</em></li>; })}</ul></div>
     <p className="sr-note sr-vip-disc" data-testid="sr-vip-disclaimer">{Lx(C.DISCLAIMER, lang)}</p>
   </>);
 }
@@ -76,6 +69,7 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
   useEffect(() => { if (headRef.current) headRef.current.focus({ preventScroll: true }); }, [st.focus, idx, deck.id]);
   useEffect(() => { setConfirmDel(false); }, [deck.id]);
   const rtl = lang === 'ar', unit = deck.unit === 'station' ? t('vipStationOf', lang) : t('vipSlideOf', lang), user = !deck.builtin, bi = raw.builtin ? BUILTIN_IDX[raw.builtin] : -1;
+  const portrait = !!(ex.canvas && ex.canvas.clientWidth && ex.canvas.clientHeight / ex.canvas.clientWidth > 1.1), dom = reading0(ex) && portrait;
   const play = ex.play || { playing: false, speed: 1, loop: true }, mode = ex.presMode || 'panel', prog = typeof st.vipProgress === 'number' ? st.vipProgress : -1, big = mode !== 'panel', reading = mode === 'read';
   const del = () => { ex.removeDeck(deck.id); setConfirmDel(false); if (selRef.current) selRef.current.focus(); };
   return (
@@ -100,8 +94,8 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
       </header>
       <div className="sr-panel-body" aria-live="polite">{bi >= 0 ? <Station lang={lang} idx={bi} ex={ex} st={st} /> : <SlideBody key={deck.id + ':' + raw.id} lang={lang} slide={slide} reduced={reduced} tier={tier} />}</div>
       <footer className="sr-panel-foot">
-        {!big && raw.builtin === 'briefing' && <a className="sr-btn sr-quote" href={C.briefingUrl(lang)} data-testid="sr-vip-cta">{t('vipBriefing', lang)}</a>}
-        {!big && raw.builtin === 'briefing' && <p className="sr-note">{t('vipBriefingNote', lang)}</p>}
+        {!big && raw.builtin === 'contact' && <a className="sr-btn sr-quote" href={C.contactUrl(lang)} data-testid="sr-vip-cta">{t('vipContactCta', lang)}</a>}
+        {!big && raw.builtin === 'contact' && <p className="sr-note">{t('vipContactNote', lang)}</p>}
         <div className="sr-vip-present" role="group" aria-label={t('vipPresenter', lang)} data-testid="sr-vip-presenter">
           {big && <p className="sr-vip-pbar-title" data-testid="sr-vip-pbar-title">{deck.slides.length > 1 ? `${idx + 1} / ${n} · ` : ''}{slide.title}</p>}
           <button type="button" className="sr-btn" onClick={() => ex.togglePlay()} aria-pressed={play.playing} data-testid="sr-vip-play">{play.playing ? t('vipPause', lang) : t('vipPlay', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">P</kbd>}</button>
@@ -121,6 +115,7 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
         </nav>
         {!touch && !big && decks.length > 1 && <p className="sr-note sr-vip-keys">{t('vipDeckKeys', lang)}. {t('vipPresentKeys', lang)}</p>}
       </footer>
+      {dom && createPortal(<VipReader lang={lang} deckTitle={rd.title} slide={slide} raw={raw} idx={idx} n={n} touch={touch} reduced={reduced} tier={tier} onPrev={() => ex.stepStation(-1)} onNext={() => ex.stepStation(1)} onExit={() => ex.setPresentMode('panel')} />, (ex.canvas && ex.canvas.parentNode) || document.body)}
       {adding && createPortal(<VipDeckDialog lang={lang} ex={ex} max={MAX_USER_DECKS} onClose={() => { setAdding(false); }} />, (ex.canvas && ex.canvas.parentNode) || document.body)}
     </aside>
   );

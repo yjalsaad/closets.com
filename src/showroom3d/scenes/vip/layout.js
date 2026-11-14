@@ -35,8 +35,7 @@ export const VIP_VIEWS = [
   { id: 'story', pos: [0, 1.85, -29.2], look: [0, 2.2, -35.42], fov: 54 },
   { id: 'projects', pos: [-0.6, 1.8, -31.2], look: [-7.0, 1.9, -32.6], fov: 58 },
   { id: 'hub', pos: [0, 1.85, -29.2], look: [0, 2.2, -35.42], fov: 54 },
-  { id: 'invest', pos: [0, 1.85, -29.2], look: [0, 2.2, -35.42], fov: 54 },
-  { id: 'briefing', pos: [0, 1.85, -29.2], look: [0, 2.2, -35.42], fov: 52 },
+  { id: 'contact', pos: [0, 1.85, -29.2], look: [0, 2.2, -35.42], fov: 52 },
 ];
 
 /** presenter view of the big screen: the camera is placed so the whole wall (screen width + margin) fits the viewport width for the given aspect ratio and vertical fov */

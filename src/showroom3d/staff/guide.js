@@ -10,7 +10,7 @@ import { DEPARTMENTS } from '../scenes/main-hall/departments';
 import { PRODUCTS } from '../products/catalog';
 import { FINISHES, finishList } from '../products/finishes';
 import { INTEREST, NOTES_MAX } from '../products/quote';
-import { STATIONS, briefingUrl, DISCLAIMER } from '../products/vipContent';
+import { STATIONS, DISCLAIMER } from '../products/vipContent';
 
 const AR = (lang) => lang === 'ar';
 export const pick = (o, lang) => (o && typeof o === 'object' ? (AR(lang) ? o.ar || o.en : o.en) : o);
@@ -87,7 +87,7 @@ const clean = (s) => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f<>]
 export function buildHandoff({ lang = 'en', memory = {}, room = null } = {}) {
   const L = AR(lang) ? 'ar' : 'en', r = memory.room || room, def = r && roomById(r), product = def && def.product;
   const q = new URLSearchParams();
-  if (r === 'vip') q.set('interest', 'investor-briefing'); else if (product && INTEREST[product]) q.set('interest', INTEREST[product]);
+  if (product && INTEREST[product]) q.set('interest', INTEREST[product]);
   q.set('source', r === 'vip' ? 'showroom-3d-staff-vip' : 'showroom-3d-staff');
   const fin = product && memory.finish ? getFin(product, memory.finish) : null;
   if (fin) q.set('finish', clean(fin.id).slice(0, 40));
@@ -271,7 +271,7 @@ function contactReply(lang, mem, here) {
 const PRESENTABLE = [
   { id: 'closets-profile', name: { en: 'The Closets company profile', ar: 'ملف شركة ذا كلوزتس' }, kw: [/\b(closets|company|factory|profile)\b/, 'ذا كلوزتس', 'ملف الشركة', 'المصنع'] },
   { id: 'yas-profile', name: { en: 'the YAS Wood profile', ar: 'ملف YAS Wood' }, kw: [/\b(yas|wood|decor\w*|panels?|laminates?)\b/, 'ياس', 'الواح', 'ألواح'] },
-  { id: 'default', name: { en: 'the investor and partner presentation', ar: 'عرض المستثمرين والشركاء' }, kw: [/\b(investor\w*|partner\w*|vip)\b/, 'مستثمر', 'شريك'] },
+  { id: 'default', name: { en: 'the company presentation', ar: 'عرض الشركة' }, kw: [/\b(overview|stations?|vip)\b/, 'نظره عامه', 'المحطات'] },
 ];
 function presentReply(lang, mem, id) {
   const d = PRESENTABLE.find((x) => x.id === id) || PRESENTABLE[0]; mem.room = 'vip';
@@ -279,20 +279,20 @@ function presentReply(lang, mem, id) {
     ? `بكل سرور، سأعرض ${pick(d.name, lang)} على الشاشة الكبيرة في غرفة الاجتماعات VIP. المحتوى من الملفات التي قدمتها الإدارة، وتذكر كل شريحة صفحة مصدرها. ` + pick(DISCLAIMER, lang)
     : `Happy to. Let me present ${pick(d.name, lang)} on the big screen in the VIP Meeting Room. The content comes from the documents management supplied, and each slide cites its source page. ` + pick(DISCLAIMER, lang);
   const others = PRESENTABLE.filter((x) => x.id !== id).map((x) => chip('#present:' + x.id, 'Present ' + x.name.en, 'اعرض ' + x.name.ar));
-  return { intent: 'present', text, chips: [...others, chip('#book', 'Request a private briefing', 'اطلب إحاطة خاصة')], actions: [], memory: mem, askAi: false, auto: { type: 'present', deck: id } };
+  return { intent: 'present', text, chips: [...others, chip('#book', 'Book a free consultation', 'احجز استشارة مجانية')], actions: [], memory: mem, askAi: false, auto: { type: 'present', deck: id } };
 }
 function vipReply(lang, mem) {
   const st = STATIONS.map((s, i) => `${AR(lang) ? '' : ''}• ${pick(s.title, lang)}`);
-  const text = [AR(lang) ? 'في غرفة الاجتماعات VIP خمس محطات:' : 'The VIP Meeting Room has five stations:', ...st, AR(lang) ? 'لا أستطيع الحديث عن أرقام أو عوائد أو وعود؛ تُناقَش أي تفاصيل مباشرة مع الإدارة. ' + pick(DISCLAIMER, lang) : 'I cannot speak about figures, returns or promises; any details are discussed directly with management. ' + pick(DISCLAIMER, lang)].join('\n');
+  const text = [AR(lang) ? 'في غرفة الاجتماعات VIP أربع محطات، إضافة إلى عرضين لملف الشركة:' : 'The VIP Meeting Room has four stations, plus two company-profile presentations:', ...st, AR(lang) ? 'لا أستطيع الحديث عن أرقام أو عوائد أو وعود؛ تُناقَش أي تفاصيل مباشرة مع الإدارة. ' + pick(DISCLAIMER, lang) : 'I cannot speak about figures, returns or promises; any details are discussed directly with management. ' + pick(DISCLAIMER, lang)].join('\n');
   mem.room = 'vip';
-  return { intent: 'vip', text, chips: [chip('#go:vip', 'Take me to the VIP room', 'خذني إلى غرفة VIP'), chip('#present:closets-profile', 'Present the company profile', 'اعرض ملف الشركة'), chip('#book', 'Request a private briefing', 'اطلب إحاطة خاصة'), chip('#services', 'What do you offer?', 'ما الذي تقدمونه؟')], actions: [{ type: 'link', href: briefingUrl(lang), label: { en: 'Request a private briefing', ar: 'اطلب إحاطة خاصة' } }], memory: mem, askAi: false, auto: null };
+  return { intent: 'vip', text, chips: [chip('#go:vip', 'Take me to the VIP room', 'خذني إلى غرفة VIP'), chip('#present:closets-profile', 'Present the company profile', 'اعرض ملف الشركة'), chip('#book', 'Book a free consultation', 'احجز استشارة مجانية'), chip('#services', 'What do you offer?', 'ما الذي تقدمونه؟')], actions: [], memory: mem, askAi: false, auto: null };
 }
 function greetReply(lang, mem, staff) {
   const nm = staff && staff.name ? pick(staff.name, lang) : '';
   const room = staff && staff.room;
   const text = room === 'reception'
     ? (AR(lang) ? `أهلًا بك في المعرض. أنا ${nm || 'مستشارة الاستقبال'} (مساعد ذكاء اصطناعي). أستطيع أن أعرض لك كل ما نقدمه، أو آخذك إلى أي غرفة، أو أساعدك في تخطيط مساحتك وحجز زيارة.` : `Welcome to the showroom. I am the ${nm || 'Reception advisor'}, an AI assistant. I can show you everything we offer, take you to any room, or help you plan your space and book a visit.`)
-    : room === 'vip' ? (AR(lang) ? `أهلًا بك في غرفة الاجتماعات. أنا ${nm} (مساعد ذكاء اصطناعي). أشرح لك المحطات وكيفية طلب إحاطة خاصة، دون أرقام أو وعود.` : `Welcome to the meeting room. I am the ${nm}, an AI assistant. I can explain the stations and how to request a private briefing, with no figures and no promises.`)
+    : room === 'vip' ? (AR(lang) ? `أهلًا بك في غرفة الاجتماعات. أنا ${nm} (مساعد ذكاء اصطناعي). أشرح لك المحطات وأعرض ملف الشركة على الشاشة الكبيرة، دون أرقام أو وعود.` : `Welcome to the meeting room. I am the ${nm}, an AI assistant. I can explain the stations and present the company profile on the big screen, with no figures and no promises.`)
       : (AR(lang) ? `أهلًا بك. أنا ${nm || 'مستشارة'} هذه الغرفة (مساعد ذكاء اصطناعي). يسعدني أن أشرح لك ما تراه هنا وأساعدك في اختيار ما يناسبك.` : `Welcome. I am the ${nm || 'adviser'} for this room, an AI assistant. I am glad to explain what you see here and help you choose what suits you.`);
   return { intent: 'greeting', text, chips: baseChips(room), actions: [], memory: mem, askAi: false, auto: null };
 }

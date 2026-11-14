@@ -169,7 +169,7 @@ export function deckWarnings(deck) {
 
 // ---------------------------------------------------------------- the disclaimer is never optional
 export const disclaimerSlide = () => ({ id: DISCLAIMER_SLIDE_ID, title: DISCLAIMER_TITLE, bullets: [DISCLAIMER], blocks: [], links: [], disclaimer: true });
-/** a slide that already carries the disclaimer: only trusted slides can be flagged `disclaimer: true` (the built-in "invest" and "briefing" stations draw it themselves); sanitizeDeck strips the flag from imports, so an import ALWAYS gets the real one appended */
+/** a slide that already carries the disclaimer: only trusted slides can be flagged `disclaimer: true` (the built-in "contact" station draws it itself); sanitizeDeck strips the flag from imports, so an import ALWAYS gets the real one appended */
 export const slideHasDisclaimer = (s) => !!s && s.disclaimer === true;
 /** returns the deck with the disclaimer as its FINAL slide (idempotent; any user slide pretending to be the disclaimer id was renamed by sanitizeDeck) */
 export function withDisclaimer(deck) {

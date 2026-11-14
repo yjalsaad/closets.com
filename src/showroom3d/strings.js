@@ -100,8 +100,8 @@ export const STRINGS = {
   vipModules: { en: 'modules', ar: 'وحدة' },
   vipConfirmed: { en: 'Confirmed', ar: 'مؤكَّد' },
   vipPlaceholderTag: { en: 'Placeholder', ar: 'بيانات مؤقتة' },
-  vipBriefing: { en: 'Request a private investor briefing', ar: 'اطلب إحاطة خاصة للمستثمرين' },
-  vipBriefingNote: { en: 'Opens our existing booking page with a note about your request. Nothing is sent until you submit the form, and no financial information is collected here.', ar: 'يفتح صفحة الحجز الحالية مع ملاحظة عن طلبك. لا يُرسل شيء حتى تضغط إرسال النموذج، ولا تُجمع أي معلومات مالية هنا.' },
+  vipContactCta: { en: 'Book a consultation', ar: 'احجز استشارة' },
+  vipContactNote: { en: 'Opens our existing booking page. Nothing is sent until you submit the form.', ar: 'يفتح صفحة الحجز الحالية. لا يُرسل شيء حتى تضغط إرسال النموذج.' },
   // VIP presentation decks (picker + "Add presentation" dialog). Arabic: authored, no native review yet.
   vipDeckLabel: { en: 'Presentation', ar: 'العرض' },
   vipDeckSwitch: { en: 'Choose a presentation', ar: 'اختر عرضًا' },
@@ -156,7 +156,6 @@ export const STRINGS = {
   vdErrFileRead: { en: 'The file could not be read.', ar: 'تعذّرت قراءة الملف.' },
   vdPrevSlide: { en: 'Previous slide', ar: 'الشريحة السابقة' },
   vdNextSlide: { en: 'Next slide', ar: 'الشريحة التالية' },
-  vipStillNeeded: { en: 'Still to be provided by management', ar: 'ما تبقّى أن تقدّمه الإدارة' },
   camFirst: { en: 'First person', ar: 'منظور الشخص الأول' },
   camThird: { en: 'Third person', ar: 'منظور الشخص الثالث' },
   camLabel: { en: 'Camera', ar: 'الكاميرا' },

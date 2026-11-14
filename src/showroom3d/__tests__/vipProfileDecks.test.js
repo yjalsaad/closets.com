@@ -38,6 +38,9 @@ describe.each(DECKS.map((d) => [d.id, d]))('%s: schema', (id, deck) => {
     const all = texts(deck).map((t) => t.en + ' | ' + t.ar).join(' || ');
     expect(FORBIDDEN_FINANCIAL.test(all)).toBe(false); expect(/@|\+\d{2,3}[\s\d-]{6,}|\b\d{3}[\s-]?\d{4,}[\s-]?\d{3,}\b/.test(all)).toBe(false); expect(/guarantee|promise|return on|profit/i.test(all)).toBe(false);
   });
+  test('no invest / join / investor / briefing wording in either deck (removed at the owner\'s request; not to be re-added)', () => {
+    const all = texts(deck).map((t) => t.en + ' | ' + t.ar).join(' || '); expect(/invest|join|briefing|stake|funding|مستثمر|استثمار|تنضم|إحاطة|التمويل المطلوب/i.test(all)).toBe(false);
+  });
   test('{{fact:...}} tokens resolve from facts.js (warranty is confirmed, anything contested stays the placeholder)', () => {
     const r = resolveDeck(deck, 'en'); const txt = JSON.stringify(r); expect(txt).not.toMatch(/\{\{/); if (id === 'closets-profile') { expect(txt).toContain(`${FACTS.warrantyYears} years of warranty`); expect(resolveDeck(deck, 'ar').slides.some((s) => s.bullets.some((b) => b.includes(`كفالة ${FACTS.warrantyYears} سنوات`)))).toBe(true); }
     expect(txt).not.toContain(PLACEHOLDER.en);

@@ -27,7 +27,7 @@ const tagIllus = (k, w, lang, y) => { k.text(Lx(C.ILLUSTRATIVE, lang), k.mx(w - 
 
 /** station 1: the company story and brand */
 export function drawStory(g, w, h, o) {
-  const k = kit(g, w, h, o.lang), { lang } = o; k.bg(); head(k, w, lang === 'ar' ? 'المحطة 1 من 5' : 'STATION 1 OF 5', Lx(C.STATIONS[0].title, lang));
+  const k = kit(g, w, h, o.lang), { lang } = o; k.bg(); head(k, w, lang === 'ar' ? `المحطة 1 من ${C.STATIONS.length}` : `STATION 1 OF ${C.STATIONS.length}`, Lx(C.STATIONS[0].title, lang));
   if (o.logo) { const lw = 280, lh = lw / (o.logo.width / o.logo.height || 1.75), x = k.rtl ? w - 70 - lw : 70; g.fillStyle = hex(P.logoPaper); roundedRect(g, x - 12, 210, lw + 24, lh + 24, 12); g.fill(); g.drawImage(o.logo, x, 222, lw, lh); }
   const lines = C.storyLines().slice(0, 3); let y = 470; const tx = k.mx(70);
   k.text(Lx(C.STATIONS[0].lead, lang), tx, 440, { size: 38, weight: 600, color: P.brandOrange });
@@ -41,7 +41,7 @@ export function drawStory(g, w, h, o) {
 
 /** station 2: the business-line map (a hub-and-spoke diagram of the real departments and services) + status of the project gallery */
 export function drawProjectsScreen(g, w, h, o) {
-  const k = kit(g, w, h, o.lang), { lang, t = 0 } = o; k.bg(); head(k, w, lang === 'ar' ? 'المحطة 2 من 5' : 'STATION 2 OF 5', Lx(C.STATIONS[1].title, lang));
+  const k = kit(g, w, h, o.lang), { lang, t = 0 } = o; k.bg(); head(k, w, lang === 'ar' ? `المحطة 2 من ${C.STATIONS.length}` : `STATION 2 OF ${C.STATIONS.length}`, Lx(C.STATIONS[1].title, lang));
   const lines = businessLines(lang), cx = k.rtl ? w * 0.3 : w * 0.7, cy = h * 0.55, R = Math.min(w * 0.22, h * 0.36);
   g.strokeStyle = rgba(P.screenGlow, 0.25); g.lineWidth = 2; for (const rr of [R * 0.55, R]) { g.beginPath(); g.arc(cx, cy, rr, 0, Math.PI * 2); g.stroke(); }
   g.fillStyle = hex(P.brandOrange); g.beginPath(); g.arc(cx, cy, 54, 0, Math.PI * 2); g.fill(); k.text(lang === 'ar' ? 'ذا كلوزتس' : 'The Closets', cx, cy + 7, { size: 20, weight: 700, color: P.ink, align: 'center' });
@@ -60,7 +60,7 @@ export function drawProjectsScreen(g, w, h, o) {
 
 /** station 3: the Bonsai Hub: an animated lead-to-finance flow, the department module counts and six real capabilities */
 export function drawHub(g, w, h, o) {
-  const k = kit(g, w, h, o.lang), { lang, t = 0 } = o; k.bg(); head(k, w, lang === 'ar' ? 'المحطة 3 من 5' : 'STATION 3 OF 5', Lx(C.STATIONS[2].title, lang));
+  const k = kit(g, w, h, o.lang), { lang, t = 0 } = o; k.bg(); head(k, w, lang === 'ar' ? `المحطة 3 من ${C.STATIONS.length}` : `STATION 3 OF ${C.STATIONS.length}`, Lx(C.STATIONS[2].title, lang));
   const fl = C.HUB_FLOW, y0 = 320, x0 = 120, x1 = w - 120, step = (x1 - x0) / (fl.length - 1);
   g.strokeStyle = rgba(P.screenGlow, 0.35); g.lineWidth = 3; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y0); g.stroke();
   fl.forEach((s, i) => { const x = k.rtl ? x1 - i * step : x0 + i * step, on = ((t * 0.7) % fl.length) | 0; const act = i === on; g.fillStyle = act ? hex(P.brandOrange) : hex(P.brassPale); g.beginPath(); g.arc(x, y0, act ? 20 : 14, 0, Math.PI * 2); g.fill();
@@ -77,30 +77,16 @@ export function drawHub(g, w, h, o) {
   tagIllus(k, w, lang, 120); footer(k, w, h, lang, lang === 'ar' ? 'المصدر: مستودع المنصة' : 'Source: the Hub repository');
 }
 
-/** station 4: the investor path: five steps, no figures */
-export function drawInvest(g, w, h, o) {
-  const k = kit(g, w, h, o.lang), { lang, t = 0 } = o; k.bg(); head(k, w, lang === 'ar' ? 'المحطة 4 من 5' : 'STATION 4 OF 5', Lx(C.STATIONS[3].title, lang));
-  const n = C.INVEST_STEPS.length, mx = 70, gap = 24, cw = (w - 2 * mx - gap * (n - 1)) / n, y = 250, ch = 400, on = ((t * 0.5) % n) | 0;
-  C.INVEST_STEPS.forEach((s, i) => { const x = k.rtl ? w - mx - cw - i * (cw + gap) : mx + i * (cw + gap), act = i === on; k.card(x, y, cw, ch, { fill: act ? rgba(P.brandOrange, 0.16) : rgba(P.sand, 0.05), line: act ? rgba(P.brandOrange, 0.9) : rgba(P.sand, 0.2) });
-    g.fillStyle = act ? hex(P.brandOrange) : hex(P.brassPale); g.beginPath(); g.arc(x + cw / 2, y + 62, 34, 0, Math.PI * 2); g.fill(); k.text(String(i + 1), x + cw / 2, y + 74, { size: 38, weight: 700, color: P.ink, align: 'center' });
-    k.para(Lx(s.title, lang), x + cw / 2, y + 150, cw - 30, { size: 30, weight: 700, color: P.sand, align: 'center', lh: 36 }); k.para(Lx(s.body, lang), x + cw / 2, y + 270, cw - 36, { size: 22, align: 'center', lh: 30 }); });
-  k.card(mx, 672, w - 2 * mx, 84, { line: rgba(P.brass, 0.7) }); k.text(Lx(C.DISCLAIMER, lang), w / 2, 724, { size: 28, weight: 600, align: 'center', max: w - 2 * mx - 60 });
-  k.text(lang === 'ar' ? 'لا أرقام ولا عوائد ولا وعود في هذه العملية.' : 'No figures, no returns, no promises in this process.', k.mx(70), 786, { size: 22, color: P.taupe });
-}
-
-/** station 5: the call to action (routes to the existing booking page; the real button is in the panel) */
-export function drawBriefing(g, w, h, o) {
-  const k = kit(g, w, h, o.lang), { lang, t = 0 } = o; k.bg(P.brandBrown, P.ink); head(k, w, lang === 'ar' ? 'المحطة 5 من 5' : 'STATION 5 OF 5', Lx(C.STATIONS[4].title, lang));
-  k.para(Lx(C.STATIONS[4].lead, lang), k.mx(70), 330, w * 0.5, { size: 38, weight: 600, color: P.sand, lh: 50 });
+/** station 4: the generic contact hand-off (routes to the existing booking page; the real button is in the panel) */
+export function drawContact(g, w, h, o) {
+  const k = kit(g, w, h, o.lang), { lang, t = 0 } = o, N = C.STATIONS.length; k.bg(P.brandBrown, P.ink); head(k, w, lang === 'ar' ? `المحطة ${N} من ${N}` : `STATION ${N} OF ${N}`, Lx(C.STATIONS[N - 1].title, lang));
+  k.para(Lx(C.STATIONS[N - 1].lead, lang), k.mx(70), 330, w * 0.7, { size: 40, weight: 600, color: P.sand, lh: 52 });
   const bw = 620, bh = 96, bx = k.rtl ? w - 70 - bw : 70, by = 500, glow = 0.5 + 0.5 * Math.sin(t * 2.2);
   g.shadowColor = rgba(P.brandOrange, 0.5 + 0.3 * glow); g.shadowBlur = 30 + 20 * glow; g.fillStyle = hex(P.brandOrange); roundedRect(g, bx, by, bw, bh, 48); g.fill(); g.shadowBlur = 0;
-  k.text(lang === 'ar' ? 'اطلب إحاطة خاصة للمستثمرين' : 'Request a private investor briefing', bx + bw / 2, by + 62, { size: 32, weight: 700, color: P.ink, align: 'center' });
-  const px = k.rtl ? 70 : w * 0.58, pw = w * 0.42 - 70; k.card(px, 250, pw, 440, { line: rgba(P.brass, 0.5) }); const ax = k.rtl ? px + pw - 30 : px + 30;
-  k.text(lang === 'ar' ? 'ما نحتاجه من الإدارة' : 'Still to be provided by management', ax, 306, { size: 24, weight: 700, color: P.brassPale, max: pw - 60 });
-  [[{ en: 'Investor information pack', ar: 'الحزمة التعريفية للمستثمرين' }], [{ en: 'Funding sought', ar: 'التمويل المطلوب' }], [{ en: 'Financial statements', ar: 'القوائم المالية' }], [{ en: 'Dedicated management contact', ar: 'جهة اتصال مخصصة في الإدارة' }]].forEach(([n], i) => { k.card(px + 20, 336 + i * 80, pw - 40, 66, { dash: true, line: rgba(P.brandOrange, 0.7) }); k.text(Lx(n, lang), ax + 4, 366 + i * 80, { size: 21, weight: 600, max: pw - 70 }); k.text(Lx(C.PLACEHOLDER, lang), ax + 4, 392 + i * 80, { size: 16, color: P.brandOrange, max: pw - 70 }); });
-  const ct = C.contactLines(lang); ct.forEach((c, i) => k.text(`${Lx(c.label, lang)}: ${c.dir === 'ltr' ? '\u2066' + c.text + '\u2069' : c.text}`, k.mx(70), 640 + i * 38, { size: 26, color: P.sand })); footer(k, w, h, lang);
+  k.text(lang === 'ar' ? 'احجز استشارة' : 'Book a consultation', bx + bw / 2, by + 62, { size: 34, weight: 700, color: P.ink, align: 'center' });
+  const ct = C.contactLines(lang); ct.forEach((c, i) => k.text(`${Lx(c.label, lang)}: ${c.dir === 'ltr' ? '\u2066' + c.text + '\u2069' : c.text}`, k.mx(70), 664 + i * 44, { size: 30, weight: 600, color: P.sand })); footer(k, w, h, lang);
 }
-export const STATION_DRAW = [drawStory, drawProjectsScreen, drawHub, drawInvest, drawBriefing];
+export const STATION_DRAW = [drawStory, drawProjectsScreen, drawHub, drawContact];
 
 /** gallery wall: 3 x 2 project cards. Real rows only; an image is drawn when it has loaded (CORS permitting), otherwise a styled procedural card. */
 export function drawGallery(g, w, h, o) {
@@ -143,7 +129,7 @@ export function drawHolo(g, w, h, o) {
 
 // ================================================================ decks: generic slides + deck chips on the wall screen
 /** the rich built-in renderers, by the `builtin` key of a default-deck slide */
-export const BUILTIN_DRAW = { story: drawStory, projects: drawProjectsScreen, hub: drawHub, invest: drawInvest, briefing: drawBriefing };
+export const BUILTIN_DRAW = { story: drawStory, projects: drawProjectsScreen, hub: drawHub, contact: drawContact };
 const ACCENT = { orange: P.brandOrange, brass: P.brassPale, sand: P.sand, sage: P.ikMint };
 
 /** deck chips along the top of the wall screen (only drawn when there is more than one deck). Pure layout in design pixels, shared by the drawing and the click hit-test. */
