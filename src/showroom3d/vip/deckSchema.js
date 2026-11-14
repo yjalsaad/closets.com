@@ -30,7 +30,7 @@ export const FACT_KEYS = ['yearsOfCraft', 'homesDelivered', 'productionModel', '
 /** words that signal financial promises / figures: imported decks get a WARNING (the owner is responsible), the built-in content must stay clear of them (unit-tested) */
 export const FORBIDDEN_FINANCIAL = /\b(roi|returns?|yields?|valuation|equity|stakes?|shares?|dividends?|profits?|guarantee[sd]?|BHD|BD|USD|per\s?cent)\b|[0-9]+\s?(x|times)\b|دينار|عائد|ربح|تقييم|أسهم|ضمان|%/i;
 
-export const L = (o, lang) => (lang === 'ar' ? (o && (o.ar || o.en)) || '' : (o && (o.en || o.ar)) || '');
+export const L = (o, lang) => (typeof o === 'string' ? o : lang === 'ar' ? (o && (o.ar || o.en)) || '' : (o && (o.en || o.ar)) || '');
 
 // ---------------------------------------------------------------- text sanitising
 // eslint-disable-next-line no-control-regex
@@ -79,7 +79,9 @@ export function sanitizeDeck(raw, { prefix = 'user-' } = {}) {
   if (!Array.isArray(src.slides)) errors.push('The deck needs a "slides" list.');
   else if (!src.slides.length) errors.push('The deck needs at least one slide.');
   if (errors.length) return { ok: false, deck: null, errors, warnings };
-  let list = src.slides; if (list.length > LIMITS.maxSlides) { errors.push(`Too many slides (${list.length}; the limit is ${LIMITS.maxSlides}).`); return { ok: false, deck: null, errors, warnings }; }
+  let list = src.slides.slice(); { const last = list[list.length - 1]; if (isObj(last) && last.id === DISCLAIMER_SLIDE_ID && last.disclaimer === true) list = list.slice(0, -1); }   // our own appended slide (a stored deck being re-read): it is re-added below, never trusted
+  if (!list.length) { errors.push('The deck needs at least one slide.'); return { ok: false, deck: null, errors, warnings }; }
+  if (list.length > LIMITS.maxSlides) { errors.push(`Too many slides (${list.length}; the limit is ${LIMITS.maxSlides}).`); return { ok: false, deck: null, errors, warnings }; }
   const seen = new Set(), slides = [];
   list.forEach((rs, i) => {
     const at = `Slide ${i + 1}`;
@@ -150,8 +152,8 @@ export function deckWarnings(deck) {
 
 // ---------------------------------------------------------------- the disclaimer is never optional
 export const disclaimerSlide = () => ({ id: DISCLAIMER_SLIDE_ID, title: DISCLAIMER_TITLE, bullets: [DISCLAIMER], blocks: [], links: [], disclaimer: true });
-/** a slide that already carries the disclaimer (the built-in "invest" and "briefing" stations draw it themselves: they are flagged `disclaimer: true`) */
-export const slideHasDisclaimer = (s) => !!s && (s.disclaimer === true || (s.bullets || []).some((b) => b && b.en === DISCLAIMER.en));
+/** a slide that already carries the disclaimer: only trusted slides can be flagged `disclaimer: true` (the built-in "invest" and "briefing" stations draw it themselves); sanitizeDeck strips the flag from imports, so an import ALWAYS gets the real one appended */
+export const slideHasDisclaimer = (s) => !!s && s.disclaimer === true;
 /** returns the deck with the disclaimer as its FINAL slide (idempotent; any user slide pretending to be the disclaimer id was renamed by sanitizeDeck) */
 export function withDisclaimer(deck) {
   const slides = deck.slides.slice(); const last = slides[slides.length - 1];
@@ -171,7 +173,7 @@ export function resolveFact(key, facts = FACTS, has = hasFact) {
 }
 /** Text with tokens -> plain string in `lang` */
 export function resolveText(t, lang, facts = FACTS, has = hasFact) {
-  return L(t, lang).replace(/\{\{\s*fact\s*:\s*([A-Za-z]+)\s*\}\}/g, (m, k) => L(resolveFact(k, facts, has), lang));
+  return L(t, lang).replace(/\{\{\s*fact\s*:\s*([A-Za-z_]+)\s*\}\}/g, (m, k) => L(resolveFact(k, facts, has), lang));
 }
 /** the deck as it is shown: every Text turned into a string for `lang`, tokens resolved, blocks / links kept */
 export function resolveDeck(deck, lang = 'en', facts = FACTS, has = hasFact) {

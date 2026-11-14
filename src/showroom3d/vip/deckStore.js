@@ -32,7 +32,7 @@ export function makeDeckStore(getStorage = defaultStorage) {
     add(deck) {
       const cur = read(); if (cur.error === ERR.blocked) return { ok: false, error: ERR.blocked, decks: [] };
       if (cur.decks.length >= MAX_USER_DECKS) return { ok: false, error: ERR.max, decks: cur.decks };
-      let id = deck.id, n = 2; while (cur.decks.some((d) => d.id === id)) id = deck.id.slice(0, LIMITS.maxId) + '-' + n++;
+      const taken = new Set(cur.decks.map((d) => d.id)); let id = deck.id, n = 2; while (taken.has(id)) id = deck.id.slice(0, LIMITS.maxId) + '-' + n++;
       const d = { ...deck, id }, next = [...cur.decks, d], err = write(next); if (err) return { ok: false, error: err, decks: cur.decks };
       return { ok: true, error: null, decks: next, deck: d };
     },

@@ -15,7 +15,10 @@ import { cycleFinish } from '../products/finishes';
 import { Walker, wrapPi, clamp } from './walker';
 import { yawPitchFromLookAt } from './lookAround';
 import { VIP_VIEWS } from '../scenes/vip/layout';
-import { stepStation, clampStation, arrowDir, STATIONS } from '../products/vipContent';
+import { stepStation, arrowDir } from '../products/vipContent';
+import { PERMANENT_DECKS } from '../vip/decks';
+import { makeDeckStore } from '../vip/deckStore';
+import { initDeckState, deckReducer } from '../vip/deckState';
 import { loadSiteProjects } from '../products/projectsFeed';
 
 export const SENS = { mouse: 0.0022, drag: 0.0036, touch: 0.0052 };   // radians per pixel
@@ -24,8 +27,9 @@ const MOVE_KEYS = { KeyW: 'f', ArrowUp: 'f', KeyS: 'b', ArrowDown: 'b', KeyA: 'l
 const editable = (el) => !!el && (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable);
 
 export class Explorer {
-  constructor({ engine, canvas, reduced = false, bob = true, onState = () => {}, projectsLoader = loadSiteProjects }) {
+  constructor({ engine, canvas, reduced = false, bob = true, onState = () => {}, projectsLoader = loadSiteProjects, deckStore = makeDeckStore() }) {
     this.projectsLoader = projectsLoader; this.projectsPromise = null;
+    this.deckStore = deckStore; this.userDecks = deckStore.list(); this.vipDialog = false; this.decksRev = 0; this.ds = initDeckState(this.deckIds(), 'default', 0, this.deckCounts());
     this.engine = engine; this.canvas = canvas; this.onState = onState; this.reduced = reduced;
     this.graph = buildGraph(); this.zones = allZones();
     this.doorOpen = true; this.vipOpen = true; this.colliders = buildColliders({ doorOpen: 1, oliveCount: engine.tierId === 'low' ? 2 : 4, vipOpen: 1 });
@@ -102,7 +106,7 @@ export class Explorer {
 
   // ---------------------------------------------------------------- keyboard
   onKey(e, down) {
-    if (!this.enabled || editable(e.target) || e.ctrlKey || e.metaKey) return;
+    if (!this.enabled || this.vipDialog || editable(e.target) || e.ctrlKey || e.metaKey) return;
     const code = e.code;
     if (this.focus) { if (this.focusKey(e, down)) return; }
     if (down && code === 'Escape') { if (!this.paused && !this.uiOpen) { e.preventDefault(); this.pause(); } return; }
@@ -252,21 +256,50 @@ export class Explorer {
     P.setFocusPart(null); P.setHover(null); this.flyTo(P.focusView(productId, view.id));
     this.emit({ focus: productId, focusKind: 'product', focusView: view.id, partFocus: null, prod: ++this.rev }); return true;
   }
-  /** VIP meeting room: a guided presentation. The camera glides to the station's pose inside the room; the screen, gallery and hologram panels show the station. */
+  // ---- VIP decks: the permanent decks (src/showroom3d/vip/decks) + the ones saved on this device. `ds` is the picker state machine (vip/deckState.js).
+  allDecks() { return [...PERMANENT_DECKS, ...this.userDecks]; }
+  deckIds() { return this.allDecks().map((d) => d.id); }
+  deckCounts() { const o = {}; for (const d of this.allDecks()) o[d.id] = d.slides.length; return o; }
+  get deck() { return this.allDecks().find((d) => d.id === this.ds.deckId) || PERMANENT_DECKS[0]; }
+  /** camera pose for a slide: the built-in stations keep their own poses, every other slide faces the wall screen */
+  vipView(i) { const d = this.deck; return d.builtin && VIP_VIEWS[i] ? VIP_VIEWS[i] : VIP_VIEWS[0]; }
+  vipSlideId(i) { const sl = this.deck.slides[i]; return sl ? sl.id : ''; }
+  /** push the picker state to the scene, the camera and the UI */
+  syncVip(fly = true, extra = {}) {
+    const P = this.products, f = this.focus, idx = this.ds.slide, d = this.deck; this.decksRev++;
+    if (P && P.vip) P.vip.setDeck(d, this.allDecks(), idx);
+    if (f && f.kind === 'vip') { f.station = idx; f.view = this.vipSlideId(idx); if (fly) { const v = this.vipView(idx); this.flyTo({ pos: v.pos, look: v.look, fov: v.fov }); } }
+    this.emit({ vipStation: idx, vipDeck: d.id, vipDecksRev: this.decksRev, focusView: this.vipSlideId(idx), prod: ++this.rev, ...extra });
+  }
+  /** VIP meeting room: a guided presentation. The camera glides to the slide's pose inside the room; the screen, gallery and hologram panels show it. */
   focusVip(i = 0) {
     const P = this.products; if (!this.enabled || !P || !P.vip) return false;
-    const idx = clampStation(i); this.startFocus('vip', 'vip'); this.focus.view = STATIONS[idx].id; this.focus.station = idx;
-    P.setFocusPart(null); P.setHover(null); P.vip.setFocus(true); P.vip.enter(); P.vip.setStation(idx); this.ensureProjects();
-    this.flyTo({ pos: VIP_VIEWS[idx].pos, look: VIP_VIEWS[idx].look, fov: VIP_VIEWS[idx].fov });
-    this.emit({ focus: 'vip', focusKind: 'vip', focusView: STATIONS[idx].id, vipStation: idx, partFocus: null, prod: ++this.rev }); return true;
+    this.ds = deckReducer(this.ds, { type: 'slide', index: i }); const idx = this.ds.slide; this.startFocus('vip', 'vip'); this.focus.view = this.vipSlideId(idx); this.focus.station = idx;
+    P.setFocusPart(null); P.setHover(null); P.vip.setFocus(true); P.vip.enter(); P.vip.setDeck(this.deck, this.allDecks(), idx); this.ensureProjects();
+    const v = this.vipView(idx); this.flyTo({ pos: v.pos, look: v.look, fov: v.fov });
+    this.decksRev++; this.emit({ focus: 'vip', focusKind: 'vip', focusView: this.vipSlideId(idx), vipStation: idx, vipDeck: this.deck.id, vipDecksRev: this.decksRev, partFocus: null, prod: ++this.rev }); return true;
   }
   setStation(i) {
-    const f = this.focus, P = this.products; if (!f || f.kind !== 'vip' || !P || !P.vip) return;
-    const idx = clampStation(i); if (idx === f.station) return; f.station = idx; f.view = STATIONS[idx].id; P.vip.setStation(idx);
-    this.flyTo({ pos: VIP_VIEWS[idx].pos, look: VIP_VIEWS[idx].look, fov: VIP_VIEWS[idx].fov });
-    this.emit({ focusView: STATIONS[idx].id, vipStation: idx, prod: ++this.rev });
+    const f = this.focus; if (!f || f.kind !== 'vip') return;
+    const next = deckReducer(this.ds, { type: 'slide', index: i }); if (next === this.ds) return; this.ds = next; this.syncVip();
   }
-  stepStation(dir) { const f = this.focus; if (f && f.kind === 'vip') this.setStation(stepStation(f.station, dir)); }
+  stepStation(dir) { const f = this.focus; if (f && f.kind === 'vip') this.setStation(stepStation(this.ds.slide, dir, this.deck.slides.length)); }
+  /** switch deck (by id); the first slide shows */
+  setDeck(id) { const f = this.focus; if (!f || f.kind !== 'vip') return; const next = deckReducer(this.ds, { type: 'deck', id }); if (next === this.ds) return; this.ds = next; this.syncVip(); }
+  cycleDeck(dir = 1) { const f = this.focus; if (!f || f.kind !== 'vip') return; const next = deckReducer(this.ds, { type: 'deckStep', dir }); if (next === this.ds) return; this.ds = next; this.syncVip(); }
+  /** save a (sanitised) deck on THIS device and show it. Returns the store result { ok, error, deck } */
+  addDeck(deck, show = true) {
+    const r = this.deckStore.add(deck); if (!r.ok) return r;
+    this.userDecks = r.decks; this.ds = deckReducer(this.ds, { type: 'decks', ids: this.deckIds(), counts: this.deckCounts() });
+    if (show) this.ds = deckReducer(this.ds, { type: 'deck', id: r.deck.id }); this.syncVip(!!show); return r;
+  }
+  removeDeck(id) {
+    if (PERMANENT_DECKS.some((d) => d.id === id)) return { ok: false, error: 'permanent' };
+    const r = this.deckStore.remove(id); if (!r.ok) return r;
+    this.userDecks = r.decks; this.ds = deckReducer(this.ds, { type: 'decks', ids: this.deckIds(), counts: this.deckCounts() }); this.syncVip(); return r;
+  }
+  /** the "Add presentation" dialog is open: the explorer ignores keys (typing, Tab, Esc belong to the dialog) */
+  setVipDialog(v) { this.vipDialog = !!v; }
   /** the site's project list, read once (the SAME read-only client path the Projects page uses) the first time somebody enters the VIP room */
   ensureProjects() {
     if (this.projectsPromise || !this.products || !this.products.vip) return this.projectsPromise;
@@ -281,7 +314,7 @@ export class Explorer {
   }
   setView(viewId) {
     const f = this.focus; if (!f) return;
-    if (f.kind === 'vip') { const i = STATIONS.findIndex((s) => s.id === viewId); if (i >= 0) this.setStation(i); return; }
+    if (f.kind === 'vip') { const i = this.deck.slides.findIndex((s) => s.id === viewId); if (i >= 0) this.setStation(i); return; }
     if (f.kind === 'stage') { const v = STAGE_VIEWS.find((x) => x.id === viewId); if (!v) return; f.view = v.id; this.flyTo({ pos: v.pos, look: v.look, fov: v.fov }); }
     else { const p = PRODUCTS[f.key]; if (!p.views.some((x) => x.id === viewId)) return; f.view = viewId; this.flyTo(this.products.focusView(f.key, viewId)); }
     this.emit({ focusView: viewId, prod: ++this.rev });
@@ -311,12 +344,13 @@ export class Explorer {
     if (onControl && (code === 'Enter' || code === 'Space')) return false;             // let the focused button do its own thing
     const f = this.focus, P = this.products; if (!f || !P) return false;
     if (f.kind === 'vip') {
-      const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl', d = arrowDir(code, rtl), dig = /^(?:Digit|Numpad)([1-5])$/.exec(code);
+      const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl', d = arrowDir(code, rtl), dig = /^(?:Digit|Numpad)([1-9])$/.exec(code), n = this.deck.slides.length;
       if (onControl && (code === 'ArrowLeft' || code === 'ArrowRight' || code === 'ArrowUp' || code === 'ArrowDown')) return false;
       if (d) { e.preventDefault(); this.stepStation(d); return true; }
       if (code === 'ArrowDown' || code === 'ArrowUp') { e.preventDefault(); this.stepStation(code === 'ArrowDown' ? 1 : -1); return true; }
-      if (dig) { e.preventDefault(); this.setStation(Number(dig[1]) - 1); return true; }
-      if (code === 'Home') { e.preventDefault(); this.setStation(0); return true; } if (code === 'End') { e.preventDefault(); this.setStation(STATIONS.length - 1); return true; }
+      if (dig) { e.preventDefault(); if (Number(dig[1]) <= n) this.setStation(Number(dig[1]) - 1); return true; }
+      if (code === 'BracketRight' || code === 'BracketLeft') { e.preventDefault(); this.cycleDeck(code === 'BracketRight' ? 1 : -1); return true; }
+      if (code === 'Home') { e.preventDefault(); this.setStation(0); return true; } if (code === 'End') { e.preventDefault(); this.setStation(n - 1); return true; }
       if (code === 'KeyV') { e.preventDefault(); this.stepStation(e.shiftKey ? -1 : 1); return true; }
       if (code === 'KeyE') { e.preventDefault(); return true; }
       return code in MOVE_KEYS;
@@ -333,6 +367,13 @@ export class Explorer {
     return code in MOVE_KEYS;
   }
   /** pointer in focus mode: hover highlight on move, a tap / click works the part, a drag nudges the view a little */
+  /** a click on the wall screen: a deck chip switches deck */
+  vipClick(e) {
+    const P = this.products, v = P && P.vip; if (!v || !v.screenMesh || this.allDecks().length < 2) return;
+    const n = this.ndc(e.clientX, e.clientY), cam = this.engine.camera; cam.updateMatrixWorld(true); this.raycaster.setFromCamera({ x: n.x, y: n.y }, cam);
+    const hit = this.raycaster.intersectObject(v.screenMesh, false)[0]; if (!hit || !hit.uv) return;
+    const i = v.chipAt(hit.uv.x, 1 - hit.uv.y); if (i >= 0) this.setDeck(this.allDecks()[i].id);
+  }
   focusPointer(e, kind) {
     if (!this.focus) { if (kind === 'up') this.pdown = null; return; }
     if (e.button !== undefined && e.button > 0) return;
@@ -351,6 +392,7 @@ export class Explorer {
     }
     if (kind === 'up') {
       const d = this.pdown; this.pdown = null; if (!d || d.id !== e.pointerId) return;
+      if (!d.moved && f.kind === 'vip') { this.vipClick(e); return; }
       if (!d.moved && f.kind === 'product') { const n = this.ndc(e.clientX, e.clientY), hit = this.pickNdc(n.x, n.y, 30, f.key); if (hit) this.togglePart(hit.id); else { this.products.setFocusPart(null); this.emit({ partFocus: null, prod: ++this.rev }); } }
     }
   }
