@@ -13,6 +13,7 @@ import { scheduleBrandFonts } from './fonts';
 import { hydration } from './hydration';
 import { ENABLE_AR_URLS } from './seo/siteConfig';
 import { splitLangPath } from './seo/routes';
+import { isShowroomPath, isLegacyShowroomPath, canonicalShowroomPath } from './showroom3d/route';
 
 scheduleBrandFonts();   // non-blocking brand fonts (see src/fonts.js)
 applyTheme();   // data-theme on <html>: REACT_APP_THEME default, ?theme= preview override (src/design/theme.js)
@@ -38,11 +39,25 @@ const IkhtarhaRoot = React.lazy(() => import('./campaign/IkhtarhaRoot'));
 const isGames = /^\/ikhtarha\/games(\/|$)/i.test(window.location.pathname || '');
 const GamesRoot = React.lazy(() => import('./games/GamesRoot'));
 
+// [YAS-BLOOM] /yas-bloom (+ /ar/yas-bloom; /showroom-3d redirects here) = the cinematic virtual showroom: its own lazy chunk (three + gsap load only there), full-screen shell
+if (isLegacyShowroomPath(window.location.pathname)) { try { window.history.replaceState(window.history.state, '', canonicalShowroomPath(window.location.pathname) + window.location.search + window.location.hash); } catch (e) { /* ignore */ } }   // old /showroom-3d links land on /yas-bloom
+const isShowroom = isShowroomPath(window.location.pathname);
+const ShowroomRoot = React.lazy(() => import(/* webpackChunkName: "showroom3d" */ './showroom3d/ShowroomRoot'));
+
 // When the page was prerendered (the postbuild puppeteer crawl writes static
 // markup into #root), hydrate it so the prerendered DOM is reused — no flash of
 // empty content, and crawlers see real text. Otherwise (normal dev / a route
 // that wasn't prerendered) mount fresh with createRoot.
-if (isGames) {
+if (isShowroom) {
+  if (container.hasChildNodes()) container.innerHTML = '';
+  ReactDOM.createRoot(container).render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <React.Suspense fallback={null}><ShowroomRoot /></React.Suspense>
+      </ErrorBoundary>
+    </React.StrictMode>
+  );
+} else if (isGames) {
   if (container.hasChildNodes()) container.innerHTML = '';
   ReactDOM.createRoot(container).render(
     <React.StrictMode>

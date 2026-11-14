@@ -132,7 +132,7 @@ for (const e of INDEXABLE) for (const L of langs) {
   }
   const spa = ['/cart', '/signin', '/checkout', '/directory', '/ai-designer', '/design-studio', '/design-studio/kitchen-planner', '/category/Doors', '/product-abc123'];
   for (const s of spa) for (const L of langs) { const r = resolveRoute(withLang(s, L)); if (r !== 'rewrite:/app-shell.html') bad('SPA route ' + withLang(s, L) + ' -> ' + r); }
-  for (const s of ['/studio', '/studio/kitchen', '/visualizer', '/visualizer/room/living', '/campaign/ikhtarha', '/ikhtarha/games']) { const r = resolveRoute(s); if (r !== 'rewrite:/app-shell.html') bad('shell route ' + s + ' -> ' + r); }
+  for (const s of ['/studio', '/studio/kitchen', '/visualizer', '/visualizer/room/living', '/campaign/ikhtarha', '/ikhtarha/games', '/yas-bloom', '/ar/yas-bloom']) { const r = resolveRoute(s); if (r !== 'rewrite:/app-shell.html') bad('shell route ' + s + ' -> ' + r); }
   for (const s of ['/does-not-exist', '/ar/does-not-exist', '/kitchen/extra']) if (resolveRoute(s) !== '404') bad('unknown route ' + s + ' must be a real 404, got ' + resolveRoute(s));
   if (!fs.existsSync(path.join(BUILD_DIR, 'app-shell.html'))) bad('app-shell.html missing');
   else if (/data-prerender-path/.test(fs.readFileSync(path.join(BUILD_DIR, 'app-shell.html'), 'utf8'))) bad('app-shell.html is not the pristine shell');
