@@ -228,15 +228,15 @@
   "samples": 5,
   "mainMain": [
    0,
-   10
+   24
   ],
   "branchBranch": [
    0,
-   10
+   24
   ],
   "mainBranch": [
    0,
-   10
+   24
   ],
   "pass": true,
   "metaMain": {
