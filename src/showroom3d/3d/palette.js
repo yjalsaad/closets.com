@@ -81,6 +81,7 @@ export function cssVars() {
     '--sr-brass': hex(P.brass), '--sr-focus': hex(P.focusRing), '--sr-ik-purple': hex(P.ikPurple), '--sr-ik-teal': hex(P.ikTeal), '--sr-ik-mint': hex(P.ikMint),
     '--sr-panel': rgba(P.ink, 0.82), '--sr-line': rgba(P.sand, 0.14),
     '--sr-glass': rgba(P.ink, 0.62), '--sr-glass-line': rgba(P.sand, 0.22), '--sr-scrim': rgba(P.ink, 0.55),
+    '--sr-loader-img': "url('/yas-bloom/realism/gallery/yw-showroom-axis.webp')",   // owner-confirmed YAS Wood image as the loading backdrop (a CSS var so the build does not try to bundle the root-relative URL)
     '--sr-on-dark': hex(P.sand), '--sr-on-dark-2': hex(P.taupe),
   };
 }
