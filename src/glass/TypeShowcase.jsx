@@ -24,12 +24,48 @@ export const SPOTS = {
   '/layouts/office/built-in.jpg': [{ x: 47, y: 82, en: 'Built-in desk', ar: 'مكتب مدمج' }, { x: 20, y: 50, en: 'Lit shelving on both sides', ar: 'أرفف مضاءة على الجانبين' }, { x: 87, y: 50, en: 'Slatted panel', ar: 'لوح مضلّع' }],
   '/layouts/office/storage-desk.jpg': [{ x: 12, y: 55, en: 'Full-height storage', ar: 'تخزين بكامل الارتفاع' }, { x: 60, y: 78, en: 'Desk nook', ar: 'ركن المكتب' }, { x: 60, y: 25, en: 'Lit shelves above the desk', ar: 'أرفف مضاءة فوق المكتب' }],
   '/layouts/office/minimal.jpg': [{ x: 35, y: 25, en: 'Floating shelves with lighting', ar: 'أرفف معلّقة مضاءة' }, { x: 40, y: 68, en: 'Wall-to-wall desk', ar: 'مكتب من الجدار إلى الجدار' }, { x: 66, y: 80, en: 'Drawer stack', ar: 'مجموعة أدراج' }],
+  '/layouts/wardrobe/wardrobe-walkin.jpg': [{ x: 43, y: 35, en: 'Lit hanging rails', ar: 'مواسير تعليق مضاءة' }, { x: 54, y: 58, en: 'Open shelves for folded clothes', ar: 'أرفف مفتوحة للملابس المطوية' }, { x: 8, y: 63, en: 'Island with a stone top', ar: 'جزيرة بسطح حجري' }],
+  '/layouts/wardrobe/wardrobe-sliding.jpg': [{ x: 47, y: 50, en: 'Floor-to-ceiling sliding door', ar: 'باب سحّاب من الأرض إلى السقف' }, { x: 63, y: 54, en: 'Slim pull handle', ar: 'مقبض سحب رفيع' }, { x: 15, y: 40, en: 'Glass or mirror panel option', ar: 'خيار لوح زجاج أو مرآة' }],
+  '/layouts/wardrobe/wardrobe-hinged.jpg': [{ x: 46, y: 64, en: 'Full-height bar handles', ar: 'مقابض طولية بكامل الارتفاع' }, { x: 10, y: 30, en: 'Open section with lighting', ar: 'قسم مفتوح مضاء' }, { x: 56, y: 15, en: 'Doors run floor to ceiling', ar: 'الأبواب من الأرض إلى السقف' }],
+  '/layouts/wardrobe/wardrobe-straight.jpg': [{ x: 22, y: 62, en: 'Long bar handle', ar: 'مقبض طولي' }, { x: 55, y: 45, en: 'Lit display shelves', ar: 'أرفف عرض مضاءة' }, { x: 9, y: 30, en: 'Tall hinged doors', ar: 'أبواب مفصلات طويلة' }],
+  '/layouts/door/single-swing.jpg': [{ x: 48, y: 40, en: 'Wood veneer leaf', ar: 'درفة بقشرة خشب' }, { x: 60, y: 64, en: 'Lever handle with lock', ar: 'مقبض ذراع مع قفل' }, { x: 48, y: 9, en: 'Matching frame', ar: 'إطار بنفس التشطيب' }],
+  '/layouts/door/double-swing.jpg': [{ x: 46, y: 57, en: 'Paired lever handles', ar: 'مقبضان متقابلان' }, { x: 32, y: 35, en: 'Two equal leaves', ar: 'درفتان متساويتان' }, { x: 46, y: 7, en: 'Solid frame for a wide opening', ar: 'إطار متين لفتحة واسعة' }],
+  '/layouts/door/sliding.jpg': [{ x: 50, y: 7, en: 'Wall-mounted track', ar: 'سكة مثبتة على الجدار' }, { x: 36, y: 57, en: 'Flush pull', ar: 'مقبض غاطس' }, { x: 52, y: 42, en: 'The leaf slides clear of the opening', ar: 'الدرفة تنزلق بعيداً عن الفتحة' }],
+  '/layouts/door/pivot.jpg': [{ x: 51, y: 45, en: 'Full-height pivot leaf', ar: 'درفة محورية بكامل الارتفاع' }, { x: 39, y: 54, en: 'Long pull handle', ar: 'مقبض سحب طويل' }],
+  '/layouts/door/hidden.jpg': [{ x: 50, y: 40, en: 'Flush with the wall, no visible frame', ar: 'مستوٍ مع الجدار بدون إطار ظاهر' }, { x: 59, y: 58, en: 'Minimal handle', ar: 'مقبض بسيط' }, { x: 84, y: 50, en: 'Lit niche beside the door', ar: 'رف مضاء بجانب الباب' }],
+  '/layouts/door/folding.jpg': [{ x: 28, y: 50, en: 'Folding panels', ar: 'ألواح قابلة للطي' }, { x: 58, y: 45, en: 'Opens almost the full width', ar: 'يفتح تقريباً بكامل العرض' }],
   '/layouts/office/l-shaped.jpg': [{ x: 40, y: 70, en: 'L-shaped desk', ar: 'مكتب على شكل L' }, { x: 65, y: 35, en: 'Lit shelving', ar: 'أرفف مضاءة' }, { x: 88, y: 50, en: 'Tall cupboard', ar: 'خزانة طويلة' }],
 };
+/** [GLASS stage 3] wardrobe and door pictures carry a printed panel beside the photo: only the photo part is shown.
+ *  x0..x1, y0..y1 = the photo's box as fractions of the file; w, h = the file's size. Dots on these are in the PHOTO's own percent. */
+export const CROPS = {
+  '/layouts/wardrobe/wardrobe-walkin.jpg': { x0: 0, x1: 0.495, y0: 0.19, y1: 0.955, w: 1017, h: 602 },
+  '/layouts/wardrobe/wardrobe-sliding.jpg': { x0: 0, x1: 0.47, y0: 0.19, y1: 0.955, w: 1017, h: 602 },
+  '/layouts/wardrobe/wardrobe-hinged.jpg': { x0: 0, x1: 0.495, y0: 0.2, y1: 0.985, w: 1017, h: 602 },
+  '/layouts/wardrobe/wardrobe-straight.jpg': { x0: 0, x1: 0.51, y0: 0.18, y1: 1, w: 1017, h: 602 },
+  '/layouts/door/single-swing.jpg': { x0: 0, x1: 0.68, y0: 0.18, y1: 1, w: 943, h: 606 },
+  '/layouts/door/double-swing.jpg': { x0: 0, x1: 0.69, y0: 0.18, y1: 0.96, w: 999, h: 572 },
+  '/layouts/door/sliding.jpg': { x0: 0, x1: 0.685, y0: 0.16, y1: 1, w: 1002, h: 571 },
+  '/layouts/door/pivot.jpg': { x0: 0, x1: 0.69, y0: 0.18, y1: 1, w: 999, h: 572 },
+  '/layouts/door/hidden.jpg': { x0: 0, x1: 0.685, y0: 0.17, y1: 1, w: 999, h: 572 },
+  '/layouts/door/folding.jpg': { x0: 0, x1: 0.705, y0: 0.165, y1: 0.975, w: 999, h: 572 },
+};
+export const cropFor = (img) => CROPS[String(img || '').split('?')[0]] || null;
+/** how to draw a cropped picture inside a box: the box's aspect ratio and the picture's absolute placement */
+export function cropStyle(c) {
+  const fw = c.x1 - c.x0; const fh = c.y1 - c.y0;
+  return { ratio: (c.w * fw) / (c.h * fh), img: { position: 'absolute', width: (100 / fw) + '%', height: (100 / fh) + '%', left: (-c.x0 / fw) * 100 + '%', top: (-c.y0 / fh) * 100 + '%', maxWidth: 'none' } };
+}
+function Pic({ src, alt, className }) {
+  const c = cropFor(src);
+  if (!c) return <img className={className} src={src} alt={alt} loading="lazy" />;
+  const k = cropStyle(c);
+  return <span className={'gts-crop ' + (className || '')} style={{ aspectRatio: String(k.ratio) }}><img src={src} alt={alt} loading="lazy" style={k.img} /></span>;
+}
 export const spotsFor = (img) => SPOTS[String(img || '').split('?')[0]] || [];
 const chipsOf = (t) => (Array.isArray(t.bullets) && t.bullets.length ? t.bullets : t.feats || t.chips || []).slice(0, 5);
 
-export default function TypeShowcase({ types = [], ar = false, cta = '', onDesign, testid = 'type-showcase' }) {
+export default function TypeShowcase({ types = [], ar = false, cta = '', onDesign, badge = null, testid = 'type-showcase' }) {
   const [sel, setSel] = useState(0); const [open, setOpen] = useState(-1);
   const cur = types[Math.min(sel, types.length - 1)];
   useEffect(() => { if (open < 0) return undefined; const k = (e) => { if (e.key === 'Escape') setOpen(-1); }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, [open]);
@@ -41,7 +77,8 @@ export default function TypeShowcase({ types = [], ar = false, cta = '', onDesig
       <style>{CSS}</style>
       <div className="gts-main">
         <div className="gts-stage" onClick={() => setOpen(-1)}>
-          {cur.img ? <img key={cur.id} src={cur.img} alt={cur.name} loading="lazy" /> : <div className="gts-noimg" />}
+          {cur.img ? <Pic key={cur.id} src={cur.img} alt={cur.name} className="gts-pic" /> : <div className="gts-noimg" />}
+          {badge && badge(cur) ? <b className="gts-badge">{badge(cur)}</b> : null}
           {spots.map((s, i) => { const on = open === i; const label = ar ? s.ar : s.en; return (
             <div key={cur.id + i} className={'gts-spot' + (on ? ' on' : '') + (s.x > 62 ? ' left' : '') + (s.y > 70 ? ' up' : '')} style={{ left: s.x + '%', top: s.y + '%', '--i': i }}>
               <button type="button" aria-expanded={on} aria-label={label} onClick={(e) => { e.stopPropagation(); setOpen(on ? -1 : i); }} onMouseEnter={() => setOpen(i)} data-testid={testid + '-spot-' + i}><i /></button>
@@ -60,7 +97,7 @@ export default function TypeShowcase({ types = [], ar = false, cta = '', onDesig
       </div>
       <div className="gts-film" role="listbox" aria-label={ar ? 'الأنواع' : 'Types'}>{types.map((t, i) => (
         <button key={t.id} type="button" role="option" aria-selected={i === sel} className={i === sel ? 'on' : ''} onClick={() => pick(i)} data-testid={testid + '-pick-' + t.id}>
-          {t.img ? <img src={t.img} alt="" loading="lazy" /> : null}<span>{t.name}</span></button>))}</div>
+          {t.img ? <Pic src={t.img} alt="" className="gts-th" /> : null}<span>{t.name}</span></button>))}</div>
     </div>
   );
 }
@@ -70,7 +107,10 @@ const CSS = `
 .gts-main{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,1fr);gap:14px;align-items:stretch}
 @media (max-width:860px){.gts-main{grid-template-columns:minmax(0,1fr)}}
 .gts-stage{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--line);background:var(--sand);box-shadow:var(--shadow);line-height:0}
-.gts-stage>img{display:block;width:100%;height:auto;animation:gtsFade .6s ease both}
+.gts-stage>.gts-pic{display:block;width:100%;height:auto;animation:gtsFade .6s ease both}
+.gts-crop{position:relative;display:block;overflow:hidden;width:100%}.gts-crop img{display:block;object-fit:cover}
+.gts-stage>.gts-crop.gts-pic{max-height:620px;margin:0 auto}
+.gts-badge{position:absolute;inset-block-start:12px;inset-inline-start:12px;padding:5px 12px;border-radius:999px;background:rgba(20,16,12,.62);color:#fff;font-size:12px;font-weight:600;line-height:1.4;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .gts-noimg{aspect-ratio:3/2;background:linear-gradient(135deg,var(--sand),var(--cream))}
 .gts-spot{position:absolute;transform:translate(-50%,-50%);line-height:1.35;animation:gtsPop .45s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(.35s + var(--i)*.09s)}
 .gts-spot button{display:grid;place-items:center;width:40px;height:40px;border:0;background:transparent;cursor:pointer;padding:0}
@@ -92,7 +132,8 @@ const CSS = `
 .gts-film button{flex:0 0 auto;display:grid;gap:6px;width:132px;padding:6px 6px 8px;border:1.5px solid transparent;border-radius:13px;background:transparent;cursor:pointer;font:inherit;color:var(--ink-soft);text-align:center;scroll-snap-align:start;transition:background-color .2s ease,border-color .2s ease,transform .2s ease}
 .gts-film button:hover{background:color-mix(in srgb,#fff 70%,transparent)}.gts-film button:active{transform:scale(.98)}
 .gts-film button.on{border-color:var(--clay);background:#fff;color:var(--ink)}
-.gts-film img{display:block;width:100%;height:74px;object-fit:cover;border-radius:9px}
+.gts-film img.gts-th{display:block;width:100%;height:74px;object-fit:cover;border-radius:9px}
+.gts-film .gts-crop.gts-th{height:74px;aspect-ratio:auto!important;border-radius:9px}
 .gts-film span{font-size:12.5px;font-weight:600;line-height:1.25}
 .gts-film button:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
 @keyframes gtsFade{from{opacity:0;transform:scale(1.02)}}
