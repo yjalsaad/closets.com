@@ -8,7 +8,7 @@ import { PALETTE as P, hex, rgba } from '../3d/palette';
 import { portraitUrl } from './config';
 import { FONT } from '../scenes/products/screens';
 
-export const KIOSK = { h: 1.75, w: 0.5, d: 0.08, screen: { w: 0.42, h: 0.56, y: 1.36 }, plate: { w: 0.42, h: 0.2, y: 0.95 }, footprint: { hx: 0.31, hz: 0.18 } };
+export const KIOSK = { h: 1.75, w: 0.5, d: 0.08, screen: { w: 0.42, h: 0.56, y: 1.4 }, plate: { w: 0.42, h: 0.2, y: 0.92 }, footprint: { hx: 0.31, hz: 0.18 } };
 const AR_FONT = "'IBM Plex Sans Arabic','Noto Naskh Arabic',sans-serif";
 const ctx2d = (c) => { try { return c.getContext('2d'); } catch (e) { return null; } };
 const cnv = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
@@ -70,7 +70,7 @@ export function buildKiosk(def, { lang = 'en', q = 1, loader = null } = {}) {
   const sweep = new THREE.Mesh(new THREE.PlaneGeometry(S.w * 0.5, S.h), sweepMat); sweep.position.set(0, S.y, zf + 0.001); sweep.name = 'kiosk-sweep'; sweep.renderOrder = 5; detail.add(sweep);
   const barMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(P.brandOrange).multiplyScalar(1.6), toneMapped: false }), bars = new THREE.InstancedMesh(new THREE.BoxGeometry(0.012, 1, 0.003), barMat, BARS); bars.name = 'kiosk-wave'; bars.frustumCulled = false; detail.add(bars);
   const gc = cnv(q ? 840 : 420, q ? 110 : 55); drawGreet(gc, lang); const greetTex = texOf(gc), greetMat = new THREE.MeshBasicMaterial({ map: greetTex, transparent: true, toneMapped: false, depthWrite: false, opacity: 0 });
-  const greet = new THREE.Mesh(new THREE.PlaneGeometry(PL.w, PL.w * 110 / 840), greetMat); greet.position.set(0, PL.y + PL.h / 2 + 0.035, zf + 0.0005); greet.name = 'kiosk-greet'; detail.add(greet);
+  const greet = new THREE.Mesh(new THREE.PlaneGeometry(PL.w, PL.w * 110 / 840), greetMat); greet.position.set(0, (S.y - S.h / 2 + PL.y + PL.h / 2) / 2, zf + 0.0005);   // centred in the gap between the screen and the name plate greet.name = 'kiosk-greet'; detail.add(greet);
 
   const api = { group: root, kiosk: true, def, label: root.userData.label, meshes: [body, screen, plate, frame, sweep, bars, greet], far: null, farOn: false, awake: 0, hasPortrait: false, portrait: null, joints: {}, scale: 1, q,
     bounds: new THREE.Box3(new THREE.Vector3(-K.footprint.hx, 0, -K.footprint.hz), new THREE.Vector3(K.footprint.hx, K.h, K.footprint.hz)) };
