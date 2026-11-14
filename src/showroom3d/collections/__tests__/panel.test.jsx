@@ -56,10 +56,10 @@ describe('CollectionsPanel', () => {
 });
 
 describe('departments menu entry', () => {
-  test('"Collections" is the last entry, in both languages, and picking it asks for the collections glide', () => {
+  test('"Collections" follows the VIP room (the Kitchen Design Studio entry comes after it), in both languages, and picking it asks for the collections glide', () => {
     const onPick = jest.fn(); const { unmount } = render(<DeptMenu lang="en" touch={false} onPick={onPick} onClose={() => {}} />);
-    const items = screen.getByTestId('sr-dept-menu').querySelectorAll('.sr-dept'); expect(items).toHaveLength(DEPARTMENTS.length + 2);
-    const last = items[items.length - 1]; expect(last).toHaveAttribute('data-dept', 'collections'); expect(last).toHaveTextContent('Collections'); expect(last.querySelector('kbd')).toBeNull();
+    const items = screen.getByTestId('sr-dept-menu').querySelectorAll('.sr-dept'); expect(items).toHaveLength(DEPARTMENTS.length + 3);
+    const last = items[items.length - 2]; expect(last).toHaveAttribute('data-dept', 'collections'); expect(last).toHaveTextContent('Collections'); expect(last.querySelector('kbd')).toBeNull();
     fireEvent.click(last); expect(onPick).toHaveBeenCalledWith('collections'); unmount();
     render(<DeptMenu lang="ar" touch onPick={onPick} onClose={() => {}} />); expect(screen.getByTestId('sr-dept-menu').querySelector('[data-dept="collections"]')).toHaveTextContent('المجموعات');
   });

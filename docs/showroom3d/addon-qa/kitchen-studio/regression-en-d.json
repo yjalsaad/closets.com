@@ -1,0 +1,224 @@
+[
+ {
+  "lang": "en",
+  "vp": "d",
+  "page": "home",
+  "samples": 3,
+  "mainMain": [
+   0,
+   0
+  ],
+  "branchBranch": [
+   0,
+   0
+  ],
+  "mainBranch": [
+   0,
+   0
+  ],
+  "pass": true,
+  "metaMain": {
+   "glassy": true,
+   "back": true,
+   "stat": 4,
+   "strip": 1,
+   "stripPics": 4,
+   "showcase": 0,
+   "h": 14570
+  },
+  "metaBranch": {
+   "glassy": true,
+   "back": true,
+   "stat": 4,
+   "strip": 1,
+   "stripPics": 4,
+   "showcase": 0,
+   "h": 14570
+  }
+ },
+ {
+  "lang": "en",
+  "vp": "d",
+  "page": "kitchen",
+  "samples": 3,
+  "mainMain": [
+   0,
+   0
+  ],
+  "branchBranch": [
+   0,
+   0
+  ],
+  "mainBranch": [
+   0,
+   0
+  ],
+  "pass": true,
+  "metaMain": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 1,
+   "h": 4852
+  },
+  "metaBranch": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 1,
+   "h": 4852
+  }
+ },
+ {
+  "lang": "en",
+  "vp": "d",
+  "page": "services",
+  "samples": 3,
+  "mainMain": [
+   0,
+   0
+  ],
+  "branchBranch": [
+   0,
+   0
+  ],
+  "mainBranch": [
+   0,
+   0
+  ],
+  "pass": true,
+  "metaMain": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 0,
+   "h": 1615
+  },
+  "metaBranch": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 0,
+   "h": 1615
+  }
+ },
+ {
+  "lang": "en",
+  "vp": "d",
+  "page": "booking",
+  "samples": 3,
+  "mainMain": [
+   0,
+   0
+  ],
+  "branchBranch": [
+   0,
+   0
+  ],
+  "mainBranch": [
+   0,
+   0
+  ],
+  "pass": true,
+  "metaMain": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 0,
+   "h": 1615
+  },
+  "metaBranch": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 0,
+   "h": 1615
+  }
+ },
+ {
+  "lang": "en",
+  "vp": "d",
+  "page": "contact",
+  "samples": 3,
+  "mainMain": [
+   0,
+   0
+  ],
+  "branchBranch": [
+   0,
+   0
+  ],
+  "mainBranch": [
+   0,
+   0
+  ],
+  "pass": true,
+  "metaMain": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 0,
+   "h": 1615
+  },
+  "metaBranch": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 0,
+   "h": 1615
+  }
+ },
+ {
+  "lang": "en",
+  "vp": "d",
+  "page": "planner-gate",
+  "samples": 3,
+  "mainMain": [
+   0,
+   0
+  ],
+  "branchBranch": [
+   0,
+   0
+  ],
+  "mainBranch": [
+   0,
+   0
+  ],
+  "pass": true,
+  "metaMain": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 0,
+   "h": 1345
+  },
+  "metaBranch": {
+   "glassy": true,
+   "back": true,
+   "stat": 0,
+   "strip": 0,
+   "stripPics": 0,
+   "showcase": 0,
+   "h": 1345
+  }
+ }
+]

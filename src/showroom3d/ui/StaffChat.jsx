@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { t } from '../strings';
 import { reply, opening, newMemory, pick, guardAiReply, createRateLimiter } from '../staff/guide';
 import { collectionsReply } from '../collections/logic';
+import { designStudioReply } from '../designstudio/logic';
 import { staffById } from '../staff/roster';
 import { portraitUrl } from '../staff/config';
 import { supportChatFetch, tr, hasConsent } from '../siteBridge';
@@ -14,7 +15,7 @@ const fill = (s, name) => s.replace('{name}', name);
 
 /** the AI adviser chat: offline guide first (deterministic), quick-reply chips, typing indicator, optional read-aloud (off by default),
  *  and an opt-in question to the site's existing consent-gated AI chat when the guide does not understand. EN + AR (RTL follows the .sr3d root). */
-export default function StaffChat({ lang, reduced, explorerRef, engineRef, staffId, onClose, aiFetcher = supportChatFetch }) {
+export default function StaffChat({ lang, reduced, explorerRef, engineRef, staffId, onClose, onOpenDesigner, aiFetcher = supportChatFetch }) {
   const def = useMemo(() => staffById(staffId), [staffId]);
   const name = def ? pick(def.name, lang) : '';
   const [msgs, setMsgs] = useState([]);
@@ -37,13 +38,14 @@ export default function StaffChat({ lang, reduced, explorerRef, engineRef, staff
     if (!action) return;
     if (action.type === 'present') { const x = explorerRef.current; onClose(); if (x) setTimeout(() => x.presentDeck(action.deck, { autoplay: true, mode: 'big' }), 120); return; }
     if (action.type === 'glide') { const x = explorerRef.current; onClose(); if (x) setTimeout(() => x.glideTo(action.id), 60); }
-  }, [explorerRef, onClose]);
+    if (action.type === 'designer') { onClose(); if (onOpenDesigner) setTimeout(() => onOpenDesigner(action.id), 80); }     // the Kitchen Design Studio designer opens from wherever the visitor stands
+  }, [explorerRef, onClose, onOpenDesigner]);
 
   const answer = useCallback((input, label) => {
     if (label) push({ from: 'me', text: label });
     setTyping(true);
     later(() => {
-      const r = collectionsReply(input, { lang, memory: mem.current }) || reply(input, { lang, staff, memory: mem.current }); mem.current = r.memory;
+      const r = collectionsReply(input, { lang, memory: mem.current }) || designStudioReply(input, { lang, memory: mem.current }) || reply(input, { lang, staff, memory: mem.current }); mem.current = r.memory;
       setTyping(false); push({ from: 'staff', text: r.text, chips: r.chips, actions: r.actions, askAi: r.askAi, intent: r.intent }); say(r.text);
       if (r.auto) later(() => run(r.auto), 1500);
     }, 380 + Math.min(700, 0));

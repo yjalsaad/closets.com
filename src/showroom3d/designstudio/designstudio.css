@@ -1,0 +1,35 @@
+/* Kitchen Design Studio overlay. No colour literals: every colour is a --sr-* custom property from 3d/palette.js on the .sr3d root. Logical properties => EN/AR RTL. */
+.sr-ds { position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column; background: var(--sr-ink); color: var(--sr-on-dark); pointer-events: auto; -webkit-user-select: text; user-select: text; animation: sr-ds-in .28s var(--ease-out, ease-out) both; }
+@keyframes sr-ds-in { from { opacity: 0; } to { opacity: 1; } }
+.sr-ds-bar { flex: 0 0 auto; display: flex; align-items: center; gap: var(--space-3); padding: max(var(--space-2), env(safe-area-inset-top, 0px)) max(var(--space-3), env(safe-area-inset-right, 0px)) var(--space-2) max(var(--space-3), env(safe-area-inset-left, 0px)); min-height: 52px; background: var(--sr-panel); border-bottom: 1px solid var(--sr-line); }
+.sr-ds-title { margin: 0; display: flex; flex-direction: column; line-height: 1.15; min-width: 0; flex: 0 1 auto; }
+.sr-ds-title b { font: 600 var(--fs-md) var(--font-display, var(--font-sans)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr-ds-title small { font: 500 var(--fs-2xs) var(--font-sans); letter-spacing: .12em; text-transform: uppercase; color: var(--sr-brass); }
+.sr3d[dir="rtl"] .sr-ds-title b { font-family: var(--font-ar-display); font-weight: 600; }
+.sr3d[dir="rtl"] .sr-ds-title small { letter-spacing: 0; text-transform: none; font-size: var(--fs-xs); }
+.sr-ds-grow { flex: 1 1 auto; }
+.sr-ds-bar .sr-btn { min-height: 40px; white-space: nowrap; }
+.sr-ds-back-s { display: none; }
+.sr-ds-stage { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; background: var(--sr-paper); }
+.sr-ds-frame { display: block; width: 100%; border: 0; background: var(--sr-paper); }
+.sr-ds-veil { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; padding: var(--space-5); background: var(--sr-veil); color: var(--sr-ink); text-align: center; animation: sr-ds-in .2s ease-out both; }
+.sr-ds-veil.is-confirm { background: var(--sr-scrim); color: var(--sr-on-dark); backdrop-filter: blur(4px); }
+.sr-ds-veil-in { width: min(520px, 100%); display: grid; gap: var(--space-3); justify-items: center; }
+.sr-ds-veil h2 { margin: 0; font: 500 var(--fs-xl) var(--font-display, var(--font-sans)); }
+.sr3d[dir="rtl"] .sr-ds-veil h2 { font-family: var(--font-ar-display); font-weight: 600; }
+.sr-ds-veil p { margin: 0; font-size: var(--fs-sm); line-height: var(--lh-snug, 1.45); opacity: .85; }
+.sr-ds-veil .sr-ds-note { opacity: .7; font-size: var(--fs-xs); }
+.sr-ds-veil.is-confirm .sr-ds-veil-in { padding: var(--space-5); border-radius: var(--radius-xl); background: var(--sr-panel); border: 1px solid var(--sr-line); }
+.sr-ds-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: center; }
+.sr-ds-spin { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--sr-glass-line); border-top-color: var(--sr-orange); animation: sr-ds-spin .9s linear infinite; }
+@keyframes sr-ds-spin { to { transform: rotate(360deg); } }
+.sr-ds :focus-visible { outline: 2px solid var(--sr-orange); outline-offset: 3px; }
+@media (max-width: 767px) {
+  .sr-ds-back-t, .sr-ds-bar .sr-kbd, .sr-ds-site-t { display: none; }
+  .sr-ds-back-s { display: inline; }
+  .sr-ds-title small { display: none; }
+  .sr-ds-title b { font-size: var(--fs-sm); }
+  .sr-ds-bar { gap: var(--space-2); }
+  .sr-ds-bar .sr-btn { padding-inline: var(--space-3); min-width: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { .sr-ds, .sr-ds-veil { animation: none; } .sr-ds-spin { animation-duration: 2.4s; } }
