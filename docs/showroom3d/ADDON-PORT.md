@@ -49,3 +49,11 @@ Skipped (integration-only coupling): booking prefill reader; business lines vs `
 1. `robots.txt` `Disallow: /yas-bloom` was not added (the generator/file would be edited); the page carries `<meta robots noindex>` and the header above.
 2. Shell link to the showroom (nav/footer) is not added; the page is reachable by URL only.
 3. Brand fonts (above). 4. Booking prefill (above).
+
+## Evidence (built app, local)
+- `git diff --stat origin/main`: modified existing files = `src/index.js`, `vercel.json`, `package.json`, `package-lock.json` only. Added: `src/showroom3d/**`, `docs/showroom3d/**`, `scripts/showroom3d-qa/**`, `scripts/port-yas-bloom.{sh,js}`, `scripts/yas-bloom-regression.js`.
+- Jest, whole suite: 27 suites, 257 passed, 5 skipped (the skipped ones are listed above), 0 failed.
+- `CI=true react-scripts build` FAILS on origin/main itself (12 "Conflicting order" CSS warnings, all in `src/studio/hub/*` CSS). Identical 12 on this branch, none from the showroom. `vercel.json` builds with `CI=false` ("Compiled with warnings"), which succeeds on both. The showroom is its own chunk (`showroom3d.*.chunk.js` 107 kB + css 5 kB); gsap/three load only on /yas-bloom.
+- Prerender (`PUPPETEER_EXECUTABLE_PATH=... node scripts/prerender.js`): 21/21 routes on both main and this branch (main's own script; no seo-build/seo-check on main).
+- Showroom QA on the built app (SwiftShader): `phase5vip.js` flows 24/24, ar 8/8, mobile 8/8; `/yas-bloom` and `/ar/yas-bloom` at 1440 and 390 load, enter explore, walk, no page errors; `<html lang/dir>` and `noindex` correct (`docs/showroom3d/addon-qa/yasbloom-*.jpg`).
+- Existing-page regression (`scripts/yas-bloom-regression.js`): home, kitchen, TV, office, wardrobe, door, booking x EN/AR x 1440/390, full-page, reduced motion, external requests blocked. 28 pairs main-vs-branch: 20 byte-identical; the other 8 differ by 4 to 77 pixels, or 13-17k pixels on two mobile pages, and in every case the SAME build also differs from itself between runs (animated carousels / spot pings), and re-sampling 4x makes branch match a main sample for the pages retested. The glass look is intact (`html.glassy`, `glass-back`, `showcase-*` present on kitchen/TV/office/wardrobe/door in both). Results: `docs/showroom3d/addon-qa/regression.json`; branch screenshots `docs/showroom3d/addon-qa/{en,ar}-{d,m}-*.jpg`.
