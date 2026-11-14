@@ -36,7 +36,7 @@ describe('Explorer (keyboard, pause, pointer lock, interaction, glide)', () => {
   });
   test('arrow keys move like WASD; comma / period turn for keyboard-only use', () => {
     const { x } = make(); key('ArrowUp'); for (let i = 0; i < 30; i++) x.update(1 / 60); expect(x.walker.pos[1]).toBeLessThan(-9); key('ArrowUp', 'keyup');
-    const y0 = x.walker.yaw; key('Comma'); expect(x.walker.yaw).toBeGreaterThan(y0); key('Period'); key('Period'); expect(x.walker.yaw).toBeLessThan(y0);
+    const y0 = x.walker.yaw; key('Comma'); for (let i = 0; i < 40; i++) x.update(1 / 60); expect(x.walker.yaw).toBeGreaterThan(y0); key('Period'); key('Period'); for (let i = 0; i < 60; i++) x.update(1 / 60); expect(x.walker.yaw).toBeLessThan(y0);   // eased turn: the yaw chases its target over a few frames
   });
   test('Escape pauses (and is reported), keys typed into form fields are ignored', () => {
     const { x, events } = make(); const input = document.createElement('input'); document.body.appendChild(input);

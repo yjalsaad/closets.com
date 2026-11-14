@@ -6,9 +6,10 @@ import { FACTS } from '../../../content/facts';
 
 export const FONT = "'IBM Plex Sans Arabic','Inter','Segoe UI',system-ui,sans-serif";
 /** a canvas texture + redraw(lang). draw(g, w, h, lang, L) where L = (en, ar) => text */
-export function makePanel(w, h, draw, lang = 'en') {
-  const c = document.createElement('canvas'); c.width = w; c.height = h; const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
-  const api = { canvas: c, tex, lang, redraw(l) { api.lang = l === 'ar' ? 'ar' : 'en'; const g = c.getContext('2d'); g.save(); g.direction = api.lang === 'ar' ? 'rtl' : 'ltr'; draw(g, w, h, api.lang, (en, ar) => (api.lang === 'ar' ? ar : en)); g.restore(); tex.needsUpdate = true; } };
+export function makePanel(w, h, draw, lang = 'en', { design = null, anisotropy = 4 } = {}) {
+  // `design`: the size the draw function was laid out for; the canvas can be bigger (crisper on high-DPR screens) and the drawing is scaled to fit
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = anisotropy; tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter;
+  const api = { canvas: c, tex, lang, redraw(l) { api.lang = l === 'ar' ? 'ar' : 'en'; const g = c.getContext('2d'); g.save(); g.direction = api.lang === 'ar' ? 'rtl' : 'ltr'; const dw = design ? design.w : w, dh = design ? design.h : h; if (design) g.scale(w / dw, h / dh); draw(g, dw, dh, api.lang, (en, ar) => (api.lang === 'ar' ? ar : en)); g.restore(); tex.needsUpdate = true; } };
   api.redraw(lang); return api;
 }
 export const wrap = (g, text, x, y, maxW, lh, align = 'left') => {

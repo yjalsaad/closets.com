@@ -8,13 +8,15 @@ import { mergeGeometries } from '../../3d/geom';
 import { PALETTE as P } from '../../3d/palette';
 import { VIP } from './layout';
 import { makePanel } from '../products/screens';
-import { STATION_DRAW, drawGallery, drawHubWall, drawFloorMap, drawHolo } from './panels';
+import { BUILTIN_DRAW, drawSlide, drawDeckChips, chipLayout, drawGallery, drawHubWall, drawFloorMap, drawHolo } from './panels';
+import { resolveDeck } from '../../vip/deckSchema';
+import { DEFAULT_DECK } from '../../vip/decks/default';
 import { projectCard } from '../../products/projectsFeed';
 import * as fu from '../products/furnish';
 import * as pr from '../products/props';
 
 const ease = (x) => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
-const SW = 1536, SH = 864;
+const DW = 1536, DH = 864;   // layout size of the screen drawings; the canvas itself is 1.33x on the high tier (crisper type)
 
 export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = false }) {
   const group = new THREE.Group(); group.name = 'vip-room';
@@ -24,7 +26,8 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   const woodFlute = wood.clone(); woodFlute.vertexColors = true;
   const leather = std({ color: P.ink, roughness: 0.5, envMapIntensity: 0.6 }), fabric = std({ map: M.white, normalMap: M.tex.weave && M.tex.weave.normal, color: P.fabricCharcoal, roughness: 0.95, envMapIntensity: 0.3 });
   const stone = M.stone.clone(); stone.map = M.tex.marble.dark.map; stone.roughnessMap = M.tex.marble.dark.rough; stone.color.setHex(0xe9e6df); stone.needsUpdate = true;
-  const plaster = std({ color: P.plasterWarm, emissive: P.plasterWarm, emissiveIntensity: 0.4, roughness: 0.9, envMapIntensity: 0.2 }), brass = M.brass, bronze = M.bronze, glass = M.glassClear;
+  const plaster = std({ color: P.plasterWarm, emissive: P.plasterWarm, emissiveIntensity: 0.4, roughness: 0.9, envMapIntensity: 0.2 }), brass = M.brass, bronze = M.bronze, glass = M.glassClear.clone();
+  glass.opacity = 0.1;   // clearer from the hall: the screen and the table read through the glass
   const led = (k = 2.6) => { const m = M.ledWarm(); m.color.multiplyScalar(k / 3.4); return m; };
   const statics = new Map(); const add = (geo, mat) => { if (!statics.has(mat)) statics.set(mat, []); statics.get(mat).push(prep(geo)); };
   const mesh = (geo, mat, o = {}) => { const m = new THREE.Mesh(geo, mat); if (o.pos) m.position.set(...o.pos); if (o.rot) m.rotation.set(...o.rot); m.castShadow = !!o.cast; m.receiveShadow = o.receive !== false; if (o.name) m.name = o.name; (o.parent || group).add(m); return m; };
@@ -76,20 +79,27 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   for (const [mat, list] of statics) { const m = new THREE.Mesh(mergeGeometries(list), mat); m.castShadow = false; m.receiveShadow = true; m.matrixAutoUpdate = false; m.updateMatrix(); group.add(m); }
 
   // ---- screens / panels (canvas textures) ----
-  const state = { lang, station: 0, projects: { status: 'idle', cards: [] }, t: 0, enter: reduced ? 1 : 0, inside: false, door: 0, doorTarget: 0, redrawT: 0, animated: false, reduced, focus: false };
+  const state = { lang, station: 0, deck: DEFAULT_DECK, decks: [DEFAULT_DECK], images: new Map(), projects: { status: 'idle', cards: [] }, t: 0, enter: reduced ? 1 : 0, inside: false, door: 0, doorTarget: 0, redrawT: 0, animated: false, reduced, focus: false };
   const logoImg = logoTex && logoTex.image ? logoTex.image : null;
-  const drawScreen = (g, w, h, l) => STATION_DRAW[state.station](g, w, h, { lang: l, t: state.t, logo: logoImg, projects: state.projects });
-  const screen = makePanel(SW, SH, (g, w, h, l) => drawScreen(g, w, h, l), lang);
+  /** the slide on the wall: a built-in station keeps its rich renderer; any other slide (imported / saved decks) uses the generic slide drawing. With more than one deck, deck chips sit along the top. */
+  const drawScreen = (g, w, h, l) => {
+    const d = state.deck, sl = d.slides[state.station] || d.slides[0], bi = sl.builtin && BUILTIN_DRAW[sl.builtin];
+    if (bi) bi(g, w, h, { lang: l, t: state.t, logo: logoImg, projects: state.projects });
+    else { const rd = resolveDeck({ ...d, slides: [sl] }, l); drawSlide(g, w, h, { lang: l, slide: rd.slides[0], index: state.station, count: d.slides.length, deckTitle: rd.title, images: state.images }); }
+    if (state.decks.length > 1) drawDeckChips(g, w, h, { lang: l, decks: state.decks.map((x) => resolveDeck({ ...x, slides: [] }, l).title), deckIndex: state.decks.indexOf(state.deck) });
+  };
+  const hiRes = tier.id === 'high', SW = hiRes ? 2048 : DW, SH = hiRes ? 1152 : DH, aniso = hiRes ? 8 : 4;
+  const screen = makePanel(SW, SH, (g, w, h, l) => drawScreen(g, w, h, l), lang, { design: { w: DW, h: DH }, anisotropy: aniso });
   const screenMat = new THREE.MeshBasicMaterial({ map: screen.tex, toneMapped: false, color: new THREE.Color(1, 1, 1) });
-  const S = VIP.screen; add2(placed(bevelBox(S.w + 0.3, S.h + 0.3, 0.06, { b: 0.01 }), { x: cx, y: S.y, z: S.z - 0.02 }), M.darkInterior); mesh(new THREE.PlaneGeometry(S.w, S.h), screenMat, { pos: [cx, S.y, S.z + 0.012], receive: false, name: 'vip-screen' });
+  const S = VIP.screen; add2(placed(bevelBox(S.w + 0.3, S.h + 0.3, 0.06, { b: 0.01 }), { x: cx, y: S.y, z: S.z - 0.02 }), M.darkInterior); const screenMesh = mesh(new THREE.PlaneGeometry(S.w, S.h), screenMat, { pos: [cx, S.y, S.z + 0.012], receive: false, name: 'vip-screen' });
   function add2(geo, mat) { const m = new THREE.Mesh(prep(geo), mat); group.add(m); return m; }
   mesh(new THREE.BoxGeometry(S.w, 0.012, 0.03), led(2.8), { pos: [cx, S.y - S.h / 2 - 0.16, S.z + 0.05], receive: false });
-  const gallery = makePanel(1536, 1024, (g, w, h, l) => drawGallery(g, w, h, { lang: l, projects: state.projects }), lang);
+  const gallery = makePanel(hiRes ? 2048 : 1536, hiRes ? 1365 : 1024, (g, w, h, l) => drawGallery(g, w, h, { lang: l, projects: state.projects }), lang, { design: { w: 1536, h: 1024 }, anisotropy: aniso });
   add2(placed(bevelBox(0.04, 2.95, 4.4, { b: 0.006 }), { x: VIP.x0 + 0.08, y: 2.0, z: cz - 0.8 }), brass); mesh(new THREE.PlaneGeometry(4.2, 2.8), new THREE.MeshBasicMaterial({ map: gallery.tex, toneMapped: false }), { pos: [VIP.x0 + 0.115, 2.0, cz - 0.8], rot: [0, Math.PI / 2, 0], receive: false, name: 'vip-gallery' });
-  const hubWall = makePanel(1024, 720, (g, w, h, l) => drawHubWall(g, w, h, { lang: l }), lang);
+  const hubWall = makePanel(hiRes ? 1536 : 1024, hiRes ? 1080 : 720, (g, w, h, l) => drawHubWall(g, w, h, { lang: l }), lang, { design: { w: 1024, h: 720 }, anisotropy: aniso });
   add2(placed(bevelBox(0.04, 2.7, 3.9, { b: 0.006 }), { x: VIP.x1 - 0.08, y: 2.0, z: cz - 0.8 }), brass); mesh(new THREE.PlaneGeometry(3.7, 2.6), new THREE.MeshBasicMaterial({ map: hubWall.tex, toneMapped: false }), { pos: [VIP.x1 - 0.115, 2.0, cz - 0.8], rot: [0, -Math.PI / 2, 0], receive: false, name: 'vip-hubwall' });
   const holos = [0, 1, 2].map((i) => { const p = makePanel(512, 288, (g, w, h, l) => drawHolo(g, w, h, { lang: l, which: i }), lang); const m = new THREE.MeshBasicMaterial({ map: p.tex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, side: THREE.DoubleSide, opacity: reduced ? 0.95 : 0 });
-    const g = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.84), m); g.position.set((i - 1) * 2.3, 1.2, T.z + 0.45); g.rotation.x = -0.28; g.scale.setScalar(0.82); g.renderOrder = 8; g.name = 'vip-holo-' + i; group.add(g); return { p, m, g, base: g.position.y }; });
+    const g = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.84), m); g.position.set((i - 1) * 1.75, T.h + 0.34, T.z + 0.1); g.rotation.x = -0.95; g.scale.setScalar(0.62); g.renderOrder = 8; g.name = 'vip-holo-' + i; group.add(g); return { p, m, g, base: g.position.y }; });
   const mapP = makePanel(1024, 1024, (g, w, h, l) => drawFloorMap(g, w, h, { lang: l }), lang);
   const mapMat = new THREE.MeshBasicMaterial({ map: mapP.tex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, opacity: reduced ? 0.9 : 0 }); const mapMesh = new THREE.Mesh(new THREE.CircleGeometry(1.7, 48), mapMat); mapMesh.rotation.x = -Math.PI / 2; mapMesh.position.set(0, 0.03, -30.1); mapMesh.renderOrder = 5; group.add(mapMesh);
 
@@ -97,20 +107,32 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   const spot = new THREE.SpotLight(P.ledCool, 0, 12, 0.62, 0.7, 1.4); spot.position.set(0, H - 0.1, T.z + 0.4); spot.target = new THREE.Object3D(); spot.target.position.set(0, T.h, T.z); spot.castShadow = false;
   const fill = new THREE.PointLight(P.lightHall, 0, 14, 2); fill.position.set(0, H - 0.6, cz + 0.4);
   const lights = [spot, spot.target, fill];
-  const SPOT_I = 300, FILL_I = 45;
+  const SPOT_I = 300, FILL_I = 45, tableLed = group.getObjectByName('table-led');
 
   const api = {
-    group, lights, state, screen, gallery, hubWall, mapMesh, holos,
+    group, lights, state, screen, screenMesh, gallery, hubWall, mapMesh, holos,
     get doorOpen() { return state.door; }, get station() { return state.station; },
     redraw() { screen.redraw(state.lang); gallery.redraw(state.lang); },
     setLanguage(l) { state.lang = l === 'ar' ? 'ar' : 'en'; for (const p of [screen, gallery, hubWall, mapP, ...holos.map((h) => h.p)]) p.redraw(state.lang); },
     setReduced(v) { state.reduced = !!v; if (v) state.enter = 1; },
-    setStation(i) { state.station = Math.max(0, Math.min(STATION_DRAW.length - 1, i | 0)); state.t = 0; screen.redraw(state.lang); },
+    setStation(i) { state.station = Math.max(0, Math.min(state.deck.slides.length - 1, i | 0)); state.t = 0; screen.redraw(state.lang); },
+    /** show `deck` (one of `decks`) on the wall; remote images of generic slides load once (anonymous CORS, no referrer) and redraw when they arrive */
+    setDeck(deck, decks = [deck], slide = 0) {
+      state.deck = deck; state.decks = decks; api.setStation(slide);
+      for (const s of deck.slides) for (const b of s.blocks || []) if (b.type === 'image' && !state.images.has(b.url) && typeof Image !== 'undefined') {
+        const im = new Image(); state.images.set(b.url, null); im.crossOrigin = 'anonymous'; im.referrerPolicy = 'no-referrer'; im.onload = () => { state.images.set(b.url, im); screen.redraw(state.lang); }; im.onerror = () => { /* keep the alt-text frame */ }; im.src = b.url;
+      }
+    },
+    /** click on the wall screen at (u, v in 0..1, v down): a deck chip -> its deck index, else -1 */
+    chipAt(u, v) {
+      if (state.decks.length < 2) return -1; const x = u * DW, y = v * DH, titles = state.decks.map((d) => resolveDeck({ ...d, slides: [] }, state.lang).title);
+      const hit = chipLayout(titles, DW, state.lang === 'ar').find((r) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h); return hit ? hit.i : -1;
+    },
     setFocus(v) { state.focus = !!v; },
     setLevel(k) { state.level = k; },
     /** the site's real project rows (or an empty / error state) -> gallery cards; images load lazily and redraw the wall as they arrive */
     setProjects({ status, rows }) {
-      const cards = (rows || []).map((r) => ({ ...projectCard(r, state.lang), img: null })); state.projects = { status, cards }; gallery.redraw(state.lang); if (state.station === 1) screen.redraw(state.lang);
+      const cards = (rows || []).map((r) => ({ ...projectCard(r, state.lang), img: null })); state.projects = { status, cards }; gallery.redraw(state.lang); if (state.deck.slides[state.station] && state.deck.slides[state.station].builtin === 'projects') screen.redraw(state.lang);
       cards.forEach((c) => { if (!c.image || typeof Image === 'undefined') return; const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => { c.img = im; gallery.redraw(state.lang); }; im.onerror = () => { /* keep the procedural card */ }; im.src = c.image; });
     },
     enter() { state.enter = state.reduced ? 1 : 0; state.entered = true; },
@@ -122,11 +144,12 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
       if (inside && !state.inside) api.enter(); state.inside = inside;
       state.enter = Math.min(1, state.enter + (state.reduced ? 1 : dt / 2.4)); state.t += dt;
       const k = ease(state.inside || state.focus ? state.enter : 0.25 + 0.15 * state.door), lv = state.level == null ? 1 : state.level;
-      spot.intensity = SPOT_I * k * lv; fill.intensity = FILL_I * (0.4 + 0.6 * k) * lv; const sc = 0.55 + 0.45 * ease((state.enter - 0.0) / 0.8); screenMat.color.setScalar(state.inside || state.focus ? sc : 0.75);
+      spot.intensity = SPOT_I * k * lv; fill.intensity = FILL_I * (0.4 + 0.6 * k) * lv; const sc = 0.04 + 0.96 * ease((state.enter - 0.05) / 0.7);   // the screen wakes up: dark, then a fast rise screenMat.color.setScalar(state.inside || state.focus ? sc : 1.0 + 0.25 * state.door);
       holos.forEach((h, i) => { const a = ease((state.enter * 1.6 - i * 0.28)); h.m.opacity = (state.focus ? 0 : state.inside ? 0.95 : 0.3) * a; h.g.position.y = h.base + (state.reduced ? 0 : 0.04 * Math.sin(state.t * 0.9 + i * 1.7) - (1 - a) * 0.25); });
+      const sw = ease(state.enter * 1.25); spot.target.position.set(0, T.h, VIP.z1 - 0.8 + (T.z - VIP.z1 + 0.8) * sw); spot.target.updateMatrixWorld(); if (tableLed) tableLed.scale.set(0.15 + 0.85 * ease(state.enter * 1.5 - 0.3), 1, 1);
       mapMat.opacity = 0.9 * ease(state.enter * 1.3); mapMesh.scale.setScalar(0.7 + 0.3 * ease(state.enter)); if (!state.reduced) mapMesh.rotation.z = state.t * 0.05;
       // the screen animates only while somebody is in the room (or presenting); static otherwise (a redraw is a canvas upload)
-      state.redrawT += dt; if ((state.inside || state.focus) && !state.reduced && state.station !== 0 && state.redrawT > 0.14) { state.redrawT = 0; screen.redraw(state.lang); }
+      state.redrawT += dt; if ((state.inside || state.focus) && !state.reduced && state.deck.slides[state.station] && state.deck.slides[state.station].builtin && state.station !== 0 && state.redrawT > 0.14) { state.redrawT = 0; screen.redraw(state.lang); }
     },
     dispose() { for (const p of [screen, gallery, hubWall, mapP, ...holos.map((h) => h.p)]) p.tex.dispose(); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); },
   };

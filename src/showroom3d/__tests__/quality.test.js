@@ -41,7 +41,7 @@ describe('quality tiers', () => {
     let s = 1; for (let i = 0; i < 30; i++) s = adaptScale({ scale: s, fps: 3 }); expect(s).toBe(0.5);
   });
   test('pixel ratio respects the tier cap and the scale', () => {
-    expect(effectivePixelRatio('high', 3, 1)).toBe(2); expect(effectivePixelRatio('low', 3, 1)).toBe(1.25);
+    expect(effectivePixelRatio('high', 3, 1)).toBe(2); expect(effectivePixelRatio('low', 3, 1)).toBe(1); expect(effectivePixelRatio('medium', 3, 1)).toBe(1.5);
     expect(effectivePixelRatio('high', 2, 0.5)).toBe(1); expect(effectivePixelRatio('low', 1, 0.1)).toBe(0.5);
   });
   test('software renderers are recognised', () => {
