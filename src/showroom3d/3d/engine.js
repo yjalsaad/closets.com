@@ -100,7 +100,7 @@ export class ShowroomEngine {
     this.report('compile', 1);
     // restrained bloom on the high tier only (lazy chunk); anything that goes wrong keeps the plain renderer
     if (tier.id === 'high' && !this.noBloom) {
-      try { const { createBloom } = await import('./post'); this.post = await createBloom(renderer, this.scene, this.camera, { width: this.width, height: this.height, pixelRatio: effectivePixelRatio(this.tierId, window.devicePixelRatio, this.scale) }); } catch (e) { this.post = null; }
+      try { const { createBloom } = await import('./post'); this.post = await createBloom(renderer, this.scene, this.camera, { width: this.width, height: this.height, pixelRatio: effectivePixelRatio(this.tierId, window.devicePixelRatio, this.scale), ao: /[?&]ao=1/.test(window.location.search) }); } catch (e) { this.post = null; }
     }
     this.gallery = buildGalleryFrames({ depth: HALL.depth, lang: this.lang }); this.scene.add(this.gallery.group);
     this.renderOnce(); this.report('firstFrame', 1);

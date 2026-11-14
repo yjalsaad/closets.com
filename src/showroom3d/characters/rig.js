@@ -128,7 +128,7 @@ export function buildCharacter(o = {}) {
   // ---- arms: rounded upper arm + forearm (a bell sleeve on the abaya), mitten hand with a thumb
   const fore0 = outfit === 'suit' && male ? P.shirtWhite : cloth;
   for (const side of [-1, 1]) {
-    const sj = J(chest, side * (sh + 0.018), 0.41, 0, side < 0 ? 'shoulderR' : 'shoulderL'), upper = M([G(limb(0.05, 0.039, 0.25, q), cloth)], sj, 'upperArm');
+    const sj = J(chest, side * (sh + 0.018), 0.41, 0, side < 0 ? 'shoulderR' : 'shoulderL'), upper = M([G(limb(0.05, 0.039, 0.25, q), cloth), G(sph(0.056, q), cloth, { y: -0.004, s: [1.0, 1.12, 1.0] })], sj, 'upperArm');   // the round deltoid fills the gap between shoulder and sleeve
     const ej = J(sj, 0, -0.27, 0, 'elbow');
     const fore = M([G(limb(0.039, 0.032 + sleeveW, 0.22, q, sleeveW * 0.5), fore0), G(sph(0.03, q), skin, { y: -0.285, s: [0.62, 1.3, 0.95] }), G(sph(0.024, q), skin, { y: -0.33, z: 0.004, s: [0.6, 1.25, 0.8] }), G(sph(0.0135, 0), skin, { x: -side * 0.022, y: -0.3, z: 0.018, s: [1, 1.7, 1] })], ej, 'foreArm');
     arms[side < 0 ? 'R' : 'L'] = { shoulder: sj, elbow: ej, upper, fore };

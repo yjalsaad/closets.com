@@ -35,9 +35,9 @@ async function run() {
   for (const id of ['reception', 'kitchens', 'wardrobes']) {
     if (!want('char-' + id)) continue; i++;
     const pos = await page.evaluate((id) => { const S = window.__showroom.engine.staff, it = S.item(id); return it.def.at; }, id);
-    const near = id === 'reception' ? [pos[0], pos[1] + 1.55] : [pos[0] + (pos[0] < 0 ? 1.15 : -1.15), pos[1]];
+    const near = id === 'reception' ? [pos[0] + 1.0, pos[1] + 2.25] : [pos[0] + (pos[0] < 0 ? 1.7 : -1.7), pos[1] + 0.5];
     const yaw = Math.atan2(-(pos[0] - near[0]), -(pos[1] - near[1]));
-    await L.ex(page, (e, a) => e.teleport(...a), [near[0], near[1], yaw, 0.12]); await page.waitForTimeout(wait + 1500); await setHud(page, false); await page.waitForTimeout(250);
+    await L.ex(page, (e, a) => e.teleport(...a), [near[0], near[1], yaw, 0.02]); await page.waitForTimeout(wait + 1500); await setHud(page, false); await page.waitForTimeout(250);
     await L.shot(page, `${LABEL}-${String(i).padStart(2, '0')}-char-${id}`, { quality: 82 }); await setHud(page, true);
   }
   await o.ctx.close();
