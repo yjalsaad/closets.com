@@ -15,28 +15,27 @@ import fs from 'fs';
 import path from 'path';
 
 const R = PLAYER.radius;
-const allText = () => { const t = []; const walk = (o) => { if (typeof o === 'string') t.push(o); else if (Array.isArray(o)) o.forEach(walk); else if (o && typeof o === 'object') Object.values(o).forEach(walk); }; walk([C.STATIONS, C.storyLines(), C.INVEST_STEPS, C.DISCLAIMER, C.BRIEFING_NOTE, C.PLACEHOLDER, C.HUB_FLOW, C.HUB_CAPABILITIES, C.HUB_KPI_NAMES, C.ILLUSTRATIVE]); return t.join(' | '); };
+const allText = () => { const t = []; const walk = (o) => { if (typeof o === 'string') t.push(o); else if (Array.isArray(o)) o.forEach(walk); else if (o && typeof o === 'object') Object.values(o).forEach(walk); }; walk([C.STATIONS, C.storyLines(), C.DISCLAIMER, C.PLACEHOLDER, C.HUB_FLOW, C.HUB_CAPABILITIES, C.HUB_KPI_NAMES, C.ILLUSTRATIVE]); return t.join(' | '); };
 
 describe('stations and the presentation state machine', () => {
-  test('five stations in the owner\'s order, bilingual titles and leads', () => {
-    expect(C.stationIds()).toEqual(['story', 'projects', 'hub', 'invest', 'briefing']);
+  test('four stations (the investor path was removed at the owner\'s request), bilingual titles and leads, no investor or join wording left', () => {
+    expect(C.stationIds()).toEqual(['story', 'projects', 'hub', 'contact']); expect(JSON.stringify(C.STATIONS)).not.toMatch(/invest|join|briefing|مستثمر|تستثمر|تنضم|إحاطة/i);
     for (const s of C.STATIONS) { expect(s.title.en.length).toBeGreaterThan(5); expect(/[؀-ۿ]/.test(s.title.ar + s.lead.ar)).toBe(true); }
   });
   test('next / previous clamp (no wrap), bad input is safe, arrows mirror in RTL', () => {
-    expect(C.stepStation(0, -1)).toBe(0); expect(C.stepStation(4, 1)).toBe(4); expect(C.stepStation(1, 1)).toBe(2); expect(C.stepStation(2, -1)).toBe(1); expect(C.stepStation(NaN, 1)).toBe(1); expect(C.stepStation(2, 0)).toBe(2);
-    expect(C.clampStation(99)).toBe(4); expect(C.clampStation(-3)).toBe(0); expect(C.clampStation('x')).toBe(0);
+    expect(C.stepStation(0, -1)).toBe(0); expect(C.stepStation(3, 1)).toBe(3); expect(C.stepStation(1, 1)).toBe(2); expect(C.stepStation(2, -1)).toBe(1); expect(C.stepStation(NaN, 1)).toBe(1); expect(C.stepStation(2, 0)).toBe(2);
+    expect(C.clampStation(99)).toBe(3); expect(C.clampStation(-3)).toBe(0); expect(C.clampStation('x')).toBe(0);
     expect(C.arrowDir('ArrowRight', false)).toBe(1); expect(C.arrowDir('ArrowLeft', false)).toBe(-1); expect(C.arrowDir('ArrowRight', true)).toBe(-1); expect(C.arrowDir('ArrowLeft', true)).toBe(1); expect(C.arrowDir('KeyA', true)).toBe(-0);
   });
   test('every station has a camera pose inside the room, looking at its back wall', () => {
-    expect(VIP_VIEWS).toHaveLength(5);
+    expect(VIP_VIEWS).toHaveLength(4);
     for (const v of VIP_VIEWS) { expect(v.pos[0]).toBeGreaterThan(VIP.x0); expect(v.pos[0]).toBeLessThan(VIP.x1); expect(v.pos[2]).toBeLessThan(VIP.z1); expect(v.pos[2]).toBeGreaterThan(VIP.z0); expect(v.pos[1]).toBeGreaterThan(1.2); expect(v.pos[1]).toBeLessThan(2.4); expect(v.look[2]).toBeLessThan(v.pos[2]); }
   });
 });
 
 describe('honesty: no financial promises, contested facts are marked placeholders', () => {
-  test('no figures, returns, valuation, equity, ROI or guarantees anywhere in the investor content (EN + AR)', () => {
+  test('no figures, returns, valuation, equity, ROI or guarantees anywhere in the built-in VIP content (EN + AR)', () => {
     expect(C.FORBIDDEN_FINANCIAL.test(allText())).toBe(false);
-    for (const s of C.INVEST_STEPS) { expect(C.FORBIDDEN_FINANCIAL.test(s.title.en + s.body.en + s.title.ar + s.body.ar)).toBe(false); expect(/\d/.test(s.title.en + s.body.en)).toBe(false); }
   });
   test('the forbidden-words check really catches what it should', () => {
     for (const bad of ['expected ROI', '12% returns', 'a valuation of', 'equity stake', 'guaranteed', 'BHD 500', 'dividends', 'عائد مضمون', 'ضمان الأرباح']) expect(C.FORBIDDEN_FINANCIAL.test(bad)).toBe(true);
@@ -84,15 +83,13 @@ describe('business lines and the Hub station', () => {
   });
 });
 
-describe('the briefing CTA routes to the EXISTING booking flow with the investor-briefing interest, writes nothing', () => {
-  test('URL: /booking?interest=investor-briefing&source=showroom-3d-vip&notes=...  (EN) and /ar/booking (AR); no figures in the notes', () => {
-    const en = new URL(C.briefingUrl('en'), 'https://x.test'), ar = new URL(C.briefingUrl('ar'), 'https://x.test');
-    expect(en.pathname).toBe('/booking'); expect(en.searchParams.get('interest')).toBe('investor-briefing'); expect(en.searchParams.get('source')).toBe('showroom-3d-vip'); expect(en.searchParams.get('notes')).toMatch(/private investor briefing/i);
-    expect(ar.pathname).toBe('/booking'); expect(ar.searchParams.get('notes')).toMatch(/[؀-ۿ]/); expect(C.FORBIDDEN_FINANCIAL.test(en.searchParams.get('notes') + ar.searchParams.get('notes'))).toBe(false);
+describe('the contact CTA routes to the EXISTING booking flow (generic, no investor interest), writes nothing', () => {
+  test('URL: /booking?source=showroom-3d-vip (EN) and /ar/booking (AR); no interest, no notes, no investor wording', () => {
+    const en = new URL(C.contactUrl('en'), 'https://x.test'), ar = new URL(C.contactUrl('ar'), 'https://x.test');
+    expect(en.pathname).toBe('/booking'); expect(en.searchParams.get('interest')).toBeNull(); expect(en.searchParams.get('source')).toBe('showroom-3d-vip'); expect(ar.pathname).toBe('/booking'); expect(C.contactUrl('en')).not.toMatch(/invest/i);
   });
-  test('the booking prefill maps interest=investor-briefing to the form\'s existing "Other" and keeps the note (the form is reviewed and submitted by the visitor)', () => {
-    const u = new URL(C.briefingUrl('en'), 'https://x.test'); const p = parseBookingPrefill(u.search); expect(p.interest).toBe('Other'); expect(p.notes).toMatch(/investor briefing/i); expect(Object.values(INTEREST)).toContain(p.interest);
-    expect(parseBookingPrefill('?interest=nonsense').interest).toBeNull();
+  test('the booking prefill no longer knows the old investor-briefing interest (it is dropped like any unknown one); real interests still pass', () => {
+    expect(parseBookingPrefill('?interest=investor-briefing').interest).toBeNull(); expect(parseBookingPrefill('?interest=nonsense').interest).toBeNull(); expect(parseBookingPrefill('?interest=' + Object.values(INTEREST)[0]).interest).toBe(Object.values(INTEREST)[0]);
   });
   test('quote.js and vipContent.js never touch the network, the backend or fetch', () => {
     for (const f of ['../products/quote.js', '../products/vipContent.js']) expect(fs.readFileSync(path.resolve(__dirname, f), 'utf8')).not.toMatch(/fetch\(|XMLHttpRequest|supabase|rpc\(|sendBeacon/);
@@ -152,7 +149,7 @@ describe('VIP room layout, collision and navigation', () => {
     expect(zoneAt(z, 0, -20.5)).toMatchObject({ id: 'ikhtarha' }); expect(zoneAt(z, 8, -30.7)).toBeNull(); expect(zoneAt(z, -12.5, -30.7)).toMatchObject({ id: 'bedroom' });
   });
   test('UI strings: VIP strings exist in both languages and the department list names it', () => {
-    for (const k of ['vipName', 'vipKicker', 'vipPrev', 'vipNext', 'vipBriefing', 'vipBriefingNote', 'vipProjectsNone', 'vipOpenProjects']) { expect(STRINGS[k].en.length).toBeGreaterThan(2); expect(/[؀-ۿ]/.test(STRINGS[k].ar)).toBe(true); }
-    expect(C.VIP_DEPT).toMatchObject({ id: 'vip', index: 9 }); expect(STRINGS.vipBriefingNote.en).toMatch(/nothing is sent until you submit/i);
+    for (const k of ['vipName', 'vipKicker', 'vipPrev', 'vipNext', 'vipContactCta', 'vipContactNote', 'vipProjectsNone', 'vipOpenProjects']) { expect(STRINGS[k].en.length).toBeGreaterThan(2); expect(/[؀-ۿ]/.test(STRINGS[k].ar)).toBe(true); }
+    expect(C.VIP_DEPT).toMatchObject({ id: 'vip', index: 9 }); expect(STRINGS.vipContactNote.en).toMatch(/nothing is sent until you submit/i);
   });
 });

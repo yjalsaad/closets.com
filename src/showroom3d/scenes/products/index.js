@@ -16,6 +16,7 @@ import { buildStudio } from './studio';
 import { buildLounge } from './lounge';
 import { buildStage } from './ikhtarha';
 import { buildVipRoom } from '../vip/vipRoom';
+import { setFurnishQuality } from './reflook';
 
 const BUILDERS = { kitchen: buildKitchen, wardrobe: buildWardrobe, door: buildDoor, bedroom: buildBedroom, walkin: buildWalkin, living: buildLiving, studio: buildStudio, lounge: buildLounge };
 const KEY_E = { kitchen: 1.5, wardrobe: 5.2, door: 3.0, bedroom: 3.2, walkin: 3.2, living: 3.0, studio: 3.0, lounge: 3.0 };
@@ -29,6 +30,7 @@ function outlineObject(color) {
 }
 
 export function buildProducts({ renderer, hallM, tier, lang, bays, reduced = false, logoTex = null }) {
+  setFurnishQuality(tier.id === 'low' ? 0 : 1);
   const env = buildInteriorEnv(renderer), tex = createProductTextures(tier), M = createProductMaterials({ tier, env, tex });
   const registry = createRegistry(), kits = {}, bayOf = {};
   for (const b of bays) { const id = b.product; if (id) bayOf[id] = b; }

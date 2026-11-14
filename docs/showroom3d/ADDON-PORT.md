@@ -65,3 +65,14 @@ Skipped (integration-only coupling): booking prefill reader; business lines vs `
 - Prerender (`PUPPETEER_EXECUTABLE_PATH=... node scripts/prerender.js`): 21/21 routes on both main and this branch (main's own script; no seo-build/seo-check on main).
 - Showroom QA on the built app (SwiftShader): `phase5vip.js` flows 24/24, ar 8/8, mobile 8/8; `/yas-bloom` and `/ar/yas-bloom` at 1440 and 390 load, enter explore, walk, no page errors; `<html lang/dir>` and `noindex` correct (`docs/showroom3d/addon-qa/yasbloom-*.jpg`).
 - Existing-page regression (`scripts/yas-bloom-regression.js`): home, kitchen, TV, office, wardrobe, door, booking x EN/AR x 1440/390, full-page, reduced motion, external requests blocked. 28 pairs main-vs-branch: 20 byte-identical; the other 8 differ by 4 to 77 pixels, or 13-17k pixels on two mobile pages, and in every case the SAME build also differs from itself between runs (animated carousels / spot pings), and re-sampling 4x makes branch match a main sample for the pages retested. The glass look is intact (`html.glassy`, `glass-back`, `showcase-*` present on kitchen/TV/office/wardrobe/door in both). Results: `docs/showroom3d/addon-qa/regression.json`; branch screenshots `docs/showroom3d/addon-qa/{en,ar}-{d,m}-*.jpg`.
+
+## Preview 2 (2026-11-14): realism, kiosks, VIP decks, films, collections
+Branch `claude/yas-bloom-preview-2` = `origin/main` (5d276a9) + `scripts/port-yas-bloom.sh claude/web-showroom-combined`. Draft PR, never merged by the agent.
+What the port script now also does (all idempotent; a second run gives the same tree):
+- copies `public/yas-bloom/**` (portraits, profile photos, realism textures, collection swatches, films), `scripts/showroom3d-film`, `scripts/showroom3d-profile` when the source ref has them;
+- re-applies main's owner-decided fact (`yearsOfCraft = 20`) to the copied `vip.test.js` instead of keeping main's older copy of that file (the source test changed a lot);
+- re-points tests in EVERY `__tests__` folder under `src/showroom3d` (feature folders such as `collections/` have their own), including `/ar/booking` inside regular expressions.
+No new vendored module and no new `siteBridge` export was needed. No new npm dependency.
+Add-only check: `git diff origin/main...HEAD --name-status | grep -v '^A'` lists files under `src/showroom3d/`, `docs/showroom3d/` and `scripts/` only; `src/App.js`, `src/index.js`, `vercel.json`, `package.json`, `package-lock.json` are byte-identical to main.
+Not done on purpose (production add-only rule): no cache headers for `/yas-bloom/**` in `vercel.json`. The films (about 64 MB of MP4) are served with Vercel's default static caching; an owner decision is needed to add long-lived cache headers or move the films to a media host.
+`scripts/yas-bloom-regression.js` accepts `PAGES=name:/path,...` (a name starting with `header` captures the top 120 px only) and `FREEZE_TIMERS=1`.

@@ -7,7 +7,7 @@ export const VIP = {
   wallT: 0.15, height: 4.3,
   doorHalf: 0.95, doorH: 2.7,                               // door gap in the front glass wall (centre x = 0)
   table: { x: 0, z: -32.6, w: 5.6, d: 1.5, h: 0.76 },
-  screen: { z: -(HALL.depth - 0.5) + 0.08, y: 2.65, w: 5.69, h: 3.2 },
+  screen: { z: -(HALL.depth - 0.5) + 0.08, y: 2.2, w: 6.93, h: 3.9 },   // a 16:9 LED wall, 6.9 x 3.9 m (was 5.7 x 3.2)
   approach: [0, -27.6],                                      // lane in front of the door
   stand: [0, -30.2],                                         // quick-nav stand point, inside, facing the screen
   look: [0, 2.2, -(HALL.depth - 0.5) + 0.08],
@@ -32,9 +32,14 @@ export function vipBoxes() {
 export const vipDoorBox = () => ({ type: 'box', id: 'vip-door', minX: -VIP.doorHalf, maxX: VIP.doorHalf, minZ: VIP.z1 - VIP.wallT / 2, maxZ: VIP.z1 + VIP.wallT / 2 });
 /** camera pose of each presentation station (eye height, inside the room; the walker stays where it stands) */
 export const VIP_VIEWS = [
-  { id: 'story', pos: [0, 1.85, -29.2], look: [0, 2.6, -35.42], fov: 54 },
+  { id: 'story', pos: [0, 1.85, -29.2], look: [0, 2.2, -35.42], fov: 54 },
   { id: 'projects', pos: [-0.6, 1.8, -31.2], look: [-7.0, 1.9, -32.6], fov: 58 },
-  { id: 'hub', pos: [0, 1.85, -29.2], look: [0, 2.6, -35.42], fov: 54 },
-  { id: 'invest', pos: [0, 1.85, -29.2], look: [0, 2.6, -35.42], fov: 54 },
-  { id: 'briefing', pos: [0, 1.85, -29.2], look: [0, 2.6, -35.42], fov: 52 },
+  { id: 'hub', pos: [0, 1.85, -29.2], look: [0, 2.2, -35.42], fov: 54 },
+  { id: 'contact', pos: [0, 1.85, -29.2], look: [0, 2.2, -35.42], fov: 52 },
 ];
+
+/** presenter view of the big screen: the camera is placed so the whole wall (screen width + margin) fits the viewport width for the given aspect ratio and vertical fov */
+export function bigScreenView(aspect = 16 / 9, fov = 46, fill = 0.94, centred = false) {
+  const a = Math.max(0.4, aspect), vf = (fov * Math.PI) / 180, hf = 2 * Math.atan(Math.tan(vf / 2) * a), half = (VIP.screen.w / 2) / fill, dist = Math.min(7.4, Math.max(3.4, half / Math.tan(hf / 2)));
+  const z = VIP.screen.z + 0.012 + dist; return { pos: [0, centred ? VIP.screen.y : 1.55, Math.min(z, VIP.z1 - 0.6)], look: [0, centred ? VIP.screen.y : VIP.screen.y - 0.05, VIP.screen.z], fov };   // centred (Reading mode): the eye is level with the middle of the wall, so there is no keystone and the wall fits the view exactly
+}

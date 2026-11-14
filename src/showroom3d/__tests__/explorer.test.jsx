@@ -79,7 +79,7 @@ describe('Explorer (keyboard, pause, pointer lock, interaction, glide)', () => {
 describe('overlays', () => {
   test('department menu lists the eight departments and the VIP meeting room (9th) in order, in both languages, and picking calls back', () => {
     const onPick = jest.fn(), onClose = jest.fn(); const { rerender } = render(<DeptMenu lang="en" touch={false} onPick={onPick} onClose={onClose} />);
-    const items = screen.getAllByRole('button').filter((b) => b.dataset.dept); expect(items.map((b) => b.dataset.dept)).toEqual([...DEPARTMENTS.map((d) => d.id), 'vip']);
+    const items = screen.getAllByRole('button').filter((b) => b.dataset.dept); expect(items.map((b) => b.dataset.dept)).toEqual([...DEPARTMENTS.map((d) => d.id), 'vip', 'collections']);
     fireEvent.click(items[2]); expect(onPick).toHaveBeenCalledWith('walkin');
     expect(screen.getByRole('dialog').getAttribute('aria-modal')).toBe('true');
     rerender(<DeptMenu lang="ar" touch onPick={onPick} onClose={onClose} />); expect(screen.getByText('المطابخ')).toBeTruthy();
@@ -100,6 +100,15 @@ describe('overlays', () => {
     expect(screen.getByText('Back to website').getAttribute('href')).toBe('/'); fireEvent.click(screen.getByText('Resume')); expect(h.onResume).toHaveBeenCalledWith(true);
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' }); expect(h.onResume).toHaveBeenLastCalledWith(false);
     rerender(<PauseMenu lang="ar" reduced bob homeHref="/ar" {...h} />); expect(screen.getByText(STRINGS.headBobOff.ar).closest('button').disabled).toBe(true); expect(screen.getByText(STRINGS.headBobReduced.ar)).toBeTruthy();
+  });
+  test('pause menu: the Graphics setting lists Auto / High / Balanced / Performance, shows the tier in use, and reports the choice', () => {
+    const onGraphics = jest.fn();
+    const { rerender } = render(<PauseMenu lang="en" reduced={false} bob homeHref="/" tier="medium" gfxMode="auto" onGraphics={onGraphics} onResume={() => {}} onDepts={() => {}} onReplay={() => {}} onLang={() => {}} onBob={() => {}} onTips={() => {}} />);
+    const sel = screen.getByTestId('sr-menu-graphics-select'); expect([...sel.options].map((o) => o.value)).toEqual(['auto', 'high', 'balanced', 'performance']); expect(sel.value).toBe('auto');
+    expect([...sel.options].map((o) => o.textContent)).toEqual(['Auto (recommended)', 'High', 'Balanced', 'Performance']); expect(screen.getByTestId('sr-menu-graphics-now')).toHaveTextContent('Now showing: Balanced');
+    fireEvent.change(sel, { target: { value: 'high' } }); expect(onGraphics).toHaveBeenCalledWith('high');
+    rerender(<PauseMenu lang="ar" reduced={false} bob homeHref="/ar" tier="low" gfxMode="performance" onGraphics={onGraphics} onResume={() => {}} onDepts={() => {}} onReplay={() => {}} onLang={() => {}} onBob={() => {}} onTips={() => {}} />);
+    expect(screen.getByTestId('sr-menu-graphics-select').value).toBe('performance'); expect(screen.getByTestId('sr-menu-graphics-now').textContent).toMatch(/[؀-ۿ]/);
   });
   test('coach marks: three tips per input type, EN and AR, with a dismiss button', () => {
     const done = jest.fn(); const { rerender, container } = render(<CoachMarks lang="en" touch={false} onDone={done} />);

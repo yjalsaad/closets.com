@@ -1,4 +1,4 @@
-/* VIP meeting room (investor / partner boardroom): PURE content + helpers (unit-tested). No DOM, no three.js, no network.
+/* VIP meeting room (company presentation boardroom): PURE content + helpers (unit-tested). No DOM, no three.js, no network.
  *
  * Honesty rules (owner brief):
  *  - company facts come ONLY from src/content/facts.js and existing site / showroom copy; the facts the site itself contradicts
@@ -6,7 +6,7 @@
  *    until facts.js holds a confirmed value, then they appear automatically;
  *  - the Bonsai Hub station only lists capabilities that exist in the Hub repository (module map, RBAC model, audit modules, lead KPI engine, ...);
  *    the module UIs drawn on the screens are simplified procedural mock-ups and say "illustrative";
- *  - the investor path is a PROCESS: no figures, returns, valuation, equity amounts, ROI or guarantees anywhere, and the disclaimer is always shown;
+ *  - no figures, returns, valuation, equity amounts, ROI or guarantees anywhere in the built-in content, and the disclaimer is always shown (the investor path was removed at the owner's request);
  *  - what management must still supply is listed in OWNER_INPUTS (and in docs/showroom3d/VIP-ROOM-OWNER-INPUTS.md). */
 import { FACTS, hasFact } from '../vendor/facts';
 import { withLang } from '../vendor/routes';
@@ -22,7 +22,7 @@ export const VIP_DEPT = { id: VIP_ID, en: 'VIP Meeting Room', ar: 'غرفة ال
 /** the five stations of the DEFAULT deck (src/showroom3d/vip/decks/default.js): id, title, lead */
 export const STATIONS = DEFAULT_DECK.slides.map(({ id, title, lead }) => ({ id, title, lead }));
 export const stationIds = () => STATIONS.map((s) => s.id);
-/** station state machine (pure): clamp, no wrap-around, so "Next" on the last station is disabled and the briefing CTA stays the end of the path */
+/** station state machine (pure): clamp, no wrap-around, so "Next" on the last station is disabled and the contact CTA stays the end of the path */
 export function stepStation(i, dir, n = STATIONS.length) { return Math.max(0, Math.min(n - 1, (Number.isInteger(i) ? i : 0) + (dir > 0 ? 1 : dir < 0 ? -1 : 0))); }
 export const clampStation = (i, n = STATIONS.length) => Math.max(0, Math.min(n - 1, Number.isInteger(i) ? i : 0));
 /** left / right arrow -> prev / next, mirrored in RTL */
@@ -86,15 +86,10 @@ export const HUB_CAPABILITIES = [
 export const HUB_KPI_NAMES = [{ en: 'Total leads', ar: 'إجمالي العملاء المحتملين' }, { en: 'Won', ar: 'تم الفوز' }, { en: 'Lost', ar: 'خسارة' }, { en: 'Open pipeline', ar: 'الفرص المفتوحة' }, { en: 'Revenue vs target', ar: 'الإيراد مقابل الهدف' }];
 export const ILLUSTRATIVE = { en: 'Illustrative: simplified mock-up, not real data', ar: 'توضيحي: نموذج مبسّط وليس بيانات حقيقية' };
 
-// ---- station 4: the investor path (a PROCESS, no figures) ----
-export const INVEST_STEPS = DEFAULT_DECK.slides[3].data.steps;
-
-// ---- station 5: the CTA, routed to the EXISTING booking flow ----
-export const BRIEFING_INTEREST = 'investor-briefing';
-export const BRIEFING_NOTE = { en: 'Request for a private investor briefing (from the virtual showroom). Information only: nothing has been shared or agreed.', ar: 'طلب إحاطة خاصة للمستثمرين (من المعرض الافتراضي). للاطلاع فقط: لم يُشارَك أو يُتَّفق على شيء.' };
-export function briefingUrl(lang = 'en') {
-  const L2 = lang === 'ar' ? 'ar' : 'en', q = new URLSearchParams({ interest: BRIEFING_INTEREST, source: 'showroom-3d-vip', notes: BRIEFING_NOTE[L2] });
-  return withLang('/booking', L2) + '?' + q.toString();
+// ---- station 4: the generic contact hand-off, routed to the EXISTING booking flow (no investor wording, no special interest) ----
+export const CONTACT_SOURCE = 'showroom-3d-vip';
+export function contactUrl(lang = 'en') {
+  const L2 = lang === 'ar' ? 'ar' : 'en'; return withLang('/booking', L2) + '?' + new URLSearchParams({ source: CONTACT_SOURCE }).toString();
 }
 export function contactLines(lang = 'en') {
   const out = []; if (FACTS.phone) out.push({ id: 'phone', label: { en: 'Phone', ar: 'الهاتف' }, text: FACTS.phone, href: FACTS.phoneHref, dir: 'ltr' });
@@ -103,4 +98,4 @@ export function contactLines(lang = 'en') {
 }
 
 /** what management must still supply (mirrors docs/showroom3d/VIP-ROOM-OWNER-INPUTS.md; the room shows each as a marked placeholder) */
-export const OWNER_INPUTS = ['yearsOfCraft', 'homesDelivered', 'productionModel', 'showroomCount', 'investorInfoPack', 'fundingSought', 'financials', 'briefingContact', 'confirmHubFigures', 'projectsData', 'arabicReview', 'legalDisclaimer'];
+export const OWNER_INPUTS = ['yearsOfCraft', 'homesDelivered', 'productionModel', 'showroomCount', 'confirmHubFigures', 'projectsData', 'arabicReview', 'legalDisclaimer'];

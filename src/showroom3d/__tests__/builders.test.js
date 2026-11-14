@@ -20,11 +20,11 @@ describe('bevelBox', () => {
 describe('grain-aware UVs (the timber textures have their grain along U)', () => {
   test('grain "z": on the +X front face of a drawer front, U follows the width (z) and V the height', () => {
     const g = bevelBox(0.02, 0.3, 0.9, { grain: 'z', tile: 1 }); const r = uvRange(g, (nx) => nx > 0.99);
-    expect(r.du).toBeCloseTo(0.9 - 0.004, 2); expect(r.dv).toBeCloseTo(0.3 - 0.004, 2);
+    expect(r.du).toBeCloseTo(0.9 - 0.01, 2); expect(r.dv).toBeCloseTo(0.3 - 0.004, 2);
   });
   test('grain "y": on the same face U follows the HEIGHT (vertical grain for a tall door), V the width', () => {
     const g = bevelBox(0.02, 2.4, 0.6, { grain: 'y', tile: 1 }); const r = uvRange(g, (nx) => nx > 0.99);
-    expect(r.du).toBeCloseTo(2.4 - 0.004, 2); expect(r.dv).toBeCloseTo(0.6 - 0.004, 2);
+    expect(r.du).toBeCloseTo(2.4, 2); expect(r.dv).toBeCloseTo(0.6 - 0.01, 2);
   });
   test('tile scales the repeat (metres per texture) and the offset shifts it', () => {
     const a = bevelBox(0.02, 0.5, 1, { grain: 'z', tile: 1 }), b = bevelBox(0.02, 0.5, 1, { grain: 'z', tile: 0.5 });

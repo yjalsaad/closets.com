@@ -8,6 +8,8 @@ import { PALETTE as P } from '../../3d/palette';
 import { createKit } from './kit';
 import { buildCanopy, buildWallWash, propMesh, CANOPY_Y } from './stage';
 import * as pr from './props';
+import * as rl from './reflook';
+
 import { artTexture } from './door';
 
 const BASE = { y0: 0.1, top: 0.865, wt: 0.04 };          // plinth height, carcass top, worktop thickness
@@ -108,6 +110,11 @@ export function buildKitchen({ M, tier, registry, reduced }) {
     }
   };
   upper(0, 3); upper(4, 2);
+  // lit open shelf on the splashback under the first three wall units (props are added with the other props below)
+  const shZ0 = RUN.z0 + 0.06, shZ1 = RUN.z0 + 3 * RUN.unit - 0.06, shY = 1.2;
+  kit.addStatic(placed(fin(0.17, 0.028, shZ1 - shZ0, { b: 0.003, grain: 'z' }), { x: -2.68, y: shY, z: (shZ0 + shZ1) / 2 }), F);
+  kit.addStatic(placed(fin(0.006, 0.034, shZ1 - shZ0, { b: 0.001 }), { x: -2.592, y: shY, z: (shZ0 + shZ1) / 2 }), METAL);
+  kit.led({ x: -2.7, y: shY - 0.018, z: (shZ0 + shZ1) / 2, len: shZ1 - shZ0 - 0.1, axis: 'z', thick: 0.01, levelOf: (st) => st.accentLevel(), intensity: 0.9 });
   // brushed-brass canopy hood over the hob
   kit.addStatic(placed(fin(0.5, 0.07, 0.9, { b: 0.004 }), { x: -2.55, y: 1.55, z: hobZ }), METAL);
   kit.addStatic(placed(fin(0.28, 1.65, 0.38, { b: 0.004 }), { x: -2.66, y: 2.47, z: hobZ }), METAL);
@@ -149,13 +156,9 @@ export function buildKitchen({ M, tier, registry, reduced }) {
   kit.led({ x: ix, y: 0.64, z: 0.64, len: 0.9, axis: 'z', thick: 0.012, levelOf: (s) => s.ledLevel('k-island-door') });
 
   // ---- pendants over the island ----
-  const pend = [], lamps = [];
-  for (const z of [-0.7, 0, 0.7]) {
-    pend.push(prep(placed(pr.pendantShade(0, 0, 0, { r: 0.15, h: 0.18 }), { x: -0.25, y: 2.0, z })), prep(placed(new THREE.CylinderGeometry(0.004, 0.004, CANOPY_Y - 2.18, 5), { x: -0.25, y: (CANOPY_Y + 2.18) / 2, z })));
-    lamps.push(prep(placed(new THREE.SphereGeometry(0.035, 10, 8), { x: -0.25, y: 2.04, z })));
-  }
-  kit.mesh(mergeGeometries(pend), METAL, { cast: false });
-  const bulb = M.ledWarm(); bulb.color.multiplyScalar(1.4); kit.mesh(mergeGeometries(lamps), bulb, { cast: false });
+  // reference look: opal globe pendants on brass caps at staggered heights (were brass cone shades)
+  { const glass = [], metal = []; [[-0.75, 2.02], [0, 1.84], [0.75, 2.1]].forEach(([z, y]) => { const g = rl.globePendant(-0.25, y, z, CANOPY_Y, { r: 0.115 }); glass.push(...g.glass); metal.push(...g.metal); });
+    kit.mesh(mergeGeometries(glass), M.globe, { cast: false }); kit.mesh(mergeGeometries(metal), METAL, { cast: false }); }
   kit.pool(-0.2, BASE.top + BASE.wt + 0.004, 0, 1.8, 0.35);
 
   // ---- two framed artworks above the wall units, flanking the hood (a feature wall needs something to look at) ----
@@ -179,6 +182,7 @@ export function buildKitchen({ M, tier, registry, reduced }) {
   ceramic.push(...pr.fruitBowl(-0.12, wtTop, 0.62), ...pr.vase(-0.3, wtTop, -0.6, { h: 0.34, r: 0.075, color: P.ceramicSand }), ...pr.plateStack(-2.45, wtTop, -0.45), ...pr.mug(-2.4, wtTop, -1.0, { color: P.ceramicTerra, ry: 0.5 }), ...pr.mug(-2.35, wtTop, -1.14), ...pr.utensilCrock(-2.7, wtTop, -2.45), ...pr.glass(-0.1, wtTop, -0.2));
   matte.push(...pr.books(-0.35, wtTop, 0.1, { n: 4, seed: 3, ry: 0.2 }), ...pr.cuttingBoard(-2.45, wtTop, -2.0));
   metalP.push(...pr.potOnHob(-2.5, wtTop + 0.007, hobZ));
+  { const n = 6, y = shY + 0.015; for (let i = 0; i < n; i++) { const z = shZ0 + 0.18 + ((shZ1 - shZ0 - 0.36) * i) / (n - 1); if (i % 3 === 0) ceramic.push(...pr.vase(-2.68, y, z, { h: 0.16, r: 0.04, color: [P.ceramicDark, P.ceramicSand][i % 2] })); else if (i % 3 === 1) ceramic.push(...pr.bowl(-2.68, y, z, { r: 0.07, h: 0.045, color: P.ceramicWhite }), ...pr.bowl(-2.68, y + 0.03, z, { r: 0.06, h: 0.04, color: P.ceramicSand })); else ceramic.push(...pr.glass(-2.68, y, z - 0.05), ...pr.glass(-2.68, y, z + 0.05)); } }
   { const pl = pr.plant(-2.62, wtTop, 2.42, { h: 0.45, leaves: 14, potR: 0.07, seed: 9, leafSize: 0.05 }); leaves.push(...pl.body); cards.push(...pl.cards); }
   leaves.push(...pr.stems(-0.3, wtTop + 0.3, -0.6, { n: 6, h: 0.55, seed: 4 }));
   const st1 = pr.stool(-1.22, -0.62, { color: P.fabricClay }), st2 = pr.stool(-1.22, 0.62, { color: P.fabricClay });

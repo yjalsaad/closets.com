@@ -14,16 +14,20 @@ import { PRODUCTS, STAGE_VIEWS } from '../products/catalog';
 import { cycleFinish } from '../products/finishes';
 import { Walker, wrapPi, clamp } from './walker';
 import { yawPitchFromLookAt } from './lookAround';
-import { VIP_VIEWS } from '../scenes/vip/layout';
+import { VIP_VIEWS, bigScreenView } from '../scenes/vip/layout';
 import { PERMANENT_DECKS } from '../vip/decks';
 import { makeDeckStore } from '../vip/deckStore';
 import { initDeckState, deckReducer } from '../vip/deckState';
+import { initPlay, playReducer, playTick, slideSeconds } from '../vip/motion';
+import { FilmPlayer } from '../vip/filmPlayer';
+import { agendaIndex, nextAgendaItem, firstAgendaItem } from '../vip/meeting';
 import { followCamera } from '../characters/follow';
 import { TALK_RADIUS } from '../staff/roster';
 import { nextAvatar, AVATARS } from '../characters/visitorAvatar';
 const store = { get(k, d) { try { return window.localStorage.getItem(k) || d; } catch (e) { return d; } }, set(k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* ignore */ } } };
 import { stepStation, arrowDir } from '../products/vipContent';
 import { loadSiteProjects } from '../products/projectsFeed';
+import { withCollections, collectionsZones } from '../collections/layout';
 
 export const SENS = { mouse: 0.0022, drag: 0.0036, touch: 0.0052 };   // radians per pixel
 export const NEAR = { explore: 0.15, intro: 0.25 };                    // camera near plane (explore must stay below PLAYER.radius)
@@ -33,10 +37,11 @@ const editable = (el) => !!el && (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) |
 export class Explorer {
   constructor({ engine, canvas, reduced = false, bob = true, onState = () => {}, projectsLoader = loadSiteProjects, deckStore = makeDeckStore() }) {
     this.projectsLoader = projectsLoader; this.projectsPromise = null;
-    this.deckStore = deckStore; this.userDecks = deckStore.list(); this.vipDialog = false; this.decksRev = 0; this.ds = initDeckState(this.deckIds(), 'default', 0, this.deckCounts());
-    this.camMode = store.get('closets_yb_cam', 'first') === 'third' ? 'third' : 'first'; this.avatarKind = AVATARS[store.get('closets_yb_avatar', 'female')] ? store.get('closets_yb_avatar', 'female') : 'female'; this.tp = null;
+    this.deckStore = deckStore; this.userDecks = deckStore.list(); this.vipDialog = false; this.decksRev = 0; this.play = initPlay(); this.presMode = 'panel'; this.lastProg = -1; this.meetingOn = false; this.ds = initDeckState(this.deckIds(), this.initialDeck(), 0, this.deckCounts());
+    // owner decision: every visit starts in first person; the toggle (and the stored avatar choice) stays
+    this.camMode = 'first'; this.avatarKind = AVATARS[store.get('closets_yb_avatar', 'female')] ? store.get('closets_yb_avatar', 'female') : 'female'; this.tp = null;
     this.engine = engine; this.canvas = canvas; this.onState = onState; this.reduced = reduced;
-    this.graph = buildGraph(); this.zones = allZones();
+    this.graph = withCollections(buildGraph()); this.zones = [...collectionsZones(), ...allZones()];
     this.doorOpen = true; this.vipOpen = true; this.colliders = buildColliders({ doorOpen: 1, oliveCount: engine.tierId === 'low' ? 2 : 4, vipOpen: 1 });
     this.walker = new Walker({ pos: [HANDOVER.p[0], HANDOVER.p[2]], colliders: this.colliders, bob });
     this.keys = new Set(); this.touch = { x: 0, y: 0, jog: false };
@@ -84,7 +89,7 @@ export class Explorer {
     if (this.engine.avatar) this.engine.avatar.group.visible = false;
     this.zone = null; this.emit({ active: false, paused: false, zone: null, locked: false, gliding: false });
   }
-  dispose() { this.disable(); }
+  dispose() { this.disable(); if (this.film) this.film.dispose(); if (this._filmHost && this._filmHost.parentNode) this._filmHost.parentNode.removeChild(this._filmHost); if (this._filmVis && typeof document !== 'undefined') document.removeEventListener('visibilitychange', this._filmVis); }
 
   setReduced(v) { this.reduced = !!v; }
   /** camera mode: 'first' (default) or 'third' (follows the visitor's avatar with a collision-safe camera) */
@@ -174,6 +179,7 @@ export class Explorer {
     { const S = this.engine.staff, np = S && S.nearest(this.walker.pos[0], this.walker.pos[1], 1.9), rec = S && S.nearest(this.walker.pos[0], this.walker.pos[1], TALK_RADIUS); if ((np || (rec && rec.id === 'reception')) && this.talkToStaff((np || rec).id)) return; }   // E next to an adviser (or in front of the Reception desk) talks to her
     this.interactions++;
     const z = this.zone, P = this.products;
+    if (z && z.collections) { this.emit({ collections: this.interactions }); return; }          // the Collections wall: the React layer opens its panel
     if (z && z.vip && P && P.vip) { this.focusVip(0); return; }
     if (z && z.stage && P) { this.focusStage('overview'); return; }          // (no "later release" toast: the panel is the response)
     const pid = z && P ? P.productAt(z.id) : null;
@@ -261,6 +267,7 @@ export class Explorer {
   panelShift() {
     const w = this.canvas.clientWidth || 0, h = this.canvas.clientHeight || 0, rtl = (typeof document !== 'undefined' && document.documentElement.dir === 'rtl');
     if (!w || !h) return [0, 0];
+    if (this.presMode !== 'panel') return [0, Math.round(this.presBar() / 2)];   // presenting: the wall moves up by half the presenter bar
     if (w <= 700 || h > w) return [0, Math.round(h * 0.2)];                 // bottom sheet: the subject moves up
     return [Math.round((rtl ? -1 : 1) * Math.min(190, w * 0.16)), 0];       // side panel: LTR panel is on the right, the subject moves left
   }
@@ -276,12 +283,18 @@ export class Explorer {
   deckCounts() { const o = {}; for (const d of this.allDecks()) o[d.id] = d.slides.length; return o; }
   get deck() { return this.allDecks().find((d) => d.id === this.ds.deckId) || PERMANENT_DECKS[0]; }
   /** camera pose for a slide: the built-in stations keep their own poses, every other slide faces the wall screen */
-  vipView(i) { const d = this.deck; return d.builtin && VIP_VIEWS[i] ? VIP_VIEWS[i] : VIP_VIEWS[0]; }
+  vipView(i) {
+    if (this.presMode !== 'panel') { const r = this.canvas.getBoundingClientRect(), w = r.width || 1280, h = r.height || 720, bar = this.presBar(), read = this.presMode === 'read', fill = Math.max(0.5, Math.min(read ? 1 : 0.94, ((h - bar - 10) * 16 / 9) / w)); return bigScreenView(w / h, read ? 40 : 46, fill, true); }   // presenting: the whole wall fits the view ABOVE the slim presenter bar (nothing on the wall is covered)
+    const sl = this.deck.slides[i]; return sl && sl.builtin && VIP_VIEWS[i] ? VIP_VIEWS[i] : VIP_VIEWS[0];
+  }
+  /** height (px) the presenter bar takes at the bottom of the view in the big / reading modes */
+  presBar() { const w = (this.canvas && this.canvas.clientWidth) || 1280; return this.presMode === 'read' ? 68 : w > 760 ? (this.filmOn ? (this.deck.meeting ? 162 : 132) : 96) : 190; }
   vipSlideId(i) { const sl = this.deck.slides[i]; return sl ? sl.id : ''; }
   /** push the picker state to the scene, the camera and the UI */
   syncVip(fly = true, extra = {}) {
     const P = this.products, f = this.focus, idx = this.ds.slide, d = this.deck; this.decksRev++;
     if (P && P.vip) P.vip.setDeck(d, this.allDecks(), idx);
+    this.syncFilm();
     if (f && f.kind === 'vip') { f.station = idx; f.view = this.vipSlideId(idx); if (fly) { const v = this.vipView(idx); this.flyTo({ pos: v.pos, look: v.look, fov: v.fov }); } }
     this.emit({ vipStation: idx, vipDeck: d.id, vipDecksRev: this.decksRev, focusView: this.vipSlideId(idx), prod: ++this.rev, ...extra });
   }
@@ -289,7 +302,7 @@ export class Explorer {
   focusVip(i = 0) {
     const P = this.products; if (!this.enabled || !P || !P.vip) return false;
     this.ds = deckReducer(this.ds, { type: 'slide', index: i }); const idx = this.ds.slide; this.startFocus('vip', 'vip'); this.focus.view = this.vipSlideId(idx); this.focus.station = idx;
-    P.setFocusPart(null); P.setHover(null); P.vip.setFocus(true); P.vip.enter(); P.vip.setDeck(this.deck, this.allDecks(), idx); this.ensureProjects();
+    P.setFocusPart(null); P.setHover(null); P.vip.setFocus(true); P.vip.enter(); P.vip.setDeck(this.deck, this.allDecks(), idx); this.syncFilm(); this.ensureProjects();
     const v = this.vipView(idx); this.flyTo({ pos: v.pos, look: v.look, fov: v.fov });
     this.decksRev++; this.emit({ focus: 'vip', focusKind: 'vip', focusView: this.vipSlideId(idx), vipStation: idx, vipDeck: this.deck.id, vipDecksRev: this.decksRev, partFocus: null, prod: ++this.rev }); return true;
   }
@@ -299,7 +312,7 @@ export class Explorer {
   }
   stepStation(dir) { const f = this.focus; if (f && f.kind === 'vip') this.setStation(stepStation(this.ds.slide, dir, this.deck.slides.length)); }
   /** switch deck (by id); the first slide shows */
-  setDeck(id) { const f = this.focus; if (!f || f.kind !== 'vip') return; const next = deckReducer(this.ds, { type: 'deck', id }); if (next === this.ds) return; this.ds = next; this.syncVip(); }
+  setDeck(id) { const f = this.focus; if (!f || f.kind !== 'vip') return; const next = deckReducer(this.ds, { type: 'deck', id }); if (next === this.ds) return; this.ds = next; this.meetingOn = id === 'meeting'; this.syncVip(true, { vipMeeting: this.meetingOn }); }
   cycleDeck(dir = 1) { const f = this.focus; if (!f || f.kind !== 'vip') return; const next = deckReducer(this.ds, { type: 'deckStep', dir }); if (next === this.ds) return; this.ds = next; this.syncVip(); }
   /** save a (sanitised) deck on THIS device and show it. Returns the store result { ok, error, deck } */
   addDeck(deck, show = true) {
@@ -313,7 +326,90 @@ export class Explorer {
     this.userDecks = r.decks; this.ds = deckReducer(this.ds, { type: 'decks', ids: this.deckIds(), counts: this.deckCounts() }); this.syncVip(); return r;
   }
   /** the "Add presentation" dialog is open: the explorer ignores keys (typing, Tab, Esc belong to the dialog) */
-  setVipDialog(v) { this.vipDialog = !!v; }
+  setVipDialog(v) { this.vipDialog = !!v; if (v && this.play.playing) this.setPlaying(false); if (v && this.film) this.film.pause(); }
+  /** the room opens on the Management meeting (the primary section); ?vipdeck=<id> opens another entry (deep link, QA) */
+  initialDeck() { let want = ''; try { want = new URLSearchParams(window.location.search).get('vipdeck') || ''; } catch (e) { /* ignore */ } return this.deckIds().includes(want) ? want : PERMANENT_DECKS[0].id; }
+  // ---- Management meeting: the agenda (vip/meeting.js). Nothing advances by itself; a film with sound only starts on the visitor's action.
+  agendaNow() { return agendaIndex(this.ds.deckId, this.ds.slide); }
+  goAgenda(item, { play = false } = {}) {
+    if (!item || !this.focus || this.focus.kind !== 'vip') return false; this.meetingOn = true;
+    this.ds = deckReducer(deckReducer(this.ds, { type: 'deck', id: item.deck }), { type: 'slide', index: item.slide }); this.syncVip(true, { vipMeeting: true });
+    if (play && item.kind === 'film') { const F = this.film; if (F) F.load().then(() => { /* the click that asked for it is the user gesture; if the browser no longer honours it the film simply stays on its poster */ this.filmToggle(); }); }
+    return true;
+  }
+  /** "Start meeting": the first agenda item (film 1) goes on the screen and plays (this is called from a click / key press) */
+  startMeeting() { return this.goAgenda(firstAgendaItem(), { play: true }); }
+  /** "Next agenda item": the next film is put up paused (the visitor presses Play), the next deck opens on its first slide */
+  nextAgenda() { const nx = nextAgendaItem(this.agendaNow()); if (!nx) return false; if (this.film) this.film.pause(); return this.goAgenda(nx); }
+  // ---- FILM mode ("Watch our story"): a one-slide pseudo-deck. The player (vip/filmPlayer.js) is created the first time the entry is chosen; nothing plays without a user gesture.
+  get filmOn() { const sl = this.deck.slides[this.ds.slide]; return !!sl && sl.builtin === 'film'; }
+  get filmId() { const sl = this.deck.slides[this.ds.slide]; return (sl && sl.filmId) || 'journey'; }
+  ensureFilm() {
+    if (this.film) return this.film; const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl', w = (this.canvas && this.canvas.clientWidth) || 1280;
+    const mobile = w <= 700 || (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches), saveData = typeof navigator !== 'undefined' && navigator.connection && navigator.connection.saveData;
+    this.film = new FilmPlayer({ lang: rtl ? 'ar' : 'en', device: { tier: this.engine.tierId, mobile, saveData: !!saveData }, onChange: () => this.onFilm() });
+    if (typeof document !== 'undefined') { this._filmVis = () => { if (document.hidden && this.film) this.film.pause(); }; document.addEventListener('visibilitychange', this._filmVis); }
+    return this.film;
+  }
+  /** the video element lives (hidden, 1 px) in the stage so the wall texture and the cinema overlay share it and it never has to be re-parented (re-parenting pauses a video) */
+  filmHost() {
+    const v = this.film && this.film.ensureVideo(); if (!v || typeof document === 'undefined') return null;
+    if (!this._filmHost) { const h = document.createElement('div'); h.className = 'sr-vip-filmhost'; h.setAttribute('data-testid', 'sr-vip-filmhost'); const st = this.canvas && this.canvas.parentNode; (st || document.body).appendChild(h); this._filmHost = h; }
+    if (v.parentNode !== this._filmHost) { while (this._filmHost.firstChild) this._filmHost.removeChild(this._filmHost.firstChild); this._filmHost.appendChild(v); } return this._filmHost;
+  }
+  filmView() {
+    const F = this.film; if (!this.filmOn || !F) return null; const st = F.state, live = st.status === 'playing' || st.status === 'paused';
+    const sl = this.deck.slides[this.ds.slide];
+    return { status: st.status, id: st.id, real: !!(st.film && st.film.real), burned: !!(st.film && st.film.burnedSubtitles), title: st.film ? st.film.title : (sl ? sl.title : null), poster: F.poster, video: live ? F.video : null, cue: st.caption === 'off' ? '' : st.cue, caption: st.caption, time: st.time, duration: st.duration };
+  }
+  onFilm() { const P = this.products; if (P && P.vip && P.vip.setFilm) P.vip.setFilm(this.filmView()); this.emit({ vipFilmRev: (this.filmRev = (this.filmRev || 0) + 1) }); }
+  /** called whenever the deck / slide changes: the film entry loads its manifest; any other deck pauses the film and gives the wall back to the slides */
+  syncFilm() {
+    const P = this.products;
+    if (this.filmOn) { const F = this.ensureFilm(); F.select(this.filmId); if (this.play.playing) this.play = playReducer(this.play, { type: 'pause' }); if (P && P.vip) { P.vip.setPlayback({ progress: -1 }); if (P.vip.setFilm) P.vip.setFilm(this.filmView()); } }
+    else { if (this.film) this.film.pause(); if (this.cinema) this.setCinema(false); if (P && P.vip && P.vip.setFilm) P.vip.setFilm(null); }
+  }
+  /** play / pause from a user gesture (button, key, click on the wall) */
+  filmToggle() { if (!this.filmOn || !this.film) return false; const st = this.film.state.status; if (st === 'missing' || st === 'loading' || st === 'idle') return false; if (st !== 'playing') this.filmHost(); return this.film.toggle(); }
+  filmSeek(t) { if (this.film) this.film.seek(t); } filmSeekBy(dt) { if (this.film) this.film.seekBy(dt); }
+  filmVolume(v) { if (this.film) this.film.setVolume(v); } filmMute() { if (this.film) this.film.toggleMute(); } filmCaptions() { if (this.film) this.film.cycleCaptions(); }
+  /** cinema mode: the same <video> as a normal HTML5 overlay with native controls and native captions */
+  setCinema(on) {
+    const F = this.film, want = !!on && this.filmOn && !!F && !!F.state.film && F.state.status !== 'missing'; if (want === !!this.cinema) return;
+    this.cinema = want; if (F) { if (want) this.filmHost(); F.setCinema(want); } if (this._filmHost) this._filmHost.classList.toggle('is-cinema', want); this.emit({ vipCinema: want, vipFilmRev: (this.filmRev = (this.filmRev || 0) + 1) });
+  }
+  // ---- presenting: auto-play (play / pause, speed, loop), the big-screen view and full screen. State machine: vip/motion.js; the wall shows the badge + progress bar.
+  emitPlay(extra = {}) { this.emit({ vipPlaying: this.play.playing, vipSpeed: this.play.speed, vipLoop: this.play.loop, vipMode: this.presMode, ...extra }); }
+  setPlaying(on) {
+    const f = this.focus; if (!f || f.kind !== 'vip' || (on && this.filmOn)) return; this.play = playReducer(this.play, { type: on ? 'play' : 'pause' });
+    const v = this.products && this.products.vip; if (v) v.setPlayback({ progress: this.play.playing ? 0 : -1, speed: this.play.speed }); this.lastProg = -1; this.emitPlay({ vipProgress: this.play.playing ? 0 : -1 });
+  }
+  togglePlay() { if (this.filmOn) { this.filmToggle(); return; } this.setPlaying(!this.play.playing); }
+  cycleSpeed() { this.play = playReducer(this.play, { type: 'cycleSpeed' }); const v = this.products && this.products.vip; if (v) v.setPlayback({ progress: this.play.playing ? this.lastProg : -1, speed: this.play.speed }); this.emitPlay(); }
+  toggleLoop() { this.play = playReducer(this.play, { type: 'loop' }); this.emitPlay(); }
+  /** 'panel' (side panel / bottom sheet), 'big' (camera fronts the wall, slim presenter bar), 'read' (READING MODE: the wall fills the whole view edge to edge, minimal controls) or 'full' (as big, plus the browser's full screen) */
+  setPresentMode(mode) {
+    const f = this.focus; if (!f || f.kind !== 'vip') return; const m = mode === 'big' || mode === 'full' || mode === 'read' ? mode : 'panel', was = this.presMode; if (m === was) return;
+    this.presMode = m; if (m === 'full') this.requestFullscreen(); else if (was === 'full') this.leaveFullscreen();
+    const v = this.vipView(this.ds.slide); this.flyTo({ pos: v.pos, look: v.look, fov: v.fov }); this.emitPlay({ prod: ++this.rev });
+  }
+  requestFullscreen() { try { const el = this.canvas && this.canvas.closest && this.canvas.closest('.sr-stage'); if (el && el.requestFullscreen && !document.fullscreenElement) { const p = el.requestFullscreen(); if (p && p.catch) p.catch(() => {}); const h = () => { if (!document.fullscreenElement) { document.removeEventListener('fullscreenchange', h); if (this.presMode === 'full') this.setPresentMode('big'); } }; document.addEventListener('fullscreenchange', h); } } catch (e) { /* full screen is optional */ } }
+  leaveFullscreen() { try { if (typeof document !== 'undefined' && document.fullscreenElement && document.exitFullscreen) { const p = document.exitFullscreen(); if (p && p.catch) p.catch(() => {}); } } catch (e) { /* ignore */ } }
+  /** show a deck on the big screen: used by the visitor's panel and by the adviser ("let me present the company profile"). Returns false when the room is not ready. */
+  presentDeck(id, { autoplay = true, mode = 'big' } = {}) {
+    if (!this.enabled || !this.allDecks().some((d) => d.id === id)) return false;
+    this.ds = deckReducer(deckReducer(this.ds, { type: 'deck', id }), { type: 'slide', index: 0 });
+    if (!this.focus || this.focus.kind !== 'vip') { if (!this.focusVip(0)) return false; } else this.syncVip();
+    this.setPresentMode(mode); if (autoplay && !this.filmOn) this.setPlaying(true); return true;   // the film never starts by itself: it waits for the visitor's Play
+  }
+  /** advance auto-play (called every frame while a VIP deck is in focus) */
+  tickPlay(dt) {
+    const f = this.focus; if (!f || f.kind !== 'vip' || !this.play.playing || this.vipDialog) return;
+    const sl = this.deck.slides[this.ds.slide], r = playTick(this.play, dt, this.ds.slide, this.deck.slides.length, slideSeconds(sl, this.play.speed)); this.play = r.st;
+    if (r.idx !== this.ds.slide) this.setStation(r.idx);
+    const v = this.products && this.products.vip; if (v) v.setPlayback({ progress: r.progress, speed: this.play.speed });
+    const q = Math.round(r.progress * 20) / 20; if (r.ended) this.emitPlay({ vipProgress: -1 }); else if (q !== this.lastProg) { this.lastProg = q; this.emit({ vipProgress: q }); }
+  }
   /** the site's project list, read once (the SAME read-only client path the Projects page uses) the first time somebody enters the VIP room */
   ensureProjects() {
     if (this.projectsPromise || !this.products || !this.products.vip) return this.projectsPromise;
@@ -339,8 +435,10 @@ export class Explorer {
   }
   exitFocus() {
     if (!this.focus) return false; const P = this.products;
-    if (P) { P.setFocusPart(null); P.setHover(null); if (P.vip) P.vip.setFocus(false); }
-    const s = this.saved, fc = this.fc; this.focus = null; this.pdown = null;
+    if (P) { P.setFocusPart(null); P.setHover(null); if (P.vip) { P.vip.setFocus(false); P.vip.setPlayback({ progress: -1 }); } }
+    if (this.film) this.film.pause(); if (this.cinema) this.setCinema(false);
+    if (this.presMode === 'full') this.leaveFullscreen(); const wasVip = this.focus && this.focus.kind === 'vip'; this.presMode = 'panel'; this.play = playReducer(this.play, { type: 'pause' });
+    const s = this.saved, fc = this.fc; this.focus = null; this.pdown = null; if (wasVip) this.emitPlay({ vipProgress: -1 });
     this.emit({ focus: null, focusKind: null, partFocus: null, partHover: null, prod: ++this.rev });
     if (!fc || !s) { this.fc = null; return true; }
     const back = () => { this.fly = null; this.fc = null; this.engine.baseFov = s.fov; this.engine.applyFov(); if (this.engine.setViewShift) this.engine.setViewShift(0, 0); this.apply(); };
@@ -353,19 +451,32 @@ export class Explorer {
   /** keys while a product / stage is focused. Returns true when the key was consumed. */
   focusKey(e, down) {
     const code = e.code, tag = e.target && e.target.tagName, onControl = tag === 'BUTTON' || tag === 'A' || tag === 'INPUT' || tag === 'SELECT';
-    if (code === 'Escape') { if (down) { e.preventDefault(); this.exitFocus(); } return true; }
+    if (code === 'Escape') { if (down) { e.preventDefault(); if (this.cinema) this.setCinema(false); else if (this.focus && this.focus.kind === 'vip' && this.presMode !== 'panel') this.setPresentMode('panel'); else this.exitFocus(); } return true; }
     if (!down || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return !!(code in MOVE_KEYS);
     if (onControl && (code === 'Enter' || code === 'Space')) return false;             // let the focused button do its own thing
     const f = this.focus, P = this.products; if (!f || !P) return false;
     if (f.kind === 'vip') {
       const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl', d = arrowDir(code, rtl), dig = /^(?:Digit|Numpad)([1-9])$/.exec(code), n = this.deck.slides.length;
       if (onControl && (code === 'ArrowLeft' || code === 'ArrowRight' || code === 'ArrowUp' || code === 'ArrowDown')) return false;
+      if (code === 'KeyN') { e.preventDefault(); this.nextAgenda(); return true; }
+      if (this.filmOn) {   // film keys: P / Space play or pause, arrows seek 10 s, M mute, C captions, F or Z cinema
+        if (code === 'KeyP' || (code === 'Space' && !onControl)) { e.preventDefault(); this.filmToggle(); return true; }
+        if (code === 'ArrowRight' || code === 'ArrowLeft') { e.preventDefault(); this.filmSeekBy(code === 'ArrowRight' ? 10 : -10); return true; }
+        if (code === 'KeyM') { e.preventDefault(); this.filmMute(); return true; } if (code === 'KeyC') { e.preventDefault(); this.filmCaptions(); return true; }
+        if (code === 'KeyF' || code === 'KeyZ') { e.preventDefault(); this.setCinema(!this.cinema); return true; }
+      }
       if (d) { e.preventDefault(); this.stepStation(d); return true; }
       if (code === 'ArrowDown' || code === 'ArrowUp') { e.preventDefault(); this.stepStation(code === 'ArrowDown' ? 1 : -1); return true; }
       if (dig) { e.preventDefault(); if (Number(dig[1]) <= n) this.setStation(Number(dig[1]) - 1); return true; }
       if (code === 'BracketRight' || code === 'BracketLeft') { e.preventDefault(); this.cycleDeck(code === 'BracketRight' ? 1 : -1); return true; }
       if (code === 'Home') { e.preventDefault(); this.setStation(0); return true; } if (code === 'End') { e.preventDefault(); this.setStation(n - 1); return true; }
       if (code === 'KeyV') { e.preventDefault(); this.stepStation(e.shiftKey ? -1 : 1); return true; }
+      if (code === 'KeyP' || (code === 'Space' && !onControl)) { e.preventDefault(); this.togglePlay(); return true; }
+      if (code === 'KeyZ') { e.preventDefault(); this.setPresentMode(this.presMode === 'read' ? 'panel' : 'read'); return true; }
+      if (code === 'KeyB') { e.preventDefault(); this.setPresentMode(this.presMode === 'panel' ? 'big' : 'panel'); return true; }
+      if (code === 'KeyF') { e.preventDefault(); this.setPresentMode(this.presMode === 'full' ? 'panel' : 'full'); return true; }
+      if (code === 'KeyL') { e.preventDefault(); this.toggleLoop(); return true; }
+      if (code === 'KeyR') { e.preventDefault(); this.cycleSpeed(); return true; }
       if (code === 'KeyE') { e.preventDefault(); return true; }
       return code in MOVE_KEYS;
     }
@@ -386,7 +497,7 @@ export class Explorer {
     const P = this.products, v = P && P.vip; if (!v || !v.screenMesh || this.allDecks().length < 2) return;
     const n = this.ndc(e.clientX, e.clientY), cam = this.engine.camera; cam.updateMatrixWorld(true); this.raycaster.setFromCamera({ x: n.x, y: n.y }, cam);
     const hit = this.raycaster.intersectObject(v.screenMesh, false)[0]; if (!hit || !hit.uv) return;
-    const i = v.chipAt(hit.uv.x, 1 - hit.uv.y); if (i >= 0) this.setDeck(this.allDecks()[i].id);
+    const i = v.chipAt(hit.uv.x, 1 - hit.uv.y); if (i >= 0) this.setDeck(this.allDecks()[i].id); else if (this.filmOn) this.filmToggle(); else { const sl = this.deck.slides[this.ds.slide]; if (sl && sl.builtin === 'meeting') this.startMeeting(); }   // a click on the film plays / pauses it; a click on the agenda card starts the meeting
   }
   focusPointer(e, kind) {
     if (!this.focus) { if (kind === 'up') this.pdown = null; return; }
@@ -457,6 +568,7 @@ export class Explorer {
     else if (!this.glide && !this.paused && !this.uiOpen) this.walker.step(dt, this.inputVector(), this.reduced);
     else if (this.paused || this.uiOpen) this.walker.step(dt, {}, this.reduced);
     this.apply(dt);
+    this.tickPlay(dt);
     if (this.engine.avatar) this.engine.avatar.update(dt, this.walker, { visible: this.camMode === 'third' && !this.fc && !this.focus && (this.tpDist == null || this.tpDist > 0.7), reduced: this.reduced });
     this.updateStaff(dt);
     this.crosshairHover(dt);

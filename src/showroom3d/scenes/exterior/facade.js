@@ -1,12 +1,13 @@
 /* Exterior architecture: stone-clad shell, cantilevered roof slab with soffit lighting, timber-fin wing, logo wall, glazed curtain wall
  * (everything except the sliding doors, which live in ../entrance). All procedural geometry. */
+import { bylinePlane } from '../main-hall/hall';
 import * as THREE from 'three';
 import { HALL } from '../../3d/dimensions';
 import { box, mesh, instanced, worldUV } from '../../3d/geom';
 import { LOGO_ASPECT } from '../../logo';
 
 
-export function buildFacade({ M, logoTex }) {
+export function buildFacade({ M, logoTex, lang = 'en' }) {
   const g = new THREE.Group(); g.name = 'facade';
   const H = HALL, wallH = H.height;
   const stone = (w, h, d, x, y, z) => g.add(mesh(box(w, h, d, 2.4), M.stoneExt, { x, y, z, cast: true, receive: true }));
@@ -35,6 +36,8 @@ export function buildFacade({ M, logoTex }) {
   g.add(mesh(box(pw + 0.4, ph + 0.4, 0.08), M.bronze, { x: 18.4, y: 5.1, z: 0.04 }));
   if (logoTex) g.add(mesh(new THREE.PlaneGeometry(pw, ph), new THREE.MeshBasicMaterial({ map: logoTex, toneMapped: false }), { x: 18.4, y: 5.1, z: 0.09 }));
 
+  const byline = bylinePlane(3.6, lang, { dark: true }); byline.mesh.position.set(18.4, 5.1 - ph / 2 - 0.78, 0.02); g.add(byline.mesh);   // "by YAS WOOD" under the logo artwork (the logo image is never redrawn)
+
   // glazed curtain wall
   const gz = -0.05;
   const glassPiece = (x0, x1, y0, y1) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, y1 - y0), M.glass); m.position.set((x0 + x1) / 2, (y0 + y1) / 2, gz); m.renderOrder = 5; g.add(m); };
@@ -51,5 +54,5 @@ export function buildFacade({ M, logoTex }) {
   // entrance pad: large-format stone slab flush with the forecourt (no steps: level, barrier-free threshold)
   const padG = new THREE.PlaneGeometry(9.4, 3.2); padG.rotateX(-Math.PI / 2); worldUV(padG, 2.4);
   const pad = new THREE.Mesh(padG, M.stoneInlay); pad.position.set(0, 0.046, 1.6); pad.receiveShadow = true; g.add(pad);
-  return { group: g };
+  return { group: g, relabel: byline.redraw };
 }
