@@ -134,7 +134,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   useEffect(() => { const x = explorerRef.current; if (x) { x.setReduced(reduced); x.setBob(bob && !reduced); } const e = api.current.engine; if (e && e.products) e.products.setReduced(reduced); }, [reduced, bob]);
   useEffect(() => { const x = explorerRef.current; if (x) x.setUiOpen(deptOpen || !!st.paused || !!chat || colOpen); }, [deptOpen, st.paused, chat, colOpen]);
   useEffect(() => { if (st.collections) setColOpen(true); }, [st.collections]);
-  useEffect(() => { const c = api.current.engine && api.current.engine.collections; if (c) { c.setTouch(touch); if (colOpen) c.load(); } }, [touch, colOpen]);
+  useEffect(() => { const c = api.current.engine && api.current.engine.collections; if (c) { c.setTouch(touch); if (colOpen) c.load(); } }, [touch, colOpen, phase]);
   useEffect(() => { if (st.talk && st.talkN) { setBubble(null); setChat(st.talk); } }, [st.talkN]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (st.greet === 'reception' && st.greetN && !chat) { setBubble(true); const id = setTimeout(() => setBubble(null), 6500); return () => clearTimeout(id); } return undefined; }, [st.greetN]);   // eslint-disable-line react-hooks/exhaustive-deps
   // the control scheme follows the last input device (touch overlay for fingers, keyboard + mouse otherwise)

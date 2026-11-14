@@ -11,10 +11,13 @@ import { COLLECTIONS } from './data';
 export const COLLECTIONS_ID = 'collections';
 export const COLLECTIONS_DEPT = { id: COLLECTIONS_ID, en: 'Collections', ar: 'المجموعات' };
 
+/** width / height of the two lightbox faces as wall.js draws them (920 x 1000 and 820 x 1000 canvas units) */
+export const FACE_ASPECT = { title: 0.92, finishes: 0.82 };
+const PANEL_H = 2.0;
 const WALL_Z = -0.81;                                   // hall.js: inside face of the front wings
 export const WALL = {
-  x: 18, z: WALL_Z, y: 2.3,                             // centre of the composition; faces -z (into the hall)
-  panelH: 2.5, titleW: 2.3, sideW: 2.05, gap: 0.16, depth: 0.12, frame: 0.07,
+  x: 18, z: WALL_Z, y: 1.9,                             // centre of the composition (a little above the 1.65 m eye line); faces -z (into the hall)
+  panelH: PANEL_H, titleW: PANEL_H * FACE_ASPECT.title, sideW: PANEL_H * FACE_ASPECT.finishes, gap: 0.2, depth: 0.12, frame: 0.07,
   cols: 3, rows: 6,                                     // finishes per side panel = 18 (two panels = the 36 finishes of the collection)
 };
 /** travertine plinth under the lightboxes (the deepest part of the installation: the collider is sized from it) */
@@ -30,13 +33,13 @@ export function wallPanels(w = WALL) {
 }
 export const wallWidth = (w = WALL) => w.titleW + 2 * w.sideW + 2 * w.gap + 2 * w.frame;
 
-/** where the visitor stands (3.2 m from the wall: the whole 6.9 m composition is inside a 16:9 view) and what they look at */
+/** where the visitor stands (3.2 m from the wall: the whole 5.5 m composition is inside a 16:9 view) and what they look at */
 export const STAND = [WALL.x, -4.0];
 export const LOOK = [WALL.x, WALL.y - 0.25, WALL_Z];
 
 /** plan-view obstacle: the lightboxes stand 12 cm proud of the wall and the plinth 36 cm; the box reaches back into the wing so nothing can get behind it. */
 export function collectionsColliders() {
-  /* the box spans the WHOLE wing (x = 14..22), not just the 6.9 m of lightboxes: a 0.5 m notch between the installation and the side wall would be
+  /* the box spans the WHOLE wing (x = 14..22), not just the 5.5 m of lightboxes: a 0.5 m notch between the installation and the side wall would be
    * narrower than the walker (0.7 m) and such pockets make a sliding circle jitter between two obstacles (same rule as productColliders.js) */
   return [{ type: 'box', id: 'collections-wall', minX: HALL.glassHalf, maxX: HALL.halfWidth + 1, minZ: WALL_Z - PLINTH.depth - 0.04, maxZ: 0.35 }];
 }
@@ -56,7 +59,7 @@ export function withCollections(graph) {
 
 /* ---- quality tiers: texture size of each lightbox, whether the lightboxes are over-bright (bloom), and which image a tile uses ---- */
 export const TIER = {
-  high:   { tex: 1024, glow: 1.18, picLight: true,  image: 'thumb', anisotropy: 8 },
+  high:   { tex: 1024, glow: 1.08, picLight: true,  image: 'thumb', anisotropy: 8 },
   medium: { tex: 1024, glow: 1.0,  picLight: true,  image: 'thumb', anisotropy: 4 },
   low:    { tex: 512,  glow: 1.0,  picLight: false, image: 'small', anisotropy: 1 },   // no backlight bloom, half-size canvases
 };
