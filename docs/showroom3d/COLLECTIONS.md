@@ -13,24 +13,23 @@ version (language switch, RTL); finish names and codes stay in Latin script in A
 
 Everything in `src/showroom3d/collections/data.js` is generated from the site's JS bundle. Nothing is written by hand.
 
-## Images: not shipped yet
+## Images
 
-All 36 swatch images are hosted on **`www.yas-wood.com`** (`/static/media/<name>.<hash>.jpg`), not on the Vercel site. They could not
-be downloaded in the build session, so **no image files are in this branch** (`COLLECTIONS_META.itemsWithImage` is 0). Until they are
-fetched the wall shows each finish as a name + reference code tile and the panel shows a name card with the note "Swatch image not
-loaded yet". No picture or colour was invented to stand in for a finish.
+The 36 swatch photos are hosted on **`www.yas-wood.com`** (`/static/media/<name>.<hash>.jpg`), not on the Vercel site. With the owner's
+approval they were downloaded and converted to WebP in `public/yas-bloom/collections/collection-2023-2025/`: **72 files, about 370 KB
+in total** (budget 4 MB). The originals are small (366 x 467 px), so each finish has a small copy (<= 320 px, low tier and the list)
+and a thumb at the original size; **no finish has a separate hero**, because nothing larger exists on the site. `collection.images`
+lists the 36 thumbs with bilingual alt text.
 
-To add them, from a machine that can reach `www.yas-wood.com` (needs `curl` and ImageMagick):
+To refresh data and images (needs `curl`, ImageMagick and network access to both hosts):
 
 ```
-node scripts/showroom3d-qa/fetch-collections.js
+node scripts/showroom3d-qa/fetch-collections.js              # data + images
+node scripts/showroom3d-qa/fetch-collections.js --no-images  # data only, keeps the images on disk
 ```
 
-This rewrites `data.js` + `docs/showroom3d/collections.json` and writes WebP files to `public/yas-bloom/collections/<collection>/`:
-per finish a small copy (<= 320 px, <= 20 KB, low tier), a thumb (<= 800 px, <= 60 KB) and, while the 4 MB total lasts, a hero
-(<= 1600 px, <= 180 KB). The Jest suite then checks every file exists, is WebP, is within its limit and that the folder stays under
-4 MB. **The image half of the script has not been run against the real host**; expect to adjust it on first use.
-`--no-images` refreshes the data only and keeps images already on disk.
+Limits enforced by the script and by Jest: small <= 320 px / 20 KB, thumb <= 800 px / 60 KB, hero <= 1600 px / 180 KB, folder <= 4 MB,
+every referenced file exists and is WebP, no unreferenced file in the folder.
 
 ## What is in the showroom
 
@@ -67,20 +66,7 @@ per finish a small copy (<= 320 px, <= 20 KB, low tier), a thumb (<= 800 px, <= 
 | `src/showroom3d/ui/StaffChat.jsx` | import; `collectionsReply(...) || reply(...)` |
 | `src/showroom3d/__tests__/explorer.test.jsx` | expected menu ids now end with `'collections'` |
 
-### Left for the merge: the adviser's service list (`staff/guide.js`)
-
-`staff/guide.js` was being edited on the realism branch, so it is untouched here. To list Collections among the services and the
-"take me to" chips, add:
-
-```js
-import { collectionsService } from '../collections/logic';
-// in services(), before `return out;`
-out.push(collectionsService(lang));
-// in reply(), in the '#goto' chip list
-chip('#go:collections', 'Collections', 'المجموعات'),
-```
-
-`#go:collections` is already understood by `collectionsReply()`.
+| `src/showroom3d/staff/guide.js` | import `collectionsService`; one `out.push(...)` in `services()`; a `#go:collections` chip in the "take me to" list |
 
 ## Hub
 
@@ -91,6 +77,12 @@ addition in the Hub and a loader here that prefers the Hub data over `data.js`.
 
 ## Cost
 
-See `docs/showroom3d/collections-stats.json` (measured by `scripts/showroom3d-qa/collections.js`). The wall is 9 meshes / 78
-triangles (8 / 66 on low, no LED line) and three canvas textures: about 14 MB of GPU memory on high / medium, 3.5 MB on low.
-Swatch images will add to that only after they are fetched.
+See `docs/showroom3d/collections-stats.json` (measured by `scripts/showroom3d-qa/collections.js`). The wall is 12 meshes / 84
+triangles (8 / 66 on low: no LED line, no light washes) and three canvas textures: about 14 MB of GPU memory on high / medium, 3.5 MB on low.
+The swatches are drawn into those canvases, so they add no textures of their own.
+
+## Known limit: phones held upright
+
+The wall is 5.7 m wide and the stand point is 3.2 m from it (the Doors bay starts just behind). A portrait phone sees about 3 m of
+wall at that distance, so it shows the title lightbox whole and the two finish lightboxes cut at the screen edges; fitting all three
+would need about 6 m of stand-off, which is inside the Doors bay. The visitor can turn to read them, and the panel lists all 36.

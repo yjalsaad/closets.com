@@ -14,8 +14,8 @@ export const COLLECTIONS_META = {
     "totalBytes": 4194304
   },
   "items": 36,
-  "itemsWithImage": 0,
-  "imagesMissing": 36,
+  "itemsWithImage": 36,
+  "imagesMissing": 0,
   "imageHost": "www.yas-wood.com"
 };
 
@@ -60,7 +60,332 @@ export const COLLECTIONS = [
         "ar": "ميلامين صلب"
       }
     ],
-    "images": [],
+    "images": [
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/abisko-ash-30181-tx04-thumb.webp",
+        "alt": {
+          "en": "Abisko Ash (30181 TX04) finish swatch",
+          "ar": "عيّنة تشطيب Abisko Ash (30181 TX04)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/agostino-oak-13833-tx04-thumb.webp",
+        "alt": {
+          "en": "Agostino Oak (13833 TX04) finish swatch",
+          "ar": "عيّنة تشطيب Agostino Oak (13833 TX04)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/callahan-109037-tx04-thumb.webp",
+        "alt": {
+          "en": "Callahan (109037 TX04) finish swatch",
+          "ar": "عيّنة تشطيب Callahan (109037 TX04)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/callahan-109039-tx04-thumb.webp",
+        "alt": {
+          "en": "Callahan (109039 TX04) finish swatch",
+          "ar": "عيّنة تشطيب Callahan (109039 TX04)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/celestine-oak-32374-tx04-thumb.webp",
+        "alt": {
+          "en": "Celestine Oak (32374 TX04) finish swatch",
+          "ar": "عيّنة تشطيب Celestine Oak (32374 TX04)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/cemento-serra-99063-tx03-thumb.webp",
+        "alt": {
+          "en": "Cemento Serra (99063 TX03) finish swatch",
+          "ar": "عيّنة تشطيب Cemento Serra (99063 TX03)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/fribourg-oak-13840-tx04-thumb.webp",
+        "alt": {
+          "en": "Fribourg Oak (13840 TX04) finish swatch",
+          "ar": "عيّنة تشطيب Fribourg Oak (13840 TX04)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/beige-ss6552-tx01-thumb.webp",
+        "alt": {
+          "en": "Beige (SS6552 TX01) finish swatch",
+          "ar": "عيّنة تشطيب Beige (SS6552 TX01)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/black-ss6565-thumb.webp",
+        "alt": {
+          "en": "Black (SS6565) finish swatch",
+          "ar": "عيّنة تشطيب Black (SS6565)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/brera-eu07b1-007-tx05-thumb.webp",
+        "alt": {
+          "en": "Brera (EU07B1-007 TX05) finish swatch",
+          "ar": "عيّنة تشطيب Brera (EU07B1-007 TX05)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/charcoal-thumb.webp",
+        "alt": {
+          "en": "Charcoal finish swatch",
+          "ar": "عيّنة تشطيب Charcoal"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/cirrus-ss6519-tx01-thumb.webp",
+        "alt": {
+          "en": "Cirrus (SS6519 TX01) finish swatch",
+          "ar": "عيّنة تشطيب Cirrus (SS6519 TX01)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/clay-grey-13600-thumb.webp",
+        "alt": {
+          "en": "Clay Grey (13600) finish swatch",
+          "ar": "عيّنة تشطيب Clay Grey (13600)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/cream-ss6017-tx01-thumb.webp",
+        "alt": {
+          "en": "Cream (SS6017 TX01) finish swatch",
+          "ar": "عيّنة تشطيب Cream (SS6017 TX01)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/dark-grey-ss6577-tx01-thumb.webp",
+        "alt": {
+          "en": "Dark Grey (SS6577 TX01) finish swatch",
+          "ar": "عيّنة تشطيب Dark Grey (SS6577 TX01)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/eskimo-ss1502-thumb.webp",
+        "alt": {
+          "en": "Eskimo (SS1502) finish swatch",
+          "ar": "عيّنة تشطيب Eskimo (SS1502)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/granola-ss6033-thumb.webp",
+        "alt": {
+          "en": "Granola (SS6033) finish swatch",
+          "ar": "عيّنة تشطيب Granola (SS6033)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/graphite-grey-12146-tx03-thumb.webp",
+        "alt": {
+          "en": "Graphite Grey (12146 TX03) finish swatch",
+          "ar": "عيّنة تشطيب Graphite Grey (12146 TX03)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/graphite-grey-12146-tx04-thumb.webp",
+        "alt": {
+          "en": "Graphite Grey (12146 TX04) finish swatch",
+          "ar": "عيّنة تشطيب Graphite Grey (12146 TX04)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/history-parlor-18100-tx03-thumb.webp",
+        "alt": {
+          "en": "History Parlor (18100 TX03) finish swatch",
+          "ar": "عيّنة تشطيب History Parlor (18100 TX03)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/kaiser-walnut-102019-tx04-thumb.webp",
+        "alt": {
+          "en": "Kaiser Walnut (102019 TX04) finish swatch",
+          "ar": "عيّنة تشطيب Kaiser Walnut (102019 TX04)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/light-grey-12147-tx03-thumb.webp",
+        "alt": {
+          "en": "Light Grey (12147 TX03) finish swatch",
+          "ar": "عيّنة تشطيب Light Grey (12147 TX03)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/light-grey-12147-tx04-thumb.webp",
+        "alt": {
+          "en": "Light Grey (12147 TX04) finish swatch",
+          "ar": "عيّنة تشطيب Light Grey (12147 TX04)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/linia-ro-04927-002-tx05-thumb.webp",
+        "alt": {
+          "en": "Linia RO (04927_002 TX05) finish swatch",
+          "ar": "عيّنة تشطيب Linia RO (04927_002 TX05)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/lino-71184-tx02-thumb.webp",
+        "alt": {
+          "en": "Lino (71184 TX02) finish swatch",
+          "ar": "عيّنة تشطيب Lino (71184 TX02)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/lucenta-13455-tx02-thumb.webp",
+        "alt": {
+          "en": "Lucenta (13455 TX02) finish swatch",
+          "ar": "عيّنة تشطيب Lucenta (13455 TX02)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/ordino-841268-thumb.webp",
+        "alt": {
+          "en": "Ordino (841268) finish swatch",
+          "ar": "عيّنة تشطيب Ordino (841268)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/pietra-grey-13453-tx03-thumb.webp",
+        "alt": {
+          "en": "Pietra Grey (13453 TX03) finish swatch",
+          "ar": "عيّنة تشطيب Pietra Grey (13453 TX03)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/salt-oak-140005-tx04-thumb.webp",
+        "alt": {
+          "en": "Salt Oak (140005 TX04) finish swatch",
+          "ar": "عيّنة تشطيب Salt Oak (140005 TX04)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/shelter-oak-298016-tx04-thumb.webp",
+        "alt": {
+          "en": "Shelter Oak (298016 TX04) finish swatch",
+          "ar": "عيّنة تشطيب Shelter Oak (298016 TX04)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/shelter-oak-298017-tx04-thumb.webp",
+        "alt": {
+          "en": "Shelter Oak (298017 TX04) finish swatch",
+          "ar": "عيّنة تشطيب Shelter Oak (298017 TX04)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/shroom-ss6027-tx01-thumb.webp",
+        "alt": {
+          "en": "Shroom (SS6027 TX01) finish swatch",
+          "ar": "عيّنة تشطيب Shroom (SS6027 TX01)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/tobacco-ss6007-tx01-thumb.webp",
+        "alt": {
+          "en": "Tobacco (SS6007 TX01) finish swatch",
+          "ar": "عيّنة تشطيب Tobacco (SS6007 TX01)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/volukus-marble-44201-tx03-thumb.webp",
+        "alt": {
+          "en": "Volukus Marble (44201 TX03) finish swatch",
+          "ar": "عيّنة تشطيب Volukus Marble (44201 TX03)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/white-ss5520-thumb.webp",
+        "alt": {
+          "en": "White (SS5520) finish swatch",
+          "ar": "عيّنة تشطيب White (SS5520)"
+        },
+        "w": 366,
+        "h": 467
+      },
+      {
+        "src": "/yas-bloom/collections/collection-2023-2025/xaloc-156007-tx04-thumb.webp",
+        "alt": {
+          "en": "Xaloc (156007 TX04) finish swatch",
+          "ar": "عيّنة تشطيب Xaloc (156007 TX04)"
+        },
+        "w": 366,
+        "h": 467
+      }
+    ],
     "items": [
       {
         "id": "abisko-ash-30181-tx04",
@@ -74,7 +399,13 @@ export const COLLECTIONS = [
           "en": "Abisko Ash (30181 TX04) finish swatch",
           "ar": "عيّنة تشطيب Abisko Ash (30181 TX04)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/abisko-ash-30181-tx04-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/abisko-ash-30181-tx04-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "agostino-oak-13833-tx04",
@@ -88,7 +419,13 @@ export const COLLECTIONS = [
           "en": "Agostino Oak (13833 TX04) finish swatch",
           "ar": "عيّنة تشطيب Agostino Oak (13833 TX04)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/agostino-oak-13833-tx04-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/agostino-oak-13833-tx04-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "callahan-109037-tx04",
@@ -102,7 +439,13 @@ export const COLLECTIONS = [
           "en": "Callahan (109037 TX04) finish swatch",
           "ar": "عيّنة تشطيب Callahan (109037 TX04)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/callahan-109037-tx04-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/callahan-109037-tx04-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "callahan-109039-tx04",
@@ -116,7 +459,13 @@ export const COLLECTIONS = [
           "en": "Callahan (109039 TX04) finish swatch",
           "ar": "عيّنة تشطيب Callahan (109039 TX04)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/callahan-109039-tx04-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/callahan-109039-tx04-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "celestine-oak-32374-tx04",
@@ -130,7 +479,13 @@ export const COLLECTIONS = [
           "en": "Celestine Oak (32374 TX04) finish swatch",
           "ar": "عيّنة تشطيب Celestine Oak (32374 TX04)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/celestine-oak-32374-tx04-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/celestine-oak-32374-tx04-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "cemento-serra-99063-tx03",
@@ -144,7 +499,13 @@ export const COLLECTIONS = [
           "en": "Cemento Serra (99063 TX03) finish swatch",
           "ar": "عيّنة تشطيب Cemento Serra (99063 TX03)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/cemento-serra-99063-tx03-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/cemento-serra-99063-tx03-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "fribourg-oak-13840-tx04",
@@ -158,7 +519,13 @@ export const COLLECTIONS = [
           "en": "Fribourg Oak (13840 TX04) finish swatch",
           "ar": "عيّنة تشطيب Fribourg Oak (13840 TX04)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/fribourg-oak-13840-tx04-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/fribourg-oak-13840-tx04-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "beige-ss6552-tx01",
@@ -172,7 +539,13 @@ export const COLLECTIONS = [
           "en": "Beige (SS6552 TX01) finish swatch",
           "ar": "عيّنة تشطيب Beige (SS6552 TX01)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/beige-ss6552-tx01-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/beige-ss6552-tx01-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "black-ss6565",
@@ -186,7 +559,13 @@ export const COLLECTIONS = [
           "en": "Black (SS6565) finish swatch",
           "ar": "عيّنة تشطيب Black (SS6565)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/black-ss6565-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/black-ss6565-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "brera-eu07b1-007-tx05",
@@ -200,7 +579,13 @@ export const COLLECTIONS = [
           "en": "Brera (EU07B1-007 TX05) finish swatch",
           "ar": "عيّنة تشطيب Brera (EU07B1-007 TX05)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/brera-eu07b1-007-tx05-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/brera-eu07b1-007-tx05-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "charcoal",
@@ -214,7 +599,13 @@ export const COLLECTIONS = [
           "en": "Charcoal finish swatch",
           "ar": "عيّنة تشطيب Charcoal"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/charcoal-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/charcoal-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "cirrus-ss6519-tx01",
@@ -228,7 +619,13 @@ export const COLLECTIONS = [
           "en": "Cirrus (SS6519 TX01) finish swatch",
           "ar": "عيّنة تشطيب Cirrus (SS6519 TX01)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/cirrus-ss6519-tx01-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/cirrus-ss6519-tx01-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "clay-grey-13600",
@@ -242,7 +639,13 @@ export const COLLECTIONS = [
           "en": "Clay Grey (13600) finish swatch",
           "ar": "عيّنة تشطيب Clay Grey (13600)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/clay-grey-13600-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/clay-grey-13600-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "cream-ss6017-tx01",
@@ -256,7 +659,13 @@ export const COLLECTIONS = [
           "en": "Cream (SS6017 TX01) finish swatch",
           "ar": "عيّنة تشطيب Cream (SS6017 TX01)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/cream-ss6017-tx01-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/cream-ss6017-tx01-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "dark-grey-ss6577-tx01",
@@ -270,7 +679,13 @@ export const COLLECTIONS = [
           "en": "Dark Grey (SS6577 TX01) finish swatch",
           "ar": "عيّنة تشطيب Dark Grey (SS6577 TX01)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/dark-grey-ss6577-tx01-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/dark-grey-ss6577-tx01-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "eskimo-ss1502",
@@ -284,7 +699,13 @@ export const COLLECTIONS = [
           "en": "Eskimo (SS1502) finish swatch",
           "ar": "عيّنة تشطيب Eskimo (SS1502)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/eskimo-ss1502-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/eskimo-ss1502-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "granola-ss6033",
@@ -298,7 +719,13 @@ export const COLLECTIONS = [
           "en": "Granola (SS6033) finish swatch",
           "ar": "عيّنة تشطيب Granola (SS6033)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/granola-ss6033-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/granola-ss6033-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "graphite-grey-12146-tx03",
@@ -312,7 +739,13 @@ export const COLLECTIONS = [
           "en": "Graphite Grey (12146 TX03) finish swatch",
           "ar": "عيّنة تشطيب Graphite Grey (12146 TX03)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/graphite-grey-12146-tx03-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/graphite-grey-12146-tx03-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "graphite-grey-12146-tx04",
@@ -326,7 +759,13 @@ export const COLLECTIONS = [
           "en": "Graphite Grey (12146 TX04) finish swatch",
           "ar": "عيّنة تشطيب Graphite Grey (12146 TX04)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/graphite-grey-12146-tx04-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/graphite-grey-12146-tx04-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "history-parlor-18100-tx03",
@@ -340,7 +779,13 @@ export const COLLECTIONS = [
           "en": "History Parlor (18100 TX03) finish swatch",
           "ar": "عيّنة تشطيب History Parlor (18100 TX03)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/history-parlor-18100-tx03-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/history-parlor-18100-tx03-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "kaiser-walnut-102019-tx04",
@@ -354,7 +799,13 @@ export const COLLECTIONS = [
           "en": "Kaiser Walnut (102019 TX04) finish swatch",
           "ar": "عيّنة تشطيب Kaiser Walnut (102019 TX04)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/kaiser-walnut-102019-tx04-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/kaiser-walnut-102019-tx04-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "light-grey-12147-tx03",
@@ -368,7 +819,13 @@ export const COLLECTIONS = [
           "en": "Light Grey (12147 TX03) finish swatch",
           "ar": "عيّنة تشطيب Light Grey (12147 TX03)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/light-grey-12147-tx03-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/light-grey-12147-tx03-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "light-grey-12147-tx04",
@@ -382,7 +839,13 @@ export const COLLECTIONS = [
           "en": "Light Grey (12147 TX04) finish swatch",
           "ar": "عيّنة تشطيب Light Grey (12147 TX04)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/light-grey-12147-tx04-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/light-grey-12147-tx04-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "linia-ro-04927-002-tx05",
@@ -396,7 +859,13 @@ export const COLLECTIONS = [
           "en": "Linia RO (04927_002 TX05) finish swatch",
           "ar": "عيّنة تشطيب Linia RO (04927_002 TX05)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/linia-ro-04927-002-tx05-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/linia-ro-04927-002-tx05-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "lino-71184-tx02",
@@ -410,7 +879,13 @@ export const COLLECTIONS = [
           "en": "Lino (71184 TX02) finish swatch",
           "ar": "عيّنة تشطيب Lino (71184 TX02)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/lino-71184-tx02-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/lino-71184-tx02-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "lucenta-13455-tx02",
@@ -424,7 +899,13 @@ export const COLLECTIONS = [
           "en": "Lucenta (13455 TX02) finish swatch",
           "ar": "عيّنة تشطيب Lucenta (13455 TX02)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/lucenta-13455-tx02-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/lucenta-13455-tx02-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "ordino-841268",
@@ -438,7 +919,13 @@ export const COLLECTIONS = [
           "en": "Ordino (841268) finish swatch",
           "ar": "عيّنة تشطيب Ordino (841268)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/ordino-841268-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/ordino-841268-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "pietra-grey-13453-tx03",
@@ -452,7 +939,13 @@ export const COLLECTIONS = [
           "en": "Pietra Grey (13453 TX03) finish swatch",
           "ar": "عيّنة تشطيب Pietra Grey (13453 TX03)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/pietra-grey-13453-tx03-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/pietra-grey-13453-tx03-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "salt-oak-140005-tx04",
@@ -466,7 +959,13 @@ export const COLLECTIONS = [
           "en": "Salt Oak (140005 TX04) finish swatch",
           "ar": "عيّنة تشطيب Salt Oak (140005 TX04)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/salt-oak-140005-tx04-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/salt-oak-140005-tx04-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "shelter-oak-298016-tx04",
@@ -480,7 +979,13 @@ export const COLLECTIONS = [
           "en": "Shelter Oak (298016 TX04) finish swatch",
           "ar": "عيّنة تشطيب Shelter Oak (298016 TX04)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/shelter-oak-298016-tx04-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/shelter-oak-298016-tx04-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "shelter-oak-298017-tx04",
@@ -494,7 +999,13 @@ export const COLLECTIONS = [
           "en": "Shelter Oak (298017 TX04) finish swatch",
           "ar": "عيّنة تشطيب Shelter Oak (298017 TX04)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/shelter-oak-298017-tx04-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/shelter-oak-298017-tx04-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "shroom-ss6027-tx01",
@@ -508,7 +1019,13 @@ export const COLLECTIONS = [
           "en": "Shroom (SS6027 TX01) finish swatch",
           "ar": "عيّنة تشطيب Shroom (SS6027 TX01)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/shroom-ss6027-tx01-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/shroom-ss6027-tx01-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "tobacco-ss6007-tx01",
@@ -522,7 +1039,13 @@ export const COLLECTIONS = [
           "en": "Tobacco (SS6007 TX01) finish swatch",
           "ar": "عيّنة تشطيب Tobacco (SS6007 TX01)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/tobacco-ss6007-tx01-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/tobacco-ss6007-tx01-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "volukus-marble-44201-tx03",
@@ -536,7 +1059,13 @@ export const COLLECTIONS = [
           "en": "Volukus Marble (44201 TX03) finish swatch",
           "ar": "عيّنة تشطيب Volukus Marble (44201 TX03)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/volukus-marble-44201-tx03-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/volukus-marble-44201-tx03-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "white-ss5520",
@@ -550,7 +1079,13 @@ export const COLLECTIONS = [
           "en": "White (SS5520) finish swatch",
           "ar": "عيّنة تشطيب White (SS5520)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/white-ss5520-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/white-ss5520-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       },
       {
         "id": "xaloc-156007-tx04",
@@ -564,7 +1099,13 @@ export const COLLECTIONS = [
           "en": "Xaloc (156007 TX04) finish swatch",
           "ar": "عيّنة تشطيب Xaloc (156007 TX04)"
         },
-        "image": null
+        "image": {
+          "small": "/yas-bloom/collections/collection-2023-2025/xaloc-156007-tx04-small.webp",
+          "thumb": "/yas-bloom/collections/collection-2023-2025/xaloc-156007-tx04-thumb.webp",
+          "hero": null,
+          "w": 366,
+          "h": 467
+        }
       }
     ]
   }

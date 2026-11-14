@@ -49,10 +49,10 @@ export function drawFinishes(canvas, { items, lang, images = {}, cols = WALL.col
     const c = i % cols, r = Math.floor(i / cols), x = pad + (ar ? cols - 1 - c : c) * tw, y = pad + r * th, img = images[it.id], cx = x + tw / 2;
     g.strokeStyle = rgba(SOFT, 0.28); g.lineWidth = 1.5; g.strokeRect(x + 6, y + 6, tw - 12, th - 12);
     if (img) {
-      const bx = x + 10, by = y + 10, bw = tw - 20, bh = th - 62, s = Math.max(bw / img.width, bh / img.height), sw = bw / s, sh = bh / s;
+      const bx = x + 10, by = y + 10, bw = tw - 20, bh = th - 72, s = Math.max(bw / img.width, bh / img.height), sw = bw / s, sh = bh / s;
       g.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, bx, by, bw, bh);
-      g.fillStyle = hex(INK); g.textAlign = 'center'; g.font = `600 24px ${EN_SANS}`; g.fillText(it.name.en, cx, y + th - 38, tw - 24);
-      g.fillStyle = hex(SOFT); g.font = `500 18px ${EN_SANS}`; g.fillText(it.code, cx, y + th - 16, tw - 24);
+      g.fillStyle = hex(INK); g.textAlign = 'center'; g.font = `600 27px ${EN_SANS}`; g.fillText(it.name.en, cx, y + th - 45, tw - 24);
+      g.fillStyle = hex(SOFT); g.font = `500 20px ${EN_SANS}`; g.fillText(it.code, cx, y + th - 19, tw - 24);
     } else {
       g.textAlign = 'center';
       g.fillStyle = hex(SOFT); g.font = `600 20px ${EN_SANS}`; g.fillText(String(startIndex + i + 1).padStart(2, '0'), cx, y + 34);
@@ -76,6 +76,17 @@ export function buildCollectionsWall({ tier = 'high', lang = 'en', collection = 
   add(box(total + 0.5, PLINTH.h, PLINTH.depth), stoneM, { y: PLINTH.h / 2 - WALL.y, z: PLINTH.depth / 2 }).receiveShadow = true;
   if (T.picLight) add(box(total + 0.2, 0.035, 0.05), keep(new THREE.MeshBasicMaterial({ color: new THREE.Color(PALETTE.ledWarm).multiplyScalar(T.glow > 1 ? 2.4 : 1), toneMapped: false })), { y: WALL.panelH / 2 + 0.2, z: 0.09 });
 
+  if (T.picLight) {
+    /* light the installation itself (the wing is in shade and a real light would cost every material in the hall a shader variant): three additive gradient
+     * planes from one tiny texture: the LED line washing down the board, the lightboxes spilling onto the plinth top, and a warm pool on the floor in front */
+    const gc = document.createElement('canvas'); gc.width = 4; gc.height = 64; const gg = gc.getContext('2d'), gr = gg.createLinearGradient(0, 0, 0, 64);
+    gr.addColorStop(0, rgba(PALETTE.ledWarm, 1)); gr.addColorStop(0.35, rgba(PALETTE.ledWarm, 0.35)); gr.addColorStop(1, rgba(PALETTE.ledWarm, 0)); gg.fillStyle = gr; gg.fillRect(0, 0, 4, 64);
+    const gt = keep(new THREE.CanvasTexture(gc)); gt.colorSpace = THREE.SRGBColorSpace;
+    const wash = (w, h, opacity, pos, rx = 0) => { const m = new THREE.Mesh(keep(new THREE.PlaneGeometry(w, h)), keep(new THREE.MeshBasicMaterial({ map: gt, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }))); m.position.set(pos.x || 0, pos.y || 0, pos.z || 0); m.rotation.x = rx; m.renderOrder = 2; group.add(m); return m; };
+    wash(total + 0.44, 0.5, 0.55, { y: WALL.panelH / 2 + 0.18 - 0.25, z: 0.052 });                                   // down the board from the LED line
+    wash(total + 0.44, PLINTH.depth - 0.02, 0.5, { y: PLINTH.h - WALL.y + 0.004, z: PLINTH.depth / 2 }, -Math.PI / 2);    // onto the plinth top (bright at the wall)
+    wash(total + 1.2, 1.9, 0.22, { y: 0.012 - WALL.y, z: PLINTH.depth + 0.95 }, -Math.PI / 2);                          // on the floor in front
+  }
   const faces = wallPanels().map((p) => {
     const lx = -(p.x - WALL.x);
     add(box(p.w + WALL.frame * 2, p.h + WALL.frame * 2, WALL.depth), frameM, { x: lx, z: WALL.depth / 2 });
