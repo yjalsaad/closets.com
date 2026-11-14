@@ -239,7 +239,9 @@
 .sr-vip-depts li { display: flex; justify-content: space-between; gap: var(--space-3); font-size: var(--fs-sm); }
 .sr-vip-depts li b { color: var(--sr-orange); font-weight: 600; white-space: nowrap; }
 .sr-vip-disc { border: 1px solid var(--sr-orange); border-radius: var(--radius-md); padding: var(--space-3); color: var(--sr-on-dark); }
-.sr-vip-nav { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-3); }
+.sr-vip-nav { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: var(--space-2) var(--space-3); }
+.sr-vip-nav .sr-vip-dots { grid-column: 1 / -1; grid-row: 1; }
+.sr-vip-nav .sr-btn { justify-content: center; }
 .sr-vip-nav .sr-btn[disabled] { opacity: .4; cursor: not-allowed; }
 .sr-vip-dots { list-style: none; margin: 0; padding: 0; display: flex; justify-content: center; gap: var(--space-1); }
 .sr-vip-dot { width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; position: relative; padding: 0; }

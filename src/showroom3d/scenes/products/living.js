@@ -47,7 +47,7 @@ export function buildLiving({ M, tier, registry, reduced }) {
   kit.addStatic(placed(fin(0.5, Y0, 2.9, { b: 0.001 }), { x: -2.72, y: Y0 / 2, z: -2.55 }), M.plinth); kit.addStatic(placed(fin(0.5, Y0, 2.9, { b: 0.001 }), { x: -2.72, y: Y0 / 2, z: 2.55 }), M.plinth);
   const LH = Y1 - Y0 - 0.06, LY = Y0 + 0.03 + LH / 2;
   kit.doorPair({ id: 'lv-tall-l', x: -2.4 + T / 2, y: LY, z0: -3.245, z1: -1.855, w: 0.695, h: LH, t: T, maxDeg: 108, fluted: true, grainOff: [0.4, 0.2], frontMat: F, flutedMat: FL, metalMat: METAL, hingeMat: M.steel });
-  kit.doorPair({ id: 'lv-tall-r', x: -2.4 + T / 2, y: LY, z0: 1.855, z1: 3.245, w: 0.695, h: LH, t: T, maxDeg: 108, glass: true, frontMat: F, metalMat: M.bronze, glassMat: M.glassSmoke, hingeMat: M.steel });
+  kit.doorPair({ id: 'lv-tall-r', x: -2.4 + T / 2, y: LY, z0: 1.855, z1: 3.245, w: 0.695, h: LH, t: T, maxDeg: 108, glass: true, frontMat: F, metalMat: M.bronze, glassMat: M.glassSmokeAlpha || M.glassSmoke, hingeMat: M.steel });
   { const board = [], band = []; for (const y of [0.7, 1.25, 1.8, 2.3]) fu.shelf(-3.0, 0.5, y, 1.87, 3.23, { board, band }); for (const y of [0.9, 1.5, 2.1]) fu.shelf(-3.0, 0.5, y, -3.23, -1.87, { board, band }); add(board, M.interior); add(band, M.paintWhite); }
   for (const z of [1.88, 3.22]) kit.led({ x: -2.43, y: (Y0 + Y1) / 2, z, len: Y1 - Y0 - 0.1, axis: 'y', thick: 0.012, levelOf: (s) => s.ledLevel('lv-tall-r'), intensity: 1.5, washPlane: { w: Y1 - Y0 - 0.1, h: 0.5, pos: [-2.72, (Y0 + Y1) / 2, z + (z < 2.5 ? 0.012 : -0.012)], rot: [0, 0, -Math.PI / 2] } });
   for (const y of [0.7, 1.25, 1.8, 2.3]) soft.push(...pr.bag(-2.7, y + 0.011, 2.3, { color: P.fabricClay, ry: Math.PI / 2, w: 0.26, h: 0.2 }));

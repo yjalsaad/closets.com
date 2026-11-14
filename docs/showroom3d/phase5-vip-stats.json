@@ -1,0 +1,68 @@
+{
+ "low": {
+  "hall-outside-door": {
+   "calls": 180,
+   "triangles": 86188
+  },
+  "door-open": {
+   "calls": 171,
+   "triangles": 85792
+  },
+  "inside": {
+   "calls": 158,
+   "triangles": 85510
+  },
+  "station-1": {
+   "calls": 160,
+   "triangles": 83850
+  },
+  "station-3-hub": {
+   "calls": 160,
+   "triangles": 83850
+  }
+ },
+ "medium": {
+  "hall-outside-door": {
+   "calls": 209,
+   "triangles": 123832
+  },
+  "door-open": {
+   "calls": 200,
+   "triangles": 123436
+  },
+  "inside": {
+   "calls": 186,
+   "triangles": 123106
+  },
+  "station-1": {
+   "calls": 186,
+   "triangles": 123106
+  },
+  "station-3-hub": {
+   "calls": 189,
+   "triangles": 121494
+  }
+ },
+ "high": {
+  "hall-outside-door": {
+   "calls": 229,
+   "triangles": 128289
+  },
+  "door-open": {
+   "calls": 216,
+   "triangles": 127805
+  },
+  "inside": {
+   "calls": 203,
+   "triangles": 127523
+  },
+  "station-1": {
+   "calls": 205,
+   "triangles": 125863
+  },
+  "station-3-hub": {
+   "calls": 205,
+   "triangles": 125863
+  }
+ }
+}

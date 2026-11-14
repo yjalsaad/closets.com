@@ -74,6 +74,8 @@ export function createProductMaterials({ tier, env, tex }) {
     ? new THREE.MeshPhysicalMaterial(E({ color: C(P.glassSmoke), metalness: 0, roughness: 0.06, transmission: 0.92, thickness: 0.012, ior: 1.46, attenuationColor: C(P.glassSmoke), attenuationDistance: 0.22, envMapIntensity: 1.1, specularIntensity: 1 }))
     : new THREE.MeshStandardMaterial(E({ color: C(P.glassSmoke), metalness: 0.1, roughness: 0.08, transparent: true, opacity: 0.5, depthWrite: false, envMapIntensity: 1.3 }));
   M.glassSmoke.name = 'glassSmoke';
+  // always-alpha twin (no transmission pass): used where a second full-scene refraction pass would double the draw calls of a busy bay (living)
+  M.glassSmokeAlpha = new THREE.MeshStandardMaterial(E({ color: C(P.glassSmoke), metalness: 0.1, roughness: 0.08, transparent: true, opacity: 0.5, depthWrite: false, envMapIntensity: 1.3 }));
   M.glassClear = new THREE.MeshStandardMaterial(E({ color: C(0xdfeceb), metalness: 0, roughness: 0.04, transparent: true, opacity: 0.18, depthWrite: false, envMapIntensity: 1.6 }));
 
   // ---- props: vertex-coloured, so a whole shelf of objects is one draw call ----

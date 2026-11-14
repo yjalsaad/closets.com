@@ -66,13 +66,13 @@ export function drawHub(g, w, h, o) {
     k.text(Lx(s.name, lang), x, y0 + 62, { size: 30, weight: 700, align: 'center' }); k.text(Lx(s.sub, lang), x, y0 + 96, { size: 19, color: P.taupe, align: 'center', max: step - 20 }); });
   const p = ((t * 0.7) % fl.length), seg = Math.min(fl.length - 2, p | 0), f = p - seg, dx = (k.rtl ? x1 - (seg + f) * step : x0 + (seg + f) * step); g.fillStyle = hex(P.sand); g.beginPath(); g.arc(dx, y0, 8, 0, Math.PI * 2); g.fill();
   // department module counts (real, from the Hub module map)
-  const bx = k.mx(70), bw = w * 0.42, rowH = 34, by = 505, max = Math.max(...C.HUB_DEPARTMENTS.map((d) => d.modules));
+  const bx = k.mx(70), bw = w * 0.42, rowH = 34, by = 488, max = Math.max(...C.HUB_DEPARTMENTS.map((d) => d.modules));
   k.text(lang === 'ar' ? 'عدد الوحدات لكل قسم (من خريطة وحدات المنصة)' : 'Modules per department (from the Hub module map)', bx, by - 14, { size: 22, weight: 600, color: P.brassPale });
   C.HUB_DEPARTMENTS.slice(0, 6).forEach((d, i) => { const y = by + 14 + i * rowH, len = (d.modules / max) * (bw - 330), grow = Math.min(1, (t * 0.8 - i * 0.12) + 0.2); const gl = Math.max(0, Math.min(1, grow)) * len;
     k.text(Lx(d.name, lang), bx, y + 22, { size: 20, max: 250 }); const sx = k.rtl ? bx - 270 : bx + 270; g.fillStyle = hex(P.brandOrange); g.fillRect(k.rtl ? sx - gl : sx, y + 6, gl, 18); k.text(String(d.modules), k.rtl ? sx - gl - 10 : sx + gl + 10, y + 22, { size: 20, color: P.taupe }); });
   // capabilities
   const cx0 = k.rtl ? 70 : w * 0.52, cw = (w * 0.48 - 70 - 20) / 2;
-  C.HUB_CAPABILITIES.forEach((c, i) => { const x = cx0 + (i % 2) * (cw + 20), y = 490 + Math.floor(i / 2) * 100; k.card(x, y, cw, 90, { line: rgba(P.brass, 0.4) }); const ax = k.rtl ? x + cw - 18 : x + 18; k.text(Lx(c.title, lang), ax, y + 32, { size: 22, weight: 700, color: P.brassPale, max: cw - 36 }); k.para(Lx(c.body, lang), ax, y + 56, cw - 36, { size: 15, lh: 18 }); });
+  C.HUB_CAPABILITIES.forEach((c, i) => { const x = cx0 + (i % 2) * (cw + 20), y = 468 + Math.floor(i / 2) * 92; k.card(x, y, cw, 84, { line: rgba(P.brass, 0.4) }); const ax = k.rtl ? x + cw - 18 : x + 18; k.text(Lx(c.title, lang), ax, y + 32, { size: 22, weight: 700, color: P.brassPale, max: cw - 36 }); k.para(Lx(c.body, lang), ax, y + 56, cw - 36, { size: 15, lh: 18 }); });
   tagIllus(k, w, lang, 120); footer(k, w, h, lang, lang === 'ar' ? 'المصدر: مستودع المنصة' : 'Source: the Hub repository');
 }
 
