@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import { PALETTE as P } from '../3d/palette';
 import { placed, prep, mergeColored } from '../3d/builders';
 import { mergeGeometries } from '../3d/geom';
-import { realSet } from '../3d/realism/registry';
+import { viaReal } from '../3d/realism/registry';
 import { toTex } from '../3d/pbr';
 
 let _mat = null;
@@ -16,7 +16,8 @@ let _mat = null;
 const material = () => {
   if (_mat) return _mat;
   const m = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.72, metalness: 0.02, envMapIntensity: 0.45, sheen: 0.28, sheenRoughness: 0.5, sheenColor: new THREE.Color(P.sheenSoft) });   // restrained: a strong skin-coloured sheen turned black abayas brown
-  const R = realSet('linen', 512); if (R && R.normal) { m.normalMap = toTex(R.normal, { srgb: false, repeat: [4, 4], anisotropy: 4 }); m.normalScale.set(0.55, 0.55); }
+  const R = typeof document === 'undefined' ? null : viaReal('linen', 512, () => ({})); if (R && R.normal) {   // a flat placeholder until the real linen normal has downloaded (upgraded in place)
+    m.normalMap = toTex(R.normal, { srgb: false, repeat: [4, 4], anisotropy: 4 }); m.normalScale.set(0.55, 0.55); }
   return (_mat = m);
 };
 export const SKINS = ['skinA', 'skinB', 'skinC', 'skinD'];

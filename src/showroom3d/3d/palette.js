@@ -44,7 +44,7 @@ export const PALETTE = {
   fog: 0xe6d3b8,
   // Phase 4: product finishes (sample configuration swatches, all procedural) + props + campaign
   oakLight: 0xb09a7c, oakPale: 0xcbbca0, walnutDeep: 0x4a3426, smokedOak: 0x6e5440,
-  lacquerSage: 0x8f9a86, lacquerStone: 0xa7a199, lacquerIvory: 0xe9e3d6, lacquerCharcoal: 0x34332f, lacquerClay: 0xb08a72,
+  lacquerSage: 0x8f9a86, lacquerStone: 0xa7a199, lacquerIvory: 0xe9e3d6, lacquerCharcoal: 0x2b2c2f, lacquerClay: 0xb08a72,
   marbleWhite: 0xe8e4dc, marbleVeinGrey: 0x8d8a86, marbleVeinGold: 0xb89b63, marbleDark: 0x2c2a29, marbleDarkVein: 0xb9b2a6, marbleSand: 0xcfc6b6,
   brassBrushed: 0xa5834f, bronzeDark: 0x3a2f27, steel: 0xa8aaab, glassSmoke: 0x2b2622,
   hobGlass: 0x0d0d0e, interiorWarm: 0xefe3d0, interiorShade: 0x9c8b78,
@@ -62,7 +62,10 @@ export const PALETTE = {
   // characters (procedural staff / visitor avatars): stylised skin tones, hair, modest professional outfits
   skinA: 0xf0c9a4, skinB: 0xd9a47c, skinC: 0xb97d57, skinD: 0x8a5a3c, hairBlack: 0x1c1512, hairBrown: 0x4a3224, hairDark: 0x2a1d16,
   abayaBlack: 0x211e22, abayaNavy: 0x1f2a44, abayaSage: 0x5f705c, abayaPlum: 0x5a3347, abayaSand: 0xb9a07f, coatTeal: 0x2e6b68, coatBrick: 0x8a4a3a,
-  scarfCream: 0xefe6d6, scarfRose: 0xc7a0a0, scarfGrey: 0x8c8f93, thobeWhite: 0xf3f0e8, ghutraWhite: 0xfafafa, agalBlack: 0x141214, suitGrey: 0x55585d, suitNavy: 0x28324a, shirtWhite: 0xf1f1ee, shoeDark: 0x1b1715, eyeDark: 0x1d1512, eyeIris: 0x5a3a24, sheenSoft: 0x8a7f78, photoTint: 0xe6dccf, sclera: 0xe9e5df, mouthDark: 0x3a1c1a, lipTone: 0x9a5a52,
+  scarfCream: 0xefe6d6, scarfRose: 0xc7a0a0, scarfGrey: 0x8c8f93, thobeWhite: 0xf3f0e8, ghutraWhite: 0xfafafa, agalBlack: 0x141214, suitGrey: 0x55585d, suitNavy: 0x28324a, shirtWhite: 0xf1f1ee, shoeDark: 0x1b1715, eyeDark: 0x1d1512, eyeIris: 0x5a3a24, sheenSoft: 0x8a7f78, photoTint: 0xe6dccf,
+  // round 2 (reference look): deep green marble, terrazzo, sheer curtain, bouclé, rust rug, graphite lacquer
+  marbleGreen: 0x1d3b30, marbleGreenDeep: 0x0f241c, marbleGreenVein: 0xb9cdbd, terrazzoBase: 0x8f8d88, terrazzoChipA: 0x5f5d59, terrazzoChipB: 0xbdb7ab, terrazzoChipC: 0x7b6a58,
+  sheer: 0xe9e1d2, boucleCream: 0xe8dfd0, rugRust: 0x8a4e33, rugOat: 0xcfc3ad, graphite: 0x24252a, globeOpal: 0xfff1dc, travertineTint: 0xd8cfc0, sclera: 0xe9e5df, mouthDark: 0x3a1c1a, lipTone: 0x9a5a52,
   // overlay
   veil: 0xf6efe4,
   // material tints

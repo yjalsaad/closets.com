@@ -239,5 +239,183 @@
    "ao": true,
    "mirror": true
   }
+ },
+ "round2_high": {
+  "hall": {
+   "calls": 465,
+   "tris": 186140,
+   "tex": 141,
+   "geo": 578
+  },
+  "entrance": {
+   "calls": 262,
+   "tris": 126866,
+   "tex": 147,
+   "geo": 597
+  },
+  "reception": {
+   "calls": 533,
+   "tris": 196846,
+   "tex": 156,
+   "geo": 609
+  },
+  "kitchen": {
+   "calls": 474,
+   "tris": 242784,
+   "tex": 166,
+   "geo": 648
+  },
+  "wardrobe": {
+   "calls": 808,
+   "tris": 460040,
+   "tex": 167,
+   "geo": 660
+  },
+  "walkin": {
+   "calls": 572,
+   "tris": 267608,
+   "tex": 168,
+   "geo": 671
+  },
+  "bedroom": {
+   "calls": 473,
+   "tris": 209304,
+   "tex": 168,
+   "geo": 673
+  },
+  "doors": {
+   "calls": 398,
+   "tris": 209642,
+   "tex": 179,
+   "geo": 723
+  },
+  "living": {
+   "calls": 588,
+   "tris": 263450,
+   "tex": 181,
+   "geo": 751
+  },
+  "studio": {
+   "calls": 531,
+   "tris": 239808,
+   "tex": 182,
+   "geo": 754
+  },
+  "lounge": {
+   "calls": 461,
+   "tris": 213976,
+   "tex": 183,
+   "geo": 757
+  },
+  "vip": {
+   "calls": 273,
+   "tris": 137700,
+   "tex": 183,
+   "geo": 758
+  },
+  "hall-far": {
+   "calls": 517,
+   "tris": 202266,
+   "tex": 183,
+   "geo": 765
+  },
+  "post": {
+   "bloom": true,
+   "ao": false,
+   "mirror": true
+  }
+ },
+ "round2_medium": {
+  "hall": {
+   "calls": 379,
+   "tris": 172902,
+   "tex": 141,
+   "geo": 626
+  },
+  "kitchen": {
+   "calls": 350,
+   "tris": 194172,
+   "tex": 152,
+   "geo": 662
+  },
+  "walkin": {
+   "calls": 397,
+   "tris": 206946,
+   "tex": 157,
+   "geo": 677
+  },
+  "living": {
+   "calls": 401,
+   "tris": 211304,
+   "tex": 165,
+   "geo": 736
+  },
+  "vip": {
+   "calls": 243,
+   "tris": 133034,
+   "tex": 165,
+   "geo": 737
+  },
+  "post": {
+   "bloom": false,
+   "ao": false,
+   "mirror": false
+  }
+ },
+ "round2_low": {
+  "hall": {
+   "calls": 350,
+   "tris": 115842,
+   "tex": 117,
+   "geo": 618
+  },
+  "kitchen": {
+   "calls": 297,
+   "tris": 137698,
+   "tex": 126,
+   "geo": 653
+  },
+  "walkin": {
+   "calls": 339,
+   "tris": 149522,
+   "tex": 129,
+   "geo": 668
+  },
+  "living": {
+   "calls": 348,
+   "tris": 124712,
+   "tex": 138,
+   "geo": 728
+  },
+  "vip": {
+   "calls": 214,
+   "tris": 91334,
+   "tex": 138,
+   "geo": 729
+  },
+  "post": {
+   "bloom": false,
+   "ao": false,
+   "mirror": false
+  }
+ },
+ "round2_high_with_opt_in_gtao": {
+  "kitchen": {
+   "calls": 782,
+   "tris": 360758,
+   "tex": 147,
+   "geo": 577
+  },
+  "living": {
+   "calls": 942,
+   "tris": 475670,
+   "tex": 165,
+   "geo": 652
+  },
+  "post": {
+   "bloom": true,
+   "ao": true,
+   "mirror": true
+  }
  }
 }

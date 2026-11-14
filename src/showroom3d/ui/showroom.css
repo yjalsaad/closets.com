@@ -13,7 +13,10 @@
 .sr-loading.is-leaving { opacity: 0; pointer-events: none; }
 .sr-loading-inner { width: min(440px, 86vw); display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-3); }
 .sr3d img.is-raw { mix-blend-mode: multiply; }
-.sr-loading-logo { width: min(300px, 70vw); height: auto; margin-block-end: var(--space-4); }
+.sr-loading-logo { width: min(300px, 70vw); height: auto; margin-block-end: var(--space-1); }
+.sr-byline { margin: 0 0 var(--space-4); font-family: var(--font-sans, inherit); font-weight: 600; font-size: var(--fs-sm); letter-spacing: .14em; text-transform: uppercase; color: var(--sr-brown); }
+.sr3d[dir="rtl"] .sr-byline { letter-spacing: 0; font-size: var(--fs-md); }
+.sr-logocard .sr-byline { margin: var(--space-1) 0 0; display: block; text-align: center; }
 .sr-loading-title { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: var(--fs-md); letter-spacing: .02em; }
 .sr3d[dir="rtl"] .sr-loading-title { font-family: var(--font-ar-display); font-weight: 600; }
 .sr-bar { width: 100%; height: 3px; background: var(--sr-glass-line); border-radius: var(--radius-pill); overflow: hidden; }
@@ -330,3 +333,8 @@
 .sr3d[dir="rtl"] .sr-talk { inset-inline-start: auto; left: 50%; }
 .sr-bubble { position: absolute; inset-inline: 0; margin-inline: auto; width: max-content; max-width: calc(100% - var(--space-6)); top: calc(var(--space-5) + 72px); z-index: 12; padding: var(--space-3) var(--space-5); border-radius: var(--radius-xl); background: var(--sr-panel); border: 1px solid var(--sr-line); color: var(--sr-on-dark); font-size: var(--fs-sm); box-shadow: 0 10px 30px var(--sr-scrim); animation: sr-pop .32s var(--ease-out) both; pointer-events: auto; }
 @media (max-width: 640px) { .sr-bubble { top: auto; bottom: calc(var(--space-7) + 196px); text-align: center; } .sr-chat { inset-block: auto var(--space-3); inset-inline: var(--space-3); width: auto; max-height: 72%; } .sr-talk { bottom: calc(var(--space-7) + 132px); } }
+
+/* adviser kiosk: portrait (or monogram) avatar + the AI-generated portrait note in the chat header */
+.sr-chat-avatar { flex: none; inline-size: 44px; block-size: 58px; border-radius: var(--radius-md, 8px); overflow: hidden; display: grid; place-items: center; background: linear-gradient(160deg, var(--sr-brown), var(--sr-ink)); border: 1px solid var(--sr-brass); color: var(--sr-on-dark); font-family: var(--font-display, inherit); font-size: var(--fs-lg); }
+.sr-chat-avatar img { inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+.sr-chat-note { justify-self: start; font-size: var(--fs-2xs); color: var(--sr-on-dark-2); }

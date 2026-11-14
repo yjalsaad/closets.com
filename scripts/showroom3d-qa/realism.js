@@ -18,6 +18,7 @@ async function enter(page) {
   await page.waitForSelector('[data-testid="sr-skip"]', { timeout: 240000 });
   for (let i = 0; i < 60; i++) { const ph = await page.evaluate(() => { const b = document.querySelector('[data-testid="sr-skip"]'); if (b) b.click(); const st = document.querySelector('.sr-stage'); return st && st.dataset.phase; }); if (ph === 'explore') break; await page.waitForTimeout(1500); }
   await page.waitForSelector('.sr-stage[data-phase="explore"]', { timeout: 240000 }); await page.waitForTimeout(800);
+  await page.waitForFunction(() => { const e = window.__showroom && window.__showroom.engine; return !e || e.realism === 'ready' || e.realism === 'procedural'; }, null, { timeout: 120000 }).catch(() => {});   // the real textures + HDRI are lazy now
 }
 const dismiss = (page) => page.evaluate(() => { try { localStorage.setItem('closets_showroom_coach', '1'); } catch (e) { /* ignore */ } const b = document.querySelector('[data-testid="sr-coach-done"]'); if (b) b.click(); });
 async function run() {

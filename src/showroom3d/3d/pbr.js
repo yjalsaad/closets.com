@@ -3,7 +3,7 @@
  * shadows / light pools, and a generated warm INTERIOR environment (PMREM) for reflections on brass, stone and glass.
  * Everything is canvas ImageData from seeded noise: no photographs. Not photoreal; it is a plausible, consistent material language. */
 import * as THREE from 'three';
-import { realSet, interiorEnv } from './realism/registry';
+import { viaReal, trackTexture, interiorEnv } from './realism/registry';
 import { PALETTE as P } from './palette';
 import { makeNoise2D, fbm, clamp01, lerp } from './noise';
 import { heightToNormal } from './textures';
@@ -28,8 +28,8 @@ function gray(arr, w, h) {
  * Timber, grain along U. tone 0 = oak (straight, open pores, pale rays), 1 = walnut (deeper, cathedral figure). Tiles seamlessly.
  * Returns { map, rough, normal }. The map is mid-tone: finishes tint it with material.color.
  */
-export function timberSet(size, seed = 3, tone = 0) {
-  { const R = realSet(tone ? 'walnutMid' : 'oak', size); if (R) return R; }
+export function timberSet(size, seed = 3, tone = 0) { return viaReal(tone ? 'walnutMid' : 'oak', size, () => timberProc(size, seed, tone)); }
+function timberProc(size, seed = 3, tone = 0) {
   const n = makeNoise2D(seed), n2 = makeNoise2D(seed + 7), n3 = makeNoise2D(seed + 19);
   const A = tone ? rgb(0x6d5546) : rgb(0xb09a7d), B = tone ? rgb(0x2f2017) : rgb(0x7f6a4f);
   const rings = tone ? 16 : 7, cath = tone ? 0.55 : 1.1;
@@ -56,6 +56,7 @@ export function marbleSet(size, seed = 11, variant = 'white', floor = false) {
     white: { base: rgb(P.marbleWhite), cloud: rgb(0xcfc9bf), vein: rgb(P.marbleVeinGrey), gold: rgb(P.marbleVeinGold), goldAmt: 0.55, veinAmt: 0.7, tile: { gold: 0.18, vein: 0.4 } },
     dark: { base: rgb(P.marbleDark), cloud: rgb(0x403c3a), vein: rgb(P.marbleDarkVein), gold: rgb(P.marbleVeinGold), goldAmt: 0.35, veinAmt: 0.85, tile: { gold: 0.04, vein: 0.45 } },
     grey: { base: rgb(0x8c8e90), cloud: rgb(0x76787a), vein: rgb(0xdcddde), gold: rgb(0xdcddde), goldAmt: 0.1, veinAmt: 0.55, tile: { gold: 0.05, vein: 0.35 } },
+    green: { base: rgb(P.marbleGreen), cloud: rgb(P.marbleGreenDeep), vein: rgb(P.marbleGreenVein), gold: rgb(P.marbleVeinGold), goldAmt: 0.25, veinAmt: 0.9, tile: { gold: 0.05, vein: 0.5 } },
     sand: { base: rgb(P.marbleSand), cloud: rgb(0xb5aa98), vein: rgb(0x8a8174), gold: rgb(0xd9d0bf), goldAmt: 0.3, veinAmt: 0.5, tile: { gold: 0.1, vein: 0.32 } },
   }[variant] || null;
   const S = floor && spec.tile ? { ...spec, goldAmt: spec.tile.gold, veinAmt: spec.tile.vein } : spec, rough = new Float32Array(size * size);
@@ -87,6 +88,26 @@ export function brushedSet(size = 256, seed = 23) {
   return { rough: gray(r, size, size), normal: heightToNormal(h, size, size, 0.9) };
 }
 
+/** bouclé / looped wool: a nubby, pebbled micro relief (tint comes from material.color) */
+export function boucleSet(size = 256, seed = 77) {
+  const n = makeNoise2D(seed), n2 = makeNoise2D(seed + 9), h = new Float32Array(size * size), r = new Float32Array(size * size);
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) { const u = x / size, v = y / size, a = fbm(n, u * 26, v * 26, 2, 26), b = fbm(n2, u * 58, v * 58, 2, 58), f = Math.pow(clamp01(0.55 * a + 0.45 * b), 1.6); h[y * size + x] = f; r[y * size + x] = 0.9 + 0.08 * (f - 0.5); }
+  return { rough: gray(r, size, size), normal: heightToNormal(h, size, size, 3.2) };
+}
+/** terrazzo: stone chips of mixed size and tone in a cement binder, polished flat (albedo + a near-uniform glossy roughness) */
+export function terrazzoSet(size = 512, seed = 91) {
+  const c = cv(size), g = c.getContext('2d'), rnd = (() => { let s = seed * 9301 + 49297; return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; }; })();
+  g.fillStyle = hexOf(P.terrazzoBase); g.fillRect(0, 0, size, size);
+  const chips = [P.terrazzoChipA, P.terrazzoChipB, P.terrazzoChipC, P.marbleWhite, P.marbleDark];
+  for (let i = 0; i < size * 1.6; i++) {
+    const x = rnd() * size, y = rnd() * size, s = (0.004 + rnd() * rnd() * 0.022) * size, a = rnd() * 6.28, k = 3 + Math.floor(rnd() * 3); g.fillStyle = hexOf(chips[Math.floor(rnd() * chips.length)]);
+    for (const [ox, oy] of [[0, 0], [size, 0], [-size, 0], [0, size], [0, -size]]) { g.beginPath(); for (let j = 0; j < k; j++) { const t = a + (j / k) * 6.28, rr = s * (0.6 + 0.4 * ((j * 7 + i) % 3) / 2); g[j ? 'lineTo' : 'moveTo'](x + ox + Math.cos(t) * rr, y + oy + Math.sin(t) * rr); } g.closePath(); g.fill(); }
+  }
+  const r = cv(size), gr = r.getContext('2d'); gr.fillStyle = 'rgb(46,46,46)'; gr.fillRect(0, 0, size, size);
+  return { map: c, rough: r };
+}
+const hexOf = (n) => '#' + (n >>> 0).toString(16).padStart(6, '0').slice(-6);
+
 /** matt lacquer / PU paint: orange-peel micro-relief only (tint comes from material.color) */
 export function peelSet(size = 256, seed = 29) {
   const n = makeNoise2D(seed), h = new Float32Array(size * size), r = new Float32Array(size * size);
@@ -109,9 +130,9 @@ export function rugSet(size = 512, seed = 31) {
 }
 
 /** plank floor: 6 long boards across V, each with its own grain offset + tone, dark seams with a bevel in the normal map. {map, rough, normal}. tone 0 oak / 1 walnut */
-export function plankSet(size, seed = 61, tone = 0) {
-  { const R = realSet(tone ? 'planksDark' : 'planks', size); if (R) return R; }
-  const base = timberSet(size, seed, tone), rows = 6, rh = size / rows, map = cv(size), g = map.getContext('2d'), rough = cv(size), gr = rough.getContext('2d'), norm = cv(size), gn = norm.getContext('2d');
+export function plankSet(size, seed = 61, tone = 0) { return viaReal(tone ? 'planksDark' : 'planks', size, () => plankProc(size, seed, tone)); }
+function plankProc(size, seed = 61, tone = 0) {
+  const base = timberProc(size, seed, tone), rows = 6, rh = size / rows, map = cv(size), g = map.getContext('2d'), rough = cv(size), gr = rough.getContext('2d'), norm = cv(size), gn = norm.getContext('2d');
   const r = makeNoise2D(seed + 3);
   gn.fillStyle = 'rgb(128,128,255)'; gn.fillRect(0, 0, size, size);
   for (let i = 0; i < rows; i++) {
@@ -126,8 +147,8 @@ export function plankSet(size, seed = 61, tone = 0) {
 }
 
 /** upholstery weave: a fine cross-hatch with soft slub variation. {map: flat white (tint comes from material.color), rough, normal} */
-export function weaveSet(size = 256, seed = 71) {
-  { const R = realSet('linen', 512); if (R && R.normal && R.rough) return { rough: R.rough, normal: R.normal }; }
+export function weaveSet(size = 256, seed = 71) { const R = viaReal('linen', 512, () => weaveProc(size, seed)); return { rough: R.rough, normal: R.normal }; }
+function weaveProc(size = 256, seed = 71) {
   const n = makeNoise2D(seed), h = new Float32Array(size * size), r = new Float32Array(size * size);
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const u = x / size, v = y / size, a = Math.sin(u * size * 0.7) * 0.5 + 0.5, b = Math.sin(v * size * 0.7) * 0.5 + 0.5, slub = fbm(n, u * 6, v * 40, 2, 6);
@@ -167,7 +188,7 @@ export function hobTexture() {
 export function toTex(canvas, { srgb = true, repeat, anisotropy = 4 } = {}) {
   const t = new THREE.CanvasTexture(canvas); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
   t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = anisotropy; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true;
-  if (repeat) t.repeat.set(repeat[0], repeat[1]); return t;
+  if (repeat) t.repeat.set(repeat[0], repeat[1]); return trackTexture(t, canvas);
 }
 
 /**
@@ -191,8 +212,8 @@ export function buildInteriorEnv(renderer) {
 }
 
 /** large-format polished stone / porcelain: 2 x 2 tiles of the veined stone generator (each tile flipped / offset so no two match), dark grout, grout normal. */
-export function tileSet(size, seed = 41, variant = 'white') {
-  { const R = variant === 'sand' ? realSet('stone', size) : variant === 'grey' ? realSet('microcement', size) : null; if (R) return R; }
+export function tileSet(size, seed = 41, variant = 'white') { const real = variant === 'sand' ? 'stone' : variant === 'grey' ? 'microcement' : null; return real ? viaReal(real, size, () => tileProc(size, seed, variant)) : tileProc(size, seed, variant); }
+function tileProc(size, seed = 41, variant = 'white') {
   const half = size >> 1, base = marbleSet(half, seed, variant, true), c = cv(size), g = c.getContext('2d'), cr = cv(size), gr = cr.getContext('2d');
   const flips = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
   for (let i = 0; i < 4; i++) {

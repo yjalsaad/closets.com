@@ -2,6 +2,8 @@
  * Arabic is written, not machine-converted; it has NOT had a native copy review yet (see docs/showroom3d/ARCHITECTURE.md). */
 export const STRINGS = {
   brand: { en: 'The Closets', ar: 'الخزائن' },
+  brandByline: { en: 'by YAS WOOD', ar: 'من ياس وود' },   // owner decision: "THE CLOSETS by YAS WOOD"; the Arabic wording is a draft pending the owner's confirmation
+  chatPortraitNote: { en: 'AI-generated portrait', ar: 'صورة مولّدة بالذكاء الاصطناعي' },
   pageTitle: { en: 'YAS Bloom | The Closets', ar: 'ياس بلوم | الخزائن' },
   loadingTitle: { en: 'Preparing the showroom', ar: 'نجهّز المعرض' },
   loadingSub: { en: 'Building the architecture, materials and light in your browser.', ar: 'نبني العمارة والخامات والإضاءة داخل متصفحك.' },

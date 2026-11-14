@@ -151,3 +151,71 @@ Each adviser now has a common Arabic first name with her role as subtitle: Noor 
 * Marble, brushed metal, glass and most upholstery are procedural or tinted; product silhouettes are simple extrusions with small bevels.
 * Plants and props are procedural.
 * Characters, see above.
+
+---
+
+# Round 2 (same branch / PR #16)
+
+Owner decisions folded in: advisers become kiosks, signage reads "THE CLOSETS by YAS WOOD", every visit starts in first person. Sheets `screenshots/realism-1..4-*.jpg` were re-shot (the BEFORE column is still the state before round 1) and `realism-6-tiers-desktop.jpg` shows medium (top) and low (bottom) on desktop.
+
+## What changed in round 2
+
+| Area | Change |
+|---|---|
+| Adviser kiosks | `staff/kiosk.js`: a 1.75 m bronze / walnut totem per adviser with a 3:4 portrait screen at eye level, LED frame, name plate (first name, role, orange "AI assistant" label, EN / AR), slow breathing zoom + light sweep when idle, a waveform while she answers, and a greeting line that fades in when the visitor comes near. Nobody walks any more. All staff logic is unchanged (Talk button, T / E, greeting once, chat, take-me-to, VIP hook, colliders, far LOD = 3 draw calls). `staff/config.js`: `STAFF_MODE = 'kiosk'` (default) or `'character'`; `?staff=character` previews the 3D characters, which stay in the repo with the GLB adapter. |
+| Portraits | Loaded from `/yas-bloom/staff/<adviserId>.webp` (3:4, about 768 x 1024, <= 120 KB). **No portrait file exists yet**, so every kiosk currently shows the non-human fallback (monogram on a soft gradient with a waveform); a missing or broken file can never show a broken image. The chat header shows the portrait thumbnail and the note "AI-generated portrait" only once a portrait has really loaded; otherwise the monogram and no note. |
+| Signage | Column plates: "THE CLOSETS / by YAS WOOD" (Arabic "الخزائن / من ياس وود"). Hall back wall and facade: the real logo image is untouched, with "by YAS WOOD" as a separate clean line under it. Loader and intro card: the same byline under the logo. **The Arabic wording "الخزائن من ياس وود" is a draft: owner to confirm.** |
+| Rooms | Kitchens: graphite matt default (finish order changed, ids unchanged), opal globe pendants on brass caps, a lit open shelf with props on the splashback. Walk-in: floating deep-green marble vanity with upstand under a round mirror in a brass ring, vertical LED edge strips on the glass cabinets. Living / lounge: soft rounded sofas and armchairs (no chamfered boxes), bouclé relief, organic looped-wool rugs (oat / rust), sheer floor-to-ceiling curtains, specimen trees in dark planters, mirror-steel and brass drum side tables. Bedroom / studio / lounge / walk-in back walls are travertine slabs. Defaults moved to walnut for door, bedroom, studio and lounge. |
+| Geometry polish | Reception desk and hall benches are soft-edged; hall upper walls are travertine courses with shadow-gap reveals. |
+| Materials | Velvet (walk-in upholstery), leather (studio chairs) and stucco (product plaster) sets are now wired. Procedural additions (ambientCG is still blocked): green marble, terrazzo (available as `M.terrazzo`, not yet assigned to a finish), bouclé. Brass / bronze take twice the environment reflection so they read as metal. Anti-repetition: a two-octave world-space noise modulates the albedo of floors, travertine and plaster on medium / high. |
+| AO and shadows | GTAO bug fixed: its normal pass was drawing additive glows, decals, glass and the planar floor reflector, which blackened the floor. With the fix it is correct but subtle and still about doubles the draw calls, so it **stays opt-in (`?ao=1`)**; the baked AO / contact-shadow decals remain the default. Sun shadow map on high is now 4096 (about 2.5 cm texels in the hall). |
+| Lazy loading | The scene is built on the procedural sets exactly as before the realism pass (same loader time); the CC0 textures and the HDRI download after the first frame and replace the procedural ones in place (same texture objects, so finish swaps keep working). Failure of any file keeps the procedural look. |
+| First person | Every visit starts in first person (a stored third-person choice is no longer restored); the toggle and the visitor avatar are unchanged. |
+
+## GLB character test recipe (characters are parked, the loader path is kept)
+
+1. Put a rigged humanoid at `public/yas-bloom/realism/characters/reception.glb` (Mixamo / Ready Player Me style bone names; a quick free check file is any Mixamo "Y Bot" exported to GLB, for local testing only, not for shipping).
+2. In `src/showroom3d/characters/glbConfig.js` add `reception: { url: '/yas-bloom/realism/characters/reception.glb', height: 1.68 }`.
+3. `npm start`, open `/yas-bloom?debug=1&staff=character`, skip the intro, walk to Reception.
+4. In the console: `__showroom.engine.staff.item('reception').char.glb` must be `true` and `.missingBones` should be `[]`. Check: she stands on the floor at about 1.68 m, faces the entrance, arms hang (not T-pose), the right arm rises on `__showroom.engine.staff.wave('reception')`, the head nods while the chat answers. If a limb bends the wrong way, flip the sign for that role in `wrapRigged().setPose` (the only place that maps pose angles to bones).
+5. A missing file, a non-humanoid file or a decode error must leave the procedural character in place with no console error. Unit tests: `src/showroom3d/__tests__/realism.test.js` (bone mapping, interface, null on missing bones).
+
+## Round 2 scores (viewed; before = before round 1, r1 = after round 1)
+
+| View | Before | r1 | r2 | Notes |
+|---|---|---|---|---|
+| Hall | 4 | 6.5 | 7 | travertine courses, soft benches, kiosks instead of mannequins |
+| Reception | 4 | 6 | 6.5 | rounded desk, kiosk behind it |
+| Kitchens | 5 | 6 | 6.5 | graphite fronts, globe pendants, lit shelf; fronts are still flat slabs |
+| Wardrobes | 5 | 6 | 6 | unchanged apart from materials |
+| Walk-in | 5 | 6 | 6.5 | green marble vanity + round mirror, LED edges |
+| Bedrooms | 5 | 5.5 | 6 | walnut default, travertine wall, curtain, organic rug |
+| Doors | 4.5 | 5.5 | 5.5 | walnut default only |
+| Living | 5 | 6 | 6.5 | rounded sofas, curtains, tree, side tables |
+| Studio | 5 | 5.5 | 5.5 | travertine wall, leather chairs |
+| Lounge | 5 | 6 | 6.5 | rounded sofa, rust rug, curtain, tree |
+| VIP | 5.5 | 5.5 | 5.5 | not edited here |
+| Advisers | 4.5 | 5 | 6 (as kiosks, monogram fallback) | a designed object reads better than a mannequin; real portraits will lift it further |
+| Mobile / low tier | 4 | 5.5 | 5.5 | same look, no post effects |
+
+Reference closeness after round 2: hall aisle 6/10, kitchens 5, walk-in 5, living / lounge 5, travertine walls 5.5. Still missing against the references: fluted island fronts and a dark marble island block, bronze-framed glass doors on every wardrobe run, fabric that really reads as boucle up close, global illumination.
+
+## Round 2 performance (1100 x 620, software GL, all passes of one frame)
+
+| Tier | hall | kitchen | walk-in | living | VIP | worst measured |
+|---|---|---|---|---|---|---|
+| high: draw calls / triangles | 465 / 186k | 474 / 243k | 572 / 268k | 588 / 263k | 273 / 138k | wardrobe 808 / 460k |
+| medium | 379 / 173k | 350 / 194k | 397 / 207k | 401 / 211k | 243 / 133k | |
+| low | 350 / 116k | 297 / 138k | 339 / 150k | 348 / 125k | 214 / 91k | |
+
+Low stays inside the guardrail (under 450 draw calls and 200k triangles). Triangles are LOWER than after round 1 on every tier because ten kiosks replaced ten characters. Textures in GPU memory on high rose to 141 to 183 (kiosk canvases, new material sets). `showroom3d` chunk: 145.0 -> 152.1 kB gzip; `main` +5 bytes. No new shipped assets in round 2 (still 1.96 MB).
+
+## Round 2: not done / open
+
+* Portrait files do not exist yet: kiosks show the monogram fallback.
+* The Arabic brand line needs the owner's confirmation.
+* Door architraves, extra glazing mullions and wall panelling beyond the travertine reveals were not added; skirting exists on the hall back wall, wings and columns only.
+* Terrazzo is built but not assigned to a kitchen finish (the finish list is capped at four per product by an existing test and the names describe white / dark / sand stone).
+* GTAO stays opt-in; soft-shadow change is the 4k sun map only (no PCSS).
+* Curtains have no collider (a visitor can walk through the sheer fabric at the bay edge).
+* The older phase QA scripts (`phase6.js` and friends) assume walking characters for a few checks and were not re-run; the Jest suite and `realism.js` were.

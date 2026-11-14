@@ -12,6 +12,8 @@ import { swatchMaterial } from './materials';
 import { makePanel, drawStudioScreen, planPaperTexture } from './screens';
 import * as pr from './props';
 import * as fu from './furnish';
+import * as rl from './reflook';
+
 
 const { fin } = fu;
 const T = 0.019, Y0 = 0.06;
@@ -22,7 +24,7 @@ export function buildStudio({ M, tier, registry, reduced, lang = 'en' }) {
   const add = (list, mat) => list.forEach((g) => kit.addStatic(g, mat));
   const soft = [], ceramic = [];
   kit.floor();
-  { const w = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 3.3), M.plaster); w.position.set(-2.995, 1.65, 0); w.rotation.y = Math.PI / 2; w.receiveShadow = true; group.add(w); }
+  { const w = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 3.3), M.travertine); w.position.set(-2.995, 1.65, 0); w.rotation.y = Math.PI / 2; w.receiveShadow = true; group.add(w); }
 
   // ---- sample board: backing panel + 3 rows x 5 columns of static swatches (never swapped, so each always matches its label) ----
   const BZ0 = -2.95, BZ1 = -0.55, BY0 = 1.0, BY1 = 2.6, cols = 5, rows = 3, tw = (BZ1 - BZ0) / cols, th = (BY1 - BY0) / rows;
@@ -78,7 +80,7 @@ export function buildStudio({ M, tier, registry, reduced, lang = 'en' }) {
   kit.mesh(prep(placed(fin(0.08, 0.04, 2.0, { b: 0.006 }), { x: -1.0, y: 2.1, z: TZc })), METAL, { cast: false });
   { const lens = M.ledWarm(); kit.mesh(prep(placed(fin(0.05, 0.006, 1.9, { b: 0.001 }), { x: -1.0, y: 2.077, z: TZc })), lens, { cast: false }); const wr = []; for (const z of [TZc - 0.8, TZc + 0.8]) wr.push(prep(placed(new THREE.CylinderGeometry(0.003, 0.003, 3.3 - 2.12, 5), { x: -1.0, y: (3.3 + 2.12) / 2, z }))); kit.mesh(mergeGeometries(wr), METAL, { cast: false }); }
   { const pl = pr.plant(-0.4, 0, -2.6, { h: 1.5, leaves: 46, potR: 0.18, seed: 17 }); lod.props.add(propMesh(pl.body, M.leaves, { cast: false }), propMesh(pl.cards, M.leafCard, { cast: false })); }
-  { const rug = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 3.2), M.rug); rug.rotation.x = -Math.PI / 2; rug.position.set(-1.0, 0.0125, TZc); rug.receiveShadow = true; lod.props.add(rug); }
+  { const rug = new THREE.Mesh(rl.organicRug(3.91, 3.78, 23), M.rugSoft); rug.rotation.x = -Math.PI / 2; rug.position.set(-1.0, 0.0125, TZc); rug.receiveShadow = true; lod.props.add(rug); }
   kit.ao([-2.99, 3.05, 0], [0, 0, 1], [0, 1, 0], 6.2, 0.9, '+v', 0.3); kit.ao([-2.5, 0.011, -2.0], [0, 0, 1], [1, 0, 0], 2.5, 0.3, '-v', 0.35);
   buildCanopy(kit, { downlights: [[-1.8, -2.0], [-1.8, 0.2], [-1.8, 2.2], [0.9, -2.0], [0.9, 0.2], [0.9, 2.2]] }); buildWallWash(kit, { z: 0, len: 6.2, x: -2.995 });
   kit.contactShadow({ x: -1.0, z: TZc, w: 1.3, d: 2.7, strength: 0.5, blur: 26 });

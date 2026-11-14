@@ -73,6 +73,26 @@ export function realSet(name, size = 1024) {
   return (REG.cache[key] = set);
 }
 
+// ---- lazy upgrade: the scene is built with the procedural sets, the real ones replace them in place once they have downloaded ----
+const TRACK = [];
+const flat = (rgb) => { const c = canvas(4), g = c.getContext('2d'); if (g) { g.fillStyle = rgb; g.fillRect(0, 0, 4, 4); } return c; };
+/** the real set when it is already loaded; otherwise the procedural set from `proc()`, with every canvas tagged so the texture made from it is upgraded later.
+ * A set with no procedural twin (`proc` returns {}) gets neutral 4 px placeholders so the material is created with all three maps from the start (no shader recompile on upgrade). */
+export function viaReal(name, size, proc) {
+  const R = realSet(name, size); if (R) return R;
+  let set = proc ? proc() : null; if (!set || !(set.map || set.rough || set.normal)) set = typeof document === 'undefined' ? {} : { map: flat('rgb(255,255,255)'), rough: flat('rgb(205,205,205)'), normal: flat('rgb(128,128,255)') };
+  for (const slot of ['map', 'rough', 'normal']) if (set[slot]) set[slot].__real = { name, slot, size };
+  return set;
+}
+/** called by toTexture / toTex for every canvas texture: remembers the ones that have a real twin */
+export function trackTexture(tex, cnv) { if (cnv && cnv.__real) TRACK.push({ tex, ...cnv.__real }); return tex; }
+/** swap the downloaded real images into the tracked textures (same texture objects, so every material and finish swap keeps working); returns how many were upgraded */
+export function upgradeTextures() {
+  let n = 0;
+  for (const t of TRACK) { const R = realSet(t.name, t.size); if (R && R[t.slot] && t.tex.image !== R[t.slot]) { t.tex.image = R[t.slot]; t.tex.needsUpdate = true; n++; } }
+  return n;
+}
+
 /** warm, slightly darkened interior environment (PMREM) from the Poly Haven HDRI; null when unavailable */
 export async function loadInteriorHdr(renderer) {
   if (REG.env) return REG.env;
@@ -89,4 +109,4 @@ export async function loadInteriorHdr(renderer) {
   return REG.env;
 }
 export const interiorEnv = () => REG.env;
-export function disposeRealism() { if (REG.env) { REG.env.dispose(); REG.env = null; } REG.cache = {}; }
+export function disposeRealism() { if (REG.env) { REG.env.dispose(); REG.env = null; } REG.cache = {}; TRACK.length = 0; }
