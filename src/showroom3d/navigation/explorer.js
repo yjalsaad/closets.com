@@ -6,7 +6,7 @@
  * It owns no React state: it reports changes through `onState(partial)`. */
 import gsap from 'gsap';
 import { HANDOVER } from '../cinematic/timeline';
-import { buildColliders, DOOR_OPEN_AT, PLAYER } from './colliders';
+import { buildColliders, DOOR_OPEN_AT, PLAYER, isFree, segmentClear } from './colliders';
 import { buildGraph, routeTo, polylineLength, pointAlong } from './navgraph';
 import * as THREE from 'three';
 import { allZones, zoneAt } from './interaction';
@@ -116,8 +116,8 @@ export class Explorer {
     if (e.repeat) return;
     if (code === 'KeyE') { e.preventDefault(); this.interact(); return; }
     // keyboard-only turning: , and . (or Alt + Left / Right)
-    if (code === 'Comma' || (e.altKey && code === 'ArrowLeft')) { e.preventDefault(); this.walker.look(0.2, 0); return; }
-    if (code === 'Period' || (e.altKey && code === 'ArrowRight')) { e.preventDefault(); this.walker.look(-0.2, 0); return; }
+    if (code === 'Comma' || (e.altKey && code === 'ArrowLeft')) { e.preventDefault(); this.walker.lookSmooth(0.2, 0); return; }
+    if (code === 'Period' || (e.altKey && code === 'ArrowRight')) { e.preventDefault(); this.walker.lookSmooth(-0.2, 0); return; }
     const m = /^(?:Digit|Numpad)([1-9])$/.exec(code);
     if (m) { e.preventDefault(); this.glideTo(this.graph.stops[Number(m[1]) - 1].id); }
   }
@@ -146,7 +146,7 @@ export class Explorer {
 
   // ---------------------------------------------------------------- touch (called by the React overlay)
   touchMove(x, y, jog = false) { if (!this.enabled || this.paused || this.uiOpen) return; if (x || y) this.cancelGlide(); this.touch = { x, y, jog }; }
-  touchLook(dx, dy) { if (this.enabled && !this.paused && !this.uiOpen) this.walker.look(-dx * SENS.touch, -dy * SENS.touch); }
+  touchLook(dx, dy) { if (this.enabled && !this.paused && !this.uiOpen) this.walker.lookSmooth(-dx * SENS.touch, -dy * SENS.touch); }
 
   // ---------------------------------------------------------------- interaction (Phase 4/5: products, picking, Ikhtarha stage)
   get products() { return this.engine.products || null; }
@@ -182,9 +182,30 @@ export class Explorer {
   /** a tap / click at a screen point while exploring (touch overlay, drag-look mode) */
   tapPick(cx, cy) {
     if (!this.enabled || this.paused || this.uiOpen || this.focus) return false;
-    const pid = this.zone && this.products ? this.products.productAt(this.zone.id) : null; if (!pid) return false;
-    const n = this.ndc(cx, cy), hit = this.pickNdc(n.x, n.y, 4.6, pid); if (!hit) return false;
-    this.togglePart(hit.id); return true;
+    const pid = this.zone && this.products ? this.products.productAt(this.zone.id) : null;
+    const n = this.ndc(cx, cy), hit = pid ? this.pickNdc(n.x, n.y, 4.6, pid) : null;
+    if (hit) { this.togglePart(hit.id); return true; }
+    return this.walkToScreen(cx, cy);                                  // nothing to work here: a tap / click on the floor walks there
+  }
+  /** click / tap-to-walk: the ray through the screen point hits the floor; if the straight way is clear the walker glides there (eased, turning to face it) */
+  walkToScreen(cx, cy) {
+    if (!this.enabled || this.paused || this.uiOpen || this.focus || this.glide) return false;
+    const n = this.ndc(cx, cy), cam = this.engine.camera; cam.updateMatrixWorld(true); this.raycaster.setFromCamera({ x: n.x, y: n.y }, cam);
+    const o = this.raycaster.ray.origin, d = this.raycaster.ray.direction; if (d.y > -0.02) return false;
+    const t = -o.y / d.y, x = o.x + d.x * t, z = o.z + d.z * t; return this.walkTo(x, z);
+  }
+  walkTo(x, z) {
+    const w = this.walker, from = [w.pos[0], w.pos[1]], len = Math.hypot(x - from[0], z - from[1]);
+    if (len < 0.4 || len > 14 || !isFree(x, z, PLAYER.radius, this.colliders) || !segmentClear(from, [x, z], PLAYER.radius, this.colliders)) return false;
+    this.killGlide(); this.keys.clear();
+    const y0 = w.yaw, end = yawPitchFromLookAt([x, PLAYER.eye, z], [x + (x - from[0]), PLAYER.eye, z + (z - from[1])]), dy = wrapPi(end.yaw - y0);
+    const set = (k) => { const p = [from[0] + (x - from[0]) * k, from[1] + (z - from[1]) * k]; w.pos = p; w.vel = [0, 0]; w.speed = 0; w.yaw = y0 + dy * Math.min(1, k * 2.2); w.phase += 0.0; };
+    const done = () => { this.glide = null; this.apply(); this.emit({ gliding: false }); };
+    this.emit({ gliding: true, glideTo: null });
+    if (this.reduced) { set(1); done(); return true; }
+    const v = { k: 0 }; let last = 0;
+    this.glide = gsap.to(v, { k: 1, duration: clamp(len / 1.7 + 0.35, 0.6, 8), ease: 'power1.inOut', onUpdate: () => { const dk = v.k - last; last = v.k; set(v.k); w.travelled += Math.abs(dk) * len; w.phase += Math.abs(dk) * len / 0.78 * Math.PI * 2; w.amp = 1; }, onComplete: done });
+    return true;
   }
   tap(cx, cy) { return this.tapPick(cx, cy); }
 

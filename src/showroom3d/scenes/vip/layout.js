@@ -7,7 +7,7 @@ export const VIP = {
   wallT: 0.15, height: 4.3,
   doorHalf: 0.95, doorH: 2.7,                               // door gap in the front glass wall (centre x = 0)
   table: { x: 0, z: -32.6, w: 5.6, d: 1.5, h: 0.76 },
-  screen: { z: -(HALL.depth - 0.5) + 0.08, y: 2.45, w: 6.4, h: 3.6 },
+  screen: { z: -(HALL.depth - 0.5) + 0.08, y: 2.65, w: 5.69, h: 3.2 },
   approach: [0, -27.6],                                      // lane in front of the door
   stand: [0, -30.2],                                         // quick-nav stand point, inside, facing the screen
   look: [0, 2.2, -(HALL.depth - 0.5) + 0.08],
@@ -32,9 +32,9 @@ export function vipBoxes() {
 export const vipDoorBox = () => ({ type: 'box', id: 'vip-door', minX: -VIP.doorHalf, maxX: VIP.doorHalf, minZ: VIP.z1 - VIP.wallT / 2, maxZ: VIP.z1 + VIP.wallT / 2 });
 /** camera pose of each presentation station (eye height, inside the room; the walker stays where it stands) */
 export const VIP_VIEWS = [
-  { id: 'story', pos: [0, 1.85, -29.2], look: [0, 2.2, -35.42], fov: 54 },
+  { id: 'story', pos: [0, 1.85, -29.2], look: [0, 2.6, -35.42], fov: 54 },
   { id: 'projects', pos: [-0.6, 1.8, -31.2], look: [-7.0, 1.9, -32.6], fov: 58 },
-  { id: 'hub', pos: [0, 1.85, -29.2], look: [0, 2.2, -35.42], fov: 54 },
-  { id: 'invest', pos: [0, 1.85, -29.2], look: [0, 2.2, -35.42], fov: 54 },
-  { id: 'briefing', pos: [0, 1.85, -29.2], look: [0, 2.2, -35.42], fov: 52 },
+  { id: 'hub', pos: [0, 1.85, -29.2], look: [0, 2.6, -35.42], fov: 54 },
+  { id: 'invest', pos: [0, 1.85, -29.2], look: [0, 2.6, -35.42], fov: 54 },
+  { id: 'briefing', pos: [0, 1.85, -29.2], look: [0, 2.6, -35.42], fov: 52 },
 ];

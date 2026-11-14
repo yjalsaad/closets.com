@@ -2,7 +2,7 @@
 export const TIERS = {
   high:   { id: 'high',   pixelRatioCap: 2,    shadowMap: 2048, antialias: true,  pointLights: 6, palms: 16, fronds: 16, texSize: 1024, normalMaps: true,  clouds: true,  anisotropy: 8, hallLogoGlow: true,  physicalFloor: true,  slatDensity: 1 },
   medium: { id: 'medium', pixelRatioCap: 1.5,  shadowMap: 1024, antialias: true,  pointLights: 3, palms: 10, fronds: 12, texSize: 512,  normalMaps: true,  clouds: true,  anisotropy: 4, hallLogoGlow: true,  physicalFloor: true,  slatDensity: 1 },
-  low:    { id: 'low',    pixelRatioCap: 1.25, shadowMap: 1024, antialias: false, pointLights: 0, palms: 6,  fronds: 9,  texSize: 256,  normalMaps: false, clouds: false, anisotropy: 1, hallLogoGlow: false, physicalFloor: false, slatDensity: 0.5 },
+  low:    { id: 'low',    pixelRatioCap: 1,    shadowMap: 1024, antialias: false, pointLights: 0, palms: 6,  fronds: 9,  texSize: 256,  normalMaps: false, clouds: false, anisotropy: 1, hallLogoGlow: false, physicalFloor: false, slatDensity: 0.5 },
 };
 export const TIER_IDS = Object.keys(TIERS);
 
