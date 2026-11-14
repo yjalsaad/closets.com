@@ -7,9 +7,10 @@ import { IK, ikt } from '../products/campaignCopy';
 import { VIP_DEPT } from '../products/vipContent';
 import { staffById } from '../staff/roster';
 import { pick } from '../staff/guide';
+import { COLLECTIONS_DEPT } from '../collections/layout';
 
 const dept = (id) => DEPARTMENTS.find((d) => d.id === id);
-const dname = (id, lang) => { if (id === 'ikhtarha') return ikt(IK.name, lang); if (id === VIP_DEPT.id) return lang === 'ar' ? VIP_DEPT.ar : VIP_DEPT.en; const d = dept(id); return d ? (lang === 'ar' ? d.ar : d.en) : ''; };
+const dname = (id, lang) => { if (id === COLLECTIONS_DEPT.id) return lang === 'ar' ? COLLECTIONS_DEPT.ar : COLLECTIONS_DEPT.en; if (id === 'ikhtarha') return ikt(IK.name, lang); if (id === VIP_DEPT.id) return lang === 'ar' ? VIP_DEPT.ar : VIP_DEPT.en; const d = dept(id); return d ? (lang === 'ar' ? d.ar : d.en) : ''; };
 
 /** Exploration HUD: top bar (logo, Departments, Menu), fading guidance, the interaction prompt / stub toast, and the touch controls. */
 export default function Hud({ lang, tier, touch, st, explorerRef, homeHref, onDepts, onMenu, onInteract, onTalk, chatOpen, coach }) {
