@@ -130,6 +130,27 @@ export const STRINGS = {
   fbBook: { en: 'Book a free design visit', ar: 'احجز زيارة تصميم مجانية' },
   errorTitle: { en: 'The showroom could not start', ar: 'تعذّر تشغيل المعرض' },
   errorRetry: { en: 'Try again', ar: 'حاول مرة أخرى' },
+  // YAS Bloom round 2: AI advisers (Arabic written, not machine-converted; native review still needed)
+  staffTalk: { en: 'Talk to {name} (AI)', ar: 'تحدّث مع {name} (ذكاء اصطناعي)' },
+  staffTalkShort: { en: 'Talk (AI)', ar: 'تحدّث (ذكاء اصطناعي)' },
+  staffHintKey: { en: 'Press T or E to talk', ar: 'اضغط T أو E للحديث' },
+  chatTitle: { en: 'Chat with {name}', ar: 'محادثة مع {name}' },
+  chatBadge: { en: 'AI assistant', ar: 'مساعد ذكاء اصطناعي' },
+  chatClose: { en: 'Close chat', ar: 'إغلاق المحادثة' },
+  chatInput: { en: 'Type your question', ar: 'اكتب سؤالك' },
+  chatSend: { en: 'Send', ar: 'إرسال' },
+  chatTyping: { en: 'is typing', ar: 'تكتب الآن' },
+  chatDisclosure: { en: 'AI assistant: answers are generated automatically; the team confirms prices and details.', ar: 'مساعد ذكاء اصطناعي: تُنشأ الإجابات تلقائيًا، ويؤكد الفريق الأسعار والتفاصيل.' },
+  chatAbout: { en: 'About this assistant', ar: 'عن هذا المساعد' },
+  chatAboutGuide: { en: 'Most answers come from a built-in guide that uses only the information on our website. Questions it cannot answer can, with your permission, be sent to the same AI service the website chat uses.', ar: 'تأتي معظم الإجابات من دليل مدمج يستخدم معلومات موقعنا فقط. ويمكن، بموافقتك، إرسال الأسئلة التي لا يستطيع الإجابة عنها إلى خدمة الذكاء الاصطناعي نفسها التي تستخدمها محادثة الموقع.' },
+  chatAskAi: { en: 'Ask the AI service (needs your permission)', ar: 'اسأل خدمة الذكاء الاصطناعي (بموافقتك)' },
+  chatAiDeclined: { en: 'No problem. I will keep to the built-in guide.', ar: 'لا بأس. سأكتفي بالدليل المدمج.' },
+  chatAiOffline: { en: 'I could not reach the AI service just now, so I will stay with the built-in guide.', ar: 'تعذّر الوصول إلى خدمة الذكاء الاصطناعي الآن، لذا سأكتفي بالدليل المدمج.' },
+  chatAiRejected: { en: 'I cannot share that answer here. The team will be glad to help directly.', ar: 'لا أستطيع عرض تلك الإجابة هنا. يسعد الفريق بمساعدتك مباشرة.' },
+  chatAiWait: { en: 'Please wait a moment before asking again.', ar: 'يرجى الانتظار قليلًا قبل السؤال مرة أخرى.' },
+  chatVoice: { en: 'Read answers aloud', ar: 'قراءة الإجابات بصوت عالٍ' },
+  chatYou: { en: 'You', ar: 'أنت' },
+  chatGreetBubble: { en: 'Welcome! Talk to me any time.', ar: 'أهلًا بك! تحدّث معي في أي وقت.' },
 };
 
 export const t = (key, lang) => { const e = STRINGS[key]; return e ? (lang === 'ar' ? e.ar : e.en) : key; };

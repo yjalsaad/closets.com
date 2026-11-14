@@ -16,6 +16,7 @@ import { Walker, wrapPi, clamp } from './walker';
 import { yawPitchFromLookAt } from './lookAround';
 import { VIP_VIEWS } from '../scenes/vip/layout';
 import { followCamera } from '../characters/follow';
+import { TALK_RADIUS } from '../staff/roster';
 import { nextAvatar, AVATARS } from '../characters/visitorAvatar';
 const store = { get(k, d) { try { return window.localStorage.getItem(k) || d; } catch (e) { return d; } }, set(k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* ignore */ } } };
 import { stepStation, clampStation, arrowDir, STATIONS } from '../products/vipContent';
@@ -126,6 +127,7 @@ export class Explorer {
     if (!down) { this.keys.delete(code); return; }
     if (e.repeat) return;
     if (code === 'KeyE') { e.preventDefault(); this.interact(); return; }
+    if (code === 'KeyT') { e.preventDefault(); this.talkToStaff(); return; }
     // keyboard-only turning: , and . (or Alt + Left / Right)
     if (code === 'Comma' || (e.altKey && code === 'ArrowLeft')) { e.preventDefault(); this.walker.lookSmooth(0.2, 0); return; }
     if (code === 'Period' || (e.altKey && code === 'ArrowRight')) { e.preventDefault(); this.walker.lookSmooth(-0.2, 0); return; }
@@ -165,6 +167,7 @@ export class Explorer {
   interact() {
     if (!this.enabled || this.paused || this.uiOpen) return;
     if (this.focus) return;
+    { const S = this.engine.staff, np = S && S.nearest(this.walker.pos[0], this.walker.pos[1], 1.9), rec = S && S.nearest(this.walker.pos[0], this.walker.pos[1], TALK_RADIUS); if ((np || (rec && rec.id === 'reception')) && this.talkToStaff((np || rec).id)) return; }   // E next to an adviser (or in front of the Reception desk) talks to her
     this.interactions++;
     const z = this.zone, P = this.products;
     if (z && z.vip && P && P.vip) { this.focusVip(0); return; }
@@ -413,7 +416,21 @@ export class Explorer {
     else if (this.paused || this.uiOpen) this.walker.step(dt, {}, this.reduced);
     this.apply(dt);
     if (this.engine.avatar) this.engine.avatar.update(dt, this.walker, { visible: this.camMode === 'third' && !this.fc && !this.focus && (this.tpDist == null || this.tpDist > 0.7), reduced: this.reduced });
+    this.updateStaff(dt);
     this.crosshairHover(dt);
+  }
+  /** the advisers: animate, notice the nearest one within talking range (HUD button / T), greet once */
+  updateStaff(dt) {
+    const S = this.engine.staff; if (!S) return;
+    if (!S.onGreet) S.onGreet = (def) => { this.greetN = (this.greetN || 0) + 1; this.emit({ greet: def.id, greetN: this.greetN }); };
+    S.update(dt, this.walker, { reduced: this.reduced, visible: true });
+    const near = !this.focus && !this.fc ? S.nearest(this.walker.pos[0], this.walker.pos[1], TALK_RADIUS) : null; this.emit({ staff: near ? near.id : null });
+  }
+  /** open the chat with an adviser (the React layer listens for `talk`); id defaults to the nearest one in range */
+  talkToStaff(id) {
+    const S = this.engine.staff; if (!this.enabled || this.paused || this.uiOpen || !S) return false;
+    const def = id ? S.item(id) && S.item(id).def : S.nearest(this.walker.pos[0], this.walker.pos[1], TALK_RADIUS); if (!def) return false;
+    this.talkN = (this.talkN || 0) + 1; this.emit({ talk: def.id, talkN: this.talkN }); return true;
   }
   /** hover outline for whatever is under the crosshair / pointer within reach (explore mode only; focus mode hovers from pointer events) */
   crosshairHover(dt) {

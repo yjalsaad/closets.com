@@ -15,17 +15,17 @@ export const SKINS = ['skinA', 'skinB', 'skinC', 'skinD'];
 export const OUTFITS = { f: ['abaya', 'coat'], m: ['thobe', 'suit'], guest: ['suit'] };
 export const HAIRS = ['bun', 'long', 'short', 'none'];
 const G = (geo, color, t) => ({ geo: t ? placed(geo, t) : geo, color });
-const sph = (r, q) => new THREE.SphereGeometry(r, q ? 18 : 10, q ? 14 : 8);
-const cyl = (rt, rb, h, q) => new THREE.CylinderGeometry(rt, rb, h, q ? 14 : 8, 1);
+const sph = (r, q) => new THREE.SphereGeometry(r, q ? 14 : 8, q ? 10 : 6);
+const cyl = (rt, rb, h, q) => new THREE.CylinderGeometry(rt, rb, h, q ? 10 : 6, 1);
 const V = (a) => a.map(([r, y]) => new THREE.Vector2(r, y));
 /** rounded, tapered limb hanging down from y = 0 (top cap radius rT) to y = -len (bottom cap radius rB): a lathe with hemispherical ends */
 function limb(rT, rB, len, q, bulge = 0) {
-  const n = q ? 5 : 3, pts = [];
+  const n = q ? 3 : 2, pts = [];
   for (let i = 0; i <= n; i++) { const a = (i / n) * Math.PI / 2; pts.push([rB * Math.sin(a), -len - rB * Math.cos(a)]); }
   if (bulge) pts.push([(rT + rB) / 2 + bulge, -len * 0.5]);
   for (let i = n; i >= 0; i--) { const a = (i / n) * Math.PI / 2; pts.push([rT * Math.sin(a), rT * Math.cos(a)]); }
   pts[0][0] = 0.0005; pts[pts.length - 1][0] = 0.0005;
-  return new THREE.LatheGeometry(V(pts), q ? 14 : 8);
+  return new THREE.LatheGeometry(V(pts), q ? 10 : 6);
 }
 const shade = (hex, f) => { const c = new THREE.Color(hex); c.multiplyScalar(f); return c.getHex(); };
 
@@ -53,13 +53,13 @@ export function buildCharacter(o = {}) {
   const legC = long ? P.shoeDark : outfit === 'coat' ? P.abayaBlack : cloth, sleeveW = outfit === 'abaya' ? 0.02 : 0;
   // ---- hips: pelvis (+ for a coat the long skirt); a long garment's skirt is its own joint so it can swing with a spring
   const hipItems = [G(sph(0.135, q), cloth, { y: 0.01, s: [1.12, 0.85, 0.78] })];
-  if (outfit === 'coat') hipItems.push(G(new THREE.LatheGeometry(V([[0.001, -0.58], [0.2, -0.58], [0.2, -0.2], [0.165, 0.05], [0.001, 0.05]]), q ? 20 : 10), cloth, { s: [1, 1, 0.8] }));
+  if (outfit === 'coat') hipItems.push(G(new THREE.LatheGeometry(V([[0.001, -0.58], [0.2, -0.58], [0.2, -0.2], [0.165, 0.05], [0.001, 0.05]]), q ? 14 : 8), cloth, { s: [1, 1, 0.8] }));
   const hipsMesh = M(hipItems, hips, 'hipsMesh');
   const waist0 = chestR * (fem ? 0.74 : 0.86) * 1.0;
   let skirt = null, skirtMesh = null;
   if (long) {
-    const hem = outfit === 'abaya' ? 0.33 : 0.265, items = [G(new THREE.LatheGeometry(V([[0.001, -0.89], [hem, -0.89], [hem * 0.86, -0.65], [0.22, -0.3], [0.18, -0.05], [0.145, 0.06], [waist0, 0.19], [0.001, 0.19]]), q ? 22 : 10), cloth, { s: [1, 1, 0.86] })];
-    if (outfit === 'abaya') items.push(G(new THREE.TorusGeometry(hem * 0.995, 0.008, 5, q ? 24 : 12), shade(cloth, 0.7), { y: -0.885, rx: Math.PI / 2, s: [1, 0.86, 1] }));
+    const hem = outfit === 'abaya' ? 0.33 : 0.265, items = [G(new THREE.LatheGeometry(V([[0.001, -0.89], [hem, -0.89], [hem * 0.86, -0.65], [0.22, -0.3], [0.18, -0.05], [0.145, 0.06], [waist0, 0.19], [0.001, 0.19]]), q ? 16 : 8), cloth, { s: [1, 1, 0.86] })];
+    if (outfit === 'abaya') items.push(G(new THREE.TorusGeometry(hem * 0.995, 0.008, 4, q ? 16 : 8), shade(cloth, 0.7), { y: -0.885, rx: Math.PI / 2, s: [1, 0.86, 1] }));
     skirt = J(hips, 0, 0, 0, 'skirt'); skirtMesh = M(items, skirt, 'skirtMesh');
   }
   // ---- legs: rounded thigh + shin with a proper rounded shoe
@@ -72,7 +72,7 @@ export function buildCharacter(o = {}) {
   // ---- spine / chest (tapered torso, shoulders) / neck / head
   const spine = J(hips, 0, 0.0, 0, 'spine'), chest = J(spine, 0, 0.22, 0, 'chest');
   const waist = chestR * (fem ? 0.74 : 0.86), bust = chestR * (fem ? 1.0 : 1.08);
-  const chestItems = [G(new THREE.LatheGeometry(V([[0.001, -0.1], [waist, -0.1], [waist * 1.02, 0.04], [bust, 0.27], [sh * 1.0, 0.4], [sh * 0.72, 0.465], [0.07, 0.505], [0.001, 0.505]]), q ? 22 : 10), cloth, { s: [1, 1, fem ? 0.6 : 0.64] }), G(limb(0.046, 0.05, 0.1, q), skin, { y: 0.58 })];
+  const chestItems = [G(new THREE.LatheGeometry(V([[0.001, -0.1], [waist, -0.1], [waist * 1.02, 0.04], [bust, 0.27], [sh * 1.0, 0.4], [sh * 0.72, 0.465], [0.07, 0.505], [0.001, 0.505]]), q ? 16 : 8), cloth, { s: [1, 1, fem ? 0.6 : 0.64] }), G(limb(0.046, 0.05, 0.1, q), skin, { y: 0.58 })];
   if (male && outfit === 'suit' || guest) chestItems.push(G(new THREE.BoxGeometry(0.1, 0.2, 0.02), P.shirtWhite, { y: 0.39, z: bust * 0.62 - 0.004 }), G(new THREE.BoxGeometry(0.022, 0.2, 0.012), P.suitNavy, { y: 0.36, z: bust * 0.62 + 0.008 }));
   if (outfit === 'coat') chestItems.push(G(new THREE.BoxGeometry(0.05, 0.2, 0.012), shade(cloth, 1.25), { y: 0.3, z: bust * 0.6 + 0.002 }));
   const chestMesh = M(chestItems, chest, 'chestMesh');
@@ -81,11 +81,11 @@ export function buildCharacter(o = {}) {
     G(sph(0.014, 0), skinD, { y: -0.012, z: 0.099, s: [0.9, 1.25, 1.1] }),
     G(sph(0.02, 0), skinD, { x: -0.093, y: 0.0, s: [0.5, 1.1, 0.8] }), G(sph(0.02, 0), skinD, { x: 0.093, y: 0.0, s: [0.5, 1.1, 0.8] }),
     G(new THREE.BoxGeometry(0.03, 0.0055, 0.006), hairC, { x: -0.038, y: 0.048, z: 0.095, rz: 0.12 }), G(new THREE.BoxGeometry(0.03, 0.0055, 0.006), hairC, { x: 0.038, y: 0.048, z: 0.095, rz: -0.12 })];
-  const wedge = (r, extra = 0.7) => new THREE.SphereGeometry(r, q ? 18 : 10, q ? 12 : 8, Math.PI / 2 + extra, Math.PI * 2 - 2 * extra, 0, 1.95);
+  const wedge = (r, extra = 0.7) => new THREE.SphereGeometry(r, q ? 14 : 8, q ? 9 : 6, Math.PI / 2 + extra, Math.PI * 2 - 2 * extra, 0, 1.95);
   const covered = o.scarf || (male && outfit === 'thobe');
   if (covered) {
-    headItems.push(G(wedge(0.124, 0.7), scarfC, { y: 0.012, z: -0.008 }), G(new THREE.LatheGeometry(V([[0.125, -0.02], [0.2, -0.17], [0.215, -0.27], [0.001, -0.27]]).reverse(), q ? 20 : 10), scarfC, { y: -0.01, z: -0.02, s: [1, 1, 0.82] }));
-    if (male) headItems.push(G(new THREE.TorusGeometry(0.115, 0.009, 6, q ? 20 : 12), P.agalBlack, { y: 0.065, rx: Math.PI / 2 }));
+    headItems.push(G(wedge(0.124, 0.7), scarfC, { y: 0.012, z: -0.008 }), G(new THREE.LatheGeometry(V([[0.125, -0.02], [0.2, -0.17], [0.215, -0.27], [0.001, -0.27]]).reverse(), q ? 14 : 8), scarfC, { y: -0.01, z: -0.02, s: [1, 1, 0.82] }));
+    if (male) headItems.push(G(new THREE.TorusGeometry(0.115, 0.009, 4, q ? 14 : 8), P.agalBlack, { y: 0.065, rx: Math.PI / 2 }));
   } else if (o.hair !== 'none') {
     const hs = o.hair || (male || guest ? 'short' : 'bun');
     headItems.push(G(wedge(0.112, hs === 'short' ? 0.55 : 0.82), hairC, { y: 0.008, z: -0.004 }));
@@ -108,6 +108,7 @@ export function buildCharacter(o = {}) {
   root.traverse((n) => { if (n.isMesh) api.meshes.push(n); });
   // ---- baked rest-pose mesh for far LOD (1 draw call)
   root.updateMatrixWorld(true); const parts = []; api.meshes.forEach((m) => parts.push(prep(m.geometry.clone().applyMatrix4(m.matrixWorld))));
+  if (q && !o._noFar) { const lo = buildCharacter({ ...o, q: 0, _noFar: true }); lo.group.updateMatrixWorld(true); parts.length = 0; lo.meshes.forEach((m) => parts.push(prep(m.geometry.clone().applyMatrix4(m.matrixWorld)))); lo.dispose(); }
   const far = new THREE.Mesh(mergeKeep(parts), material()); far.name = 'far'; far.visible = false; far.castShadow = false; root.add(far); far.matrixAutoUpdate = false; api.far = far; far.geometry.computeBoundingBox(); api.bounds = far.geometry.boundingBox.clone();
   api.setFar = (v) => { if (v === api.farOn) return; api.farOn = v; far.visible = v; for (const m of api.meshes) m.visible = !v; };
   api.drawCalls = () => (api.farOn ? 1 : api.meshes.length);

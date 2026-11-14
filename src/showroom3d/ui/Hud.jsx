@@ -5,12 +5,14 @@ import LogoImg from './LogoImg';
 import TouchControls from './TouchControls';
 import { IK, ikt } from '../products/campaignCopy';
 import { VIP_DEPT } from '../products/vipContent';
+import { staffById } from '../staff/roster';
+import { pick } from '../staff/guide';
 
 const dept = (id) => DEPARTMENTS.find((d) => d.id === id);
 const dname = (id, lang) => { if (id === 'ikhtarha') return ikt(IK.name, lang); if (id === VIP_DEPT.id) return lang === 'ar' ? VIP_DEPT.ar : VIP_DEPT.en; const d = dept(id); return d ? (lang === 'ar' ? d.ar : d.en) : ''; };
 
 /** Exploration HUD: top bar (logo, Departments, Menu), fading guidance, the interaction prompt / stub toast, and the touch controls. */
-export default function Hud({ lang, tier, touch, st, explorerRef, homeHref, onDepts, onMenu, onInteract, coach }) {
+export default function Hud({ lang, tier, touch, st, explorerRef, homeHref, onDepts, onMenu, onInteract, onTalk, chatOpen, coach }) {
   const [fade, setFade] = useState(false);
   const [toast, setToast] = useState(null);
   const started = st.locked || st.dragLook || st.moved || touch;
@@ -44,6 +46,7 @@ export default function Hud({ lang, tier, touch, st, explorerRef, homeHref, onDe
           <button type="button" className="sr-btn sr-btn-line" onClick={onMenu} aria-haspopup="dialog" data-testid="sr-open-menu">{t('menu', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">Esc</kbd>}</button>
         </div>
       </header>
+      {st.staff && !chatOpen && !st.focus && !st.paused && (() => { const d = staffById(st.staff); return d ? <button type="button" className="sr-btn sr-talk" onClick={onTalk} data-testid="sr-talk" data-staff={d.id}>{t('staffTalk', lang).replace('{name}', pick(d.name, lang))}{!touch && <kbd className="sr-kbd" aria-hidden="true">T</kbd>}</button> : null; })()}
       <footer className="sr-hud-bottom">
         <div className="sr-live" role="status" aria-live="polite">
           {zoneName && !toast && !st.focus && <p className="sr-prompt" data-testid="sr-prompt"><b>{zoneName}</b><span>{touch ? t('tapInteract', lang) : t('pressE', lang)}</span></p>}
