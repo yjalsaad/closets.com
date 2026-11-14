@@ -12,8 +12,10 @@ JOBS = {
   'closets-factory-floor': (closets, 16, 'p16-000', None), 'closets-factory-aerial': (closets, 2, 'p2-000', None), 'closets-machine': (closets, 18, 'p18-001', None),
   'closets-wardrobes': (closets, 8, 'p8-004', None), 'closets-kitchen': (closets, 9, 'p9-002', None), 'closets-bedroom': (closets, 14, 'p14-005', None), 'closets-living': (closets, 15, 'p15-007', None),
   'closets-durrat-marina': (closets, 22, 'p22-004', None), 'closets-dar-al-salam': (closets, 27, 'p27-006', None), 'closets-grand-tower': (closets, 30, 'p30-000', None), 'closets-the-homes': (closets, 34, 'p34-000', None),
-  'closets-hidd-heights': (closets, 37, 'p37-000', None), 'closets-hidd-interior': (closets, 38, 'p38-000', None), 'closets-alsidra': (closets, 47, 'p47-001', (0, 0, 0.94, 0.93)), 'closets-alsidra-interior': (closets, 49, 'p49-000', (0, 0, 0.94, 0.93)),
-  'yas-cover': (yas, None, 'y-000', None), 'yas-lounge': (yas, None, 'y-001', None), 'yas-vanity': (yas, None, 'y-003', None), 'yas-sideboard': (yas, None, 'y-025', None), 'yas-wardrobe': (yas, None, 'y-029', None), 'yas-oak': (yas, None, 'y-031', None), 'yas-door': (yas, None, 'y-032', None),
+  'closets-hidd-heights': (closets, 37, 'p37-000', None), 'closets-hidd-interior': (closets, 38, 'p38-000', None), 'closets-alsidra': (closets, 47, 'p47-001', (0, 0, 0.94, 0.93)),
+  'yas-cover': (yas, None, 'y-000', None), 'yas-lounge': (yas, None, 'y-001', None), 'yas-mission': (yas, None, 'y-002', None), 'yas-vanity': (yas, None, 'y-003', None),
+  'yas-fribourg': (yas, None, 'y-018', None), 'yas-agostino': (yas, None, 'y-021', None), 'yas-sideboard': (yas, None, 'y-025', None), 'yas-montello': (yas, None, 'y-026', None),
+  'yas-wardrobe': (yas, None, 'y-029', None), 'yas-celestine': (yas, None, 'y-031', None),
 }
 cache = {}
 def extract(pdf, page):
