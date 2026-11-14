@@ -304,3 +304,11 @@ Real devices and GPUs (frame rate, thermals, memory, shader compile on iOS), scr
 - Pre-existing: `CI=true` build fails on 12 mini-css-extract "Conflicting order" warnings from the studio `neoKitchen` CSS
   (cause: ~10 studio files import the same CSS files in different orders, e.g. `workspace.css` vs `workspace3d.css`). Not fixed here: a safe
   fix means choosing a cascade order for the studio designers, which cannot be verified visually in this task.
+
+
+## Characters and advisers (round 2)
+
+- `characters/rig.js` builds a procedural, jointed character (rounded lathe limbs, tapered torso, face with blinking eyes and jaw, mitten hands with thumb, hem and shoes; abaya / coat / thobe / suit; scarf, ghutra + agal, hair variants). The long skirt is its own joint driven by a damped spring (secondary motion). `characters/anim.js` is the pure state machine (idle, walk with arm swing and torso counter-rotation, gestures, talk).
+- `characters/visitorAvatar.js` + `follow.js`: the visitor's avatar (female / male / guest) and the collision-safe third-person camera; first person is the default; HUD button and menu toggle.
+- `staff/` holds the advisers: `roster.js` (placement, looks, role-based placeholder names, colliders), `staffScene.js` (3D manager, Reception desk and sign), `guide.js` (offline intent engine, guardrails, hand-off, rate limiter). UI: `ui/StaffChat.jsx`.
+- Screenshots under `screenshots/phase6-*` (older phase4b / phase5 images were pruned to keep the folder under 4 MB; the names in earlier sections of this file may point at pruned files).

@@ -96,7 +96,7 @@ async function ar(b) {
 
 async function mobile(b) {
   const o = await open(b, { mobile: true, viewport: { width: 390, height: 780 }, query: FAST + '&touch=1' }); const page = o.page;
-  await spot(page, 'reception'); check('mobile: the Talk button is visible and tappable', await talkBtn(page).isVisible());
+  await spot(page, 'reception'); await talkBtn(page).waitFor({ timeout: 10000 }); check('mobile: the Talk button is visible and tappable', await talkBtn(page).isVisible());
   await talkBtn(page).tap(); await page.waitForSelector('[data-testid="sr-chat"]'); await page.waitForSelector('.sr-chat-msg.is-staff:not(.is-typing)');
   const bx = await page.locator('[data-testid="sr-chat"]').boundingBox(); check('mobile: chat panel fits the viewport (no horizontal overflow)', bx.x >= 0 && bx.x + bx.width <= 391 && bx.y >= 0 && bx.y + bx.height <= 781, bx);
   await page.tap('[data-token="#services"]'); await settle(page, 900); await shot(page, 'phase6-mobile-chat', { quality: 68 });
@@ -108,6 +108,7 @@ async function bubble(b) {
   for (const mob of [false, true]) {
     const o = await L.openShowroom(b, { query: FAST + (mob ? '&touch=1' : ''), mobile: mob, viewport: mob ? { width: 390, height: 780 } : { width: 1100, height: 640 } }); const page = o.page; await L.enterExplore(page, { tap: mob }); await dismissCoach(page);
     await page.waitForSelector('[data-testid="sr-greet-bubble"]', { timeout: 8000 }); check((mob ? 'mobile' : 'desktop') + ': the greeting bubble shows in the hall', true);
+    if (mob) { await shot(page, 'phase6-bubble-hall-mobile', { quality: 66 }); const bb = await page.locator('[data-testid="sr-greet-bubble"]').boundingBox(), menu = await page.locator('[data-testid="sr-open-menu"]').boundingBox(); check('mobile: the bubble does not overlap the top buttons', bb.y > menu.y + menu.height, { bb, menu }); }
     await goto(page, [0, -27.4, 0, 0.05]); await page.keyboard.press('KeyE').catch(() => {}); await ex(page, (e) => e.explorer.focusVip(0)); await page.waitForSelector('[data-testid="sr-vip-panel"]', { timeout: 15000 });
     check((mob ? 'mobile' : 'desktop') + ': the greeting bubble is hidden while the VIP panel is open', (await page.locator('[data-testid="sr-greet-bubble"]').count()) === 0);
     await shot(page, 'phase6-bubble-vip-' + (mob ? 'mobile' : 'desktop'), { quality: 66 }); await o.ctx.close();
