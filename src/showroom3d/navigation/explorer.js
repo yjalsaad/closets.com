@@ -433,7 +433,7 @@ export class Explorer {
       if (Math.abs((this.engine.baseFov || 0) - f.fov) > 1e-3) { this.engine.baseFov = f.fov; this.engine.applyFov(); }
       if (this.engine.setViewShift) this.engine.setViewShift(f.sx || 0, f.sy || 0);
     } else if (this.camMode === 'third' && this.engine.avatar) {
-      const f = followCamera({ pos: w.pos, yaw: w.yaw, pitch: w.pitch }, this.colliders), k = this.tp && dt && !this.reduced ? 1 - Math.exp(-12 * dt) : 1;
+      const f = followCamera({ pos: w.pos, yaw: w.yaw, pitch: w.pitch }, this.colliders, this.tpOpt || {}), k = this.tp && dt && !this.reduced ? 1 - Math.exp(-12 * dt) : 1;
       this.tp = this.tp ? { x: this.tp.x + (f.x - this.tp.x) * k, y: this.tp.y + (f.y - this.tp.y) * k, z: this.tp.z + (f.z - this.tp.z) * k, pitch: this.tp.pitch + (f.pitch - this.tp.pitch) * k } : f;
       this.tpDist = f.dist; cam.position.set(this.tp.x, this.tp.y, this.tp.z); cam.rotation.set(this.tp.pitch, c.yaw, 0, 'YXZ');
     } else { cam.position.set(c.x, c.y, c.z); cam.rotation.set(c.pitch, c.yaw, c.roll, 'YXZ'); }

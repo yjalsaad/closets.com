@@ -2,7 +2,7 @@
  * ground speed. Hidden in first person (the default). */
 import * as THREE from 'three';
 import { buildCharacter } from './rig';
-import { createAnim, updateAnim, pose } from './anim';
+import { createAnim, updateAnim, pose, playGesture, speechEnvelope } from './anim';
 import { PALETTE as P } from '../3d/palette';
 
 export const AVATARS = {
@@ -23,8 +23,11 @@ export class VisitorAvatar {
   /** w = the walker (pos, yaw, speed); visible only in third-person mode */
   update(dt, w, { visible = false, reduced = false } = {}) {
     this.group.visible = !!visible; if (!visible) return;
-    this.group.position.set(w.pos[0], 0, w.pos[1]); this.group.rotation.y = w.yaw + Math.PI;
-    updateAnim(this.anim, dt, { speed: w.speed, reduced }); this.char.setPose(pose(this.anim, { reduced }));
+    this.group.position.set(w.pos[0], 0, w.pos[1]); this.group.rotation.y = w.yaw + Math.PI + (this.faceOffset || 0);
+    updateAnim(this.anim, dt, { speed: w.speed, reduced, talking: !!this.text, level: speechEnvelope(this.text, this.anim.t) }); this.char.setPose(pose(this.anim, { reduced }), dt);
   }
+  /** debug / demo hooks: say(text) starts the talk animation, say('') stops; gesture('wave'|'open'|'point'|'chest') */
+  say(text) { this.text = text || ''; }
+  gesture(name) { return playGesture(this.anim, name); }
   dispose() { if (this.char) this.char.dispose(); }
 }

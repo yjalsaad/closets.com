@@ -39,7 +39,7 @@ export function pose(a, { reduced = false } = {}) {
   const t = a.t, W = a.w, br = reduced ? 0 : Math.sin(t * 1.6), idle = 1 - W.walk;
   const sw = Math.sin(a.phase), sw2 = Math.sin(a.phase * 2), kneeL = Math.max(0, Math.sin(a.phase + 0.9)), kneeR = Math.max(0, Math.sin(a.phase + 0.9 + Math.PI));
   const P = {
-    hipsY: Math.abs(sw) * 0.022 * W.walk, hipsRotZ: reduced ? 0 : Math.sin(t * 0.45) * 0.025 * idle + sw * 0.03 * W.walk, hipsRotY: sw * 0.07 * W.walk,
+    hipsY: Math.abs(sw) * 0.022 * W.walk, hipsRotZ: reduced ? 0 : Math.sin(t * 0.45) * 0.025 * idle + sw * 0.03 * W.walk, hipsRotY: sw * 0.07 * W.walk, spineY: -sw * 0.1 * W.walk, walk: W.walk,
     spineX: 0.02 * br * idle + 0.04 * W.walk, chestLift: 0.006 * br, chestScale: 1 + 0.012 * br,
     neckX: 0, headX: Math.sin(t * 0.7) * 0.015 * idle, headY: reduced ? 0 : Math.sin(t * 0.33) * 0.05 * idle, headZ: 0, jaw: 0, blink: a.blink,
     shL: { x: -sw * 0.5 * W.walk, z: 0.06 }, shR: { x: sw * 0.5 * W.walk, z: -0.06 }, elL: { x: -0.12 - Math.max(0, sw) * 0.3 * W.walk }, elR: { x: -0.12 - Math.max(0, -sw) * 0.3 * W.walk }, wrR: { x: 0, z: 0 },
