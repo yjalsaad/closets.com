@@ -82,3 +82,7 @@ Source files (supplied by the owner, not in the repository): `THE_CLOSET_-_Compa
 
 ### Exports for the Bonsai Hub
 `docs/showroom3d/decks/closets-profile.json` and `yas-profile.json` are the two decks in the exact deck schema (images as absolute `https://www.the-closets.com/yas-bloom/profile/...` addresses: the files must be deployed there first). They use the `stat` block and the `layout` field added to the schema (see `VIP-DECKS.md`); a Hub importer that predates them should be updated to the same `deckSchema.js`.
+
+## The film ("Watch our story")
+
+The room has a film entry for "The Closets: The Journey of Ambition" / "الخزائن: حكاية طموح". It needs the files listed in `VIP-DECKS.md` section 9 under `public/yas-bloom/film/`; until they are deployed the room says "Film coming soon". The film is labelled "AI-generated illustration" on the screen, in the panel and in cinema mode. Please confirm: (1) the final title in both languages, (2) that the Arabic narration and both caption files were reviewed, (3) that the label wording is what you want shown.
