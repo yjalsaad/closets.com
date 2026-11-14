@@ -8,7 +8,9 @@ import { sanitizeDeck, resolveDeck, deckHasDisclaimer, FORBIDDEN_FINANCIAL, SITE
 import { FACTS } from '../../content/facts';
 
 const PUB = path.resolve(__dirname, '../../../public/yas-bloom/profile'), DOCS = path.resolve(__dirname, '../../../docs/showroom3d/decks');
-const SITE = 'https://www.the-closets.com';
+// Hub exports need absolute https image addresses. This is the VERIFIED production host (same default as src/seo/siteConfig.js);
+// the owner must confirm the real brand domain, then change this one constant and re-run with WRITE_DECK_JSON=1.
+const SITE = 'https://closets-website.vercel.app';
 const DECKS = [CLOSETS_PROFILE_DECK, YAS_PROFILE_DECK];
 const texts = (deck) => { const o = []; const add = (t) => { if (t) o.push(t); }; const visit = (s) => { add(s.title); add(s.lead); (s.bullets || []).forEach(add); add(s.source); (s.blocks || []).forEach((b) => { add(b.alt); add(b.caption); add(b.title); add(b.source); (b.head || []).forEach(add); (b.rows || []).forEach((r) => r.forEach(add)); (b.data || []).forEach((d) => add(d.label)); (b.items || []).forEach((d) => add(d.label)); }); (s.links || []).forEach((l) => add(l.label)); }; add(deck.title); deck.slides.forEach(visit); return o; };
 const images = (deck) => deck.slides.flatMap((s) => (s.blocks || []).filter((b) => b.type === 'image'));

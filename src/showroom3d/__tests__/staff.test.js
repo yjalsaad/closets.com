@@ -159,6 +159,13 @@ describe('adviser kiosks (owner decision: staffMode "kiosk" is the default)', ()
     expect(STAFF_MODE).toBe('kiosk'); expect(staffModeFrom('')).toBe('kiosk'); expect(staffModeFrom('?debug=1&staff=character')).toBe('character'); expect(staffModeFrom('?staff=robot')).toBe('kiosk');
     expect(portraitUrl('reception')).toMatch(/\/yas-bloom\/staff\/reception\.webp$/);
   });
+  test('every adviser in the roster has a portrait file on disk (3:4 WebP, <= 120 KB), and there are no orphan portraits', () => {
+    const fs = require('fs'), path = require('path'), { staffRoster } = require('../staff/roster');
+    const dir = path.resolve(__dirname, '../../../public/yas-bloom/staff'), ids = staffRoster().map((s) => s.id).sort();
+    expect(ids).toEqual(['bedroom', 'doors', 'kitchens', 'living', 'lounge', 'reception', 'studio', 'vip', 'walkin', 'wardrobes']);
+    expect(fs.readdirSync(dir).filter((f) => f.endsWith('.webp')).map((f) => f.replace('.webp', '')).sort()).toEqual(ids);
+    for (const id of ids) { const b = fs.readFileSync(path.join(dir, id + '.webp')); expect(b.length).toBeLessThanOrEqual(120 * 1024); expect(b.slice(0, 4).toString('latin1')).toBe('RIFF'); expect(b.slice(8, 12).toString('latin1')).toBe('WEBP'); }
+  });
   test('a kiosk is a 1.75 m totem inside the adviser collision circle, with the monogram fallback until a portrait really loads', () => {
     const restore = stubCanvas();
     try {

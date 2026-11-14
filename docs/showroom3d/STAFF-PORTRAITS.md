@@ -36,7 +36,7 @@ Ten head-and-shoulders portraits for the digital kiosks of the ten showroom advi
 
 ## Prompts
 
-Every prompt is `HEAD + description + expression + TAIL`. The full text per adviser, with job ids and result URLs, is in `public/yas-bloom/staff/portraits.json`.
+Every prompt is `HEAD + description + expression + TAIL`. The full text per adviser, with job ids and result URLs, is in `docs/showroom3d/staff-portraits.json`.
 
 - HEAD: `Photorealistic head-and-shoulders portrait photograph, vertical 3:4, of a fictional professional Gulf Arab woman who works as ...`
 - TAIL: `Background: a softly blurred luxury furniture showroom with dark walnut panelling and warm integrated lighting. Lighting: soft warm key light from the front left, gentle fill, subtle rim light. Shot on an 85mm lens at f/2, eye level, shallow depth of field, natural skin texture, minimal natural make-up, not retouched, not glossy. No text, no logos, no watermark.`
@@ -57,4 +57,4 @@ Per adviser description:
 
 ## Regenerating
 
-Re-run the same prompt with the same model and settings (0.25 credits each), fit to 768x1024, save as WebP at quality 86, and update `portraits.json`. Keep the shared HEAD / TAIL so a replacement still matches the set.
+Re-run the same prompt with the same model and settings (0.25 credits each), fit to 768x1024, save as WebP at quality 86, and update `docs/showroom3d/staff-portraits.json`. Keep the shared HEAD / TAIL so a replacement still matches the set.

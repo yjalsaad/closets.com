@@ -8,7 +8,7 @@ import { mergeGeometries } from '../../3d/geom';
 import { PALETTE as P } from '../../3d/palette';
 import { VIP } from './layout';
 import { makePanel } from '../products/screens';
-import { BUILTIN_DRAW, drawSlide, drawDeckChips, drawPlayOverlay, drawFilmOverlay, chipLayout, drawGallery, drawHubWall, drawFloorMap, drawHolo } from './panels';
+import { BUILTIN_DRAW, drawSlide, drawDeckChips, stampRoom, drawPlayOverlay, drawFilmOverlay, chipLayout, drawGallery, drawHubWall, drawFloorMap, drawHolo } from './panels';
 import { resolveDeck } from '../../vip/deckSchema';
 import { motionLevel, settleSeconds, easeInOut as eio } from '../../vip/motion';
 import { DEFAULT_DECK } from '../../vip/decks/default';
@@ -87,14 +87,15 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   const drawScreen = (g, w, h, l) => {
     g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
     const d = state.deck, sl = d.slides[state.station] || d.slides[0], bi = sl.builtin && BUILTIN_DRAW[sl.builtin], live = state.inside || state.focus;
+    const chipTitles = state.decks.length > 1 ? state.decks.map((x) => resolveDeck({ ...x, slides: [] }, l).title) : null, deckIndex = state.decks.indexOf(state.deck);
     if (bi) bi(g, w, h, { lang: l, t: state.t, logo: logoImg, projects: state.projects, film: state.film });
     else {
       const rd = resolveDeck({ ...d, slides: [sl] }, l);
-      drawSlide(g, w, h, { lang: l, slide: rd.slides[0], index: state.station, count: d.slides.length, deckTitle: rd.title, images: state.images, anim: state.motion.on && live ? { t: state.slideT, level: state.motion } : null });
+      drawSlide(g, w, h, { lang: l, slide: rd.slides[0], index: state.station, count: d.slides.length, deckTitle: rd.title, images: state.images, stampMax: stampRoom(chipTitles, w, l === 'ar', 3, deckIndex), anim: state.motion.on && live ? { t: state.slideT, level: state.motion } : null });
     }
     // slide change: the previous frame fades out and drifts away over the new slide (a cross-fade; skipped under reduced motion)
     if (state.prev && state.motion.on && state.slideT < state.motion.transition) { const e = eio(state.slideT / state.motion.transition); g.save(); g.globalAlpha = 1 - e; g.drawImage(state.prev, -state.transDir * (l === 'ar' ? -1 : 1) * e * 56, 0, w, h); g.restore(); }
-    if (state.decks.length > 1) drawDeckChips(g, w, h, { lang: l, decks: state.decks.map((x) => resolveDeck({ ...x, slides: [] }, l).title), deckIndex: state.decks.indexOf(state.deck) });
+    if (chipTitles) drawDeckChips(g, w, h, { lang: l, decks: chipTitles, deckIndex });
     if (state.progress >= 0) drawPlayOverlay(g, w, h, { lang: l, progress: state.progress, speed: state.speed });
   };
   /** keep the last frame so the next slide can cross-fade from it */

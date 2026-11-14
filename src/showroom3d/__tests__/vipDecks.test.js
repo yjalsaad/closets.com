@@ -4,7 +4,7 @@ import { sanitizeDeck, cleanText, cleanImageUrl, cleanRoute, LIMITS, ROUTE_WHITE
 import { markdownToDeck, parseMarkdownDeck } from '../vip/deckMarkdown';
 import { makeDeckStore, STORE_KEY, MAX_USER_DECKS, ERR } from '../vip/deckStore';
 import { initDeckState, deckReducer } from '../vip/deckState';
-import { chipLayout } from '../scenes/vip/panels';
+import { chipLayout, ellipsize, stampRoom } from '../scenes/vip/panels';
 import { EXAMPLE_MARKDOWN } from '../vip/example';
 import { STRINGS } from '../strings';
 import { arrowDir } from '../products/vipContent';
@@ -187,6 +187,13 @@ describe('RTL and strings', () => {
     expect(arrowDir('ArrowRight', true)).toBe(-1); expect(arrowDir('ArrowRight', false)).toBe(1);
     const ltr = chipLayout(['A', 'B', 'C'], 1536, false), rtl = chipLayout(['A', 'B', 'C'], 1536, true); expect(ltr[0].x).toBeGreaterThan(1536 / 2); expect(rtl[0].x).toBeLessThan(1536 / 2); for (const r of [...ltr, ...rtl]) { expect(r.x).toBeGreaterThanOrEqual(0); expect(r.x + r.w).toBeLessThanOrEqual(1536); }
     expect(chipLayout(['a', 'b', 'c', 'd', 'e', 'f'], 1536, false)).toHaveLength(3); expect(chipLayout(['a', 'b', 'c', 'd', 'e', 'f'], 1536, false, 3, 5).map((r) => r.i)).toEqual([3, 4, 5]); expect(chipLayout(['a', 'b', 'c', 'd'], 1536, false, 3, 2).map((r) => r.i)).toEqual([1, 2, 3]); expect(chipLayout(['a', 'b', 'c', 'd'], 1536, false, 3, 0).map((r) => r.i)).toEqual([0, 1, 2]);
+    // chips never overlap: there is a gap between neighbours, and every label is cut with an ellipsis to fit its own chip
+    const real = ['Company presentation', 'The Closets: Company Profile', 'YAS Profile (2023)', 'Watch our story'];
+    for (const rtlMode of [false, true]) for (const act of [0, 1, 2, 3]) { const rs = chipLayout(real, 1536, rtlMode, 3, act); for (let q = 1; q < rs.length; q++) expect(rs[q].x - (rs[q - 1].x + rs[q - 1].w)).toBeGreaterThanOrEqual(12); for (const r of rs) expect(r.w).toBeLessThanOrEqual(250); }
+    const m = (t) => t.length * 13; expect(ellipsize('short', 200, m)).toBe('short'); const cut = ellipsize('The Closets: Company Profile', 214, m); expect(cut.endsWith('…')).toBe(true); expect(m(cut)).toBeLessThanOrEqual(214); expect(cut.length).toBeGreaterThan(8); expect(ellipsize('abc', 1, m)).toBe('…');
+    // the slide stamp line keeps clear of the chips (LTR: chips on the right; RTL: chips on the left), and has no limit when no chips are drawn
+    expect(stampRoom(['only'], 1536, false)).toBe(0); expect(stampRoom(null, 1536, false)).toBe(0);
+    for (const rtlMode of [false, true]) { const room = stampRoom(real, 1536, rtlMode, 3, 1), rs = chipLayout(real, 1536, rtlMode, 3, 1); expect(room).toBeGreaterThan(300); if (rtlMode) expect(1536 - 70 - room).toBeGreaterThan(rs[rs.length - 1].x + rs[rs.length - 1].w); else expect(70 + room).toBeLessThan(rs[0].x); }
   });
   test('all new UI strings exist in EN and AR (the strings test also checks Arabic script and no emoji)', () => {
     for (const k of ['vipDeckLabel', 'vipDeckAdd', 'vipDeckDelete', 'vipDeckLocal', 'vdTitle', 'vdResponsible', 'vdLocal', 'vdSave', 'vdErrBlocked', 'vdErrFull', 'vdErrMax', 'vdEmpty', 'vdValid']) { expect(STRINGS[k].en.length).toBeGreaterThan(3); expect(/[؀-ۿ]/.test(STRINGS[k].ar)).toBe(true); }

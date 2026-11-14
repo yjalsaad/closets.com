@@ -4,18 +4,18 @@
  * Deliberate omissions are listed in docs/showroom3d/VIP-ROOM-OWNER-INPUTS.md (e.g. the "100%" recycled-wood claim, a third party's development value, staff photos, phone numbers).
  * Arabic is a faithful translation awaiting native review. Photos: public/yas-bloom/profile (scripts/showroom3d-profile/make-images.py). */
 const T = (en, ar) => ({ en, ar });
-const SRC = (pp) => T(`The Closets Company Profile, ${/[-,]/.test(pp) ? 'pp.' : 'p.'} ${pp}`, `ملف شركة ذا كلوزتس، ص ${pp}`);
+const SRC = (pp) => T(`The Closets Company Profile, ${/[-,]/.test(pp) ? 'pp.' : 'p.'} ${pp}`, `ملف شركة الخزائن، ص ${pp}`);
 const IMG = (name, alt, caption) => ({ type: 'image', url: `/yas-bloom/profile/${name}.webp`, alt, ...(caption ? { caption } : {}) });
 
 export const CLOSETS_PROFILE_DECK = {
   id: 'closets-profile', unit: 'slide', builtin: true,
-  title: T('The Closets: Company Profile', 'ذا كلوزتس: ملف الشركة'),
+  title: T('The Closets: Company Profile', 'الخزائن: ملف الشركة'),
   slides: [
-    { id: 'cover', layout: 'hero', accent: 'orange', title: T('The Closets: Company Profile', 'ذا كلوزتس: ملف الشركة'),
+    { id: 'cover', layout: 'hero', accent: 'orange', title: T('The Closets: Company Profile', 'الخزائن: ملف الشركة'),
       lead: T('Closets and kitchens, made in Bahrain since 2007.', 'خزائن ومطابخ تُصنع في البحرين منذ عام 2007.'),
       bullets: [T('From the profile supplied by management.', 'من الملف المقدَّم من الإدارة.')],
-      blocks: [IMG('closets-factory-aerial', T('Overhead view of The Closets factory floor with panel-processing machinery', 'منظر علوي لأرضية مصنع ذا كلوزتس مع آلات معالجة الألواح'))],
-      source: T('The Closets Company Profile, pp. 1-2. Arabic text awaits native review.', 'ملف شركة ذا كلوزتس، ص 1-2. النص العربي بانتظار مراجعة ناطق أصلي.') },
+      blocks: [IMG('closets-factory-aerial', T('Overhead view of The Closets factory floor with panel-processing machinery', 'منظر علوي لأرضية مصنع الخزائن مع آلات معالجة الألواح'))],
+      source: T('The Closets Company Profile, pp. 1-2. Arabic text awaits native review.', 'ملف شركة الخزائن، ص 1-2. النص العربي بانتظار مراجعة ناطق أصلي.') },
     { id: 'who', accent: 'orange', title: T('Who we are', 'من نحن'),
       lead: T('Established in 2007 in the Kingdom of Bahrain.', 'تأسست عام 2007 في مملكة البحرين.'),
       bullets: [
@@ -58,7 +58,7 @@ export const CLOSETS_PROFILE_DECK = {
         T('2011: fourth showroom opens in the Sanad area.', '2011: افتتاح صالة العرض الرابعة في منطقة سند.'),
         T('2012: first showroom in Khobar, Saudi Arabia.', '2012: أول صالة عرض في الخبر بالسعودية.'),
         T('2013: ISO 9001:2008 earned; Franke added to the official suppliers.', '2013: الحصول على ISO 9001:2008؛ وانضمام Franke إلى الموردين الرسميين.'),
-        T('2014: Kesseböhmer added; the 5000 sqm Closets factory opens.', '2014: انضمام Kesseböhmer؛ وافتتاح مصنع ذا كلوزتس بمساحة 5000 م².'),
+        T('2014: Kesseböhmer added; the 5000 sqm Closets factory opens.', '2014: انضمام Kesseböhmer؛ وافتتاح مصنع الخزائن بمساحة 5000 م².'),
       ], source: SRC('20') },
     { id: 'history-3', accent: 'orange', title: T('Milestones: 2016 to 2019', 'محطات: 2016 إلى 2019'),
       bullets: [
@@ -112,7 +112,7 @@ export const CLOSETS_PROFILE_DECK = {
       bullets: [
         T('Capacity as stated in the profile, on a single shift.', 'الطاقة كما ورد في الملف، في وردية واحدة.'),
         T('First factory, 2008: 500 sqm.', 'المصنع الأول، 2008: 500 متر مربع.'),
-        T('Closets factory, 2014: 5000 sqm.', 'مصنع ذا كلوزتس، 2014: 5000 متر مربع.'),
+        T('Closets factory, 2014: 5000 sqm.', 'مصنع الخزائن، 2014: 5000 متر مربع.'),
       ],
       blocks: [{ type: 'stat', items: [{ value: 70000, label: T('kitchen units per year', 'وحدة مطبخ سنويًا') }, { value: 5000, suffix: ' sqm', label: T('factory area', 'مساحة المصنع') }] }],
       source: SRC('16, 18, 20') },

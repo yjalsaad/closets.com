@@ -9,7 +9,7 @@ export const DEFAULT_DECK = {
     { id: 'story', builtin: 'story', title: { en: 'Company story and brand', ar: 'قصة الشركة وهويتها' },
       lead: { en: 'Designed, made and fitted in Bahrain.', ar: 'تصميم وتصنيع وتركيب في البحرين.' },
       bullets: [
-        { en: 'The Closets Co. designs, makes and fits kitchens, wardrobes, walk-in closets, bedrooms, doors and living-room units for homes in Bahrain.', ar: 'ذا كلوزتس تصمّم وتصنّع وتركّب المطابخ وخزائن الملابس وغرف الملابس وغرف النوم والأبواب ووحدات المعيشة للمنازل في البحرين.' },
+        { en: 'The Closets Co. designs, makes and fits kitchens, wardrobes, walk-in closets, bedrooms, doors and living-room units for homes in Bahrain.', ar: 'شركة الخزائن تصمّم وتصنّع وتركّب المطابخ وخزائن الملابس وغرف الملابس وغرف النوم والأبواب ووحدات المعيشة للمنازل في البحرين.' },
         { en: '{{fact:warrantyYears}} years on cabinetry and soft-close hardware.', ar: '{{fact:warrantyYears}} سنوات على الخزائن وملحقات الإغلاق الهادئ.' },
         { en: 'Every piece is made to measure: we survey, design, make and fit.', ar: 'كل قطعة تُصنع على المقاس: نقيس ونصمّم ونصنّع ونركّب.' },
         { en: 'Customers can plan a room online in the Design Studio, then book a designer.', ar: 'يمكن للعملاء تخطيط غرفتهم عبر الإنترنت في استوديو التصميم ثم حجز مصمّم.' },

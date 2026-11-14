@@ -26,7 +26,7 @@
       "blocks": [
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/yas-cover.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/yas-cover.webp",
           "alt": {
             "en": "A bright room with a light sideboard, from the YAS Wood profile cover",
             "ar": "غرفة مضيئة مع بوفيه فاتح، من غلاف ملف YAS Wood"
@@ -60,13 +60,13 @@
         },
         {
           "en": "A subsidiary of YAS Holding; sister company of The Closets.",
-          "ar": "تابعة لـ YAS Holding؛ وشقيقة ذا كلوزتس."
+          "ar": "تابعة لـ YAS Holding؛ وشقيقة لشركة الخزائن."
         }
       ],
       "blocks": [
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/yas-lounge.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/yas-lounge.webp",
           "alt": {
             "en": "A light-oak cabinet by a window",
             "ar": "خزانة من خشب البلوط الفاتح عند نافذة"
@@ -102,7 +102,7 @@
       "blocks": [
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/yas-mission.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/yas-mission.webp",
           "alt": {
             "en": "A light-oak door beside a dark console",
             "ar": "باب من البلوط الفاتح بجانب كونسول داكن"
@@ -142,7 +142,7 @@
       "blocks": [
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/yas-vanity.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/yas-vanity.webp",
           "alt": {
             "en": "A dark wood-grain vanity unit",
             "ar": "وحدة مغسلة بسطح خشبي داكن"
@@ -192,7 +192,7 @@
       "blocks": [
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/yas-fribourg.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/yas-fribourg.webp",
           "alt": {
             "en": "A cabinet with glazed doors in Fribourg Oak",
             "ar": "خزانة بأبواب زجاجية بديكور Fribourg Oak"
@@ -204,7 +204,7 @@
         },
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/yas-agostino.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/yas-agostino.webp",
           "alt": {
             "en": "A dark vanity unit in Agostino Oak",
             "ar": "وحدة مغسلة داكنة بديكور Agostino Oak"
@@ -231,7 +231,7 @@
       "blocks": [
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/yas-sideboard.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/yas-sideboard.webp",
           "alt": {
             "en": "A sideboard in Abisko Ash with posters above",
             "ar": "بوفيه بديكور Abisko Ash مع ملصقات فوقه"
@@ -243,7 +243,7 @@
         },
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/yas-montello.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/yas-montello.webp",
           "alt": {
             "en": "Marble-look coffee tables, Montello",
             "ar": "طاولات قهوة بمظهر الرخام، Montello"
@@ -270,7 +270,7 @@
       "blocks": [
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/yas-wardrobe.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/yas-wardrobe.webp",
           "alt": {
             "en": "A wardrobe with grey fronts and an open shelf, Lucenta",
             "ar": "خزانة ملابس بواجهات رمادية ورف مفتوح، Lucenta"
@@ -282,7 +282,7 @@
         },
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/yas-celestine.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/yas-celestine.webp",
           "alt": {
             "en": "A cabinet in Celestine Oak",
             "ar": "خزانة بديكور Celestine Oak"

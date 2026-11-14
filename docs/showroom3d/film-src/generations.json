@@ -1,5 +1,5 @@
 {
- "note": "Ledger of every Higgsfield generation made for the VIP film (45.44 credits). The ten adviser portraits (2.5 credits) are in public/yas-bloom/staff/portraits.json. Result URLs are on the Higgsfield CDN; re-download them instead of regenerating. Balance: 50.00 -> 4.56 after the film -> 2.06 after the portraits.",
+ "note": "Ledger of every Higgsfield generation made for the VIP film (45.44 credits). The ten adviser portraits (2.5 credits) are in docs/showroom3d/staff-portraits.json. Result URLs are on the Higgsfield CDN; re-download them instead of regenerating. Balance: 50.00 -> 4.56 after the film -> 2.06 after the portraits.",
  "account": {
   "plan": "basic",
   "credits_before": 50,

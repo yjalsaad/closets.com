@@ -81,7 +81,7 @@ Source files (supplied by the owner, not in the repository): `THE_CLOSET_-_Compa
 * QR codes, the YAS gallery of partner certificate images, all portraits.
 
 ### Exports for the Bonsai Hub
-`docs/showroom3d/decks/closets-profile.json` and `yas-profile.json` are the two decks in the exact deck schema (images as absolute `https://www.the-closets.com/yas-bloom/profile/...` addresses: the files must be deployed there first). They use the `stat` block and the `layout` field added to the schema (see `VIP-DECKS.md`); a Hub importer that predates them should be updated to the same `deckSchema.js`.
+`docs/showroom3d/decks/closets-profile.json` and `yas-profile.json` are the two decks in the exact deck schema (images as absolute `https://closets-website.vercel.app/yas-bloom/profile/...` addresses. That is the verified production host today; the owner must confirm the real brand domain, then change the `SITE` constant in `src/showroom3d/__tests__/vipProfileDecks.test.js` and regenerate with `WRITE_DECK_JSON=1`. The image files must be deployed on that host first). They use the `stat` block and the `layout` field added to the schema (see `VIP-DECKS.md`); a Hub importer that predates them should be updated to the same `deckSchema.js`.
 
 ## The film ("Watch our story")
 

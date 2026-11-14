@@ -2,7 +2,7 @@
   "id": "closets-profile",
   "title": {
     "en": "The Closets: Company Profile",
-    "ar": "ذا كلوزتس: ملف الشركة"
+    "ar": "الخزائن: ملف الشركة"
   },
   "slides": [
     {
@@ -11,7 +11,7 @@
       "accent": "orange",
       "title": {
         "en": "The Closets: Company Profile",
-        "ar": "ذا كلوزتس: ملف الشركة"
+        "ar": "الخزائن: ملف الشركة"
       },
       "lead": {
         "en": "Closets and kitchens, made in Bahrain since 2007.",
@@ -26,16 +26,16 @@
       "blocks": [
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/closets-factory-aerial.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/closets-factory-aerial.webp",
           "alt": {
             "en": "Overhead view of The Closets factory floor with panel-processing machinery",
-            "ar": "منظر علوي لأرضية مصنع ذا كلوزتس مع آلات معالجة الألواح"
+            "ar": "منظر علوي لأرضية مصنع الخزائن مع آلات معالجة الألواح"
           }
         }
       ],
       "source": {
         "en": "The Closets Company Profile, pp. 1-2. Arabic text awaits native review.",
-        "ar": "ملف شركة ذا كلوزتس، ص 1-2. النص العربي بانتظار مراجعة ناطق أصلي."
+        "ar": "ملف شركة الخزائن، ص 1-2. النص العربي بانتظار مراجعة ناطق أصلي."
       }
     },
     {
@@ -85,13 +85,13 @@
           ],
           "source": {
             "en": "The Closets Company Profile, p. 2",
-            "ar": "ملف شركة ذا كلوزتس، ص 2"
+            "ar": "ملف شركة الخزائن، ص 2"
           }
         }
       ],
       "source": {
         "en": "The Closets Company Profile, p. 2",
-        "ar": "ملف شركة ذا كلوزتس، ص 2"
+        "ar": "ملف شركة الخزائن، ص 2"
       }
     },
     {
@@ -121,7 +121,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, p. 3",
-        "ar": "ملف شركة ذا كلوزتس، ص 3"
+        "ar": "ملف شركة الخزائن، ص 3"
       },
       "blocks": []
     },
@@ -152,7 +152,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, p. 4",
-        "ar": "ملف شركة ذا كلوزتس، ص 4"
+        "ar": "ملف شركة الخزائن، ص 4"
       },
       "blocks": []
     },
@@ -183,7 +183,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, p. 4",
-        "ar": "ملف شركة ذا كلوزتس، ص 4"
+        "ar": "ملف شركة الخزائن، ص 4"
       },
       "blocks": []
     },
@@ -214,7 +214,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, p. 20",
-        "ar": "ملف شركة ذا كلوزتس، ص 20"
+        "ar": "ملف شركة الخزائن، ص 20"
       },
       "blocks": []
     },
@@ -240,12 +240,12 @@
         },
         {
           "en": "2014: Kesseböhmer added; the 5000 sqm Closets factory opens.",
-          "ar": "2014: انضمام Kesseböhmer؛ وافتتاح مصنع ذا كلوزتس بمساحة 5000 م²."
+          "ar": "2014: انضمام Kesseböhmer؛ وافتتاح مصنع الخزائن بمساحة 5000 م²."
         }
       ],
       "source": {
         "en": "The Closets Company Profile, p. 20",
-        "ar": "ملف شركة ذا كلوزتس، ص 20"
+        "ar": "ملف شركة الخزائن، ص 20"
       },
       "blocks": []
     },
@@ -276,7 +276,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, p. 20",
-        "ar": "ملف شركة ذا كلوزتس، ص 20"
+        "ar": "ملف شركة الخزائن، ص 20"
       },
       "blocks": []
     },
@@ -307,7 +307,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, p. 5",
-        "ar": "ملف شركة ذا كلوزتس، ص 5"
+        "ar": "ملف شركة الخزائن، ص 5"
       },
       "blocks": []
     },
@@ -334,7 +334,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, p. 6",
-        "ar": "ملف شركة ذا كلوزتس، ص 6"
+        "ar": "ملف شركة الخزائن، ص 6"
       },
       "blocks": []
     },
@@ -414,7 +414,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, pp. 7-15",
-        "ar": "ملف شركة ذا كلوزتس، ص 7-15"
+        "ar": "ملف شركة الخزائن، ص 7-15"
       }
     },
     {
@@ -438,7 +438,7 @@
       "blocks": [
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/closets-wardrobes.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/closets-wardrobes.webp",
           "alt": {
             "en": "A walk-in closet with shelving and an island",
             "ar": "غرفة ملابس مع رفوف وجزيرة وسطية"
@@ -450,7 +450,7 @@
         },
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/closets-kitchen.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/closets-kitchen.webp",
           "alt": {
             "en": "A fitted kitchen with an island",
             "ar": "مطبخ مجهّز مع جزيرة"
@@ -463,7 +463,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, pp. 8-12",
-        "ar": "ملف شركة ذا كلوزتس، ص 8-12"
+        "ar": "ملف شركة الخزائن، ص 8-12"
       }
     },
     {
@@ -487,7 +487,7 @@
       "blocks": [
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/closets-bedroom.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/closets-bedroom.webp",
           "alt": {
             "en": "A bedroom with built-in storage",
             "ar": "غرفة نوم مع تخزين مدمج"
@@ -499,7 +499,7 @@
         },
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/closets-living.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/closets-living.webp",
           "alt": {
             "en": "A living room with a TV wall unit",
             "ar": "غرفة معيشة مع وحدة تلفاز جدارية"
@@ -512,7 +512,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, pp. 13-15",
-        "ar": "ملف شركة ذا كلوزتس، ص 13-15"
+        "ar": "ملف شركة الخزائن، ص 13-15"
       }
     },
     {
@@ -543,7 +543,7 @@
       "blocks": [
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/closets-factory-floor.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/closets-factory-floor.webp",
           "alt": {
             "en": "The factory floor with panel saws and stacked boards",
             "ar": "أرضية المصنع مع مناشير الألواح ولوحات مكدّسة"
@@ -552,7 +552,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, p. 16",
-        "ar": "ملف شركة ذا كلوزتس، ص 16"
+        "ar": "ملف شركة الخزائن، ص 16"
       }
     },
     {
@@ -573,7 +573,7 @@
         },
         {
           "en": "Closets factory, 2014: 5000 sqm.",
-          "ar": "مصنع ذا كلوزتس، 2014: 5000 متر مربع."
+          "ar": "مصنع الخزائن، 2014: 5000 متر مربع."
         }
       ],
       "blocks": [
@@ -600,7 +600,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, pp. 16, 18, 20",
-        "ar": "ملف شركة ذا كلوزتس، ص 16, 18, 20"
+        "ar": "ملف شركة الخزائن، ص 16, 18, 20"
       }
     },
     {
@@ -627,7 +627,7 @@
       "blocks": [
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/closets-machine.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/closets-machine.webp",
           "alt": {
             "en": "A technician at an edge-banding line in the factory",
             "ar": "فني عند خط تحديد الحواف في المصنع"
@@ -636,7 +636,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, p. 18",
-        "ar": "ملف شركة ذا كلوزتس، ص 18"
+        "ar": "ملف شركة الخزائن، ص 18"
       }
     },
     {
@@ -662,7 +662,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, p. 19",
-        "ar": "ملف شركة ذا كلوزتس، ص 19"
+        "ar": "ملف شركة الخزائن، ص 19"
       },
       "blocks": []
     },
@@ -697,7 +697,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, p. 21",
-        "ar": "ملف شركة ذا كلوزتس، ص 21"
+        "ar": "ملف شركة الخزائن، ص 21"
       },
       "blocks": []
     },
@@ -728,7 +728,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, p. 21",
-        "ar": "ملف شركة ذا كلوزتس، ص 21"
+        "ar": "ملف شركة الخزائن، ص 21"
       },
       "blocks": []
     },
@@ -753,7 +753,7 @@
       "blocks": [
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/closets-durrat-marina.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/closets-durrat-marina.webp",
           "alt": {
             "en": "The pool deck at 360° Durrat Marina",
             "ar": "منصة المسبح في 360° درة مارينا"
@@ -765,7 +765,7 @@
         },
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/closets-dar-al-salam.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/closets-dar-al-salam.webp",
           "alt": {
             "en": "A living room at Dar Al Salam, Reef Island",
             "ar": "غرفة معيشة في دار السلام، جزيرة ريف"
@@ -778,7 +778,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, pp. 22, 27",
-        "ar": "ملف شركة ذا كلوزتس، ص 22, 27"
+        "ar": "ملف شركة الخزائن، ص 22, 27"
       }
     },
     {
@@ -802,7 +802,7 @@
       "blocks": [
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/closets-grand-tower.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/closets-grand-tower.webp",
           "alt": {
             "en": "A living room with a sea view in The Grand Tower",
             "ar": "غرفة معيشة بإطلالة بحرية في The Grand Tower"
@@ -814,7 +814,7 @@
         },
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/closets-hidd-heights.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/closets-hidd-heights.webp",
           "alt": {
             "en": "The Hidd Heights building",
             "ar": "مبنى Hidd Heights"
@@ -827,7 +827,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, pp. 29, 37",
-        "ar": "ملف شركة ذا كلوزتس، ص 29, 37"
+        "ar": "ملف شركة الخزائن، ص 29, 37"
       }
     },
     {
@@ -851,7 +851,7 @@
       "blocks": [
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/closets-the-homes.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/closets-the-homes.webp",
           "alt": {
             "en": "A living room in The Homes villas",
             "ar": "غرفة معيشة في فلل The Homes"
@@ -863,7 +863,7 @@
         },
         {
           "type": "image",
-          "url": "https://www.the-closets.com/yas-bloom/profile/closets-alsidra.webp",
+          "url": "https://closets-website.vercel.app/yas-bloom/profile/closets-alsidra.webp",
           "alt": {
             "en": "A villa exterior at Alsidra",
             "ar": "واجهة فيلا في السدرة"
@@ -876,7 +876,7 @@
       ],
       "source": {
         "en": "The Closets Company Profile, pp. 33, 47",
-        "ar": "ملف شركة ذا كلوزتس، ص 33, 47"
+        "ar": "ملف شركة الخزائن، ص 33, 47"
       }
     }
   ]

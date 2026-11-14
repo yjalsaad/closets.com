@@ -20,7 +20,7 @@ export const YAS_PROFILE_DECK = {
         T('Surfaces and solutions for furniture and interior design.', 'أسطح وحلول للأثاث والتصميم الداخلي.'),
         T('Faced panels, laminates and edges made with advanced technologies.', 'ألواح مكسوّة ولامينيت وحواف بتقنيات متقدمة.'),
         T('Delivering products and services since 2007.', 'تقدّم منتجاتها وخدماتها منذ عام 2007.'),
-        T('A subsidiary of YAS Holding; sister company of The Closets.', 'تابعة لـ YAS Holding؛ وشقيقة ذا كلوزتس.'),
+        T('A subsidiary of YAS Holding; sister company of The Closets.', 'تابعة لـ YAS Holding؛ وشقيقة لشركة الخزائن.'),
       ],
       blocks: [IMG('yas-lounge', T('A light-oak cabinet by a window', 'خزانة من خشب البلوط الفاتح عند نافذة'))], source: SRC('2') },
     { id: 'mission-vision', accent: 'sage', title: T('Mission and vision', 'الرسالة والرؤية'),

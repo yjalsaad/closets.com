@@ -27,7 +27,7 @@ export function drawStudioScreen(g, w, h, lang, L) {
   g.fillStyle = hex(P.screenDark); g.fillRect(0, 0, w, h);
   const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, hex(P.charcoal)); gr.addColorStop(1, hex(P.screenDark)); g.fillStyle = gr; g.fillRect(0, 0, w, h);
   g.fillStyle = hex(P.brandOrange); g.fillRect(rtl ? w - 56 - 70 : 56, 52, 70, 5);
-  g.fillStyle = hex(P.sand); g.font = `700 32px ${FONT}`; g.textAlign = al; g.fillText(L('THE CLOSETS CO.', 'ذا كلوزتس'), x0, 98);
+  g.fillStyle = hex(P.sand); g.font = `700 32px ${FONT}`; g.textAlign = al; g.fillText(L('THE CLOSETS CO.', 'الخزائن'), x0, 98);
   g.font = `700 76px ${FONT}`; g.fillText(L('Design Studio', 'استوديو التصميم'), x0, 190);
   g.fillStyle = hex(P.sand); g.font = `500 34px ${FONT}`; wrap(g, L('Plan your room in 3D and get a live price estimate, then book a designer to make it real.', 'صمّم غرفتك ثلاثية الأبعاد واحصل على تقدير سعر فوري، ثم احجز مصمّماً لتنفيذها.'), x0, 252, w * 0.52, 46, al);
   g.fillStyle = hex(P.brandOrange); roundedRect(g, rtl ? w - 56 - 420 : 56, h - 128, 420, 76, 38); g.fill();

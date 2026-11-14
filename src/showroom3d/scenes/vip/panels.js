@@ -45,7 +45,7 @@ export function drawProjectsScreen(g, w, h, o) {
   const k = kit(g, w, h, o.lang), { lang, t = 0 } = o; k.bg(); head(k, w, lang === 'ar' ? `المحطة 2 من ${C.STATIONS.length}` : `STATION 2 OF ${C.STATIONS.length}`, Lx(C.STATIONS[1].title, lang));
   const lines = businessLines(lang), cx = k.rtl ? w * 0.3 : w * 0.7, cy = h * 0.55, R = Math.min(w * 0.22, h * 0.36);
   g.strokeStyle = rgba(P.screenGlow, 0.25); g.lineWidth = 2; for (const rr of [R * 0.55, R]) { g.beginPath(); g.arc(cx, cy, rr, 0, Math.PI * 2); g.stroke(); }
-  g.fillStyle = hex(P.brandOrange); g.beginPath(); g.arc(cx, cy, 54, 0, Math.PI * 2); g.fill(); k.text(lang === 'ar' ? 'ذا كلوزتس' : 'The Closets', cx, cy + 7, { size: 20, weight: 700, color: P.ink, align: 'center' });
+  g.fillStyle = hex(P.brandOrange); g.beginPath(); g.arc(cx, cy, 54, 0, Math.PI * 2); g.fill(); k.text(lang === 'ar' ? 'الخزائن' : 'The Closets', cx, cy + 7, { size: 20, weight: 700, color: P.ink, align: 'center' });
   lines.forEach((l, i) => { const a = (i / lines.length) * Math.PI * 2 - Math.PI / 2, x = cx + Math.cos(a) * R, y = cy + Math.sin(a) * R; g.strokeStyle = rgba(P.brassPale, 0.35); g.beginPath(); g.moveTo(cx, cy); g.lineTo(x, y); g.stroke();
     const pulse = 0.5 + 0.5 * Math.sin(t * 2 + i), nr = 12 + pulse * 3; g.fillStyle = l.href ? hex(P.brassPale) : hex(P.taupe); g.beginPath(); g.arc(x, y, nr, 0, Math.PI * 2); g.fill();
     const right = Math.cos(a) >= 0, tx = x + (right ? 24 : -24); k.text(Lx(l.name, lang), tx, y + 8, { size: 24, weight: 600, align: right ? 'left' : 'right' }); });
@@ -135,13 +135,26 @@ const ACCENT = { orange: P.brandOrange, brass: P.brassPale, sand: P.sand, sage: 
 
 /** deck chips along the top of the wall screen (only drawn when there is more than one deck). Pure layout in design pixels, shared by the drawing and the click hit-test. */
 export function chipLayout(titles, w, rtl, max = 3, active = 0) {
-  const n = Math.min(titles.length, max), start = Math.max(0, Math.min(titles.length - n, active - 1)), gap = 12, h = 46, y = 18; let total = 0;   // a window of `max` chips that always contains the active deck
-  const widths = titles.slice(start, start + n).map((t) => { const cw = Math.min(250, 36 + t.length * 11); total += cw; return cw; }); total += gap * (n - 1);
+  const n = Math.min(titles.length, max), start = Math.max(0, Math.min(titles.length - n, active - 1)), gap = 16, h = 46, y = 18; let total = 0;   // a window of `max` chips that always contains the active deck
+  const widths = titles.slice(start, start + n).map((t) => { const cw = Math.min(CHIP_MAX, 44 + t.length * 12); total += cw; return cw; }); total += gap * (n - 1);
   let x = rtl ? 70 : w - 70 - total; return widths.map((cw, i) => { const r = { i: start + i, x, y, w: cw, h }; x += cw + gap; return r; });
+}
+const CHIP_MAX = 250, CHIP_PAD = 18;
+/** the longest prefix of `s` (plus an ellipsis) that fits `maxW` in the CURRENT font; `measure` is g.measureText(...).width. Pure, so it is unit-tested. */
+export function ellipsize(s, maxW, measure) {
+  const str = String(s); if (measure(str) <= maxW) return str; let lo = 0, hi = str.length;
+  while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (measure(str.slice(0, mid).trimEnd() + '…') <= maxW) lo = mid; else hi = mid - 1; }
+  return lo > 0 ? str.slice(0, lo).trimEnd() + '…' : '…';
+}
+/** room left for the slide stamp line ("Deck title · SLIDE 2 OF 23") beside the chips, in design pixels (0 = no limit: no chips are drawn) */
+export function stampRoom(titles, w, rtl, max = 3, active = 0, X = 70, gap = 28) {
+  if (!titles || titles.length < 2) return 0; const rects = chipLayout(titles, w, rtl, max, active);
+  return Math.max(120, rtl ? w - X - (rects[rects.length - 1].x + rects[rects.length - 1].w) - gap : rects[0].x - X - gap);
 }
 export function drawDeckChips(g, w, h, o) {
   const k = kit(g, w, h, o.lang), titles = o.decks; if (!titles || titles.length < 2) return; const rects = chipLayout(titles, w, k.rtl, o.max || 3, o.deckIndex || 0);
-  rects.forEach((r) => { const on = r.i === o.deckIndex; k.card(r.x, r.y, r.w, r.h, { fill: on ? rgba(P.brandOrange, 0.3) : rgba(P.sand, 0.08), line: on ? rgba(P.brandOrange, 0.95) : rgba(P.sand, 0.35), r: 23 }); k.text(titles[r.i], r.x + r.w / 2, r.y + 31, { size: 22, weight: on ? 700 : 600, color: on ? P.sand : P.taupe, align: 'center' }); });
+  // every label is clipped to its own chip with an ellipsis, so neighbouring chips (and the slide stamp line) never run into each other
+  rects.forEach((r) => { const on = r.i === o.deckIndex; k.card(r.x, r.y, r.w, r.h, { fill: on ? rgba(P.brandOrange, 0.3) : rgba(P.screenDark, 0.72), line: on ? rgba(P.brandOrange, 0.95) : rgba(P.sand, 0.35), r: 23 }); const wt = on ? 700 : 600; g.font = `${wt} 22px ${FONT}`; k.text(ellipsize(titles[r.i], r.w - 2 * CHIP_PAD, (t) => g.measureText(t).width), r.x + r.w / 2, r.y + 31, { size: 22, weight: wt, color: on ? P.sand : P.taupe, align: 'center' }); });
   if (titles.length > rects.length) k.text(`+${titles.length - rects.length}`, k.rtl ? 70 : w - 70, 86, { size: 22, weight: 700, color: P.taupe, align: k.rtl ? 'left' : 'right' });
 }
 
@@ -187,7 +200,7 @@ export function drawSlide(g, w, h, o) {
     else { g.fillStyle = hex(accent); g.beginPath(); g.arc(k.rtl ? x + 18 : x - 18, y - size * 0.3, 7, 0, Math.PI * 2); g.fill(); ny = k.para(b, x, y, maxW, { size, weight: 600, color: P.sand, lh: size * 1.3 }) + 8; }
     g.restore(); return ny;
   };
-  const head = () => { k.rule(k.mx(X), 32, 90); g.fillStyle = hex(accent); g.fillRect(k.rtl ? w - X - 90 : X, 32, 90, 5); k.text(stamp, k.mx(X), 76, { size: TYPE.stamp, weight: 600, color: P.brassPale }); };
+  const head = () => { k.rule(k.mx(X), 32, 90); g.fillStyle = hex(accent); g.fillRect(k.rtl ? w - X - 90 : X, 32, 90, 5); g.font = `600 ${TYPE.stamp}px ${FONT}`; k.text(o.stampMax ? ellipsize(stamp, o.stampMax, (tt) => g.measureText(tt).width) : stamp, k.mx(X), 76, { size: TYPE.stamp, weight: 600, color: P.brassPale }); };
 
   if (s.layout === 'hero' && imgs.length) {   // ---------------- hero: full-bleed photo, gradient, title bottom-start
     const b = imgs[0], im = o.images && o.images.get(b.url); g.fillStyle = hex(P.ink); g.fillRect(0, 0, w, h);
