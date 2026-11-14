@@ -355,11 +355,11 @@
 .sr-vip-prog i { display: block; height: 100%; width: calc(var(--p, 0) * 100%); background: var(--sr-orange); transition: width .25s linear; }
 .sr3d[dir="rtl"] .sr-vip-prog i { margin-inline-start: auto; }
 /* presenter bar: the panel collapses to a slim control strip while the big screen is shown */
-.sr-panel-vip[data-mode="big"], .sr-panel-vip[data-mode="full"] { inset-block: auto var(--space-4); inset-inline: 50% auto; transform: translateX(-50%); width: min(720px, calc(100% - var(--space-4) * 2)); max-height: none; height: auto; }
-.sr3d[dir="rtl"] .sr-panel-vip[data-mode="big"], .sr3d[dir="rtl"] .sr-panel-vip[data-mode="full"] { inset-inline: auto 50%; transform: translateX(50%); }
-.sr-panel-vip[data-mode="big"] .sr-panel-body, .sr-panel-vip[data-mode="full"] .sr-panel-body, .sr-panel-vip[data-mode="big"] .sr-panel-head, .sr-panel-vip[data-mode="full"] .sr-panel-head { display: none; }
+.sr-panel-vip[data-mode="big"], .sr-panel-vip[data-mode="full"], .sr-panel-vip[data-mode="read"] { inset-block: auto var(--space-4); inset-inline: 50% auto; transform: translateX(-50%); width: min(720px, calc(100% - var(--space-4) * 2)); max-height: none; height: auto; }
+.sr3d[dir="rtl"] .sr-panel-vip[data-mode="big"], .sr3d[dir="rtl"] .sr-panel-vip[data-mode="full"], .sr3d[dir="rtl"] .sr-panel-vip[data-mode="read"] { inset-inline: auto 50%; transform: translateX(50%); }
+.sr-panel-vip[data-mode="big"] .sr-panel-body, .sr-panel-vip[data-mode="full"] .sr-panel-body, .sr-panel-vip[data-mode="big"] .sr-panel-head, .sr-panel-vip[data-mode="full"] .sr-panel-head, .sr-panel-vip[data-mode="read"] .sr-panel-body, .sr-panel-vip[data-mode="read"] .sr-panel-head { display: none; }
 .sr-panel-vip[data-mode="big"] .sr-panel-foot, .sr-panel-vip[data-mode="full"] .sr-panel-foot { padding: var(--space-3) var(--space-4); }
-.sr-panel-vip[data-mode="big"] .sr-vip-dots, .sr-panel-vip[data-mode="full"] .sr-vip-dots { display: none; }
+.sr-panel-vip[data-mode="big"] .sr-vip-dots, .sr-panel-vip[data-mode="full"] .sr-vip-dots, .sr-panel-vip[data-mode="read"] .sr-vip-dots { display: none; }
 .sr-vip-pbar-title { margin: 0; font-size: var(--fs-sm); color: var(--sr-on-dark-2); text-align: center; flex: 1 1 100%; }
 
 /* VIP legibility: larger, heavier type in the panel for the generic slides; reading mode keeps only the essential controls */

@@ -1,9 +1,9 @@
 /* VIP profile decks + big screen QA (headless Chromium on SwiftShader): the two new decks in the picker, the big-screen view (EN / AR, desktop / mobile), presenter bar, auto-play,
  * motion frame sequences (the animation clock is pinned so each frame is deterministic), the adviser's "let me present", reduced motion.
- * Needs a served build:  node scripts/showroom3d-qa/serve.js build 5066   then   BASE=http://localhost:5066 node scripts/showroom3d-qa/vipprofile.js [flows|ar|mobile|seq|reduced|advisor] */
+ * Needs a served build:  node scripts/showroom3d-qa/serve.js build 5066   then   BASE=http://localhost:5066 node scripts/showroom3d-qa/vipprofile.js [flows|seq|ar|mobile|reduced|advisor|legible] */
 const L = require('./lib.js');
 const { check, ex, shot } = L;
-const FAST = 'debug=1&quality=low&aa=0&scale=0.5', MED = 'debug=1&quality=high&aa=0&scale=0.5';
+const FAST = 'debug=1&quality=low&aa=0&scale=0.5', MED = 'debug=1&quality=medium&aa=0&scale=0.5';
 const VIP_STAND = [0, -30.2, 0, 0.05];
 const settle = async (page, ms = 600) => { await page.waitForFunction(() => !window.__showroom.explore.explorer.fly, null, { timeout: 120000 }); await page.waitForTimeout(ms); };
 const goto = async (page, p) => { await ex(page, (e, a) => e.teleport(...a), p); await page.waitForTimeout(500); };
@@ -29,13 +29,13 @@ async function flows(b) {
   check('the room now has three permanent decks in the picker: investor deck (default), The Closets profile, YAS profile', JSON.stringify(await page.$$eval('[data-testid="sr-vip-deck-select"] option', (o2) => o2.map((x) => x.value))) === '["default","closets-profile","yas-profile"]');
   check('default deck unchanged: station 1 of 5 "Company story and brand"', /Station\s*1\s*\/\s*5/.test(await panelText(page)) && /Company story and brand/.test(await panelText(page)));
   await page.selectOption('[data-testid="sr-vip-deck-select"]', 'closets-profile'); await settle(page, 800); await imagesReady(page); await wait(page, 1500);
-  let txt = await panelText(page); check('pick The Closets profile: slide 1 / 17 (16 + the closing notice), title on the panel, wall shows the same deck', /Slide\s*1\s*\/\s*17/.test(txt) && (await vip(page, (v) => v.state.deck.id)) === 'closets-profile');
+  let txt = await panelText(page); check('pick The Closets profile: slide 1 / 23 (22 + the closing notice), title on the panel, wall shows the same deck', /Slide\s*1\s*\/\s*23/.test(txt) && (await vip(page, (v) => v.state.deck.id)) === 'closets-profile');
   await shot(page, 'vipprofile-01-panel-closets-cover', { quality: 55 });
   await frame(page, 'vipprofile-02-wall-closets-cover', 3.0);
   await press(page, 'Digit2'); await settle(page, 400); check('key 2 jumps to slide 2 "Who we are" with the count-up stats in the panel', /Who we are/.test(await panelText(page)) && (await page.locator('[data-testid="sr-count"]').count()) === 2);
   await page.waitForTimeout(2200); const counts = await page.$$eval('[data-testid="sr-count"]', (e) => e.map((x) => x.textContent + '|' + x.dataset.final)); check('count-up ends on the exact supplied figures (200+ and 3)', counts[0] === '200+|200' && counts[1] === '3|3', counts);
   await shot(page, 'vipprofile-03-panel-closets-who', { quality: 55 });
-  await page.selectOption('[data-testid="sr-vip-deck-select"]', 'yas-profile'); await settle(page, 800); await imagesReady(page); check('pick YAS Profile 2023: slide 1 / 12', /Slide\s*1\s*\/\s*12/.test(await panelText(page)));
+  await page.selectOption('[data-testid="sr-vip-deck-select"]', 'yas-profile'); await settle(page, 800); await imagesReady(page); check('pick YAS Profile 2023: slide 1 / 13', /Slide\s*1\s*\/\s*13/.test(await panelText(page)));
   await page.selectOption('[data-testid="sr-vip-deck-select"]', 'closets-profile'); await settle(page, 600);
   // ---- big screen
   await page.click('[data-testid="sr-vip-big"]'); await settle(page, 900);
@@ -65,10 +65,10 @@ async function seq(b) {
   await page.click('[data-testid="sr-vip-big"]'); await settle(page, 900); await wait(page, 800);
   // a transition: slide 4 (values) -> 5 (milestones), frames at 0.12 / 0.3 / 0.55 / 1.4 s
   await vip(page, (v, x) => { x.setStation(3); }); await settle(page, 600); await vip(page, (v) => v.freezeAnim(9)); await wait(page, 300);
-  await vip(page, (v, x) => { x.setStation(4); }); await wait(page, 150);
+  await vip(page, (v, x) => { x.setStation(5); }); await wait(page, 150);
   let i = 0; for (const t of [0.1, 0.3, 0.55, 1.6]) await frame(page, `vipprofile-seq-a${++i}-transition-values-to-milestones-t${String(t).replace('.', '')}`, t);
-  await vip(page, (v, x) => x.setStation(10)); await wait(page, 200); i = 0; for (const t of [0.15, 0.7, 1.2, 2.6]) await frame(page, `vipprofile-seq-b${++i}-factory-stats-t${String(t).replace('.', '')}`, t);
-  await vip(page, (v, x) => x.setStation(13)); await wait(page, 200); await imagesReady(page); i = 0; for (const t of [0.2, 0.6, 1.2, 8]) await frame(page, `vipprofile-seq-c${++i}-durrat-dar-duo-t${String(t).replace('.', '')}`, t);
+  await vip(page, (v, x) => x.setStation(13)); await wait(page, 200); i = 0; for (const t of [0.15, 0.7, 1.2, 2.6]) await frame(page, `vipprofile-seq-b${++i}-capacity-stats-t${String(t).replace('.', '')}`, t);
+  await vip(page, (v, x) => x.setStation(18)); await wait(page, 200); await imagesReady(page); i = 0; for (const t of [0.2, 0.6, 1.2, 8]) await frame(page, `vipprofile-seq-c${++i}-durrat-dar-duo-t${String(t).replace('.', '')}`, t);
   check('seq: captured 12 frames', true); await o.ctx.close();
 }
 
@@ -120,10 +120,40 @@ async function advisor(b) {
   check('advisor: no page errors', o.errors.filter((e) => !/ERR_TUNNEL|Failed to load resource/.test(e)).length === 0, o.errors.slice(0, 3)); await o.ctx.close();
 }
 
+const POSES = { standing: { pos: [0, 1.7, -30.2], look: [0, 2.0, -35.34], fov: 54 }, doorway: { pos: [0, 1.7, -28.9], look: [0, 2.0, -35.34], fov: 54 }, seated: { pos: [0.7, 1.15, -31.7], look: [0, 2.0, -35.34], fov: 54 } };
+/** LEGIBILITY: every generic slide measured with the real font metrics, then the screen cropped from the standing, seated and doorway positions and in Reading mode: text height in screen pixels */
+async function legible(b) {
+  const o = await L.openShowroom(b, { query: MED, viewport: { width: 1280, height: 720 } }); const page = o.page; await mockProjects(page); await enterVip(page);
+  for (const id of ['closets-profile', 'yas-profile']) {
+    await page.selectOption('[data-testid="sr-vip-deck-select"]', id); await settle(page, 700); const n = await vip(page, (v) => v.state.deck.slides.length); let worst = { under: 0, overflow: 0, minBody: 99, minTitle: 999, narrow: 0 }, drawn = 0;
+    for (let i = 0; i < n; i++) {
+      const r = await vip(page, (v, x, k) => v.legibility(k), i); if (!r) continue; drawn++; const ms = r.metrics.filter((m) => m.s && m.s.trim());
+      for (const m of ms) { if (m.weight < 500) worst.under++; if (m.size < 22) worst.under++; if (m.k === 'para' && m.size > 22 && m.y1 > r.h - 52 - 70 + 10) worst.overflow++; if (m.k === 'para' && m.maxW && (m.align === 'left' ? m.x < 66 || m.x + m.maxW > r.w - 66 : m.align === 'right' ? m.x - m.maxW < 66 || m.x > r.w - 66 : false)) worst.narrow++; }
+      const t = ms.find((m) => m.weight >= 800 && m.size >= 60); if (t) worst.minTitle = Math.min(worst.minTitle, t.size / r.h); const bodies = ms.filter((m) => m.k === 'para' && m.size >= 28 && m.size < 60); if (bodies.length) worst.minBody = Math.min(worst.minBody, Math.min(...bodies.map((m) => m.size)) / r.h);
+    }
+    check(`${id}: all ${drawn} generic slides measured with the real fonts: no text under 22 px or weight < 500, no body overflow into the footer, margins >= 66 px, title >= 7% and body >= 3.4% of the screen height`, worst.under === 0 && worst.overflow === 0 && worst.narrow === 0 && worst.minTitle >= 0.07 && worst.minBody >= 0.0345, worst);
+  }
+  await page.selectOption('[data-testid="sr-vip-deck-select"]', 'closets-profile'); await settle(page, 700); await page.click('[data-testid="sr-vip-big"]'); await settle(page, 900);
+  await vip(page, (v, x) => x.setStation(5)); await settle(page, 600); await imagesReady(page);
+  for (const [name, pose] of Object.entries(POSES)) {
+    await vip(page, (v, x, p) => { x.flyTo(p, true); }, pose); await wait(page, 600); await vip(page, (v) => v.freezeAnim(9)); await wait(page, 700); await setHud(page, false); await wait(page, 300);
+    const box = await wallBox(page), xs = box.pts.map((p) => p[0]), ys = box.pts.map((p) => p[1]), wpx = Math.max(...xs) - Math.min(...xs), scale = wpx / 1536, clip = { x: Math.max(0, Math.min(...xs)), y: Math.max(0, Math.min(...ys)), width: Math.min(box.w, Math.max(...xs)) - Math.max(0, Math.min(...xs)), height: Math.min(box.h, Math.max(...ys)) - Math.max(0, Math.min(...ys)) };
+    await shot(page, `vipprofile-40-crop-${name}`, { quality: 78, clip }); await setHud(page, true);
+    const bodyPx = 32 * scale, titlePx = 66 * scale; check(`${name}: the wall is ${Math.round(wpx)} px wide on a 1280 px viewport; body text ${bodyPx.toFixed(1)} px, title ${titlePx.toFixed(1)} px (must be >= 14 px body, >= 28 px title)`, bodyPx >= 14 && titlePx >= 28, { wpx, bodyPx, titlePx });
+  }
+  await vip(page, (v, x) => x.setPresentMode('panel')); await settle(page, 800); await press(page, 'KeyZ'); await settle(page, 1000); await vip(page, (v) => v.freezeAnim(9)); await wait(page, 700);
+  { await setHud(page, false); await wait(page, 300); const box = await wallBox(page), xs = box.pts.map((p) => p[0]), ys = box.pts.map((p) => p[1]), wpx = Math.max(...xs) - Math.min(...xs), hpx = Math.max(...ys) - Math.min(...ys);
+    check('Reading mode (key Z): the wall fills at least 94% of the viewport width and is fully visible; body text >= 24 px on the 1280 px viewport', (await vip(page, (v, x) => x.presMode)) === 'read' && wpx / box.w >= 0.97 && Math.min(...xs) >= -4 && Math.max(...xs) <= box.w + 4 && hpx <= box.h + 4 && 32 * wpx / 1536 >= 24, { wpx, hpx, fill: wpx / box.w });
+    await shot(page, 'vipprofile-41-reading-mode', { quality: 78 }); await setHud(page, true); }
+  check('Reading mode: only essential controls remain (exit, previous, next); the panel is slim', (await page.locator('[data-testid="sr-vip-exit-present"]').count()) === 1 && (await page.locator('[data-testid="sr-vip-play"]').isVisible()) === false && (await page.locator('[data-testid="sr-vip-panel"]').boundingBox()).height <= 150);
+  await press(page, 'KeyZ'); await settle(page, 700); check('Z again returns to the side panel', (await vip(page, (v, x) => x.presMode)) === 'panel');
+  check('legible: no page errors', o.errors.filter((e) => !/ERR_TUNNEL|Failed to load resource/.test(e)).length === 0, o.errors.slice(0, 3)); await o.ctx.close();
+}
+
 (async () => {
   const b = await L.launch(); const only = process.argv[2];
   const run = async (name, fn) => { if (only && only !== name) return; try { await fn(b); } catch (e) { check(`suite "${name}" ran to the end`, false, String(e && e.message).slice(0, 400)); } };
-  try { await run('flows', flows); await run('seq', seq); await run('ar', ar); await run('mobile', mobile); await run('reduced', reduced); await run('advisor', advisor); } finally { await b.close(); }
+  try { await run('flows', flows); await run('seq', seq); await run('ar', ar); await run('mobile', mobile); await run('reduced', reduced); await run('advisor', advisor); await run('legible', legible); } finally { await b.close(); }
   const bad = L.results.filter((r) => !r.ok); console.log(`\n${L.results.length - bad.length}/${L.results.length} checks passed`); bad.forEach((r) => console.log('FAILED:', r.name, JSON.stringify(r.detail)));
   process.exit(bad.length ? 1 : 0);
 })();

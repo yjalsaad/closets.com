@@ -278,7 +278,7 @@ export class Explorer {
   get deck() { return this.allDecks().find((d) => d.id === this.ds.deckId) || PERMANENT_DECKS[0]; }
   /** camera pose for a slide: the built-in stations keep their own poses, every other slide faces the wall screen */
   vipView(i) {
-    if (this.presMode !== 'panel') { const r = this.canvas.getBoundingClientRect(), a = (r.width || 16) / (r.height || 9); return this.presMode === 'read' ? bigScreenView(a, 40, 1.0) : bigScreenView(a, 46); }   // presenting: the whole wall fills the view
+    if (this.presMode !== 'panel') { const r = this.canvas.getBoundingClientRect(), a = (r.width || 16) / (r.height || 9); return this.presMode === 'read' ? bigScreenView(a, 40, 1.0, true) : bigScreenView(a, 46); }   // presenting: the whole wall fills the view
     const sl = this.deck.slides[i]; return sl && sl.builtin && VIP_VIEWS[i] ? VIP_VIEWS[i] : VIP_VIEWS[0];
   }
   vipSlideId(i) { const sl = this.deck.slides[i]; return sl ? sl.id : ''; }

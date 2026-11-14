@@ -147,14 +147,14 @@ export const BUILTIN_DRAW = { story: drawStory, projects: drawProjectsScreen, hu
 const ACCENT = { orange: P.brandOrange, brass: P.brassPale, sand: P.sand, sage: P.ikMint };
 
 /** deck chips along the top of the wall screen (only drawn when there is more than one deck). Pure layout in design pixels, shared by the drawing and the click hit-test. */
-export function chipLayout(titles, w, rtl, max = 4) {
-  const n = Math.min(titles.length, max), gap = 12, h = 38, y = 22; let total = 0; const widths = titles.slice(0, n).map((t) => { const cw = Math.min(260, 34 + t.length * 11); total += cw; return cw; }); total += gap * (n - 1);
+export function chipLayout(titles, w, rtl, max = 3) {
+  const n = Math.min(titles.length, max), gap = 12, h = 46, y = 18; let total = 0; const widths = titles.slice(0, n).map((t) => { const cw = Math.min(300, 44 + t.length * 12.5); total += cw; return cw; }); total += gap * (n - 1);
   let x = rtl ? 70 : w - 70 - total; return widths.map((cw, i) => { const r = { i, x, y, w: cw, h }; x += cw + gap; return r; });
 }
 export function drawDeckChips(g, w, h, o) {
-  const k = kit(g, w, h, o.lang), titles = o.decks; if (!titles || titles.length < 2) return; const rects = chipLayout(titles, w, k.rtl, o.max || 4);
-  rects.forEach((r) => { const on = r.i === o.deckIndex; k.card(r.x, r.y, r.w, r.h, { fill: on ? rgba(P.brandOrange, 0.28) : rgba(P.sand, 0.06), line: on ? rgba(P.brandOrange, 0.95) : rgba(P.sand, 0.3), r: 19 }); k.text(titles[r.i], r.x + r.w / 2, r.y + 26, { size: 18, weight: on ? 700 : 500, color: on ? P.sand : P.taupe, align: 'center', max: r.w - 20 }); });
-  if (titles.length > rects.length) k.text(`+${titles.length - rects.length}`, k.rtl ? 70 + 0 : w - 70, 70, { size: 16, color: P.taupe, align: k.rtl ? 'left' : 'right' });
+  const k = kit(g, w, h, o.lang), titles = o.decks; if (!titles || titles.length < 2) return; const rects = chipLayout(titles, w, k.rtl, o.max || 3);
+  rects.forEach((r) => { const on = r.i === o.deckIndex; k.card(r.x, r.y, r.w, r.h, { fill: on ? rgba(P.brandOrange, 0.3) : rgba(P.sand, 0.08), line: on ? rgba(P.brandOrange, 0.95) : rgba(P.sand, 0.35), r: 23 }); k.text(titles[r.i], r.x + r.w / 2, r.y + 31, { size: 22, weight: on ? 700 : 600, color: on ? P.sand : P.taupe, align: 'center' }); });
+  if (titles.length > rects.length) k.text(`+${titles.length - rects.length}`, k.rtl ? 70 : w - 70, 86, { size: 22, weight: 700, color: P.taupe, align: k.rtl ? 'left' : 'right' });
 }
 
 /** cover-fit an image into a rounded rect, with an optional slow zoom (Ken Burns): scale >= 1 and a pan in 0..1 across the spare room */
@@ -163,11 +163,11 @@ function drawCover(g, im, x, y, w, h, scale = 1, pan = 0.5, r = 14) {
   g.drawImage(im, x - (iw - w) * pan, y - (ih - h) * 0.5, iw, ih); g.restore();
 }
 const YEAR = /^(\d{4}):\s*(.*)$/;
-/** LEGIBILITY SCALE of the generic slides (design units of the 1536 x 864 wall, i.e. % of the screen height): title 66 (7.6 %), lead 38 (4.4 %), bullets 30-34 (3.5-3.9 %), table / stat labels 28-30,
+/** LEGIBILITY SCALE of the generic slides (design units of the 1536 x 864 wall, i.e. % of the screen height): title 66 (7.6 %), lead 38 (4.4 %), bullets 30-40 (3.5-4.6 %), table / stat labels 28-30,
  *  captions 24, source + illustrative labels 22, disclaimer 22. Weights 600+ (no thin type), no squeezed text (no maxWidth), safe margins 70 px (sides) and 52 px (bottom). Tested by
  *  __tests__/vipLegibility.test.js against every slide of every committed deck in both languages. */
-export const TYPE = { title: 66, hero: 80, lead: 38, bullet: [34, 32, 30], cell: 30, stat: 28, caption: 24, meta: 22, fine: 22, stamp: 26, safeX: 70, safeBottom: 52, bodyBottom: 724 };
-const bulletSize = (n) => (n <= 4 ? TYPE.bullet[0] : n <= 6 ? TYPE.bullet[1] : TYPE.bullet[2]);
+export const TYPE = { title: 66, hero: 80, lead: 38, bullet: [40, 38, 36, 32, 30], cell: 30, stat: 30, caption: 24, meta: 22, fine: 22, stamp: 26, safeX: 70, safeBottom: 52, bodyBottom: 724 };
+const bulletSize = (n) => (n <= 2 ? TYPE.bullet[0] : n <= 3 ? TYPE.bullet[1] : n <= 4 ? TYPE.bullet[2] : n <= 6 ? TYPE.bullet[3] : TYPE.bullet[4]);
 /** one generic slide (imported / saved / profile decks): title, lead, bullets, image / table / bar / stat blocks, source + illustrative labels, the disclaimer in the footer.
  *  Layouts: split (default), hero (first image full-bleed, title over it), duo (two images side by side).
  *  o: { lang, slide (resolved), index, count, deckTitle, images: Map url -> HTMLImageElement, anim?: { t seconds since the slide appeared, level (vip/motion.js motionLevel) }, metrics?: [] (collects every text drawn) }
@@ -186,7 +186,7 @@ export function drawSlide(g, w, h, o) {
   };
   const titleIn = (fn) => { const e = lv ? easeOutCubic(t / 0.5) : 1; g.save(); g.globalAlpha = e; g.translate((1 - e) * 46 * (k.rtl ? -1 : 1), 0); fn(); g.restore(); };
   const bulletRow = (b, x, y, maxW, size, e) => {   // one bullet (a "2013: ..." line gets the year in the accent colour); returns the next y
-    g.save(); g.globalAlpha = e; g.translate(0, (1 - e) * 22); const m = YEAR.exec(b), yw = Math.round(size * 2.7); let ny;
+    g.save(); g.globalAlpha = e; g.translate(0, (1 - e) * 22); const m = YEAR.exec(b), yw = Math.round(size * 3.3); let ny;
     if (m) { k.text(m[1], x, y, { size, weight: 800, color: accent, align: k.al }); ny = k.para(m[2], k.rtl ? x - yw : x + yw, y, maxW - yw, { size, weight: 600, color: P.sand, lh: size * 1.3 }) + 8; }
     else { g.fillStyle = hex(accent); g.beginPath(); g.arc(k.rtl ? x + 18 : x - 18, y - size * 0.3, 7, 0, Math.PI * 2); g.fill(); ny = k.para(b, x, y, maxW, { size, weight: 600, color: P.sand, lh: size * 1.3 }) + 8; }
     g.restore(); return ny;
@@ -224,7 +224,7 @@ export function drawSlide(g, w, h, o) {
 
   // ---------------- split: bullets on the start side, blocks on the other (full width when there are no blocks)
   const blocks = s.blocks || [], hasBlocks = blocks.length > 0, textW = hasBlocks ? 690 : w - 2 * X - 40, blockW = hasBlocks ? w - 2 * X - 690 - 56 : 0;
-  const size = bulletSize(s.bullets.length), tableOnly = hasBlocks && others.length === blocks.length && others.every((b) => b.type === 'table');
+  const size = hasBlocks ? Math.min(34, bulletSize(s.bullets.length)) : bulletSize(s.bullets.length), tableOnly = hasBlocks && others.length === blocks.length && others.every((b) => b.type === 'table');
   let by = top + 28; if (!tableOnly) s.bullets.forEach((b, i) => { by = bulletRow(b, k.rtl ? w - X - 26 : X + 26, by, textW - 26, size, rev(i + 1)); });
   if (hasBlocks) {
     const ordered = [...imgs, ...others], bx0 = tableOnly ? X : (k.rtl ? X : w - X - blockW), bw = tableOnly ? w - 2 * X : blockW, btop = tableOnly ? top + 12 : Math.max(top, 270), bh = (bottom - btop - 16 * (ordered.length - 1)) / ordered.length; let cy = btop;

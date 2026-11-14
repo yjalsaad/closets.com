@@ -40,7 +40,7 @@ export const VIP_VIEWS = [
 ];
 
 /** presenter view of the big screen: the camera is placed so the whole wall (screen width + margin) fits the viewport width for the given aspect ratio and vertical fov */
-export function bigScreenView(aspect = 16 / 9, fov = 46, fill = 0.94) {
+export function bigScreenView(aspect = 16 / 9, fov = 46, fill = 0.94, centred = false) {
   const a = Math.max(0.4, aspect), vf = (fov * Math.PI) / 180, hf = 2 * Math.atan(Math.tan(vf / 2) * a), half = (VIP.screen.w / 2) / fill, dist = Math.min(7.4, Math.max(3.4, half / Math.tan(hf / 2)));
-  const z = VIP.screen.z + 0.012 + dist; return { pos: [0, 1.55, Math.min(z, VIP.z1 - 1.0)], look: [0, VIP.screen.y - 0.05, VIP.screen.z], fov };
+  const z = VIP.screen.z + 0.012 + dist; return { pos: [0, centred ? VIP.screen.y : 1.55, Math.min(z, VIP.z1 - 0.6)], look: [0, centred ? VIP.screen.y : VIP.screen.y - 0.05, VIP.screen.z], fov };   // centred (Reading mode): the eye is level with the middle of the wall, so there is no keystone and the wall fits the view exactly
 }
