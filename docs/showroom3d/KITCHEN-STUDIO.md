@@ -31,7 +31,7 @@ Important fact found on the way: the planner routes are **gated to signed-in cus
 | `.../DesignerOverlay.jsx` + `designstudio.css` | the full-viewport designer under a slim showroom bar |
 | `.../strings.js` | EN / AR strings |
 | `public/yas-bloom/design-studio/kitchen-{1,2,3}-{en,ar}.webp` | the wall's attract-loop frames: **real screenshots of the real designer** (`scripts/showroom3d-qa/studio-posters.js`), 34 to 57 KB each (limit 200 KB) |
-| `src/showroom3d/designstudio/__tests__/*` | 70 Jest tests for the new code |
+| `src/showroom3d/designstudio/__tests__/*` | 59 Jest tests for the new code (state machine, embed URL, language, pause / resume hook, overlay, explorer, zone, graph, adviser intents, menu, poster files) |
 | `scripts/showroom3d-qa/kitchenstudio.js` | Playwright QA (38 checks) |
 
 Hooks into existing showroom files (all inside `src/showroom3d/`): `3d/engine.js` (build, language, per-frame update, dispose), `navigation/explorer.js` (graph, zone, E, click on the screen, stop pitch), `navigation/colliders.js`, `ShowroomExperience.jsx` (overlay, pause), `ui/Menus.jsx` (quick-nav entry 11), `ui/Hud.jsx` (zone name), `ui/StaffChat.jsx` + `staff/guide.js` (adviser).
@@ -102,7 +102,7 @@ Indicative, SwiftShader on a 4-core CPU, JS heap from CDP, `quality=low`:
 
 * Showroom render loop: stopped while the overlay is in any active state; 0 frames rendered during a 1.5 s observation; running again after leaving.
 * WebGL contexts: the designer's frame creates one (its 3D view) and it is gone with the frame when the visitor leaves; the showroom keeps its own one throughout (never disposed: rebuilding the hall takes seconds).
-* JS heap: [[HEAP]].
+* JS heap (CDP `JSHeapUsedSize` after a forced GC): 23 MB with the designer and its 3D view open, 19 MB after leaving (the showroom's own memory is mostly GPU textures, which JS heap numbers do not show; it is neither disposed nor grown by the designer).
 * Bundle: the showroom chunk grows from 192.3 to 201.6 kB gzip (+9.3 kB); the `main` chunk is the same size and code (see the PR evidence). The three poster frames per language are 34 to 57 KB, loaded only near the wall; the low tier loads one.
 * Real GPUs, thermal behaviour, memory on a phone: **not measured**.
 
@@ -145,3 +145,28 @@ node scripts/showroom3d-qa/serve.js build 5055 &
 BASE=http://localhost:5055 THREE_R128=<three r128 min.js> OUT=docs/showroom3d/screenshots/kitchen-studio node scripts/showroom3d-qa/kitchenstudio.js    # BEAUTY=1 adds the high-tier shots, ONLY=phone runs the phone part
 BASE=http://localhost:5055 THREE_R128=<...> node scripts/showroom3d-qa/studio-posters.js                                                              # regenerate the wall frames
 ```
+
+## 11. Evidence
+
+### Screenshots (`docs/showroom3d/screenshots/kitchen-studio/`, software GL, honest scores out of 10)
+
+| File | What | Score |
+|---|---|---|
+| `ks-bay-en-high-front.jpg`, `ks-bay-ar-high-front.jpg` | the station from the stand point, EN / AR, high tier, 1440 x 900 | 8: sign, screen and podium read well, the call to action is clear; the poster frame is a little soft at this distance and the HUD buttons sit over the base |
+| `ks-bay-en-high-oblique.jpg`, `ks-bay-ar-high-oblique.jpg` | from the aisle: wing, screen, podium, kitchens bay and adviser | 8.5 |
+| `ks-bay-en-high-podium.jpg` | podium close-up | 7.5: the tablet is readable, the marble top and halo are plain |
+| `ks-designer-1440x900-step1.jpg`, `-quote.jpg`, `ks-designer-1920x1080-quote.jpg`, `ks-designer-ar-1440x900.jpg` | the real designer in the frame, EN / AR, 1440 and 1920 | 9: it is the website's own UI, and at 1920 x 1080 the plan and the bill of materials use the larger canvas |
+| `ks-designer-quote-dialog.jpg`, `ks-designer-leave-confirm.jpg`, `ks-designer-failed.jpg` | the site's quote form, the leave confirmation, the load-failure screen | 8 |
+| `ks-bay-phone-390x844.jpg`, `ks-designer-phone-390x844-step1.jpg`, `-step2.jpg` | phone portrait, full-screen designer | 7.5: the designer fits (top bar, step bar, Back / Preview / Total / Next); the step bar scrolls sideways as on the website |
+| `ks-website-1440x900-quote.jpg` | the website route opened directly, same choices (compare with the framed one) | reference |
+
+Iterations on the weakest: (1) the first front view was keystoned and cramped (screen centre 2.2 m, arrival pitch 0.17) and the base rendered black: screen lowered to 2.0 m, pitch 0.12, emissive walnut base; (2) the podium stood in front of the screen's call to action and the floor halo was a hard rectangle: podium moved 2.35 m toward the glass wall, halo is a soft pool; (3) on phones the designer's bottom bar was cut off and the bar overflowed: the document is kept scrolled by the site header height, the bar is icon-only below 768 px.
+
+`kitchen-studio-qa.json` holds every check with its numbers (38/38 pass) and both runs' totals.
+
+### Production safety (add-only)
+
+* `git diff origin/main...HEAD` by top-level directory: `docs/showroom3d`, `public/yas-bloom`, `scripts/showroom3d-qa`, `src/showroom3d` only; nothing else (`git diff origin/main --stat` outside those directories is empty). `src/App.js`, `src/index.js`, `vercel.json`, `package.json` and every other website file are byte-identical to `main`.
+* Build vs a `main` build (same `react-scripts build`): 433 of 439 files are byte-identical, including **every non-showroom CSS file** (`main.6582cfed.css` and the 14 chunk CSS files, md5 equal) and every other JS chunk. The differences are the `showroom3d` JS / CSS chunk, `index.html` and `asset-manifest.json` (only the file name of `main.js`), `main.js` (**25 bytes**: its file name in the licence comment, the showroom chunk's JS and CSS hashes in the chunk map, and the module id of the lazy showroom import; same size, 2 149 895 bytes) and the 7 new poster files.
+* Main JS chunk size: **508.21 kB gzip, unchanged**; showroom chunk 192.32 -> 201.6 kB gzip (+9.3 kB, loaded only on `/yas-bloom`), showroom CSS 9.51 -> 10.02 kB.
+* Pixel comparison, `scripts/yas-bloom-regression.js` (reduced motion, animations frozen, 3 samples each, main vs branch), desktop 1440 x 900, EN: `/`, `/kitchen`, `/services`, `/booking`, `/contact`, `/design-studio/kitchen-planner` (signed-out gate): **0 differing pixels** main-vs-main (the baseline), branch-vs-branch and main-vs-branch for every page (the sandbox cannot reach Supabase, so /services, /booking and /contact render without their remote content in both builds).
