@@ -9,6 +9,8 @@ import { createKit } from './kit';
 import { buildCanopy, buildWallWash, propMesh } from './stage';
 import * as pr from './props';
 import * as fu from './furnish';
+import * as rl from './reflook';
+
 
 const { fin } = fu;
 const T = 0.019, ZB = 0.3;            // door thickness; bed centre line (z)
@@ -20,7 +22,7 @@ export function buildBedroom({ M, tier, registry, reduced }) {
 
   kit.floor();
   // ---- wall: warm plaster plane + a vertical LED cove behind the headboard ----
-  { const w = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 3.3), M.plaster); w.position.set(-2.995, 1.65, 0); w.rotation.y = Math.PI / 2; w.receiveShadow = true; group.add(w); }
+  { const w = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 3.3), M.travertine); w.position.set(-2.995, 1.65, 0); w.rotation.y = Math.PI / 2; w.receiveShadow = true; group.add(w); }
 
   // ---- wardrobe wall: z -3.25 .. -1.2, two double-door sections (fluted fronts), rails + shelves + folded linen inside ----
   const WX0 = -3.0, WX1 = -2.38, Y0 = 0.06, Y1 = 2.62, H = Y1 - Y0, LH = H - 0.06, LY = Y0 + 0.03 + LH / 2, W = 0.505;
@@ -87,7 +89,8 @@ export function buildBedroom({ M, tier, registry, reduced }) {
   ceramic.push(...fu.trayOf(-2.72, 0.795, VZ - 0.05, { w: 0.4, d: 0.24 }).map((o) => ({ ...o })));
 
   // ---- rug, plant, canopy, light ----
-  { const rug = new THREE.Mesh(new THREE.PlaneGeometry(3.3, 2.6), M.rug); rug.rotation.x = -Math.PI / 2; rug.position.set(-1.45, 0.0125, ZB); rug.receiveShadow = true; lod.props.add(rug); }
+  { const rug = new THREE.Mesh(rl.organicRug(3.79, 3.07, 17), M.rugSoft); rug.rotation.x = -Math.PI / 2; rug.position.set(-1.45, 0.0125, ZB); rug.receiveShadow = true; lod.props.add(rug); }
+  kit.mesh(rl.curtain(3.0, 3.26, { seed: 12 }), M.curtain, { x: -0.6, y: 0.01, z: 3.36, cast: false, receive: false, parent: lod.props, name: 'curtain' });
   const pl = pr.plant(-1.15, 0, -0.95, { h: 1.5, leaves: 46, potR: 0.18, seed: 21 });
   kit.ao([-2.99, 3.05, 0], [0, 0, 1], [0, 1, 0], 6.2, 0.9, '+v', 0.3);
   buildCanopy(kit, { downlights: [[-1.6, -2.2], [-1.6, 0.3], [-1.6, 2.4], [0.9, -2.2], [0.9, 0.3], [0.9, 2.4]] }); buildWallWash(kit, { z: -2.2, len: 2.2, x: -2.995 });

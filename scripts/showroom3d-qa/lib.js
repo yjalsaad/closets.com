@@ -1,7 +1,7 @@
 /* Shared helpers for the Showroom 3D Playwright QA (headless Chromium on SwiftShader, i.e. CPU rendering). */
 const { chromium } = require('/opt/node-tools/node_modules/playwright');
 const path = require('path'), fs = require('fs');
-const CHROME = '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome';
+const CHROME = process.env.CHROME || '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome';   // CHROME=/usr/bin/google-chrome for H.264 / AAC (the bundled Chromium has no MP4 decoder)
 const BASE = process.env.BASE || 'http://localhost:5055';
 const OUT = process.env.OUT || path.resolve(__dirname, '../../docs/showroom3d/screenshots');
 fs.mkdirSync(OUT, { recursive: true });
@@ -23,7 +23,9 @@ async function openShowroom(browser, { url = '/yas-bloom', viewport = { width: 9
 /** finish the loader and the intro with the real "Skip intro" button, wait for the explore phase */
 async function enterExplore(page, { tap = false } = {}) {
   await page.waitForSelector('[data-testid="sr-skip"]', { timeout: 120000 });
-  if (tap) await page.tap('[data-testid="sr-skip"]'); else await page.click('[data-testid="sr-skip"]');
+  // a software-GL frame can be so slow that Playwright's "stable" check on the button never passes: after one normal try, click through the DOM until the explore phase starts
+  try { if (tap) await page.tap('[data-testid="sr-skip"]', { timeout: 8000 }); else await page.click('[data-testid="sr-skip"]', { timeout: 8000 }); }
+  catch (e) { for (let i = 0; i < 60; i++) { const ph = await page.evaluate(() => { const b = document.querySelector('[data-testid="sr-skip"]'); if (b) b.click(); const st = document.querySelector('.sr-stage'); return st && st.dataset.phase; }); if (ph === 'explore') break; await page.waitForTimeout(1500); } }
   await page.waitForSelector('.sr-stage[data-phase="explore"]', { timeout: 120000 });
   await page.waitForTimeout(800);
 }

@@ -8,7 +8,8 @@ export default function LoadingScreen({ pct, lang, leaving }) {
   return (
     <div className={'sr-loading' + (leaving ? ' is-leaving' : '')} role="status" aria-live="polite" data-testid="sr-loading">
       <div className="sr-loading-inner">
-        <LogoImg className="sr-loading-logo" alt={t('brand', lang)} width="300" height="171" />
+        <LogoImg className="sr-loading-logo" alt={t('brand', lang) + ' ' + t('brandByline', lang)} width="300" height="171" />
+        <p className="sr-byline" data-testid="sr-byline">{t('brandByline', lang)}</p>
         <h1 className="sr-loading-title">{t('loadingTitle', lang)}</h1>
         <div className="sr-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={n} aria-label={t('loadStageLabel', lang)}>
           <span style={{ transform: `scaleX(${n / 100})` }} />

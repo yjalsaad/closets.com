@@ -1,0 +1,196 @@
+{
+ "note": "Fictional AI-generated adviser portraits for the showroom kiosks. Not real people. Label them 'AI-generated portrait' in the UI.",
+ "credits_total": 2.5,
+ "portraits": [
+  {
+   "adviserId": "reception",
+   "headscarf": false,
+   "file": "/yas-bloom/staff/reception.webp",
+   "bytes": 38154,
+   "width": 768,
+   "height": 1024,
+   "model": "gpt_image_2_6",
+   "params": {
+    "quality": "low",
+    "resolution": "1k",
+    "aspect_ratio": "3:4"
+   },
+   "credits": 0.25,
+   "job_id": "f8cd0c84-2e3c-4366-8173-476f2f1d009b",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_075034_f8cd0c84-2e3c-4366-8173-476f2f1d009b.png",
+   "accepted": true,
+   "prompt": "Photorealistic head-and-shoulders portrait photograph, vertical 3:4, of a fictional professional Gulf Arab woman who works as a showroom reception adviser. She is in her early thirties with an oval face, light olive skin, dark brown eyes and brown hair pulled back in a neat low bun; no headscarf. She wears a tailored muted deep-teal coat over a cream high-neck blouse, modest and elegant. Warm, natural, approachable expression with a gentle smile, looking at the camera, shoulders turned slightly. Background: a softly blurred luxury furniture showroom with dark walnut panelling and warm integrated lighting. Lighting: soft warm key light from the front left, gentle fill, subtle rim light. Shot on an 85mm lens at f/2, eye level, shallow depth of field, natural skin texture, minimal natural make-up, not retouched, not glossy. No text, no logos, no watermark."
+  },
+  {
+   "adviserId": "kitchens",
+   "headscarf": true,
+   "file": "/yas-bloom/staff/kitchens.webp",
+   "bytes": 41444,
+   "width": 768,
+   "height": 1024,
+   "model": "gpt_image_2_6",
+   "params": {
+    "quality": "low",
+    "resolution": "1k",
+    "aspect_ratio": "3:4"
+   },
+   "credits": 0.25,
+   "job_id": "71fc39f9-4614-4eb8-b7d2-6472aa429b1f",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_075034_71fc39f9-4614-4eb8-b7d2-6472aa429b1f.png",
+   "accepted": true,
+   "prompt": "Photorealistic head-and-shoulders portrait photograph, vertical 3:4, of a fictional professional Gulf Arab woman who works as a kitchen design adviser. She is in her late thirties with a soft rounded face, medium tan skin and warm brown eyes. She wears an elegant black abaya and a cream shayla headscarf neatly draped so her hair is covered, modest and refined. Warm, natural, approachable expression with a gentle smile, looking at the camera, shoulders turned slightly. Background: a softly blurred luxury furniture showroom with dark walnut panelling and warm integrated lighting. Lighting: soft warm key light from the front left, gentle fill, subtle rim light. Shot on an 85mm lens at f/2, eye level, shallow depth of field, natural skin texture, minimal natural make-up, not retouched, not glossy. No text, no logos, no watermark."
+  },
+  {
+   "adviserId": "wardrobes",
+   "headscarf": false,
+   "file": "/yas-bloom/staff/wardrobes.webp",
+   "bytes": 72580,
+   "width": 768,
+   "height": 1024,
+   "model": "gpt_image_2_6",
+   "params": {
+    "quality": "low",
+    "resolution": "1k",
+    "aspect_ratio": "3:4"
+   },
+   "credits": 0.25,
+   "job_id": "ee80dbe0-c06b-4cf2-be47-19ac003afeff",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_075034_ee80dbe0-c06b-4cf2-be47-19ac003afeff.png",
+   "accepted": true,
+   "prompt": "Photorealistic head-and-shoulders portrait photograph, vertical 3:4, of a fictional professional Gulf Arab woman who works as a wardrobe design adviser. She is in her late twenties with a heart-shaped face, light olive skin, dark eyes and long dark hair worn loose over her shoulders; no headscarf. She wears a tailored muted terracotta-brick coat over an ivory high-neck top, modest and elegant. Warm, natural, approachable expression with a gentle smile, looking at the camera, shoulders turned slightly. Background: a softly blurred luxury furniture showroom with dark walnut panelling and warm integrated lighting. Lighting: soft warm key light from the front left, gentle fill, subtle rim light. Shot on an 85mm lens at f/2, eye level, shallow depth of field, natural skin texture, minimal natural make-up, not retouched, not glossy. No text, no logos, no watermark."
+  },
+  {
+   "adviserId": "walkin",
+   "headscarf": true,
+   "file": "/yas-bloom/staff/walkin.webp",
+   "bytes": 45864,
+   "width": 768,
+   "height": 1024,
+   "model": "gpt_image_2_6",
+   "params": {
+    "quality": "low",
+    "resolution": "1k",
+    "aspect_ratio": "3:4"
+   },
+   "credits": 0.25,
+   "job_id": "aad80cd6-ce55-47f9-b916-3b69da907dc7",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_075014_aad80cd6-ce55-47f9-b916-3b69da907dc7.png",
+   "accepted": true,
+   "prompt": "Photorealistic head-and-shoulders portrait photograph, vertical 3:4, of a fictional professional Gulf Arab woman who works as a walk-in closet design adviser. She is in her early forties with high cheekbones, deep brown skin and dark eyes. She wears an elegant deep-plum abaya and a soft grey hijab neatly wrapped so her hair is covered, modest and refined. Warm, natural, approachable expression with a gentle smile, looking at the camera, shoulders turned slightly. Background: a softly blurred luxury furniture showroom with dark walnut panelling and warm integrated lighting. Lighting: soft warm key light from the front left, gentle fill, subtle rim light. Shot on an 85mm lens at f/2, eye level, shallow depth of field, natural skin texture, minimal natural make-up, not retouched, not glossy. No text, no logos, no watermark."
+  },
+  {
+   "adviserId": "bedroom",
+   "headscarf": true,
+   "file": "/yas-bloom/staff/bedroom.webp",
+   "bytes": 39920,
+   "width": 768,
+   "height": 1024,
+   "model": "gpt_image_2_6",
+   "params": {
+    "quality": "low",
+    "resolution": "1k",
+    "aspect_ratio": "3:4"
+   },
+   "credits": 0.25,
+   "job_id": "a8d0cefa-0482-4976-94f4-56a425893c8c",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_075035_a8d0cefa-0482-4976-94f4-56a425893c8c.png",
+   "accepted": true,
+   "prompt": "Photorealistic head-and-shoulders portrait photograph, vertical 3:4, of a fictional professional Gulf Arab woman who works as a bedroom design adviser. She is in her late twenties with a slim face, light olive skin and hazel-brown eyes. She wears an elegant sand-beige abaya and a dusty-rose hijab neatly wrapped so her hair is covered, modest and refined. Warm, natural, approachable expression with a gentle smile, looking at the camera, shoulders turned slightly. Background: a softly blurred luxury furniture showroom with dark walnut panelling and warm integrated lighting. Lighting: soft warm key light from the front left, gentle fill, subtle rim light. Shot on an 85mm lens at f/2, eye level, shallow depth of field, natural skin texture, minimal natural make-up, not retouched, not glossy. No text, no logos, no watermark."
+  },
+  {
+   "adviserId": "doors",
+   "headscarf": true,
+   "file": "/yas-bloom/staff/doors.webp",
+   "bytes": 54130,
+   "width": 768,
+   "height": 1024,
+   "model": "gpt_image_2_6",
+   "params": {
+    "quality": "low",
+    "resolution": "1k",
+    "aspect_ratio": "3:4"
+   },
+   "credits": 0.25,
+   "job_id": "f86bf184-ddf6-4471-ad29-9f2e284a9edb",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_075049_f86bf184-ddf6-4471-ad29-9f2e284a9edb.png",
+   "accepted": true,
+   "prompt": "Photorealistic head-and-shoulders portrait photograph, vertical 3:4, of a fictional professional Gulf Arab woman who works as an interior door adviser. She is in her mid forties with defined features, fine laugh lines, medium tan skin and dark eyes. She wears an elegant navy abaya and a cream shayla headscarf neatly draped so her hair is covered, modest and refined. Warm, natural, experienced and approachable expression with a gentle smile, looking at the camera, shoulders turned slightly. Background: a softly blurred luxury furniture showroom with dark walnut panelling and warm integrated lighting. Lighting: soft warm key light from the front left, gentle fill, subtle rim light. Shot on an 85mm lens at f/2, eye level, shallow depth of field, natural skin texture, minimal natural make-up, not retouched, not glossy. No text, no logos, no watermark."
+  },
+  {
+   "adviserId": "living",
+   "headscarf": false,
+   "file": "/yas-bloom/staff/living.webp",
+   "bytes": 51844,
+   "width": 768,
+   "height": 1024,
+   "model": "gpt_image_2_6",
+   "params": {
+    "quality": "low",
+    "resolution": "1k",
+    "aspect_ratio": "3:4"
+   },
+   "credits": 0.25,
+   "job_id": "fe6f1c9c-0df6-4118-a562-6e0535df8c6f",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_075014_fe6f1c9c-0df6-4118-a562-6e0535df8c6f.png",
+   "accepted": true,
+   "prompt": "Photorealistic head-and-shoulders portrait photograph, vertical 3:4, of a fictional professional Gulf Arab woman who works as a living-room design adviser. She is in her mid thirties with a square jaw, fair olive skin, brown eyes and short chin-length brown hair in a neat bob; no headscarf. She wears a tailored muted deep-teal coat over a soft grey high-neck top, modest and elegant. Warm, natural, approachable expression with a gentle smile, looking at the camera, shoulders turned slightly. Background: a softly blurred luxury furniture showroom with dark walnut panelling and warm integrated lighting. Lighting: soft warm key light from the front left, gentle fill, subtle rim light. Shot on an 85mm lens at f/2, eye level, shallow depth of field, natural skin texture, minimal natural make-up, not retouched, not glossy. No text, no logos, no watermark."
+  },
+  {
+   "adviserId": "studio",
+   "headscarf": true,
+   "file": "/yas-bloom/staff/studio.webp",
+   "bytes": 42564,
+   "width": 768,
+   "height": 1024,
+   "model": "gpt_image_2_6",
+   "params": {
+    "quality": "low",
+    "resolution": "1k",
+    "aspect_ratio": "3:4"
+   },
+   "credits": 0.25,
+   "job_id": "6fe90a11-9ed8-4f86-bea4-5b7a7b468c9b",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_075116_6fe90a11-9ed8-4f86-bea4-5b7a7b468c9b.png",
+   "accepted": true,
+   "prompt": "Photorealistic head-and-shoulders portrait photograph, vertical 3:4, of a fictional professional Gulf Arab woman who works as a design studio adviser. She is in her early thirties with a long narrow face, light olive skin, dark eyes and thin-framed glasses. She wears an elegant black abaya and a dusty-rose hijab neatly wrapped so her hair is covered, modest and refined. Warm, natural, thoughtful and approachable expression with a gentle smile, looking at the camera, shoulders turned slightly. Background: a softly blurred luxury furniture showroom with dark walnut panelling and warm integrated lighting. Lighting: soft warm key light from the front left, gentle fill, subtle rim light. Shot on an 85mm lens at f/2, eye level, shallow depth of field, natural skin texture, minimal natural make-up, not retouched, not glossy. No text, no logos, no watermark."
+  },
+  {
+   "adviserId": "lounge",
+   "headscarf": false,
+   "file": "/yas-bloom/staff/lounge.webp",
+   "bytes": 57444,
+   "width": 768,
+   "height": 1024,
+   "model": "gpt_image_2_6",
+   "params": {
+    "quality": "low",
+    "resolution": "1k",
+    "aspect_ratio": "3:4"
+   },
+   "credits": 0.25,
+   "job_id": "0569665d-c6ea-476a-afb2-d5c6ba02b00a",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_075014_0569665d-c6ea-476a-afb2-d5c6ba02b00a.png",
+   "accepted": true,
+   "prompt": "Photorealistic head-and-shoulders portrait photograph, vertical 3:4, of a fictional professional Gulf Arab woman who works as a customer lounge adviser. She is in her late thirties with a full face, deep brown skin, dark eyes and dark hair in an elegant high bun; no headscarf. She wears a tailored muted terracotta-brick coat over a cream high-neck blouse, modest and elegant. Warm, natural, approachable expression with a gentle smile, looking at the camera, shoulders turned slightly. Background: a softly blurred luxury furniture showroom with dark walnut panelling and warm integrated lighting. Lighting: soft warm key light from the front left, gentle fill, subtle rim light. Shot on an 85mm lens at f/2, eye level, shallow depth of field, natural skin texture, minimal natural make-up, not retouched, not glossy. No text, no logos, no watermark."
+  },
+  {
+   "adviserId": "vip",
+   "headscarf": true,
+   "file": "/yas-bloom/staff/vip.webp",
+   "bytes": 41120,
+   "width": 768,
+   "height": 1024,
+   "model": "gpt_image_2_6",
+   "params": {
+    "quality": "low",
+    "resolution": "1k",
+    "aspect_ratio": "3:4"
+   },
+   "credits": 0.25,
+   "job_id": "682c542e-e784-4e67-9a51-bf314395f666",
+   "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261114_075014_682c542e-e784-4e67-9a51-bf314395f666.png",
+   "accepted": true,
+   "prompt": "Photorealistic head-and-shoulders portrait photograph, vertical 3:4, of a fictional professional Gulf Arab woman who works as a senior adviser for private client meetings. She is in her early forties with an elegant angular face, medium tan skin and dark eyes, poised and composed. She wears an elegant navy abaya and a soft grey silk shayla headscarf neatly draped so her hair is covered, modest and refined. Warm, natural, confident and approachable expression with a gentle smile, looking at the camera, shoulders turned slightly. Background: a softly blurred luxury furniture showroom with dark walnut panelling and warm integrated lighting. Lighting: soft warm key light from the front left, gentle fill, subtle rim light. Shot on an 85mm lens at f/2, eye level, shallow depth of field, natural skin texture, minimal natural make-up, not retouched, not glossy. No text, no logos, no watermark."
+  }
+ ]
+}

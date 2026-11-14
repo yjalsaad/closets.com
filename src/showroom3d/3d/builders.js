@@ -24,7 +24,7 @@ export function projectUV(g, { grain = 'x', tile = 0.8, off = [0, 0] } = {}) {
 }
 
 /** a box w x h x d (centred) with a 1-segment chamfer of `b` metres on every edge. Triangles ~44. */
-export function bevelBox(w, h, d, { b = 0.002, grain = 'x', tile = 0.8, off } = {}) {
+export function bevelBox(w, h, d, { b = 0.005, grain = 'x', tile = 0.8, off } = {}) {
   b = Math.min(b, w / 2.2, h / 2.2, d / 2.2);
   const s = new THREE.Shape(); const hw = w / 2 - b, hh = h / 2 - b;
   s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh); s.lineTo(-hw, hh); s.closePath();

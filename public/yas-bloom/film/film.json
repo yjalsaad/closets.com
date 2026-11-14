@@ -1,0 +1,62 @@
+{
+  "id": "journey-of-ambition",
+  "title": {
+    "en": "THE CLOSETS — THE JOURNEY OF AMBITION",
+    "ar": "الخزائن — حكاية طموح"
+  },
+  "durationSec": 124.0,
+  "aspectRatio": "16:9",
+  "sources": [
+    {
+      "src": "/yas-bloom/film/journey-1080.mp4",
+      "type": "video/mp4",
+      "codecs": "avc1.640028, mp4a.40.2",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 17568247
+    },
+    {
+      "src": "/yas-bloom/film/journey-720.mp4",
+      "type": "video/mp4",
+      "codecs": "avc1.64001f, mp4a.40.2",
+      "width": 1280,
+      "height": 720,
+      "bytes": 7667038
+    }
+  ],
+  "poster": "/yas-bloom/film/journey-poster.jpg",
+  "captions": [
+    {
+      "lang": "ar",
+      "label": "العربية",
+      "src": "/yas-bloom/film/journey.ar.vtt",
+      "kind": "captions",
+      "default": true
+    },
+    {
+      "lang": "en",
+      "label": "English",
+      "src": "/yas-bloom/film/journey.en.vtt",
+      "kind": "subtitles"
+    }
+  ],
+  "audio": {
+    "narrationLanguage": "ar",
+    "loudnessLUFS": -16,
+    "music": true
+  },
+  "credits": {
+    "production": "Assembled locally (Pillow + ffmpeg) from sources generated with Higgsfield.",
+    "stills": "Seedream 5.0 Flash (33 frames, animated with camera moves)",
+    "videoShots": "Kling 2.6 image-to-video (3 shots, 5 s each)",
+    "narration": "Synthetic voice (Higgsfield Text to Speech V2, ElevenLabs engine, preset voice 'Alistair'); the owner's Arabic script, verbatim",
+    "music": "Generated instrumental (ElevenLabs Music v2 via Higgsfield); no third-party recordings",
+    "logo": "The official company logo file, composited as is"
+  },
+  "notes": [
+    "All imagery is AI-generated illustration. It is not real footage of the company, its people, factories, showrooms or projects.",
+    "The film says so on its end card: 'Illustrative imagery generated with AI'.",
+    "Facts stated (two factories in Bahrain, more than five branches, presence in Saudi Arabia, Qatar and the UAE, more than 10,000 projects, European machinery, quality and safety standards, digital transformation) were supplied by the owner for this film.",
+    "Full shot list, prompts, credits and the upgrade path: docs/showroom3d/FILM.md"
+  ]
+}
