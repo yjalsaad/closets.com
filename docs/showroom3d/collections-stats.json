@@ -1,0 +1,122 @@
+{
+  "note": "What the Collections wall adds while it is in view (SwiftShader, measured by toggling its group). textureKB = canvas textures incl. mipmaps; swatch images are drawn into those canvases, so they add no GPU textures of their own.",
+  "added": {
+    "medium": {
+      "drawCalls": 12,
+      "triangles": 84,
+      "textureKB": 13988,
+      "measuredCallsDelta": -1,
+      "measuredTrianglesDelta": -12,
+      "sceneCalls": 244,
+      "sceneTriangles": 128386
+    },
+    "low": {
+      "drawCalls": 8,
+      "triangles": 66,
+      "textureKB": 3496,
+      "measuredCallsDelta": 8,
+      "measuredTrianglesDelta": 66,
+      "sceneCalls": 197,
+      "sceneTriangles": 82448
+    },
+    "high": {
+      "drawCalls": 12,
+      "triangles": 84,
+      "textureKB": 13988,
+      "measuredCallsDelta": 0,
+      "measuredTrianglesDelta": 0,
+      "sceneCalls": 459,
+      "sceneTriangles": 184480
+    }
+  },
+  "checks": [
+    {
+      "name": "menu glide ends at the Collections stand point, in the collections zone",
+      "ok": true,
+      "detail": [
+        18,
+        -4
+      ]
+    },
+    {
+      "name": "all 36 swatch images are drawn on the wall",
+      "ok": true
+    },
+    {
+      "name": "prompt names the wall",
+      "ok": true
+    },
+    {
+      "name": "E opens the panel with the site collection",
+      "ok": true
+    },
+    {
+      "name": "arrow keys browse the finishes",
+      "ok": true,
+      "detail": "Callahan"
+    },
+    {
+      "name": "the panel shows the real swatch image",
+      "ok": true
+    },
+    {
+      "name": "site link: source URL, new tab, noopener",
+      "ok": true,
+      "detail": [
+        "https://yas-holding-website.vercel.app/collection",
+        "_blank",
+        "noopener noreferrer"
+      ]
+    },
+    {
+      "name": "quote link is the booking hand-off",
+      "ok": true
+    },
+    {
+      "name": "Escape closes the panel and does not open the pause menu",
+      "ok": true
+    },
+    {
+      "name": "no page errors (EN desktop)",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "AR panel: Arabic collection name, rtl",
+      "ok": true
+    },
+    {
+      "name": "no page errors (AR desktop)",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "mobile: the panel is a bottom sheet, full width, no horizontal overflow",
+      "ok": true,
+      "detail": {
+        "w": 390,
+        "bottom": 0,
+        "sw": 390,
+        "iw": 390
+      }
+    },
+    {
+      "name": "mobile: every control is at least 40 px tall",
+      "ok": true
+    },
+    {
+      "name": "no page errors (mobile)",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "reduced motion: the jump to the wall is instant",
+      "ok": true
+    },
+    {
+      "name": "no page errors (high, reduced motion)",
+      "ok": true,
+      "detail": []
+    }
+  ]
+}
