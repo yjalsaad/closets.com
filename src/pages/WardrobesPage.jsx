@@ -3,6 +3,7 @@
 // Shared app helpers (api, useI18n, AppCtx, …) are imported from ../App (live bindings; this chunk only loads after App has evaluated).
 import { useState } from 'react';
 import { HERO_IMG, HOME_IMG, cms, fmt, useI18n, useMobile } from '../App';
+import TypeShowcase from '../glass/TypeShowcase'; // [GLASS] owner's explorable type showcase
 import { mergeLayout, useLayouts } from './shared_TVUnitPlannerWizard_OfficePlannerWizard_plus8';
 
 // WARDROBE TYPES — drives the editorial gallery. `from` is an indicative entry
@@ -100,7 +101,7 @@ const WARDROBE_SPEC = {
    Design Studio + live 3D — every primary CTA routes there. ──────────────── */
 function WardrobesPage({ setPage, products }) {
   const mobile = useMobile();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [faq, setFaq] = useState(-1);
   const [specOpen, setSpecOpen] = useState(false);
   const { map: dbLayouts } = useLayouts('wardrobe');
@@ -132,24 +133,7 @@ function WardrobesPage({ setPage, products }) {
         <div className="eyebrow" style={{ marginBottom:10 }}>{cms('wardrobe.s1.eyebrow', 'Wardrobe types')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('wardrobe.s1.title', 'Find your fit.')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{t('sw2WardTypesSub')}</p>
-        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
-          {wTypes.map(wt=>(
-            <button key={wt.id} type="button" className="lift" onClick={()=>setPage('wardrobe-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', overflow:'hidden', background:'var(--c-surface)', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
-              <div style={{ height: mobile?170:210, position:'relative', background: wt.img?`url('${wt.img}') center/cover`:'linear-gradient(135deg,#FFF1E8,#F5F5F7)' }}>
-                <span style={{ position:'absolute', top:12, left:12, background:'rgba(20,16,12,.62)', color:'#fff', fontSize:12, fontWeight:600, borderRadius:'var(--radius-pill)', padding:'5px 12px', backdropFilter:'blur(4px)' }}>From {fmt(wt.from)}</span>
-              </div>
-              <div style={{ padding:'18px 20px' }}>
-                <div style={{ fontSize:20, fontWeight:600, color:'var(--ink)' }}>{wt.name}</div>
-                <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{wt.sub}</div>
-                <p style={{ fontSize:13.5, color:'var(--ink-soft)', margin:'10px 0', lineHeight:1.55 }}>{wt.desc}</p>
-                <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:12 }}>
-                  {(Array.isArray(wt.bullets)&&wt.bullets.length?wt.bullets:wt.chips).map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:'var(--radius-pill)', padding:'4px 10px' }}>{c}</span>))}
-                </div>
-                <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600 }}>{t('sw2DesignThis3d')}</div>
-              </div>
-            </button>
-          ))}
-        </div>
+        <TypeShowcase types={wTypes} ar={lang==='ar'} cta={t('sw2DesignThis3d')} onDesign={()=>setPage('wardrobe-planner')} badge={(x)=>x.from?('From '+fmt(x.from)):''} testid="showcase-wardrobe" />{/* [GLASS stage 3] */}
       </section>
 
       {/* INTERIOR fittings strip */}

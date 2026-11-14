@@ -1,3 +1,4 @@
+import GlassLayer from './glass/GlassLayer'; // [GLASS 2026-11-14] site-wide glass backdrop + frosted cards (owner's glass look, synced from main)
 import { useState, useEffect, useCallback, useRef, createContext, useContext, Component } from 'react';
 import { errMsg } from './errors';
 import { BrowserRouter, useLocation, useNavigate } from 'react-router-dom';
@@ -3944,6 +3945,7 @@ function AppInner() {
       <style>{CSS}</style>
       <SkipLink lang={lang} />
       <RouteAnnouncer pathname={location.pathname} lang={lang} />
+      <GlassLayer page={page} />{/* [GLASS 2026-11-14] the site-wide glass look: backdrop, frosted cards, arrival motion */}
       {page!=='portal' && <Nav page={page} setPage={setPage} cart={cart} setCartOpen={setCartOpen} user={user} openAuth={openAuth} siteLogo={siteLogo} lang={lang} setLang={setLang} />}
       <main id="main" tabIndex={-1} style={{ outline: 'none' }}>
       <SectionBoundary name={'route:' + page} resetKey={page}>

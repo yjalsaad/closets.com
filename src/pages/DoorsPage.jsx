@@ -3,6 +3,7 @@
 // Shared app helpers (api, useI18n, AppCtx, …) are imported from ../App (live bindings; this chunk only loads after App has evaluated).
 import { useState } from 'react';
 import { HERO_IMG, cms, fmt, useI18n, useMobile } from '../App';
+import TypeShowcase from '../glass/TypeShowcase'; // [GLASS] owner's explorable type showcase
 import { mergeLayout, useLayouts } from './shared_TVUnitPlannerWizard_OfficePlannerWizard_plus8';
 import { DOOR_TYPES, DOOR_WOODS } from './shared_DoorPlannerWizard_DoorsPage';
 
@@ -11,7 +12,7 @@ import { DOOR_TYPES, DOOR_WOODS } from './shared_DoorPlannerWizard_DoorsPage';
    Hero + section headings fully Hub-editable via cms('door.*', fallback). */
 function DoorsPage({ setPage, products }) {
   const mobile = useMobile();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [faq, setFaq] = useState(-1);
   const { map: dbLayouts } = useLayouts('door');
   const doorTypes = DOOR_TYPES.map(l => mergeLayout(l, dbLayouts));
@@ -49,24 +50,7 @@ function DoorsPage({ setPage, products }) {
         <div className="eyebrow" style={{ marginBottom:10 }}>{cms('door.layouts.eyebrow','Door types')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 6px' }}>{cms('door.layouts.title','Find your door.')}</h2>
         <p style={{ fontSize:15, color:'var(--ink-soft)', maxWidth:600, marginBottom:22 }}>{cms('door.layouts.subtitle','Six ways to open a room — from an everyday swing leaf to a space-saving slider, a statement pivot or a concealed flush door.')}</p>
-        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:16 }}>
-          {doorTypes.map(t=>(
-            <button key={t.id} type="button" className="lift" onClick={()=>setPage('door-planner')} style={{ textAlign:'left', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', overflow:'hidden', background:'var(--c-surface)', cursor:'pointer', padding:0, boxShadow:'var(--shadow)' }}>
-              <div style={{ height: mobile?170:210, background:`url('${t.img}') center/cover` }} />
-              <div style={{ padding:'18px 20px' }}>
-                <div style={{ fontSize:20, fontWeight:600, color:'var(--ink)' }}>{t.name}</div>
-                <div style={{ fontSize:13, color:'var(--muted)', marginTop:3 }}>{t.sub}</div>
-                {(t.desc || t.note) && <p style={{ fontSize:13, color:'var(--ink-soft)', margin:'8px 0 0', lineHeight:1.5 }}>{t.desc || t.note}</p>}
-                {Array.isArray(t.bullets)&&t.bullets.length>0 && (
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:6, margin:'12px 0' }}>
-                    {t.bullets.map(c=>(<span key={c} style={{ fontSize:11, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:'var(--radius-pill)', padding:'4px 10px' }}>{c}</span>))}
-                  </div>
-                )}
-                <div style={{ fontSize:12.5, color:'var(--clay)', fontWeight:600, marginTop:12 }}>{designYoursLbl}</div>
-              </div>
-            </button>
-          ))}
-        </div>
+        <TypeShowcase types={doorTypes.map(d=>({ ...d, desc: d.desc || d.note }))} ar={lang==='ar'} cta={designYoursLbl} onDesign={()=>setPage('door-planner')} testid="showcase-door" />{/* [GLASS stage 3] */}
       </section>
 
       {/* WOODS & FINISHES strip */}
