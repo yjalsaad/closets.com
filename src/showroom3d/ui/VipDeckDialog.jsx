@@ -25,7 +25,7 @@ export function VipDeckDialog({ lang, ex, max, onClose }) {
   const rd = useMemo(() => (res.ok ? resolveDeck(res.deck, lang) : null), [res, lang]);
   const slide = rd ? rd.slides[Math.min(pi, rd.slides.length - 1)] : null;
   useEffect(() => { setPi(0); setSaveErr(''); }, [text]);
-  useEffect(() => { const n = statusRef.current; if (n && !res.empty && res.errors.length && n.scrollIntoView) n.scrollIntoView({ block: 'nearest' }); }, [res]);   // the errors are never left below the fold
+  useEffect(() => { const n = statusRef.current; if (n && !res.empty && res.errors.length && n.scrollIntoView) n.scrollIntoView({ block: 'center' }); }, [res]);   // the errors are never left below the fold
   const onFile = (e) => {
     const f = e.target.files && e.target.files[0]; setFileErr(''); if (!f) return;
     if (f.size > LIMITS.maxInput * 2) { setFileErr(t('vdErrFileBig', lang)); return; }
