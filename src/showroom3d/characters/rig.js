@@ -41,8 +41,8 @@ export function buildCharacter(o = {}) {
   const hips = J(root, 0, 0.95, 0, 'hips'), legs = {}, arms = {};
   // ---- hips: pelvis + the long garment's skirt
   const hipItems = [G(cyl(chestR * 0.95, chestR * 0.9, 0.2, q), cloth, { y: 0.03, s: [1, 1, 0.72] })];
-  if (long) { const hem = outfit === 'abaya' ? 0.29 : 0.24, pts = [[0.001, 0.12], [0.16, 0.1], [0.19, -0.2], [hem * 0.8, -0.6], [hem, -0.9], [0.001, -0.9]].map(([r, y]) => new THREE.Vector2(r, y)); hipItems.push(G(new THREE.LatheGeometry(pts, q ? 20 : 10), cloth, { s: [1, 1, 0.88] })); }
-  else if (outfit === 'coat') { const pts = [[0.001, 0.12], [0.165, 0.1], [0.19, -0.1], [0.21, -0.55], [0.001, -0.55]].map(([r, y]) => new THREE.Vector2(r, y)); hipItems.push(G(new THREE.LatheGeometry(pts, q ? 20 : 10), cloth, { s: [1, 1, 0.8] })); }
+  if (long) { const hem = outfit === 'abaya' ? 0.29 : 0.24, pts = [[0.001, 0.12], [0.16, 0.1], [0.19, -0.2], [hem * 0.8, -0.6], [hem, -0.9], [0.001, -0.9]].map(([r, y]) => new THREE.Vector2(r, y)).reverse(); hipItems.push(G(new THREE.LatheGeometry(pts, q ? 20 : 10), cloth, { s: [1, 1, 0.88] })); }
+  else if (outfit === 'coat') { const pts = [[0.001, 0.12], [0.165, 0.1], [0.19, -0.1], [0.21, -0.55], [0.001, -0.55]].map(([r, y]) => new THREE.Vector2(r, y)).reverse(); hipItems.push(G(new THREE.LatheGeometry(pts, q ? 20 : 10), cloth, { s: [1, 1, 0.8] })); }
   const hipsMesh = M(hipItems, hips, 'hipsMesh');
   // ---- legs: thigh + shin / shoe on knee joints
   const trouser = outfit === 'coat' ? P.abayaBlack : long ? cloth : cloth;
