@@ -21,7 +21,7 @@ export class FilmPlayer {
     if (!this.fetcher) { this.libraryReady = true; this.applyWanted(); return (this.loading = Promise.resolve(this.state)); }
     this.loading = this.getText(FILMS_MANIFEST_URL).then(async (txt) => {
       const list = txt ? parseFilmsManifest(txt) : { ok: false, films: [] }; let needLegacy = !list.ok || !list.films.some((f) => f.id === JOURNEY_ID);
-      for (const f of list.films) { if (f.film) this.library.set(f.id, f.film); else if (f.ref) { const t = await this.getText(f.ref), one = t ? parseFilmManifest(t) : { ok: false }; if (one.ok) this.library.set(f.id, { ...one.film, real: f.real }); if (f.id === JOURNEY_ID) needLegacy = false; } }
+      for (const f of list.films) { if (f.film) this.library.set(f.id, f.film); else if (f.ref) { const t = await this.getText(f.ref), one = t ? parseFilmManifest(t) : { ok: false }; if (one.ok) this.library.set(f.id, { ...one.film, real: f.real });  /* real stays the list's word; `mixed` comes from the film's own manifest */ if (f.id === JOURNEY_ID) needLegacy = false; } }
       if (needLegacy) { const t = await this.getText(FILM_MANIFEST_URL), one = t ? parseFilmManifest(t) : { ok: false }; if (one.ok) this.library.set(JOURNEY_ID, { ...one.film, real: false }); }
       this.libraryReady = true; this.applyWanted(); return this.state;
     }).catch(() => { this.libraryReady = true; this.applyWanted(); return this.state; });

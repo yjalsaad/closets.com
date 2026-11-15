@@ -1,0 +1,42 @@
+/* Bloom Meeting UI: the floor picker, the lift fade, the Haneen AI floating button and panel extras. Tokens only (showroom.css defines --sr-* / --space-* / --radius-* / --fs-*). */
+.sr-floors { display: inline-flex; gap: var(--space-1); padding: var(--space-1); border-radius: var(--radius-pill); background: var(--sr-glass); border: 1px solid var(--sr-glass-line); pointer-events: auto; backdrop-filter: blur(8px); }
+.sr-floor { min-width: 44px; min-height: 40px; padding: 0 var(--space-3); border-radius: var(--radius-pill); border: 0; background: transparent; color: var(--sr-on-dark); font: 600 var(--fs-sm) var(--font-sans); cursor: pointer; }
+.sr-floor[aria-pressed="true"] { background: var(--sr-orange); color: var(--sr-ink); }
+.sr-floor:focus-visible { outline: 2px solid var(--sr-orange); outline-offset: 2px; }
+.sr3d[dir="rtl"] .sr-floor { font-family: var(--font-ar); }
+.sr-ride-veil { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; background: var(--sr-ink); opacity: 0; pointer-events: none; transition: opacity .6s var(--ease-out, ease); }
+.sr-ride-veil[data-on="1"] { opacity: 1; pointer-events: auto; }
+.sr-ride-veil p { margin: 0; font-size: var(--fs-lg); letter-spacing: .08em; color: var(--sr-on-dark-2); }
+.sr-haneen-fab { position: absolute; z-index: 13; inset-inline-end: var(--space-4); bottom: calc(var(--space-9) + var(--space-4)); pointer-events: auto; min-height: 48px; box-shadow: var(--shadow-3); }
+.sr-stage[data-touch="1"] .sr-haneen-fab { bottom: calc(var(--sr-dock) + var(--space-3)); }
+.sr-haneen-avatar b { font-size: var(--fs-xl); }
+.sr-haneen-tools { display: flex; gap: var(--space-2); }
+.sr-haneen-info { font-weight: 600; color: var(--sr-orange); }
+.sr-haneen-foot { display: flex; flex-wrap: wrap; gap: var(--space-2); padding: var(--space-2) var(--space-5) var(--space-3); border-block-start: 1px solid var(--sr-line); }
+.sr-haneen-form { display: grid; gap: var(--space-3); padding: var(--space-4) var(--space-5); overflow-y: auto; }
+.sr-haneen-form h3 { margin: 0; }
+.sr-haneen-field { display: grid; gap: var(--space-1); font-size: var(--fs-xs); color: var(--sr-on-dark-2); }
+.sr-haneen-field input, .sr-haneen-field textarea { min-height: 44px; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--sr-glass-line); background: var(--sr-glass); color: var(--sr-on-dark); font: inherit; font-size: var(--fs-sm); }
+.sr-haneen-field input:focus-visible, .sr-haneen-field textarea:focus-visible { outline: 2px solid var(--sr-orange); outline-offset: 2px; }
+.sr-haneen-err { margin: 0; color: var(--sr-orange); font-size: var(--fs-sm); }
+.sr-btn.is-off { opacity: .55; }
+.sr-haneen-card { display: flex; gap: var(--space-4); align-items: center; padding: var(--space-3); border: 1px solid var(--sr-glass-line); border-radius: var(--radius-md); }
+.sr-haneen-card p { margin: 0 0 var(--space-1); font-size: var(--fs-sm); }
+.sr-haneen-qr { width: 120px; height: 120px; flex: none; background: var(--sr-paper); border-radius: var(--radius-sm); padding: var(--space-1); }
+.sr-haneen-qr svg { width: 100%; height: 100%; display: block; }
+.sr-haneen.is-big .sr-chat-msg p, .sr-haneen.is-big .sr-chip, .sr-haneen.is-big .sr-chat-input { font-size: var(--fs-lg); }
+.sr-haneen.is-big .sr-chat-msg p { line-height: var(--lh-body); }
+.sr-haneen[dir="rtl"], .sr3d[dir="rtl"] .sr-haneen { text-align: start; }
+@media (max-width: 640px) { .sr-haneen-fab { bottom: calc(var(--sr-dock, 0px) + var(--space-3)); } .sr-haneen-card { flex-direction: column; align-items: flex-start; } }
+@media (prefers-reduced-motion: reduce) { .sr-ride-veil { transition: none; } }
+
+/* the floors section of the Departments sheet (kept off the .sr-dept class so the department list and its tests are untouched) */
+.sr-fl-list { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: grid; gap: var(--space-2); }
+.sr-fl-sub { margin: var(--space-4) 0 0; font-size: var(--fs-sm); letter-spacing: .06em; color: var(--sr-on-dark-2); }
+.sr-fl { pointer-events: auto; width: 100%; display: flex; align-items: center; gap: var(--space-3); min-height: 48px; padding: 0 var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--sr-glass-line); background: var(--sr-glass); color: var(--sr-on-dark); font: 500 var(--fs-sm) var(--font-sans); text-align: start; cursor: pointer; }
+.sr-fl:hover { background: var(--sr-charcoal); border-color: var(--sr-orange); }
+.sr-fl[aria-current="true"] { border-color: var(--sr-orange); }
+.sr-fl:focus-visible { outline: 2px solid var(--sr-orange); outline-offset: 2px; }
+.sr3d[dir="rtl"] .sr-fl { font-family: var(--font-ar); }
+.sr-fl-n { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--sr-orange); color: var(--sr-ink); font-weight: 600; font-size: var(--fs-xs); flex: none; }
+.sr-fl-name { flex: 1; }

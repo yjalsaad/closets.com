@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { t } from '../strings';
 import { L, DISCLAIMER } from '../vip/deckSchema';
-import { FILM_TITLE, FILM_AI_LABEL, fmtTime } from '../vip/film';
+import { FILM_TITLE, FILM_AI_LABEL, FILM_MIXED_LABEL, FILM_MIXED_BADGE, fmtTime } from '../vip/film';
 import { AGENDA, KIND_LABEL } from '../vip/meeting';
 
 const live = (fs) => !!fs && (fs.status === 'playing' || fs.status === 'paused' || fs.status === 'ended' || fs.status === 'ready');
@@ -17,7 +17,7 @@ export function FilmBody({ lang, fs, fallbackTitle }) {
       {live(fs) && <p className="sr-note">{t(real ? 'filmHintReal' : 'filmHint', lang)}{fs.film.burnedSubtitles ? ' ' + t('filmBurned', lang) : ''}</p>}
       {live(fs) && real && <p className="sr-note sr-vip-film-real" data-testid="sr-vip-film-real">{t('meetReal', lang)}</p>}
       {live(fs) && fs.caption !== 'off' && fs.cue && <p className="sr-vip-film-cue" dir={fs.caption === 'ar' ? 'rtl' : 'ltr'} lang={fs.caption} data-testid="sr-vip-film-cue">{fs.cue}</p>}
-      {status !== 'missing' && !real && <p className="sr-note sr-vip-film-ai" data-testid="sr-vip-film-ai">{L(FILM_AI_LABEL, lang)}</p>}
+      {status !== 'missing' && !real && <p className="sr-note sr-vip-film-ai" data-testid="sr-vip-film-ai">{L(fs && fs.film && fs.film.mixed ? FILM_MIXED_LABEL : FILM_AI_LABEL, lang)}</p>}
       <p className="sr-note sr-vip-disc" data-testid="sr-vip-disclaimer">{L(DISCLAIMER, lang)}</p>
     </div>
   );
@@ -60,7 +60,7 @@ export function VipCinema({ lang, ex }) {
   return (
     <div className="sr-vip-cinema" role="dialog" aria-modal="true" aria-label={t('filmCinema', lang)} data-testid="sr-vip-cinema" dir={lang === 'ar' ? 'rtl' : 'ltr'} onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); ex.setCinema(false); } }}>
       <button type="button" className="sr-btn sr-btn-line" ref={ref} onClick={() => ex.setCinema(false)} data-testid="sr-vip-cinema-exit">{t('filmCinemaExit', lang)}</button>
-      {!(ex.film && ex.film.state.film && ex.film.state.film.real) && <span className="sr-vip-cinema-ai">{L(FILM_AI_LABEL, lang)}</span>}
+      {!(ex.film && ex.film.state.film && ex.film.state.film.real) && <span className="sr-vip-cinema-ai">{L(ex.film && ex.film.state.film && ex.film.state.film.mixed ? FILM_MIXED_BADGE : FILM_AI_LABEL, lang)}</span>}
     </div>
   );
 }

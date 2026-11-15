@@ -53,7 +53,7 @@ describe('the explorer and the Kitchen Design Studio', () => {
     x.debug().teleport(P.stand[0], P.stand[1], 0, 0); x.debug().teleport(0, -3.5, 0, 0); expect(engine.calls.near.slice(-1)).toEqual([false]);
   });
   test('the quick-nav graph has the studio as the 11th stop (the digit keys 1..9 are unchanged)', () => {
-    const { x } = make(); expect(x.graph.stops).toHaveLength(12); expect(x.graph.stops[10].id).toBe('kitchen-studio'); expect(x.graph.stops[11].id).toBe('tv-studio'); expect(x.graph.stops[8].id).toBe('vip'); expect(x.graph.stops[9].id).toBe('collections');
+    const { x } = make(); expect(x.graph.stops).toHaveLength(13); expect(x.graph.stops[12].id).toBe('lift'); expect(x.graph.stops[10].id).toBe('kitchen-studio'); expect(x.graph.stops[11].id).toBe('tv-studio'); expect(x.graph.stops[8].id).toBe('vip'); expect(x.graph.stops[9].id).toBe('collections');
     expect(x.zones[0].id).toBe('kitchen-studio');
   });
   test('the glide to the studio arrives looking a little up at the screen (stop.pitch)', () => {

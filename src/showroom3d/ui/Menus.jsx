@@ -6,11 +6,12 @@ import { useDialog } from './useDialog';
 import { VIP_DEPT } from '../products/vipContent';
 import { COLLECTIONS_DEPT } from '../collections/layout';
 import { SECTION_DEPTS } from '../designstudio/sections';
+import { FLOORS, BLOOM_STOPS } from '../scenes/bloom/layout';
 
 const name = (d, lang) => (lang === 'ar' ? d.ar : d.en);
 
 /** Department quick-nav: a sheet listing the eight bays and the VIP meeting room; choosing one glides the camera to its entrance. */
-export function DeptMenu({ lang, touch, onPick, onClose, fallbackFocus }) {
+export function DeptMenu({ lang, touch, onPick, onClose, fallbackFocus, level = 'ground' }) {
   const ref = useDialog(true, onClose, fallbackFocus);
   return (
     <div className="sr-modal sr-modal-sheet" onPointerDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
@@ -20,6 +21,11 @@ export function DeptMenu({ lang, touch, onPick, onClose, fallbackFocus }) {
           <button type="button" className="sr-btn sr-btn-line" onClick={onClose} aria-label={t('departmentsClose', lang)}>{t('departmentsClose', lang)}</button>
         </div>
         <p className="sr-dialog-sub">{t('departmentsHint', lang)}</p>
+        <h3 className="sr-fl-sub">{t('floors', lang)}</h3>
+        <ul className="sr-fl-list" data-testid="sr-dept-floors">
+          {FLOORS.map((f) => <li key={f.id}><button type="button" className="sr-fl" onClick={() => onPick('floor:' + f.id)} aria-current={level === f.id ? 'true' : undefined} data-floorpick={f.id}><span className="sr-fl-n" aria-hidden="true">{f.short[lang === 'ar' ? 'ar' : 'en']}</span><span className="sr-fl-name">{name(f, lang)}</span></button></li>)}
+          {level === 'l2' && BLOOM_STOPS.map((b) => <li key={b.id}><button type="button" className="sr-fl" onClick={() => onPick(b.id)} data-floorpick={b.id}><span className="sr-fl-n" aria-hidden="true">2</span><span className="sr-fl-name">{name(b, lang)}</span></button></li>)}
+        </ul>
         <ol className="sr-dept-list">
           {[...DEPARTMENTS, VIP_DEPT, COLLECTIONS_DEPT, ...SECTION_DEPTS].map((d, i) => (
             <li key={d.id}>

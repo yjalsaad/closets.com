@@ -111,6 +111,41 @@ export class ShowroomEngine {
     this.realism = 'loading'; this.lazyRealism();   // real textures + HDRI download AFTER the first frame: the loader is no longer than before the realism pass   // lazy: the four YAS Wood pictures (180 KB) load after the intro has started
   }
 
+  // ---------------------------------------------------------------- Floor 2 (Bloom Meeting): a lazy chunk, shown only while a visitor is up there
+  /** fetch + build the Bloom chunk (Floor 2 and the glass lift in the hall) once; resolves with { floor, lift } or null on any failure (the lift simply never appears) */
+  ensureBloom() {
+    if (this.bloomP) return this.bloomP;
+    this.bloomP = import(/* webpackChunkName: "bloom-meeting" */ '../scenes/bloom').then((m) => {
+      if (this.disposed || !this.products) return null;
+      const b = m.buildBloom({ M: this.products.M, tier: this.tier, lang: this.lang, logoTex: null, glowTex: this.glowTex, reduced: !!this.reduced });
+      b.floor.group.visible = false; this.scene.add(b.floor.group, b.lift.group); this.bloom = b; this.floorId = this.floorId || 'ground';
+      if (this.lang) { b.floor.setLanguage(this.lang); b.lift.setLanguage(this.lang); }
+      return b;
+    }).catch((e) => { this.bloomErr = e; return null; });   // (kept for QA: window.__showroom.engine.bloomErr)
+    return this.bloomP;
+  }
+  /** 'ground' | 'l2': hide the hall, the exterior and the sun while up on Floor 2, and light it with the hall's point lights moved there (no new lights, no shader recompile) */
+  setFloor(id) {
+    const b = this.bloom, up = id === 'l2' && !!b; if (!b && id === 'l2') return false;
+    const was = this.floorId === 'l2'; if (up === was) return true; this.floorId = up ? 'l2' : 'ground';
+    const groups = [this.exterior, this.entrance, this.hall, this.products, this.bays, this.collections, this.designStudio, this.gallery, this.staff].map((o) => o && o.group).filter(Boolean);
+    const scene = this.scene, r = this.renderer;
+    if (up) {
+      this._f = { vis: groups.map((g) => g.visible), sunI: this.sun.intensity, sunC: this.sun.castShadow, sunPos: this.sun.position.clone(), sunCol: this.sun.color.getHex(), sunT: this.sun.target.position.clone(), fog: [scene.fog.color.getHex(), scene.fog.density], clear: r.getClearColor(new THREE.Color()).getHex(), pl: this.pointLights.map((l) => [l.position.clone(), l.intensity, l.color.getHex(), l.distance]), avatar: this.avatar ? this.avatar.group.visible : false };
+      groups.forEach((g) => { g.visible = false; }); this.sun.castShadow = false; this.sun.color.setHex(0xdde4ff); this.sun.intensity = this.tier.pointLights ? 2.6 : 4.2; this.sun.target.position.set(0, 0, 150); this.sun.position.set(-30, 120, 190);   // the moon: a cool directional fill (the hall's hemisphere light is not in the scene)
+      scene.fog.color.setHex(0x0b1428); scene.fog.density = 0.0011; r.setClearColor(0x050a14, 1);
+      const Z = 150, spots = [[8, 3.7, -5], [-10, 3.7, -5], [-4, 3.7, 7], [12, 3.7, 6], [4, 3.7, -9.5], [-9, 3.7, 5]];
+      this.pointLights.forEach((l, i) => { const p = spots[i % spots.length]; l.position.set(p[0], p[1], p[2] + Z); l.intensity = 42; l.color.setHex(0xffe0b8); l.distance = 24; });
+      b.lift.group.visible = false; b.floor.setActive(true);
+      if (!this._bloomCompiled) { this._bloomCompiled = true; try { this.renderer.compile(this.scene, this.camera); } catch (e) { /* the first render compiles */ } }   // the Floor 2 shaders compile once, behind the lift fade
+    } else if (this._f) {
+      const f = this._f; groups.forEach((g, i) => { g.visible = f.vis[i]; }); this.sun.intensity = f.sunI; this.sun.castShadow = f.sunC; this.sun.color.setHex(f.sunCol); this.sun.position.copy(f.sunPos); this.sun.target.position.copy(f.sunT);
+      scene.fog.color.setHex(f.fog[0]); scene.fog.density = f.fog[1]; r.setClearColor(f.clear, 1); this.pointLights.forEach((l, i) => { const o = f.pl[i]; l.position.copy(o[0]); l.intensity = o[1]; l.color.setHex(o[2]); l.distance = o[3]; });
+      b.lift.group.visible = true; b.floor.setActive(false); this._f = null;
+    }
+    return true;
+  }
+
   /** lazy realism: the scene starts on the procedural sets (exactly the old loader time); the CC0 textures and the HDRI replace them in place when they arrive. Every failure keeps the procedural look. */
   async lazyRealism() {
     try {
@@ -183,7 +218,7 @@ export class ShowroomEngine {
   /** inside the hall the hard window-sun stripes fade out (the bay key lights take over); the colour grade glides to the nearest room's grade; the floor mirror renders */
   daylight(dt) {
     const z = this.camera.position.z;
-    if (this.sun && !this.cinematic) this.sun.intensity = 8.2 * sunScale(z);
+    if (this.sun && !this.cinematic && this.floorId !== 'l2') this.sun.intensity = 8.2 * sunScale(z);
     if (this.post && this.post.setGrade && this.products) {
       const id = z < 0.6 ? this.products.anchorId() : 'neutral', want = gradeFor(id); this.grade = this.grade ? mixGrade(this.grade, want, 1 - Math.exp(-2.5 * dt)) : want; this.post.setGrade(this.grade);
     }
@@ -191,7 +226,7 @@ export class ShowroomEngine {
     if (this.mirror && !this.mirrorOff && z < -0.5 && fwdY > -0.42) { this.mirror.setSize(this.width * (this.scale || 1), this.height * (this.scale || 1)); this.mirror.mesh.visible = true; this.mirror.render(this.camera, [this.hall && this.hall.group, this.exterior && this.exterior.group, this.entrance && this.entrance.group, ...(this.products ? [...this.products.outlines, this.products.vip && this.products.vip.group, ...this.products.farGroups(this.camera, 13)] : [])]); }
     else if (this.mirror) this.mirror.mesh.visible = false;
   }
-  setLanguage(lang) { this.lang = lang; if (this.gallery) this.gallery.setLanguage(lang); if (this.hall && this.hall.relabel) this.hall.relabel(lang); if (this.exterior && this.exterior.relabel) this.exterior.relabel(lang); if (this.bays) this.bays.relabel(lang); if (this.collections) this.collections.setLanguage(lang); if (this.designStudio) this.designStudio.setLanguage(lang); if (this.products) this.products.setLanguage(lang); if (this.staff) this.staff.setLanguage(lang); }
+  setLanguage(lang) { this.lang = lang; if (this.gallery) this.gallery.setLanguage(lang); if (this.hall && this.hall.relabel) this.hall.relabel(lang); if (this.exterior && this.exterior.relabel) this.exterior.relabel(lang); if (this.bays) this.bays.relabel(lang); if (this.collections) this.collections.setLanguage(lang); if (this.designStudio) this.designStudio.setLanguage(lang); if (this.products) this.products.setLanguage(lang); if (this.staff) this.staff.setLanguage(lang);  if (this.bloom) { this.bloom.floor.setLanguage(lang); this.bloom.lift.setLanguage(lang); } }
 
   setSize(w, h) {
     const nw = Math.max(2, w), nh = Math.max(2, h), dprNow = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
@@ -237,6 +272,7 @@ export class ShowroomEngine {
       if (this.onFrame) this.onFrame(dt, now);
       if (this.products) this.products.update(dt, this.camera);
       if (this.designStudio) this.designStudio.update(dt);
+      if (this.bloom) { if (this.floorId === 'l2') this.bloom.floor.update(dt, this.camera); else this.bloom.lift.update(dt); }
       this.daylight(dt);
       if (this.post && !this.postOff) this.post.render(); else this.renderer.render(this.scene, this.camera);
       this.measure(dt);
@@ -262,6 +298,7 @@ export class ShowroomEngine {
 
   dispose() {
     this.disposed = true; this.stop();
+    if (this.bloom) { try { this.bloom.floor.dispose(); this.bloom.lift.dispose(); } catch (e) { /* ignore */ } }
     if (this.scene) disposeTree(this.scene);
     if (this.mirror) { try { this.mirror.dispose(); } catch (e) { /* ignore */ } }
     if (this.post) { try { this.post.dispose(); } catch (e) { /* ignore */ } }

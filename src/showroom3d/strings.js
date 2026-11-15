@@ -238,6 +238,9 @@ export const STRINGS = {
   chatAiRejected: { en: 'I cannot share that answer here. The team will be glad to help directly.', ar: 'لا أستطيع عرض تلك الإجابة هنا. يسعد الفريق بمساعدتك مباشرة.' },
   chatAiWait: { en: 'Please wait a moment before asking again.', ar: 'يرجى الانتظار قليلًا قبل السؤال مرة أخرى.' },
   chatVoice: { en: 'Read answers aloud', ar: 'قراءة الإجابات بصوت عالٍ' },
+  floors: { en: 'Floors', ar: 'الطوابق' },
+  haneenOpen: { en: 'Ask Haneen AI', ar: 'اسأل حنين AI' },
+  riding: { en: 'Taking the lift…', ar: 'جارٍ الصعود بالمصعد…' },
   chatYou: { en: 'You', ar: 'أنت' },
   chatGreetBubble: { en: 'Welcome! I am {name} (AI assistant). Talk to me any time.', ar: 'أهلًا بك! أنا {name} (مساعد ذكاء اصطناعي). تحدّث معي في أي وقت.' },
 };
