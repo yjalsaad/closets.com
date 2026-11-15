@@ -13,6 +13,10 @@ Written for the Monday 16 November morning meeting. Everything below was checked
 7. **Haneen AI**: open the desk (E at the lobby desk or the "Ask Haneen AI" button), tap one chip, then **Reset session**. Do this **between visitors** too: it clears the chat, the meeting form, presenter mode and read-aloud. Nothing a visitor types is stored; reset is only a courtesy for the next person on screen.
 8. Leave the iPad on the lobby view with the screen at full brightness.
 
+## Which film is on (v2 or v3)
+
+The film on the wall is the **active** Journey film: the row `bloom.film.active` in `website_content` (`v2` | `v3` | `v3-animated`; no row = v3). Check it before the meeting: open `/yas-bloom?meeting=1` and read the label on the wall poster ("Real photographs ..." = v2, "... camera motion only ... AI-generated office" = v3). To test the other one without touching the row, add `&film=v2` or `&film=v3` to the URL. How to switch: `docs/bloom-meeting.md`, "How the owner switches the film".
+
 ## What Haneen will and will not say
 
 She answers only from the confirmed fact sheet (`docs/bloom-meeting-haneen.md`). For any figure the owner has not confirmed (projects, patents, number of factories, capacity, Iraq / Jordan, origin story, team names, financials, valuation, funding, returns) she says *"I don't have a confirmed figure for that; I'll connect you with the team."* and offers **Request a meeting with the team**. If you want any of those facts spoken, confirm them in the fact sheet first (a code change + the tests).
@@ -24,7 +28,7 @@ She answers only from the confirmed fact sheet (`docs/bloom-meeting-haneen.md`).
 | Showroom was fully downloaded (pill said "Showroom downloaded"), wifi drops | the showroom, Floor 2, the lift, Haneen (offline answers), the VIP decks, the **film if the pill said "Film ready"** (it plays from memory / Cache Storage) | the opt-in AI question to Haneen, the meeting-request links (they open Mail / WhatsApp, which need a connection to send) |
 | Wifi drops before "Film ready" | the room and everything above; the film **streams** and may stall | the film from a cold cache |
 | Reload while offline | Safari reloads the page only if it is in its page cache; the cached showroom files are used if the page itself loads | a cold start without any connection |
-| Plan B | Phone hotspot as a second network (iPad > Settings > Wifi); or play the film from the phone (`/yas-bloom/film/journey3-720.mp4` is a plain file) | |
+| Plan B | Phone hotspot as a second network (iPad > Settings > Wifi); or play the film from the phone (`/yas-bloom/film/journey3-720.mp4` or `journey2-720.mp4` are plain files, whichever version is active) | |
 
 Always have the company contact card ready (phone and email are in the Haneen panel under "Request a meeting with the team").
 

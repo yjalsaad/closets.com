@@ -7,7 +7,7 @@ Everything is **add-only** under `src/showroom3d/**`; the main hall, the VIP roo
 
 * **Glass lift** in the main hall, back-left of the nave (a lit glass tower with a brass cab and a "Floor 2 · Bloom Meeting" sign). Stand on its floor ring and press **E** (or tap Interact).
 * **Floor selector** (the `G | 2` pill in the top bar, every screen size) and the **Departments** sheet (a "Floors" section: Ground floor, Floor 2 · Bloom Meeting; on Floor 2 it also lists Lobby, Boardroom, Staff operations, Leads wall, Lounge, Haneen AI). The glass lift also appears as a quick-nav stop.
-* **VIP meeting agenda**: two items were added after the AI film: *The Closets: The Journey of Ambition (new cut)* (film id `journey-v2`) and *Bloom Meeting (Floor 2)*. "Next agenda item" on the last film (or clicking the item in the agenda card) takes the meeting up in the lift and puts the film on the Bloom wall.
+* **VIP meeting agenda**: two items were added after the AI film: *The Closets: The Journey of Ambition (new cut)* (the ACTIVE Journey film, alias `journey-active`: v2, v3 or the reserved animated version; see "The new film") and *Bloom Meeting (Floor 2)*. "Next agenda item" on the last film (or clicking the item in the agenda card) takes the meeting up in the lift and puts the film on the Bloom wall.
 * Access policy: **identical to the VIP room, nothing loosened**. The VIP room has no login or gate (its glass door opens as you approach); Bloom Meeting has none either. Nothing on Floor 2 reads the site's database; the ops / leads walls are illustrative samples.
 * Debug / QA (`?debug=1`): `window.__showroom.engine.ensureBloom()`, then `window.__showroom.explore.rideTo('l2')` (or `'ground'`), `.level()`, `.focusBloom()`, and `.teleport(x, z, yaw, pitch)` (Floor 2 world z = 150 + local z).
 
@@ -32,19 +32,40 @@ Everything is **add-only** under `src/showroom3d/**`; the main hall, the VIP roo
 * `3d/engine.js` `ensureBloom()` / `setFloor()`: hide the hall groups, switch the fog and clear colour to night, move the hall's existing point lights into the boardroom and lobby (no new lights, so no shader recompile for the hall), use the sun as a cool moon fill with shadows off.
 * `navigation/explorer.js` `level`, `rideTo()`, `focusBloom()`, `goPlace()`; the Floor 2 colliders / graph / zones; the lift stop in the hall graph. `navigation/colliders.js` adds the lift tower to the hall colliders.
 * `bloom/ops.js` the illustrative data; `bloom/strings.js` the strings; `ui/bloom.css`, `ui/HaneenChat.jsx`, `ui/Hud.jsx` (floor pill), `ui/Menus.jsx` (floors section).
-* `vip/film.js` (`journey-v2`, `FILM_MIXED_LABEL`, `filmLabel`), `vip/meeting.js` (agenda), `vip/decks/investor.js` (Investor welcome, Factory tour).
+* `vip/film.js` (film versions, `chooseJourney`, `mixedLabel`), `vip/filmChoice.js` (the `bloom.film.active` row), `vip/meeting.js` (agenda), `vip/decks/investor.js` (Investor welcome, Factory tour).
 
 ## How to edit
 
 * Colours / finishes: `bloom/palette.js`. Layout: `scenes/bloom/layout.js` (the zones, stops and colliders come from the same numbers; `__tests__/bloomLayout.test.js` fails if a stop, node or edge lands inside an obstacle).
 * Ops / leads sample numbers and cards: `bloom/ops.js` (keep them generic: no customer names, phones or addresses).
-* The video wall plays whichever film the VIP film player has selected; Bloom uses `journey-v2`.
+* The video wall plays whichever film the VIP film player has selected; Bloom uses the active Journey film (`journey-active`).
 
 ## The new film ("Journey of Ambition", new cut) and how to swap it
 
-Registered as its **own film id `journey-v2`** in `public/yas-bloom/film/films.json`, manifest **`film3.json` (film v3, the one for the 16 November meeting)**; the existing `journey` film and the three real films are untouched. Files: `journey3-1080.mp4` (24.9 MiB, desktop / tablet-class tiers), `journey3-720.mp4` (12.2 MiB, phones, iPad / coarse pointer, data saver, low tier), `journey3-poster.jpg`, `journey3.en.vtt` (51 re-cut English cues), `journey3.ar.vtt`, from the film branch `claude/web-journey-v3` (commit 4631435, `docs/showroom3d/JOURNEY-V3.md`). The **v2 files (`film2.json`, `journey2-*`) stay in place as the fallback**: point the entry's manifest back at `film2.json` to revert (and the two label constants if their wording differs). They download in the background (the existing "download, then play" preloader, Ready badge, Cache Storage) and the film never starts without a click.
-* **Label.** v3 shows the two real leader photographs with **camera motion only** (no AI animation) inside an **AI-generated office**; everything else is AI illustration. So it carries the mixed label **"Leaders appear from real photographs (camera motion only) in an AI-generated office; all other imagery is AI-generated illustration"** (Arabic in `vip/film.js` and `film3.json`) and the short badge "Leaders: real photos · office and other imagery: AI illustration". No separate image of the leaders is shipped. `film3.json` has `"mixed": true`; `bloomFilm.test.js` fails if its label differs from the constants or if "animated with AI" appears.
-* **Film claims.** The film still says (and captions) 50,000+ projects, 27+ patents, two factories, Iraq and Jordan, exclusive designs: the owner's script, all marked needs-owner-confirmation in the Haneen fact sheet (she does not repeat them).
+**Three versions are registered side by side in `public/yas-bloom/film/films.json`, exactly one is ACTIVE, the others stay on disk but are not listed anywhere** (not in the agenda, not on the wall, not downloaded):
+
+| id | manifest | what it is | label (from its own manifest) |
+|---|---|---|---|
+| `journey-v2` | `film2.json` (`journey2-*`) | the leaders as static real photographs | "Real photographs of company leaders; all other imagery is AI-generated illustration" |
+| `journey-v3` | `film3.json` (`journey3-*`) | the leaders as real photographs with camera motion only, in an AI-generated office | "Leaders appear from real photographs (camera motion only) in an AI-generated office; all other imagery is AI-generated illustration" |
+| `journey-v3-animated` | `film3-animated.json` (not on disk) | reserved for the AI-animated version; the entry has `"enabled": false`, so nothing is requested | when it exists: "Leaders appear from real photographs, animated with AI; all other imagery is AI-generated illustration" (the only place those words appear) |
+
+The existing `journey` film (the first AI documentary) and the three real films are untouched. The slides / agenda item / film deck play the **alias `journey-active`**; `FilmPlayer` resolves it to the active version. Each version shows its own label and caption badge (`mixedLabel(id)` / `mixedBadge(id)` in `vip/film.js`, equal to the `label` in its manifest; a test enforces it). Files, sources and posters are as before (1080p on desktop / tablet-class tiers, 720p on phones / iPad / data saver / low tier, captions on by default in the page language).
+
+Proof (real playback in Google Chrome, English captions on, mid-film seek to about 1:47, wall badge shows each version's own wording): `docs/screenshots/bloom/film-choice-v2-desktop-1440x900.jpg`, `film-choice-v3-desktop-1440x900.jpg`, `film-choice-v2-ipad-1024x768@2x.jpg`, `film-choice-v3-ipad-1024x768@2x.jpg` (v2 selected with `?film=v2`, v3 is the default).
+
+### How the owner switches the film (no deploy)
+
+The choice is one row of the site's existing CMS table `website_content`, read once (read-only GET, the same mechanism as `vip.meeting.date`):
+
+```sql
+insert into website_content (key, value, active) values ('bloom.film.active', 'v3', true);   -- 'v2' | 'v3' | 'v3-animated'
+-- change it later:  update website_content set value = 'v2' where key = 'bloom.film.active';
+```
+(or add / edit the row `bloom.film.active` in the Hub's Website Content manager; the row must be active and not deleted). Rules: no row or an invalid value = **v3**; if the chosen version's files do not exist it falls back to **v3, then v2**, so the wall is never empty; `v3-animated` does nothing until its slot is enabled (see below). Anyone opening the showroom after the change gets it on their next visit (the row is read when the film library loads; a failed or slow read, 2.5 s, keeps the default). `?film=v2` or `?film=v3` in the URL overrides the row for testing only.
+* **Preload / manifest implications:** only the ACTIVE film is prefetched (Meeting mode and the lift ride fetch `journey-active` only, one background download, then "Film ready"). The other versions' mp4 files are never requested unless chosen. `preload/manifest.json` lists the posters of v2 and v3 (about 120 KB each); the videos are not part of the showroom download.
+* **To turn on the AI-animated version later:** add its files and `film3-animated.json` under `public/yas-bloom/film/` (same schema as `film3.json`, with its own `"mixed": true` and `label`), set `"enabled": true` on the `journey-v3-animated` entry in `films.json`, run `node scripts/showroom3d-preload/make-manifest.js`, then set the row to `v3-animated`. Nothing else changes.
+* **Add another version:** a new entry in `films.json`, a mapping in `FILM_CHOICES` / `JOURNEY_LABELS` (`vip/film.js`) and in the `chooseJourney` order if it should be a fallback; tests in `__tests__/filmChoice.test.js`.
 
 ## Chairs: what was wrong and the fix
 
@@ -68,15 +89,6 @@ Source: `yjalsaad/closets-hub`, branch `claude/lead-roadmap`, `docs/lead-roadmap
 * **Meeting mode**: `/yas-bloom?meeting=1` (skips the intro, rides the lift, glides to the lobby view) or Departments > "Meeting mode: open Bloom Meeting". The new film downloads during the ride; the lobby shows a **"Film ready"** pill (or "Preparing film... N%"), and the wall panel says "Ready: starts instantly". Only the new film is fetched (not the other VIP films); phones and iPads (coarse pointer) get the 720p file. Checklist: `docs/bloom-meeting-checklist.md`.
 * **The lift is no longer solid-but-invisible**: its collider exists only once the lift is drawn (`buildColliders({ lift })`), and the Bloom chunk is now fetched during the intro (1.2 s after the engine is ready), not after it.
 * **Subtle light sweep** along the top LED line of the video wall (one additive quad, a slow sine travel; off under reduced motion). The wall itself is already at the largest 16:9 the 5 m ceiling allows (7.6 x 4.3 m), so it was not enlarged.
-
-### Swapping the film again (v3 is live; this is how it was done and how to go back to v2 or on to a v4)
-
-The new cut has ONE entry, `journey-v2`, so the agenda, the deck, the wall and Haneen never change.
-
-1. Copy the film's files into `public/yas-bloom/film/` and run `node scripts/showroom3d-preload/make-manifest.js` (a `*-poster.jpg` joins the preload manifest).
-2. **File 1, one line** in `public/yas-bloom/film/films.json`, the `journey-v2` entry: `"manifest": "/yas-bloom/film/film3.json"` (v2 fallback: `film2.json`).
-3. **File 2, two strings** in `src/showroom3d/vip/film.js`: `FILM_MIXED_LABEL` and `FILM_MIXED_BADGE` (EN + AR). They drive the wall poster line, the caption-strip badge, the panel note, the cinema badge and the agenda line. The same `label` is in the film's manifest; `bloomFilm.test.js` fails if they differ.
-4. Point the file checks in `bloomFilm.test.js` at the new manifest / file names, run the tests and `CI=false npm run build`.
 
 ## Performance, quality parity and limits (measured)
 

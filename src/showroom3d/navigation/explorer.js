@@ -31,7 +31,8 @@ import { loadSiteProjects } from '../products/projectsFeed';
 import { loadWelcomeConfig } from '../vip/welcome';
 import { withCollections, collectionsZones } from '../collections/layout';
 import { bloomBoxes, bloomZones, bloomGraph, withBloomLift, ARRIVE, REVEAL, WALL_VIEW, LIFT_STAND, bloomBigView } from '../scenes/bloom/layout';
-import { FILM_V2_DECK_ID, JOURNEY_V2_ID } from '../vip/film';
+import { FILM_V2_DECK_ID, JOURNEY_ACTIVE } from '../vip/film';
+import { loadFilmChoice } from '../vip/filmChoice';
 import { withDesignStudio, studioZones } from '../designstudio/layout';
 
 export const SENS = { mouse: 0.0022, drag: 0.0036, touch: 0.0052 };   // radians per pixel
@@ -374,7 +375,7 @@ export class Explorer {
     if (this.film) return this.film; const rtl = this.uiLang ? this.uiLang === 'ar' : typeof document !== 'undefined' && document.documentElement.dir === 'rtl', w = (this.canvas && this.canvas.clientWidth) || 1280;
     const mobile = w <= 700 || (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches), saveData = typeof navigator !== 'undefined' && navigator.connection && navigator.connection.saveData;
     const enabled = prefetchEnabled(typeof window !== 'undefined' ? window.location.search : ''), preloader = new FilmPreloader({ enabled, onChange: () => this.onFilm() });   // ?vipprefetch=0 switches the background download off
-    this.film = new FilmPlayer({ lang: rtl ? 'ar' : 'en', device: { tier: this.engine.tierId, mobile, saveData: !!saveData }, onChange: () => this.onFilm(), preloader });
+    this.film = new FilmPlayer({ choiceLoader: () => loadFilmChoice(), lang: rtl ? 'ar' : 'en', device: { tier: this.engine.tierId, mobile, saveData: !!saveData }, onChange: () => this.onFilm(), preloader });
     if (typeof document !== 'undefined') { this._filmVis = () => { if (document.hidden && this.film) this.film.pause(); }; document.addEventListener('visibilitychange', this._filmVis); }
     return this.film;
   }
@@ -695,12 +696,12 @@ export class Explorer {
   /** only the new film (journey-v2) is fetched, one background download, then 'Ready: starts instantly'. Respects data saver / ?vipprefetch=0 (the preloader's own policy). */
   prefetchBloomFilm() {
     if (typeof window !== 'undefined' && !prefetchEnabled(window.location.search)) return;
-    const F = this.ensureFilm(); F.load().then(() => { F.prefetch([JOURNEY_V2_ID]); this.onFilm(); });
+    const F = this.ensureFilm(); F.load().then(() => { F.prefetch([JOURNEY_ACTIVE]); this.onFilm(); });
   }
   /** "Meeting mode": the investor quick start. Opens Bloom Meeting at the lobby view, the film downloads on the lift ride and the HUD shows "Film ready". Also ?meeting=1. */
   startMeetingMode() { if (!this.enabled) return false; this.meetingMode = true; this.emit({ meetingMode: true }); this.prefetchBloomFilm(); if (this.level === 'l2') return this.glideTo('bloom-lobby'); return this.rideTo('l2'); }
   /** { state: 'off' | 'preparing' | 'ready', pct } of the Bloom film */
-  bloomFilmPrep() { return this.film ? this.film.prepOf(JOURNEY_V2_ID) : { state: 'off', pct: 0 }; }
+  bloomFilmPrep() { return this.film ? this.film.prepOf(JOURNEY_ACTIVE) : { state: 'off', pct: 0 }; }
   /** the agenda's destination item: leave the VIP room's screen, ride up, and put the new film on the Bloom wall */
   goPlace(item) { if (!item || item.floor !== 'l2') return false; if (this.film) this.film.pause(); if (this.focus) this.exitFocus(); if (this.level === 'l2') { this.focusBloom(); return true; } return this.rideTo('l2', { focus: true }); }
 
