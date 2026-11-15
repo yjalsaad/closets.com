@@ -18,7 +18,7 @@ const PRE = [
   [/^\/yas-bloom\/realism\/tex\/[a-z]+_(a|n|orm)\.webp$/, 'hall', 11, 'hml'],
   [/^\/yas-bloom\/realism\/studio_warm_512\.hdr$/, 'hall', 12, 'hml'],
   [/^\/yas-bloom\/realism\/gallery\/[a-z0-9-]+\.webp$/, 'hall', 13, 'hml'],
-  [/^\/brand\/ikhtarha\/(hero-wide\.jpg|logo-light\.png)$/, 'hall', 14, 'hml'],
+  [/^\/brand\/ikhtarha\/(hero-wide\.jpg|logo-light-1040\.webp)$/, 'hall', 14, 'hml'],
   [/^\/yas-bloom\/collections\/[^/]+\/[a-z0-9-]+-thumb\.webp$/, 'rooms', 20, 'hm'],
   [/^\/yas-bloom\/collections\/[^/]+\/[a-z0-9-]+-small\.webp$/, 'rooms', 20, 'l'],
   [/^\/yas-bloom\/profile\/[a-z0-9-]+\.webp$/, 'vip', 30, 'hml'],

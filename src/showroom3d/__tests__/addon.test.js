@@ -15,13 +15,32 @@ describe('YAS Bloom add-on hooks', () => {
     for (const p of ['/yas-bloom', '/yas-bloom/', '/ar/yas-bloom']) expect(SHOWROOM_PATH_RE.test(p)).toBe(true);
     for (const p of ['/', '/booking', '/ar/booking', '/yas-bloomx', '/showroom-3d']) expect(SHOWROOM_PATH_RE.test(p)).toBe(false);
   });
-  test('vercel.json: only an additive noindex header for the new path; the existing SPA rewrite is untouched', () => {
+  test('vercel.json: noindex on every showroom path, four showroom-only rewrites to the lean shell, SPA catch-all last and unchanged', () => {
     const v = JSON.parse(read('vercel.json'));
-    expect(v.rewrites).toEqual([{ source: '/(.*)', destination: '/index.html' }]);
     expect(v.buildCommand).toBe('CI=false npm run build');
-    // PR #11/#12 replaced the single regex rule by six explicit rules (path-to-regexp does not take `(ar/)?`): every header rule is noindex and only for the showroom
-    expect(v.headers.map((h) => h.source).sort()).toEqual(['/ar/yas-bloom', '/ar/yas-bloom/', '/ar/yas-bloom/:path*', '/yas-bloom', '/yas-bloom/', '/yas-bloom/:path*']);
-    for (const h of v.headers) expect(h.headers).toEqual([{ key: 'X-Robots-Tag', value: 'noindex' }]);
+    // the SPA catch-all is still the LAST rewrite and unchanged; before it, exactly the four showroom URLs go to the lean shell (never a wildcard)
+    expect(v.rewrites[v.rewrites.length - 1]).toEqual({ source: '/(.*)', destination: '/index.html' });
+    const lean = v.rewrites.slice(0, -1);
+    expect(lean.map((r) => r.source)).toEqual(['/yas-bloom', '/yas-bloom/', '/ar/yas-bloom', '/ar/yas-bloom/']);
+    for (const r of lean) expect(r.destination).toBe('/yas-bloom/shell.html');
+    // PR #11/#12 replaced the single regex rule by six explicit rules (path-to-regexp does not take `(ar/)?`): the noindex rules stay, for the showroom only
+    const noindex = v.headers.filter((h) => h.headers.some((x) => x.key === 'X-Robots-Tag'));
+    expect(noindex.map((h) => h.source).sort()).toEqual(['/ar/yas-bloom', '/ar/yas-bloom/', '/ar/yas-bloom/:path*', '/yas-bloom', '/yas-bloom/', '/yas-bloom/:path*']);
+    for (const h of noindex) expect(h.headers).toEqual([{ key: 'X-Robots-Tag', value: 'noindex' }]);
+    // the only other header rules: immutable caching of CRA's content-hashed /static files, and a 1 h + stale-while-revalidate lifetime for the showroom's static images
+    const rest = v.headers.filter((h) => !noindex.includes(h));
+    expect(rest.map((h) => h.source)).toEqual(['/static/(.*)', '/yas-bloom/(realism|staff|collections|design-studio|profile)/(.*)']);
+    expect(rest[0].headers).toEqual([{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }]);
+    expect(rest[1].headers).toEqual([{ key: 'Cache-Control', value: 'public, max-age=3600, stale-while-revalidate=86400' }]);
+  });
+  test('lean shell: no home-page assets, noindex, entry block the postbuild step rewrites, and a run-time fallback for any build', () => {
+    const h = read('public/yas-bloom/shell.html');
+    expect(h).toMatch(/name="robots" content="noindex/);
+    expect(h).toContain('viewport-fit=cover');
+    expect(h).toContain('<div id="root"></div>');
+    expect(h).not.toMatch(/cloudfront|model-viewer|ld\+json|<img/i);
+    expect(h).toMatch(/<!--BLOOM-ENTRY:BEGIN[\s\S]*asset-manifest\.json[\s\S]*<!--BLOOM-ENTRY:END-->/);
+    expect(read('package.json')).toContain('"postbuild": "node scripts/prerender.js && node scripts/bloom-shell.js"');
   });
   test('vendored routes: /ar exists only for the showroom; links out to the main site are never prefixed', () => {
     expect(withLang('/booking', 'ar')).toBe('/booking');

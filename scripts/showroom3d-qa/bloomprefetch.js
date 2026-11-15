@@ -18,7 +18,7 @@ const Q = 'debug=1&quality=medium&aa=0&scale=0.4';
 const THROTTLE = { slow: { latency: 80, downloadThroughput: 120000, uploadThroughput: 100000 }, venue: { latency: 100, downloadThroughput: 1000000, uploadThroughput: 250000 } };
 const get = (path) => new Promise((res, rej) => http.get(BASE + path, (r) => { let b = ''; r.on('data', (d) => { b += d; }); r.on('end', () => res(b)); }).on('error', rej));
 const serverLog = async () => JSON.parse(await get('/__log'));
-const MANAGED = /^\/(yas-bloom\/(staff|realism|collections|design-studio|profile)\/|yas-bloom\/film\/[a-z0-9-]+-poster\.jpg|brand\/ikhtarha\/(hero-wide\.jpg|logo-light\.png))/;
+const MANAGED = /^\/(yas-bloom\/(staff|realism|collections|design-studio|profile)\/|yas-bloom\/film\/[a-z0-9-]+-poster\.jpg|brand\/ikhtarha\/(hero-wide\.jpg|logo-light-1040\.webp))/;
 const managedHits = (log) => log.filter((e) => MANAGED.test(e.url.split('?')[0]) && e.status !== 503);
 
 async function open(browser, { rate = 'venue', init, viewport = { width: 1100, height: 650 }, mobile = false, lang = 'en', query = Q, ctx: reuse } = {}) {

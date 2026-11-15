@@ -3,9 +3,11 @@
  *   /static/**                      s-maxage=31536000, immutable   (no max-age: a browser has no freshness lifetime, it revalidates with the ETag)
  *   everything else (yas-bloom/**)  public, max-age=0, must-revalidate
  * HEADERS=proposed serves the vercel.json snippet from docs/showroom3d/BLOOM-PRELOAD.md instead (static: max-age=31536000 immutable; yas-bloom assets: max-age=3600, stale-while-revalidate).
+ * HEADERS=vercel emulates the whole of vercel.json (rewrites + headers, see vercel-emu.js; VERCEL_JSON=<file> picks another config, e.g. the one of main).
  * usage: [NOFILM=1] [HEADERS=prod|proposed] node scripts/showroom3d-qa/serve-prod.js <buildDir> [port]      GET /__log returns every request served (JSON), GET /__reset clears it */
 const http = require('http'), fs = require('fs'), path = require('path'), zlib = require('zlib'), crypto = require('crypto');
 const dir = path.resolve(process.argv[2] || 'build'), port = Number(process.argv[3] || 5055), MODE = process.env.HEADERS || 'prod';
+const VJ = MODE === 'vercel' ? JSON.parse(fs.readFileSync(process.env.VERCEL_JSON || path.join(__dirname, '../../vercel.json'), 'utf8')) : null;
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.ico': 'image/x-icon', '.webp': 'image/webp', '.mp4': 'video/mp4', '.webm': 'video/webm', '.vtt': 'text/vtt', '.hdr': 'application/octet-stream', '.txt': 'text/plain', '.xml': 'application/xml' };
 const compressible = new Set(['.html', '.js', '.css', '.json', '.svg', '.vtt', '.hdr', '.txt', '.xml']);
 const cache = new Map(), log = [];   // path -> { buf, br, gz, etag }
@@ -21,9 +23,10 @@ http.createServer((req, res) => {
   if (p === '/__log') { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify(log)); return; }
   if (p === '/__reset') { log.length = 0; res.end('ok'); return; }
   if (process.env.NOFILM && /\.(mp4|webm)$/.test(p)) { log.push({ t: Date.now(), url: req.url, status: 503, bytes: 0 }); res.writeHead(503); res.end(); return; }
-  let f = path.join(dir, p); if (!f.startsWith(dir) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) f = path.join(dir, 'index.html');
+  let f = path.join(dir, p), vh = null; if (!f.startsWith(dir) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) f = path.join(dir, 'index.html');
+  if (MODE === 'vercel') { const r = require('./vercel-emu').route(VJ, dir, p); if (r.status !== 200) { log.push({ t: Date.now(), url: req.url, status: 404, bytes: 0 }); res.writeHead(404); res.end('404'); return; } f = r.file; vh = r.headers; }
   const isIndex = f === path.join(dir, 'index.html'), e = entry(f), ae = String(req.headers['accept-encoding'] || '');
-  const h = { 'content-type': types[e.ext] || 'application/octet-stream', etag: e.etag, 'cache-control': isIndex ? 'public, max-age=0, must-revalidate' : cc(p), 'accept-ranges': 'bytes', vary: 'Accept-Encoding' };
+  const h = { 'content-type': types[e.ext] || 'application/octet-stream', etag: e.etag, 'cache-control': isIndex ? 'public, max-age=0, must-revalidate' : cc(p), 'accept-ranges': 'bytes', vary: 'Accept-Encoding', ...(vh || {}) };
   const rec = { t: Date.now(), url: req.url, status: 200, bytes: 0, inm: !!req.headers['if-none-match'] }; log.push(rec);
   if (req.headers['if-none-match'] === e.etag) { rec.status = 304; res.writeHead(304, h); res.end(); return; }
   const m = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
