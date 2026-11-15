@@ -1,20 +1,20 @@
-/* "YAS Profile (2023)": the owner's YAS WOOD profile PDF (18 pages), condensed. TRUSTED, committed content; every fact is in the PDF (PDF page numbers in each slide's `source`).
+/* "YAS Profile (2026)": the owner's YAS WOOD profile PDF (YAS_PROFILE_PLUS_2023.pdf, 18 pages), condensed. The deck is titled 2026 at the owner's request (Nov 2026); the source lines name the document WITHOUT a year, so no visible 2023 remains and no false edition is claimed. TRUSTED, committed content; every fact is in the PDF (PDF page numbers in each slide's `source`).
  * Omitted on purpose: QR codes, the lifestyle photo with people (p5 of the images), partner certificate contents (listed for the owner to confirm in docs/showroom3d/VIP-ROOM-OWNER-INPUTS.md).
  * Arabic is a faithful translation awaiting native review. Photos: public/yas-bloom/profile. */
 const T = (en, ar) => ({ en, ar });
-const SRC = (pp) => T(`YAS Wood Profile 2023, ${/[-,]/.test(pp) ? 'pp.' : 'p.'} ${pp}`, `ملف YAS Wood لعام 2023، ص ${pp}`);
+const SRC = (pp) => T(`YAS Wood profile, ${/[-,]/.test(pp) ? 'pp.' : 'p.'} ${pp}`, `ملف YAS Wood، ص ${pp}`);
 const IMG = (name, alt, caption) => ({ type: 'image', url: `/yas-bloom/profile/${name}.webp`, alt, ...(caption ? { caption } : {}) });
 const decorRows = (rows) => rows.map(([code, name]) => [T(code, code), T(name, name)]);
 
 export const YAS_PROFILE_DECK = {
   id: 'yas-profile', unit: 'slide', builtin: true,
-  title: T('YAS Profile (2023)', 'ملف YAS (2023)'),
+  title: T('YAS Profile (2026)', 'ملف YAS (2026)'),
   slides: [
-    { id: 'cover', layout: 'hero', accent: 'brass', title: T('YAS Wood: Profile 2023', 'YAS Wood: ملف 2023'),
+    { id: 'cover', layout: 'hero', accent: 'brass', title: T('YAS Wood: Profile 2026', 'YAS Wood: ملف 2026'),
       lead: T('Surfaces and solutions for furniture and interior design.', 'أسطح وحلول للأثاث والتصميم الداخلي.'),
       bullets: [T('From the YAS Wood profile supplied by management.', 'من ملف YAS Wood المقدَّم من الإدارة.')],
       blocks: [IMG('yas-cover', T('A bright room with a light sideboard, from the YAS Wood profile cover', 'غرفة مضيئة مع بوفيه فاتح، من غلاف ملف YAS Wood'))],
-      source: T('YAS Wood Profile 2023, p. 1. Arabic text awaits native review.', 'ملف YAS Wood لعام 2023، ص 1. النص العربي بانتظار مراجعة ناطق أصلي.') },
+      source: T('YAS Wood profile, p. 1. Arabic text awaits native review.', 'ملف YAS Wood، ص 1. النص العربي بانتظار مراجعة ناطق أصلي.') },
     { id: 'intro', accent: 'brass', title: T('Introduction', 'مقدمة'),
       bullets: [
         T('Surfaces and solutions for furniture and interior design.', 'أسطح وحلول للأثاث والتصميم الداخلي.'),

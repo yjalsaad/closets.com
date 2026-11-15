@@ -10,6 +10,7 @@ import { VIP } from './layout';
 import { makePanel } from '../products/screens';
 import { BUILTIN_DRAW, drawSlide, drawDeckChips, stampRoom, drawPlayOverlay, drawFilmOverlay, chipLayout, drawGallery, drawHubWall, drawFloorMap, drawHolo } from './panels';
 import { resolveDeck } from '../../vip/deckSchema';
+import { buildFlags } from './flags3d';
 import { motionLevel, settleSeconds, easeInOut as eio } from '../../vip/motion';
 import { DEFAULT_DECK } from '../../vip/decks/default';
 import { projectCard } from '../../products/projectsFeed';
@@ -17,6 +18,7 @@ import * as fu from '../products/furnish';
 import * as pr from '../products/props';
 
 const ease = (x) => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
+const STATIC_BUILTIN = new Set(['story', 'meeting', 'welcome']);   // built-in slides that do not animate (no continuous redraw)
 const DW = 1536, DH = 864;   // layout size of the screen drawings; the canvas itself is 1.33x on the high tier (crisper type)
 
 export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = false }) {
@@ -77,18 +79,21 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   { const items = [], cards = []; for (const [x, z, s] of [[-6.5, -29.4, 1], [6.5, -34.6, 2], [-6.5, -35.3, 3], [6.5, -29.0, 4]]) { const pl = pr.plant(x, 0, z, { h: 1.7, leaves: 48, potR: 0.2, seed: 40 + s }); items.push(...pl.body); cards.push(...pl.cards); }
     const a = new THREE.Mesh(mergeColored(items), M.leaves); group.add(a); const b = new THREE.Mesh(mergeColored(cards), M.leafCard); group.add(b); }
 
+  // ---- the two national flags (Bahrain, Saudi Arabia) on brass poles either side of the wall screen ----
+  const flags = buildFlags({ tier, reduced, brass }); group.add(flags.group);
+
   // flush the merged statics (one draw call per material)
   for (const [mat, list] of statics) { const m = new THREE.Mesh(mergeGeometries(list), mat); m.castShadow = false; m.receiveShadow = true; m.matrixAutoUpdate = false; m.updateMatrix(); group.add(m); }
 
   // ---- screens / panels (canvas textures) ----
-  const state = { lang, station: 0, slideT: 99, motion: motionLevel(tier.id, reduced), progress: -1, speed: 1, prev: null, transDir: 1, deck: DEFAULT_DECK, decks: [DEFAULT_DECK], images: new Map(), projects: { status: 'idle', cards: [] }, t: 0, enter: reduced ? 1 : 0, inside: false, door: 0, doorTarget: 0, redrawT: 0, animated: false, reduced, focus: false };
+  const state = { lang, station: 0, slideT: 99, motion: motionLevel(tier.id, reduced), progress: -1, speed: 1, prev: null, transDir: 1, deck: DEFAULT_DECK, decks: [DEFAULT_DECK], images: new Map(), projects: { status: 'idle', cards: [] }, welcome: {}, t: 0, enter: reduced ? 1 : 0, inside: false, door: 0, doorTarget: 0, redrawT: 0, animated: false, reduced, focus: false };
   const logoImg = logoTex && logoTex.image ? logoTex.image : null;
   /** the slide on the wall: a built-in station keeps its rich renderer; any other slide (imported / saved decks) uses the generic slide drawing. With more than one deck, deck chips sit along the top. */
   const drawScreen = (g, w, h, l) => {
     g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
     const d = state.deck, sl = d.slides[state.station] || d.slides[0], bi = sl.builtin && BUILTIN_DRAW[sl.builtin], live = state.inside || state.focus;
     const chipTitles = state.decks.length > 1 ? state.decks.map((x) => resolveDeck({ ...x, slides: [] }, l).title) : null, deckIndex = state.decks.indexOf(state.deck);
-    if (bi) bi(g, w, h, { lang: l, t: state.t, logo: logoImg, projects: state.projects, film: state.film });
+    if (bi) bi(g, w, h, { lang: l, t: state.t, logo: logoImg, projects: state.projects, film: state.film, welcome: state.welcome });
     else {
       const rd = resolveDeck({ ...d, slides: [sl] }, l);
       drawSlide(g, w, h, { lang: l, slide: rd.slides[0], index: state.station, count: d.slides.length, deckTitle: rd.title, images: state.images, stampMax: stampRoom(chipTitles, w, l === 'ar', 3, deckIndex), anim: state.motion.on && live ? { t: state.slideT, level: state.motion } : null });
@@ -133,11 +138,11 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
   const SPOT_I = 300, FILL_I = 45, tableLed = group.getObjectByName('table-led');
 
   const api = {
-    group, lights, state, screen, screenMesh, gallery, hubWall, mapMesh, holos,
+    group, lights, state, screen, screenMesh, flags, gallery, hubWall, mapMesh, holos,
     get doorOpen() { return state.door; }, get station() { return state.station; },
     redraw() { screen.redraw(state.lang); gallery.redraw(state.lang); },
     setLanguage(l) { state.lang = l === 'ar' ? 'ar' : 'en'; for (const p of [screen, gallery, hubWall, mapP, filmStrip, ...holos.map((h) => h.p)]) p.redraw(state.lang); },
-    setReduced(v) { state.reduced = !!v; state.motion = motionLevel(tier.id, !!v); if (v) state.enter = 1; },
+    setReduced(v) { flags.setReduced(v); state.reduced = !!v; state.motion = motionLevel(tier.id, !!v); if (v) state.enter = 1; },
     setStation(i) { const n = Math.max(0, Math.min(state.deck.slides.length - 1, i | 0)); if (n !== state.station) { snapshot(); state.transDir = n > state.station ? 1 : -1; state.slideT = 0; } state.station = n; state.t = 0; screen.redraw(state.lang); },
     /** presentation motion for this tier / reduced-motion setting, and the auto-play badge (progress -1 hides it) */
     setPlayback({ progress = -1, speed = 1 } = {}) { const was = state.progress; state.progress = progress; state.speed = speed; if ((was >= 0) !== (progress >= 0)) screen.redraw(state.lang); },
@@ -154,6 +159,8 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
       const hit = chipLayout(titles, DW, state.lang === 'ar', 3, state.decks.indexOf(state.deck)).find((r) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h); return hit ? hit.i : -1;
     },
     setFocus(v) { state.focus = !!v; },
+    /** the Welcome slide's CMS config ({ date?, line? }, see vip/welcome.js); {} = the committed defaults */
+    setWelcome(cfg) { state.welcome = cfg || {}; screen.redraw(state.lang); },
     /** FILM mode. view = { status, title, poster, video, cue, caption, duration } or null (not the film entry). The video (sRGB VideoTexture) is on the wall only while it plays or is paused. */
     setFilm(view) {
       const was = state.film, useVideo = !!(view && view.video); state.film = view;
@@ -187,20 +194,20 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
       const sw = ease(state.enter * 1.25); spot.target.position.set(0, T.h, VIP.z1 - 0.8 + (T.z - VIP.z1 + 0.8) * sw); spot.target.updateMatrixWorld(); if (tableLed) tableLed.scale.set(0.15 + 0.85 * ease(state.enter * 1.5 - 0.3), 1, 1);
       mapMat.opacity = 0.9 * ease(state.enter * 1.3); mapMesh.scale.setScalar(0.7 + 0.3 * ease(state.enter)); if (!state.reduced) mapMesh.rotation.z = state.t * 0.05;
       // the screen animates only while somebody is in the room (or presenting); static otherwise (a redraw is a canvas upload)
-      state.redrawT += dt;
+      state.redrawT += dt; flags.update(dt, (state.inside || state.focus) && !state.reduced);
       if ((state.inside || state.focus) && !state.reduced) {
         const sl = state.deck.slides[state.station]; state.slideT = state.fixedT != null ? state.fixedT : state.slideT + dt;
         // a slide / deck change cross-fades from the previous frame: keep redrawing until it is over (also for the built-in stations and the film poster, which otherwise redraw rarely), then drop the old frame
         if (state.prev && state.motion.on && !api.filmOnWall) { if (state.slideT >= state.motion.transition) { state.prev = null; state.redrawT = 0; screen.redraw(state.lang); } else if (state.redrawT > 1 / state.motion.hz) { state.redrawT = 0; screen.redraw(state.lang); } }
         if (api.filmOnWall) { /* the video texture updates itself: no canvas uploads while the film is on the wall */ } else
-        if (sl && sl.builtin) { if ((state.station !== 0 && state.redrawT > 0.14) || (state.progress >= 0 && state.redrawT > 0.25)) { state.redrawT = 0; screen.redraw(state.lang); } }
+        if (sl && sl.builtin) { if ((!STATIC_BUILTIN.has(sl.id) && state.redrawT > 0.14) || (state.progress >= 0 && state.redrawT > 0.25)) { state.redrawT = 0; screen.redraw(state.lang); } }
         else if (sl && state.motion.on) {
           const kbOn = state.motion.kenBurns && (sl.blocks || []).some((b) => b.type === 'image') && state.slideT < 18, active = state.slideT < settleSeconds(state.motion, sl) + 0.1 || kbOn, period = active ? 1 / state.motion.hz : (state.progress >= 0 ? 0.25 : 0);
           if (period && state.redrawT > period) { state.redrawT = 0; screen.redraw(state.lang); }
         } else if (state.progress >= 0 && state.redrawT > 0.25) { state.redrawT = 0; screen.redraw(state.lang); }
       }
     },
-    dispose() { if (state.videoTex) state.videoTex.dispose(); for (const p of [screen, gallery, hubWall, mapP, filmStrip, ...holos.map((h) => h.p)]) p.tex.dispose(); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); },
+    dispose() { if (state.videoTex) state.videoTex.dispose(); for (const p of [screen, gallery, hubWall, mapP, filmStrip, ...holos.map((h) => h.p)]) p.tex.dispose(); flags.dispose(); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); },
   };
   return api;
 }

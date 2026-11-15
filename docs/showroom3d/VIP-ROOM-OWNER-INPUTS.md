@@ -26,7 +26,7 @@ The last station of the built-in deck is now **"Talk to our team"**: the company
 
 ## What the room deliberately does not contain
 
-*(This describes the built-in company deck, the default. The two profile decks added later, "The Closets - Company Profile" and "YAS Profile (2023)", are different: they carry statements and figures taken from the owner's own PDFs, each slide citing its page; they are listed in full in the next section for verification.)*
+*(This describes the built-in company deck, the default. The two profile decks added later, "The Closets - Company Profile" and "YAS Profile (2026)", are different: they carry statements and figures taken from the owner's own PDFs, each slide citing its page; they are listed in full in the next section for verification.)*
 
 No figures, returns, valuation, equity amounts, ROI, projections or guarantees; no claim about years, homes delivered, production model or showroom count; no prices; no invented
 contact details; no stock photos; no invented projects or project counts. The Hub screens are simplified procedural mock-ups, labelled "Illustrative", and show module names and counts only.
@@ -53,7 +53,7 @@ Source files (supplied by the owner, not in the repository): `THE_CLOSET_-_Compa
 | The Grand Tower, Hidd Heights | The Grand Tower, Seef: all closets provided and assembled; Hidd Heights: **13-storey** building, studios, 1 and 2 bedrooms | 29, 37 |
 | The Homes, Alsidra | The Homes, Hamala: **20** villas (4 and 5 bedrooms); Alsidra, Diyar Al Muharraq: **over 450 villas**, 2 to 5 bedrooms | 33, 47 |
 
-### YAS Profile (2023) (12 slides + the closing notice)
+### YAS Profile (2026) (12 slides + the closing notice)
 
 | Slide | Statement used | PDF page |
 |---|---|---|

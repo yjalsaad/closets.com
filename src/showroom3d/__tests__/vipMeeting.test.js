@@ -76,7 +76,7 @@ describe('film library: missing-file states', () => {
 
 describe('agenda', () => {
   test('the meeting is the FIRST entry of the room; its deck: agenda card, then the two real films; the AI documentary entry is last', () => {
-    expect(PERMANENT_DECKS.map((d) => d.id)).toEqual(['meeting', 'default', 'closets-profile', 'yas-profile', 'film']); expect(PERMANENT_DECKS[0]).toBe(MEETING_DECK); expect(MEETING_DECK.slides.map((s) => [s.id, s.builtin, s.filmId])).toEqual([['agenda', 'meeting', undefined], ['yas-story', 'film', 'yas-story'], ['closets-story', 'film', 'closets-story']]); expect(deckHasDisclaimer(MEETING_DECK)).toBe(true);
+    expect(PERMANENT_DECKS.map((d) => d.id)).toEqual(['meeting', 'default', 'closets-profile', 'yas-profile', 'film']); expect(PERMANENT_DECKS[0]).toBe(MEETING_DECK); expect(MEETING_DECK.slides.map((s) => [s.id, s.builtin, s.filmId])).toEqual([['welcome', 'welcome', undefined], ['agenda', 'meeting', undefined], ['yas-story', 'film', 'yas-story'], ['closets-story', 'film', 'closets-story']]); expect(deckHasDisclaimer(MEETING_DECK)).toBe(true);
   });
   test('order: real films first, then the three presentations, the AI film LAST and the only one labelled', () => {
     expect(AGENDA.map((a) => a.id)).toEqual(['yas-story', 'closets-story', 'closets-profile', 'yas-profile', 'default', 'journey']); expect(AGENDA.map((a) => a.kind)).toEqual(['film', 'film', 'deck', 'deck', 'deck', 'film']);
@@ -84,7 +84,7 @@ describe('agenda', () => {
     for (const a of AGENDA) expect(PERMANENT_DECKS.some((d) => d.id === a.deck && d.slides[a.slide])).toBe(true);
   });
   test('where am I / what is next: card -> film 1 -> film 2 -> Closets profile -> YAS profile -> company presentation -> AI film -> end', () => {
-    expect(agendaIndex('meeting', 0)).toBe(-1); expect(nextAgendaItem(-1)).toBe(firstAgendaItem()); expect(firstAgendaItem().id).toBe('yas-story'); expect(agendaIndex('meeting', 1)).toBe(0); expect(agendaIndex('meeting', 2)).toBe(1);
+    expect(agendaIndex('meeting', 0)).toBe(-1); expect(agendaIndex('meeting', 1)).toBe(-1); expect(nextAgendaItem(-1)).toBe(firstAgendaItem()); expect(firstAgendaItem().id).toBe('yas-story'); expect(agendaIndex('meeting', 2)).toBe(0); expect(agendaIndex('meeting', 3)).toBe(1);
     const walk = []; let i = -1; for (;;) { const n = nextAgendaItem(i); if (!n) break; walk.push(n.id); i = agendaIndex(n.deck, n.slide); } expect(walk).toEqual(AGENDA.map((a) => a.id));
     expect(agendaIndex('closets-profile', 7)).toBe(2); expect(agendaIndex('film', 0)).toBe(5); expect(nextAgendaItem(5)).toBeNull(); expect(agendaIndex('user-x', 0)).toBe(-1); expect(nextAgendaItem(NaN)).toBeNull(); expect(nextAgendaItem(-2)).toBeNull();
   });
@@ -107,13 +107,13 @@ describe('wall and panel', () => {
   });
   const mkEx = (slide = 0) => { const calls = []; const ex = { calls, canvas: { parentNode: document.body }, deck: MEETING_DECK, allDecks: () => PERMANENT_DECKS, play: { playing: false, speed: 1, loop: true }, presMode: 'panel', meetingOn: true, agendaNow: () => agendaIndex('meeting', slide), startMeeting: () => calls.push(['start']), nextAgenda: () => calls.push(['next']), goAgenda: (a) => calls.push(['go', a.id]), setDeck: () => {}, setStation: () => {}, stepStation: () => {}, exitFocus: () => {}, filmToggle: () => calls.push(['toggle']), setCinema: () => {}, setPresentMode: () => {}, filmSeek: () => {}, filmVolume: () => {}, togglePlay: () => {}, cycleSpeed: () => {}, toggleLoop: () => {} }; return ex; };
   test('panel, agenda card: the picker lists Management meeting first; Start meeting; six agenda buttons with the AI label on the last; clicking works', () => {
-    const ex = mkEx(0); render(<VipPanel lang="en" touch={false} explorerRef={{ current: ex }} st={{ vipStation: 0 }} />);
+    const ex = mkEx(1); render(<VipPanel lang="en" touch={false} explorerRef={{ current: ex }} st={{ vipStation: 1 }} />);
     expect([...screen.getByTestId('sr-vip-deck-select').options].map((o) => o.textContent)[0]).toBe('Management meeting'); expect(screen.getByTestId('sr-vip-title').textContent).toBe('Management meeting');
     const items = [...screen.getByTestId('sr-vip-agenda').querySelectorAll('button')]; expect(items).toHaveLength(6); expect(items[0].textContent).toMatch(/YAS: our story.*Company film/); expect(items[5].textContent).toMatch(/AI-generated illustration/); expect(items.slice(0, 5).some((b) => /AI-generated/.test(b.textContent))).toBe(false);
     fireEvent.click(screen.getByTestId('sr-vip-meet-start')); fireEvent.click(screen.getByTestId('sr-vip-agenda-closets-profile')); expect(ex.calls).toEqual([['start'], ['go', 'closets-profile']]); expect(screen.queryByTestId('sr-vip-meet-next')).toBeNull();
   });
   test('panel, film 1 (Arabic): the real film has no AI label and no captions button (subtitles are in the picture); "Next agenda item" names film 2', async () => {
-    const ex = mkEx(1); ex.film = new FilmPlayer({ fetcher: fetcherFor({ [FILMS_MANIFEST_URL]: LIST }), lang: 'ar' }); ex.film.select('yas-story'); await ex.film.load(); render(<VipPanel lang="ar" touch={false} explorerRef={{ current: ex }} st={{ vipStation: 1 }} />);
+    const ex = mkEx(2); ex.film = new FilmPlayer({ fetcher: fetcherFor({ [FILMS_MANIFEST_URL]: LIST }), lang: 'ar' }); ex.film.select('yas-story'); await ex.film.load(); render(<VipPanel lang="ar" touch={false} explorerRef={{ current: ex }} st={{ vipStation: 2 }} />);
     expect(screen.getByTestId('sr-vip-film').dataset.status).toBe('ready'); expect(screen.queryByTestId('sr-vip-film-ai')).toBeNull(); expect(screen.getByTestId('sr-vip-film-real')).toBeInTheDocument(); expect(screen.queryByTestId('sr-vip-film-cc')).toBeNull(); expect(screen.getByTestId('sr-vip-film-play')).not.toBeDisabled();
     expect(screen.getByTestId('sr-vip-meet-next').textContent).toMatch(/البند التالي.*الخزائن: حكايتنا/); fireEvent.click(screen.getByTestId('sr-vip-meet-next')); fireEvent.click(screen.getByTestId('sr-vip-film-play')); expect(ex.calls).toEqual([['next'], ['toggle']]); expect(screen.getByTestId('sr-vip-prev')).toBeInTheDocument();
   });

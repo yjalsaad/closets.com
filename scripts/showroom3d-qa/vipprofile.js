@@ -35,7 +35,7 @@ async function flows(b) {
   await press(page, 'Digit2'); await settle(page, 400); check('key 2 jumps to slide 2 "Who we are" with the count-up stats in the panel', /Who we are/.test(await panelText(page)) && (await page.locator('[data-testid="sr-count"]').count()) === 2);
   await page.waitForTimeout(2200); const counts = await page.$$eval('[data-testid="sr-count"]', (e) => e.map((x) => x.textContent + '|' + x.dataset.final)); check('count-up ends on the exact supplied figures (200+ and 3)', counts[0] === '200+|200' && counts[1] === '3|3', counts);
   await shot(page, 'vipprofile-03-panel-closets-who', { quality: 55 });
-  await page.selectOption('[data-testid="sr-vip-deck-select"]', 'yas-profile'); await settle(page, 800); await imagesReady(page); check('pick YAS Profile 2023: slide 1 / 13', /Slide\s*1\s*\/\s*13/.test(await panelText(page)));
+  await page.selectOption('[data-testid="sr-vip-deck-select"]', 'yas-profile'); await settle(page, 800); await imagesReady(page); check('pick YAS Profile 2026: slide 1 / 13', /Slide\s*1\s*\/\s*13/.test(await panelText(page)));
   await page.selectOption('[data-testid="sr-vip-deck-select"]', 'closets-profile'); await settle(page, 600);
   // ---- big screen
   await page.click('[data-testid="sr-vip-big"]'); await settle(page, 900);

@@ -12,6 +12,8 @@ export const VIP = {
   stand: [0, -30.2],                                         // quick-nav stand point, inside, facing the screen
   look: [0, 2.2, -(HALL.depth - 0.5) + 0.08],
 };
+/** the two national-flag poles (scenes/vip/flags3d.js): either side of the wall screen, just in front of the back wall. Bahrain on the viewer's left (-x), Saudi Arabia on the right (alphabetical, as seen from the door). */
+export const VIP_FLAGS = Object.freeze({ poleX: 4.85, poleZ: VIP.z0 + 0.21, poleH: 3.0, barY: 2.72, clothH: 0.9, baseR: 0.14, poleR: 0.022, baseH: 0.035 });
 export const vipCentre = () => [(VIP.x0 + VIP.x1) / 2, (VIP.z0 + VIP.z1) / 2];
 /** floor-plan footprint boxes used by collision (door leaf box only exists while the door is closed) */
 export function vipBoxes() {
@@ -25,6 +27,8 @@ export function vipBoxes() {
     { type: 'box', id: 'vip-table', minX: VIP.table.x - VIP.table.w / 2 - 0.55, maxX: VIP.table.x + VIP.table.w / 2 + 0.55, minZ: VIP.table.z - VIP.table.d / 2 - 0.7, maxZ: VIP.table.z + VIP.table.d / 2 + 0.7 },
     // lounge corner (sofa + coffee table) front right, credenza + plant front left
     { type: 'box', id: 'vip-lounge', minX: 3.2, maxX: VIP.x1, minZ: -31.4, maxZ: VIP.z1 + 0.1 },
+    // the two flagpoles' base plates (solid, kept clear of the back lane the navigation graph walks, z = -34.8: the plate sits against the back wall)
+    ...[-1, 1].map((sg) => ({ type: 'box', id: sg < 0 ? 'vip-flag-bh' : 'vip-flag-sa', minX: sg * VIP_FLAGS.poleX - VIP_FLAGS.baseR + 0.02, maxX: sg * VIP_FLAGS.poleX + VIP_FLAGS.baseR - 0.02, minZ: VIP_FLAGS.poleZ - VIP_FLAGS.baseR + 0.02, maxZ: VIP_FLAGS.poleZ + VIP_FLAGS.baseR - 0.02 })),
     { type: 'box', id: 'vip-credenza', minX: VIP.x0, maxX: -5.5, minZ: -31.2, maxZ: VIP.z1 + 0.1 },
   ];
   return out;
