@@ -5,7 +5,7 @@
  * and the columns, so it blocks no aisle. It carries: the name sign, a 4.8 x 2.7 m (16:9) wall screen with a bronze bezel and an LED halo, a travertine / walnut
  * base, and a free-standing touch podium in front ("Start designing", E / tap Interact). */
 import { HALL } from '../3d/dimensions';
-import { SECTIONS, enabledSections } from './sections';
+import { SECTIONS, enabledSections, stationSections, stationName } from './sections';
 
 export const WALL_Z = -0.81;                              // hall.js: inside face of the front wings (faces -z, into the hall)
 /** wall slots a section can take. Only the left wing exists today (the hall has no other free wall): see KITCHEN-STUDIO.md "next sections" for how more slots are added. */
@@ -36,11 +36,14 @@ export function placement(section = SECTIONS[0]) {
   };
 }
 
+/** one entry per station: the first section of every slot (a shared wall is one station, with one screen / podium / zone / collider) */
+export const firstOfEachSlot = (sections) => { const seen = new Set(); return sections.filter((s) => (seen.has(s.slot) ? false : (seen.add(s.slot), true))); };
+
 /** plan-view obstacles: the base + screen stand `BASE.depth` proud of the wall and span the whole wing (no pocket narrower than the walker behind them); the podium is a solid
  *  peninsula reaching back to that box (same rule as collections / productColliders: no 0.5 m gaps for a sliding circle to jitter in) */
 export function studioColliders(sections = enabledSections()) {
   const out = [];
-  for (const s of sections) {
+  for (const s of firstOfEachSlot(sections)) {                // sections that share a slot share ONE wall and ONE podium
     const p = placement(s); if (!p) continue;
     const wall = { minX: HALL.halfWidth * -1 - 1, maxX: -HALL.glassHalf, minZ: WALL_Z - BASE.depth - 0.04, maxZ: 0.35 };
     out.push({ type: 'box', id: s.id + '-wall', ...wall });
@@ -51,7 +54,11 @@ export function studioColliders(sections = enabledSections()) {
 
 /** E / tap Interact works anywhere on the strip of floor in front of the wing (between the glass wall and the side wall, up to the first bay) */
 export function studioZones(sections = enabledSections()) {
-  return sections.map((s) => { const p = placement(s); return p && { id: s.id, en: s.name.en, ar: s.name.ar, index: 11, designStudio: true, sectionId: s.id, ...p.zone }; }).filter(Boolean);
+  return firstOfEachSlot(sections).map((s) => {
+    const p = placement(s); if (!p) return null;
+    const group = stationSections(s, sections);                  // a zone carries its first section's id (so the kitchen's zone id is unchanged) and the ids of every section on the wall
+    return { id: s.id, en: stationName(group, 'en'), ar: stationName(group, 'ar'), index: 11, designStudio: true, sectionId: s.id, sectionIds: group.map((x) => x.id), ...p.zone };
+  }).filter(Boolean);
 }
 
 /** add the stations to the quick-nav graph (returns a NEW graph, like collections/layout.js withCollections): a lane node past the planter, then the stand point */

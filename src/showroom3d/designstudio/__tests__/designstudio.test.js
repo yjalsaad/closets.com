@@ -18,8 +18,8 @@ const graph = withDesignStudio(withCollections(buildGraph()));
 const memStore = (init = {}) => { const m = { ...init }; return { getItem: (k) => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, m }; };
 
 describe('sections registry', () => {
-  test('the kitchen section is the only enabled one and names the website designer route', () => {
-    expect(enabledSections().map((s) => s.id)).toEqual(['kitchen-studio']);
+  test('the kitchen and TV sections are the enabled ones (they share one wall); the kitchen names the website designer route', () => {
+    expect(enabledSections().map((s) => s.id)).toEqual(['kitchen-studio', 'tv-studio']);
     expect(S).toMatchObject({ kind: 'kitchen', slot: 'left-wing', adviser: 'kitchens' });
     expect(S.designer.path).toBe('/design-studio/kitchen-planner');
     expect(sectionById('kitchen-studio')).toBe(S); expect(sectionById('nope')).toBeNull(); expect(sectionByKind('kitchen')).toBe(S);
@@ -28,7 +28,7 @@ describe('sections registry', () => {
     expect(S.name).toEqual({ en: 'Kitchen Design Studio', ar: 'استوديو تصميم المطابخ' });
     expect(sectionName(S, 'ar')).toBe('استوديو تصميم المطابخ'); expect(sectionName(S, 'en')).toBe('Kitchen Design Studio'); expect(sectionName(null, 'en')).toBe('');
     expect(BYLINE).toEqual({ en: BRAND_LINE.en[1], ar: BRAND_LINE.ar[1] }); expect(DS.byline).toEqual(BYLINE);
-    expect(SECTION_DEPTS).toEqual([sectionDept(S)]); expect(SECTION_DEPTS[0]).toMatchObject({ id: 'kitchen-studio', designStudio: true });
+    expect(SECTION_DEPTS).toEqual(SECTIONS.map(sectionDept)); expect(SECTION_DEPTS[0]).toMatchObject({ id: 'kitchen-studio', designStudio: true });
   });
   test('every section has a slot that exists, a unique id and a same-origin designer path', () => {
     expect(new Set(SECTIONS.map((s) => s.id)).size).toBe(SECTIONS.length);
@@ -82,10 +82,11 @@ describe('placement: zone, colliders, navigation', () => {
   });
   test('the quick-nav graph: stop 11 with a lane and stand node; the original graphs are not mutated', () => {
     const base = buildGraph(), g = withDesignStudio(base);
-    expect(g.stops[g.stops.length - 1]).toMatchObject({ id: 'kitchen-studio', index: 11, designStudio: true, stand: P.stand, look: P.look, pitch: ARRIVE_PITCH });
+    expect(g.stops.find((x) => x.id === 'kitchen-studio')).toMatchObject({ id: 'kitchen-studio', index: 11, designStudio: true, stand: P.stand, look: P.look, pitch: ARRIVE_PITCH });
+    expect(g.stops.find((x) => x.id === 'tv-studio')).toMatchObject({ index: 12, designStudio: true, stand: P.stand, look: P.look });   // the TV section shares the wall: same stand point
     expect(g.nodes['stand-kitchen-studio']).toEqual(P.stand); expect(g.nodes['lane-kitchen-studio']).toEqual(P.lane);
     expect(base.stops.some((s) => s.id === 'kitchen-studio')).toBe(false); expect(base.nodes['stand-kitchen-studio']).toBeUndefined();
-    expect(graph.stops.map((s) => s.index)).toEqual([...Array(8).keys()].map((i) => i + 1).concat([9, 10, 11]));
+    expect(graph.stops.map((s) => s.index)).toEqual([...Array(8).keys()].map((i) => i + 1).concat([9, 10, 11, 12]));
   });
   test('every node is standable, every edge is walkable, every stop is reachable from the street, the spawn and every other stop', () => {
     for (const [k, p] of Object.entries(graph.nodes)) expect([k, isFree(p[0], p[1], R, open)]).toEqual([k, true]);
@@ -218,8 +219,9 @@ describe('advisers: "take me to the design studio" and "open the designer"', () 
     const kit = staffRoster().find((s) => s.id === 'kitchens'), rec = staffRoster().find((s) => s.id === 'reception');
     const tokens = (st) => opening({ id: st.id, room: st.room, name: st.name, first: st.first }, 'en').chips.map((c) => c.token);
     expect(tokens(kit)).toEqual(expect.arrayContaining([GO_TOKEN('kitchen-studio'), OPEN_TOKEN('kitchen-studio')])); expect(tokens(rec)).not.toContain(OPEN_TOKEN('kitchen-studio'));
-    expect(adviserChips().map((c) => c.token)).toEqual([GO_TOKEN('kitchen-studio'), OPEN_TOKEN('kitchen-studio')]);
+    expect(adviserChips('kitchens').map((c) => c.token)).toEqual([GO_TOKEN('kitchen-studio'), OPEN_TOKEN('kitchen-studio')]); expect(adviserChips('living').map((c) => c.token)).toEqual([GO_TOKEN('tv-studio'), OPEN_TOKEN('tv-studio')]); expect(adviserChips('doors')).toEqual([]);
     const svc = services('en').find((x) => x.id === 'kitchen-studio'); expect(svc).toMatchObject({ label: 'Kitchen Design Studio', room: 'kitchen-studio', href: null }); expect(designStudioServices('ar')[0].label).toBe('استوديو تصميم المطابخ');
+    expect(services('en').find((x) => x.id === 'tv-studio')).toMatchObject({ label: 'TV Unit Studio', href: null });
     expect(services('en').length).toBeGreaterThan(10);
   });
   test('the existing adviser brain still answers everything else exactly as before (the wrapper only claims its own intents)', () => {

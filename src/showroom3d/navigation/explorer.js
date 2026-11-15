@@ -174,15 +174,20 @@ export class Explorer {
 
   // ---------------------------------------------------------------- interaction (Phase 4/5: products, picking, Ikhtarha stage)
   get products() { return this.engine.products || null; }
+  /** which section E / a click at the studio opens: the one named (podium button), the only one on the wall, the one the visitor walked here for (quick-nav, adviser); none = the chooser asks */
+  studioTarget(z, picked) {
+    const ids = (z && z.sectionIds) || [z && z.sectionId]; if (picked && ids.includes(picked)) return picked;
+    if (ids.length === 1) return ids[0]; return this.studioFocus && ids.includes(this.studioFocus) ? this.studioFocus : null;
+  }
   /** E / tap Interact: a furnished bay focuses its product, the nave stage opens the Ikhtarha panel, an empty bay still says "later release" */
-  interact() {
+  interact(pickedSection) {
     if (!this.enabled || this.paused || this.uiOpen) return;
     if (this.focus) return;
     if (!(this.zone && this.zone.designStudio)) { const S = this.engine.staff, np = S && S.nearest(this.walker.pos[0], this.walker.pos[1], 1.9), rec = S && S.nearest(this.walker.pos[0], this.walker.pos[1], TALK_RADIUS); if ((np || (rec && rec.id === 'reception')) && this.talkToStaff((np || rec).id)) return; }   // E next to an adviser (or in front of the Reception desk) talks to her
     this.interactions++;
     const z = this.zone, P = this.products;
     if (z && z.collections) { this.emit({ collections: this.interactions }); return; }          // the Collections wall: the React layer opens its panel
-    if (z && z.designStudio) { if (this.engine.designStudio) this.engine.designStudio.pulseHalo(); this.emit({ designStudio: this.interactions, designStudioId: z.sectionId }); return; }   // the Kitchen Design Studio: the React layer opens the full-viewport designer
+    if (z && z.designStudio) { if (this.engine.designStudio) this.engine.designStudio.pulseHalo(); this.emit({ designStudio: this.interactions, designStudioId: this.studioTarget(z, pickedSection) }); return; }   // the Kitchen Design Studio: the React layer opens the full-viewport designer
     if (z && z.vip && P && P.vip) { this.focusVip(0); return; }
     if (z && z.stage && P) { this.focusStage('overview'); return; }          // (no "later release" toast: the panel is the response)
     const pid = z && P ? P.productAt(z.id) : null;
@@ -213,7 +218,14 @@ export class Explorer {
     const n = this.ndc(cx, cy), hit = pid ? this.pickNdc(n.x, n.y, 4.6, pid) : null;
     if (hit) { this.togglePart(hit.id); return true; }
     { const D = this.engine.designStudio;                                      // a click on the Kitchen Design Studio screen / podium: open the designer when standing there, else walk there
-      if (D) { const cam = this.engine.camera; cam.updateMatrixWorld(true); this.raycaster.setFromCamera({ x: n.x, y: n.y }, cam); const d = D.pick(this.raycaster); if (d != null && d < 16) { if (this.zone && this.zone.designStudio) this.interact(); else this.glideTo(D.section.id); return true; } } }
+      if (D) {
+        const cam = this.engine.camera; cam.updateMatrixWorld(true); this.raycaster.setFromCamera({ x: n.x, y: n.y }, cam); const d = D.pick(this.raycaster);
+        if (d != null && d < 16) {
+          const tab = D.pickSection ? D.pickSection(this.raycaster) : null, shown = tab || (D.sectionShown ? D.sectionShown() : D.section.id);   // a podium-tablet button names its section; the screen means the one on it; else the chooser decides
+          if (this.zone && this.zone.designStudio) this.interact(tab || null); else this.glideTo(shown);
+          return true;
+        }
+      } }
     return this.walkToScreen(cx, cy);                                  // nothing to work here: a tap / click on the floor walks there
   }
   /** click / tap-to-walk: the ray through the screen point hits the floor; if the straight way is clear the walker glides there (eased, turning to face it) */
@@ -554,7 +566,7 @@ export class Explorer {
       const e = k * k * (3 - 2 * k);                                                         // yaw / pitch settle with a smoothstep, position uses the GSAP ease
       const p = pointAlong(pts, k); w.pos = [p[0], p[1]]; w.vel = [0, 0]; w.yaw = y0 + dy * e; w.pitch = p0 + dp * e; w.speed = 0;
     };
-    const finish = () => { set(1); this.glide = null; this.apply(); this.emit({ gliding: false, arrived: id }); };
+    const finish = () => { set(1); this.glide = null; if (stop.designStudio) this.studioFocus = id; this.apply(); this.emit({ gliding: false, arrived: id }); };   // arriving at a design studio by name remembers which one E should open
     this.emit({ gliding: true, glideTo: id, arrived: null });
     if (this.reduced || len < 0.05) { finish(); return true; }
     const v = { k: 0 };
@@ -620,7 +632,7 @@ export class Explorer {
       this.tpDist = f.dist; cam.position.set(this.tp.x, this.tp.y, this.tp.z); cam.rotation.set(this.tp.pitch, c.yaw, 0, 'YXZ');
     } else { cam.position.set(c.x, c.y, c.z); cam.rotation.set(c.pitch, c.yaw, c.roll, 'YXZ'); }
     const z = zoneAt(this.zones, w.pos[0], w.pos[1]);
-    if ((z && z.id) !== (this.zone && this.zone.id)) { this.zone = z; if (this.engine.bays) this.engine.bays.highlight.setNear(z ? z.id : null); if (this.engine.designStudio) this.engine.designStudio.setNear(!!(z && z.designStudio)); this.emit({ zone: z ? z.id : null }); }
+    if ((z && z.id) !== (this.zone && this.zone.id)) { if (!(z && z.designStudio)) this.studioFocus = null; this.zone = z; if (this.engine.bays) this.engine.bays.highlight.setNear(z ? z.id : null); if (this.engine.designStudio) this.engine.designStudio.setNear(!!(z && z.designStudio)); this.emit({ zone: z ? z.id : null }); }
     if (this.engine.bays && dt) this.engine.bays.highlight.tick(dt);
     if (!this.moveReported && w.travelled > 1.5) { this.moveReported = true; this.emit({ moved: true }); }
   }

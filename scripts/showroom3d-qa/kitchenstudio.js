@@ -87,7 +87,7 @@ async function drive(root, { lang = 'en' } = {}) {
   await ex(page, (e) => e.explorer.glideTo('kitchen-studio'));
   await page.waitForFunction(() => window.__showroom.explore.zone() === 'kitchen-studio', null, { timeout: 120000 }); await page.waitForTimeout(6000);
   check('glide to the Kitchen Design Studio ends in its zone, at the stand point', await ex(page, (e) => e.zone() === 'kitchen-studio' && Math.abs(e.pos()[0] + 18) < 0.05), await ex(page, (e) => e.pos()));
-  check('the HUD prompt names the station and offers E', /Kitchen Design Studio/.test(await T(page, 'sr-prompt').innerText().catch(() => '')) , await T(page, 'sr-prompt').innerText().catch(() => ''));
+  check('the HUD prompt names the station ("Design Studios" now that the TV section shares the wall) and offers E', /Design Studios?/.test(await T(page, 'sr-prompt').innerText().catch(() => '')) , await T(page, 'sr-prompt').innerText().catch(() => ''));
   await shot(page, 'ks-bay-en-1440');
   const before = await ex(page, (e) => [e.pos(), e.yaw(), e.pitch()]);
   const fr0 = await page.evaluate(() => window.__showroom.engine.renderer.info.render.frame);

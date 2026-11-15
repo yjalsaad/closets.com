@@ -26,7 +26,21 @@ describe('the explorer and the Kitchen Design Studio', () => {
     x.debug().teleport(P.stand[0], P.stand[1], 0, 0.1);
     expect(x.zone && x.zone.id).toBe('kitchen-studio'); expect(engine.calls.near).toContain(true);
     key('KeyE'); expect(engine.calls.pulse).toBe(1);
-    expect(events.filter((e) => e.designStudio).pop()).toMatchObject({ designStudioId: 'kitchen-studio' });
+    expect(events.filter((e) => e.designStudio).pop().designStudioId).toBeNull();                 // two sections share the wall and none was named: the React layer shows the chooser
+    expect(x.zone.sectionIds).toEqual(['kitchen-studio', 'tv-studio']);
+  });
+  test('arriving at a section by name (quick-nav, adviser) makes E open THAT section; walking in by hand asks; leaving the zone forgets', () => {
+    for (const id of ['kitchen-studio', 'tv-studio']) {
+      const { x, events } = make(); x.reduced = true; x.debug().teleport(0, -3.5, 0, 0); expect(x.glideTo(id)).toBe(true); key('KeyE');
+      expect(events.filter((e) => e.designStudio).pop().designStudioId).toBe(id);
+    }
+    const { x, events } = make(); x.reduced = true; x.debug().teleport(0, -3.5, 0, 0); x.glideTo('tv-studio'); x.debug().teleport(0, -3.5, 0, 0); x.debug().teleport(P.stand[0], P.stand[1], 0, 0.1); key('KeyE');
+    expect(events.filter((e) => e.designStudio).pop().designStudioId).toBeNull();
+  });
+  test('a podium-tablet button names its section (inside the zone: opens it; outside: walks there); the screen means the section on it', () => {
+    const { x, engine, events } = make(); engine.designStudio.pickSection = () => 'tv-studio'; engine.designStudio.sectionShown = () => 'kitchen-studio'; engineHit.d = 3;
+    x.debug().teleport(P.stand[0], P.stand[1], 0, 0.1); expect(x.tapPick(50, 50)).toBe(true); expect(events.filter((e) => e.designStudio).pop().designStudioId).toBe('tv-studio');
+    x.reduced = true; x.debug().teleport(0, -3.5, 0, 0); engine.designStudio.pickSection = () => null; expect(x.tapPick(50, 50)).toBe(true); expect(events.filter((e) => e.arrived).pop().arrived).toBe('kitchen-studio');
   });
   test('the kitchens adviser stands 1.3 m from the stand point: E at the station still opens the designer (T / the Talk button reach her)', () => {
     const { x, engine, events } = make(); engine.staff = { nearest: () => ({ id: 'kitchens' }) }; const talk = jest.spyOn(x, 'talkToStaff').mockReturnValue(true);
@@ -39,7 +53,7 @@ describe('the explorer and the Kitchen Design Studio', () => {
     x.debug().teleport(P.stand[0], P.stand[1], 0, 0); x.debug().teleport(0, -3.5, 0, 0); expect(engine.calls.near.slice(-1)).toEqual([false]);
   });
   test('the quick-nav graph has the studio as the 11th stop (the digit keys 1..9 are unchanged)', () => {
-    const { x } = make(); expect(x.graph.stops).toHaveLength(11); expect(x.graph.stops[10].id).toBe('kitchen-studio'); expect(x.graph.stops[8].id).toBe('vip'); expect(x.graph.stops[9].id).toBe('collections');
+    const { x } = make(); expect(x.graph.stops).toHaveLength(12); expect(x.graph.stops[10].id).toBe('kitchen-studio'); expect(x.graph.stops[11].id).toBe('tv-studio'); expect(x.graph.stops[8].id).toBe('vip'); expect(x.graph.stops[9].id).toBe('collections');
     expect(x.zones[0].id).toBe('kitchen-studio');
   });
   test('the glide to the studio arrives looking a little up at the screen (stop.pitch)', () => {
@@ -58,9 +72,11 @@ describe('the explorer and the Kitchen Design Studio', () => {
 describe('the department quick-nav menu', () => {
   test('lists the Kitchen Design Studio last, in both languages, without a digit key (only 1..9 have keys), and picking it asks for the glide', () => {
     const onPick = jest.fn(); const { unmount } = render(<DeptMenu lang="en" touch={false} onPick={onPick} onClose={() => {}} />);
-    const items = screen.getByTestId('sr-dept-menu').querySelectorAll('.sr-dept'); expect(items).toHaveLength(DEPARTMENTS.length + 3);
-    const last = items[items.length - 1]; expect(last).toHaveAttribute('data-dept', 'kitchen-studio'); expect(last).toHaveTextContent('Kitchen Design Studio'); expect(last.querySelector('kbd')).toBeNull();
+    const items = screen.getByTestId('sr-dept-menu').querySelectorAll('.sr-dept'); expect(items).toHaveLength(DEPARTMENTS.length + 4);
+    const last = items[items.length - 2], tv = items[items.length - 1]; expect(last).toHaveAttribute('data-dept', 'kitchen-studio'); expect(last).toHaveTextContent('Kitchen Design Studio'); expect(last.querySelector('kbd')).toBeNull();
+    expect(tv).toHaveAttribute('data-dept', 'tv-studio'); expect(tv).toHaveTextContent('TV Unit Studio'); expect(tv.querySelector('kbd')).toBeNull(); fireEvent.click(tv); expect(onPick).toHaveBeenCalledWith('tv-studio');
     fireEvent.click(last); expect(onPick).toHaveBeenCalledWith('kitchen-studio'); unmount();
     render(<DeptMenu lang="ar" touch onPick={onPick} onClose={() => {}} />); expect(screen.getByTestId('sr-dept-menu').querySelector('[data-dept="kitchen-studio"]')).toHaveTextContent('استوديو تصميم المطابخ');
+    expect(screen.getByTestId('sr-dept-menu').querySelector('[data-dept="tv-studio"]')).toHaveTextContent('استوديو وحدات التلفزيون');
   });
 });
