@@ -4,7 +4,7 @@
 import { PALETTE as P, hex, rgba } from '../../3d/palette';
 import { FONT, wrap, roundedRect } from '../products/screens';
 import * as C from '../../products/vipContent';
-import { FILM_TITLE, FILM_ENTRY, FILM_AI_LABEL, FILM_MIXED_LABEL, FILM_MIXED_BADGE, FILM_SOON, fmtTime } from '../../vip/film';
+import { FILM_TITLE, FILM_ENTRY, FILM_AI_LABEL, mixedLabel, mixedBadge, FILM_SOON, fmtTime } from '../../vip/film';
 import { AGENDA, KIND_LABEL, MEETING_TITLE } from '../../vip/meeting';
 import { businessLines } from '../../products/vipContent';
 import { projectCard } from '../../products/projectsFeed';
@@ -317,7 +317,7 @@ export function drawFilmIdle(g, w, h, o) {
   if (pq) { const pc = pq === 'ready' ? 100 : Number(pq.slice(1)), tx = pq === 'ready' ? (lang === 'ar' ? 'جاهز: يبدأ فورًا' : 'Ready: starts instantly') : (lang === 'ar' ? 'جارٍ تجهيز الفيلم… \u2066' + pc + '%\u2069' : 'Preparing film… ' + pc + '%'), bw = Math.min(560, w - 2 * X), bx = k.rtl ? w - X - bw : X, by = y + 14;
     g.fillStyle = 'rgba(245,240,230,0.22)'; g.fillRect(bx, by, bw, 12); g.fillStyle = hex(P.brandOrange); g.fillRect(k.rtl ? bx + bw - bw * pc / 100 : bx, by, bw * pc / 100, 12);
     k.para(tx, k.mx(X), by + 56, w - 2 * X, { size: 30, weight: 700, color: P.brassPale, lh: 34 }); }
-  const meta = [missing || f.real ? '' : Lx(f.mixed ? FILM_MIXED_LABEL : FILM_AI_LABEL, lang), !missing && f.real ? (lang === 'ar' ? 'فيلم الشركة' : 'Company film') : '', !missing && f.duration ? fmtTime(f.duration) : ''].filter(Boolean).join(' · ');
+  const meta = [missing || f.real ? '' : Lx(f.mixed ? mixedLabel(f.id) : FILM_AI_LABEL, lang), !missing && f.real ? (lang === 'ar' ? 'فيلم الشركة' : 'Company film') : '', !missing && f.duration ? fmtTime(f.duration) : ''].filter(Boolean).join(' · ');
   if (meta) k.para(meta, k.mx(X), h - TYPE.safeBottom - 40, w - 2 * X, { size: TYPE.meta, weight: 600, color: P.brassPale, lh: 28 });
   k.para(Lx(C.DISCLAIMER, lang), k.mx(X), h - TYPE.safeBottom + 6, w - 2 * X, { size: TYPE.fine, weight: 500, color: P.sand, lh: 28 });
 }
@@ -326,7 +326,7 @@ export function drawFilmOverlay(g, w, h, o) {
   const k = kit(g, w, h, o.lang), { lang } = o; g.clearRect(0, 0, w, h);
   if (o.cue) { g.font = `700 46px ${FONT}`; const lines = []; let line = ''; for (const wd of String(o.cue).split(/\s+/)) { const t = line ? line + ' ' + wd : wd; if (g.measureText(t).width > w - 240 && line) { lines.push(line); line = wd; } else line = t; } if (line) lines.push(line); const ls = lines.slice(0, 2), bh = ls.length * 58 + 26, by = h - 54 - bh;
     const bw = Math.min(w - 120, Math.max(...ls.map((l) => g.measureText(l).width)) + 64); g.fillStyle = 'rgba(8,6,5,0.88)'; roundedRect(g, (w - bw) / 2, by, bw, bh, 14); g.fill(); g.direction = o.capLang === 'ar' ? 'rtl' : 'ltr'; ls.forEach((l, i) => k.text(l, w / 2, by + 48 + i * 58, { size: 46, weight: 700, color: P.sand, align: 'center' })); g.direction = lang === 'ar' ? 'rtl' : 'ltr'; }
-  if (o.real) return; const lab = Lx(o.mixed ? FILM_MIXED_BADGE : FILM_AI_LABEL, lang); g.font = `600 22px ${FONT}`; const lw = g.measureText(lab).width + 28, lx = k.rtl ? 40 : w - 40 - lw; g.fillStyle = 'rgba(8,6,5,0.6)'; roundedRect(g, lx, h - 46, lw, 34, 8); g.fill(); k.text(lab, lx + lw / 2, h - 21, { size: 22, weight: 600, color: P.sand, align: 'center' });
+  if (o.real) return; const lab = Lx(o.mixed ? mixedBadge(o.filmId) : FILM_AI_LABEL, lang); g.font = `600 22px ${FONT}`; const lw = g.measureText(lab).width + 28, lx = k.rtl ? 40 : w - 40 - lw; g.fillStyle = 'rgba(8,6,5,0.6)'; roundedRect(g, lx, h - 46, lw, 34, 8); g.fill(); k.text(lab, lx + lw / 2, h - 21, { size: 22, weight: 600, color: P.sand, align: 'center' });
 }
 
 // ================================================================ Management meeting: the title card with the agenda

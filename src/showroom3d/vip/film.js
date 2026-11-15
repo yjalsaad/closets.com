@@ -20,13 +20,40 @@ export const FILM_V2_DECK_ID = 'film-v2';
 export const FILM_MIXED_LABEL = { en: 'Leaders appear from real photographs (camera motion only) in an AI-generated office; all other imagery is AI-generated illustration', ar: 'يظهر القياديون من صور حقيقية بحركة كاميرا فقط داخل مكتب مولّد بالذكاء الاصطناعي، وبقية المشاهد صور مولّدة بالذكاء الاصطناعي' };
 export const FILM_MIXED_BADGE = { en: 'Leaders: real photos · office and other imagery: AI illustration', ar: 'صور حقيقية للقيادات · والمكتب وبقية المشاهد مولّدة بالذكاء الاصطناعي' };
 export const FILM_V2_TITLE = { en: 'The Closets: The Journey of Ambition (new cut)', ar: 'الخزائن: حكاية طموح (النسخة الجديدة)' };
+/** THE JOURNEY FILMS: three versions are registered side by side (films.json); exactly ONE is the "active" Journey film that the Bloom wall, the VIP agenda item and the film deck show.
+ *  journey-v2 = film2.json (real photographs, static), journey-v3 = film3.json (the leaders in an AI-generated office, camera motion only), journey-v3-animated = a reserved slot (disabled until its files exist).
+ *  The slide / agenda id of the active film is the alias JOURNEY_ACTIVE; FilmPlayer resolves it with chooseJourney(). The owner's switch is the website_content row `bloom.film.active` (vip/filmChoice.js). */
+export const JOURNEY_ACTIVE = 'journey-active';
+export const JOURNEY_V3_ID = 'journey-v3';
+export const JOURNEY_V3A_ID = 'journey-v3-animated';
+export const FILM_CHOICES = Object.freeze({ v2: JOURNEY_V2_ID, v3: JOURNEY_V3_ID, 'v3-animated': JOURNEY_V3A_ID });
+export const FILM_CHOICE_DEFAULT = 'v3';
+export const FILM_V2_LABEL = { en: 'Real photographs of company leaders; all other imagery is AI-generated illustration', ar: 'صور حقيقية لقيادات الشركة، وبقية المشاهد صور مولّدة بالذكاء الاصطناعي' };
+export const FILM_V2_BADGE = { en: 'Leaders: real photos · other imagery: AI illustration', ar: 'صور حقيقية للقيادات · والباقي مولّد بالذكاء الاصطناعي' };
+export const FILM_V3A_LABEL = { en: 'Leaders appear from real photographs, animated with AI; all other imagery is AI-generated illustration', ar: 'يظهر القياديون من صور حقيقية محرَّكة بالذكاء الاصطناعي، وبقية المشاهد صور مولّدة بالذكاء الاصطناعي' };
+export const FILM_V3A_BADGE = { en: 'Leaders: real photos animated with AI · other imagery: AI illustration', ar: 'صور حقيقية للقيادات محرَّكة بالذكاء الاصطناعي · والباقي مولّد بالذكاء الاصطناعي' };
+/** the mixed label / badge of a film by its id (each version says exactly what its own film is; unknown id: the current v3 wording) */
+export const JOURNEY_LABELS = { [JOURNEY_V2_ID]: { label: FILM_V2_LABEL, badge: FILM_V2_BADGE }, [JOURNEY_V3_ID]: { label: null, badge: null }, [JOURNEY_V3A_ID]: { label: FILM_V3A_LABEL, badge: FILM_V3A_BADGE } };
+export const mixedLabel = (id) => (JOURNEY_LABELS[id] && JOURNEY_LABELS[id].label) || FILM_MIXED_LABEL;
+export const mixedBadge = (id) => (JOURNEY_LABELS[id] && JOURNEY_LABELS[id].badge) || FILM_MIXED_BADGE;
+/** which film id plays: the wanted version first (a ?film= test override beats the owner's row), then v3, then v2; only ids in `available` (their manifests loaded) count, so the wall is never empty.
+ *  want: 'v2' | 'v3' | 'v3-animated' | anything else (ignored -> the default v3). Returns an id or '' when none is available. */
+export function chooseJourney({ want, override, available } = {}) {
+  const have = new Set(available || []), pick = (v) => FILM_CHOICES[v] || null;
+  const order = [pick(override), pick(want), pick(FILM_CHOICE_DEFAULT), JOURNEY_V2_ID].filter(Boolean);
+  return order.find((id) => have.has(id)) || '';
+}
+let ACTIVE_JOURNEY = JOURNEY_V3_ID;
+/** the film that is active right now (set by the player once its library is loaded); the agenda's label follows it */
+export const activeJourney = () => ACTIVE_JOURNEY;
+export const setActiveJourney = (id) => { ACTIVE_JOURNEY = id || JOURNEY_V3_ID; };
 export const FILM_SOON = { en: 'Film coming soon', ar: 'الفيلم قريبًا' };
 const FILM_PATH = /^\/yas-bloom\/film\/[A-Za-z0-9._-]+\.(mp4|webm|jpg|jpeg|webp|png|vtt|json)$/;
 const ext = (p) => p.slice(p.lastIndexOf('.') + 1).toLowerCase();
 export const filmPath = (v, kinds) => { const s = str(v, '').trim(); return FILM_PATH.test(s) && !s.includes('..') && kinds.includes(ext(s)) ? s : ''; };
 
 /** the film as a one-slide pseudo-deck, so the picker, the wall chips, the keys and the adviser treat it like any other entry */
-export const FILM_V2_DECK = { id: FILM_V2_DECK_ID, unit: 'slide', builtin: true, film: true, title: FILM_V2_TITLE, slides: [{ id: 'film', builtin: 'film', filmId: JOURNEY_V2_ID, disclaimer: true, title: FILM_V2_TITLE }] };
+export const FILM_V2_DECK = { id: FILM_V2_DECK_ID, unit: 'slide', builtin: true, film: true, title: FILM_V2_TITLE, slides: [{ id: 'film', builtin: 'film', filmId: JOURNEY_ACTIVE, disclaimer: true, title: FILM_V2_TITLE }] };   // the slide plays the ACTIVE Journey film (alias), whichever version the owner enabled
 export const FILM_DECK = { id: FILM_DECK_ID, unit: 'slide', builtin: true, film: true, title: FILM_ENTRY, slides: [{ id: 'film', builtin: 'film', filmId: 'journey', disclaimer: true, title: FILM_TITLE }] };
 
 /** -> { ok, film, error }. film = { title: {en, ar}, durationSec, sources: [{src, width, height, bytes}] (largest first), poster, captions: [{lang, src}], note } */
@@ -66,7 +93,7 @@ export function parseFilmsManifest(raw) {
   if (!Array.isArray(j.films)) { const one = parseFilmManifest(j); return one.ok ? { ok: true, error: null, films: [{ id: JOURNEY_ID, order: 99, real: false, film: { ...one.film, real: false } }] } : { ok: false, films: [], error: one.error }; }
   const out = [], seen = new Set();
   for (const f of j.films.slice(0, 12)) {
-    if (!isObj(f)) continue; const id = str(f.id, '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40); if (!id || seen.has(id)) continue;
+    if (!isObj(f) || f.enabled === false) continue; const id = str(f.id, '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40); if (!id || seen.has(id)) continue;
     const real = f.real === true, order = Number.isFinite(Number(f.order)) ? Number(f.order) : 50, ref = filmPath(f.manifest, ['json']);
     if (ref) { seen.add(id); out.push({ id, order, real, ref }); continue; }   // (a ref'd manifest's own `mixed` flag is read when it is loaded)
     const one = parseFilmManifest(f); if (!one.ok) continue; seen.add(id); out.push({ id, order, real, film: { ...one.film, real } });
@@ -75,9 +102,9 @@ export function parseFilmsManifest(raw) {
   return out.length ? { ok: true, error: null, films: out } : { ok: false, films: [], error: 'no-films' };
 }
 /** the label a film must carry: only films that are NOT real footage are marked "AI-generated illustration" */
-export const filmLabel = (film) => (film && film.real === true ? null : film && film.mixed === true ? FILM_MIXED_LABEL : FILM_AI_LABEL);
+export const filmLabel = (film) => (film && film.real === true ? null : film && film.mixed === true ? mixedLabel(film.id) : FILM_AI_LABEL);
 /** the short label for the strip over a playing film */
-export const filmBadge = (film) => (film && film.real === true ? null : film && film.mixed === true ? FILM_MIXED_BADGE : FILM_AI_LABEL);
+export const filmBadge = (film) => (film && film.real === true ? null : film && film.mixed === true ? mixedBadge(film.id) : FILM_AI_LABEL);
 
 // ---------------------------------------------------------------- what the screen shows
 /** status: 'idle' (nothing asked yet) | 'loading' (manifest) | 'ready' (poster, paused: a user gesture starts it) | 'playing' | 'paused' | 'ended' | 'missing' (no manifest or no playable file: "Film coming soon") */
