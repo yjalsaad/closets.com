@@ -20,7 +20,8 @@ import { makeDeckStore } from '../vip/deckStore';
 import { initDeckState, deckReducer } from '../vip/deckState';
 import { initPlay, playReducer, playTick, slideSeconds } from '../vip/motion';
 import { FilmPlayer } from '../vip/filmPlayer';
-import { agendaIndex, nextAgendaItem, firstAgendaItem } from '../vip/meeting';
+import { FilmPreloader, prefetchEnabled } from '../vip/filmPreload';
+import { agendaIndex, nextAgendaItem, firstAgendaItem, AGENDA } from '../vip/meeting';
 import { followCamera } from '../characters/follow';
 import { TALK_RADIUS } from '../staff/roster';
 import { nextAvatar, AVATARS } from '../characters/visitorAvatar';
@@ -319,7 +320,7 @@ export class Explorer {
   focusVip(i = 0) {
     const P = this.products; if (!this.enabled || !P || !P.vip) return false;
     this.ds = deckReducer(this.ds, { type: 'slide', index: i }); const idx = this.ds.slide; this.startFocus('vip', 'vip'); this.focus.view = this.vipSlideId(idx); this.focus.station = idx;
-    P.setFocusPart(null); P.setHover(null); P.vip.setFocus(true); P.vip.enter(); P.vip.setDeck(this.deck, this.allDecks(), idx); this.syncFilm(); this.ensureProjects(); this.ensureWelcome();
+    P.setFocusPart(null); P.setHover(null); P.vip.setFocus(true); P.vip.enter(); P.vip.setDeck(this.deck, this.allDecks(), idx); this.syncFilm(); this.ensureProjects(); this.ensureWelcome(); this.startFilmPrefetch();
     const v = this.vipView(idx); this.flyTo({ pos: v.pos, look: v.look, fov: v.fov });
     this.decksRev++; this.emit({ focus: 'vip', focusKind: 'vip', focusView: this.vipSlideId(idx), vipStation: idx, vipDeck: this.deck.id, vipDecksRev: this.decksRev, partFocus: null, prod: ++this.rev }); return true;
   }
@@ -364,10 +365,18 @@ export class Explorer {
   ensureFilm() {
     if (this.film) return this.film; const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl', w = (this.canvas && this.canvas.clientWidth) || 1280;
     const mobile = w <= 700 || (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches), saveData = typeof navigator !== 'undefined' && navigator.connection && navigator.connection.saveData;
-    this.film = new FilmPlayer({ lang: rtl ? 'ar' : 'en', device: { tier: this.engine.tierId, mobile, saveData: !!saveData }, onChange: () => this.onFilm() });
+    const enabled = prefetchEnabled(typeof window !== 'undefined' ? window.location.search : ''), preloader = new FilmPreloader({ enabled, onChange: () => this.onFilm() });   // ?vipprefetch=0 switches the background download off
+    this.film = new FilmPlayer({ lang: rtl ? 'ar' : 'en', device: { tier: this.engine.tierId, mobile, saveData: !!saveData }, onChange: () => this.onFilm(), preloader });
     if (typeof document !== 'undefined') { this._filmVis = () => { if (document.hidden && this.film) this.film.pause(); }; document.addEventListener('visibilitychange', this._filmVis); }
     return this.film;
   }
+  /** inside the VIP room: the films of the meeting start downloading in the background (agenda order, one at a time) so Play starts at once. Never called for visitors outside the room. */
+  startFilmPrefetch() {
+    if (typeof window !== 'undefined' && !prefetchEnabled(window.location.search)) return;   // ?vipprefetch=0: exactly as before, nothing is read until the film entry is chosen
+    const F = this.ensureFilm(), ids = AGENDA.filter((a) => a.kind === 'film').map((a) => a.id); F.load().then(() => { if (this.focus && this.focus.kind === 'vip') F.prefetch(ids); });
+  }
+  /** { state: 'off' | 'preparing' | 'ready', pct } for the film on the screen, or for film `id` */
+  filmPrep(id) { return this.film ? this.film.prepOf(id) : { state: 'off', pct: 0 }; }
   /** the video element lives (hidden, 1 px) in the stage so the wall texture and the cinema overlay share it and it never has to be re-parented (re-parenting pauses a video) */
   filmHost() {
     const v = this.film && this.film.ensureVideo(); if (!v || typeof document === 'undefined') return null;
@@ -377,7 +386,7 @@ export class Explorer {
   filmView() {
     const F = this.film; if (!this.filmOn || !F) return null; const st = F.state, live = st.status === 'playing' || st.status === 'paused';
     const sl = this.deck.slides[this.ds.slide];
-    return { status: st.status, id: st.id, real: !!(st.film && st.film.real), burned: !!(st.film && st.film.burnedSubtitles), title: st.film ? st.film.title : (sl ? sl.title : null), poster: F.poster, video: live ? F.video : null, cue: st.caption === 'off' ? '' : st.cue, caption: st.caption, time: st.time, duration: st.duration };
+    return { status: st.status, id: st.id, real: !!(st.film && st.film.real), burned: !!(st.film && st.film.burnedSubtitles), title: st.film ? st.film.title : (sl ? sl.title : null), poster: F.poster, prep: (() => { const q = F.prepOf(); return q.state === 'preparing' ? 'p' + Math.floor(q.pct / 5) * 5 : q.state; })(), video: live ? F.video : null, cue: st.caption === 'off' ? '' : st.cue, caption: st.caption, time: st.time, duration: st.duration };
   }
   onFilm() { const P = this.products; if (P && P.vip && P.vip.setFilm) P.vip.setFilm(this.filmView()); this.emit({ vipFilmRev: (this.filmRev = (this.filmRev || 0) + 1) }); }
   /** called whenever the deck / slide changes: the film entry loads its manifest; any other deck pauses the film and gives the wall back to the slides */
@@ -459,7 +468,7 @@ export class Explorer {
   exitFocus() {
     if (!this.focus) return false; const P = this.products;
     if (P) { P.setFocusPart(null); P.setHover(null); if (P.vip) { P.vip.setFocus(false); P.vip.setPlayback({ progress: -1 }); } }
-    if (this.film) this.film.pause(); if (this.cinema) this.setCinema(false);
+    if (this.film) { this.film.pause(); if (this.film.preloader) this.film.preloader.abort(); } if (this.cinema) this.setCinema(false);   // leaving the room stops the background download
     if (this.presMode === 'full') this.leaveFullscreen(); const wasVip = this.focus && this.focus.kind === 'vip'; this.presMode = 'panel'; this.play = playReducer(this.play, { type: 'pause' });
     const s = this.saved, fc = this.fc; this.focus = null; this.pdown = null; if (wasVip) this.emitPlay({ vipProgress: -1 });
     this.emit({ focus: null, focusKind: null, partFocus: null, partHover: null, prod: ++this.rev });

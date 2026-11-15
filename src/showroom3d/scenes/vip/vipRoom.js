@@ -167,7 +167,7 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
       if (useVideo) { if (!state.videoTex || state.videoTex.image !== view.video) { if (state.videoTex) state.videoTex.dispose(); const vt = new THREE.VideoTexture(view.video); vt.colorSpace = THREE.SRGBColorSpace; vt.minFilter = THREE.LinearFilter; vt.magFilter = THREE.LinearFilter; vt.generateMipmaps = false; state.videoTex = vt; } if (screenMat.map !== state.videoTex) { screenMat.map = state.videoTex; screenMat.needsUpdate = true; } }
       else if (screenMat.map !== screen.tex) { screenMat.map = screen.tex; screenMat.needsUpdate = true; }
       filmStripMesh.visible = useVideo; if (useVideo && (!was || was.cue !== view.cue || was.caption !== view.caption || !was.video || was.id !== view.id)) filmStrip.redraw(state.lang);
-      if (!useVideo && (!was || !view || was.status !== view.status || was.poster !== view.poster || was.video || was.id !== view.id)) screen.redraw(state.lang);
+      if (!useVideo && (!was || !view || was.status !== view.status || was.poster !== view.poster || was.prep !== view.prep || was.video || was.id !== view.id)) screen.redraw(state.lang);
     },
     get filmOnWall() { return screenMat.map === state.videoTex && !!state.videoTex; },
     /** QA: draw slide `i` of the current deck on a scratch canvas with the REAL font metrics and return every text it drew (size, weight, position, wrapped extent) */

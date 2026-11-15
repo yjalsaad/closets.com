@@ -173,7 +173,7 @@ The picker's last entry plays the documentary **"The Closets: The Journey of Amb
 
 * **Files it expects** (all under `public/yas-bloom/film/`, same site, nothing external): `film.json`, `journey-1080.mp4`, `journey-720.mp4`, `journey-poster.jpg`, `journey.ar.vtt`, `journey.en.vtt`.
 * **Manifest** `film.json`: `{ "title": { "en", "ar" }, "durationSec": 96, "sources": [ { "src": "/yas-bloom/film/journey-1080.mp4", "width": 1920, "height": 1080, "bytes": 0 }, ... ], "poster": "/yas-bloom/film/journey-poster.jpg", "captions": [ { "lang": "ar", "src": "/yas-bloom/film/journey.ar.vtt" }, { "lang": "en", "src": "..." } ], "notes": "AI-generated illustration" }`. Parsed and sanitised by `vip/film.js` (`parseFilmManifest`): only paths under `/yas-bloom/film/` with the expected file types are kept.
-* **Nothing downloads until Play.** Choosing the entry reads `film.json` and the poster only. The `<video>` element is created on the first Play with `preload="none"`. It is **never autoplayed and never muted for autoplay**: Play is a button, a key (**P** / **Space**) or a click on the wall, and it starts **with sound**.
+* **Downloaded in the background once you are inside the VIP room, then played from memory** (section 10b). Outside the room nothing is requested. The `<video>` element is still created on the first Play, it is **never autoplayed and never muted for autoplay**: Play is a button, a key (**P** / **Space**) or a click on the wall, and it starts **with sound**. Play never waits for the download: an unfinished film streams.
 * **Source**: the 720 file on phones, on the low tier and with data saver; otherwise the 1080 file (`pickSource`).
 * **On the wall**: a `THREE.VideoTexture` (sRGB) replaces the slide canvas while the film plays or is paused; the poster with the title is shown when idle or finished. Captions and the small label **"AI-generated illustration"** sit on a strip over the lower edge.
 * **Captions**: the narration is Arabic, so an English page starts with English captions and an Arabic page with Arabic ones; the Captions button cycles language and off (key **C**).
@@ -214,3 +214,38 @@ The VIP room now **opens on "Management meeting"**, the first entry of the picke
 **The flags** (`vip/flags.js` = geometry + one canvas drawing shared by the wall, the panel and the 3D cloth; `scenes/vip/flags3d.js` = the two flagpoles): geometry from the public-domain Wikimedia Commons drawings (via the npm package `svg-country-flags`, licence PD). Bahrain 3:5 with five serrations; Saudi Arabia 2:3 with the official calligraphy as a vector outline (never typed), the sword under it with the hilt at the fly end, drawn the same, un-mirrored, on both faces of the cloth. Two brass poles flank the wall screen at the back wall (Bahrain on the viewer's left, Saudi Arabia on the right), equal pole and cloth height; the cloth only moves along its depth axis (gentle, not at the bar, only while somebody is in the room, not on the low tier, still under reduced motion). Solid, small colliders (`VIP_FLAGS` in `scenes/vip/layout.js`); 5 draw calls; textures 768 / 1024 / 1280 px by tier. Verified by `__tests__/vipFlags.test.js`, `scripts/showroom3d-qa/flagcheck.js` (pixel comparison with the reference SVGs) and `scripts/showroom3d-qa/vipwelcome.js` (screenshots).
 
 **2023 -> 2026.** The deck "YAS Profile (2023)" is now "YAS Profile (2026)" (picker, agenda, cover "YAS Wood: Profile 2026", Hub export `decks/yas-profile.json`). The per-slide source lines used to read "YAS Wood Profile 2023, p. 7"; they now read "YAS Wood profile, p. 7" (no year), so no visible 2023 remains and no edition is claimed that the PDF (`YAS_PROFILE_PLUS_2023.pdf`) does not have. The Collections wall's real collection name "Collection 2023-2025" is not part of the VIP room and is unchanged.
+
+
+## 10b. Film pre-download ("download, then play")
+
+**Why.** Before this change nothing was fetched until Play, then the browser streamed the film on demand from the host: the owner saw a wait and stutter at the start of each film. Measured facts are in the table below.
+
+**What it does** (`vip/filmPreload.js`, wired by `vip/filmPlayer.js` and `navigation/explorer.js`):
+
+* Starts when the visitor opens the VIP room (`focusVip`), 1.2 s later so the room can settle. Never for visitors who do not enter the room, never on other pages.
+* Fetches the meeting's films in agenda order (YAS story, The Closets story, the AI film last), **one transfer at a time**, `fetch(..., { priority: 'low' })`, streaming into a `Blob` with progress. The file for the device is the one `pickSource` picks (720 / mobile files on phones, low tier, data saver).
+* Keeps the result in **Cache Storage** (`yas-film-v1`): a reload or a later visit shows "Ready" at once with no download. A cached copy is only trusted when its size equals the `bytes` in the manifest, so a replaced film must come with its new `bytes` (file-name versioning, e.g. `yas-story-v2.mp4`, is even safer). Cached films no longer in the plan are deleted.
+* Memory: at most **2 blobs** in memory (1 on devices reporting 2 GB or less); older ones are dropped and their object URLs revoked, the one being played is pinned. With Cache Storage an evicted film is read back from the cache; without it the next film is fetched only when a slot is free.
+* The player plays a finished film from `URL.createObjectURL(blob)` (same `<video>` element: wall VideoTexture, seek bar, Cinema, Present on big screen, captions as before). `preload="auto"` on the element. If the film is not finished when Play is pressed it **streams** from the site, and that film's background transfer is cancelled so the two do not compete.
+* **Leaving the room aborts** the running transfer (finished films stay). `dispose()` revokes every object URL and frees every blob.
+* Skipped on data saver and on `slow-2g` / `2g`; on `3g` only film 1 is fetched. Any failure (blocked fetch, not 200, HTML fallback page, short body) leaves that film on plain streaming.
+* **Switch off for debugging:** `/yas-bloom?vipprefetch=0`.
+* UI: "Preparing film… NN%" with a bar on the film card, next to each film in the agenda card and on the big-screen title card; "Ready: starts instantly" when done (EN and AR). Play is enabled all the time.
+
+**QA:** `scripts/showroom3d-qa/vipfilmpreload.js [flow|slow|reload|off|ui]` (stand-in VP9 clip on a rate-limited local server, because the test Chromium cannot decode H.264). Unit tests: `src/showroom3d/__tests__/vipFilmPreload.test.js`.
+
+### Host headers (measured 2026-11-15) and a proposal that is NOT applied
+
+`curl -sI https://closets-website.vercel.app/yas-bloom/film/yas-story.mp4`: `200`, `content-type: video/mp4`, `accept-ranges: bytes`, `content-length: 13326307`, `cache-control: public, max-age=0, must-revalidate`, an `etag`. First request `x-vercel-cache: MISS`, the next `HIT` (the CDN does cache the file, `age` stays near 0 because of must-revalidate). `max-age=0` means every browser visit revalidates, and the browser does not keep the file between visits unless it keeps it in the HTTP cache. The pre-download's Cache Storage copy covers that for the VIP films.
+
+If the owner wants the browser to keep the films too, this additive block in `vercel.json` (NOT applied: outside the allowed folders) would do it. Films are only ever replaced under a new file name (or with a new `bytes` in the manifest), so a long lifetime is safe:
+
+```json
+{ "source": "/yas-bloom/film/:file(.*\\.(?:mp4|webm|jpg|vtt))", "headers": [ { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" } ] }
+```
+
+placed inside the existing `"headers"` array. Do NOT use it unless every film is renamed whenever its content changes (`film.json` / `films.json` stay `max-age=0`).
+
+### Encoding (ffprobe, 2026-11-15)
+
+All six MP4s are H.264 High + AAC with the `moov` atom first (`ftyp, moov, free, mdat`): fast start is already there. Bitrates: yas-story 0.60 Mbit/s (13.3 MB, 177 s), closets-story 1.06 Mbit/s (13.7 MB, 103 s), journey-1080 1.13 Mbit/s (17.6 MB, 124 s), the mobile / 720 files 0.31 to 0.49 Mbit/s. These are small for their length: no re-encode is warranted. The slowness was start-up latency (a cold request per film, started only on Play), not file size.
