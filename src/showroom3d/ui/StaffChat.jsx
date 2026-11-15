@@ -5,6 +5,7 @@ import { collectionsReply } from '../collections/logic';
 import { designStudioReply } from '../designstudio/logic';
 import { staffById } from '../staff/roster';
 import { portraitUrl } from '../staff/config';
+import { loadImg } from '../preload/assetStore';
 import { supportChatFetch, tr, hasConsent } from '../siteBridge';
 
 const VOICE_KEY = 'closets_yb_voice';
@@ -24,7 +25,7 @@ export default function StaffChat({ lang, reduced, explorerRef, engineRef, staff
   const [voice, setVoice] = useState(readVoice);
   const [busy, setBusy] = useState(false);
   const [portrait, setPortrait] = useState(false);   // true only once the adviser's portrait file has really loaded (otherwise the monogram avatar, and no "AI-generated portrait" note)
-  useEffect(() => { setPortrait(false); if (!def || typeof Image === 'undefined') return undefined; let on = true; const im = new Image(); im.onload = () => { if (on && im.naturalWidth > 8) setPortrait(true); }; im.onerror = () => {}; im.src = portraitUrl(def.id); return () => { on = false; }; }, [def]);
+  useEffect(() => { setPortrait(false); if (!def || typeof Image === 'undefined') return undefined; let on = true; loadImg(portraitUrl(def.id), (im) => { if (on && im.naturalWidth > 8) setPortrait(true); }, () => {}); return () => { on = false; }; }, [def]);
   const mem = useRef(newMemory()), history = useRef([]), logRef = useRef(null), inputRef = useRef(null), timers = useRef([]), alive = useRef(true);
   const staff = useMemo(() => ({ id: def && def.id, room: def && def.room, name: def && def.name, first: def && def.first, role: def && def.role }), [def]);
   const later = (fn, ms) => { if (reduced || ms <= 0) { fn(); return; } const id = setTimeout(() => { if (alive.current) fn(); }, ms); timers.current.push(id); };

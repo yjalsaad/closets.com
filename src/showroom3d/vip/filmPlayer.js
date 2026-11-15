@@ -3,6 +3,7 @@
  * It is never autoplayed and never muted for autoplay: play() is only called from a user gesture, with sound.
  * The same element feeds the wall (THREE.VideoTexture) and the cinema overlay (native controls). Captions use text tracks: 'hidden' while the wall shows the cue itself,
  * 'showing' in the cinema overlay. A missing manifest / film / file ends in status 'missing' ("Film coming soon"). */
+import { loadImg } from '../preload/assetStore';
 import { FILM_MANIFEST_URL, FILMS_MANIFEST_URL, JOURNEY_ID, pickSource, initFilm, filmReducer, nextCaption, parseFilmsManifest, parseFilmManifest } from './film';
 
 export class FilmPlayer {
@@ -31,7 +32,7 @@ export class FilmPlayer {
   applyWanted() {
     const id = this.wanted || JOURNEY_ID; if (this.state.id === id && this.state.status !== 'loading' && this.state.status !== 'idle') return;
     this.dropVideo(); const film = this.library.get(id) || null; this.prioritise(film); this.poster = this.posters.get(id) || null; this.dispatch({ type: 'select', id, film, lang: this.lang, device: this.device });
-    if (film && film.poster && !this.posters.has(id) && typeof Image !== 'undefined') { const im = new Image(); im.onload = () => { this.posters.set(id, im); if (this.state.id === id) { this.poster = im; this.onChange(this.state); } }; im.onerror = () => {}; im.src = film.poster; }
+    if (film && film.poster && !this.posters.has(id) && typeof Image !== 'undefined') { loadImg(film.poster, (im) => { this.posters.set(id, im); if (this.state.id === id) { this.poster = im; this.onChange(this.state); } }, () => {}); }
   }
   /** the file this film plays on this device */
   srcOf(film) { const src = film && pickSource(film.sources, this.device); return src ? src.src : ''; }

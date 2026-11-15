@@ -22,7 +22,7 @@ import { buildBays } from '../scenes/main-hall/bays';
 import { layoutBays } from '../scenes/main-hall/departments';
 import { buildProducts } from '../scenes/products';
 import { ensureFonts } from '../scenes/main-hall/signs';
-import { loadRealism, loadInteriorHdr, viaReal, upgradeTextures, disposeRealism } from './realism/registry';
+import { loadRealism, loadInteriorHdr, viaReal, upgradeTexturesStaged, disposeRealism } from './realism/registry';
 import { LOOK, kelvin } from './realism/look';
 import { buildGalleryFrames } from './realism/gallery';
 import { HALL } from './dimensions';
@@ -115,7 +115,7 @@ export class ShowroomEngine {
   async lazyRealism() {
     try {
       const ok = await loadRealism(this.tierId); if (this.disposed) return;
-      if (ok) upgradeTextures();
+      if (ok) await upgradeTexturesStaged({ cancelled: () => this.disposed });   // a few textures per frame instead of one multi-hundred-ms freeze in the intro
       const env = await loadInteriorHdr(this.renderer); if (this.disposed) return;
       if (env) {
         const sky = this.envMap, seen = new Set(), swap = (m) => { if (!m || !m.isMaterial || seen.has(m)) return; seen.add(m); if (m.envMap && (m.envMap !== sky || (m.userData && m.userData.interior))) { m.envMap = env; m.needsUpdate = true; } };

@@ -12,6 +12,7 @@ import { SECTIONS, stationSections, stationName, sectionName, sectionShort } fro
 import { SCREEN, SIGN, BASE, PODIUM, placement, tierOf, shouldLoad, loopAt, LOOP } from './layout';
 import { posterUrls } from './sections';
 import { dt, sdt } from './strings';
+import { loadImg } from '../preload/assetStore';
 
 const SS = 2;   // sign canvas is drawn at 2x and mipmapped: crisp at the stand point and on high-DPR screens
 const EN_DISPLAY = '"Fraunces", Georgia, serif', EN_SANS = '"Inter", sans-serif', AR_DISPLAY = '"Noto Naskh Arabic", "IBM Plex Sans Arabic", serif', AR_SANS = '"IBM Plex Sans Arabic", sans-serif';
@@ -183,7 +184,7 @@ export function buildDesignStudio({ tier = 'high', lang = 'en', reduced = false,
       if (state.frames.length) { setFrame(frameA, state.frames[0]); frameA.material.opacity = 1; frameA.visible = true; frameB.visible = false; state.shown = 0; showSec(state.frames[0].si); }
       if (state.lang !== want) load();    // the language changed while the frames were loading: fetch the right set
     };
-    urls.forEach((u, i) => { const im = new Image(); im.decoding = 'async'; im.onload = () => { const tex = new THREE.Texture(im); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = T.anisotropy; tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter; tex.needsUpdate = true; got[i] = { tex, si: owner[i] }; done(); }; im.onerror = () => done(); im.src = u; });
+    urls.forEach((u, i) => { loadImg(u, (im) => { const tex = new THREE.Texture(im); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = T.anisotropy; tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter; tex.needsUpdate = true; got[i] = { tex, si: owner[i] }; done(); }, () => done(), { decoding: 'async' }); });
   };
   const camP = new THREE.Vector3();
   base.onBeforeRender = (r, s, camera) => { if (!state.loading && !state.loaded) { camera.getWorldPosition(camP); if (shouldLoad(camP.x, camP.z, section)) load(); } };

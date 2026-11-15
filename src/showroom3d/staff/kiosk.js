@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { bevelBox, placed, mergeColored } from '../3d/builders';
 import { PALETTE as P, hex, rgba } from '../3d/palette';
 import { portraitUrl } from './config';
+import { assetSrc } from '../preload/assetStore';
 import { FONT } from '../scenes/products/screens';
 
 export const KIOSK = { h: 1.75, w: 0.5, d: 0.08, screen: { w: 0.42, h: 0.56, y: 1.4 }, plate: { w: 0.42, h: 0.2, y: 0.92 }, footprint: { hx: 0.31, hz: 0.18 } };
@@ -76,7 +77,7 @@ export function buildKiosk(def, { lang = 'en', q = 1, loader = null } = {}) {
     bounds: new THREE.Box3(new THREE.Vector3(-K.footprint.hx, 0, -K.footprint.hz), new THREE.Vector3(K.footprint.hx, K.h, K.footprint.hz)) };
   // portrait: only ever shown when the image really decodes; any failure keeps the monogram card
   if (loader !== false && typeof window !== 'undefined') {
-    try { (loader || new THREE.TextureLoader()).load(portraitUrl(def.id), (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; api.portrait = t; api.hasPortrait = true; screenMat.map = t; screenMat.needsUpdate = true; }, undefined, () => { api.hasPortrait = false; }); } catch (e) { /* monogram stays */ }
+    try { const L = loader || new THREE.TextureLoader(); assetSrc(portraitUrl(def.id), (src) => L.load(src, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; api.portrait = t; api.hasPortrait = true; screenMat.map = t; screenMat.needsUpdate = true; }, undefined, () => { api.hasPortrait = false; })); } catch (e) { /* monogram stays */ }
   }
   const _m = new THREE.Matrix4(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _q = new THREE.Quaternion();
   const setBars = (amp, t) => { for (let i = 0; i < BARS; i++) { const k = 0.35 + 0.65 * Math.abs(Math.sin(t * (5.5 + i * 0.7) + i * 1.3)), hgt = 0.006 + amp * 0.07 * k; _p.set((i - (BARS - 1) / 2) * 0.024, S.y - S.h / 2 + 0.06, zf + 0.002); _s.set(1, hgt, 1); _m.compose(_p, _q, _s); bars.setMatrixAt(i, _m); } bars.instanceMatrix.needsUpdate = true; };
