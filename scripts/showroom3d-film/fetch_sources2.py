@@ -16,6 +16,9 @@ v2 = json.load(open(os.path.join(fs, "journey2-ledger.json"), encoding="utf-8"))
 REUSED_STILLS = {"1d", "1e", "2a", "2c", "3a", "3b", "3c", "3d", "5a", "5b", "5c", "5d", "5e", "6b", "7a", "7b", "7d", "7e", "8a"}
 REUSED_CLIPS = {"v1_workshop", "v2_cnc", "v3_drone"}
 out = sys.argv[1]
+v3p = os.path.join(fs, "journey3-ledger.json")          # film v3 adds two empty-office stills (build_film3.py)
+if os.path.exists(v3p):
+    v2["items"] += json.load(open(v3p, encoding="utf-8"))["items"]
 jobs = [("stills/%s.png" % s["key"], s["result_url"]) for s in v1["stills"] if s["key"] in REUSED_STILLS]
 jobs += [("clips/%s.mp4" % v["key"], v["result_url"]) for v in v1["videos"] if v["key"] in REUSED_CLIPS]
 for s in v2["items"]:
