@@ -23,11 +23,23 @@ export function FilmBody({ lang, fs, fallbackTitle }) {
   );
 }
 
+/** "Preparing film… 40%" with a thin bar while the background download runs, "Ready: starts instantly" when it is done. Play is never blocked. */
+export function FilmPrep({ lang, prep }) {
+  const ready = prep.state === 'ready', pct = ready ? 100 : Math.max(0, Math.min(99, Math.round(prep.pct || 0)));
+  return (
+    <div className="sr-vip-prep" data-testid="sr-vip-film-prep" data-state={prep.state} data-pct={pct} title={ready ? undefined : t('filmPrepNote', lang)}>
+      <p className="sr-vip-prep-line" role="status"><span>{ready ? t('filmReady', lang) : t('filmPrep', lang)}</span>{!ready && <b dir="ltr" data-testid="sr-vip-film-prep-pct">{pct}%</b>}</p>
+      <div className="sr-vip-prep-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={t('filmPrep', lang)}><i style={{ width: pct + '%' }} /></div>
+    </div>
+  );
+}
+
 /** play / pause, seek, volume, captions, cinema mode, big screen. Play is a button press (a user gesture): the film is never started automatically. */
-export function FilmControls({ lang, ex, fs, touch, big }) {
+export function FilmControls({ lang, ex, fs, touch, big, prep }) {
   const ok = live(fs), playing = !!fs && fs.status === 'playing', dur = (fs && fs.duration) || 0, cap = fs ? fs.caption : 'off', hasCaps = !!(fs && fs.film && fs.film.captions.length);
   return (
     <div className="sr-vip-present sr-vip-filmbar" role="group" aria-label={t('vipPresenter', lang)} data-testid="sr-vip-filmbar">
+      {!big && prep && prep.state !== 'off' && <FilmPrep lang={lang} prep={prep} />}
       <button type="button" className="sr-btn" onClick={() => ex.filmToggle()} disabled={!ok} aria-pressed={playing} data-testid="sr-vip-film-play">{playing ? t('filmPause', lang) : fs && fs.status === 'ended' ? t('filmReplay', lang) : t('filmPlay', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">P</kbd>}</button>
       {hasCaps && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.filmCaptions()} disabled={!ok} data-testid="sr-vip-film-cc">{t('filmCaptions', lang)}: {cap === 'off' ? t('filmCaptionsOff', lang) : cap.toUpperCase()}</button>}
       <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setCinema(true)} disabled={!ok} data-testid="sr-vip-film-cinema">{t('filmCinema', lang)}</button>
@@ -62,7 +74,7 @@ export function MeetingBody({ lang, ex }) {
       <p className="sr-note">{t('meetIntro', lang)}</p>
       <ol className="sr-vip-agenda" data-testid="sr-vip-agenda">{AGENDA.map((a, i) => (
         <li key={a.id}><button type="button" className="sr-vip-agenda-item" aria-current={i === now ? 'step' : undefined} onClick={() => ex.goAgenda(a)} data-testid={'sr-vip-agenda-' + a.id} data-real={a.real ? '1' : undefined}>
-          <span className="sr-step-n" aria-hidden="true">{i + 1}</span><span><b>{L(a.title, lang)}</b><em>{L(KIND_LABEL[a.kind], lang)}{a.real ? ' · ' + t('meetReal', lang) : ''}{a.label ? ' · ' + L(a.label, lang) : ''}</em></span></button></li>))}</ol>
+          <span className="sr-step-n" aria-hidden="true">{i + 1}</span><span><b>{L(a.title, lang)}</b><em>{L(KIND_LABEL[a.kind], lang)}{a.real ? ' · ' + t('meetReal', lang) : ''}{a.label ? ' · ' + L(a.label, lang) : ''}{(() => { const q = a.kind === 'film' && ex.filmPrep ? ex.filmPrep(a.id) : null; return q && q.state === 'ready' ? ' · ' + t('filmReady', lang) : q && q.state === 'preparing' ? ' · ' + t('filmPrep', lang) + ' ' + Math.round(q.pct) + '%' : ''; })()}</em></span></button></li>))}</ol>
       <p className="sr-note sr-vip-disc" data-testid="sr-vip-disclaimer">{L(DISCLAIMER, lang)}</p>
     </div>
   );
