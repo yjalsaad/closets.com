@@ -663,7 +663,7 @@ B.render_frame = render_frame
 def render_chunk(args, a, b, path):
     B.ARGS = args
     enc = subprocess.Popen(["ffmpeg", "-nostdin", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
-                            "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "veryfast", "-crf", "13",
+                            "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "veryfast", "-crf", os.environ.get("FILM_CRF", "13"),
                             "-pix_fmt", "yuv420p", "-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709",
                             "-vf", "scale=out_color_matrix=bt709:out_range=tv", path], stdin=subprocess.PIPE)
     for k in range(a, b):
