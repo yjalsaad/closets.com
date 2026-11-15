@@ -19,7 +19,7 @@ const Lx = C.L;
 
 function Station({ lang, idx, ex, st }) {
   if (idx === 0) {
-    const cf = C.contestedFacts();
+    const cf = C.contestedFacts().filter((f) => f.confirmed);   // unconfirmed facts are not shown at all (owner, 15 Nov 2026)
     return (<>
       <p className="sr-lead">{Lx(C.STATIONS[0].lead, lang)}</p>
       <ul className="sr-spec">{C.storyLines().map((l, i) => <li key={i}>{Lx(l, lang)}</li>)}</ul>

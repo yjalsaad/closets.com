@@ -15,7 +15,7 @@
 import { cleanText } from './deckSchema';
 
 export const WELCOME_SLIDE_ID = 'welcome';
-export const DEFAULT_MEETING_DATE = '2026-11-16';   // Monday 16 November 2026 (the owner: "the meeting will be tomorrow", said on 15 November 2026)
+export const DEFAULT_MEETING_DATE = '';   // no committed meeting date: the owner asked for the "meeting tomorrow" line to be removed (15 Nov 2026). A valid vip.meeting.date CMS row brings the line back.
 export const BAHRAIN_UTC_OFFSET_HOURS = 3;
 export const CMS_KEYS = Object.freeze({ date: 'vip.meeting.date', line: 'vip.welcome.line', lineAr: 'vip.welcome.line::ar' });
 export const CMS_QUERY = 'website_content?active=is.true&deleted_at=is.null&key=like.vip.*';

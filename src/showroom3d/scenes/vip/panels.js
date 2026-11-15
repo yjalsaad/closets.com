@@ -36,7 +36,7 @@ export function drawStory(g, w, h, o) {
   const lines = C.storyLines().slice(0, 3); let y = 470; const tx = k.mx(70);
   k.text(Lx(C.STATIONS[0].lead, lang), tx, 440, { size: 38, weight: 600, color: P.brandOrange });
   for (const l of lines) y = k.para(Lx(l, lang), tx, y + 14, w * 0.46, { size: 26, lh: 34 }) + 8;
-  const cf = C.contestedFacts(), gx = k.rtl ? 70 : w * 0.56, gw = w * 0.44 - 70, cw = (gw - 24) / 2, chh = 170;
+  const cf = C.contestedFacts().filter((f) => f.confirmed), gx = k.rtl ? 70 : w * 0.56, gw = w * 0.44 - 70, cw = (gw - 24) / 2, chh = 170;
   cf.forEach((f, i) => { const cx = gx + (i % 2) * (cw + 24), cy = 230 + Math.floor(i / 2) * (chh + 24); k.card(cx, cy, cw, chh, { dash: !f.confirmed, line: f.confirmed ? rgba(P.sand, 0.3) : rgba(P.brandOrange, 0.7) });
     const ax = k.rtl ? cx + cw - 24 : cx + 24; k.text(Lx(f.label, lang), ax, cy + 56, { size: 24, weight: 600, color: P.taupe }); k.para(Lx(f.value, lang), ax, cy + 100, cw - 48, { size: f.confirmed ? 40 : 28, weight: f.confirmed ? 700 : 600, color: f.confirmed ? P.sand : P.brandOrange, lh: 34 }); if (!f.confirmed) k.text(lang === 'ar' ? 'بانتظار الإدارة' : 'PLACEHOLDER', ax, cy + chh - 18, { size: 16, weight: 700, color: P.brassPale }); });
   k.card(gx, 230 + 2 * (chh + 24), gw, 110, { line: rgba(P.brass, 0.7) }); const bx = k.rtl ? gx + gw - 24 : gx + 24; k.text(lang === 'ar' ? 'ضمان' : 'Warranty', bx, 230 + 2 * (chh + 24) + 42, { size: 22, weight: 600, color: P.taupe }); k.text(Lx(C.storyLines()[1], lang), bx, 230 + 2 * (chh + 24) + 84, { size: 26, weight: 600, max: gw - 48 });
