@@ -7,9 +7,9 @@
  * What this component does to the frame (the site is never edited): shifts it up so the site header sits outside the window (desktop), hides the footer with one injected rule,
  * waits until the designer has really rendered, watches its route (its own Exit / sent quote navigate away -> back to the showroom), keeps Esc / Back / focus sane. */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { dt } from './strings';
+import { dt, sdt } from './strings';
 import { sectionById, sectionName } from './sections';
-import { buildEmbedUrl, buildSiteUrl, stillOnDesigner, frameShift, scrollOffset, EMBED_CSS, EMBED_STYLE_ID, LOAD_TIMEOUT_MS, isEditingKey, escapeShouldClose, isSignedIn, normLang, designerRendered } from './logic';
+import { buildEmbedUrl, buildSiteUrl, stillOnDesigner, frameShift, scrollOffset, embedCss, EMBED_STYLE_ID, LOAD_TIMEOUT_MS, isEditingKey, escapeShouldClose, isSignedIn, normLang, designerRendered, switchDesignerLanguage, designerLanguageIs } from './logic';
 import './designstudio.css';
 
 const POLL_MS = 250;
@@ -17,15 +17,15 @@ const POLL_MS = 250;
 export default function DesignerOverlay({ state, dispatch, lang, onBack, onLang, storage = window.localStorage }) {
   const section = sectionById(state.sectionId), L = normLang(lang), rtl = L === 'ar';
   const frameRef = useRef(null), stageRef = useRef(null), rootRef = useRef(null), backRef = useRef(null);
-  const [shift, setShift] = useState(() => frameShift(window.innerWidth));
+  const [shift, setShift] = useState(() => frameShift(window.innerWidth, section));
   const url = useMemo(() => buildEmbedUrl(section), [section]);
   const siteUrl = useMemo(() => buildSiteUrl(section), [section]);
-  const signedIn = useMemo(() => isSignedIn(storage), [storage, state.attempt]);  // eslint-disable-line react-hooks/exhaustive-deps
+  const signedIn = useMemo(() => isSignedIn(storage, section), [storage, section, state.attempt]);  // eslint-disable-line react-hooks/exhaustive-deps
   const status = state.status, loading = status === 'loading', failed = status === 'failed', confirm = status === 'confirm';
   const stRef = useRef(state); stRef.current = state;
   const langRef = useRef(L); langRef.current = L;
 
-  useEffect(() => { const f = () => setShift(frameShift(window.innerWidth)); window.addEventListener('resize', f); return () => window.removeEventListener('resize', f); }, []);
+  useEffect(() => { const f = () => setShift(frameShift(window.innerWidth, section)); window.addEventListener('resize', f); return () => window.removeEventListener('resize', f); }, [section]);
 
   // modal behaviour: the showroom behind the overlay is inert (no Tab, no screen reader) while it is open
   useEffect(() => {
@@ -46,7 +46,7 @@ export default function DesignerOverlay({ state, dispatch, lang, onBack, onLang,
     if (!section || !(status === 'loading')) return undefined;
     const frame = frameRef.current; if (!frame) return undefined;
     let alive = true, t0 = Date.now(), timer = null;
-    const inject = (doc) => { try { if (!doc.getElementById(EMBED_STYLE_ID) && doc.head) { const st = doc.createElement('style'); st.id = EMBED_STYLE_ID; st.textContent = EMBED_CSS; doc.head.appendChild(st); } } catch (e) { /* ignore */ } };
+    const inject = (doc) => { try { if (!doc.getElementById(EMBED_STYLE_ID) && doc.head) { const st = doc.createElement('style'); st.id = EMBED_STYLE_ID; st.textContent = embedCss(section); doc.head.appendChild(st); } } catch (e) { /* ignore */ } };
     const fail = (reason) => { if (alive) { alive = false; clearInterval(timer); dispatch({ type: 'fail', reason }); } };
     timer = setInterval(() => {
       if (!alive) return;
@@ -55,7 +55,7 @@ export default function DesignerOverlay({ state, dispatch, lang, onBack, onLang,
       catch (e) { if (Date.now() - t0 > 4000) fail('blocked'); return; }       // a chrome error page / blocked frame is cross-origin: reading it throws
       if (doc.location.href === 'about:blank') { if (Date.now() - t0 > LOAD_TIMEOUT_MS) fail('timeout'); return; }
       inject(doc);
-      if (designerRendered(doc)) { alive = false; clearInterval(timer); dispatch({ type: 'loaded' }); try { frame.focus(); } catch (e) { /* ignore */ } return; }
+      if (designerRendered(doc, section)) { alive = false; clearInterval(timer); dispatch({ type: 'loaded' }); try { frame.focus(); } catch (e) { /* ignore */ } return; }
       if (Date.now() - t0 > LOAD_TIMEOUT_MS) fail('timeout');
     }, POLL_MS);
     return () => { alive = false; clearInterval(timer); };
@@ -73,11 +73,18 @@ export default function DesignerOverlay({ state, dispatch, lang, onBack, onLang,
         wired = doc; off.forEach((f) => f()); off = [];
         const onKey = (e) => { if (e.key === 'Escape') { if (escapeShouldClose(doc)) { e.preventDefault(); onBack(); } return; } if (e.isTrusted && isEditingKey(e.key)) dispatch({ type: 'interact' }); };
         const onDown = (e) => { if (e.isTrusted) dispatch({ type: 'interact' }); };
-        win.addEventListener('keydown', onKey, true); win.addEventListener('pointerdown', onDown, true);
-        off.push(() => { try { win.removeEventListener('keydown', onKey, true); win.removeEventListener('pointerdown', onDown, true); } catch (e) { /* frame gone */ } });
-        if (!doc.getElementById(EMBED_STYLE_ID) && doc.head) { const st = doc.createElement('style'); st.id = EMBED_STYLE_ID; st.textContent = EMBED_CSS; doc.head.appendChild(st); }
+        // a studio link that would take the frame away (e.g. "My designs" after saving) opens in a new tab: the visitor keeps the showroom and the design
+        const onLink = (e) => {
+          if (!section.designer.newTabLinks) return; const a = e.target && e.target.closest ? e.target.closest('a[href]') : null; if (!a || a.target === '_blank') return;
+          let u; try { u = new URL(a.getAttribute('href'), doc.location.href); } catch (err) { return; }
+          if (u.origin === doc.location.origin && stillOnDesigner(u.pathname, section)) return;
+          e.preventDefault(); e.stopPropagation(); try { win.open(u.href, '_blank', 'noopener'); } catch (err) { /* blocked */ }
+        };
+        win.addEventListener('keydown', onKey, true); win.addEventListener('pointerdown', onDown, true); win.addEventListener('click', onLink, true);
+        off.push(() => { try { win.removeEventListener('keydown', onKey, true); win.removeEventListener('pointerdown', onDown, true); win.removeEventListener('click', onLink, true); } catch (e) { /* frame gone */ } });
+        if (!doc.getElementById(EMBED_STYLE_ID) && doc.head) { const st = doc.createElement('style'); st.id = EMBED_STYLE_ID; st.textContent = embedCss(section); doc.head.appendChild(st); }
       }
-      { const need = scrollOffset(window.innerWidth); if (need) { try { if (Math.abs((win.scrollY || 0) - need) > 1) win.scrollTo(0, need); } catch (e) { /* ignore */ } } }
+      { const need = scrollOffset(window.innerWidth, section); if (need) { try { if (Math.abs((win.scrollY || 0) - need) > 1) win.scrollTo(0, need); } catch (e) { /* ignore */ } } }
     };
     tick(); const id = setInterval(tick, 400);
     return () => { clearInterval(id); off.forEach((f) => f()); };
@@ -90,13 +97,9 @@ export default function DesignerOverlay({ state, dispatch, lang, onBack, onLang,
     if (prevLang.current === L) return; prevLang.current = L;
     const frame = frameRef.current; if (!frame || !(stRef.current.status === 'open' || stRef.current.status === 'confirm')) return;
     let done = false;
-    try {
-      const doc = frame.contentWindow.document;
-      if (doc.documentElement.lang === L) done = true;
-      else { const b = doc.querySelector('nav button[title="Language"]'); if (b) { b.click(); done = doc.documentElement.lang === L || true; } }
-    } catch (e) { done = false; }
+    try { done = switchDesignerLanguage(frame.contentWindow.document, L, stRef.current && sectionById(stRef.current.sectionId)); } catch (e) { done = false; }
     const id = setTimeout(() => {
-      let ok = false; try { ok = frame.contentWindow.document.documentElement.lang === L; } catch (e) { ok = false; }
+      let ok = false; try { ok = designerLanguageIs(frame.contentWindow.document, L, sectionById(stRef.current.sectionId)); } catch (e) { ok = false; }
       if (!ok) dispatch({ type: 'reload' });
     }, done ? 600 : 0);
     return () => clearTimeout(id);
@@ -108,7 +111,7 @@ export default function DesignerOverlay({ state, dispatch, lang, onBack, onLang,
   const frameStyle = { marginTop: -shift, height: `calc(100% + ${shift}px)` };
 
   return (
-    <div className="sr-ds" role="dialog" aria-modal="true" aria-label={dt('frameAria', L)} ref={rootRef} data-testid="sr-ds" data-status={status} data-section={section.id} dir={rtl ? 'rtl' : 'ltr'}>
+    <div className="sr-ds" role="dialog" aria-modal="true" aria-label={sdt(section, 'frameAria', L)} ref={rootRef} data-testid="sr-ds" data-status={status} data-section={section.id} dir={rtl ? 'rtl' : 'ltr'}>
       <header className="sr-ds-bar">
         <button type="button" className="sr-btn sr-btn-line sr-ds-back" onClick={onBack} ref={backRef} data-testid="sr-ds-back" data-autofocus>
           <span aria-hidden="true">{rtl ? '→' : '←'}</span><span className="sr-ds-back-t">{dt('back', L)}</span><span className="sr-ds-back-s">{dt('backShort', L)}</span><kbd className="sr-kbd" aria-hidden="true">Esc</kbd>
@@ -119,10 +122,10 @@ export default function DesignerOverlay({ state, dispatch, lang, onBack, onLang,
         <button type="button" className="sr-btn sr-btn-line sr-ds-lang" onClick={onLang} lang={rtl ? 'en' : 'ar'} aria-label={dt('langLabel', L)} data-testid="sr-ds-lang">{dt('langBtn', L)}</button>
       </header>
       <div className="sr-ds-stage" ref={stageRef}>
-        {!failed && <iframe key={state.attempt} ref={frameRef} className="sr-ds-frame" title={dt('frameTitle', L)} src={url} style={frameStyle} onLoad={onFrameLoad} allow="fullscreen; clipboard-write" data-testid="sr-ds-frame" />}
+        {!failed && <iframe key={state.attempt} ref={frameRef} className="sr-ds-frame" title={sdt(section, 'frameTitle', L)} src={url} style={frameStyle} onLoad={onFrameLoad} allow="fullscreen; clipboard-write" data-testid="sr-ds-frame" />}
         {loading && (
           <div className="sr-ds-veil" role="status" data-testid="sr-ds-loading">
-            <div className="sr-ds-veil-in"><span className="sr-ds-spin" aria-hidden="true" /><h2>{dt('loading', L)}</h2><p>{dt('loadingNote', L)}</p>{!signedIn && <p className="sr-ds-note">{dt('signInNote', L)}</p>}</div>
+            <div className="sr-ds-veil-in"><span className="sr-ds-spin" aria-hidden="true" /><h2>{sdt(section, 'loading', L)}</h2><p>{dt('loadingNote', L)}</p>{!signedIn && <p className="sr-ds-note" data-testid="sr-ds-note">{sdt(section, 'signInNote', L)}</p>}</div>
           </div>)}
         {failed && (
           <div className="sr-ds-veil is-failed" role="alert" data-testid="sr-ds-failed">
@@ -135,7 +138,7 @@ export default function DesignerOverlay({ state, dispatch, lang, onBack, onLang,
           </div>)}
         {confirm && (
           <div className="sr-ds-veil is-confirm" role="alertdialog" aria-labelledby="sr-ds-confirm-t" data-testid="sr-ds-confirm">
-            <div className="sr-ds-veil-in"><h2 id="sr-ds-confirm-t">{dt('confirmTitle', L)}</h2><p>{dt('confirmBody', L)}</p>
+            <div className="sr-ds-veil-in"><h2 id="sr-ds-confirm-t">{dt('confirmTitle', L)}</h2><p>{sdt(section, 'confirmBody', L)}</p>
               <div className="sr-ds-actions"><button type="button" className="sr-btn" onClick={() => dispatch({ type: 'stay' })} data-testid="sr-ds-stay" data-autofocus>{dt('confirmStay', L)}</button>
                 <button type="button" className="sr-btn sr-btn-line" onClick={() => dispatch({ type: 'leave' })} data-testid="sr-ds-leave">{dt('confirmLeave', L)}</button></div></div>
           </div>)}

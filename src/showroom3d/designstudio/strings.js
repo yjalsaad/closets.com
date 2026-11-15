@@ -39,3 +39,18 @@ export const dt = (key, lang) => { const s = DS[key]; return s ? (lang === 'ar' 
 Object.assign(DS, {
   preview: { en: 'Preview of the designer', ar: 'معاينة للمصمم' },
 });
+
+// ---- shared wall: more than one section on the station (sign, attract screen, tablet, chooser) ----
+Object.assign(DS, {
+  stationTagline: { en: 'Design a kitchen or a TV unit on a big screen', ar: 'صمّم مطبخًا أو وحدة تلفزيون على شاشة كبيرة' },
+  chooseTitle: { en: 'Which studio?', ar: 'أي استوديو؟' },
+  chooseHint: { en: 'Both open the same designers as our website, on a big canvas.', ar: 'كلاهما يفتح المصممين أنفسهم كما في موقعنا، على مساحة كبيرة.' },
+  chooseClose: { en: 'Close', ar: 'إغلاق' },
+  chooseOpen: { en: 'Open', ar: 'افتح' },
+  chooseAria: { en: 'Choose a design studio', ar: 'اختر استوديو التصميم' },
+  tabletPick: { en: 'Pick a studio', ar: 'اختر استوديو' },
+  guideChoose: { en: 'Which designer would you like to open?', ar: 'أي مصمم تودّ فتحه؟' },
+});
+
+/** a string for one section: the section's own wording (registry `text`) when it has one, else the shared / kitchen default above */
+export const sdt = (section, key, lang) => { const o = section && section.text && section.text[key]; return o ? (lang === 'ar' ? o.ar : o.en) : dt(key, lang); };

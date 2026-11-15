@@ -8,7 +8,7 @@ import { VIP_DEPT } from '../products/vipContent';
 import { staffById } from '../staff/roster';
 import { pick } from '../staff/guide';
 import { COLLECTIONS_DEPT } from '../collections/layout';
-import { SECTION_DEPTS } from '../designstudio/sections';
+import { SECTION_DEPTS, zoneStationName } from '../designstudio/sections';
 
 const dept = (id) => DEPARTMENTS.find((d) => d.id === id);
 const dname = (id, lang) => { const sd = SECTION_DEPTS.find((x) => x.id === id); if (sd) return lang === 'ar' ? sd.ar : sd.en; if (id === COLLECTIONS_DEPT.id) return lang === 'ar' ? COLLECTIONS_DEPT.ar : COLLECTIONS_DEPT.en; if (id === 'ikhtarha') return ikt(IK.name, lang); if (id === VIP_DEPT.id) return lang === 'ar' ? VIP_DEPT.ar : VIP_DEPT.en; const d = dept(id); return d ? (lang === 'ar' ? d.ar : d.en) : ''; };
@@ -31,7 +31,7 @@ export default function Hud({ lang, tier, touch, st, explorerRef, homeHref, onDe
   }, [st.gliding, st.glideTo]);
 
   const hint = touch ? 'hintTouch' : st.locked ? 'hintDesktopLocked' : st.dragLook ? 'hintDesktopDrag' : 'hintDesktopLock';
-  const zoneName = st.zone ? dname(st.zone, lang) : null;
+  const zoneName = st.zone ? (zoneStationName(st.zone, lang) || dname(st.zone, lang)) : null;   // a shared design wall is "Design Studios", not the first section
   const toastText = !toast ? '' : toast.glide ? `${t('heading', lang)} ${dname(toast.glide, lang)}` : toast.zone ? `${dname(toast.zone, lang)}. ${t('zoneSoon', lang)}` : t(touch ? 'interactNoneTouch' : 'interactNone', lang);
 
   return (

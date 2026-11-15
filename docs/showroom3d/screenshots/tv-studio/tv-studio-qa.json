@@ -1,0 +1,626 @@
+{
+ "results": [
+  {
+   "name": "GUEST: no website account and no studio session exist in this browser",
+   "ok": true
+  },
+  {
+   "name": "quick-nav entry 12 \"TV Unit Studio\" glides to the shared wall: the zone is the design wall, at the stand point",
+   "ok": true,
+   "detail": [
+    -18,
+    -4.41
+   ]
+  },
+  {
+   "name": "the HUD prompt names the shared wall (\"Design Studios\") and offers E",
+   "ok": true,
+   "detail": "Design Studios\nPress E"
+  },
+  {
+   "name": "the screen alternates the sections: its poster loop holds kitchen and TV frames",
+   "ok": true,
+   "detail": [
+    0,
+    1
+   ]
+  },
+  {
+   "name": "E after gliding to the TV studio opens the TV designer directly (no chooser)",
+   "ok": true
+  },
+  {
+   "name": "loading screen for a guest says no account is needed to design (saving / quoting asks for one)",
+   "ok": true,
+   "detail": "No account needed to design. Saving your design or asking for a quote will ask you to sign in or create a free account."
+  },
+  {
+   "name": "the showroom render loop is paused while the designer is open",
+   "ok": true
+  },
+  {
+   "name": "no showroom frames are rendered while it is open",
+   "ok": true,
+   "detail": {
+    "fr1": 108,
+    "fr2": 108
+   }
+  },
+  {
+   "name": "the designer finished loading (status open) with no sign-in gate: the Neo TV Unit Designer itself is on screen for a guest",
+   "ok": true
+  },
+  {
+   "name": "the frame URL is the website studio route, same origin",
+   "ok": true
+  },
+  {
+   "name": "the studio shell bar is hidden and the designer fills the stage exactly (1440 x 900)",
+   "ok": true,
+   "detail": {
+    "stage": [
+     1440,
+     843
+    ],
+    "page": [
+     1440,
+     843
+    ],
+    "top": 0,
+    "scrollW": 1440,
+    "clientW": 1440,
+    "barHidden": true
+   }
+  },
+  {
+   "name": "GUEST: designing wrote nothing - no auth request, no cp_* RPC, no session stored (the only Supabase call is the public studio-settings read)",
+   "ok": true,
+   "detail": [
+    "POST /rest/v1/rpc/studio_public_settings",
+    "POST /rest/v1/rpc/studio_public_settings",
+    "POST /rest/v1/rpc/studio_public_settings",
+    "POST /rest/v1/rpc/studio_public_settings",
+    "POST /rest/v1/rpc/studio_public_settings",
+    "POST /rest/v1/rpc/studio_public_settings",
+    "POST /rest/v1/rpc/studio_public_settings"
+   ]
+  },
+  {
+   "name": "Get quote as a guest: the website’s quote dialog opens with the design, the indicative price and \"you will sign in first\"",
+   "ok": true,
+   "detail": "NEO TV UNIT DESIGNER Your design × Design name Size (W × H × D) 2300 × 2200 × 398 mm Includes 3 doors · 2 drawers · 10 shelves Indicative price from BD 730 Excludes VAT (10%). Your final quote is confirmed after a free site visit. Phone (for our designer to call you) Anything we should know? (option"
+  },
+  {
+   "name": "Save as a guest asks to sign in / create an account (the site’s own dialog) and saves nothing",
+   "ok": true,
+   "detail": [
+    "POST /rest/v1/rpc/studio_public_settings",
+    "POST /rest/v1/rpc/studio_public_settings",
+    "POST /rest/v1/rpc/studio_public_settings",
+    "POST /rest/v1/rpc/studio_public_settings",
+    "POST /rest/v1/rpc/studio_public_settings",
+    "POST /rest/v1/rpc/studio_public_settings",
+    "POST /rest/v1/rpc/studio_public_settings"
+   ]
+  },
+  {
+   "name": "PRICE PARITY: all eleven totals are identical (frame vs the website route)",
+   "ok": true,
+   "detail": {
+    "embedded": [
+     "BD 758.84",
+     "BD 742.39",
+     "BD 820.22",
+     "BD 796.22",
+     "BD 864.04",
+     "BD 1039.00",
+     "BD 1084.36",
+     "BD 1082.24",
+     "BD 1111.99",
+     "BD 1105.27",
+     "BD 721.21"
+    ],
+    "direct": [
+     "BD 758.84",
+     "BD 742.39",
+     "BD 820.22",
+     "BD 796.22",
+     "BD 864.04",
+     "BD 1039.00",
+     "BD 1084.36",
+     "BD 1082.24",
+     "BD 1111.99",
+     "BD 1105.27",
+     "BD 721.21"
+    ]
+   }
+  },
+  {
+   "name": "OPTION PARITY: every option of every tab (Global, M&S, Units, TV & niche, Panel & LED, Hardware, Price) reads identically at the start AND after the changes",
+   "ok": true,
+   "detail": [
+    [
+     "global",
+     1212,
+     1180
+    ],
+    [
+     "ms",
+     1277,
+     1277
+    ],
+    [
+     "units",
+     836,
+     836
+    ],
+    [
+     "tv",
+     627,
+     627
+    ],
+    [
+     "panel",
+     543,
+     675
+    ],
+    [
+     "hardware",
+     528,
+     438
+    ],
+    [
+     "price",
+     213,
+     213
+    ]
+   ]
+  },
+  {
+   "name": "PARITY: the quote dialog (facts, indicative price, sign-in line) is identical",
+   "ok": true,
+   "detail": {
+    "frame": "NEO TV UNIT DESIGNER Your design × Design name Size (W × H × D) 2300 × 2200 × 398 mm Includes 3 doors · 2 drawers · 10 shelves Indicative price from BD 730 Excludes VAT (10%). Your final quote is conf",
+    "site": "NEO TV UNIT DESIGNER Your design × Design name Size (W × H × D) 2300 × 2200 × 398 mm Includes 3 doors · 2 drawers · 10 shelves Indicative price from BD 730 Excludes VAT (10%). Your final quote is conf"
+   }
+  },
+  {
+   "name": "the changes really moved the price (>= 8 different totals)",
+   "ok": true,
+   "detail": [
+    "BD 758.84",
+    "BD 742.39",
+    "BD 820.22",
+    "BD 796.22",
+    "BD 864.04",
+    "BD 1039.00",
+    "BD 1084.36",
+    "BD 1082.24",
+    "BD 1111.99",
+    "BD 1105.27",
+    "BD 721.21"
+   ]
+  },
+  {
+   "name": "the 3D view renders inside the frame (a WebGL canvas with size)",
+   "ok": true
+  },
+  {
+   "name": "1440 x 900: the designer fills the stage, no sideways scroll",
+   "ok": true,
+   "detail": {
+    "stage": [
+     1440,
+     843
+    ],
+    "page": [
+     1440,
+     843
+    ],
+    "top": 0,
+    "scrollW": 1440,
+    "clientW": 1440,
+    "barHidden": true
+   }
+  },
+  {
+   "name": "1920 x 1080: the designer fills the stage, no sideways scroll",
+   "ok": true,
+   "detail": {
+    "stage": [
+     1920,
+     1023
+    ],
+    "page": [
+     1920,
+     1023
+    ],
+    "top": 0,
+    "scrollW": 1920,
+    "clientW": 1920,
+    "barHidden": true
+   }
+  },
+  {
+   "name": "2560 x 1440: the designer fills the stage, no sideways scroll",
+   "ok": true,
+   "detail": {
+    "stage": [
+     2560,
+     1383
+    ],
+    "page": [
+     2560,
+     1383
+    ],
+    "top": 0,
+    "scrollW": 2560,
+    "clientW": 2560,
+    "barHidden": true
+   }
+  },
+  {
+   "name": "a link that would leave the designer (e.g. \"My designs\") opens in a new tab; the designer stays open",
+   "ok": true,
+   "detail": "http://localhost:5075/studio/account"
+  },
+  {
+   "name": "Esc with a design in progress asks first, and the text says the design stays in this browser",
+   "ok": true
+  },
+  {
+   "name": "\"Keep designing\" returns to the designer",
+   "ok": true
+  },
+  {
+   "name": "back in the showroom: the render loop is running again",
+   "ok": true,
+   "detail": {
+    "fr2": 108,
+    "fr3": 112
+   }
+  },
+  {
+   "name": "the visitor stands exactly where they stood",
+   "ok": true,
+   "detail": {
+    "before": [
+     [
+      -18,
+      -4.41
+     ],
+     -3.141592653589793,
+     0.12
+    ],
+    "after": [
+     [
+      -18,
+      -4.41
+     ],
+     -3.141592653589793,
+     0.12
+    ]
+   }
+  },
+  {
+   "name": "the iframe is gone after leaving (the designer’s heap and WebGL are released)",
+   "ok": true
+  },
+  {
+   "name": "walking in by hand (no section named): E opens the \"Which studio?\" chooser with two cards",
+   "ok": true
+  },
+  {
+   "name": "the chooser cards show their poster images (both loaded)",
+   "ok": true
+  },
+  {
+   "name": "the explorer is frozen while the chooser is open",
+   "ok": true
+  },
+  {
+   "name": "Esc closes the chooser; the visitor can walk again",
+   "ok": true
+  },
+  {
+   "name": "choosing \"TV Unit Studio\" in the chooser opens the TV designer",
+   "ok": true
+  },
+  {
+   "name": "a click on the podium tablet’s right button opens the TV designer straight away",
+   "ok": true,
+   "detail": {
+    "x": 833.5720461525935,
+    "y": 411.73303188316083,
+    "ndc": [
+     0.15773895298971327,
+     0.08503770692630928,
+     0.8110321836994919
+    ]
+   }
+  },
+  {
+   "name": "and its left button opens the Kitchen Design Studio designer",
+   "ok": true,
+   "detail": {
+    "x": 606.4279538474065,
+    "y": 411.73303188316083,
+    "ndc": [
+     -0.15773895298971327,
+     0.08503770692630928,
+     0.8110321836994919
+    ]
+   }
+  },
+  {
+   "name": "the department menu lists both studios last, without digit keys",
+   "ok": true
+  },
+  {
+   "name": "the living adviser offers \"Walk me to the TV unit studio\" and \"Open the TV designer\" (and not the kitchen pair)",
+   "ok": true,
+   "detail": [
+    "×",
+    "What do you offer?",
+    "Help me plan my space",
+    "Book a visit",
+    "Take me to Living",
+    "Walk me to the TV unit studio",
+    "Open the TV designer",
+    "Send"
+   ]
+  },
+  {
+   "name": "living adviser: \"open the designer\" opens the TV designer (the adviser’s own section)",
+   "ok": true
+  },
+  {
+   "name": "Reception (no section of her own): \"open the designer\" asks which one, with a chip for each",
+   "ok": true
+  },
+  {
+   "name": "adviser: \"take me to the tv unit studio\" walks there, and E opens the TV designer",
+   "ok": true
+  },
+  {
+   "name": "re-opening restores the guest’s last design from the studio’s own autosave (same total as before leaving; the \"restored\" notice is the studio’s)",
+   "ok": true,
+   "detail": {
+    "restored": "BD 721.21",
+    "last": "BD 721.21"
+   }
+  },
+  {
+   "name": "load failure: a clear message, Try again and a link to the same designer on the website (new tab)",
+   "ok": true
+  },
+  {
+   "name": "Try again loads the designer once the network is back",
+   "ok": true
+  },
+  {
+   "name": "KITCHEN: gliding to the Kitchen Design Studio and pressing E still opens the kitchen planner directly",
+   "ok": true
+  },
+  {
+   "name": "KITCHEN: its frame is still shifted under the 104 px site header and the footer is hidden",
+   "ok": true
+  },
+  {
+   "name": "no page errors in the whole desktop run",
+   "ok": true,
+   "detail": [
+    "console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED",
+    "console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED",
+    "console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED",
+    "console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED",
+    "console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED"
+   ]
+  },
+  {
+   "name": "Arabic: the HUD prompt names the shared wall in Arabic",
+   "ok": false
+  },
+  {
+   "name": "Arabic chooser: right-to-left with both studios in Arabic",
+   "ok": true
+  },
+  {
+   "name": "Arabic: the designer opens in Arabic (RTL) although localStorage said English (the showroom language wins)",
+   "ok": true
+  },
+  {
+   "name": "Arabic: the showroom bar is translated",
+   "ok": true
+  },
+  {
+   "name": "language switch while open: the designer (page + its EN / ع control) and the showroom both switch to English",
+   "ok": true,
+   "detail": {
+    "frame": "en",
+    "seg": "EN",
+    "root": "en"
+   }
+  },
+  {
+   "name": "language switch while open: the design in progress is kept (the same BHD price; the 75-inch choice is still there)",
+   "ok": true,
+   "detail": {
+    "arPrice": "BD 742.39",
+    "enPrice": "BD 742.39"
+   }
+  },
+  {
+   "name": "phone: Tap Interact at the TV studio opens the full-screen TV designer (named, so no chooser), as a guest",
+   "ok": true
+  },
+  {
+   "name": "phone: the studio bar is hidden, the designer fills the window and nothing scrolls sideways",
+   "ok": true,
+   "detail": {
+    "stage": [
+     57,
+     844,
+     390
+    ],
+    "bar": "none",
+    "quote": {
+     "top": 926.6074829101562,
+     "bottom": 970.6074829101562,
+     "left": 8,
+     "right": 95.984375
+    },
+    "page": {
+     "top": 0,
+     "bottom": 787,
+     "left": 0,
+     "right": 390
+    },
+    "scrollW": 390,
+    "clientW": 390
+   }
+  },
+  {
+   "name": "phone: the Parameters drawer opens with the options, and the designer’s own Get quote button is inside the visible window",
+   "ok": true,
+   "detail": {
+    "top": 364.8125,
+    "bottom": 408.8125,
+    "right": 95.984375,
+    "stageH": 787,
+    "stageW": 390
+   }
+  },
+  {
+   "name": "phone: Back returns to the showroom",
+   "ok": true
+  }
+ ],
+ "notes": {
+  "embedded": {
+   "totals": [
+    "BD 758.84",
+    "BD 742.39",
+    "BD 820.22",
+    "BD 796.22",
+    "BD 864.04",
+    "BD 1039.00",
+    "BD 1084.36",
+    "BD 1082.24",
+    "BD 1111.99",
+    "BD 1105.27",
+    "BD 721.21"
+   ],
+   "notes": [
+    "default design",
+    "TV size 75\"",
+    "total width 3600 mm",
+    "floor standing unit",
+    "top: Marble",
+    "board: birch plywood",
+    "LED: niche + under the unit",
+    "no soundbar",
+    "+ AV shelf unit",
+    "handles: knob",
+    "preset: floor unit with electric fireplace"
+   ],
+   "tabs0": {
+    "global": "Overall size Total width mm 1200–4800 mm Footprint (W × D) and height 3200 × 398 × 2200 mm Width re-splits the units (their options are kept unit by unit). Media unit Media unit Floating (wall-hung) Floor standing Floor clearance (floating) mm 100–700 mm Floor standing on Legs Plinth Choose Floor standing first. Leg / plinth height mm 80–250 mm Choose Floor standing first. Media unit height (with its top) mm 250–700 mm Unit depth mm 250–550 mm Top board thickness mm 18–50 mm Top material Solid oak Laminate Marble Granite Quartz Side tower height (from the floor) mm 1200–2600 mm Side tower depth mm 200–550 mm A floating unit hangs on the wall and shows the floor underneath; a floor unit stands on legs or a plinth. Look · daylight 3D VIEW LOOK Standard The original view Studio Soft studio light, true material colours Daylight Sunny room: oak floor, painted walls, soft shadows Evening Warm evening light, LED strips under the wall units Daylight Floor grid The 3D view only: it never changes sizes, the cut list or the price. OUTPUT UNITS MM CM INCH PRECISION DRAFT STANDARD ULTRA STANDARD - 24 POINTS PER CURVE Applies to every export, printed sheet, label and field. Stored sizes stay in millimetres.",
+    "ms": "Finish Natural Oak Dark Walnut Matte White Lacquer Charcoal Grey The board finish is the 3D grain and colour of the doors and boards. Board Board MDF 18 mm Birch plywood MR board Boards Carcass board mm 10–30 mm Back board mm 3–20 mm Shelf board mm 6–50 mm Doors and drawers Door board mm 12–40 mm Door gap mm 0–10 mm Gap between drawer fronts mm 0–10 mm Runner clearance mm 0–30 mm Look live in 3D Colour and texture per part. Hover a row to see which parts it paints. Carcass body Off Default Wood grain Marble ↺ Doors Off Default Wood grain Marble ↺ Drawer fronts Off Default Wood grain Marble ↺ Shelves Off Default Wood grain Marble ↺ Back panel Off Default Wood grain Marble ↺ Countertop Off Default Wood grain Marble ↺ Plinth Off Default Wood grain Marble ↺ Handles Colour only ↺ Look is display only: sizes, cut list and the finish presets are not affected. Reset look Production materials Saved No materials yet — type a name next to a part. Type a material next to each part. Same name = same material. Saved names go to the cut list, Excel and PDF. Structure Shelves Back Doors, panel and slats Tower doors Niche parts Drawer fronts Drawer boxes Plinth Top board Handles Inventory is not available here. Names are saved with the project and can be linked later. Retry",
+    "units": "Start from a preset Floating 65\" with slat panel + towers Floor unit with electric fireplace Console + AV shelves 55\" Low unit, TV on a stand 43\" Wall-hung 85\" cinema wall A preset replaces the units and the category settings. Undo brings the previous design back. Units on the wall 1 450 2 2300 3 450 3200 mm Keep the total width The run stays 3200 mm; the other units share a change. T1 450 M2 2300 T3 450 U1 · Side tower Width (300-800) mm 300–800 mm Style Doors Open shelves Open + doors Shelves − 5 + Drawers (bottom) − 1 + ← Move Move → Duplicate Remove Total width (mm) mm 1200–4800 mm Overall height 2200 mm Pieces 68 + Media console + AV shelf unit + Electric fireplace + Side tower + Wall shelf Tap a unit in the drawing — or a part in the 3D view — to edit it here. Drag the handle on a unit's right edge to change its width.",
+    "tv": "TV TV size (diagonal) in 32–98 in 43\" 43 55\" 55 65\" 65 75\" 75 85\" 85 16:9. The niche is sized from the real width and height of the screen. TV mounting Wall bracket (niche) On the unit (stand) The niche is sized from the real screen: width = TV width + 2 × (side clearance + board). Niche Clearance each side of the TV mm 20–200 mm Clearance above the TV (air) mm 30–300 mm Clearance below the TV mm 0–200 mm Niche depth (wall-hung depth) mm 80–300 mm The TV needs about 115 mm behind its front for the bracket. Gap: unit top to the niche mm 0–600 mm Soundbar Soundbar None Below the TV On the unit Soundbar height mm 50–140 mm",
+    "panel": "Back wall panel Back wall panel Panel top (from the floor) mm 1200–2800 mm Panel board thickness mm 12–40 mm The panel and every slat are cut-list parts. Slats are cut to the panel height; pieces of the same size share one row. Slats Vertical slats Slats cover Beside the niche Whole panel Slat width mm 20–80 mm Gap between slats mm 5–40 mm Slat thickness mm 10–30 mm LED backlight LED lighting No LED Niche backlight Under the unit Both LED light on Cables Cable grommet holes − 2 + Grommet hole diameter mm 40–80 mm Cable duct behind the TV",
+    "hardware": "Handles Bar handle Knob Profile (J-pull) Push-to-open None Length 96 128 160 192 256 320 Position Auto Top Centre Bottom Hardware list Hinge ( cup Ø35) 12 Hinge mounting plate 12 Soft-close runner (pair) 2 Bar handle 128 mm 8 Shelf pin Ø5 20 Minifix connector 28 Cam lock 4 Dowel 8x30 28 Cable duct 45 x 12 (behind the TV) 1 TV wall bracket (VESA) 1 Slat adhesive + pins (per slat) 12 Wall panel keyhole / cleat fixing 2 Cable grommet Ø60 2 Heavy-duty wall-hung cabinet bracket (pair) 4 LED strip (per metre) 6 LED driver 12 V 1",
+    "price": "Price Placeholder rates: the owner has not supplied a price list for this category yet. Quantities are exact (the cut list and the hardware list); every rate is in the category config and is replaced in one place."
+   },
+   "tabsEnd": {
+    "global": "Overall size Total width mm 1200–3200 mm Footprint (W × D) and height 2300 × 398 × 2200 mm Width re-splits the units (their options are kept unit by unit). Media unit Media unit Floating (wall-hung) Floor standing Floor clearance (floating) mm 100–700 mm Only for a floating unit. Floor standing on Legs Plinth Leg / plinth height mm 80–250 mm Media unit height (with its top) mm 250–700 mm Unit depth mm 250–550 mm Top board thickness mm 18–50 mm Top material Solid oak Laminate Marble Granite Quartz Side tower height (from the floor) mm 1200–2600 mm Side tower depth mm 200–550 mm A floating unit hangs on the wall and shows the floor underneath; a floor unit stands on legs or a plinth. Look · daylight 3D VIEW LOOK Standard The original view Studio Soft studio light, true material colours Daylight Sunny room: oak floor, painted walls, soft shadows Evening Warm evening light, LED strips under the wall units Daylight Floor grid The 3D view only: it never changes sizes, the cut list or the price. OUTPUT UNITS MM CM INCH PRECISION DRAFT STANDARD ULTRA STANDARD - 24 POINTS PER CURVE Applies to every export, printed sheet, label and field. Stored sizes stay in millimetres.",
+    "ms": "Finish Natural Oak Dark Walnut Matte White Lacquer Charcoal Grey The board finish is the 3D grain and colour of the doors and boards. Board Board MDF 18 mm Birch plywood MR board Boards Carcass board mm 10–30 mm Back board mm 3–20 mm Shelf board mm 6–50 mm Doors and drawers Door board mm 12–40 mm Door gap mm 0–10 mm Gap between drawer fronts mm 0–10 mm Runner clearance mm 0–30 mm Look live in 3D Colour and texture per part. Hover a row to see which parts it paints. Carcass body Off Default Wood grain Marble ↺ Doors Off Default Wood grain Marble ↺ Drawer fronts Off Default Wood grain Marble ↺ Shelves Off Default Wood grain Marble ↺ Back panel Off Default Wood grain Marble ↺ Countertop Off Default Wood grain Marble ↺ Plinth Off Default Wood grain Marble ↺ Handles Colour only ↺ Look is display only: sizes, cut list and the finish presets are not affected. Reset look Production materials Saved No materials yet — type a name next to a part. Type a material next to each part. Same name = same material. Saved names go to the cut list, Excel and PDF. Structure Shelves Back Doors, panel and slats Tower doors Niche parts Drawer fronts Drawer boxes Plinth Top board Handles Inventory is not available here. Names are saved with the project and can be linked later. Retry",
+    "units": "Start from a preset Floating 65\" with slat panel + towers Floor unit with electric fireplace Console + AV shelves 55\" Low unit, TV on a stand 43\" Wall-hung 85\" cinema wall A preset replaces the units and the category settings. Undo brings the previous design back. Units on the wall 1 400 2 1500 3 400 2300 mm Keep the total width The run stays 2300 mm; the other units share a change. T1 400 F2 1500 T3 400 U1 · Side tower Width (300-800) mm 300–800 mm Style Doors Open shelves Open + doors Shelves − 5 + Drawers (bottom) − 1 + ← Move Move → Duplicate Remove Total width (mm) mm 1200–3200 mm Overall height 2200 mm Pieces 54 + Media console + AV shelf unit + Electric fireplace + Side tower + Wall shelf Tap a unit in the drawing — or a part in the 3D view — to edit it here. Drag the handle on a unit's right edge to change its width.",
+    "tv": "TV TV size (diagonal) in 32–98 in 43\" 43 55\" 55 65\" 65 75\" 75 85\" 85 16:9. The niche is sized from the real width and height of the screen. TV mounting Wall bracket (niche) On the unit (stand) The niche is sized from the real screen: width = TV width + 2 × (side clearance + board). Niche Clearance each side of the TV mm 20–200 mm Clearance above the TV (air) mm 30–300 mm Clearance below the TV mm 0–200 mm Niche depth (wall-hung depth) mm 80–300 mm The TV needs about 115 mm behind its front for the bracket. Gap: unit top to the niche mm 0–600 mm Soundbar Soundbar None Below the TV On the unit Soundbar height mm 50–140 mm",
+    "panel": "Back wall panel Back wall panel Panel top (from the floor) mm 1200–2800 mm Panel board thickness mm 12–40 mm The panel and every slat are cut-list parts. Slats are cut to the panel height; pieces of the same size share one row. Slats Vertical slats Slats cover Beside the niche Whole panel Turn on the panel and the slats. Slat width mm 20–80 mm Turn on the panel and the slats. Gap between slats mm 5–40 mm Turn on the panel and the slats. Slat thickness mm 10–30 mm Turn on the panel and the slats. LED backlight LED lighting No LED Niche backlight Under the unit Both LED light on Cables Cable grommet holes − 2 + Grommet hole diameter mm 40–80 mm Cable duct behind the TV",
+    "hardware": "Handles Bar handle Knob Profile (J-pull) Push-to-open None Position Auto Top Centre Bottom Hardware list Hinge ( cup Ø35) 6 Hinge mounting plate 6 Soft-close runner (pair) 2 Knob 4 Shelf pin Ø5 16 Minifix connector 28 Cam lock 4 Dowel 8x30 28 Cable duct 45 x 12 (behind the TV) 1 TV wall bracket (VESA) 1 Electric fireplace insert 1384 mm 1 Wall panel keyhole / cleat fixing 2 Cable grommet Ø60 2 LED strip (per metre) 5 LED driver 12 V 1",
+    "price": "Price Placeholder rates: the owner has not supplied a price list for this category yet. Quantities are exact (the cut list and the hardware list); every rate is in the category config and is replaced in one place."
+   },
+   "dialog": "NEO TV UNIT DESIGNER Your design × Design name Size (W × H × D) 2300 × 2200 × 398 mm Includes 3 doors · 2 drawers · 10 shelves Indicative price from BD 730 Excludes VAT (10%). Your final quote is confirmed after a free site visit. Phone (for our designer to call you) Anything we should know? (optional) You will sign in or create a free account first — it keeps your designs and quotes in one place. Save to My designs Request a quote"
+  },
+  "direct": {
+   "totals": [
+    "BD 758.84",
+    "BD 742.39",
+    "BD 820.22",
+    "BD 796.22",
+    "BD 864.04",
+    "BD 1039.00",
+    "BD 1084.36",
+    "BD 1082.24",
+    "BD 1111.99",
+    "BD 1105.27",
+    "BD 721.21"
+   ],
+   "notes": [
+    "default design",
+    "TV size 75\"",
+    "total width 3600 mm",
+    "floor standing unit",
+    "top: Marble",
+    "board: birch plywood",
+    "LED: niche + under the unit",
+    "no soundbar",
+    "+ AV shelf unit",
+    "handles: knob",
+    "preset: floor unit with electric fireplace"
+   ],
+   "tabs0": {
+    "global": "Overall size Total width mm 1200–4800 mm Footprint (W × D) and height 3200 × 398 × 2200 mm Width re-splits the units (their options are kept unit by unit). Media unit Media unit Floating (wall-hung) Floor standing Floor clearance (floating) mm 100–700 mm Floor standing on Legs Plinth Choose Floor standing first. Leg / plinth height mm 80–250 mm Choose Floor standing first. Media unit height (with its top) mm 250–700 mm Unit depth mm 250–550 mm Top board thickness mm 18–50 mm Top material Solid oak Laminate Marble Granite Quartz Side tower height (from the floor) mm 1200–2600 mm Side tower depth mm 200–550 mm A floating unit hangs on the wall and shows the floor underneath; a floor unit stands on legs or a plinth. Look · daylight 3D VIEW LOOK Standard The original view Studio Soft studio light, true material colours Daylight Sunny room: oak floor, painted walls, soft shadows Evening Warm evening light, LED strips under the wall units Daylight Floor grid The 3D view only: it never changes sizes, the cut list or the price. OUTPUT UNITS MM CM INCH PRECISION DRAFT STANDARD ULTRA STANDARD - 24 POINTS PER CURVE Applies to every export, printed sheet, label and field. Stored sizes stay in millimetres.",
+    "ms": "Finish Natural Oak Dark Walnut Matte White Lacquer Charcoal Grey The board finish is the 3D grain and colour of the doors and boards. Board Board MDF 18 mm Birch plywood MR board Boards Carcass board mm 10–30 mm Back board mm 3–20 mm Shelf board mm 6–50 mm Doors and drawers Door board mm 12–40 mm Door gap mm 0–10 mm Gap between drawer fronts mm 0–10 mm Runner clearance mm 0–30 mm Look live in 3D Colour and texture per part. Hover a row to see which parts it paints. Carcass body Off Default Wood grain Marble ↺ Doors Off Default Wood grain Marble ↺ Drawer fronts Off Default Wood grain Marble ↺ Shelves Off Default Wood grain Marble ↺ Back panel Off Default Wood grain Marble ↺ Countertop Off Default Wood grain Marble ↺ Plinth Off Default Wood grain Marble ↺ Handles Colour only ↺ Look is display only: sizes, cut list and the finish presets are not affected. Reset look Production materials Saved No materials yet — type a name next to a part. Type a material next to each part. Same name = same material. Saved names go to the cut list, Excel and PDF. Structure Shelves Back Doors, panel and slats Tower doors Niche parts Drawer fronts Drawer boxes Plinth Top board Handles Inventory is not available here. Names are saved with the project and can be linked later. Retry",
+    "units": "Start from a preset Floating 65\" with slat panel + towers Floor unit with electric fireplace Console + AV shelves 55\" Low unit, TV on a stand 43\" Wall-hung 85\" cinema wall A preset replaces the units and the category settings. Undo brings the previous design back. Units on the wall 1 450 2 2300 3 450 3200 mm Keep the total width The run stays 3200 mm; the other units share a change. T1 450 M2 2300 T3 450 U1 · Side tower Width (300-800) mm 300–800 mm Style Doors Open shelves Open + doors Shelves − 5 + Drawers (bottom) − 1 + ← Move Move → Duplicate Remove Total width (mm) mm 1200–4800 mm Overall height 2200 mm Pieces 68 + Media console + AV shelf unit + Electric fireplace + Side tower + Wall shelf Tap a unit in the drawing — or a part in the 3D view — to edit it here. Drag the handle on a unit's right edge to change its width.",
+    "tv": "TV TV size (diagonal) in 32–98 in 43\" 43 55\" 55 65\" 65 75\" 75 85\" 85 16:9. The niche is sized from the real width and height of the screen. TV mounting Wall bracket (niche) On the unit (stand) The niche is sized from the real screen: width = TV width + 2 × (side clearance + board). Niche Clearance each side of the TV mm 20–200 mm Clearance above the TV (air) mm 30–300 mm Clearance below the TV mm 0–200 mm Niche depth (wall-hung depth) mm 80–300 mm The TV needs about 115 mm behind its front for the bracket. Gap: unit top to the niche mm 0–600 mm Soundbar Soundbar None Below the TV On the unit Soundbar height mm 50–140 mm",
+    "panel": "Back wall panel Back wall panel Panel top (from the floor) mm 1200–2800 mm Panel board thickness mm 12–40 mm The panel and every slat are cut-list parts. Slats are cut to the panel height; pieces of the same size share one row. Slats Vertical slats Slats cover Beside the niche Whole panel Slat width mm 20–80 mm Gap between slats mm 5–40 mm Slat thickness mm 10–30 mm LED backlight LED lighting No LED Niche backlight Under the unit Both LED light on Cables Cable grommet holes − 2 + Grommet hole diameter mm 40–80 mm Cable duct behind the TV",
+    "hardware": "Handles Bar handle Knob Profile (J-pull) Push-to-open None Length 96 128 160 192 256 320 Position Auto Top Centre Bottom Hardware list Hinge ( cup Ø35) 12 Hinge mounting plate 12 Soft-close runner (pair) 2 Bar handle 128 mm 8 Shelf pin Ø5 20 Minifix connector 28 Cam lock 4 Dowel 8x30 28 Cable duct 45 x 12 (behind the TV) 1 TV wall bracket (VESA) 1 Slat adhesive + pins (per slat) 12 Wall panel keyhole / cleat fixing 2 Cable grommet Ø60 2 Heavy-duty wall-hung cabinet bracket (pair) 4 LED strip (per metre) 6 LED driver 12 V 1",
+    "price": "Price Placeholder rates: the owner has not supplied a price list for this category yet. Quantities are exact (the cut list and the hardware list); every rate is in the category config and is replaced in one place."
+   },
+   "tabsEnd": {
+    "global": "Overall size Total width mm 1200–3200 mm Footprint (W × D) and height 2300 × 398 × 2200 mm Width re-splits the units (their options are kept unit by unit). Media unit Media unit Floating (wall-hung) Floor standing Floor clearance (floating) mm 100–700 mm Only for a floating unit. Floor standing on Legs Plinth Leg / plinth height mm 80–250 mm Media unit height (with its top) mm 250–700 mm Unit depth mm 250–550 mm Top board thickness mm 18–50 mm Top material Solid oak Laminate Marble Granite Quartz Side tower height (from the floor) mm 1200–2600 mm Side tower depth mm 200–550 mm A floating unit hangs on the wall and shows the floor underneath; a floor unit stands on legs or a plinth. Look · daylight 3D VIEW LOOK Standard The original view Studio Soft studio light, true material colours Daylight Sunny room: oak floor, painted walls, soft shadows Evening Warm evening light, LED strips under the wall units Daylight Floor grid The 3D view only: it never changes sizes, the cut list or the price. OUTPUT UNITS MM CM INCH PRECISION DRAFT STANDARD ULTRA STANDARD - 24 POINTS PER CURVE Applies to every export, printed sheet, label and field. Stored sizes stay in millimetres.",
+    "ms": "Finish Natural Oak Dark Walnut Matte White Lacquer Charcoal Grey The board finish is the 3D grain and colour of the doors and boards. Board Board MDF 18 mm Birch plywood MR board Boards Carcass board mm 10–30 mm Back board mm 3–20 mm Shelf board mm 6–50 mm Doors and drawers Door board mm 12–40 mm Door gap mm 0–10 mm Gap between drawer fronts mm 0–10 mm Runner clearance mm 0–30 mm Look live in 3D Colour and texture per part. Hover a row to see which parts it paints. Carcass body Off Default Wood grain Marble ↺ Doors Off Default Wood grain Marble ↺ Drawer fronts Off Default Wood grain Marble ↺ Shelves Off Default Wood grain Marble ↺ Back panel Off Default Wood grain Marble ↺ Countertop Off Default Wood grain Marble ↺ Plinth Off Default Wood grain Marble ↺ Handles Colour only ↺ Look is display only: sizes, cut list and the finish presets are not affected. Reset look Production materials Saved No materials yet — type a name next to a part. Type a material next to each part. Same name = same material. Saved names go to the cut list, Excel and PDF. Structure Shelves Back Doors, panel and slats Tower doors Niche parts Drawer fronts Drawer boxes Plinth Top board Handles Inventory is not available here. Names are saved with the project and can be linked later. Retry",
+    "units": "Start from a preset Floating 65\" with slat panel + towers Floor unit with electric fireplace Console + AV shelves 55\" Low unit, TV on a stand 43\" Wall-hung 85\" cinema wall A preset replaces the units and the category settings. Undo brings the previous design back. Units on the wall 1 400 2 1500 3 400 2300 mm Keep the total width The run stays 2300 mm; the other units share a change. T1 400 F2 1500 T3 400 U1 · Side tower Width (300-800) mm 300–800 mm Style Doors Open shelves Open + doors Shelves − 5 + Drawers (bottom) − 1 + ← Move Move → Duplicate Remove Total width (mm) mm 1200–3200 mm Overall height 2200 mm Pieces 54 + Media console + AV shelf unit + Electric fireplace + Side tower + Wall shelf Tap a unit in the drawing — or a part in the 3D view — to edit it here. Drag the handle on a unit's right edge to change its width.",
+    "tv": "TV TV size (diagonal) in 32–98 in 43\" 43 55\" 55 65\" 65 75\" 75 85\" 85 16:9. The niche is sized from the real width and height of the screen. TV mounting Wall bracket (niche) On the unit (stand) The niche is sized from the real screen: width = TV width + 2 × (side clearance + board). Niche Clearance each side of the TV mm 20–200 mm Clearance above the TV (air) mm 30–300 mm Clearance below the TV mm 0–200 mm Niche depth (wall-hung depth) mm 80–300 mm The TV needs about 115 mm behind its front for the bracket. Gap: unit top to the niche mm 0–600 mm Soundbar Soundbar None Below the TV On the unit Soundbar height mm 50–140 mm",
+    "panel": "Back wall panel Back wall panel Panel top (from the floor) mm 1200–2800 mm Panel board thickness mm 12–40 mm The panel and every slat are cut-list parts. Slats are cut to the panel height; pieces of the same size share one row. Slats Vertical slats Slats cover Beside the niche Whole panel Turn on the panel and the slats. Slat width mm 20–80 mm Turn on the panel and the slats. Gap between slats mm 5–40 mm Turn on the panel and the slats. Slat thickness mm 10–30 mm Turn on the panel and the slats. LED backlight LED lighting No LED Niche backlight Under the unit Both LED light on Cables Cable grommet holes − 2 + Grommet hole diameter mm 40–80 mm Cable duct behind the TV",
+    "hardware": "Handles Bar handle Knob Profile (J-pull) Push-to-open None Position Auto Top Centre Bottom Hardware list Hinge ( cup Ø35) 6 Hinge mounting plate 6 Soft-close runner (pair) 2 Knob 4 Shelf pin Ø5 16 Minifix connector 28 Cam lock 4 Dowel 8x30 28 Cable duct 45 x 12 (behind the TV) 1 TV wall bracket (VESA) 1 Electric fireplace insert 1384 mm 1 Wall panel keyhole / cleat fixing 2 Cable grommet Ø60 2 LED strip (per metre) 5 LED driver 12 V 1",
+    "price": "Price Placeholder rates: the owner has not supplied a price list for this category yet. Quantities are exact (the cut list and the hardware list); every rate is in the category config and is replaced in one place."
+   },
+   "dialog": "NEO TV UNIT DESIGNER Your design × Design name Size (W × H × D) 2300 × 2200 × 398 mm Includes 3 doors · 2 drawers · 10 shelves Indicative price from BD 730 Excludes VAT (10%). Your final quote is confirmed after a free site visit. Phone (for our designer to call you) Anything we should know? (optional) You will sign in or create a free account first — it keeps your designs and quotes in one place. Save to My designs Request a quote"
+  },
+  "tablet": {
+   "right": {
+    "x": 833.5720461525935,
+    "y": 411.73303188316083,
+    "ndc": [
+     0.15773895298971327,
+     0.08503770692630928,
+     0.8110321836994919
+    ]
+   },
+   "left": {
+    "x": 606.4279538474065,
+    "y": 411.73303188316083,
+    "ndc": [
+     -0.15773895298971327,
+     0.08503770692630928,
+     0.8110321836994919
+    ]
+   }
+  },
+  "livingChips": [
+   "×",
+   "What do you offer?",
+   "Help me plan my space",
+   "Book a visit",
+   "Take me to Living",
+   "Walk me to the TV unit studio",
+   "Open the TV designer",
+   "Send"
+  ],
+  "restoredPrice": "BD 721.21"
+ }
+}

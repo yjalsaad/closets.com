@@ -61,7 +61,7 @@ export function services(lang = 'en') {
   for (const id of ['office']) out.push({ id, label: pageLabel(id, lang), blurb: pageBlurb(id, lang), room: null, href: pageHref(id, lang) });
   for (const id of ['services', 'maintenance', 'warranty', 'booking']) out.push({ id, label: pageLabel(id, lang), blurb: pageBlurb(id, lang), room: null, href: pageHref(id, lang) });
   out.push(collectionsService(lang));                                          // the Collections wall (YAS Wood finishes)
-  out.push(...designStudioServices(lang));                                     // the Kitchen Design Studio (the website's kitchen designer on a big screen)
+  out.push(...designStudioServices(lang));                                     // the Kitchen Design Studio (the website's kitchen and TV unit designers on a big screen)
   return out;
 }
 
@@ -144,7 +144,7 @@ export function createRateLimiter({ max = 6, windowMs = 30000, now = () => Date.
 const chip = (token, en, ar) => ({ token, label: { en, ar } });
 const roomChips = () => [['kitchens', 'Kitchens', 'المطابخ'], ['wardrobes', 'Wardrobes', 'خزائن الملابس'], ['walkin', 'Walk-in closets', 'غرف الملابس'], ['bedroom', 'Bedrooms', 'غرف النوم'], ['doors', 'Doors', 'الأبواب'], ['living', 'Living', 'غرف المعيشة']].map(([id, en, ar]) => chip('#room:' + id, en, ar));
 const baseChips = (room) => [chip('#services', 'What do you offer?', 'ما الذي تقدمونه؟'), chip('#plan', 'Help me plan my space', 'ساعدني في تخطيط مساحتي'), chip('#book', 'Book a visit', 'احجز زيارة'), ...(room && room !== 'reception' ? [chip('#go:' + room, 'Take me to ' + roomName(room, 'en'), 'خذني إلى ' + roomName(room, 'ar'))] : [chip('#goto', 'Take me to a room', 'خذني إلى غرفة')]),
-  ...(room === 'kitchens' ? adviserChips() : [])];
+  ...(room ? adviserChips(room) : [])];                                        // each design studio's own adviser (kitchens -> Kitchen Design Studio, living -> TV Unit Studio) offers its two chips
 
 export const OFFTOPIC = ['weather', 'football', 'soccer', 'politic', 'election', 'bitcoin', 'crypto', 'joke', 'recipe', 'movie', 'celebrity', 'horoscope', 'religion', 'الطقس', 'كره القدم', 'سياس', 'نكته', 'وصفه', 'فيلم', 'برج'];
 

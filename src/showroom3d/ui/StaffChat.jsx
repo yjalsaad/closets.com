@@ -45,7 +45,7 @@ export default function StaffChat({ lang, reduced, explorerRef, engineRef, staff
     if (label) push({ from: 'me', text: label });
     setTyping(true);
     later(() => {
-      const r = collectionsReply(input, { lang, memory: mem.current }) || designStudioReply(input, { lang, memory: mem.current }) || reply(input, { lang, staff, memory: mem.current }); mem.current = r.memory;
+      const r = collectionsReply(input, { lang, memory: mem.current }) || designStudioReply(input, { lang, memory: mem.current, room: staff.room }) || reply(input, { lang, staff, memory: mem.current }); mem.current = r.memory;
       setTyping(false); push({ from: 'staff', text: r.text, chips: r.chips, actions: r.actions, askAi: r.askAi, intent: r.intent }); say(r.text);
       if (r.auto) later(() => run(r.auto), 1500);
     }, 380 + Math.min(700, 0));

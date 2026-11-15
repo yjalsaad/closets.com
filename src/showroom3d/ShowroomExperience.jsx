@@ -20,6 +20,8 @@ import { VipPanel } from './ui/VipPanel';
 import { CollectionsPanel } from './collections/CollectionsPanel';
 import { withLang } from './vendor/routes';
 import DesignerOverlay from './designstudio/DesignerOverlay';
+import StudioChooser from './designstudio/StudioChooser';
+import { enabledSections, stationSections } from './designstudio/sections';
 import { useDesigner } from './designstudio/useDesigner';
 import { isActive as dsIsActive } from './designstudio/logic';
 
@@ -60,6 +62,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   const [chat, setChat] = useState(null);       // staff id of the open adviser chat
   const [bubble, setBubble] = useState(null);     // the Reception greeting bubble
   const [colOpen, setColOpen] = useState(false);  // the Collections panel (opened with E / Interact at the Collections wall)
+  const [chooseOpen, setChooseOpen] = useState(false);   // "Which studio?" (E at the shared design wall when no section was named)
   const [bob, setBob] = useState(() => readFlag(BOB_KEY, '1') !== '0');
   // the Kitchen Design Studio designer overlay (closed | loading | open | confirm | failed): while it is open the render loop is paused (not disposed) and the explorer is frozen
   const setDsPaused = useCallback((on) => { const a = api.current; a.dsActive = on; if (!a.engine || !a.engine.scene) return; if (on) a.engine.stop(); else if (!document.hidden) a.engine.start(); }, []);
@@ -147,9 +150,9 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
 
   // keep the explorer in sync with the UI
   useEffect(() => { const x = explorerRef.current; if (x) { x.setReduced(reduced); x.setBob(bob && !reduced); } const e = api.current.engine; if (e && e.products) e.products.setReduced(reduced); if (e && e.designStudio) e.designStudio.setReduced(reduced); }, [reduced, bob]);
-  useEffect(() => { const x = explorerRef.current; if (x) x.setUiOpen(deptOpen || !!st.paused || !!chat || colOpen || dsIsActive(ds)); }, [deptOpen, st.paused, chat, colOpen, ds.status]);
+  useEffect(() => { const x = explorerRef.current; if (x) x.setUiOpen(deptOpen || !!st.paused || !!chat || colOpen || chooseOpen || dsIsActive(ds)); }, [deptOpen, st.paused, chat, colOpen, chooseOpen, ds.status]);
   useEffect(() => { if (st.collections) setColOpen(true); }, [st.collections]);
-  useEffect(() => { if (st.designStudio) openDesigner(st.designStudioId); }, [st.designStudio]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (st.designStudio) { if (st.designStudioId) openDesigner(st.designStudioId); else setChooseOpen(true); } }, [st.designStudio]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const c = api.current.engine && api.current.engine.collections; if (c) { c.setTouch(touch); if (colOpen) c.load(); } const d = api.current.engine && api.current.engine.designStudio; if (d) d.setTouch(touch); }, [touch, colOpen, phase]);
   useEffect(() => { if (st.talk && st.talkN) { setBubble(null); setChat(st.talk); } }, [st.talkN]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (st.greet === 'reception' && st.greetN && !chat) { setBubble(true); const id = setTimeout(() => setBubble(null), 6500); return () => clearTimeout(id); } return undefined; }, [st.greetN]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -188,6 +191,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       {showHud && coach && !st.paused && !deptOpen && !st.focus && <CoachMarks lang={lang} touch={touch} onDone={closeCoach} />}
       {showHud && deptOpen && <DeptMenu lang={lang} touch={touch} onPick={onPick} onClose={() => setDeptOpen(false)} fallbackFocus={canvasFocus} />}
       {showHud && st.paused && <PauseMenu lang={lang} touch={touch} tier={tierId} gfxMode={gfxMode} onGraphics={onGraphics} reduced={reduced} bob={bob} explorerRef={explorerRef} st={st} homeHref={home} onResume={onResume} onDepts={() => { onResume(false); setDeptOpen(true); }} onReplay={onReplay} onLang={onLang} onBob={onBob} onTips={() => { onResume(false); setCoach(true); }} fallbackFocus={canvasFocus} />}
+      {showHud && chooseOpen && !st.paused && ds.status === 'closed' && <StudioChooser lang={lang} sections={stationSections(enabledSections()[0])} onPick={(id) => { setChooseOpen(false); openDesigner(id); }} onClose={() => setChooseOpen(false)} fallbackFocus={canvasFocus} />}
       {showHud && ds.status !== 'closed' && <DesignerOverlay state={ds} dispatch={dsDispatch} lang={lang} onBack={dsBack} onLang={onLang} />}
       {loaderOn ? <LoadingScreen pct={pct} lang={lang} leaving={leaving} /> : null}
     </div>
