@@ -11,6 +11,7 @@ export const MEETING_TITLE = T('Management meeting', 'اجتماع الإدار�
 export const REAL_FILMS = [
   { id: 'yas-story', title: T('YAS: our story', 'YAS: حكايتنا'), lead: T('From Bahrain to the world of wood: the YAS film.', 'من البحرين إلى عالم الأخشاب: فيلم YAS.') },
   { id: 'closets-story', title: T('The Closets: our story', 'الخزائن: حكايتنا'), lead: T('Inside the factory, the offices and the showroom.', 'داخل المصنع والمكاتب وصالة العرض.') },
+  { id: 'bonsai-hub', title: T('Bonsai Hub: one system', 'منصة Bonsai: نظام واحد'), lead: T('The platform that runs the company, in 60 seconds.', 'المنصة التي تدير الشركة، في 60 ثانية.') },
 ];
 /** slides before the agenda card: the Welcome slide (greeting, meeting date, the two guest flags) opens the meeting */
 export const LEAD_SLIDES = 1;
@@ -27,6 +28,7 @@ export const MEETING_DECK = {
 export const AGENDA = [
   { id: 'yas-story', kind: 'film', deck: MEETING_DECK_ID, slide: LEAD_SLIDES + 1, title: REAL_FILMS[0].title, real: true },
   { id: 'closets-story', kind: 'film', deck: MEETING_DECK_ID, slide: LEAD_SLIDES + 2, title: REAL_FILMS[1].title, real: true },
+  { id: 'bonsai-hub', kind: 'film', deck: MEETING_DECK_ID, slide: LEAD_SLIDES + 3, title: REAL_FILMS[2].title, real: true },
   { id: 'closets-profile', kind: 'deck', deck: 'closets-profile', slide: 0, title: T('The Closets: Company Profile', 'الخزائن: ملف الشركة') },
   { id: 'yas-profile', kind: 'deck', deck: 'yas-profile', slide: 0, title: T('YAS Profile (2026)', 'ملف YAS (2026)') },
   { id: 'default', kind: 'deck', deck: 'default', slide: 0, title: T('Company presentation', 'عرض الشركة') },

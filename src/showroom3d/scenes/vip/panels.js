@@ -329,14 +329,14 @@ export function drawFilmOverlay(g, w, h, o) {
 }
 
 // ================================================================ Management meeting: the title card with the agenda
-/** o: { lang, metrics? }. Six agenda lines at 34 px (3.9 % of the screen height), the title at 80 px; the AI documentary is last and carries its label. */
+/** o: { lang, metrics? }. Seven agenda lines at 34 px (3.9 % of the screen height), the title at 80 px; the AI documentary is last and carries its label. */
 export function drawMeeting(g, w, h, o) {
   const k = kit(g, w, h, o.lang, o.metrics || null), { lang } = o, X = TYPE.safeX; k.bg(P.brandBrown, P.ink);
   g.fillStyle = hex(P.brandOrange); g.fillRect(k.rtl ? w - X - 90 : X, 32, 90, 5); k.text(lang === 'ar' ? 'غرفة الاجتماعات VIP' : 'VIP MEETING ROOM', k.mx(X), 76, { size: TYPE.stamp, weight: 600, color: P.brassPale });
   let y = k.para(Lx(MEETING_TITLE, lang), k.mx(X), 176, w - 2 * X, { size: TYPE.hero, weight: 800, color: P.sand, lh: 88 });
   k.para(lang === 'ar' ? 'جدول الأعمال' : 'Agenda', k.mx(X), y - 14, w - 2 * X, { size: TYPE.lead, weight: 700, color: P.brandOrange, lh: 48 }); y += 44;
   AGENDA.forEach((a, i) => {
-    const yy = y + i * 62, nx = k.rtl ? w - X - 30 : X + 30; g.fillStyle = hex(a.kind === 'film' && a.real ? P.brandOrange : P.brassPale); g.beginPath(); g.arc(nx, yy - 12, 24, 0, Math.PI * 2); g.fill();
+    const yy = y + i * 58, nx = k.rtl ? w - X - 30 : X + 30; g.fillStyle = hex(a.kind === 'film' && a.real ? P.brandOrange : P.brassPale); g.beginPath(); g.arc(nx, yy - 12, 24, 0, Math.PI * 2); g.fill();
     k.text(String(i + 1), nx, yy - 1, { size: 28, weight: 800, color: P.ink, align: 'center' });
     const tag = Lx(KIND_LABEL[a.kind], lang) + (a.label ? ' · ' + Lx(a.label, lang) : '');
     k.para(`${Lx(a.title, lang)}  (${tag})`, k.rtl ? w - X - 76 : X + 76, yy, w - 2 * X - 90, { size: 34, weight: a.real ? 700 : 600, color: P.sand, lh: 40 });
