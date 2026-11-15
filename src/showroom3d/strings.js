@@ -7,6 +7,8 @@ export const STRINGS = {
   pageTitle: { en: 'YAS Bloom | The Closets', ar: 'ياس بلوم | الخزائن' },
   loadingTitle: { en: 'Preparing the showroom', ar: 'نجهّز المعرض' },
   loadingSub: { en: 'Building the architecture, materials and light in your browser.', ar: 'نبني العمارة والخامات والإضاءة داخل متصفحك.' },
+  bloomDownloading: { en: 'Downloading the showroom…', ar: 'جارٍ تنزيل المعرض…' },
+  bloomReady: { en: 'Showroom downloaded', ar: 'اكتمل تنزيل المعرض' },
   loadStageLabel: { en: 'Loading', ar: 'جارٍ التحميل' },
   skipIntro: { en: 'Skip intro', ar: 'تخطي المقدمة' },
   replayIntro: { en: 'Replay intro', ar: 'أعد المقدمة' },

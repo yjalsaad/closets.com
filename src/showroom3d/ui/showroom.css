@@ -461,3 +461,14 @@
 .sr-gfx { display: grid; gap: var(--space-1); padding: var(--space-2) var(--space-3); border: 1px solid var(--sr-line); border-radius: var(--radius-md); font-size: var(--fs-sm); color: var(--sr-on-dark); text-align: start; }
 .sr-gfx select { min-height: 44px; border-radius: var(--radius-sm); border: 1px solid var(--sr-line); background: var(--sr-ink); color: var(--sr-on-dark); padding-inline: var(--space-3); font: inherit; }
 .sr-gfx small { font-size: var(--fs-xs); color: var(--sr-on-dark-2); }
+
+/* "Downloading the showroom... NN%" (ui/PreloadPill.jsx): a small, quiet pill at the top centre; never takes pointer events */
+.sr-prepill { position: absolute; z-index: 13; inset-inline: 0; margin-inline: auto; width: max-content; max-width: calc(100% - var(--space-6)); inset-block-start: max(var(--space-3), env(safe-area-inset-top, 0px)); pointer-events: none; display: grid; grid-template-columns: auto auto; align-items: center; gap: var(--space-1) var(--space-2); padding: var(--space-1) var(--space-3); border-radius: var(--radius-pill); background: var(--sr-glass); border: 1px solid var(--sr-glass-line); color: var(--sr-on-dark); font-size: var(--fs-2xs); line-height: var(--lh-snug); letter-spacing: .02em; backdrop-filter: blur(8px); opacity: .88; }
+.sr-prepill-pct { font-variant-numeric: tabular-nums; color: var(--sr-on-dark); }
+.sr-prepill-bar { grid-column: 1 / -1; height: 2px; border-radius: var(--radius-pill); background: var(--sr-glass-line); overflow: hidden; }
+.sr-prepill-bar > i { display: block; height: 100%; background: var(--sr-orange); transform-origin: left center; transition: transform .25s ease-out; }
+.sr3d[dir="rtl"] .sr-prepill-bar > i { transform-origin: right center; }
+.sr-prepill.is-done { grid-template-columns: auto; }
+.sr-prepill.is-done .sr-prepill-bar { display: none; }
+@media (max-width: 520px) { .sr-prepill { inset-block-start: calc(max(var(--space-3), env(safe-area-inset-top, 0px)) + 52px); } }
+@media (prefers-reduced-motion: reduce) { .sr-prepill-bar > i { transition: none; } }

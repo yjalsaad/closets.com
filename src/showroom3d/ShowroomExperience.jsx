@@ -12,6 +12,11 @@ import { Explorer } from './navigation/explorer';
 import { useReducedMotion } from './vendor/motion';
 import { t } from './strings';
 import LoadingScreen from './ui/LoadingScreen';
+import PreloadPill from './ui/PreloadPill';
+import { bloomAssets, assetSrc } from './preload/assetStore';
+
+/** the owner-confirmed YAS Wood image behind the loading screen. It is set here (not in the palette's CSS variables) so it comes from the preload store like every other file: a re-visit then makes no request for it at all. */
+const LOADER_IMG = '/yas-bloom/realism/gallery/yw-showroom-axis.webp';
 import IntroLayer from './ui/IntroLayer';
 import Hud from './ui/Hud';
 import { DeptMenu, PauseMenu, CoachMarks } from './ui/Menus';
@@ -87,6 +92,9 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
     const debug = q.get('debug') === '1';
     const sig = readSignals(); sig.softwareRenderer = isSoftwareRenderer(probeRenderer());
     const tier = pickTier(sig); setTierId(tier); setGfxMode(sig.mode || 'auto');
+    // download the whole showroom (priority order, into Cache Storage); every loader below asks this store first. Off with ?bloomprefetch=0, on data saver / 2g, core only on 3g / low memory.
+    bloomAssets.configure({ tier, lang: langRef.current, search: window.location.search }); bloomAssets.start();
+    assetSrc(LOADER_IMG, (src) => { const w = wrapRef.current; if (w) w.style.setProperty('--sr-loader-img', `url('${src}')`); });
     const progress = createProgress(); const unsub = progress.subscribe((v) => setPct(v));
     const engine = new ShowroomEngine(canvasRef.current, { tier, lang: langRef.current, progress, adaptive: !sig.override && !debug, aa: debug && q.get('aa') === '0' ? false : null, bloom: !(debug && q.get('bloom') === '0') });
     const director = createDirector({
@@ -123,7 +131,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       if (debug) {
         gsap.ticker.lagSmoothing(0);   // QA under software GL runs at ~1 fps: let GSAP keep real time so glides finish in their real duration
         window.__showroom = {
-          ready: true, tier, director, engine,
+          ready: true, tier, director, engine, assets: bloomAssets,
           seek: (tt) => { director.seek(tt); }, info: () => engine.info(), phase: () => api.current.phaseNow,
           state: () => director.state(), explore: explorer.debug(),
         };
@@ -141,6 +149,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       cancelled = true; unsub(); if (ro) ro.disconnect(); if (onSize) { window.removeEventListener('resize', onSize); window.removeEventListener('orientationchange', onSize); if (window.visualViewport) window.visualViewport.removeEventListener('resize', onSize); } if (onVis) document.removeEventListener('visibilitychange', onVis);
       explorer.dispose(); explorerRef.current = null;
       director.kill(); engine.dispose(); api.current = {}; if (window.__showroom) delete window.__showroom;
+      bloomAssets.dispose();   // leaving the showroom aborts a running download (what is finished stays in Cache Storage)
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -193,6 +202,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       {showHud && st.paused && <PauseMenu lang={lang} touch={touch} tier={tierId} gfxMode={gfxMode} onGraphics={onGraphics} reduced={reduced} bob={bob} explorerRef={explorerRef} st={st} homeHref={home} onResume={onResume} onDepts={() => { onResume(false); setDeptOpen(true); }} onReplay={onReplay} onLang={onLang} onBob={onBob} onTips={() => { onResume(false); setCoach(true); }} fallbackFocus={canvasFocus} />}
       {showHud && chooseOpen && !st.paused && ds.status === 'closed' && <StudioChooser lang={lang} sections={stationSections(enabledSections()[0])} onPick={(id) => { setChooseOpen(false); openDesigner(id); }} onClose={() => setChooseOpen(false)} fallbackFocus={canvasFocus} />}
       {showHud && ds.status !== 'closed' && <DesignerOverlay state={ds} dispatch={dsDispatch} lang={lang} onBack={dsBack} onLang={onLang} />}
+      {!loaderOn && <PreloadPill store={bloomAssets} lang={lang} show={!ds || ds.status === 'closed'} />}
       {loaderOn ? <LoadingScreen pct={pct} lang={lang} leaving={leaving} /> : null}
     </div>
   );

@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { REAL_BASE } from './config';
 import { PALETTE } from '../palette';
 import { box, mesh } from '../geom';
+import { assetSrc } from '../../preload/assetStore';
 
 export const GALLERY = [
   { id: 'walkin-vanity', file: 'yw-walkin-vanity.webp', en: 'YAS Wood walk-in dressing room: walnut glass-fronted wardrobes, green marble vanity and round mirror', ar: 'غرفة ملابس من ياس وود: خزائن جوز بواجهات زجاجية وتسريحة رخام أخضر ومرآة دائرية' },
@@ -27,6 +28,6 @@ export function buildGalleryFrames({ depth, lang = 'en' }) {
     grp.add(mesh(box(1.4, 0.04, 0.12), light, { y: H / 2 + 0.34, z: 0.1 }));
   });
   const loader = new THREE.TextureLoader(), tex = [];
-  const load = () => GALLERY.forEach((g, i) => loader.load(galleryUrl(g), (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; tex.push(t); mats[i].map = t; mats[i].color.setHex(PALETTE.photoTint); mats[i].needsUpdate = true; }, undefined, () => { group.children[i].visible = false; }));
+  const load = () => GALLERY.forEach((g, i) => assetSrc(galleryUrl(g), (src) => loader.load(src, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; tex.push(t); mats[i].map = t; mats[i].color.setHex(PALETTE.photoTint); mats[i].needsUpdate = true; }, undefined, () => { group.children[i].visible = false; })));
   return { group, load, setLanguage(l) { group.children.forEach((c, i) => { c.userData.label = l === 'ar' ? GALLERY[i].ar : GALLERY[i].en; }); }, dispose() { tex.forEach((t) => t.dispose()); mats.forEach((m) => m.dispose()); } };
 }

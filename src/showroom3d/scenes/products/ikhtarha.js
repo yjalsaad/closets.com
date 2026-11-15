@@ -10,11 +10,12 @@ import { mergeGeometries } from '../../3d/geom';
 import { poolTexture } from '../../3d/pbr';
 import { IK, ikt } from '../../products/campaignCopy';
 import { STAGE } from '../../products/catalog';
+import { loadImg } from '../../preload/assetStore';
 
 export const ASSETS = { hero: '/brand/ikhtarha/hero-wide.jpg', logo: '/brand/ikhtarha/logo-light.png' };
 const SW = 1920, SH = 1080;   // screen canvas (16:9)
 
-const loadImage = (src) => new Promise((resolve) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = () => resolve(null); i.crossOrigin = 'anonymous'; i.src = src; });
+const loadImage = (src) => new Promise((resolve) => { loadImg(src, (i) => resolve(i), () => resolve(null), { crossOrigin: 'anonymous' }); });
 
 function wrap(g, text, x, y, maxW, lh, rtl) {
   const words = text.split(' '); let line = '', yy = y;

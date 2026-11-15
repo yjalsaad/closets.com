@@ -8,6 +8,7 @@ import { box, mesh } from '../3d/geom';
 import { COLLECTIONS } from './data';
 import { WALL, PLINTH, wallPanels, wallWidth, splitItems, tierOf, shouldLoad } from './layout';
 import { ct } from './strings';
+import { loadImg } from '../preload/assetStore';
 
 const FACE = PALETTE.paperWhite, INK = PALETTE.ink, SOFT = PALETTE.walnutDeep, LINE = PALETTE.brassBrushed;
 export const WALL_COLOURS = { face: FACE, ink: INK, soft: SOFT };
@@ -110,7 +111,7 @@ export function buildCollectionsWall({ tier = 'high', lang = 'en', collection = 
     const todo = collection.items.filter((it) => it.image && (it.image[T.image] || it.image.thumb)); let left = todo.length;
     if (!left) { state.loaded = true; return; }
     const done = () => { if (--left <= 0) { state.loaded = true; draw(); } };
-    for (const it of todo) { const im = new Image(); im.decoding = 'async'; im.onload = () => { state.images[it.id] = im; done(); }; im.onerror = done; im.src = it.image[T.image] || it.image.thumb; }
+    for (const it of todo) loadImg(it.image[T.image] || it.image.thumb, (im) => { state.images[it.id] = im; done(); }, done, { decoding: 'async' });   // bytes from the preload store (Cache Storage / memory) when it has them, else the network
   };
   const p = new THREE.Vector3();
   faces[1].mesh.onBeforeRender = (r, s, camera) => { if (!state.loading && !state.loaded) { camera.getWorldPosition(p); if (shouldLoad(p.x, p.z)) load(); } };   // only runs while the wall is in view

@@ -3,6 +3,7 @@
  * and the procedural generators in textures.js / pbr.js are used exactly as before. Add-only: nothing outside src/showroom3d imports this. */
 import * as THREE from 'three';
 import { REAL_BASE } from './config';
+import { assetFetch, assetSrc } from '../../preload/assetStore';
 
 const REG = { bitmaps: {}, cache: {}, hdr: null, env: null, ok: false, tier: 'high' };
 const NAMES = ['oak', 'walnut', 'limestone', 'stucco', 'greyplaster', 'linen', 'velvet', 'leather', 'planks', 'parquet'];
@@ -25,7 +26,7 @@ export const VARIANTS = {
 
 const canvas = (w, h = w) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
 const url = (n, k) => `${REAL_BASE}tex/${n}_${k}.webp`;
-async function bitmap(u) { const r = await fetch(u); if (!r.ok) throw new Error('HTTP ' + r.status); return createImageBitmap(await r.blob()); }
+async function bitmap(u) { const r = await assetFetch(u); if (!r.ok) throw new Error('HTTP ' + r.status); return createImageBitmap(await r.blob()); }
 
 export const realReady = () => REG.ok;
 /** tier -> texture edge in px (low tier keeps phones light) */
@@ -93,13 +94,29 @@ export function upgradeTextures() {
   return n;
 }
 
+/** the same swap as upgradeTextures(), spread over animation frames: realSet() draws + tints a 1024 px canvas per variant (pixel loops on the main thread) and every swapped texture is uploaded on the
+ *  next render, so doing all of them in one go freezes the intro for the whole upgrade. Each frame does at most `budgetMs` of work (always at least one texture), then yields.
+ *  Resolves with how many were upgraded; stops early when `cancelled()` says the scene is gone. `next` / `now` are injectable for tests. */
+export async function upgradeTexturesStaged({ budgetMs = 8, cancelled = () => false, next, now } = {}) {
+  const tick = next || (() => new Promise((res) => { let d = false; const go = () => { if (!d) { d = true; res(); } }; if (typeof requestAnimationFrame === 'function') requestAnimationFrame(go); setTimeout(go, 60); }));   // rAF does not run in a hidden tab: the timeout keeps the upgrade going
+  const clock = now || (() => (typeof performance !== 'undefined' ? performance.now() : Date.now()));
+  let n = 0, t0 = clock();
+  for (let i = 0; i < TRACK.length; i++) {
+    if (cancelled()) return n;
+    const t = TRACK[i], R = realSet(t.name, t.size);
+    if (R && R[t.slot] && t.tex.image !== R[t.slot]) { t.tex.image = R[t.slot]; t.tex.needsUpdate = true; n++; }
+    if (clock() - t0 > budgetMs && i < TRACK.length - 1) { await tick(); t0 = clock(); }
+  }
+  return n;
+}
+
 /** warm, slightly darkened interior environment (PMREM) from the Poly Haven HDRI; null when unavailable */
 export async function loadInteriorHdr(renderer) {
   if (REG.env) return REG.env;
   try {
     const { RGBELoader } = await import('three/examples/jsm/loaders/RGBELoader.js');
     const loader = new RGBELoader().setDataType(THREE.FloatType);
-    const tex = await new Promise((res, rej) => loader.load(`${REAL_BASE}studio_warm_512.hdr`, res, undefined, rej));
+    const tex = await new Promise((res, rej) => assetSrc(`${REAL_BASE}studio_warm_512.hdr`, (src) => loader.load(src, res, undefined, rej)));
     const d = tex.image.data, W = tex.image.width, H = tex.image.height;
     // grade the capture toward the brand's warm walnut / travertine interior: warm multiply, darker floor half (a dim reflected floor), brighter lamps stay bright
     for (let y = 0; y < H; y++) { const lat = y / H, k = lat > 0.5 ? 0.55 + 0.45 * (1 - (lat - 0.5) * 2) : 1; for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; d[i] *= 1.0 * k; d[i + 1] *= 0.96 * k; d[i + 2] *= 0.9 * k; } }

@@ -16,6 +16,7 @@ import { DEFAULT_DECK } from '../../vip/decks/default';
 import { projectCard } from '../../products/projectsFeed';
 import * as fu from '../products/furnish';
 import * as pr from '../products/props';
+import { loadImg } from '../../preload/assetStore';
 
 const ease = (x) => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
 const STATIC_BUILTIN = new Set(['story', 'meeting', 'welcome']);   // built-in slides that do not animate (no continuous redraw)
@@ -150,7 +151,7 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
     setDeck(deck, decks = [deck], slide = 0) {
       if (deck !== state.deck) { snapshot(); state.transDir = 1; state.slideT = 0; } state.deck = deck; state.decks = decks; api.setStation(slide);
       for (const s of deck.slides) for (const b of s.blocks || []) if (b.type === 'image' && !state.images.has(b.url) && typeof Image !== 'undefined') {
-        const im = new Image(); state.images.set(b.url, null); im.crossOrigin = 'anonymous'; im.referrerPolicy = 'no-referrer'; im.onload = () => { state.images.set(b.url, im); screen.redraw(state.lang); }; im.onerror = () => { /* keep the alt-text frame */ }; im.src = b.url;
+        state.images.set(b.url, null); loadImg(b.url, (im) => { state.images.set(b.url, im); screen.redraw(state.lang); }, () => { /* keep the alt-text frame */ }, { crossOrigin: 'anonymous', referrerPolicy: 'no-referrer' });
       }
     },
     /** click on the wall screen at (u, v in 0..1, v down): a deck chip -> its deck index, else -1 */
@@ -178,7 +179,7 @@ export function buildVipRoom({ M, tier, lang = 'en', logoTex = null, reduced = f
     /** the site's real project rows (or an empty / error state) -> gallery cards; images load lazily and redraw the wall as they arrive */
     setProjects({ status, rows }) {
       const cards = (rows || []).map((r) => ({ ...projectCard(r, state.lang), img: null })); state.projects = { status, cards }; gallery.redraw(state.lang); if (state.deck.slides[state.station] && state.deck.slides[state.station].builtin === 'projects') screen.redraw(state.lang);
-      cards.forEach((c) => { if (!c.image || typeof Image === 'undefined') return; const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => { c.img = im; gallery.redraw(state.lang); }; im.onerror = () => { /* keep the procedural card */ }; im.src = c.image; });
+      cards.forEach((c) => { if (!c.image || typeof Image === 'undefined') return; loadImg(c.image, (im) => { c.img = im; gallery.redraw(state.lang); }, () => { /* keep the procedural card */ }, { crossOrigin: 'anonymous' }); });
     },
     enter() { state.enter = state.reduced ? 1 : 0; state.entered = true; },
     isInside: (cam) => cam.position.x > VIP.x0 && cam.position.x < VIP.x1 && cam.position.z < VIP.z1 - 0.1 && cam.position.z > VIP.z0,
