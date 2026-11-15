@@ -39,6 +39,10 @@ describe('Floor 2 (Bloom Meeting) layout', () => {
     for (const [a, b] of g.edges.filter((e) => e.includes('stand-lift'))) expect(segmentClear(g.nodes[a], g.nodes[b], R, H)).toBe(true);
     expect(shortestPath(g, 'street', 'stand-lift')).not.toBeNull();
   });
+  test('the lift tower is a collider only once its chunk is loaded (no solid-but-invisible block)', () => {
+    const on = buildColliders({ lift: true }), off = buildColliders({ lift: false }), def = buildColliders();
+    expect(on.some((c) => c.id === 'lift-tower')).toBe(true); expect(off.some((c) => c.id === 'lift-tower')).toBe(false); expect(def.some((c) => c.id === 'lift-tower')).toBe(true);
+  });
   test('the table and the pods keep a walkable aisle between them and the walls', () => {
     expect(free(toWorld(TABLE.x, -9.5), R, C)).toBe(true); expect(free(toWorld(TABLE.x, 0.9), R, C)).toBe(true);
     expect(PODS).toHaveLength(6);

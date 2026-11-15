@@ -24,6 +24,7 @@ export function DeptMenu({ lang, touch, onPick, onClose, fallbackFocus, level = 
         <h3 className="sr-fl-sub">{t('floors', lang)}</h3>
         <ul className="sr-fl-list" data-testid="sr-dept-floors">
           {FLOORS.map((f) => <li key={f.id}><button type="button" className="sr-fl" onClick={() => onPick('floor:' + f.id)} aria-current={level === f.id ? 'true' : undefined} data-floorpick={f.id}><span className="sr-fl-n" aria-hidden="true">{f.short[lang === 'ar' ? 'ar' : 'en']}</span><span className="sr-fl-name">{name(f, lang)}</span></button></li>)}
+          <li><button type="button" className="sr-fl" onClick={() => onPick('meeting-mode')} data-floorpick="meeting-mode" data-testid="sr-meeting-mode"><span className="sr-fl-n" aria-hidden="true">M</span><span className="sr-fl-name">{t('meetingMode', lang)}</span></button></li>
           {level === 'l2' && BLOOM_STOPS.map((b) => <li key={b.id}><button type="button" className="sr-fl" onClick={() => onPick(b.id)} data-floorpick={b.id}><span className="sr-fl-n" aria-hidden="true">2</span><span className="sr-fl-name">{name(b, lang)}</span></button></li>)}
         </ul>
         <ol className="sr-dept-list">

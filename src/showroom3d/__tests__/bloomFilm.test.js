@@ -38,6 +38,34 @@ describe('film v2 registration', () => {
   });
 });
 
+describe('captions: on by default, in the page language, with a CC toggle and an EN / AR switch', () => {
+  const { FilmPlayer } = require('../vip/filmPlayer');
+  const manifests = { '/yas-bloom/film/films.json': JSON.stringify(LIST), '/yas-bloom/film/film.json': JSON.stringify(read('film.json')), '/yas-bloom/film/film2.json': JSON.stringify(V2) };
+  const mk = (lang) => new FilmPlayer({ lang, device: { tier: 'high' }, fetcher: (u) => Promise.resolve(manifests[u] ? { ok: true, text: () => Promise.resolve(manifests[u]) } : { ok: false }) });
+  test('English UI: English captions are ON when the film is put on the wall; Arabic UI: Arabic', async () => {
+    const en = mk('en'); en.select(JOURNEY_V2_ID); await en.load(); expect(en.state).toMatchObject({ status: 'ready', id: JOURNEY_V2_ID, caption: 'en' });
+    const ar = mk('ar'); ar.select(JOURNEY_V2_ID); await ar.load(); expect(ar.state.caption).toBe('ar');
+  });
+  test('the page language switch moves the captions with it until the visitor chooses; CC toggles off and back; EN / AR are explicit', async () => {
+    const p = mk('en'); p.select(JOURNEY_V2_ID); await p.load(); p.setLang('ar'); expect(p.state.caption).toBe('ar'); p.setLang('en'); expect(p.state.caption).toBe('en');
+    expect(p.toggleCaptions()).toBe(true); expect(p.state.caption).toBe('off'); expect(p.toggleCaptions()).toBe(true); expect(p.state.caption).toBe('en');
+    expect(p.setCaption('ar')).toBe(true); p.setLang('en'); expect(p.state.caption).toBe('ar');   // an explicit choice sticks
+    expect(p.setCaption('fr')).toBe(false); expect(p.state.caption).toBe('ar');
+  });
+  test('the caption files are real WebVTT with cues in the middle of the film, in both languages', () => {
+    for (const l of ['en', 'ar']) { const v = fs.readFileSync(path.join(FILM_DIR, `journey2.${l}.vtt`), 'utf8'); expect(v.startsWith('WEBVTT')).toBe(true); expect((v.match(/-->/g) || []).length).toBeGreaterThan(30); expect(v).toMatch(/00:01:0\d\.\d{3} -->/); }
+    expect(fs.readFileSync(path.join(FILM_DIR, 'journey2.en.vtt'), 'utf8')).not.toMatch(/[؀-ۿ]/);
+  });
+});
+
+describe('film swap readiness (journey-v2 -> film3)', () => {
+  test('ONE films.json entry owns the new cut and the agenda / deck / wall only know its id; the label strings in the manifest equal the two constants in vip/film.js', () => {
+    expect(LIST.films.filter((f) => f.id === JOURNEY_V2_ID)).toHaveLength(1); expect(Object.keys(LIST.films.find((f) => f.id === JOURNEY_V2_ID)).sort()).toEqual(['id', 'manifest', 'order', 'real']);
+    expect(V2.label.en.replace(/\.$/, '')).toBe(FILM_MIXED_LABEL.en); expect(FILM_MIXED_BADGE.en.length).toBeLessThan(70);
+    expect(FILM_V2_DECK.slides[0].filmId).toBe(JOURNEY_V2_ID);
+  });
+});
+
 describe('agenda and decks', () => {
   test('the agenda ends: ... journey (AI) -> journey-v2 (mixed label) -> Bloom Meeting (a destination on Floor 2); the film deck is a one-slide pseudo-deck before the first AI film', () => {
     const v2 = AGENDA.find((a) => a.id === JOURNEY_V2_ID), b = AGENDA.find((a) => a.id === BLOOM_AGENDA_ID);

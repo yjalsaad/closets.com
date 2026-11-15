@@ -40,3 +40,12 @@
 .sr3d[dir="rtl"] .sr-fl { font-family: var(--font-ar); }
 .sr-fl-n { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--sr-orange); color: var(--sr-ink); font-weight: 600; font-size: var(--fs-xs); flex: none; }
 .sr-fl-name { flex: 1; }
+
+/* film captions: a CC toggle and the EN / AR switch share one row (aria-pressed shows the state) */
+.sr-vip-capgroup { display: flex; flex-direction: row; flex-wrap: wrap; flex: 1 1 100%; grid-column: 1 / -1; width: 100%; gap: var(--space-2); }
+.sr-vip-capgroup .sr-btn { white-space: nowrap; min-width: 64px; }
+.sr-vip-capgroup .sr-btn[aria-pressed="true"] { background: var(--sr-orange); color: var(--sr-ink); border-color: var(--sr-orange); }
+
+.sr-filmpill { position: absolute; z-index: 13; inset-inline-start: var(--space-4); bottom: calc(var(--space-9) + var(--space-4)); margin: 0; padding: var(--space-2) var(--space-4); border-radius: var(--radius-pill); border: 1px solid var(--sr-glass-line); background: var(--sr-glass); color: var(--sr-on-dark); font-size: var(--fs-sm); font-weight: 600; backdrop-filter: blur(8px); pointer-events: none; }
+.sr-filmpill.is-ready { border-color: var(--sr-orange); color: var(--sr-orange); }
+.sr-stage[data-touch="1"] .sr-filmpill { bottom: auto; top: calc(var(--space-9) + var(--space-8)); }

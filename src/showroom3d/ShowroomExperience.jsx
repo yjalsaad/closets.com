@@ -22,6 +22,7 @@ import Hud from './ui/Hud';
 import { DeptMenu, PauseMenu, CoachMarks } from './ui/Menus';
 import { ProductPanel, CampaignPanel } from './ui/ProductPanel';
 import { VipPanel } from './ui/VipPanel';
+import FilmPill from './ui/FilmPill';
 const HaneenChat = React.lazy(() => import(/* webpackChunkName: "haneen-chat" */ './ui/HaneenChat'));   // the investor chat (and its QR code) is fetched when somebody opens it
 import { CollectionsPanel } from './collections/CollectionsPanel';
 import { withLang } from './vendor/routes';
@@ -141,7 +142,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       // fade the loader out; the cinematic (or the static reveal) starts underneath
       setLeaving(true); setTimeout(() => { if (!cancelled) setLoaderOn(false); }, 700);
       const at = q.get('at');
-      if (reducedRef.current) { director.finish(); handover(); }
+      if (reducedRef.current || q.get('meeting') === '1') { director.finish(); handover(); if (q.get('meeting') === '1') setTimeout(() => { if (!cancelled && explorer.startMeetingMode) explorer.startMeetingMode(); }, 600); }
       else if (debug && at !== null) { director.seek(parseFloat(at)); setPhase('intro'); }
       else if (debug && q.get('autoplay') === '0') { director.seek(0); setPhase('intro'); }
       else { setPhase('intro'); director.play(); }
@@ -158,6 +159,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
 
   useEffect(() => { if (api.current.engine && api.current.engine.scene) api.current.engine.setLanguage(lang); }, [lang]);
   useEffect(() => { api.current.phaseNow = phase; }, [phase]);
+  useEffect(() => { const x = explorerRef.current; if (x && x.setLang) x.setLang(lang); }, [lang, phase]);   // the film captions follow the page language
 
   // keep the explorer in sync with the UI
   useEffect(() => { const x = explorerRef.current; if (x) { x.setReduced(reduced); x.setBob(bob && !reduced); } const e = api.current.engine; if (e && e.products) e.products.setReduced(reduced); if (e && e.designStudio) e.designStudio.setReduced(reduced); }, [reduced, bob]);
@@ -165,7 +167,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   useEffect(() => { if (st.haneen) { setHaneenOpen(true); setChat(null); } }, [st.haneen]);
   useEffect(() => { if (st.focus) setHaneenOpen(false); }, [st.focus]);   // the video wall (a focus) and the chat never share the right-hand side
   // the Bloom chunk (Floor 2 + the glass lift) is fetched once the visitor can explore (never during the intro), skipped on data saver and with ?bloomprefetch=0: it is then fetched on the first lift use
-  useEffect(() => { if (phase !== 'explore') return undefined; let off = false; try { const c = navigator.connection; off = !!(c && (c.saveData || /2g/.test(c.effectiveType || ''))) || /[?&]bloomprefetch=0/.test(window.location.search); } catch (e) { /* ignore */ } if (off) return undefined; const id = setTimeout(() => { const e = api.current.engine; if (e && e.ensureBloom) e.ensureBloom(); }, 2500); return () => clearTimeout(id); }, [phase]);
+  useEffect(() => { if (phase !== 'explore' && phase !== 'intro') return undefined; let off = false; try { const c = navigator.connection; off = !!(c && (c.saveData || /2g/.test(c.effectiveType || ''))) || /[?&]bloomprefetch=0/.test(window.location.search); } catch (e) { /* ignore */ } if (off) return undefined; const id = setTimeout(() => { const e = api.current.engine; if (e && e.ensureBloom) e.ensureBloom(); }, phase === 'intro' ? 1200 : 300); return () => clearTimeout(id); }, [phase]);   // fetched during the intro, so the lift is visible (and solid) from the first step
   useEffect(() => { if (st.collections) setColOpen(true); }, [st.collections]);
   useEffect(() => { if (st.designStudio) { if (st.designStudioId) openDesigner(st.designStudioId); else setChooseOpen(true); } }, [st.designStudio]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const c = api.current.engine && api.current.engine.collections; if (c) { c.setTouch(touch); if (colOpen) c.load(); } const d = api.current.engine && api.current.engine.designStudio; if (d) d.setTouch(touch); }, [touch, colOpen, phase]);
@@ -179,7 +181,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
 
   const canvasFocus = () => canvasRef.current;
   const onResume = (click) => { const x = explorerRef.current; if (!x) return; x.resume(); x.setUiOpen(false); if (click && !touch) x.requestLock(); };
-  const onPick = (id) => { setDeptOpen(false); const x = explorerRef.current; if (x) { x.setUiOpen(false); if (id.indexOf('floor:') === 0) x.rideTo(id.slice(6)); else x.glideTo(id); } };
+  const onPick = (id) => { setDeptOpen(false); const x = explorerRef.current; if (x) { x.setUiOpen(false); if (id.indexOf('floor:') === 0) x.rideTo(id.slice(6)); else if (id === 'meeting-mode') x.startMeetingMode(); else x.glideTo(id); } };
   const onInteract = () => { const x = explorerRef.current; if (x) x.interact(); };
   const onBob = () => { const v = !bob; setBob(v); writeFlag(BOB_KEY, v ? '1' : '0'); };
   const closeCoach = () => { setCoach(false); writeFlag(COACH_KEY, '1'); };
@@ -206,6 +208,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       {showHud && coach && !st.paused && !deptOpen && !st.focus && <CoachMarks lang={lang} touch={touch} onDone={closeCoach} />}
       {showHud && st.level === 'l2' && !st.focus && !haneenOpen && !st.paused && !deptOpen && !chat && <button type="button" className="sr-btn sr-haneen-fab" onClick={() => setHaneenOpen(true)} data-testid="sr-haneen-fab">{t('haneenOpen', lang)}</button>}
       {showHud && haneenOpen && !st.paused && <React.Suspense fallback={null}><HaneenChat lang={lang} onLang={onLang} reduced={reduced} onClose={() => { setHaneenOpen(false); const c = canvasRef.current; if (c && c.focus) c.focus({ preventScroll: true }); }} /></React.Suspense>}
+      {showHud && st.level === 'l2' && !st.focus && <FilmPill lang={lang} explorerRef={explorerRef} rev={st.vipFilmRev} />}
       <div className="sr-ride-veil" data-on={st.riding ? '1' : '0'} aria-hidden={st.riding ? undefined : 'true'} role="status" data-testid="sr-ride-veil">{st.riding ? <p>{t('riding', lang)}</p> : null}</div>
       {showHud && deptOpen && <DeptMenu level={st.level} lang={lang} touch={touch} onPick={onPick} onClose={() => setDeptOpen(false)} fallbackFocus={canvasFocus} />}
       {showHud && st.paused && <PauseMenu lang={lang} touch={touch} tier={tierId} gfxMode={gfxMode} onGraphics={onGraphics} reduced={reduced} bob={bob} explorerRef={explorerRef} st={st} homeHref={home} onResume={onResume} onDepts={() => { onResume(false); setDeptOpen(true); }} onReplay={onReplay} onLang={onLang} onBob={onBob} onTips={() => { onResume(false); setCoach(true); }} fallbackFocus={canvasFocus} />}

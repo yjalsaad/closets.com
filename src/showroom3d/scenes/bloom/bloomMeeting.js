@@ -170,6 +170,9 @@ export function buildBloomFloor({ M, tier, lang = 'en', logoTex = null, glowTex 
     mesh(mergeGeometries(fr), brass, { name: 'f2-frames' });
     const ring = mesh(new THREE.TorusGeometry(0.42, 0.012, 8, 48), ledOrange, { pos: [HANEEN_DESK.x, 1.0, HANEEN_DESK.z], rot: [Math.PI / 2, 0, 0], name: 'f2-haneen-ring' }); state.ring = ring;
     mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.9, 24, 1, true), new THREE.MeshBasicMaterial({ color: tint(BLOOM_LIGHT.orange, 0.14), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }), { pos: [HANEEN_DESK.x, 1.45, HANEEN_DESK.z], name: 'f2-haneen-column' });
+    // a slow light sweep travelling along the top LED line of the video wall (additive, tiny, never covers the picture)
+    { const c = document.createElement('canvas'); c.width = 256; c.height = 4; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 256, 0); gr.addColorStop(0, 'rgba(255,214,160,0)'); gr.addColorStop(0.5, 'rgba(255,236,205,1)'); gr.addColorStop(1, 'rgba(255,214,160,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 4);
+      const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; state.sweepTex = tx; state.sweep = mesh(new THREE.PlaneGeometry(2.2, 0.07), new THREE.MeshBasicMaterial({ map: tx, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }), { pos: [S.x - 0.11, S.y + S.h / 2 + 0.3, S.z], rot: [0, -Math.PI / 2, 0], name: 'f2-screen-sweep' }); }
     // the mirror twin of everything flagged `mirrored` (screens, coves, ribbons): the reflection in the glossy floor
     state.mirror = new THREE.Group(); state.mirror.scale.y = -1; for (const m of mirrored) { const c = new THREE.Mesh(m.geometry, m.material); c.position.copy(m.position); c.rotation.copy(m.rotation); c.userData.twin = m; state.mirror.add(c); } group.add(state.mirror);
   }
@@ -197,7 +200,7 @@ export function buildBloomFloor({ M, tier, lang = 'en', logoTex = null, glowTex 
         ribbonTex.offset.x = (ribbonTex.offset.x - dt * 0.06) % 1;
         const br = 0.82 + 0.18 * Math.sin(t * 0.8); ledWarm.color.copy(tint(BLOOM_LIGHT.warm, 1.1 * br)); ledOrange.color.copy(tint(BLOOM_LIGHT.orange, 0.85 + 0.25 * Math.sin(t * 1.3)));
         const p = dust.pts.geometry.attributes.position, a = p.array; for (let i = 0; i < dustN; i++) { const s = dust.seed; a[i * 3] = dust.base[i * 3] + Math.sin(t * 0.2 * s[i * 3 + 2] + s[i * 3]) * 0.35; a[i * 3 + 1] = dust.base[i * 3 + 1] + Math.sin(t * 0.15 * s[i * 3 + 2] + s[i * 3 + 1]) * 0.3 + ((t * 0.02 * s[i * 3 + 2]) % 1) * 0.0; a[i * 3 + 2] = dust.base[i * 3 + 2] + Math.cos(t * 0.17 * s[i * 3 + 2] + s[i * 3 + 1]) * 0.3; } p.needsUpdate = true;
-        sky.update(dt, t); if (state.ring) state.ring.rotation.z += dt * 0.6;
+        sky.update(dt, t); if (state.ring) state.ring.rotation.z += dt * 0.6; if (state.sweep) state.sweep.position.z = S.z + Math.sin(t * 0.32) * (S.w / 2 - 0.9);
       }
       // the live-looking walls redraw about every 1.6 s, only while the camera is in the same part of the floor and looks toward them
       if (!still && state.panelsBuilt && t - state.last > 1.6 && cam) {
@@ -206,7 +209,7 @@ export function buildBloomFloor({ M, tier, lang = 'en', logoTex = null, glowTex 
         if (toward(OPS_WALL.x, OPS_WALL.z) || toward(LEADS_WALL.x, LEADS_WALL.z) || toward(HANEEN_DESK.x, HANEEN_DESK.z)) { state.last = t; if (toward(OPS_WALL.x, OPS_WALL.z)) ops.redraw(state.lang); if (toward(LEADS_WALL.x, LEADS_WALL.z)) leads.redraw(state.lang); if (toward(HANEEN_DESK.x, HANEEN_DESK.z) && holo) holo.redraw(state.lang); }
       }
     },
-    dispose() { if (state.videoTex) state.videoTex.dispose(); for (const p of [film, filmStrip, ops, leads, sign, holo]) if (p) p.tex.dispose(); ribbonTex.dispose(); sky.dispose(); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); },
+    dispose() { if (state.videoTex) state.videoTex.dispose(); for (const p of [film, filmStrip, ops, leads, sign, holo]) if (p) p.tex.dispose(); ribbonTex.dispose(); if (state.sweepTex) state.sweepTex.dispose(); sky.dispose(); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); },
     // for the tests / QA
     stats() { let tris = 0, meshes = 0; group.traverse((o) => { if (o.isMesh || o.isPoints) { meshes++; const g = o.geometry; tris += g.index ? g.index.count / 3 : (g.attributes.position.count / 3); } }); return { meshes, tris: Math.round(tris), panelBytes: state.panelsBuilt ? [film, ops, leads].reduce((s, p) => s + p.canvas.width * p.canvas.height * 4, 0) : 0 }; },
   };

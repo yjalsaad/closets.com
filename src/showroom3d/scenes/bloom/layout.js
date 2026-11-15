@@ -50,7 +50,7 @@ export const BLOOM_STOPS = [
 /** the camera's starting pose of the entrance reveal and its end pose (world) */
 export const REVEAL = { from: { p: [-15.9, 1.62, 10.4 + BLOOM_Z0], l: [-6, 1.9, 8 + BLOOM_Z0] }, to: { p: [-3.0, 1.65, 6.0 + BLOOM_Z0], l: [11, 2.3, -4.6 + BLOOM_Z0] } };
 /** the camera pose of the film wall (panel mode) and its fov */
-export const WALL_VIEW = { pos: [6.4, 1.55, -5 + BLOOM_Z0], look: [SCREEN.x, SCREEN.y - 0.1, SCREEN.z + BLOOM_Z0], fov: 56 };
+export const WALL_VIEW = { pos: [6.4, 2.15, -5 + BLOOM_Z0], look: [SCREEN.x, SCREEN.y - 0.4, SCREEN.z + BLOOM_Z0], fov: 56 };
 
 const box = (id, minX, maxX, minZ, maxZ) => ({ type: 'box', id, minX, maxX, minZ, maxZ });
 const circle = (id, x, z, r) => ({ type: 'circle', id, x, z, r });

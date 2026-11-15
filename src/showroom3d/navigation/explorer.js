@@ -31,7 +31,7 @@ import { loadSiteProjects } from '../products/projectsFeed';
 import { loadWelcomeConfig } from '../vip/welcome';
 import { withCollections, collectionsZones } from '../collections/layout';
 import { bloomBoxes, bloomZones, bloomGraph, withBloomLift, ARRIVE, REVEAL, WALL_VIEW, LIFT_STAND, bloomBigView } from '../scenes/bloom/layout';
-import { FILM_V2_DECK_ID } from '../vip/film';
+import { FILM_V2_DECK_ID, JOURNEY_V2_ID } from '../vip/film';
 import { withDesignStudio, studioZones } from '../designstudio/layout';
 
 export const SENS = { mouse: 0.0022, drag: 0.0036, touch: 0.0052 };   // radians per pixel
@@ -47,7 +47,7 @@ export class Explorer {
     this.camMode = 'first'; this.avatarKind = AVATARS[store.get('closets_yb_avatar', 'female')] ? store.get('closets_yb_avatar', 'female') : 'female'; this.tp = null;
     this.engine = engine; this.canvas = canvas; this.onState = onState; this.reduced = reduced;
     this.graph = withBloomLift(withDesignStudio(withCollections(buildGraph()))); this.hallGraph = this.graph; this.bloomGraph = bloomGraph(); this.level = 'ground'; this.rideBusy = false; this.zones = [...studioZones(), ...collectionsZones(), ...bloomZones(), ...allZones()];
-    this.doorOpen = true; this.vipOpen = true; this.colliders = buildColliders({ doorOpen: 1, oliveCount: engine.tierId === 'low' ? 2 : 4, vipOpen: 1 });
+    this.doorOpen = true; this.vipOpen = true; this.liftOn = !!engine.bloom; this.colliders = buildColliders({ doorOpen: 1, oliveCount: engine.tierId === 'low' ? 2 : 4, vipOpen: 1, lift: this.liftOn });
     this.walker = new Walker({ pos: [HANDOVER.p[0], HANDOVER.p[2]], colliders: this.colliders, bob });
     this.keys = new Set(); this.touch = { x: 0, y: 0, jog: false };
     this.enabled = false; this.paused = false; this.uiOpen = false; this.glide = null;
@@ -371,7 +371,7 @@ export class Explorer {
   get filmOn() { const sl = this.deck.slides[this.ds.slide]; return !!sl && sl.builtin === 'film'; }
   get filmId() { const sl = this.deck.slides[this.ds.slide]; return (sl && sl.filmId) || 'journey'; }
   ensureFilm() {
-    if (this.film) return this.film; const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl', w = (this.canvas && this.canvas.clientWidth) || 1280;
+    if (this.film) return this.film; const rtl = this.uiLang ? this.uiLang === 'ar' : typeof document !== 'undefined' && document.documentElement.dir === 'rtl', w = (this.canvas && this.canvas.clientWidth) || 1280;
     const mobile = w <= 700 || (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches), saveData = typeof navigator !== 'undefined' && navigator.connection && navigator.connection.saveData;
     const enabled = prefetchEnabled(typeof window !== 'undefined' ? window.location.search : ''), preloader = new FilmPreloader({ enabled, onChange: () => this.onFilm() });   // ?vipprefetch=0 switches the background download off
     this.film = new FilmPlayer({ lang: rtl ? 'ar' : 'en', device: { tier: this.engine.tierId, mobile, saveData: !!saveData }, onChange: () => this.onFilm(), preloader });
@@ -409,7 +409,9 @@ export class Explorer {
   /** play / pause from a user gesture (button, key, click on the wall) */
   filmToggle() { if (!this.filmOn || !this.film) return false; const st = this.film.state.status; if (st === 'missing' || st === 'loading' || st === 'idle') return false; if (st !== 'playing') this.filmHost(); return this.film.toggle(); }
   filmSeek(t) { if (this.film) this.film.seek(t); } filmSeekBy(dt) { if (this.film) this.film.seekBy(dt); }
-  filmVolume(v) { if (this.film) this.film.setVolume(v); } filmMute() { if (this.film) this.film.toggleMute(); } filmCaptions() { if (this.film) this.film.cycleCaptions(); }
+  filmVolume(v) { if (this.film) this.film.setVolume(v); } filmMute() { if (this.film) this.film.toggleMute(); } filmCaptions() { if (this.film) this.film.cycleCaptions(); } filmCaptionSet(v) { return this.film ? this.film.setCaption(v) : false; } filmCaptionToggle() { return this.film ? this.film.toggleCaptions() : false; }
+  /** the page language (English / Arabic): the film's captions follow it */
+  setLang(l) { this.uiLang = l === 'ar' ? 'ar' : 'en'; if (this.film) this.film.setLang(this.uiLang); this.onFilm(); }
   /** cinema mode: the same <video> as a normal HTML5 overlay with native controls and native captions */
   setCinema(on) {
     const F = this.film, want = !!on && this.filmOn && !!F && !!F.state.film && F.state.status !== 'missing'; if (want === !!this.cinema) return;
@@ -576,7 +578,7 @@ export class Explorer {
   glideTo(id, onDone) {
     if (!this.enabled || this.rideBusy) return false;
     if (this.focus) this.exitFocus(); if (this.fly) { this.fly.kill(); this.fly = null; } this.fc = null;
-    const route = routeTo(this.graph, this.walker.pos, id, this.level === 'l2' ? this.colliders : buildColliders({ doorOpen: this.doorOpen ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4, vipOpen: 1 })); if (!route) return false;
+    const route = routeTo(this.graph, this.walker.pos, id, this.level === 'l2' ? this.colliders : buildColliders({ doorOpen: this.doorOpen ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4, vipOpen: 1, lift: !!this.engine.bloom })); if (!route) return false;
     this.killGlide(); this.keys.clear();
     const w = this.walker, pts = route.points, len = polylineLength(pts), stop = route.stop;
     const y0 = w.yaw, p0 = w.pitch;
@@ -604,9 +606,11 @@ export class Explorer {
   update(dt) {
     if (!this.enabled) return;
     const ground = this.level === 'ground', vOpen = !this.products || !this.products.vip || this.products.vip.doorOpen >= DOOR_OPEN_AT;
-    if (ground && vOpen !== this.vipOpen) { this.vipOpen = vOpen; this.colliders = buildColliders({ doorOpen: this.doorOpen ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4, vipOpen: vOpen ? 1 : 0 }); this.walker.setColliders(this.colliders); }
+    const liftNow = !!this.engine.bloom;   // the glass lift is solid only once it is visible (its lazy chunk has arrived)
+    if (ground && vOpen !== this.vipOpen) { this.vipOpen = vOpen; this.colliders = buildColliders({ doorOpen: this.doorOpen ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4, vipOpen: vOpen ? 1 : 0, lift: liftNow }); this.liftOn = liftNow; this.walker.setColliders(this.colliders); }
+    else if (ground && liftNow !== this.liftOn) { this.liftOn = liftNow; this.colliders = buildColliders({ doorOpen: this.doorOpen ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4, vipOpen: this.vipOpen ? 1 : 0, lift: liftNow }); this.walker.setColliders(this.colliders); }
     const open = (this.engine.state.doorOpen || 0) >= DOOR_OPEN_AT;
-    if (ground && open !== this.doorOpen) { this.doorOpen = open; this.colliders = buildColliders({ doorOpen: open ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4, vipOpen: this.vipOpen ? 1 : 0 }); this.walker.setColliders(this.colliders); }
+    if (ground && open !== this.doorOpen) { this.doorOpen = open; this.colliders = buildColliders({ doorOpen: open ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4, vipOpen: this.vipOpen ? 1 : 0, lift: liftNow }); this.liftOn = liftNow; this.walker.setColliders(this.colliders); }
     if (this.fc) this.walker.step(dt, {}, this.reduced);                                     // focused on a product: the walker stands still
     else if (!this.glide && !this.paused && !this.uiOpen) this.walker.step(dt, this.inputVector(), this.reduced);
     else if (this.paused || this.uiOpen) this.walker.step(dt, {}, this.reduced);
@@ -664,12 +668,13 @@ export class Explorer {
     if (!E.bloom && !E.ensureBloom) return false;
     if (!E.bloom) { this.emit({ riding: want }); E.ensureBloom().then((b) => { this.emit({ riding: false }); if (b && this.enabled) this.rideTo(id, { focus }); else if (!b) this.emit({ rideFailed: (this.rideFails = (this.rideFails || 0) + 1) }); }); return true; }
     if (want === this.level) return false;
+    if (want === 'l2') this.prefetchBloomFilm();   // the film starts downloading during the ride (720p on an iPad, 1080p on a desktop)
     this.rideBusy = true; if (this.focus) this.exitFocus(); this.killGlide(); if (this.fly) { this.fly.kill(); this.fly = null; } this.fc = null; this.keys.clear(); this.touch = { x: 0, y: 0, jog: false };
     const B = E.bloom, w = this.walker, eye = PLAYER.eye, up = want === 'l2';
     const swap = () => {
       E.setFloor(want); this.level = want;
       if (up) { this.colliders = bloomBoxes(); this.graph = this.bloomGraph; const yp = yawPitchFromLookAt([ARRIVE[0], eye, ARRIVE[1]], REVEAL.from.l); w.setColliders(this.colliders); w.setPose(ARRIVE[0], ARRIVE[1], yp.yaw, 0.02); }
-      else { this.graph = this.hallGraph; this.doorOpen = true; this.vipOpen = true; this.colliders = buildColliders({ doorOpen: 1, oliveCount: E.tierId === 'low' ? 2 : 4, vipOpen: 1 }); const yp = yawPitchFromLookAt([LIFT_STAND[0], eye, LIFT_STAND[1]], [-3, 1.6, -22]); w.setColliders(this.colliders); w.setPose(LIFT_STAND[0], LIFT_STAND[1], yp.yaw, 0.03); if (this.products && this.products.snap) this.products.snap(E.camera); }
+      else { this.graph = this.hallGraph; this.doorOpen = true; this.vipOpen = true; this.colliders = buildColliders({ doorOpen: 1, oliveCount: E.tierId === 'low' ? 2 : 4, vipOpen: 1, lift: true }); this.liftOn = true; const yp = yawPitchFromLookAt([LIFT_STAND[0], eye, LIFT_STAND[1]], [-3, 1.6, -22]); w.setColliders(this.colliders); w.setPose(LIFT_STAND[0], LIFT_STAND[1], yp.yaw, 0.03); if (this.products && this.products.snap) this.products.snap(E.camera); }
       w.travelled = 0; w.step(1e-4, {}); this.zone = null; this.apply(); B.lift.setRide(0); this.emit({ level: want, floor: want, zone: null });
     };
     const done = () => { this.rideBusy = false; this.emit({ riding: false, veil: 0, arrived: 'floor:' + want }); if (up) this.glideTo('bloom-lobby', focus ? () => this.focusBloom() : undefined); };
@@ -683,10 +688,19 @@ export class Explorer {
   focusBloom() {
     const P = this.products; if (!this.enabled || !P || !P.vip || this.level !== 'l2') return false;
     this.meetingOn = false; this.ds = deckReducer(deckReducer(this.ds, { type: 'deck', id: FILM_V2_DECK_ID }), { type: 'slide', index: 0 }); const idx = this.ds.slide;
-    this.startFocus('vip', 'vip'); this.focus.view = this.vipSlideId(idx); this.focus.station = idx; P.setFocusPart(null); P.setHover(null); P.vip.setDeck(this.deck, this.allDecks(), idx); this.syncFilm(); this.startFilmPrefetch();
+    this.startFocus('vip', 'vip'); this.focus.view = this.vipSlideId(idx); this.focus.station = idx; P.setFocusPart(null); P.setHover(null); P.vip.setDeck(this.deck, this.allDecks(), idx); this.syncFilm(); this.prefetchBloomFilm();
     const v = this.vipView(idx); this.flyTo({ pos: v.pos, look: v.look, fov: v.fov });
     this.decksRev++; this.emit({ focus: 'vip', focusKind: 'vip', focusView: this.vipSlideId(idx), vipStation: idx, vipDeck: this.deck.id, vipDecksRev: this.decksRev, partFocus: null, prod: ++this.rev, vipMeeting: false }); return true;
   }
+  /** only the new film (journey-v2) is fetched, one background download, then 'Ready: starts instantly'. Respects data saver / ?vipprefetch=0 (the preloader's own policy). */
+  prefetchBloomFilm() {
+    if (typeof window !== 'undefined' && !prefetchEnabled(window.location.search)) return;
+    const F = this.ensureFilm(); F.load().then(() => { F.prefetch([JOURNEY_V2_ID]); this.onFilm(); });
+  }
+  /** "Meeting mode": the investor quick start. Opens Bloom Meeting at the lobby view, the film downloads on the lift ride and the HUD shows "Film ready". Also ?meeting=1. */
+  startMeetingMode() { if (!this.enabled) return false; this.meetingMode = true; this.emit({ meetingMode: true }); this.prefetchBloomFilm(); if (this.level === 'l2') return this.glideTo('bloom-lobby'); return this.rideTo('l2'); }
+  /** { state: 'off' | 'preparing' | 'ready', pct } of the Bloom film */
+  bloomFilmPrep() { return this.film ? this.film.prepOf(JOURNEY_V2_ID) : { state: 'off', pct: 0 }; }
   /** the agenda's destination item: leave the VIP room's screen, ride up, and put the new film on the Bloom wall */
   goPlace(item) { if (!item || item.floor !== 'l2') return false; if (this.film) this.film.pause(); if (this.focus) this.exitFocus(); if (this.level === 'l2') { this.focusBloom(); return true; } return this.rideTo('l2', { focus: true }); }
 
@@ -700,7 +714,7 @@ export class Explorer {
       teleport: (x, z, yaw, pitch) => { w.setPose(x, z, yaw, pitch); w.step(1e-4, {}); this.apply(); if (this.products && this.products.snap) this.products.snap(this.engine.camera); return [w.pos[0], w.pos[1]]; },
       /** run the real Walker + collision for `secs` seconds of simulated time at a fixed step (no rendering needed) */
       sim: (secs, input, step = 1 / 60) => { for (let t = 0; t < secs - 1e-9; t += step) w.step(Math.min(step, secs - t), input, this.reduced); this.apply(); return [w.pos[0], w.pos[1]]; },
-      colliders: () => this.colliders, graph: () => this.graph, level: () => this.level, rideTo: (id, o) => this.rideTo(id, o), focusBloom: () => this.focusBloom(), explorer: this,
+      colliders: () => this.colliders, graph: () => this.graph, level: () => this.level, rideTo: (id, o) => this.rideTo(id, o), meeting: () => this.startMeetingMode(), filmPrep: () => this.bloomFilmPrep(), focusBloom: () => this.focusBloom(), explorer: this,
     };
   }
 }

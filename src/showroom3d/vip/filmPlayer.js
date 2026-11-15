@@ -4,7 +4,7 @@
  * The same element feeds the wall (THREE.VideoTexture) and the cinema overlay (native controls). Captions use text tracks: 'hidden' while the wall shows the cue itself,
  * 'showing' in the cinema overlay. A missing manifest / film / file ends in status 'missing' ("Film coming soon"). */
 import { loadImg } from '../preload/assetStore';
-import { FILM_MANIFEST_URL, FILMS_MANIFEST_URL, JOURNEY_ID, pickSource, initFilm, filmReducer, nextCaption, parseFilmsManifest, parseFilmManifest } from './film';
+import { FILM_MANIFEST_URL, FILMS_MANIFEST_URL, JOURNEY_ID, pickSource, initFilm, filmReducer, nextCaption, defaultCaption, parseFilmsManifest, parseFilmManifest } from './film';
 
 export class FilmPlayer {
   constructor({ onChange = () => {}, fetcher = (typeof fetch === 'function' ? (u) => fetch(u, { credentials: 'same-origin' }) : null), lang = 'en', device = {}, preloader = null } = {}) {
@@ -13,7 +13,12 @@ export class FilmPlayer {
     if (preloader) preloader.onChange = () => this.onChange(this.state);
   }
   dispatch(a) { const n = filmReducer(this.state, a); if (n !== this.state) { this.state = n; this.onChange(n); } }
-  setLang(l) { this.lang = l === 'ar' ? 'ar' : 'en'; }
+  /** the page language changed: captions follow it (English UI -> English captions, Arabic -> Arabic) unless the visitor picked a caption language / off themselves */
+  setLang(l) { this.lang = l === 'ar' ? 'ar' : 'en'; const f = this.state.film; if (f && !this.userCaption && f.captions.length) { this.dispatch({ type: 'caption', value: defaultCaption(f.captions, this.lang) }); this.applyCaptions(); } }
+  /** an explicit choice ('en' | 'ar' | 'off'); only languages the film has are accepted */
+  setCaption(v) { const f = this.state.film, ok = v === 'off' || (f && f.captions.some((c) => c.lang === v)); if (!ok) return false; this.userCaption = true; this.dispatch({ type: 'caption', value: v }); this.applyCaptions(); return true; }
+  /** the CC button: off <-> the page-language captions (or the last language chosen) */
+  toggleCaptions() { const f = this.state.film; if (!f || !f.captions.length) return false; if (this.state.caption !== 'off') { this.lastCaption = this.state.caption; return this.setCaption('off'); } return this.setCaption(this.lastCaption && f.captions.some((c) => c.lang === this.lastCaption) ? this.lastCaption : defaultCaption(f.captions, this.lang)); }
   getText(url) { return Promise.resolve().then(() => this.fetcher(url)).then((r) => (r && r.ok ? r.text() : null)).catch(() => null); }
   /** read the manifests once (small JSON files): films.json (the list) and, for an entry that points at it or when there is no list, the single-film film.json. No video bytes are requested here. */
   load() {
@@ -79,7 +84,7 @@ export class FilmPlayer {
   seekBy(dt) { const v = this.video; if (v) this.seek(v.currentTime + dt); }
   setVolume(x) { const val = Math.max(0, Math.min(1, Number(x) || 0)), v = this.video; if (v) { v.volume = val; v.muted = val === 0; } else this.dispatch({ type: 'volume', value: val, muted: val === 0 }); }
   toggleMute() { const v = this.video; if (v) v.muted = !v.muted; else this.dispatch({ type: 'volume', value: this.state.volume, muted: !this.state.muted }); }
-  cycleCaptions() { this.dispatch({ type: 'caption', value: nextCaption(this.state.film ? this.state.film.captions : [], this.lang, this.state.caption) }); this.applyCaptions(); }
+  cycleCaptions() { this.userCaption = true; this.dispatch({ type: 'caption', value: nextCaption(this.state.film ? this.state.film.captions : [], this.lang, this.state.caption) }); this.applyCaptions(); }
   /** cinema overlay on / off: native controls and native captions while the element sits in the DOM */
   setCinema(on) { this.cinema = !!on; const v = this.video; if (v) v.controls = !!on; this.applyCaptions(); }
   dispose() { this.dropVideo(); if (this.preloader) this.preloader.dispose(); }

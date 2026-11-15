@@ -45,6 +45,22 @@ Registered as its **own film id `journey-v2`** in `public/yas-bloom/film/films.j
 * **Label.** The film mixes two real leader photographs (inside the film only; no separate image of them is shipped) with AI illustration, so it carries the accurate **mixed** label ("Real photographs of company leaders; all other imagery is AI-generated illustration", short badge on the wall strip) instead of the all-AI label. `film2.json` has `"mixed": true`.
 * **Swap the film later:** overwrite the same file names under `public/yas-bloom/film/` and update `bytes` / `durationSec` in `film2.json`; run `node scripts/showroom3d-preload/make-manifest.js` if the poster changed (it is in the preload manifest); `__tests__/bloomFilm.test.js` checks the sizes against the manifest.
 
+## Captions, Meeting mode and the film swap (meeting-day work)
+
+* **Captions are ON by default**, in the page language: an English page shows `journey2.en.vtt`, an Arabic page `journey2.ar.vtt` (the film's narration is Arabic; English captions are a translation). Switching the page language moves the captions with it until the visitor picks one. On the wall the caption is drawn large (46 px on the 864 px layout, on an 88 % dark bar, centred with safe margins, two lines max); the panel has a **CC** on/off toggle and an **EN / العربية** switch (`aria-pressed`), and the `C` key still cycles. Proof screenshots: `docs/screenshots/bloom/captions-1440x900.jpg`, `captions-1024x768@2x.jpg` (a mid-film seek at about 1:41, real playback in Google Chrome).
+* **Meeting mode**: `/yas-bloom?meeting=1` (skips the intro, rides the lift, glides to the lobby view) or Departments > "Meeting mode: open Bloom Meeting". The new film downloads during the ride; the lobby shows a **"Film ready"** pill (or "Preparing film... N%"), and the wall panel says "Ready: starts instantly". Only the new film is fetched (not the other VIP films); phones and iPads (coarse pointer) get the 720p file. Checklist: `docs/bloom-meeting-checklist.md`.
+* **The lift is no longer solid-but-invisible**: its collider exists only once the lift is drawn (`buildColliders({ lift })`), and the Bloom chunk is now fetched during the intro (1.2 s after the engine is ready), not after it.
+* **Subtle light sweep** along the top LED line of the video wall (one additive quad, a slow sine travel; off under reduced motion). The wall itself is already at the largest 16:9 the 5 m ceiling allows (7.6 x 4.3 m), so it was not enlarged.
+
+### Swapping to film 3 ("journey3", real leader photos animated with AI)
+
+The new cut has ONE entry, `journey-v2`, so the agenda, the deck, the wall and Haneen never change. To point it at film 3:
+
+1. Copy the film 3 files into `public/yas-bloom/film/` (the final `journey3-1080.mp4`, `journey3-720.mp4`, `journey3-poster.jpg`, `journey3.ar.vtt`, `journey3.en.vtt`, `film3.json`) and run `node scripts/showroom3d-preload/make-manifest.js` (the poster joins the preload manifest).
+2. **File 1, one line** in `public/yas-bloom/film/films.json`: in the `journey-v2` entry change `"manifest": "/yas-bloom/film/film2.json"` to `"/yas-bloom/film/film3.json"`.
+3. **File 2, two strings** in `src/showroom3d/vip/film.js`: `FILM_MIXED_LABEL` -> `{ en: 'Leaders appear from real photographs, animated with AI; all other imagery is AI-generated illustration', ar: '<Arabic of the same sentence>' }` and `FILM_MIXED_BADGE` -> a short form for the caption strip (about 60 characters, for example `Leaders: real photos animated with AI · other imagery: AI illustration`). These two constants drive the wall poster line, the caption-strip badge, the panel note, the cinema badge and the agenda line. Put the same `label` in `film3.json` (`__tests__/bloomFilm.test.js` fails if the manifest label and the constant differ).
+4. Run the Jest suite (the film2-specific file checks in `bloomFilm.test.js` should be pointed at `film3.json` / `journey3.*`) and `CI=false npm run build`.
+
 ## Performance, quality parity and limits (measured)
 
 Measured in headless Chromium on SwiftShader (CPU rendering, so frame rates are not representative; draw calls and triangles are):
