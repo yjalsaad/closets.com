@@ -12,7 +12,7 @@ import { IK, ikt } from '../../products/campaignCopy';
 import { STAGE } from '../../products/catalog';
 import { loadImg } from '../../preload/assetStore';
 
-export const ASSETS = { hero: '/brand/ikhtarha/hero-wide.jpg', logo: '/brand/ikhtarha/logo-light.png' };
+export const ASSETS = { hero: '/brand/ikhtarha/hero-wide.jpg', logo: '/brand/ikhtarha/logo-light-1040.webp' };
 const SW = 1920, SH = 1080;   // screen canvas (16:9)
 
 const loadImage = (src) => new Promise((resolve) => { loadImg(src, (i) => resolve(i), () => resolve(null), { crossOrigin: 'anonymous' }); });

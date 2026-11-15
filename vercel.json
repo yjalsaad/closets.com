@@ -6,9 +6,15 @@
     { "source": "/yas-bloom/:path*", "headers": [ { "key": "X-Robots-Tag", "value": "noindex" } ] },
     { "source": "/ar/yas-bloom", "headers": [ { "key": "X-Robots-Tag", "value": "noindex" } ] },
     { "source": "/ar/yas-bloom/", "headers": [ { "key": "X-Robots-Tag", "value": "noindex" } ] },
-    { "source": "/ar/yas-bloom/:path*", "headers": [ { "key": "X-Robots-Tag", "value": "noindex" } ] }
+    { "source": "/ar/yas-bloom/:path*", "headers": [ { "key": "X-Robots-Tag", "value": "noindex" } ] },
+    { "source": "/static/(.*)", "headers": [ { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" } ] },
+    { "source": "/yas-bloom/(realism|staff|collections|design-studio|profile)/(.*)", "headers": [ { "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" } ] }
   ],
   "rewrites": [
+    { "source": "/yas-bloom", "destination": "/yas-bloom/shell.html" },
+    { "source": "/yas-bloom/", "destination": "/yas-bloom/shell.html" },
+    { "source": "/ar/yas-bloom", "destination": "/yas-bloom/shell.html" },
+    { "source": "/ar/yas-bloom/", "destination": "/yas-bloom/shell.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
