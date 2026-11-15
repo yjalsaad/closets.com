@@ -12,11 +12,11 @@ import { FLAGS } from '../vip/flags';
 const at = (iso) => new Date(iso);   // an instant (UTC); Bahrain is UTC+3
 
 describe('meeting date: explicit, derived relative wording (Bahrain time)', () => {
-  test('the committed default is Monday 16 November 2026', () => {
-    expect(W.DEFAULT_MEETING_DATE).toBe('2026-11-16'); expect(W.longDate('2026-11-16', 'en')).toBe('Monday 16 November 2026'); expect(W.longDate('2026-11-16', 'ar')).toBe('الاثنين 16 نوفمبر 2026');
+  test('there is no committed meeting date (owner asked to drop the "meeting tomorrow" line); the date helpers still format dates', () => {
+    expect(W.DEFAULT_MEETING_DATE).toBe(''); expect(W.resolveWelcome({}, 'en', at('2026-11-15T09:00:00Z')).meeting).toBeNull(); expect(W.longDate('2026-11-16', 'en')).toBe('Monday 16 November 2026'); expect(W.longDate('2026-11-16', 'ar')).toBe('الاثنين 16 نوفمبر 2026');
   });
   test('"tomorrow" only while the date really is tomorrow; "today" on the day; plain date before; nothing after', () => {
-    const d = W.DEFAULT_MEETING_DATE;
+    const d = '2026-11-16';
     expect(W.meetingLine(d, 'en', at('2026-11-15T09:00:00Z'))).toMatchObject({ rel: 'tomorrow', kicker: 'Our meeting is tomorrow', date: 'Monday 16 November 2026' });
     expect(W.meetingLine(d, 'ar', at('2026-11-15T09:00:00Z'))).toMatchObject({ rel: 'tomorrow', kicker: 'اجتماعنا غدًا', date: 'الاثنين 16 نوفمبر 2026' });
     expect(W.meetingLine(d, 'en', at('2026-11-16T05:00:00Z'))).toMatchObject({ rel: 'today', kicker: 'Our meeting is today' });
@@ -63,7 +63,7 @@ describe('the Welcome slide is first in the meeting and the company presentation
   const rec = () => { const ops = []; const g = new Proxy({ canvas: {} }, { get: (t, k) => (k in t ? t[k] : (...a) => { ops.push([String(k), ...a]); return k === 'measureText' ? { width: 10 } : k === 'createLinearGradient' ? { addColorStop() {} } : undefined; }), set: (t, k, v) => { t[k] = v; if (k === 'fillStyle') ops.push(['fillStyle', v]); return true; } }); return { g, ops }; };
   test.each(['en', 'ar'])('the wall draws the greeting, the meeting date and the two flags (%s)', (lang) => {
     const paths = []; const P2 = global.Path2D; global.Path2D = function Path2D(d) { paths.push(d); }; const { g, ops } = rec();
-    try { drawWelcome(g, 1536, 864, { lang, welcome: {}, now: at('2026-11-15T09:00:00Z') }); } finally { global.Path2D = P2; }
+    try { drawWelcome(g, 1536, 864, { lang, welcome: { date: '2026-11-16' }, now: at('2026-11-15T09:00:00Z') }); } finally { global.Path2D = P2; }
     const texts = ops.filter((o) => o[0] === 'fillText').map((o) => o[1]).join(' | ');
     expect(texts).toContain(W.WELCOME_TITLE[lang]); expect(texts).toContain(W.longDate('2026-11-16', lang)); expect(texts).toContain(W.MEETING_KICKER.tomorrow[lang]);
     expect(paths).toEqual([FLAGS.sa.path]);   // the Saudi emblem = the vector outline, once
@@ -71,7 +71,7 @@ describe('the Welcome slide is first in the meeting and the company presentation
   });
   test.each(['en', 'ar'])('the panel body (%s) shows the lead, the meeting line and two named flags', (lang) => {
     jest.useFakeTimers().setSystemTime(at('2026-11-15T09:00:00Z')); try {
-      render(<div dir={lang === 'ar' ? 'rtl' : 'ltr'}><WelcomeBody lang={lang} cfg={{}} /></div>);
+      render(<div dir={lang === 'ar' ? 'rtl' : 'ltr'}><WelcomeBody lang={lang} cfg={{ date: '2026-11-16' }} /></div>);
       expect(screen.getByTestId('sr-vip-welcome')).toHaveAttribute('data-rel', 'tomorrow'); expect(screen.getByTestId('sr-vip-meetline')).toHaveTextContent(W.longDate('2026-11-16', lang));
       expect(screen.getByTestId('sr-flag-bh')).toHaveAttribute('aria-label', FLAGS.bh.name[lang]); expect(screen.getByTestId('sr-flag-sa')).toHaveAttribute('aria-label', FLAGS.sa.name[lang]);
       expect(screen.getByTestId('sr-flag-bh')).toHaveAttribute('data-ratio', '5:3'); expect(screen.getByTestId('sr-flag-sa')).toHaveAttribute('data-ratio', '3:2');
@@ -84,5 +84,15 @@ describe('2023 -> 2026 in the VIP room', () => {
   test('no deck, agenda or welcome text shows 2023 (Latin or Arabic-Indic digits); the YAS deck is titled 2026', () => {
     const all = texts([PERMANENT_DECKS, AGENDA, W.WELCOME_TITLE, W.WELCOME_LINE]).join('\n'); expect(all).not.toMatch(/2023|٢٠٢٣/);
     const yas = PERMANENT_DECKS.find((d) => d.id === 'yas-profile'); expect(yas.title).toEqual({ en: 'YAS Profile (2026)', ar: 'ملف YAS (2026)' }); expect(yas.slides[0].title.en).toBe('YAS Wood: Profile 2026'); expect(AGENDA.find((a) => a.id === 'yas-profile').title.en).toBe('YAS Profile (2026)');
+  });
+});
+
+describe('owner clean-up (15 Nov 2026): no committed "meeting tomorrow" line and no "to be confirmed" cards', () => {
+  test('by default the wall and the panel show the greeting and flags but no meeting line', () => {
+    const ops = []; const g = new Proxy({ canvas: {} }, { get: (t, k) => (k in t ? t[k] : (...a) => { ops.push([String(k), ...a]); return k === 'measureText' ? { width: 10 } : k === 'createLinearGradient' ? { addColorStop() {} } : undefined; }), set: () => true });
+    const P2 = global.Path2D; global.Path2D = function Path2D() {};
+    try { drawWelcome(g, 1536, 864, { lang: 'en', welcome: {}, now: at('2026-11-15T09:00:00Z') }); } finally { global.Path2D = P2; }
+    const texts = ops.filter((o) => o[0] === 'fillText').map((o) => o[1]).join(' | ');
+    expect(texts).toContain('Welcome'); expect(texts).not.toMatch(/meeting is tomorrow|16 November/i);
   });
 });
