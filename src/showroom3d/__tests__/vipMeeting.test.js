@@ -20,8 +20,8 @@ const fetcherFor = (map) => (u) => Promise.resolve(u in map ? { ok: true, text: 
 
 describe('films manifest: both shapes', () => {
   test('the list shape (committed films.json): the two REAL films first in their order, the AI documentary last as a reference to its own film.json', () => {
-    const r = parseFilmsManifest(LIST); expect(r.ok).toBe(true); expect(r.films.map((f) => f.id)).toEqual(['yas-story', 'closets-story', 'journey']); expect(r.films.map((f) => f.real)).toEqual([true, true, false]);
-    expect(r.films[2].ref).toBe('/yas-bloom/film/film.json'); expect(r.films[0].film.real).toBe(true); expect(r.films[0].film.burnedSubtitles).toBe(true); expect(r.films[0].film.captions).toEqual([]); expect(r.films[1].film.sources.map((s) => s.height)).toEqual([720, 540]);
+    const r = parseFilmsManifest(LIST); expect(r.ok).toBe(true); expect(r.films.map((f) => f.id)).toEqual(['yas-story', 'closets-story', 'bonsai-hub', 'journey']); expect(r.films.map((f) => f.real)).toEqual([true, true, true, false]);
+    expect(r.films[3].ref).toBe('/yas-bloom/film/film.json'); expect(r.films[0].film.real).toBe(true); expect(r.films[0].film.burnedSubtitles).toBe(true); expect(r.films[0].film.captions).toEqual([]); expect(r.films[1].film.sources.map((s) => s.height)).toEqual([720, 540]);
   });
   test('the old single-film shape still works: it becomes one entry "journey", never real', () => {
     const r = parseFilmsManifest(SINGLE); expect(r.ok).toBe(true); expect(r.films).toHaveLength(1); expect(r.films[0]).toMatchObject({ id: 'journey', real: false }); expect(r.films[0].film.sources).toHaveLength(2);
@@ -42,10 +42,11 @@ describe('films manifest: both shapes', () => {
   });
 });
 
+const SIZE_CAP_MB = { 'bonsai-hub': [20, 8] };   // the 60 s Bonsai Hub product film is 1080p: 20 MB main / 8 MB mobile (the two older films keep 14 / 7)
 describe('the committed films: files exist, are web MP4s within the size targets, posters small', () => {
   test('every source / poster in films.json exists; main <= 14 MB, mobile <= 7 MB, poster <= 150 KB; `bytes` in the manifest is the real size; faststart (moov before mdat)', () => {
     for (const f of LIST.films.filter((x) => x.sources)) {
-      f.sources.forEach((s, i) => { const p = path.join(PUB, path.basename(s.src)); expect(fs.existsSync(p)).toBe(true); const size = fs.statSync(p).size; expect(size).toBe(s.bytes); expect(size).toBeLessThanOrEqual((i === 0 ? 14 : 7) * 1024 * 1024);
+      f.sources.forEach((s, i) => { const p = path.join(PUB, path.basename(s.src)); expect(fs.existsSync(p)).toBe(true); const size = fs.statSync(p).size; expect(size).toBe(s.bytes); expect(size).toBeLessThanOrEqual((SIZE_CAP_MB[f.id] || [14, 7])[i === 0 ? 0 : 1] * 1024 * 1024);
         const head = fs.readFileSync(p).subarray(0, 4096).toString('latin1'); expect(head.indexOf('ftyp')).toBe(4); expect(head.indexOf('moov')).toBeGreaterThan(0); });
       const poster = path.join(PUB, path.basename(f.poster)); expect(fs.existsSync(poster)).toBe(true); expect(fs.statSync(poster).size).toBeLessThanOrEqual(150 * 1024); expect(f.real).toBe(true); expect(f.title.en.length).toBeGreaterThan(5); expect(/[؀-ۿ]/.test(f.title.ar)).toBe(true);
     }

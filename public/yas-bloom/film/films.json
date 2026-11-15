@@ -1,5 +1,5 @@
 {
-  "_comment": "VIP big screen films. Real company films first; the AI documentary is referenced through its own manifest (film.json) and only appears when that file exists.",
+  "_comment": "VIP big screen films. Real company films first (the Bonsai Hub film is a real-product film built from real Hub screens with synthetic demo data, not AI imagery); the AI documentary is referenced through its own manifest (film.json) and only appears when that file exists.",
   "films": [
     {
       "id": "yas-story",
@@ -53,6 +53,41 @@
       ],
       "poster": "/yas-bloom/film/closets-story-poster.jpg",
       "captions": []
+    },
+    {
+      "id": "bonsai-hub",
+      "real": true,
+      "order": 3,
+      "title": {
+        "en": "Bonsai Hub: one system",
+        "ar": "منصة Bonsai: نظام واحد"
+      },
+      "durationSec": 60,
+      "sources": [
+        {
+          "src": "/yas-bloom/film/bonsai-hub-1080.mp4",
+          "width": 1920,
+          "height": 1080,
+          "bytes": 15825984
+        },
+        {
+          "src": "/yas-bloom/film/bonsai-hub-720.mp4",
+          "width": 1280,
+          "height": 720,
+          "bytes": 5287482
+        }
+      ],
+      "poster": "/yas-bloom/film/bonsai-hub-poster.jpg",
+      "captions": [
+        {
+          "lang": "en",
+          "src": "/yas-bloom/film/bonsai-hub.en.vtt"
+        },
+        {
+          "lang": "ar",
+          "src": "/yas-bloom/film/bonsai-hub.ar.vtt"
+        }
+      ]
     },
     {
       "id": "journey",

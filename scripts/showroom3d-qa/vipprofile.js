@@ -253,6 +253,13 @@ async function media() {
     const res = await fetch(L.BASE + s.src, { headers: { Range: 'bytes=1000-1999' } }), buf = Buffer.from(await res.arrayBuffer());
     check(`${path.basename(file)}: byte-range request answered 206 with the right slice (seeking works over HTTP)`, res.status === 206 && buf.length === 1000 && res.headers.get('content-range') === `bytes 1000-1999/${fs.statSync(file).size}` && res.headers.get('content-type') === 'video/mp4', [res.status, res.headers.get('content-range')]);
   }
+  // films that declare durationSec / captions (the Bonsai Hub film): the probed duration matches the manifest, faststart, the VTT tracks exist and are WEBVTT with cues, the poster is a small JPEG
+  for (const f of list.filter((x) => x.durationSec && (x.captions || []).length)) {
+    for (const s of f.sources) { const file = path.join(root, path.basename(s.src)); const d = Number(JSON.parse(execFileSync('ffprobe', ['-v', 'error', '-show_format', '-of', 'json', file]).toString()).format.duration);
+      check(`${f.id}/${path.basename(file)}: probed duration ${d.toFixed(1)} s matches durationSec ${f.durationSec} (+-1 s)`, Math.abs(d - f.durationSec) <= 1, d); const head = fs.readFileSync(file).subarray(0, 4096).toString('latin1'); check(`${f.id}/${path.basename(file)}: faststart (moov before mdat)`, head.indexOf('moov') > 0 && (head.indexOf('mdat') === -1 || head.indexOf('moov') < head.indexOf('mdat')), null); }
+    for (const c of f.captions) { const txt = fs.readFileSync(path.join(root, path.basename(c.src)), 'utf8'); const cues = (txt.match(/-->/g) || []).length; check(`${f.id}: ${c.lang} captions are WEBVTT with ${cues} cues`, txt.startsWith('WEBVTT') && cues >= 5 && (c.lang !== 'ar' || /[\u0600-\u06FF]/.test(txt)), cues); }
+    const res = await fetch(L.BASE + f.poster); check(`${f.id}: poster served as an image under 150 KB`, res.status === 200 && /image\/jpeg/.test(res.headers.get('content-type') || '') && Buffer.from(await res.arrayBuffer()).length <= 150 * 1024, res.status);
+  }
 }
 
 (async () => {
