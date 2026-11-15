@@ -312,6 +312,10 @@ export function drawFilmIdle(g, w, h, o) {
   let y = k.para(title, k.mx(X), 470, w - 2 * X, { size: TYPE.hero, weight: 800, color: P.sand, lh: 88 });
   const line = missing ? Lx(FILM_SOON, lang) : f.status === 'loading' || f.status === 'idle' ? (lang === 'ar' ? 'جارٍ التحميل…' : 'Loading…') : f.status === 'ended' ? (lang === 'ar' ? 'اضغط تشغيل للمشاهدة من جديد.' : 'Press Play to watch again.') : f.real ? (lang === 'ar' ? 'اضغط تشغيل للمشاهدة. الصوت مفعَّل.' : 'Press Play to watch. Sound on.') : (lang === 'ar' ? 'اضغط تشغيل للمشاهدة. الصوت مفعَّل والتعليق بالعربية.' : 'Press Play to watch. Sound on; narration in Arabic, captions in English.');
   y = k.para(line, k.mx(X), y + 4, w - 2 * X, { size: missing ? 52 : TYPE.lead, weight: 700, color: P.brandOrange, lh: 56 });
+  const pq = !missing && /^(p\d+|ready)$/.test(f.prep || '') ? f.prep : '';   // the background download: "Preparing film... 40%" then "Ready" (the film itself starts at once either way)
+  if (pq) { const pc = pq === 'ready' ? 100 : Number(pq.slice(1)), tx = pq === 'ready' ? (lang === 'ar' ? 'جاهز: يبدأ فورًا' : 'Ready: starts instantly') : (lang === 'ar' ? 'جارٍ تجهيز الفيلم… \u2066' + pc + '%\u2069' : 'Preparing film… ' + pc + '%'), bw = Math.min(560, w - 2 * X), bx = k.rtl ? w - X - bw : X, by = y + 14;
+    g.fillStyle = 'rgba(245,240,230,0.22)'; g.fillRect(bx, by, bw, 12); g.fillStyle = hex(P.brandOrange); g.fillRect(k.rtl ? bx + bw - bw * pc / 100 : bx, by, bw * pc / 100, 12);
+    k.para(tx, k.mx(X), by + 56, w - 2 * X, { size: 30, weight: 700, color: P.brassPale, lh: 34 }); }
   const meta = [missing || f.real ? '' : Lx(FILM_AI_LABEL, lang), !missing && f.real ? (lang === 'ar' ? 'فيلم الشركة' : 'Company film') : '', !missing && f.duration ? fmtTime(f.duration) : ''].filter(Boolean).join(' · ');
   if (meta) k.para(meta, k.mx(X), h - TYPE.safeBottom - 40, w - 2 * X, { size: TYPE.meta, weight: 600, color: P.brassPale, lh: 28 });
   k.para(Lx(C.DISCLAIMER, lang), k.mx(X), h - TYPE.safeBottom + 6, w - 2 * X, { size: TYPE.fine, weight: 500, color: P.sand, lh: 28 });

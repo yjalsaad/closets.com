@@ -1,14 +1,15 @@
 /* The film player behind the VIP big screen (DOM side of vip/film.js). It knows a small LIBRARY of films (films.json: the owner's real films; plus the AI documentary's own film.json when it exists)
- * and shows ONE at a time. ONE <video> element, created lazily, preload="none", no src until the visitor presses Play: nothing is downloaded before that.
+ * and shows ONE at a time. ONE <video> element, created lazily when the visitor presses Play. The films are fetched in the background only once the visitor is inside the VIP room (vip/filmPreload.js) and then play from memory; Play never waits for that: an unfinished film streams.
  * It is never autoplayed and never muted for autoplay: play() is only called from a user gesture, with sound.
  * The same element feeds the wall (THREE.VideoTexture) and the cinema overlay (native controls). Captions use text tracks: 'hidden' while the wall shows the cue itself,
  * 'showing' in the cinema overlay. A missing manifest / film / file ends in status 'missing' ("Film coming soon"). */
-import { FILM_MANIFEST_URL, FILMS_MANIFEST_URL, JOURNEY_ID, initFilm, filmReducer, nextCaption, parseFilmsManifest, parseFilmManifest } from './film';
+import { FILM_MANIFEST_URL, FILMS_MANIFEST_URL, JOURNEY_ID, pickSource, initFilm, filmReducer, nextCaption, parseFilmsManifest, parseFilmManifest } from './film';
 
 export class FilmPlayer {
-  constructor({ onChange = () => {}, fetcher = (typeof fetch === 'function' ? (u) => fetch(u, { credentials: 'same-origin' }) : null), lang = 'en', device = {} } = {}) {
+  constructor({ onChange = () => {}, fetcher = (typeof fetch === 'function' ? (u) => fetch(u, { credentials: 'same-origin' }) : null), lang = 'en', device = {}, preloader = null } = {}) {
     this.onChange = onChange; this.fetcher = fetcher; this.lang = lang; this.device = device; this.state = initFilm(); this.video = null; this.poster = null; this.posters = new Map(); this.cinema = false; this.loading = null;
-    this.library = new Map(); this.libraryReady = false; this.wanted = null;
+    this.library = new Map(); this.libraryReady = false; this.wanted = null; this.preloader = preloader; this.blobSrc = '';
+    if (preloader) preloader.onChange = () => this.onChange(this.state);
   }
   dispatch(a) { const n = filmReducer(this.state, a); if (n !== this.state) { this.state = n; this.onChange(n); } }
   setLang(l) { this.lang = l === 'ar' ? 'ar' : 'en'; }
@@ -29,21 +30,33 @@ export class FilmPlayer {
   select(id) { this.wanted = id || JOURNEY_ID; if (this.libraryReady) this.applyWanted(); else this.load(); }
   applyWanted() {
     const id = this.wanted || JOURNEY_ID; if (this.state.id === id && this.state.status !== 'loading' && this.state.status !== 'idle') return;
-    this.dropVideo(); const film = this.library.get(id) || null; this.poster = this.posters.get(id) || null; this.dispatch({ type: 'select', id, film, lang: this.lang, device: this.device });
+    this.dropVideo(); const film = this.library.get(id) || null; this.prioritise(film); this.poster = this.posters.get(id) || null; this.dispatch({ type: 'select', id, film, lang: this.lang, device: this.device });
     if (film && film.poster && !this.posters.has(id) && typeof Image !== 'undefined') { const im = new Image(); im.onload = () => { this.posters.set(id, im); if (this.state.id === id) { this.poster = im; this.onChange(this.state); } }; im.onerror = () => {}; im.src = film.poster; }
   }
-  dropVideo() { const v = this.video; if (!v) return; try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) { /* ignore */ } if (v.parentNode) v.parentNode.removeChild(v); this.video = null; }
+  /** the file this film plays on this device */
+  srcOf(film) { const src = film && pickSource(film.sources, this.device); return src ? src.src : ''; }
+  /** the films of the meeting, in agenda order, go to the pre-downloader (it only runs once start() is called: from inside the VIP room) */
+  prefetch(ids) {
+    const P = this.preloader; if (!P) return; const items = []; for (const id of ids) { const f = this.library.get(id), src = f && pickSource(f.sources, this.device); if (src) items.push({ id, src: src.src, bytes: src.bytes }); }
+    P.setPlan(items); P.start();
+  }
+  prioritise(film) { const P = this.preloader, src = this.srcOf(film); if (P && src) P.prioritise(src); }
+  /** { state: 'off' | 'preparing' | 'ready', pct } for film `id` (default: the one on the screen) */
+  prepOf(id) { const P = this.preloader; if (!P) return { state: 'off', pct: 0 }; const src = id ? this.srcOf(this.library.get(id)) : this.state.src; return src ? P.view(src) : { state: 'off', pct: 0 }; }
+  dropVideo() { const v = this.video; if (!v) return; if (this.preloader && this.blobSrc) { this.preloader.unpin(this.blobSrc); this.preloader.release(this.blobSrc); } this.blobSrc = ''; try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) { /* ignore */ } if (v.parentNode) v.parentNode.removeChild(v); this.video = null; }
   /** the element exists only once somebody has asked to play */
   ensureVideo() {
     if (this.video || typeof document === 'undefined' || !this.state.film || !this.state.src) return this.video;
-    const v = document.createElement('video'), f = this.state.film; v.preload = 'none'; v.playsInline = true; v.setAttribute('playsinline', ''); v.controls = this.cinema; v.muted = this.state.muted; v.volume = this.state.volume; v.loop = false; if (f.poster) v.poster = f.poster;
+    const v = document.createElement('video'), f = this.state.film; v.preload = 'auto'; v.playsInline = true; v.setAttribute('playsinline', ''); v.controls = this.cinema; v.muted = this.state.muted; v.volume = this.state.volume; v.loop = false; if (f.poster) v.poster = f.poster;
     const mine = (fn) => (...a) => { if (this.video === v) fn(...a); };
     v.addEventListener('timeupdate', mine(() => this.dispatch({ type: 'time', time: v.currentTime, duration: v.duration })));
     v.addEventListener('durationchange', mine(() => this.dispatch({ type: 'time', time: v.currentTime, duration: v.duration })));
     v.addEventListener('play', mine(() => this.dispatch({ type: 'play' }))); v.addEventListener('pause', mine(() => { if (!v.ended) this.dispatch({ type: 'pause' }); }));
     v.addEventListener('ended', mine(() => this.dispatch({ type: 'ended' }))); v.addEventListener('error', mine(() => this.dispatch({ type: 'missing' })));
     v.addEventListener('volumechange', mine(() => this.dispatch({ type: 'volume', value: v.volume, muted: v.muted })));
-    v.src = this.state.src;
+    const P = this.preloader, local = P ? P.urlFor(this.state.src) : '';   // a finished download plays from memory (no network); otherwise it streams from the site
+    if (local) { P.pin(this.state.src); this.blobSrc = this.state.src; } else if (P) P.skip(this.state.src);
+    v.src = local || this.state.src;
     for (const c of f.captions) { const t = document.createElement('track'); t.kind = 'subtitles'; t.srclang = c.lang; t.label = c.lang === 'ar' ? 'العربية' : 'English'; t.src = c.src; v.appendChild(t); }
     this.video = v; this.applyCaptions(); return v;
   }
@@ -68,5 +81,5 @@ export class FilmPlayer {
   cycleCaptions() { this.dispatch({ type: 'caption', value: nextCaption(this.state.film ? this.state.film.captions : [], this.lang, this.state.caption) }); this.applyCaptions(); }
   /** cinema overlay on / off: native controls and native captions while the element sits in the DOM */
   setCinema(on) { this.cinema = !!on; const v = this.video; if (v) v.controls = !!on; this.applyCaptions(); }
-  dispose() { this.dropVideo(); }
+  dispose() { this.dropVideo(); if (this.preloader) this.preloader.dispose(); }
 }
