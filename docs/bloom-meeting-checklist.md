@@ -24,7 +24,7 @@ She answers only from the confirmed fact sheet (`docs/bloom-meeting-haneen.md`).
 | Showroom was fully downloaded (pill said "Showroom downloaded"), wifi drops | the showroom, Floor 2, the lift, Haneen (offline answers), the VIP decks, the **film if the pill said "Film ready"** (it plays from memory / Cache Storage) | the opt-in AI question to Haneen, the meeting-request links (they open Mail / WhatsApp, which need a connection to send) |
 | Wifi drops before "Film ready" | the room and everything above; the film **streams** and may stall | the film from a cold cache |
 | Reload while offline | Safari reloads the page only if it is in its page cache; the cached showroom files are used if the page itself loads | a cold start without any connection |
-| Plan B | Phone hotspot as a second network (iPad > Settings > Wifi); or play the film from the phone (`/yas-bloom/film/journey2-720.mp4` is a plain file) | |
+| Plan B | Phone hotspot as a second network (iPad > Settings > Wifi); or play the film from the phone (`/yas-bloom/film/journey3-720.mp4` is a plain file) | |
 
 Always have the company contact card ready (phone and email are in the Haneen panel under "Request a meeting with the team").
 

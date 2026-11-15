@@ -17,8 +17,8 @@ export const FILM_AI_LABEL = { en: 'AI-generated illustration', ar: 'صور تو
 /** Journey v2 mixes two real photographs of company leaders (inside the film only) with AI-generated illustration: it carries its own, accurate label ("mixed") instead of the all-AI one. */
 export const JOURNEY_V2_ID = 'journey-v2';
 export const FILM_V2_DECK_ID = 'film-v2';
-export const FILM_MIXED_LABEL = { en: 'Real photographs of company leaders; all other imagery is AI-generated illustration', ar: 'صور حقيقية لقيادات الشركة، وبقية المشاهد صور مولّدة بالذكاء الاصطناعي' };
-export const FILM_MIXED_BADGE = { en: 'Leaders: real photos · other imagery: AI illustration', ar: 'صور حقيقية للقيادات · والباقي مولّد بالذكاء الاصطناعي' };
+export const FILM_MIXED_LABEL = { en: 'Leaders appear from real photographs (camera motion only) in an AI-generated office; all other imagery is AI-generated illustration', ar: 'يظهر القياديون من صور حقيقية بحركة كاميرا فقط داخل مكتب مولّد بالذكاء الاصطناعي، وبقية المشاهد صور مولّدة بالذكاء الاصطناعي' };
+export const FILM_MIXED_BADGE = { en: 'Leaders: real photos · office and other imagery: AI illustration', ar: 'صور حقيقية للقيادات · والمكتب وبقية المشاهد مولّدة بالذكاء الاصطناعي' };
 export const FILM_V2_TITLE = { en: 'The Closets: The Journey of Ambition (new cut)', ar: 'الخزائن: حكاية طموح (النسخة الجديدة)' };
 export const FILM_SOON = { en: 'Film coming soon', ar: 'الفيلم قريبًا' };
 const FILM_PATH = /^\/yas-bloom\/film\/[A-Za-z0-9._-]+\.(mp4|webm|jpg|jpeg|webp|png|vtt|json)$/;

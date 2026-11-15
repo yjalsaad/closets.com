@@ -57,7 +57,7 @@ describe('the committed films: files exist, are web MP4s within the size targets
 describe('film library: missing-file states', () => {
   test('films.json present, film.json absent: the real films are ready (paused, nothing but JSON requested), the AI film is "missing" (Film coming soon)', async () => {
     const asked = []; const base = fetcherFor({ [FILMS_MANIFEST_URL]: LIST }); const p = new FilmPlayer({ fetcher: (u) => { asked.push(u); return base(u); }, lang: 'en', device: { tier: 'high' } });
-    p.select('yas-story'); await p.load(); expect(p.state).toMatchObject({ status: 'ready', id: 'yas-story', src: '/yas-bloom/film/yas-story.mp4', caption: 'off' }); expect(p.video).toBeNull(); expect(asked).toEqual([FILMS_MANIFEST_URL, FILM_MANIFEST_URL, '/yas-bloom/film/film2.json']);   // + the new cut's own manifest (Bloom Meeting)
+    p.select('yas-story'); await p.load(); expect(p.state).toMatchObject({ status: 'ready', id: 'yas-story', src: '/yas-bloom/film/yas-story.mp4', caption: 'off' }); expect(p.video).toBeNull(); expect(asked).toEqual([FILMS_MANIFEST_URL, FILM_MANIFEST_URL, '/yas-bloom/film/film3.json']);   // + the new cut's own manifest (Bloom Meeting)
     p.select('closets-story'); expect(p.state).toMatchObject({ status: 'ready', id: 'closets-story' }); p.select('journey'); expect(p.state.status).toBe('missing'); expect(p.play()).toBe(false); p.select('nope'); expect(p.state.status).toBe('missing');
   });
   test('both manifests present: the AI film is ready and stays labelled (real: false) even when listed', async () => {
