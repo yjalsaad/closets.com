@@ -1,5 +1,6 @@
 import { bloomBoxes, bloomGraph, bloomZones, BLOOM_STOPS, ARRIVE, F2, BLOOM_Z0, LIFT_G, LIFT_STAND, liftBoxes, REVEAL, WALL_VIEW, TABLE, SCREEN, PODS, toWorld, toLocal, FLOORS } from '../scenes/bloom/layout';
-import { withBloomLift } from '../scenes/bloom/layout';
+import { withBloomLift, seatList, sofaList, facing, OFFICE_LIST, WING } from '../scenes/bloom/layout';
+import { OFFICES, officeOptions, MAX_OPTIONS, OPTIONS_SOON } from '../bloom/offices';
 import { isFree, segmentClear, PLAYER, buildColliders } from '../navigation/colliders';
 import { buildGraph, shortestPath } from '../navigation/navgraph';
 
@@ -51,3 +52,43 @@ describe('Floor 2 (Bloom Meeting) layout', () => {
     expect(FLOORS.map((f) => f.id)).toEqual(['ground', 'l2']); expect(toLocal(...toWorld(3, 4))).toEqual([3, 4]); expect(SCREEN.w / SCREEN.h).toBeCloseTo(16 / 9, 2);
   });
 });
+
+describe('chairs: every seat faces its table / desk (backs outward), nothing is mirrored', () => {
+  const dir = (a, b) => { const dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1; return [dx / l, dz / l]; };
+  test('each chair\'s forward vector (+x rotated by ry: [cos ry, -sin ry]) points at its table or desk centre', () => {
+    for (const c of seatList()) { const f = facing(c.ry), d = dir([c.x, c.z], c.target); expect({ id: c.id, dot: Math.round((f[0] * d[0] + f[1] * d[1]) * 1000) / 1000 }).toEqual({ id: c.id, dot: 1 }); }
+  });
+  test('and every sofa faces the lounge table', () => { for (const c of sofaList()) { const f = facing(c.ry), d = dir([c.x, c.z], c.target); expect(f[0] * d[0] + f[1] * d[1]).toBeGreaterThan(0.999); } });
+  test('the boardroom has 13 leadership chairs (6 a side + the head), the pods 24 task chairs, the offices 5 executive + 10 guest chairs; the two boardroom rows face each other', () => {
+    const L = seatList(); const by = (k) => L.filter((c) => c.kind === k);
+    expect([by('leader').length, by('task').length, by('exec').length, by('guest').length]).toEqual([13, 24, 5, 10]);
+    const n = L.filter((c) => c.id.startsWith('board-n')), so = L.filter((c) => c.id.startsWith('board-s')); expect(n.every((c) => facing(c.ry)[1] > 0.99)).toBe(true); expect(so.every((c) => facing(c.ry)[1] < -0.99)).toBe(true);
+  });
+  test('an executive sits behind the desk facing the door (north, -z); the guests sit in front of it facing the desk', () => {
+    for (const o of OFFICE_LIST) { const L = seatList().filter((c) => c.id.startsWith(o.id + '-')); const ex = L.find((c) => c.kind === 'exec'); expect(facing(ex.ry)[1]).toBeLessThan(-0.99); for (const g of L.filter((c) => c.kind === 'guest')) { expect(g.z).toBeLessThan(ex.z); expect(facing(g.ry)[1]).toBeGreaterThan(0.99); } }
+  });
+});
+
+describe('executive offices', () => {
+  test('five offices with the owner\'s titles in both languages; no person names; the options array exists and is empty by default', () => {
+    expect(OFFICES.map((o) => o.title.en)).toEqual(['IT Head', 'Operations Head', 'Managing Partner', 'Managing Director', 'Partner Strategy']);
+    expect(OFFICES.map((o) => o.title.ar)).toEqual(['رئيس تقنية المعلومات', 'رئيس العمليات', 'الشريك المدير', 'المدير العام', 'شريك الاستراتيجية']);
+    for (const o of OFFICES) { expect(o.options).toEqual([]); expect(officeOptions(o)).toEqual([]); } expect(OPTIONS_SOON.en).toBe('Options coming soon'); expect(/[؀-ۿ]/.test(OPTIONS_SOON.ar)).toBe(true);
+  });
+  test('officeOptions keeps well-formed bilingual entries (max 6) and drops the rest', () => {
+    const o = { options: [{ id: 'a', title: { en: 'A', ar: 'أ' } }, { title: { en: 'only en' } }, null, { id: 'b', title: { en: 'B', ar: 'ب' }, note: { en: 'n', ar: 'م' } }, ...Array.from({ length: 9 }, (_, i) => ({ id: 'x' + i, title: { en: 'X', ar: 'س' } }))] };
+    const r = officeOptions(o); expect(r).toHaveLength(MAX_OPTIONS); expect(r[0]).toMatchObject({ id: 'a', note: null }); expect(r[1].note).toEqual({ en: 'n', ar: 'م' });
+  });
+  test('each office: the door is passable, the glass front and the partitions are solid, the desk is solid, the stand point is free and reachable from the lift', () => {
+    const g = bloomGraph(), Z = BLOOM_Z0;
+    for (const o of OFFICE_LIST) {
+      expect(free([o.cx, o.z0 + Z], R, C)).toBe(true);                        // through the door
+      expect(free([o.x0 + 0.9, o.z0 + Z], 0.2, C)).toBe(false);                // the glass front
+      expect(free([o.cx, o.z1 - 2.9 + Z], 0.2, C)).toBe(false);                // the desk
+      const stop = g.stops.find((s) => s.id === 'bloom-office-' + o.id); expect(stop).toBeTruthy(); expect(free(stop.stand, R, C)).toBe(true); expect(shortestPath(g, 'cab', 'stand-' + stop.id)).not.toBeNull();
+    }
+    for (let i = 1; i < 5; i++) expect(free([OFFICE_LIST[i].x0, OFFICE_LIST[i].z0 + 3 + Z], 0.2, C)).toBe(false);   // the partitions
+    expect(WING.door[1] - WING.door[0]).toBeGreaterThanOrEqual(1.5); expect(free([(WING.door[0] + WING.door[1]) / 2, 12.2 + Z], R, C)).toBe(true); expect(free([0, 12.2 + Z], 0.2, C)).toBe(false);   // the wing doorway vs the wall
+  });
+});
+

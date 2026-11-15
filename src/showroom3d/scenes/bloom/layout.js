@@ -8,6 +8,7 @@
  *   operations bay  x -18..-2, z -12..2  the ops wall on the west wall, six pods of desks
  *   lobby  z 2..12  the glass lift (arrival, west), the Leads wall (south wall), Haneen AI desk, the lounge corner (east, facing the east windows) */
 import { HALL } from '../../3d/dimensions';
+import { OFFICES } from '../../bloom/offices';
 
 export const BLOOM_Z0 = 150;                         // world z of local z = 0
 export const toWorld = (x, z) => [x, z + BLOOM_Z0];
@@ -32,9 +33,14 @@ export const ARRIVE_YAW = -Math.PI / 2;               // looking east (+x); walk
 export const TABLE = { x: 8, z: -5, w: 7.4, d: 1.7, h: 0.76 };
 export const SCREEN = { x: 17.88, z: -5, y: 2.45, w: 7.6, h: 4.275 };   // 16:9 video wall on the east wall, faces -x
 export const OPS_WALL = { x: -17.88, z: -5.5, y: 2.1, w: 9.0, h: 3.0 };  // faces +x
-export const LEADS_WALL = { x: -4, z: 11.88, y: 2.0, w: 11.0, h: 2.9 };  // faces -z (into the lobby)
+export const LEADS_WALL = { x: -4, z: 11.88, y: 2.1, w: 12.0, h: 3.2 };   // the Lead Roadmap wall
+export const ROADMAP_FLOOR = { x: -4, z: 9.9, w: 10, d: 1.25 };           // the roadmap path inlaid in the lobby floor in front of the wall  // faces -z (into the lobby)
 export const HANEEN_DESK = { x: -9.6, z: 7.2 };                           // the Haneen AI desk + hologram in the lobby
 export const LOUNGE = { x: 12.5, z: 8.6 };
+/** the executive wing: a corridor (z 12.4..16.5) behind a doorway in the lobby's south wall, and five glass-fronted offices (z 16.5..24) */
+export const WING = { z0: 12, z1: 24, frontZ: 16.5, door: [3.4, 5.2], officeW: 7.2, doorW: 1.1 };
+export const officeRect = (i) => { const x0 = F2.x0 + i * WING.officeW, x1 = x0 + WING.officeW; return { x0, x1, cx: (x0 + x1) / 2, z0: WING.frontZ, z1: WING.z1 }; };
+export const OFFICE_LIST = OFFICES.map((o, i) => ({ ...o, ...officeRect(i), index: i }));
 export const PODS = [-12.5, -7.5].flatMap((x) => [-9.5, -5, -0.5].map((z) => ({ x, z, w: 3.0, d: 1.4 })));
 
 /** named quick-nav / camera stops on Floor 2 (world frame; stand = where the visitor stands, look = [x, y, z] the camera aims at) */
@@ -45,6 +51,7 @@ export const BLOOM_STOPS = [
   S('bloom-leads', 'Leads wall', 'جدار العملاء المحتملين', -4, 5.8, -4, 2.0, 11.9),
   S('bloom-lounge', 'Lounge', 'ركن الاستراحة', 8.6, 6.6, 17.9, 1.8, 8.6),
   S('bloom-lobby', 'Lobby', 'الاستقبال', -3.0, 6.0, 11, 2.3, -4.6),
+  ...OFFICE_LIST.map((o) => S('bloom-office-' + o.id, o.title.en, o.title.ar, o.cx, WING.frontZ + 1.8, o.cx, 1.8, o.z1)),
   S('bloom-haneen', 'Haneen AI', 'حنين AI', -7.2, 4.6, HANEEN_DESK.x, 1.4, HANEEN_DESK.z),
 ];
 /** the camera's starting pose of the entrance reveal and its end pose (world) */
@@ -56,10 +63,18 @@ const box = (id, minX, maxX, minZ, maxZ) => ({ type: 'box', id, minX, maxX, minZ
 const circle = (id, x, z, r) => ({ type: 'circle', id, x, z, r });
 /** the plan-view obstacles of Floor 2 (WORLD frame). Walls are thick so a bad frame cannot tunnel. */
 export function bloomBoxes() {
-  const t = F2.wallT, Z = BLOOM_Z0, o = [];
+  const t = F2.wallT, Z = BLOOM_Z0, o = [], o2c = o;
   const b = (id, a, c, d, e) => o.push(box(id, a, c, d + Z, e + Z));
   b('f2-north', F2.x0 - 3, F2.x1 + 3, F2.z0 - 3, F2.z0);            // window wall (the glass is at z = -12)
-  b('f2-south', F2.x0 - 3, F2.x1 + 3, F2.z1, F2.z1 + 3);
+  b('f2-south-a', F2.x0 - 3, WING.door[0], F2.z1, F2.z1 + 0.4); b('f2-south-b', WING.door[1], F2.x1 + 3, F2.z1, F2.z1 + 0.4);   // the lobby's south wall, with the doorway into the executive wing
+  b('f2-wing-w', F2.x0 - 3, F2.x0, F2.z1, WING.z1 + 3); b('f2-wing-e', F2.x1, F2.x1 + 3, F2.z1, WING.z1 + 3); b('f2-wing-s', F2.x0 - 3, F2.x1 + 3, WING.z1, WING.z1 + 3);
+  OFFICE_LIST.forEach((o, i) => {
+    const h = WING.doorW / 2, dz = o.z1 - 2.9;
+    b('f2-front-' + o.id + '-a', o.x0, o.cx - h, o.z0 - 0.06, o.z0 + 0.06); b('f2-front-' + o.id + '-b', o.cx + h, o.x1, o.z0 - 0.06, o.z0 + 0.06);
+    if (i > 0) b('f2-part-' + i, o.x0 - 0.06, o.x0 + 0.06, o.z0, o.z1);
+    b('f2-desk-' + o.id, o.cx - 1.15, o.cx + 1.15, dz - 0.5, dz + 0.5); b('f2-cred-' + o.id, o.cx - 1.4, o.cx + 1.4, o.z1 - 0.55, o.z1); b('f2-shelf-' + o.id, o.x0, o.x0 + 0.4, o.z0 + 2.2, o.z0 + 4.4);
+    o2c.push(circle('f2-exec-' + o.id, o.cx, dz + 1.2 + Z, 0.38), circle('f2-guestw-' + o.id, o.cx - 0.85, dz - 1.35 + Z, 0.34), circle('f2-gueste-' + o.id, o.cx + 0.85, dz - 1.35 + Z, 0.34));
+  });
   b('f2-west', F2.x0 - 3, F2.x0, F2.z0 - 3, F2.z1 + 3);
   b('f2-east', F2.x1, F2.x1 + 3, F2.z0 - 3, F2.z1 + 3);
   // the lift cab on Floor 2: three walls, open to the east
@@ -85,6 +100,7 @@ export function bloomZones() {
   const z = (id, en, ar, minX, maxX, minZ, maxZ, extra) => ({ id, en, ar, index: 12, bloom: true, minX, maxX, minZ: minZ + BLOOM_Z0, maxZ: maxZ + BLOOM_Z0, ...extra });
   return [
     z('bloom-haneen', 'Haneen AI', 'حنين AI', -11.8, -6.4, 3.8, 9.4, { haneen: true }),
+    ...OFFICE_LIST.map((o) => z('bloom-office-' + o.id, o.title.en + ' office', 'مكتب ' + o.title.ar, o.x0 + 0.3, o.x1 - 0.3, WING.frontZ - 0.4, o.z1 - 0.3)),
     z('bloom-board', 'Boardroom: the video wall', 'قاعة مجلس الإدارة: شاشة الفيديو', 2.9, 17.6, -11.6, 1.6, { film: true }),
     z('bloom-ops', 'Staff operations', 'عمليات الموظفين', -17.6, -2.2, -11.6, 1.6),
     z('bloom-leads', 'Leads wall', 'جدار العملاء المحتملين', -17, 5, 2.2, 11.4),
@@ -101,12 +117,13 @@ export function bloomGraph() {
   const nodes = {
     cab: n(-16.5, 10.4), cabOut: n(-14.2, 10.4), lobbyW: n(-13, 4.4), lobbyC: n(-4.5, 4.4), lobbyE: n(0.2, 4.4), doorS: n(1.9, 3.5), inS: n(1.9, 0.8), lounge: n(8.6, 6.6),
     boardW: n(0.4, -7.8), boardSW: n(0.9, -1.0), boardWd: n(-0.9, -2.75), boardN: n(5, -9.6), boardS: n(4.4, -0.6), boardE: n(15, -0.2), boardNE: n(15.2, -9.8),
+    wingOut: n(4.3, 10.2), wingIn: n(4.3, 13.6), corr: n(4.3, 14.6), ...Object.fromEntries(OFFICE_LIST.flatMap((o) => [['cd-' + o.id, n(o.cx, 14.6)], ['oin-' + o.id, n(o.cx, 17.0)]])),
     opsDoor: n(-3.4, -2.75), opsE: n(-5.2, -2.75), opsMid: n(-10, -7.25), opsS: n(-10, -2.75), opsNW: n(-10, -11), hn: n(-7.2, 4.6),
   };
   const edges = [['cab', 'cabOut'], ['cabOut', 'lobbyW'], ['lobbyW', 'lobbyC'], ['lobbyC', 'lobbyE'], ['lobbyE', 'doorS'], ['doorS', 'inS'], ['inS', 'boardS'], ['boardS', 'boardSW'], ['boardSW', 'boardW'], ['boardW', 'boardN'], ['boardS', 'boardE'], ['boardE', 'boardNE'], ['boardNE', 'boardN'],
-    ['lobbyE', 'lounge'], ['boardSW', 'boardWd'], ['boardWd', 'opsDoor'], ['opsDoor', 'opsE'], ['opsE', 'opsS'], ['opsS', 'opsMid'], ['opsMid', 'opsNW'], ['lobbyC', 'hn']];
+    ['lobbyE', 'lounge'], ['boardSW', 'boardWd'], ['boardWd', 'opsDoor'], ['opsDoor', 'opsE'], ['opsE', 'opsS'], ['opsS', 'opsMid'], ['opsMid', 'opsNW'], ['lobbyC', 'hn'], ['lobbyE', 'wingOut'], ['wingOut', 'wingIn'], ['wingIn', 'corr'], ...OFFICE_LIST.flatMap((o) => [['corr', 'cd-' + o.id], ['cd-' + o.id, 'oin-' + o.id]])];
   const stops = BLOOM_STOPS.map((s, i) => ({ id: s.id, index: 12 + i, side: 'center', stand: s.stand, look: s.look, bay: null }));
-  const link = { 'bloom-lobby': 'lobbyC', 'bloom-board': 'boardS', 'bloom-ops': 'opsMid', 'bloom-leads': 'lobbyC', 'bloom-lounge': 'lounge', 'bloom-haneen': 'hn' };
+  const link = { ...Object.fromEntries(OFFICE_LIST.map((o) => ['bloom-office-' + o.id, 'oin-' + o.id])), 'bloom-lobby': 'lobbyC', 'bloom-board': 'boardS', 'bloom-ops': 'opsMid', 'bloom-leads': 'lobbyC', 'bloom-lounge': 'lounge', 'bloom-haneen': 'hn' };
   for (const s of stops) { nodes['stand-' + s.id] = s.stand; edges.push([link[s.id], 'stand-' + s.id]); }
   return { nodes, edges, stops };
 }
@@ -127,4 +144,27 @@ export function bloomBigView(aspect = 16 / 9, fov = 46, fill = 0.94, centred = f
   const a = Math.max(0.4, aspect), vf = (fov * Math.PI) / 180, hf = 2 * Math.atan(Math.tan(vf / 2) * a), half = (SCREEN.w / 2) / fill, dist = Math.min(10.5, Math.max(3.4, half / Math.tan(hf / 2)));
   const y = centred ? SCREEN.y : 1.55;
   return { pos: [SCREEN.x - 0.012 - dist, y, SCREEN.z + BLOOM_Z0], look: [SCREEN.x, centred ? SCREEN.y : SCREEN.y - 0.05, SCREEN.z + BLOOM_Z0], fov };
+}
+
+// ---------------------------------------------------------------- chairs: ONE list for the scene and the tests
+/** forward vector of a chair / sofa built facing local +x and rotated about Y by ry (three.js: +x -> (cos ry, 0, -sin ry)) */
+export const facing = (ry) => [Math.cos(ry), -Math.sin(ry)];
+/** the ry that makes a seat at (x, z) face the point (tx, tz) */
+export const faceTo = (x, z, tx, tz) => Math.atan2(-(tz - z), tx - x);
+export function seatList() {
+  const out = [], T = TABLE;
+  for (let i = 0; i < 6; i++) { const x = T.x - 2.5 + i; out.push({ id: 'board-n' + i, kind: 'leader', x, z: T.z - 1.18, ry: -Math.PI / 2, target: [x, T.z] }, { id: 'board-s' + i, kind: 'leader', x, z: T.z + 1.18, ry: Math.PI / 2, target: [x, T.z] }); }   // north row faces +z, south row faces -z
+  out.push({ id: 'board-head', kind: 'leader', x: T.x - T.w / 2 - 0.55, z: T.z, ry: 0, target: [T.x, T.z], big: 1.12 });
+  PODS.forEach((p, i) => { for (const s of [-1, 1]) for (const dx of [-0.8, 0.8]) out.push({ id: `pod${i}-${s < 0 ? 'n' : 's'}${dx < 0 ? 'w' : 'e'}`, kind: 'task', x: p.x + dx, z: p.z + s, ry: s > 0 ? Math.PI / 2 : -Math.PI / 2, target: [p.x + dx, p.z] }); });
+  OFFICE_LIST.forEach((o) => {
+    const dz = o.z1 - 2.9, ez = dz - 1.2;   // desk centre z, executive chair z
+    out.push({ id: o.id + '-exec', kind: 'exec', x: o.cx, z: dz + 1.2, ry: faceTo(o.cx, dz + 1.2, o.cx, dz), target: [o.cx, dz], big: 1.1 });
+    for (const sx of [-1, 1]) out.push({ id: o.id + '-guest' + (sx < 0 ? 'w' : 'e'), kind: 'guest', x: o.cx + sx * 0.85, z: dz - 1.35, ry: faceTo(o.cx + sx * 0.85, dz - 1.35, o.cx + sx * 0.85, dz), target: [o.cx + sx * 0.85, dz] });   // straight at the desk, square to it
+  });
+  return out;
+}
+export const LOUNGE_TABLE = [LOUNGE.x + 0.9, LOUNGE.z];
+export function sofaList() {
+  const a = [LOUNGE.x + 2.3, LOUNGE.z], b = [LOUNGE.x - 0.6, LOUNGE.z + 1.5], c = [LOUNGE.x - 0.6, LOUNGE.z - 1.5];
+  return [{ id: 'sofa-a', x: a[0], z: a[1], ry: faceTo(a[0], a[1], ...LOUNGE_TABLE), target: LOUNGE_TABLE, w: 2.4, seats: 3 }, { id: 'sofa-b', x: b[0], z: b[1], ry: faceTo(b[0], b[1], ...LOUNGE_TABLE), target: LOUNGE_TABLE, w: 2.1, seats: 2 }, { id: 'sofa-c', x: c[0], z: c[1], ry: faceTo(c[0], c[1], ...LOUNGE_TABLE), target: LOUNGE_TABLE, w: 1.6, seats: 1, leather: true }];
 }

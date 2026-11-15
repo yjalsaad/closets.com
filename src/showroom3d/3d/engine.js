@@ -134,7 +134,7 @@ export class ShowroomEngine {
       this._f = { vis: groups.map((g) => g.visible), sunI: this.sun.intensity, sunC: this.sun.castShadow, sunPos: this.sun.position.clone(), sunCol: this.sun.color.getHex(), sunT: this.sun.target.position.clone(), fog: [scene.fog.color.getHex(), scene.fog.density], clear: r.getClearColor(new THREE.Color()).getHex(), pl: this.pointLights.map((l) => [l.position.clone(), l.intensity, l.color.getHex(), l.distance]), avatar: this.avatar ? this.avatar.group.visible : false };
       groups.forEach((g) => { g.visible = false; }); this.sun.castShadow = false; this.sun.color.setHex(0xdde4ff); this.sun.intensity = this.tier.pointLights ? 2.6 : 4.2; this.sun.target.position.set(0, 0, 150); this.sun.position.set(-30, 120, 190);   // the moon: a cool directional fill (the hall's hemisphere light is not in the scene)
       scene.fog.color.setHex(0x0b1428); scene.fog.density = 0.0011; r.setClearColor(0x050a14, 1);
-      const Z = 150, spots = [[8, 3.7, -5], [-10, 3.7, -5], [-4, 3.7, 7], [12, 3.7, 6], [4, 3.7, -9.5], [-9, 3.7, 5]];
+      const Z = 150, spots = [[8, 3.7, -5], [-10, 3.7, -5], [-4, 3.7, 7], [12, 3.7, 6], [-6, 3.3, 18.5], [6, 3.3, 18.5]];   // (the last two light the executive wing)
       this.pointLights.forEach((l, i) => { const p = spots[i % spots.length]; l.position.set(p[0], p[1], p[2] + Z); l.intensity = 42; l.color.setHex(0xffe0b8); l.distance = 24; });
       b.lift.group.visible = false; b.floor.setActive(true);
       if (!this._bloomCompiled) { this._bloomCompiled = true; try { this.renderer.compile(this.scene, this.camera); } catch (e) { /* the first render compiles */ } }   // the Floor 2 shaders compile once, behind the lift fade
