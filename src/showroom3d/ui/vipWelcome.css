@@ -1,0 +1,11 @@
+/* Welcome slide of the VIP presentation (panel + reading mode). Tokens only (showroom.css defines the --sr-* / --space-* / --radius-* scales); the flags carry their own national colours as SVG attributes. */
+.sr-vip-welcome { display: grid; gap: var(--space-4); }
+.sr-vip-meetline { display: grid; gap: var(--space-1); margin: 0; padding: var(--space-3) var(--space-4); border: 1px solid var(--sr-orange); border-radius: var(--radius-md); }
+.sr-vip-meetkick { font-size: var(--fs-sm); font-weight: 600; letter-spacing: .02em; color: var(--sr-orange); }
+.sr-vip-meetdate { font-size: var(--fs-xl); font-weight: 800; color: var(--sr-on-dark); }
+.sr-vip-flags { display: flex; flex-wrap: wrap; gap: var(--space-4); margin: 0; padding: 0; list-style: none; align-items: flex-end; }
+.sr-vip-flags li { display: grid; gap: var(--space-2); justify-items: center; text-align: center; font-size: var(--fs-sm); color: var(--sr-on-dark-2); }
+.sr-flag { display: block; height: var(--space-8); width: auto; border: 1px solid var(--sr-on-dark-2); border-radius: var(--radius-sm); }
+.sr-flag--bh { aspect-ratio: 5 / 3; } .sr-flag--sa { aspect-ratio: 3 / 2; }
+.sr-vip-reader .sr-flag { height: var(--space-9); }
+.sr-panel .sr-vip-welcome .sr-lead { font-size: var(--fs-base); }   /* the bottom sheet is short: the date line must show without scrolling */

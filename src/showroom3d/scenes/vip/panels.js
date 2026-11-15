@@ -9,6 +9,8 @@ import { AGENDA, KIND_LABEL, MEETING_TITLE } from '../../vip/meeting';
 import { businessLines } from '../../products/vipContent';
 import { projectCard } from '../../products/projectsFeed';
 import { clamp01, easeOutCubic, stagger, countValue, formatNumber } from '../../vip/motion';
+import { FLAGS, drawFlag } from '../../vip/flags';
+import { resolveWelcome } from '../../vip/welcome';
 
 const Lx = C.L;
 /** small drawing toolkit bound to a canvas context + language */
@@ -131,7 +133,31 @@ export function drawHolo(g, w, h, o) {
 
 // ================================================================ decks: generic slides + deck chips on the wall screen
 /** the rich built-in renderers, by the `builtin` key of a default-deck slide */
-export const BUILTIN_DRAW = { story: drawStory, projects: drawProjectsScreen, hub: drawHub, contact: drawContact, film: drawFilmIdle, meeting: drawMeeting };
+/** the WELCOME slide: greeting, the meeting date (derived: "tomorrow" only while it is tomorrow, see vip/welcome.js) and the two guest flags (Bahrain, Saudi Arabia) at their official proportions.
+ *  o: { lang, welcome (CMS config or {}), now? }. Static (no animation): the flags are never distorted. */
+export function drawWelcome(g, w, h, o) {
+  const k = kit(g, w, h, o.lang), { lang } = o, X = 70, names = { bh: FLAGS.bh.name, sa: FLAGS.sa.name }, W = resolveWelcome(o.welcome, lang, o.now || new Date(), names);
+  k.bg(P.brandBrown, P.ink);
+  g.fillStyle = hex(P.brandOrange); g.fillRect(k.rtl ? w - X - 90 : X, 32, 90, 5); k.text(lang === 'ar' ? 'غرفة الاجتماعات VIP' : 'VIP MEETING ROOM', k.mx(X), 76, { size: 26, weight: 600, color: P.brassPale });
+  const colW = Math.round(w * 0.5) - X;
+  k.text(W.title, k.mx(X), 214, { size: 96, weight: 800, color: P.sand });
+  k.para(W.line, k.mx(X), 300, colW, { size: 38, weight: 600, color: P.sand, lh: 54 });
+  // the two flags: same height, official proportions, Bahrain first in reading order (alphabetical), each named underneath; a hairline keeps the white edge of Bahrain's flag readable on the dark ground
+  const fh = 200, gap = 44, fws = { bh: fh * FLAGS.bh.w / FLAGS.bh.h, sa: fh * FLAGS.sa.w / FLAGS.sa.h }, total = fws.bh + fws.sa + gap, regionX = k.rtl ? X : w - X - total, top = 190;
+  const order = k.rtl ? ['sa', 'bh'] : ['bh', 'sa'];   // physical left-to-right order: Bahrain first in English, first (= rightmost) in Arabic
+  let x = regionX; order.forEach((id) => {
+    const fw = fws[id]; drawFlag(g, id, x, top, fw, fh); g.strokeStyle = rgba(P.sand, 0.45); g.lineWidth = 2; g.strokeRect(x - 1, top - 1, fw + 2, fh + 2);
+    k.para(Lx(names[id], lang), x + fw / 2, top + fh + 46, fw + gap - 8, { size: 26, weight: 600, color: P.sand, lh: 32, align: 'center' }); x += fw + gap;
+  });
+  if (W.meeting) {   // the meeting line: a full-width band (kicker, then the date big)
+    const by = 560, bh = 168, bx = X, bw = w - 2 * X; k.card(bx, by, bw, bh, { fill: rgba(P.sand, 0.06), line: rgba(P.brass, 0.7) });
+    const ax = k.rtl ? bx + bw - 40 : bx + 40;
+    k.text(W.meeting.kicker, ax, by + 62, { size: 34, weight: 700, color: P.brandOrange, max: bw - 80 });
+    k.text(W.meeting.date, ax, by + 134, { size: 62, weight: 800, color: P.sand, max: bw - 80 });
+  }
+  k.para(Lx(C.DISCLAIMER, lang), k.mx(X), h - TYPE.safeBottom + 6, w - 2 * X, { size: TYPE.fine, weight: 500, color: P.sand, lh: 28 });
+}
+export const BUILTIN_DRAW = { story: drawStory, projects: drawProjectsScreen, hub: drawHub, contact: drawContact, film: drawFilmIdle, meeting: drawMeeting, welcome: drawWelcome };
 const ACCENT = { orange: P.brandOrange, brass: P.brassPale, sand: P.sand, sage: P.ikMint };
 
 /** deck chips along the top of the wall screen (only drawn when there is more than one deck). Pure layout in design pixels, shared by the drawing and the click hit-test. */

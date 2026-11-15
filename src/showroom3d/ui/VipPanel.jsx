@@ -8,6 +8,7 @@ import { MAX_USER_DECKS } from '../vip/deckStore';
 import { SlideBody } from './VipSlide';
 import { VipDeckDialog } from './VipDeckDialog';
 import { VipReader } from './VipReader';
+import { WelcomeBody } from './VipWelcome';
 import { FilmBody, FilmControls, VipCinema, MeetingBody } from './VipFilm';
 import { nextAgendaItem } from '../vip/meeting';
 
@@ -71,7 +72,7 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
   useEffect(() => { if (headRef.current) headRef.current.focus({ preventScroll: true }); }, [st.focus, idx, deck.id]);
   useEffect(() => { setConfirmDel(false); }, [deck.id]);
   const rtl = lang === 'ar', unit = deck.unit === 'station' ? t('vipStationOf', lang) : t('vipSlideOf', lang), user = !deck.builtin, bi = raw.builtin ? BUILTIN_IDX[raw.builtin] : -1;
-  const isFilm = raw.builtin === 'film', isAgenda = raw.builtin === 'meeting', fs = isFilm && ex.film ? ex.film.state : null, nextItem = ex.agendaNow && (ex.meetingOn || deck.meeting) ? nextAgendaItem(ex.agendaNow()) : null;
+  const isWelcome = raw.builtin === 'welcome', pre = deck.preface || 0, isFilm = raw.builtin === 'film', isAgenda = raw.builtin === 'meeting', fs = isFilm && ex.film ? ex.film.state : null, nextItem = ex.agendaNow && (ex.meetingOn || deck.meeting) ? nextAgendaItem(ex.agendaNow()) : null;
   const portrait = !!(ex.canvas && ex.canvas.clientWidth && ex.canvas.clientHeight / ex.canvas.clientWidth > 1.1), dom = reading0(ex) && portrait && !isFilm;
   const play = ex.play || { playing: false, speed: 1, loop: true }, mode = ex.presMode || 'panel', prog = typeof st.vipProgress === 'number' ? st.vipProgress : -1, big = mode !== 'panel', reading = mode === 'read';
   const cine = !!ex.cinema;
@@ -82,7 +83,7 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
     <aside className="sr-panel sr-panel-vip" aria-label={t('vipAria', lang)} data-testid="sr-vip-panel" data-station={raw.id} data-deck={deck.id} data-mode={mode} data-playing={play.playing ? '1' : '0'} dir={rtl ? 'rtl' : 'ltr'}>
       <header className="sr-panel-head">
         <p className="sr-eyebrow">{t('vipKicker', lang)}</p>
-        <p className="sr-vip-count" data-testid="sr-vip-count">{unit} <b>{idx + 1}</b> / {n}</p>
+        <p className="sr-vip-count" data-testid="sr-vip-count">{idx < pre ? (lang === 'ar' ? 'ترحيب' : 'Welcome') : <>{unit} <b>{idx + 1 - pre}</b> / {n - pre}</>}</p>
         <h2 tabIndex={-1} ref={headRef} data-testid="sr-vip-title">{slide.title}</h2>
         <button type="button" className="sr-btn sr-btn-line sr-panel-close" onClick={() => ex.exitFocus()} data-testid="sr-panel-close">{t('panelBack', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">Esc</kbd>}</button>
         <div className="sr-vip-deckbar" data-testid="sr-vip-deckbar">
@@ -98,7 +99,7 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
             <button type="button" className="sr-btn sr-btn-line" onClick={() => setConfirmDel(false)} data-testid="sr-vip-deck-delete-no">{t('vipDeckKeep', lang)}</button></div>}
         </div>
       </header>
-      <div className="sr-panel-body" aria-live="polite">{isAgenda ? <MeetingBody lang={lang} ex={ex} /> : isFilm ? <FilmBody lang={lang} fs={fs} fallbackTitle={raw.title} /> : bi >= 0 ? <Station lang={lang} idx={bi} ex={ex} st={st} /> : <SlideBody key={deck.id + ':' + raw.id} lang={lang} slide={slide} reduced={reduced} tier={tier} />}</div>
+      <div className="sr-panel-body" aria-live="polite">{isAgenda ? <MeetingBody lang={lang} ex={ex} /> : isFilm ? <FilmBody lang={lang} fs={fs} fallbackTitle={raw.title} /> : isWelcome ? <WelcomeBody lang={lang} cfg={ex.welcome} /> : bi >= 0 ? <Station lang={lang} idx={bi} ex={ex} st={st} /> : <SlideBody key={deck.id + ':' + raw.id} lang={lang} slide={slide} reduced={reduced} tier={tier} />}</div>
       <footer className="sr-panel-foot">
         {!big && raw.builtin === 'contact' && <a className="sr-btn sr-quote" href={C.contactUrl(lang)} data-testid="sr-vip-cta">{t('vipContactCta', lang)}</a>}
         {!big && raw.builtin === 'contact' && <p className="sr-note">{t('vipContactNote', lang)}</p>}
@@ -125,7 +126,7 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
         </nav>}
         {!touch && !big && decks.length > 1 && <p className="sr-note sr-vip-keys">{t('vipDeckKeys', lang)}. {t(isFilm ? 'filmKeys' : 'vipPresentKeys', lang)}</p>}
       </footer>
-      {dom && createPortal(<VipReader lang={lang} deckTitle={rd.title} slide={slide} raw={raw} idx={idx} n={n} touch={touch} reduced={reduced} tier={tier} onPrev={() => ex.stepStation(-1)} onNext={() => ex.stepStation(1)} onExit={() => ex.setPresentMode('panel')} />, (ex.canvas && ex.canvas.parentNode) || document.body)}
+      {dom && createPortal(<VipReader welcome={ex.welcome} lang={lang} deckTitle={rd.title} slide={slide} raw={raw} idx={idx} n={n} touch={touch} reduced={reduced} tier={tier} onPrev={() => ex.stepStation(-1)} onNext={() => ex.stepStation(1)} onExit={() => ex.setPresentMode('panel')} />, (ex.canvas && ex.canvas.parentNode) || document.body)}
       {isFilm && ex.cinema && createPortal(<VipCinema lang={lang} ex={ex} />, (ex.canvas && ex.canvas.parentNode) || document.body)}
       {adding && createPortal(<VipDeckDialog lang={lang} ex={ex} max={MAX_USER_DECKS} onClose={() => { setAdding(false); }} />, (ex.canvas && ex.canvas.parentNode) || document.body)}
     </aside>

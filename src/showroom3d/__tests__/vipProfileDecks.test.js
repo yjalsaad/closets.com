@@ -1,4 +1,4 @@
-/* The two profile decks (The Closets - Company Profile, YAS Profile 2023): schema, EN+AR parity, sources, honesty, images on disk, Hub export files. */
+/* The two profile decks (The Closets - Company Profile, YAS Profile 2026): schema, EN+AR parity, sources, honesty, images on disk, Hub export files. */
 import fs from 'fs';
 import path from 'path';
 import { CLOSETS_PROFILE_DECK } from '../vip/decks/closets-profile';

@@ -27,6 +27,7 @@ import { nextAvatar, AVATARS } from '../characters/visitorAvatar';
 const store = { get(k, d) { try { return window.localStorage.getItem(k) || d; } catch (e) { return d; } }, set(k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* ignore */ } } };
 import { stepStation, arrowDir } from '../products/vipContent';
 import { loadSiteProjects } from '../products/projectsFeed';
+import { loadWelcomeConfig } from '../vip/welcome';
 import { withCollections, collectionsZones } from '../collections/layout';
 import { withDesignStudio, studioZones } from '../designstudio/layout';
 
@@ -36,8 +37,8 @@ const MOVE_KEYS = { KeyW: 'f', ArrowUp: 'f', KeyS: 'b', ArrowDown: 'b', KeyA: 'l
 const editable = (el) => !!el && (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable);
 
 export class Explorer {
-  constructor({ engine, canvas, reduced = false, bob = true, onState = () => {}, projectsLoader = loadSiteProjects, deckStore = makeDeckStore() }) {
-    this.projectsLoader = projectsLoader; this.projectsPromise = null;
+  constructor({ engine, canvas, reduced = false, bob = true, onState = () => {}, projectsLoader = loadSiteProjects, welcomeLoader = loadWelcomeConfig, deckStore = makeDeckStore() }) {
+    this.projectsLoader = projectsLoader; this.projectsPromise = null; this.welcomeLoader = welcomeLoader; this.welcomePromise = null; this.welcome = {};
     this.deckStore = deckStore; this.userDecks = deckStore.list(); this.vipDialog = false; this.decksRev = 0; this.play = initPlay(); this.presMode = 'panel'; this.lastProg = -1; this.meetingOn = false; this.ds = initDeckState(this.deckIds(), this.initialDeck(), 0, this.deckCounts());
     // owner decision: every visit starts in first person; the toggle (and the stored avatar choice) stays
     this.camMode = 'first'; this.avatarKind = AVATARS[store.get('closets_yb_avatar', 'female')] ? store.get('closets_yb_avatar', 'female') : 'female'; this.tp = null;
@@ -289,7 +290,7 @@ export class Explorer {
   /** camera pose for a slide: the built-in stations keep their own poses, every other slide faces the wall screen */
   vipView(i) {
     if (this.presMode !== 'panel') { const r = this.canvas.getBoundingClientRect(), w = r.width || 1280, h = r.height || 720, bar = this.presBar(), read = this.presMode === 'read', fill = Math.max(0.5, Math.min(read ? 1 : 0.94, ((h - bar - 10) * 16 / 9) / w)); return bigScreenView(w / h, read ? 40 : 46, fill, true); }   // presenting: the whole wall fits the view ABOVE the slim presenter bar (nothing on the wall is covered)
-    const sl = this.deck.slides[i]; return sl && sl.builtin && VIP_VIEWS[i] ? VIP_VIEWS[i] : VIP_VIEWS[0];
+    const sl = this.deck.slides[i]; return (sl && sl.builtin && VIP_VIEWS.find((v) => v.id === sl.id)) || VIP_VIEWS[0];   // by slide id (a lead-in slide such as the Welcome has no pose of its own: it faces the wall like the first station)
   }
   /** height (px) the presenter bar takes at the bottom of the view in the big / reading modes */
   presBar() { const w = (this.canvas && this.canvas.clientWidth) || 1280; return this.presMode === 'read' ? 68 : w > 760 ? (this.filmOn ? (this.deck.meeting ? 162 : 132) : 96) : 190; }
@@ -306,7 +307,7 @@ export class Explorer {
   focusVip(i = 0) {
     const P = this.products; if (!this.enabled || !P || !P.vip) return false;
     this.ds = deckReducer(this.ds, { type: 'slide', index: i }); const idx = this.ds.slide; this.startFocus('vip', 'vip'); this.focus.view = this.vipSlideId(idx); this.focus.station = idx;
-    P.setFocusPart(null); P.setHover(null); P.vip.setFocus(true); P.vip.enter(); P.vip.setDeck(this.deck, this.allDecks(), idx); this.syncFilm(); this.ensureProjects();
+    P.setFocusPart(null); P.setHover(null); P.vip.setFocus(true); P.vip.enter(); P.vip.setDeck(this.deck, this.allDecks(), idx); this.syncFilm(); this.ensureProjects(); this.ensureWelcome();
     const v = this.vipView(idx); this.flyTo({ pos: v.pos, look: v.look, fov: v.fov });
     this.decksRev++; this.emit({ focus: 'vip', focusKind: 'vip', focusView: this.vipSlideId(idx), vipStation: idx, vipDeck: this.deck.id, vipDecksRev: this.decksRev, partFocus: null, prod: ++this.rev }); return true;
   }
@@ -419,6 +420,12 @@ export class Explorer {
     if (this.projectsPromise || !this.products || !this.products.vip) return this.projectsPromise;
     this.projectsPromise = Promise.resolve().then(() => this.projectsLoader()).then((res) => { const r = res || { status: 'error', rows: [] }; if (this.products && this.products.vip) this.products.vip.setProjects(r); this.vipRows = r.rows; this.emit({ vipProjects: r.status, vipProjectsRev: (this.vipProjectsRev = (this.vipProjectsRev || 0) + 1) }); return r; }).catch(() => null);
     return this.projectsPromise;
+  }
+  /** the Welcome slide's meeting date / greeting from the site's CMS (one read-only GET, first VIP entry); any failure keeps the committed defaults (vip/welcome.js) */
+  ensureWelcome() {
+    if (this.welcomePromise || !this.products || !this.products.vip) return this.welcomePromise;
+    this.welcomePromise = Promise.resolve().then(() => this.welcomeLoader()).then((cfg) => { this.welcome = cfg || {}; if (this.products && this.products.vip) this.products.vip.setWelcome(this.welcome); this.emit({ vipWelcomeRev: (this.vipWelcomeRev = (this.vipWelcomeRev || 0) + 1) }); return this.welcome; }).catch(() => null);
+    return this.welcomePromise;
   }
   focusStage(viewId = 'overview') {
     if (!this.enabled || !this.products) return false;
