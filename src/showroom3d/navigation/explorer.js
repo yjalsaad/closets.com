@@ -30,6 +30,8 @@ import { stepStation, arrowDir } from '../products/vipContent';
 import { loadSiteProjects } from '../products/projectsFeed';
 import { loadWelcomeConfig } from '../vip/welcome';
 import { withCollections, collectionsZones } from '../collections/layout';
+import { bloomBoxes, bloomZones, bloomGraph, withBloomLift, ARRIVE, REVEAL, WALL_VIEW, LIFT_STAND, bloomBigView } from '../scenes/bloom/layout';
+import { FILM_V2_DECK_ID, JOURNEY_V2_ID } from '../vip/film';
 import { withDesignStudio, studioZones } from '../designstudio/layout';
 
 export const SENS = { mouse: 0.0022, drag: 0.0036, touch: 0.0052 };   // radians per pixel
@@ -40,12 +42,12 @@ const editable = (el) => !!el && (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) |
 export class Explorer {
   constructor({ engine, canvas, reduced = false, bob = true, onState = () => {}, projectsLoader = loadSiteProjects, welcomeLoader = loadWelcomeConfig, deckStore = makeDeckStore() }) {
     this.projectsLoader = projectsLoader; this.projectsPromise = null; this.welcomeLoader = welcomeLoader; this.welcomePromise = null; this.welcome = {};
-    this.deckStore = deckStore; this.userDecks = deckStore.list(); this.vipDialog = false; this.decksRev = 0; this.play = initPlay(); this.presMode = 'panel'; this.lastProg = -1; this.meetingOn = false; this.ds = initDeckState(this.deckIds(), this.initialDeck(), 0, this.deckCounts());
+    this.deckStore = deckStore; this.userDecks = deckStore.list(); this.vipDialog = false; this.haneenN = 0; this.decksRev = 0; this.play = initPlay(); this.presMode = 'panel'; this.lastProg = -1; this.meetingOn = false; this.ds = initDeckState(this.deckIds(), this.initialDeck(), 0, this.deckCounts());
     // owner decision: every visit starts in first person; the toggle (and the stored avatar choice) stays
     this.camMode = 'first'; this.avatarKind = AVATARS[store.get('closets_yb_avatar', 'female')] ? store.get('closets_yb_avatar', 'female') : 'female'; this.tp = null;
     this.engine = engine; this.canvas = canvas; this.onState = onState; this.reduced = reduced;
-    this.graph = withDesignStudio(withCollections(buildGraph())); this.zones = [...studioZones(), ...collectionsZones(), ...allZones()];
-    this.doorOpen = true; this.vipOpen = true; this.colliders = buildColliders({ doorOpen: 1, oliveCount: engine.tierId === 'low' ? 2 : 4, vipOpen: 1 });
+    this.graph = withBloomLift(withDesignStudio(withCollections(buildGraph()))); this.hallGraph = this.graph; this.bloomGraph = bloomGraph(); this.level = 'ground'; this.rideBusy = false; this.zones = [...studioZones(), ...collectionsZones(), ...bloomZones(), ...allZones()];
+    this.doorOpen = true; this.vipOpen = true; this.liftOn = !!engine.bloom; this.colliders = buildColliders({ doorOpen: 1, oliveCount: engine.tierId === 'low' ? 2 : 4, vipOpen: 1, lift: this.liftOn });
     this.walker = new Walker({ pos: [HANDOVER.p[0], HANDOVER.p[2]], colliders: this.colliders, bob });
     this.keys = new Set(); this.touch = { x: 0, y: 0, jog: false };
     this.enabled = false; this.paused = false; this.uiOpen = false; this.glide = null;
@@ -189,6 +191,10 @@ export class Explorer {
     const z = this.zone, P = this.products;
     if (z && z.collections) { this.emit({ collections: this.interactions }); return; }          // the Collections wall: the React layer opens its panel
     if (z && z.designStudio) { if (this.engine.designStudio) this.engine.designStudio.pulseHalo(); this.emit({ designStudio: this.interactions, designStudioId: this.studioTarget(z, pickedSection) }); return; }   // the Kitchen Design Studio: the React layer opens the full-viewport designer
+    if (z && z.lift) { this.rideTo(z.lift); return; }                                         // the glass lift (ground floor <-> Floor 2)
+    if (z && z.haneen) { this.emit({ haneen: ++this.haneenN }); return; }                       // Haneen AI desk: the React layer opens the investor assistant
+    if (z && z.film) { this.focusBloom(); return; }                                          // Boardroom: the video wall
+    if (z && z.bloom) { this.glideTo(z.id); return; }                                        // the other Floor 2 zones: walk up to them
     if (z && z.vip && P && P.vip) { this.focusVip(0); return; }
     if (z && z.stage && P) { this.focusStage('overview'); return; }          // (no "later release" toast: the panel is the response)
     const pid = z && P ? P.productAt(z.id) : null;
@@ -302,6 +308,7 @@ export class Explorer {
   get deck() { return this.allDecks().find((d) => d.id === this.ds.deckId) || PERMANENT_DECKS[0]; }
   /** camera pose for a slide: the built-in stations keep their own poses, every other slide faces the wall screen */
   vipView(i) {
+    if (this.level === 'l2') { if (this.presMode === 'panel') return WALL_VIEW; const r = this.canvas.getBoundingClientRect(), w = r.width || 1280, h = r.height || 720, bar = this.presBar(), read = this.presMode === 'read', fill = Math.max(0.5, Math.min(read ? 1 : 0.94, ((h - bar - 10) * 16 / 9) / w)); return bloomBigView(w / h, read ? 40 : 46, fill, true); }
     if (this.presMode !== 'panel') { const r = this.canvas.getBoundingClientRect(), w = r.width || 1280, h = r.height || 720, bar = this.presBar(), read = this.presMode === 'read', fill = Math.max(0.5, Math.min(read ? 1 : 0.94, ((h - bar - 10) * 16 / 9) / w)); return bigScreenView(w / h, read ? 40 : 46, fill, true); }   // presenting: the whole wall fits the view ABOVE the slim presenter bar (nothing on the wall is covered)
     const sl = this.deck.slides[i]; return (sl && sl.builtin && VIP_VIEWS.find((v) => v.id === sl.id)) || VIP_VIEWS[0];   // by slide id (a lead-in slide such as the Welcome has no pose of its own: it faces the wall like the first station)
   }
@@ -350,6 +357,7 @@ export class Explorer {
   // ---- Management meeting: the agenda (vip/meeting.js). Nothing advances by itself; a film with sound only starts on the visitor's action.
   agendaNow() { return agendaIndex(this.ds.deckId, this.ds.slide); }
   goAgenda(item, { play = false } = {}) {
+    if (item && item.kind === 'place') return this.goPlace(item);
     if (!item || !this.focus || this.focus.kind !== 'vip') return false; this.meetingOn = true;
     this.ds = deckReducer(deckReducer(this.ds, { type: 'deck', id: item.deck }), { type: 'slide', index: item.slide }); this.syncVip(true, { vipMeeting: true });
     if (play && item.kind === 'film') { const F = this.film; if (F) F.load().then(() => { /* the click that asked for it is the user gesture; if the browser no longer honours it the film simply stays on its poster */ this.filmToggle(); }); }
@@ -363,7 +371,7 @@ export class Explorer {
   get filmOn() { const sl = this.deck.slides[this.ds.slide]; return !!sl && sl.builtin === 'film'; }
   get filmId() { const sl = this.deck.slides[this.ds.slide]; return (sl && sl.filmId) || 'journey'; }
   ensureFilm() {
-    if (this.film) return this.film; const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl', w = (this.canvas && this.canvas.clientWidth) || 1280;
+    if (this.film) return this.film; const rtl = this.uiLang ? this.uiLang === 'ar' : typeof document !== 'undefined' && document.documentElement.dir === 'rtl', w = (this.canvas && this.canvas.clientWidth) || 1280;
     const mobile = w <= 700 || (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches), saveData = typeof navigator !== 'undefined' && navigator.connection && navigator.connection.saveData;
     const enabled = prefetchEnabled(typeof window !== 'undefined' ? window.location.search : ''), preloader = new FilmPreloader({ enabled, onChange: () => this.onFilm() });   // ?vipprefetch=0 switches the background download off
     this.film = new FilmPlayer({ lang: rtl ? 'ar' : 'en', device: { tier: this.engine.tierId, mobile, saveData: !!saveData }, onChange: () => this.onFilm(), preloader });
@@ -386,19 +394,24 @@ export class Explorer {
   filmView() {
     const F = this.film; if (!this.filmOn || !F) return null; const st = F.state, live = st.status === 'playing' || st.status === 'paused';
     const sl = this.deck.slides[this.ds.slide];
-    return { status: st.status, id: st.id, real: !!(st.film && st.film.real), burned: !!(st.film && st.film.burnedSubtitles), title: st.film ? st.film.title : (sl ? sl.title : null), poster: F.poster, prep: (() => { const q = F.prepOf(); return q.state === 'preparing' ? 'p' + Math.floor(q.pct / 5) * 5 : q.state; })(), video: live ? F.video : null, cue: st.caption === 'off' ? '' : st.cue, caption: st.caption, time: st.time, duration: st.duration };
+    return { status: st.status, id: st.id, real: !!(st.film && st.film.real), mixed: !!(st.film && st.film.mixed), burned: !!(st.film && st.film.burnedSubtitles), title: st.film ? st.film.title : (sl ? sl.title : null), poster: F.poster, prep: (() => { const q = F.prepOf(); return q.state === 'preparing' ? 'p' + Math.floor(q.pct / 5) * 5 : q.state; })(), video: live ? F.video : null, cue: st.caption === 'off' ? '' : st.cue, caption: st.caption, time: st.time, duration: st.duration };
   }
-  onFilm() { const P = this.products; if (P && P.vip && P.vip.setFilm) P.vip.setFilm(this.filmView()); this.emit({ vipFilmRev: (this.filmRev = (this.filmRev || 0) + 1) }); }
+  onFilm() { const P = this.products; if (P && P.vip && P.vip.setFilm) P.vip.setFilm(this.filmView()); this.bloomFilm(); this.emit({ vipFilmRev: (this.filmRev = (this.filmRev || 0) + 1) }); }
+  /** the Bloom video wall shows the same film state as the VIP screen (only while somebody is on Floor 2) */
+  bloomFilm() { const B = this.engine.bloom; if (B && this.level === 'l2') B.floor.setFilm(this.filmView()); }
   /** called whenever the deck / slide changes: the film entry loads its manifest; any other deck pauses the film and gives the wall back to the slides */
   syncFilm() {
     const P = this.products;
+    this.bloomFilm();
     if (this.filmOn) { const F = this.ensureFilm(); F.select(this.filmId); if (this.play.playing) this.play = playReducer(this.play, { type: 'pause' }); if (P && P.vip) { P.vip.setPlayback({ progress: -1 }); if (P.vip.setFilm) P.vip.setFilm(this.filmView()); } }
     else { if (this.film) this.film.pause(); if (this.cinema) this.setCinema(false); if (P && P.vip && P.vip.setFilm) P.vip.setFilm(null); }
   }
   /** play / pause from a user gesture (button, key, click on the wall) */
   filmToggle() { if (!this.filmOn || !this.film) return false; const st = this.film.state.status; if (st === 'missing' || st === 'loading' || st === 'idle') return false; if (st !== 'playing') this.filmHost(); return this.film.toggle(); }
   filmSeek(t) { if (this.film) this.film.seek(t); } filmSeekBy(dt) { if (this.film) this.film.seekBy(dt); }
-  filmVolume(v) { if (this.film) this.film.setVolume(v); } filmMute() { if (this.film) this.film.toggleMute(); } filmCaptions() { if (this.film) this.film.cycleCaptions(); }
+  filmVolume(v) { if (this.film) this.film.setVolume(v); } filmMute() { if (this.film) this.film.toggleMute(); } filmCaptions() { if (this.film) this.film.cycleCaptions(); } filmCaptionSet(v) { return this.film ? this.film.setCaption(v) : false; } filmCaptionToggle() { return this.film ? this.film.toggleCaptions() : false; }
+  /** the page language (English / Arabic): the film's captions follow it */
+  setLang(l) { this.uiLang = l === 'ar' ? 'ar' : 'en'; if (this.film) this.film.setLang(this.uiLang); this.onFilm(); }
   /** cinema mode: the same <video> as a normal HTML5 overlay with native controls and native captions */
   setCinema(on) {
     const F = this.film, want = !!on && this.filmOn && !!F && !!F.state.film && F.state.status !== 'missing'; if (want === !!this.cinema) return;
@@ -562,10 +575,10 @@ export class Explorer {
   // ---------------------------------------------------------------- department glide (GSAP)
   killGlide() { if (this.glide) { this.glide.kill(); this.glide = null; } }
   cancelGlide() { if (this.glide) { this.killGlide(); this.emit({ gliding: false }); } }
-  glideTo(id) {
-    if (!this.enabled) return false;
+  glideTo(id, onDone) {
+    if (!this.enabled || this.rideBusy) return false;
     if (this.focus) this.exitFocus(); if (this.fly) { this.fly.kill(); this.fly = null; } this.fc = null;
-    const route = routeTo(this.graph, this.walker.pos, id, buildColliders({ doorOpen: this.doorOpen ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4, vipOpen: 1 })); if (!route) return false;
+    const route = routeTo(this.graph, this.walker.pos, id, this.level === 'l2' ? this.colliders : buildColliders({ doorOpen: this.doorOpen ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4, vipOpen: 1, lift: !!this.engine.bloom })); if (!route) return false;
     this.killGlide(); this.keys.clear();
     const w = this.walker, pts = route.points, len = polylineLength(pts), stop = route.stop;
     const y0 = w.yaw, p0 = w.pitch;
@@ -575,7 +588,7 @@ export class Explorer {
       const e = k * k * (3 - 2 * k);                                                         // yaw / pitch settle with a smoothstep, position uses the GSAP ease
       const p = pointAlong(pts, k); w.pos = [p[0], p[1]]; w.vel = [0, 0]; w.yaw = y0 + dy * e; w.pitch = p0 + dp * e; w.speed = 0;
     };
-    const finish = () => { set(1); this.glide = null; if (stop.designStudio) this.studioFocus = id; this.apply(); this.emit({ gliding: false, arrived: id }); };   // arriving at a design studio by name remembers which one E should open
+    const finish = () => { set(1); this.glide = null; if (stop.designStudio) this.studioFocus = id; this.apply(); this.emit({ gliding: false, arrived: id }); if (onDone) onDone(); };   // arriving at a design studio by name remembers which one E should open
     this.emit({ gliding: true, glideTo: id, arrived: null });
     if (this.reduced || len < 0.05) { finish(); return true; }
     const v = { k: 0 };
@@ -592,10 +605,12 @@ export class Explorer {
   }
   update(dt) {
     if (!this.enabled) return;
-    const vOpen = !this.products || !this.products.vip || this.products.vip.doorOpen >= DOOR_OPEN_AT;
-    if (vOpen !== this.vipOpen) { this.vipOpen = vOpen; this.colliders = buildColliders({ doorOpen: this.doorOpen ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4, vipOpen: vOpen ? 1 : 0 }); this.walker.setColliders(this.colliders); }
+    const ground = this.level === 'ground', vOpen = !this.products || !this.products.vip || this.products.vip.doorOpen >= DOOR_OPEN_AT;
+    const liftNow = !!this.engine.bloom;   // the glass lift is solid only once it is visible (its lazy chunk has arrived)
+    if (ground && vOpen !== this.vipOpen) { this.vipOpen = vOpen; this.colliders = buildColliders({ doorOpen: this.doorOpen ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4, vipOpen: vOpen ? 1 : 0, lift: liftNow }); this.liftOn = liftNow; this.walker.setColliders(this.colliders); }
+    else if (ground && liftNow !== this.liftOn) { this.liftOn = liftNow; this.colliders = buildColliders({ doorOpen: this.doorOpen ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4, vipOpen: this.vipOpen ? 1 : 0, lift: liftNow }); this.walker.setColliders(this.colliders); }
     const open = (this.engine.state.doorOpen || 0) >= DOOR_OPEN_AT;
-    if (open !== this.doorOpen) { this.doorOpen = open; this.colliders = buildColliders({ doorOpen: open ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4, vipOpen: this.vipOpen ? 1 : 0 }); this.walker.setColliders(this.colliders); }
+    if (ground && open !== this.doorOpen) { this.doorOpen = open; this.colliders = buildColliders({ doorOpen: open ? 1 : 0, oliveCount: this.engine.tierId === 'low' ? 2 : 4, vipOpen: this.vipOpen ? 1 : 0, lift: liftNow }); this.liftOn = liftNow; this.walker.setColliders(this.colliders); }
     if (this.fc) this.walker.step(dt, {}, this.reduced);                                     // focused on a product: the walker stands still
     else if (!this.glide && !this.paused && !this.uiOpen) this.walker.step(dt, this.inputVector(), this.reduced);
     else if (this.paused || this.uiOpen) this.walker.step(dt, {}, this.reduced);
@@ -646,6 +661,49 @@ export class Explorer {
     if (!this.moveReported && w.travelled > 1.5) { this.moveReported = true; this.emit({ moved: true }); }
   }
 
+  // ---------------------------------------------------------------- Floor 2: the glass lift, the Boardroom video wall, the agenda destination
+  /** ride the glass lift to 'l2' (Bloom Meeting) or back to 'ground': fade, swap the floor, arrive in the lift cab and glide to the lobby (the entrance reveal). `focus`: then open the video wall. */
+  rideTo(id, { focus = false } = {}) {
+    if (!this.enabled || this.rideBusy) return false; const want = id === 'l2' ? 'l2' : 'ground', E = this.engine;
+    if (!E.bloom && !E.ensureBloom) return false;
+    if (!E.bloom) { this.emit({ riding: want }); E.ensureBloom().then((b) => { this.emit({ riding: false }); if (b && this.enabled) this.rideTo(id, { focus }); else if (!b) this.emit({ rideFailed: (this.rideFails = (this.rideFails || 0) + 1) }); }); return true; }
+    if (want === this.level) return false;
+    if (want === 'l2') this.prefetchBloomFilm();   // the film starts downloading during the ride (720p on an iPad, 1080p on a desktop)
+    this.rideBusy = true; if (this.focus) this.exitFocus(); this.killGlide(); if (this.fly) { this.fly.kill(); this.fly = null; } this.fc = null; this.keys.clear(); this.touch = { x: 0, y: 0, jog: false };
+    const B = E.bloom, w = this.walker, eye = PLAYER.eye, up = want === 'l2';
+    const swap = () => {
+      E.setFloor(want); this.level = want;
+      if (up) { this.colliders = bloomBoxes(); this.graph = this.bloomGraph; const yp = yawPitchFromLookAt([ARRIVE[0], eye, ARRIVE[1]], REVEAL.from.l); w.setColliders(this.colliders); w.setPose(ARRIVE[0], ARRIVE[1], yp.yaw, 0.02); }
+      else { this.graph = this.hallGraph; this.doorOpen = true; this.vipOpen = true; this.colliders = buildColliders({ doorOpen: 1, oliveCount: E.tierId === 'low' ? 2 : 4, vipOpen: 1, lift: true }); this.liftOn = true; const yp = yawPitchFromLookAt([LIFT_STAND[0], eye, LIFT_STAND[1]], [-3, 1.6, -22]); w.setColliders(this.colliders); w.setPose(LIFT_STAND[0], LIFT_STAND[1], yp.yaw, 0.03); if (this.products && this.products.snap) this.products.snap(E.camera); }
+      w.travelled = 0; w.step(1e-4, {}); this.zone = null; this.apply(); B.lift.setRide(0); this.emit({ level: want, floor: want, zone: null });
+    };
+    const done = () => { this.rideBusy = false; this.emit({ riding: false, veil: 0, arrived: 'floor:' + want }); if (up) this.glideTo('bloom-lobby', focus ? () => this.focusBloom() : undefined); };
+    this.emit({ riding: want, veil: 1 });
+    if (this.reduced) { swap(); done(); return true; }
+    const v = { k: 0 }; const tl = gsap.timeline();
+    if (!up) tl.add(() => B.lift.setRide(0)); else tl.to(v, { k: 1, duration: 0.95, ease: 'power2.in', onUpdate: () => B.lift.setRide(v.k) });
+    tl.add(swap, up ? 0.95 : 0.75).add(done, up ? 1.55 : 1.35); this.rideTl = tl; return true;
+  }
+  /** Boardroom: E at the video wall. The film "Journey v2" goes on the Bloom wall (paused: Play is a user gesture) and the VIP panel (film controls, captions, cinema) drives it. */
+  focusBloom() {
+    const P = this.products; if (!this.enabled || !P || !P.vip || this.level !== 'l2') return false;
+    this.meetingOn = false; this.ds = deckReducer(deckReducer(this.ds, { type: 'deck', id: FILM_V2_DECK_ID }), { type: 'slide', index: 0 }); const idx = this.ds.slide;
+    this.startFocus('vip', 'vip'); this.focus.view = this.vipSlideId(idx); this.focus.station = idx; P.setFocusPart(null); P.setHover(null); P.vip.setDeck(this.deck, this.allDecks(), idx); this.syncFilm(); this.prefetchBloomFilm();
+    const v = this.vipView(idx); this.flyTo({ pos: v.pos, look: v.look, fov: v.fov });
+    this.decksRev++; this.emit({ focus: 'vip', focusKind: 'vip', focusView: this.vipSlideId(idx), vipStation: idx, vipDeck: this.deck.id, vipDecksRev: this.decksRev, partFocus: null, prod: ++this.rev, vipMeeting: false }); return true;
+  }
+  /** only the new film (journey-v2) is fetched, one background download, then 'Ready: starts instantly'. Respects data saver / ?vipprefetch=0 (the preloader's own policy). */
+  prefetchBloomFilm() {
+    if (typeof window !== 'undefined' && !prefetchEnabled(window.location.search)) return;
+    const F = this.ensureFilm(); F.load().then(() => { F.prefetch([JOURNEY_V2_ID]); this.onFilm(); });
+  }
+  /** "Meeting mode": the investor quick start. Opens Bloom Meeting at the lobby view, the film downloads on the lift ride and the HUD shows "Film ready". Also ?meeting=1. */
+  startMeetingMode() { if (!this.enabled) return false; this.meetingMode = true; this.emit({ meetingMode: true }); this.prefetchBloomFilm(); if (this.level === 'l2') return this.glideTo('bloom-lobby'); return this.rideTo('l2'); }
+  /** { state: 'off' | 'preparing' | 'ready', pct } of the Bloom film */
+  bloomFilmPrep() { return this.film ? this.film.prepOf(JOURNEY_V2_ID) : { state: 'off', pct: 0 }; }
+  /** the agenda's destination item: leave the VIP room's screen, ride up, and put the new film on the Bloom wall */
+  goPlace(item) { if (!item || item.floor !== 'l2') return false; if (this.film) this.film.pause(); if (this.focus) this.exitFocus(); if (this.level === 'l2') { this.focusBloom(); return true; } return this.rideTo('l2', { focus: true }); }
+
   // ---------------------------------------------------------------- QA helpers (exposed on window.__showroom only with ?debug=1)
   debug() {
     const w = this.walker;
@@ -656,7 +714,7 @@ export class Explorer {
       teleport: (x, z, yaw, pitch) => { w.setPose(x, z, yaw, pitch); w.step(1e-4, {}); this.apply(); if (this.products && this.products.snap) this.products.snap(this.engine.camera); return [w.pos[0], w.pos[1]]; },
       /** run the real Walker + collision for `secs` seconds of simulated time at a fixed step (no rendering needed) */
       sim: (secs, input, step = 1 / 60) => { for (let t = 0; t < secs - 1e-9; t += step) w.step(Math.min(step, secs - t), input, this.reduced); this.apply(); return [w.pos[0], w.pos[1]]; },
-      colliders: () => this.colliders, graph: () => this.graph, explorer: this,
+      colliders: () => this.colliders, graph: () => this.graph, level: () => this.level, rideTo: (id, o) => this.rideTo(id, o), meeting: () => this.startMeetingMode(), filmPrep: () => this.bloomFilmPrep(), focusBloom: () => this.focusBloom(), explorer: this,
     };
   }
 }

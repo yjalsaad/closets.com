@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { t } from '../strings';
 import { L, DISCLAIMER } from '../vip/deckSchema';
-import { FILM_TITLE, FILM_AI_LABEL, fmtTime } from '../vip/film';
+import { FILM_TITLE, FILM_AI_LABEL, FILM_MIXED_LABEL, FILM_MIXED_BADGE, fmtTime } from '../vip/film';
 import { AGENDA, KIND_LABEL } from '../vip/meeting';
 
 const live = (fs) => !!fs && (fs.status === 'playing' || fs.status === 'paused' || fs.status === 'ended' || fs.status === 'ready');
@@ -17,7 +17,7 @@ export function FilmBody({ lang, fs, fallbackTitle }) {
       {live(fs) && <p className="sr-note">{t(real ? 'filmHintReal' : 'filmHint', lang)}{fs.film.burnedSubtitles ? ' ' + t('filmBurned', lang) : ''}</p>}
       {live(fs) && real && <p className="sr-note sr-vip-film-real" data-testid="sr-vip-film-real">{t('meetReal', lang)}</p>}
       {live(fs) && fs.caption !== 'off' && fs.cue && <p className="sr-vip-film-cue" dir={fs.caption === 'ar' ? 'rtl' : 'ltr'} lang={fs.caption} data-testid="sr-vip-film-cue">{fs.cue}</p>}
-      {status !== 'missing' && !real && <p className="sr-note sr-vip-film-ai" data-testid="sr-vip-film-ai">{L(FILM_AI_LABEL, lang)}</p>}
+      {status !== 'missing' && !real && <p className="sr-note sr-vip-film-ai" data-testid="sr-vip-film-ai">{L(fs && fs.film && fs.film.mixed ? FILM_MIXED_LABEL : FILM_AI_LABEL, lang)}</p>}
       <p className="sr-note sr-vip-disc" data-testid="sr-vip-disclaimer">{L(DISCLAIMER, lang)}</p>
     </div>
   );
@@ -41,7 +41,10 @@ export function FilmControls({ lang, ex, fs, touch, big, prep }) {
     <div className="sr-vip-present sr-vip-filmbar" role="group" aria-label={t('vipPresenter', lang)} data-testid="sr-vip-filmbar">
       {!big && prep && prep.state !== 'off' && <FilmPrep lang={lang} prep={prep} />}
       <button type="button" className="sr-btn" onClick={() => ex.filmToggle()} disabled={!ok} aria-pressed={playing} data-testid="sr-vip-film-play">{playing ? t('filmPause', lang) : fs && fs.status === 'ended' ? t('filmReplay', lang) : t('filmPlay', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">P</kbd>}</button>
-      {hasCaps && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.filmCaptions()} disabled={!ok} data-testid="sr-vip-film-cc">{t('filmCaptions', lang)}: {cap === 'off' ? t('filmCaptionsOff', lang) : cap.toUpperCase()}</button>}
+      {hasCaps && <div className="sr-vip-capgroup" role="group" aria-label={t('filmCaptions', lang)} data-testid="sr-vip-capgroup">
+        <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.filmCaptionToggle()} disabled={!ok} aria-pressed={cap !== 'off'} data-testid="sr-vip-film-cc">CC: {cap === 'off' ? t('filmCaptionsOff', lang) : cap.toUpperCase()}{!touch && <kbd className="sr-kbd" aria-hidden="true">C</kbd>}</button>
+        {[...fs.film.captions].sort((a, b) => (a.lang === 'en' ? -1 : 1) - (b.lang === 'en' ? -1 : 1)).map((c) => <button key={c.lang} type="button" className="sr-btn sr-btn-line" onClick={() => ex.filmCaptionSet(c.lang)} disabled={!ok} aria-pressed={cap === c.lang} lang={c.lang} data-testid={'sr-vip-film-cc-' + c.lang}>{c.lang === 'ar' ? 'العربية' : 'EN'}</button>)}
+      </div>}
       <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setCinema(true)} disabled={!ok} data-testid="sr-vip-film-cinema">{t('filmCinema', lang)}</button>
       {!big && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setPresentMode('big')} data-testid="sr-vip-big">{t('vipPresent', lang)}</button>}
       {big && <button type="button" className="sr-btn sr-btn-line" onClick={() => ex.setPresentMode('panel')} data-testid="sr-vip-exit-present">{t('vipPresentExit', lang)}</button>}
@@ -60,7 +63,7 @@ export function VipCinema({ lang, ex }) {
   return (
     <div className="sr-vip-cinema" role="dialog" aria-modal="true" aria-label={t('filmCinema', lang)} data-testid="sr-vip-cinema" dir={lang === 'ar' ? 'rtl' : 'ltr'} onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); ex.setCinema(false); } }}>
       <button type="button" className="sr-btn sr-btn-line" ref={ref} onClick={() => ex.setCinema(false)} data-testid="sr-vip-cinema-exit">{t('filmCinemaExit', lang)}</button>
-      {!(ex.film && ex.film.state.film && ex.film.state.film.real) && <span className="sr-vip-cinema-ai">{L(FILM_AI_LABEL, lang)}</span>}
+      {!(ex.film && ex.film.state.film && ex.film.state.film.real) && <span className="sr-vip-cinema-ai">{L(ex.film && ex.film.state.film && ex.film.state.film.mixed ? FILM_MIXED_BADGE : FILM_AI_LABEL, lang)}</span>}
     </div>
   );
 }

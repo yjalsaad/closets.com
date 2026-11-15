@@ -3,12 +3,13 @@
 import { DEFAULT_DECK } from './default';
 import { CLOSETS_PROFILE_DECK } from './closets-profile';
 import { YAS_PROFILE_DECK } from './yas-profile';
-import { FILM_DECK } from '../film';
+import { FILM_DECK, FILM_V2_DECK } from '../film';
+import { INVESTOR_DECK, FACTORY_TOUR_DECK } from './investor';
 import { MEETING_DECK } from '../meeting';
 import { withDisclaimer } from '../deckSchema';
 import { WELCOME_DECK_SLIDE } from '../welcome';
 
-export const EXTRA_DECKS = [CLOSETS_PROFILE_DECK, YAS_PROFILE_DECK, FILM_DECK];   // the film is a one-slide pseudo-deck (vip/film.js)
+export const EXTRA_DECKS = [CLOSETS_PROFILE_DECK, YAS_PROFILE_DECK, INVESTOR_DECK, FACTORY_TOUR_DECK, FILM_V2_DECK, FILM_DECK];   // the new cut sits before the first AI documentary, which stays LAST   // the film is a one-slide pseudo-deck (vip/film.js)
 /** the company presentation as shown in the room: the Welcome slide first (a lead-in, not a station: `preface` tells the panel not to count it), then the four stations of DEFAULT_DECK (which stays the golden source of the stations) */
 export const COMPANY_DECK = { ...DEFAULT_DECK, preface: 1, slides: [WELCOME_DECK_SLIDE, ...DEFAULT_DECK.slides] };
 /** picker order: the Management meeting FIRST (the primary section: the owner's two real films and the agenda), then the company presentation, the profile decks, and the AI documentary last */

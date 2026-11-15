@@ -1,5 +1,5 @@
 {
-  "_comment": "VIP big screen films. Real company films first (the Bonsai Hub film is a real-product film built from real Hub screens with synthetic demo data, not AI imagery); the AI documentary is referenced through its own manifest (film.json) and only appears when that file exists.",
+  "_comment": "VIP big screen films. Real company films first (the Bonsai Hub film is a real-product film built from real Hub screens with synthetic demo data, not AI imagery); the AI documentary is referenced through its own manifest (film.json) and only appears when that file exists. journey-v2 = 'Journey of Ambition' new cut, now film v3 (film3.json: 219 s, Arabic narration, two real leader photographs with camera motion only in an AI-generated office, rest AI illustration; mixed label). The v2 files (film2.json, journey2-*) stay as the fallback: point this entry's manifest back at film2.json to revert.",
   "films": [
     {
       "id": "yas-story",
@@ -94,6 +94,12 @@
       "manifest": "/yas-bloom/film/film.json",
       "real": false,
       "order": 99
+    },
+    {
+      "id": "journey-v2",
+      "manifest": "/yas-bloom/film/film3.json",
+      "real": false,
+      "order": 100
     }
   ]
 }
