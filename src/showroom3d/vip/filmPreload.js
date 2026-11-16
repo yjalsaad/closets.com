@@ -71,6 +71,8 @@ export class FilmPreloader {
   /** this film is wanted next (the owner picked it): move it to the front of the waiting queue */
   prioritise(src) { const i = this.plan.findIndex((p) => p.src === src); if (i > 0) { const [p] = this.plan.splice(i, 1); this.plan.unshift(p); } if (this.started && !this.timer) this.pump(); if (this.cachedOnly(src)) this.warm(src); }
   cachedOnly(src) { const e = this.entries.get(src); return !!e && e.status === 'ready' && !this.blobs.has(src); }
+  /** the memory copy of this film failed to play: drop it (and its object URL) so the player streams the site's file */
+  discard(src) { this.pinned.delete(src); this.evict(src); }
   /** a film that is only in Cache Storage (evicted from memory) is read back into a Blob so Play is instant */
   async warm(src) {
     if (this.blobs.has(src) || !this.cacheApi || this.disposed) return false; const b = await this.fromCache(src); if (!b || this.disposed) return false; this.played.delete(src); this.blobs.set(src, b); this.trimFor(src); this.emit(true); return true;

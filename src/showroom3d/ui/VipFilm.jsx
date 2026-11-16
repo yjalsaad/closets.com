@@ -4,7 +4,7 @@ import { L, DISCLAIMER } from '../vip/deckSchema';
 import { FILM_TITLE, FILM_AI_LABEL, mixedLabel, mixedBadge, fmtTime } from '../vip/film';
 import { AGENDA, KIND_LABEL } from '../vip/meeting';
 
-const live = (fs) => !!fs && (fs.status === 'playing' || fs.status === 'paused' || fs.status === 'ended' || fs.status === 'ready');
+const live = (fs) => !!fs && (fs.status === 'playing' || fs.status === 'paused' || fs.status === 'ended' || fs.status === 'ready' || fs.status === 'retry');
 
 /** FILM mode in the panel: what the film is, its state ("Film coming soon" when the files are not there yet), the current caption, the AI label and the closing notice */
 export function FilmBody({ lang, fs, fallbackTitle }) {
@@ -13,6 +13,7 @@ export function FilmBody({ lang, fs, fallbackTitle }) {
     <div className="sr-vip-slide sr-vip-film" data-testid="sr-vip-film" data-status={status}>
       <p className="sr-lead">{title}</p>
       {status === 'missing' && <><p className="sr-vip-film-soon" role="status" data-testid="sr-vip-film-soon">{t('filmSoon', lang)}</p><p className="sr-note">{t('filmSoonNote', lang)}</p></>}
+      {status === 'retry' && <p className="sr-note" role="status" data-testid="sr-vip-film-retry">{t('filmRetry', lang)}</p>}
       {(status === 'idle' || status === 'loading') && <p className="sr-note" role="status">{t('filmLoading', lang)}</p>}
       {live(fs) && <p className="sr-note">{t(real ? 'filmHintReal' : 'filmHint', lang)}{fs.film.burnedSubtitles ? ' ' + t('filmBurned', lang) : ''}</p>}
       {live(fs) && real && <p className="sr-note sr-vip-film-real" data-testid="sr-vip-film-real">{t('meetReal', lang)}</p>}

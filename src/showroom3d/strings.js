@@ -165,6 +165,7 @@ export const STRINGS = {
   filmCinemaExit: { en: 'Back to the room', ar: 'العودة إلى الغرفة' },
   filmSoon: { en: 'Film coming soon', ar: 'الفيلم قريبًا' },
   filmSoonNote: { en: 'The film is not available yet. Please look at the presentations in the meantime.', ar: 'الفيلم غير متاح بعد. يمكنك مشاهدة العروض التقديمية في هذه الأثناء.' },
+  filmRetry: { en: 'Playback was interrupted. Press Play film to try again.', ar: 'انقطع التشغيل. اضغط «شغّل الفيلم» للمحاولة مرة أخرى.' },
   filmLoading: { en: 'Loading…', ar: 'جارٍ التحميل…' },
   filmHint: { en: 'The film is prepared in the background so it starts instantly. It plays with sound; the narration is in Arabic.', ar: 'يُجهَّز الفيلم في الخلفية ليبدأ فورًا. يُعرض بالصوت، والتعليق بالعربية.' },
   filmKeys: { en: 'P or Space play / pause, arrows 10 seconds, M mute, C captions, F cinema mode', ar: 'P أو المسافة تشغيل / إيقاف، الأسهم 10 ثوانٍ، M كتم، C الترجمة، F وضع السينما' },

@@ -107,14 +107,16 @@ export const filmLabel = (film) => (film && film.real === true ? null : film && 
 export const filmBadge = (film) => (film && film.real === true ? null : film && film.mixed === true ? mixedBadge(film.id) : FILM_AI_LABEL);
 
 // ---------------------------------------------------------------- what the screen shows
-/** status: 'idle' (nothing asked yet) | 'loading' (manifest) | 'ready' (poster, paused: a user gesture starts it) | 'playing' | 'paused' | 'ended' | 'missing' (no manifest or no playable file: "Film coming soon") */
+/** status: 'idle' (nothing asked yet) | 'loading' (manifest) | 'ready' (poster, paused: a user gesture starts it) | 'playing' | 'paused' | 'ended' | 'retry' (the film exists but playback was interrupted on this device: "Press Play to try again") | 'missing' (NO manifest at all: "Film coming soon") */
 export const initFilm = () => ({ status: 'idle', film: null, time: 0, duration: 0, volume: 1, muted: false, caption: 'off', cue: '', src: '' });
 export function filmReducer(st, a) {
   switch (a.type) {
     case 'load': return st.status === 'idle' ? { ...st, status: 'loading' } : st;
     case 'manifest': { const r = parseFilmManifest(a.raw); if (!r.ok) return { ...st, status: 'missing', film: null }; const src = pickSource(r.film.sources, a.device || {}); return { ...st, status: 'ready', film: r.film, duration: r.film.durationSec, src: src ? src.src : '', caption: defaultCaption(r.film.captions, a.lang) }; }
     case 'select': { if (!a.film) return { ...initFilm(), status: 'missing', volume: st.volume, muted: st.muted, id: a.id || '' }; const src = pickSource(a.film.sources, a.device || {}); return { ...initFilm(), status: src ? 'ready' : 'missing', film: a.film, id: a.id || '', duration: a.film.durationSec, src: src ? src.src : '', caption: defaultCaption(a.film.captions, a.lang), volume: st.volume, muted: st.muted }; }   // one film of the list is put on the screen (paused)
-    case 'missing': return { ...st, status: 'missing', cue: '' };                       // manifest 404 / not JSON / the video element reported an error
+    case 'missing': return { ...st, status: 'missing', cue: '' };
+    case 'fail': return st.film ? { ...st, status: 'retry', cue: '' } : { ...st, status: 'missing', cue: '' };   // a film that LOADED never turns into "coming soon": a failure is a retry
+    case 'src': return st.film ? { ...st, src: a.src } : st;                                                       // another resolution of the same film                       // manifest 404 / not JSON / the video element reported an error
     case 'play': return st.film && st.status !== 'missing' ? { ...st, status: 'playing' } : st;
     case 'pause': return st.status === 'playing' ? { ...st, status: 'paused', cue: st.cue } : st;
     case 'ended': return st.film ? { ...st, status: 'ended', cue: '' } : st;

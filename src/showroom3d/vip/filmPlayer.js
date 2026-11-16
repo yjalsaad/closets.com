@@ -7,9 +7,9 @@ import { loadImg } from '../preload/assetStore';
 import { JOURNEY_ACTIVE, chooseJourney, setActiveJourney, FILM_MANIFEST_URL, FILMS_MANIFEST_URL, JOURNEY_ID, pickSource, initFilm, filmReducer, nextCaption, defaultCaption, parseFilmsManifest, parseFilmManifest } from './film';
 
 export class FilmPlayer {
-  constructor({ choiceLoader = null, search = null, onChange = () => {}, fetcher = (typeof fetch === 'function' ? (u) => fetch(u, { credentials: 'same-origin' }) : null), lang = 'en', device = {}, preloader = null } = {}) {
+  constructor({ choiceLoader = null, choiceWaitMs = 2500, search = null, onChange = () => {}, fetcher = (typeof fetch === 'function' ? (u) => fetch(u, { credentials: 'same-origin' }) : null), lang = 'en', device = {}, preloader = null } = {}) {
     this.onChange = onChange; this.fetcher = fetcher; this.lang = lang; this.device = device; this.state = initFilm(); this.video = null; this.poster = null; this.posters = new Map(); this.cinema = false; this.loading = null;
-    this.choiceLoader = choiceLoader; this.choice = null; this.search = search; this.library = new Map(); this.libraryReady = false; this.wanted = null; this.preloader = preloader; this.blobSrc = '';
+    this.choiceLoader = choiceLoader; this.choiceWaitMs = choiceWaitMs; this.choicePromise = null; this.choiceDone = !choiceLoader; this.failed = new Set(); this.failedSrc = new Set(); this.triedStream = false; this.wantPlay = false; this.lastPrefetch = null; this.choice = null; this.search = search; this.library = new Map(); this.libraryReady = false; this.wanted = null; this.preloader = preloader; this.blobSrc = '';
     if (preloader) preloader.onChange = () => this.onChange(this.state);
   }
   dispatch(a) { const n = filmReducer(this.state, a); if (n !== this.state) { this.state = n; this.onChange(n); } }
@@ -23,7 +23,7 @@ export class FilmPlayer {
   /** the ?film=v2|v3 test override (URL), read when needed */
   override() { let q = this.search; if (q === null) { try { q = typeof window !== 'undefined' ? window.location.search : ''; } catch (e) { q = ''; } } try { return new URLSearchParams(q || '').get('film') || ''; } catch (e) { return ''; } }
   /** the film id the alias JOURNEY_ACTIVE stands for: the owner's choice (website_content `bloom.film.active`), a ?film= override first, falling back to v3 then v2; '' while nothing is available */
-  activeFilmId() { return chooseJourney({ want: this.choice, override: this.override(), available: [...this.library.keys()] }); }
+  activeFilmId() { return chooseJourney({ want: this.choice, override: this.override(), available: [...this.library.keys()].filter((k) => !this.failed.has(k)) }); }
   /** a slide / agenda / plan id -> the real film id (only the alias is mapped) */
   resolve(id) { return id === JOURNEY_ACTIVE ? (this.activeFilmId() || id) : id; }
   /** read the manifests once (small JSON files): films.json (the list) and, for an entry that points at it or when there is no list, the single-film film.json. No video bytes are requested here. */
@@ -39,19 +39,27 @@ export class FilmPlayer {
     return this.loading;
   }
   /** the owner's switch is read ONCE (a read-only GET through the injected loader); a failure or a slow answer (2.5 s) keeps the default */
-  async readChoice() { if (!this.choiceLoader) { setActiveJourney(this.activeFilmId()); return; } try { this.choice = await Promise.race([Promise.resolve().then(() => this.choiceLoader()), new Promise((r) => setTimeout(() => r(null), 2500))]); } catch (e) { this.choice = null; } setActiveJourney(this.activeFilmId()); }
+  async readChoice() {
+    if (!this.choiceLoader) { setActiveJourney(this.activeFilmId()); return; }
+    this.choicePromise = Promise.resolve().then(() => this.choiceLoader()).then((v) => v, () => null).then((v) => { this.choiceDone = true; if (v !== this.choice) { const before = this.activeFilmId(); this.choice = v; setActiveJourney(this.activeFilmId()); if (this.libraryReady && this.activeFilmId() !== before) this.lateChoice(); } return v; });
+    await Promise.race([this.choicePromise, new Promise((r) => setTimeout(r, this.choiceWaitMs))]); setActiveJourney(this.activeFilmId());   // the first answer waits at most choiceWaitMs; a LATE answer is applied by lateChoice()
+  }
+  /** the owner's row arrived after the film was already put on the screen: switch to the chosen film (unless it is playing) and re-plan the background download for it */
+  lateChoice() { const playing = this.state.status === 'playing' || this.state.status === 'paused'; if (!playing) { this.applyWanted(); if (this.lastPrefetch) this.prefetch(this.lastPrefetch); } }
+  /** resolves once the owner's choice is known (or after `ms`): the prefetch waits for it so the ACTIVE film is the one that downloads */
+  choiceSettled(ms = 6000) { if (this.choiceDone || !this.choicePromise) return Promise.resolve(this.choice); return Promise.race([this.choicePromise, new Promise((r) => setTimeout(() => r(this.choice), ms))]); }
   /** put film `id` on the screen (paused, poster). Unknown id / no manifest -> 'missing'. Switching film stops and discards the previous video. */
   select(id) { this.wanted = id || JOURNEY_ID; if (this.libraryReady) this.applyWanted(); else this.load(); }
   applyWanted() {
     const id = this.resolve(this.wanted || JOURNEY_ID); if (this.state.id === id && this.state.status !== 'loading' && this.state.status !== 'idle') return;
-    this.dropVideo(); const film = this.library.get(id) || null; this.prioritise(film); this.poster = this.posters.get(id) || null; this.dispatch({ type: 'select', id, film, lang: this.lang, device: this.device });
+    this.dropVideo(); this.triedStream = false; this.failedSrc = new Set(); const film = this.library.get(id) || null; this.prioritise(film); this.poster = this.posters.get(id) || null; this.dispatch({ type: 'select', id, film, lang: this.lang, device: this.device });
     if (film && film.poster && !this.posters.has(id) && typeof Image !== 'undefined') { loadImg(film.poster, (im) => { this.posters.set(id, im); if (this.state.id === id) { this.poster = im; this.onChange(this.state); } }, () => {}); }
   }
   /** the file this film plays on this device */
   srcOf(film) { const src = film && pickSource(film.sources, this.device); return src ? src.src : ''; }
   /** the films of the meeting, in agenda order, go to the pre-downloader (it only runs once start() is called: from inside the VIP room) */
   prefetch(ids) {
-    const P = this.preloader; if (!P) return; const items = []; for (const raw of ids) { const id = this.resolve(raw), f = this.library.get(id), src = f && pickSource(f.sources, this.device); if (src) items.push({ id, src: src.src, bytes: src.bytes }); }
+    this.lastPrefetch = ids; const P = this.preloader; if (!P) return; const items = []; for (const raw of ids) { const id = this.resolve(raw), f = this.library.get(id), src = f && pickSource(f.sources, this.device); if (src) items.push({ id, src: src.src, bytes: src.bytes }); }
     P.setPlan(items); P.start();
   }
   prioritise(film) { const P = this.preloader, src = this.srcOf(film); if (P && src) P.prioritise(src); }
@@ -66,7 +74,7 @@ export class FilmPlayer {
     v.addEventListener('timeupdate', mine(() => this.dispatch({ type: 'time', time: v.currentTime, duration: v.duration })));
     v.addEventListener('durationchange', mine(() => this.dispatch({ type: 'time', time: v.currentTime, duration: v.duration })));
     v.addEventListener('play', mine(() => this.dispatch({ type: 'play' }))); v.addEventListener('pause', mine(() => { if (!v.ended) this.dispatch({ type: 'pause' }); }));
-    v.addEventListener('ended', mine(() => this.dispatch({ type: 'ended' }))); v.addEventListener('error', mine(() => this.dispatch({ type: 'missing' })));
+    v.addEventListener('ended', mine(() => this.dispatch({ type: 'ended' }))); v.addEventListener('error', mine(() => this.recover(v)));
     v.addEventListener('volumechange', mine(() => this.dispatch({ type: 'volume', value: v.volume, muted: v.muted })));
     const P = this.preloader, local = P ? P.urlFor(this.state.src) : '';   // a finished download plays from memory (no network); otherwise it streams from the site
     if (local) { P.pin(this.state.src); this.blobSrc = this.state.src; } else if (P) P.skip(this.state.src);
@@ -81,12 +89,29 @@ export class FilmPlayer {
   }
   /** MUST be called from a user gesture (a click / key press): starts with sound */
   play() {
-    if (this.state.status === 'missing' || !this.state.film) return false; const v = this.ensureVideo(); if (!v) { this.dispatch({ type: 'missing' }); return false; }
+    if (this.state.status === 'missing' || !this.state.film) return false;
+    if (this.state.status === 'retry') { this.failed = new Set(); this.failedSrc = new Set(); this.triedStream = false; this.dropVideo(); this.dispatch({ type: 'select', id: this.state.id, film: this.library.get(this.state.id) || this.state.film, lang: this.lang, device: this.device }); }   // "Press Play to try again": a fresh start
+    this.wantPlay = true; const v = this.ensureVideo(); if (!v) { this.dispatch({ type: 'fail' }); return false; }
     if (this.state.status === 'ended') { try { v.currentTime = 0; } catch (e) { /* ignore */ } }
-    let p; try { p = v.play(); } catch (e) { this.dispatch({ type: 'missing' }); return false; } if (p && p.catch) p.catch((e) => { if (this.video !== v) return; if (e && e.name === 'NotAllowedError') this.dispatch({ type: 'pause' }); else if (v.error || (e && e.name === 'NotSupportedError')) this.dispatch({ type: 'missing' }); });
-    return true;
+    this.startPlay(v); return true;
   }
-  pause() { const v = this.video; if (v && !v.paused) { try { v.pause(); } catch (e) { /* ignore */ } } }
+  /** v.play() with Safari's rules: NotAllowedError (no gesture / policy) is a pause, AbortError (a new load interrupted it) is ignored, anything else goes through the recovery ladder */
+  startPlay(v) {
+    let p; try { p = v.play(); } catch (e) { this.recover(v); return; }
+    if (p && p.catch) p.catch((e) => { if (this.video !== v) return; if (e && e.name === 'NotAllowedError') { this.wantPlay = false; this.dispatch({ type: 'pause' }); } else if (e && e.name === 'AbortError') { /* interrupted by a new load: the error / canplay events decide */ } else this.recover(v); });
+  }
+  /** a media error / a failed play(). NEVER "Film coming soon" for a film that loaded. Ladder: (1) the downloaded copy failed -> stream the same URL; (2) the other resolution; (3) the next film in the fallback order (v3, then v2); (4) "Press Play to try again". */
+  recover(v) {
+    if (this.video !== v) return; const f = this.state.film; if (!f) { this.dispatch({ type: 'missing' }); return; } const resume = this.wantPlay, P = this.preloader, cur = this.state.src;
+    const swap = (src) => { try { this.blobSrc && P && P.unpin(this.blobSrc); this.blobSrc = ''; if (src !== this.state.src) this.dispatch({ type: 'src', src }); v.src = src; v.load(); if (resume) this.startPlay(v); } catch (e) { this.dispatch({ type: 'fail' }); } };
+    if (this.blobSrc && !this.triedStream) { this.triedStream = true; if (P && P.discard) P.discard(cur); swap(cur); return; }   // (1) streaming from the site instead of the memory copy
+    this.failedSrc.add(cur); const alt = (f.sources || []).filter((s) => s && s.src && !this.failedSrc.has(s.src)).sort((a, b) => (a.height || 0) - (b.height || 0))[0];
+    if (alt) { this.triedStream = true; swap(alt.src); return; }   // (2) the other resolution
+    const id = this.state.id; this.failed.add(id); const next = this.activeFilmId();
+    if (this.wanted && this.resolve(this.wanted) === next && next && next !== id && this.library.get(next)) { this.dropVideo(); this.triedStream = false; this.failedSrc = new Set(); this.dispatch({ type: 'select', id: next, film: this.library.get(next), lang: this.lang, device: this.device }); if (resume) { const nv = this.ensureVideo(); if (nv) this.startPlay(nv); } return; }   // (3) the next film
+    this.wantPlay = false; this.dispatch({ type: 'fail' });   // (4) nothing left: a retry prompt, never "coming soon"
+  }
+  pause() { this.wantPlay = false; const v = this.video; if (v && !v.paused) { try { v.pause(); } catch (e) { /* ignore */ } } }
   toggle() { if (this.state.status === 'playing') { this.pause(); return false; } return this.play(); }
   seek(t) { const v = this.video; if (!v) return; const d = v.duration || this.state.duration || 0; try { v.currentTime = Math.max(0, Math.min(d || 0, Number(t) || 0)); } catch (e) { /* ignore */ } this.dispatch({ type: 'time', time: v.currentTime, duration: v.duration }); }
   seekBy(dt) { const v = this.video; if (v) this.seek(v.currentTime + dt); }

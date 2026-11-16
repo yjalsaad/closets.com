@@ -84,10 +84,10 @@ describe('film in the panel and with the adviser', () => {
     fireEvent.click(screen.getByTestId('sr-vip-film-play')); fireEvent.click(screen.getByTestId('sr-vip-film-cinema')); expect(ex.calls).toEqual([['toggle'], ['cinema', true]]); expect(screen.getByTestId('sr-vip-film-cc').textContent).toMatch(/EN/);
     const ar = new FilmPlayer({ fetcher: () => Promise.resolve({ ok: true, text: () => Promise.resolve(JSON.stringify(MAN)) }), lang: 'ar', device: { tier: 'high' } }); await ar.load(); expect(ar.state).toMatchObject({ caption: 'ar', src: '/yas-bloom/film/journey-1080.mp4' });
   });
-  test('the video element is created only on Play: preload="auto", not muted, not autoplay, no loop, tracks for both caption languages; a media error turns into "missing"', async () => {
+  test('the video element is created only on Play: preload="auto", not muted, not autoplay, no loop, tracks for both caption languages; a media error that exhausts the recovery ladder turns into "retry", never "missing"', async () => {
     const p = new FilmPlayer({ fetcher: () => Promise.resolve({ ok: true, text: () => Promise.resolve(JSON.stringify(MAN)) }), lang: 'en' }); await p.load(); const v = p.ensureVideo();
     expect(v.preload).toBe('auto'); expect(v.muted).toBe(false); expect(v.autoplay).toBe(false); expect(v.loop).toBe(false); expect(v.controls).toBe(false); expect(v.getAttribute('src')).toBe('/yas-bloom/film/journey-1080.mp4'); expect([...v.querySelectorAll('track')].map((t) => t.srclang)).toEqual(['ar', 'en']);
-    p.setCinema(true); expect(v.controls).toBe(true); p.setCinema(false); expect(v.controls).toBe(false); v.dispatchEvent(new Event('error')); expect(p.state.status).toBe('missing'); expect(p.play()).toBe(false);
+    p.setCinema(true); expect(v.controls).toBe(true); p.setCinema(false); expect(v.controls).toBe(false); for (let i = 0; i < 6; i++) { const cv = p.video; if (cv) cv.dispatchEvent(new Event('error')); } expect(p.state.status).toBe('retry'); expect(p.state.status).not.toBe('missing');
   });
   test('the adviser: "play your story" / Arabic -> opens the film on the big screen (never auto-plays), says the pictures are AI-generated; the VIP reply offers the chip', () => {
     const ctx = { lang: 'en', staff: { id: 'vip', room: 'vip', name: { en: 'VIP advisor', ar: 'مستشارة VIP' } } };
