@@ -117,3 +117,10 @@ New: `bloomLayout.test.js`, `bloomFilm.test.js`, `investor.test.js`. Updated onl
 * Floor 2 renderer.info (high tier, Chromium on SwiftShader, 640x400): **39 to 107 draw calls** depending on the view (lobby 90, boardroom 74, corridor 60, inside an office 39, looking north through the skyline 107), 36 to 51 k triangles. Budget was under 150; the iPad was not measured.
 * Bundles (build of this branch): `main` 2,151,354 B (gzip 506.9 KB); `showroom3d` chunk 894,852 B (gzip 245.3 KB); lazy `bloom-meeting` chunk **48.3 KB (15.2 KB gzip)** (it was 37.2 KB before the offices and the Lead Roadmap); lazy `haneen-chat` 52.6 KB (13.8 KB gzip). No new texture files.
 * Screenshots (`docs/screenshots/bloom/`): `chairs-boardroom-*`, `chairs-ops-pods-*` (iPad 1024x768@2x and the wide 2000x924 crop), `roadmap-wall-*` (iPad, desktop, Arabic), `offices-corridor-*`, `office-<title>-ipad-*` / `-desktop-*` for all five offices (+ Arabic for the IT Head).
+
+## Order Journey wall (Floor 2, companion of the Lead Roadmap)
+
+* South wall of the lobby, east of the doorway to the executive wing (`JOURNEY_WALL` in `scenes/bloom/layout.js`; quick-nav stop and zone `bloom-journey`, appended so existing stops keep their order). Content: `bloom/journey.js` (EN + AR), drawing: `drawJourneyWall` in `scenes/bloom/panelsBloom.js`.
+* Two colour lanes: CLOSETS (brand orange) and YAS FACTORY (Volukus Marble of the YAS Wood Collection), with a glowing LPO APPROVED gate between them (auto-approved for now), then the run back in the Closets colour: Packing, Delivery, Installation, Snag list, Handover, Final payment.
+* Static and illustrative: no order numbers, names, dates or figures. Same canvas pipeline as the Lead Roadmap (`makePanel`, anisotropy 8, 3072 px design width, 369 / 277 px per metre). No per-stage click hotspot: the other Floor 2 walls have none either (only E zones), so none was invented.
+* Tests: `src/showroom3d/__tests__/bloomJourney.test.js`. Screenshots: `docs/screenshots/bloom/order-journey-*` (desktop 1440x900 EN and AR, iPad 1024x768@2x, phone 390x844).
