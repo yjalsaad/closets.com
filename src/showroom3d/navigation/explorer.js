@@ -382,7 +382,7 @@ export class Explorer {
   /** inside the VIP room: the films of the meeting start downloading in the background (agenda order, one at a time) so Play starts at once. Never called for visitors outside the room. */
   startFilmPrefetch() {
     if (typeof window !== 'undefined' && !prefetchEnabled(window.location.search)) return;   // ?vipprefetch=0: exactly as before, nothing is read until the film entry is chosen
-    const F = this.ensureFilm(), ids = AGENDA.filter((a) => a.kind === 'film').map((a) => a.id); F.load().then(() => { if (this.focus && this.focus.kind === 'vip') F.prefetch(ids); });
+    const F = this.ensureFilm(), ids = AGENDA.filter((a) => a.kind === 'film').map((a) => a.id); F.load().then(() => F.choiceSettled()).then(() => { if (this.focus && this.focus.kind === 'vip') F.prefetch(ids); });
   }
   /** { state: 'off' | 'preparing' | 'ready', pct } for the film on the screen, or for film `id` */
   filmPrep(id) { return this.film ? this.film.prepOf(id) : { state: 'off', pct: 0 }; }
@@ -696,7 +696,7 @@ export class Explorer {
   /** only the new film (journey-v2) is fetched, one background download, then 'Ready: starts instantly'. Respects data saver / ?vipprefetch=0 (the preloader's own policy). */
   prefetchBloomFilm() {
     if (typeof window !== 'undefined' && !prefetchEnabled(window.location.search)) return;
-    const F = this.ensureFilm(); F.load().then(() => { F.prefetch([JOURNEY_ACTIVE]); this.onFilm(); });
+    const F = this.ensureFilm(); F.load().then(() => F.choiceSettled()).then(() => { F.prefetch([JOURNEY_ACTIVE]); this.onFilm(); });   // wait for the owner's choice first, so the ACTIVE film is the one that downloads
   }
   /** "Meeting mode": the investor quick start. Opens Bloom Meeting at the lobby view, the film downloads on the lift ride and the HUD shows "Film ready". Also ?meeting=1. */
   startMeetingMode() { if (!this.enabled) return false; this.meetingMode = true; this.emit({ meetingMode: true }); this.prefetchBloomFilm(); if (this.level === 'l2') return this.glideTo('bloom-lobby'); return this.rideTo('l2'); }

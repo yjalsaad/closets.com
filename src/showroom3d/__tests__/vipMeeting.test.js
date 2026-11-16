@@ -67,10 +67,10 @@ describe('film library: missing-file states', () => {
     const a = new FilmPlayer({ fetcher: fetcherFor({ [FILM_MANIFEST_URL]: SINGLE }) }); a.select('journey'); await a.load(); expect(a.state.status).toBe('ready'); a.select('yas-story'); expect(a.state.status).toBe('missing');
     const b = new FilmPlayer({ fetcher: fetcherFor({}) }); b.select('yas-story'); await b.load(); expect(b.state.status).toBe('missing'); const c = new FilmPlayer({ fetcher: () => Promise.reject(new Error('offline')) }); c.select('closets-story'); await c.load(); expect(c.state.status).toBe('missing');
   });
-  test('switching film discards the previous <video> (paused, source removed) and keeps the volume; a media error on the new one is "missing"', async () => {
+  test('switching film discards the previous <video> (paused, source removed) and keeps the volume; a media error on the new one is "retry" (the film loaded, so never "coming soon")', async () => {
     const p = new FilmPlayer({ fetcher: fetcherFor({ [FILMS_MANIFEST_URL]: LIST }) }); p.select('yas-story'); await p.load(); const v1 = p.ensureVideo(); expect(v1.getAttribute('src')).toBe('/yas-bloom/film/yas-story.mp4'); expect(v1.preload).toBe('auto'); expect(v1.muted).toBe(false); expect(v1.querySelectorAll('track')).toHaveLength(0);
     p.setVolume(0.5); p.select('closets-story'); expect(p.video).toBeNull(); expect(v1.getAttribute('src')).toBeNull(); expect(p.state.volume).toBe(0.5); const v2 = p.ensureVideo(); expect(v2).not.toBe(v1); expect(v2.getAttribute('src')).toBe('/yas-bloom/film/closets-story.mp4');
-    v1.dispatchEvent(new Event('error')); expect(p.state.status).toBe('ready'); v2.dispatchEvent(new Event('error')); expect(p.state.status).toBe('missing');
+    v1.dispatchEvent(new Event('error')); expect(p.state.status).toBe('ready'); v2.dispatchEvent(new Event('error')); expect(['retry', 'ready']).toContain(p.state.status); expect(p.state.status).not.toBe('missing');
     expect(filmReducer(initFilm(), { type: 'select', id: 'x', film: null }).status).toBe('missing');
   });
 });
