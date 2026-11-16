@@ -2,12 +2,12 @@
 import fs from 'fs';
 import path from 'path';
 import { FILM_CHOICE_KEY, FILM_CHOICE_QUERY, parseFilmChoice, loadFilmChoice } from '../vip/filmChoice';
-import { chooseJourney, JOURNEY_ACTIVE, JOURNEY_V2_ID, JOURNEY_V3_ID, JOURNEY_V3A_ID, FILM_CHOICE_DEFAULT, setActiveJourney, activeJourney, mixedLabel, FILM_V2_LABEL, FILM_MIXED_LABEL } from '../vip/film';
+import { chooseJourney, JOURNEY_ACTIVE, JOURNEY_V2_ID, JOURNEY_V3_ID, JOURNEY_V3A_ID, FILM_CHOICE_DEFAULT, setActiveJourney, activeJourney, mixedLabel, FILM_V2_LABEL, FILM_MIXED_LABEL, FILM_V3A_LABEL } from '../vip/film';
 import { FilmPlayer } from '../vip/filmPlayer';
 import { AGENDA } from '../vip/meeting';
 
 const FILM_DIR = path.join(__dirname, '../../../public/yas-bloom/film'), read = (f) => fs.readFileSync(path.join(FILM_DIR, f), 'utf8');
-const MANIFESTS = { '/yas-bloom/film/films.json': read('films.json'), '/yas-bloom/film/film.json': read('film.json'), '/yas-bloom/film/film2.json': read('film2.json'), '/yas-bloom/film/film3.json': read('film3.json') };
+const MANIFESTS = { '/yas-bloom/film/films.json': read('films.json'), '/yas-bloom/film/film.json': read('film.json'), '/yas-bloom/film/film2.json': read('film2.json'), '/yas-bloom/film/film3.json': read('film3.json'), '/yas-bloom/film/film4.json': read('film4.json') };
 const mk = (o = {}) => new FilmPlayer({ lang: 'en', device: { tier: 'high' }, search: '', fetcher: (u) => Promise.resolve(MANIFESTS[u] ? { ok: true, text: () => Promise.resolve(MANIFESTS[u]) } : { ok: false, status: 404 }), ...o });
 
 afterEach(() => setActiveJourney(JOURNEY_V3_ID));
@@ -27,7 +27,7 @@ describe('the row', () => {
 
 describe('chooseJourney: the choice, the fallbacks, the override', () => {
   const ALL = [JOURNEY_V2_ID, JOURNEY_V3_ID], WITH_A = [...ALL, JOURNEY_V3A_ID];
-  test('default (no row) is v3; the row picks v2; v3-animated only when its files exist', () => {
+  test('default (no row) is v3; the row picks v2; v3-animated when its files exist (and falls back to v3 when not)', () => {
     expect(FILM_CHOICE_DEFAULT).toBe('v3'); expect(chooseJourney({ available: ALL })).toBe(JOURNEY_V3_ID); expect(chooseJourney({ want: 'v2', available: ALL })).toBe(JOURNEY_V2_ID); expect(chooseJourney({ want: 'v3', available: ALL })).toBe(JOURNEY_V3_ID);
     expect(chooseJourney({ want: 'v3-animated', available: WITH_A })).toBe(JOURNEY_V3A_ID); expect(chooseJourney({ want: 'v3-animated', available: ALL })).toBe(JOURNEY_V3_ID);
   });
@@ -38,17 +38,18 @@ describe('chooseJourney: the choice, the fallbacks, the override', () => {
 });
 
 describe('the player: alias, choice, label, preload', () => {
-  test('no row: the alias plays v3 (film3.json) and the animated slot is never requested', async () => {
+  test('no row: the alias plays v3 (film3.json), the default; only the manifests are requested, never a video', async () => {
     const asked = []; const p = mk({ fetcher: (u) => { asked.push(u); return Promise.resolve(MANIFESTS[u] ? { ok: true, text: () => Promise.resolve(MANIFESTS[u]) } : { ok: false }); } }); p.select(JOURNEY_ACTIVE); await p.load();
-    expect(p.state).toMatchObject({ status: 'ready', id: JOURNEY_V3_ID }); expect(p.state.src).toBe('/yas-bloom/film/journey3-1080.mp4'); expect(asked.some((u) => /animated/.test(u))).toBe(false); expect(activeJourney()).toBe(JOURNEY_V3_ID);
+    expect(p.state).toMatchObject({ status: 'ready', id: JOURNEY_V3_ID }); expect(p.state.src).toBe('/yas-bloom/film/journey3-1080.mp4'); expect(asked.some((u) => /\.mp4/.test(u))).toBe(false); expect(activeJourney()).toBe(JOURNEY_V3_ID);
   });
   test('row v2: the alias plays film2 (journey2-*), and the agenda label becomes the v2 wording; row v3 gives the v3 wording', async () => {
     const p = mk({ choiceLoader: () => Promise.resolve('v2') }); p.select(JOURNEY_ACTIVE); await p.load(); expect(p.state).toMatchObject({ id: JOURNEY_V2_ID, status: 'ready' }); expect(p.state.src).toBe('/yas-bloom/film/journey2-1080.mp4');
     const a = AGENDA.find((x) => x.id === JOURNEY_ACTIVE); expect(a.label).toBe(FILM_V2_LABEL); expect(mixedLabel(activeJourney())).toBe(FILM_V2_LABEL);
     const q = mk({ choiceLoader: () => Promise.resolve('v3') }); q.select(JOURNEY_ACTIVE); await q.load(); expect(a.label).toBe(FILM_MIXED_LABEL);
   });
-  test('row v3-animated with no files (the slot is disabled): falls back to v3; ?film=v2 overrides the row', async () => {
-    const p = mk({ choiceLoader: () => Promise.resolve('v3-animated') }); p.select(JOURNEY_ACTIVE); await p.load(); expect(p.state.id).toBe(JOURNEY_V3_ID);
+  test('row v3-animated plays film4 (journey4-*) with its own label; if film4.json is missing it falls back to v3; ?film=v2 overrides the row', async () => {
+    const p = mk({ choiceLoader: () => Promise.resolve('v3-animated') }); p.select(JOURNEY_ACTIVE); await p.load(); expect(p.state).toMatchObject({ id: JOURNEY_V3A_ID, status: 'ready' }); expect(p.state.src).toBe('/yas-bloom/film/journey4-1080.mp4'); expect(AGENDA.find((a) => a.id === JOURNEY_ACTIVE).label).toBe(FILM_V3A_LABEL);
+    const no4 = { ...MANIFESTS }; delete no4['/yas-bloom/film/film4.json']; const f = new FilmPlayer({ lang: 'en', device: { tier: 'high' }, search: '', choiceLoader: () => Promise.resolve('v3-animated'), fetcher: (u) => Promise.resolve(no4[u] ? { ok: true, text: () => Promise.resolve(no4[u]) } : { ok: false }) }); f.select(JOURNEY_ACTIVE); await f.load(); expect(f.state.id).toBe(JOURNEY_V3_ID);
     const o = mk({ choiceLoader: () => Promise.resolve('v3'), search: '?debug=1&film=v2' }); o.select(JOURNEY_ACTIVE); await o.load(); expect(o.state.id).toBe(JOURNEY_V2_ID);
   });
   test('a failing or slow row read keeps the default; a version whose manifest is missing falls back (the wall is not empty)', async () => {

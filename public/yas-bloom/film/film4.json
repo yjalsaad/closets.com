@@ -1,0 +1,70 @@
+{
+  "id": "journey-of-ambition-v4",
+  "title": {
+    "en": "THE CLOSETS — THE JOURNEY OF AMBITION",
+    "ar": "الخزائن — حكاية طموح"
+  },
+  "durationSec": 219.0,
+  "aspectRatio": "16:9",
+  "real": false,
+  "mixed": true,
+  "label": {
+    "en": "Leaders appear from real photographs, animated with AI, in an AI-generated office; all other imagery is AI-generated illustration.",
+    "ar": "يظهر القياديون من صور حقيقية محرّكة بالذكاء الاصطناعي داخل مكتب مولّد بالذكاء الاصطناعي، وبقية المشاهد صور مولّدة بالذكاء الاصطناعي"
+  },
+  "sources": [
+    {
+      "src": "/yas-bloom/film/journey4-1080.mp4",
+      "type": "video/mp4",
+      "codecs": "avc1.640028, mp4a.40.2",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 26109239
+    },
+    {
+      "src": "/yas-bloom/film/journey4-720.mp4",
+      "type": "video/mp4",
+      "codecs": "avc1.64001f, mp4a.40.2",
+      "width": 1280,
+      "height": 720,
+      "bytes": 12780904
+    }
+  ],
+  "poster": "/yas-bloom/film/journey4-poster.jpg",
+  "captions": [
+    {
+      "lang": "en",
+      "label": "English (translation)",
+      "src": "/yas-bloom/film/journey4.en.vtt",
+      "kind": "captions",
+      "default": true
+    },
+    {
+      "lang": "ar",
+      "label": "العربية",
+      "src": "/yas-bloom/film/journey4.ar.vtt",
+      "kind": "captions"
+    }
+  ],
+  "audio": {
+    "narrationLanguage": "ar",
+    "loudnessLUFS": -16,
+    "music": true
+  },
+  "credits": {
+    "production": "Assembled locally (Pillow + ffmpeg) from sources generated with Higgsfield.",
+    "realPhotographs": "Two real photographs of company leaders (used with the owner's stated consent, including consent to AI animation), animated with AI (Kling 3.0 image-to-video) and shown in front of an AI-generated office; the animated scenes are AI output, not real footage",
+    "stills": "Seedream 5.0 Flash and GPT Image 2.6 (AI-generated illustration, animated with camera moves)",
+    "videoShots": "Kling 2.6 image-to-video (7 shots, 5 s each, 3 from the first film and 4 new); Kling 3.0 image-to-video from the two real photographs (4 clips of 5 s, silent)",
+    "narration": "Synthetic voice (Higgsfield Text to Speech V2, ElevenLabs engine, preset voice 'Alistair'); the owner's Arabic script, verbatim",
+    "music": "Generated instrumental (ElevenLabs Music v2 via Higgsfield); no third-party recordings",
+    "logo": "The official company logo file, composited as is"
+  },
+  "notes": [
+    "Leaders appear from real photographs, animated with AI, in an AI-generated office; all other imagery is AI-generated illustration. It is not real footage of the company's factories, showrooms, projects or people; the leaders' scenes are AI animation, not real footage, and do not show real meetings or signed agreements.",
+    "Landmarks (Manama skyline, causeway, fort, Tree of Life) are AI-generated illustrations, not photographs. Projects named in the narration are shown only as generic AI-generated imagery.",
+    "Information only, not an offer or financial advice; details provided directly by management.",
+    "Figures stated (more than 50,000 projects, more than 27 patents, two factories, distribution agreements across the Gulf, Iraq and Jordan) are the owner's script; see docs/showroom3d/JOURNEY-V2-FACTS.md for the figures to confirm.",
+    "Full storyboard, ledger and wiring change: docs/showroom3d/JOURNEY-V4.md"
+  ]
+}

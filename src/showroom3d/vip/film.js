@@ -21,7 +21,7 @@ export const FILM_MIXED_LABEL = { en: 'Leaders appear from real photographs (cam
 export const FILM_MIXED_BADGE = { en: 'Leaders: real photos · office and other imagery: AI illustration', ar: 'صور حقيقية للقيادات · والمكتب وبقية المشاهد مولّدة بالذكاء الاصطناعي' };
 export const FILM_V2_TITLE = { en: 'The Closets: The Journey of Ambition (new cut)', ar: 'الخزائن: حكاية طموح (النسخة الجديدة)' };
 /** THE JOURNEY FILMS: three versions are registered side by side (films.json); exactly ONE is the "active" Journey film that the Bloom wall, the VIP agenda item and the film deck show.
- *  journey-v2 = film2.json (real photographs, static), journey-v3 = film3.json (the leaders in an AI-generated office, camera motion only), journey-v3-animated = a reserved slot (disabled until its files exist).
+ *  journey-v2 = film2.json (real photographs, static), journey-v3 = film3.json (the leaders in an AI-generated office, camera motion only), journey-v3-animated = the AI-animated version (film4.json).
  *  The slide / agenda id of the active film is the alias JOURNEY_ACTIVE; FilmPlayer resolves it with chooseJourney(). The owner's switch is the website_content row `bloom.film.active` (vip/filmChoice.js). */
 export const JOURNEY_ACTIVE = 'journey-active';
 export const JOURNEY_V3_ID = 'journey-v3';
@@ -30,8 +30,8 @@ export const FILM_CHOICES = Object.freeze({ v2: JOURNEY_V2_ID, v3: JOURNEY_V3_ID
 export const FILM_CHOICE_DEFAULT = 'v3';
 export const FILM_V2_LABEL = { en: 'Real photographs of company leaders; all other imagery is AI-generated illustration', ar: 'صور حقيقية لقيادات الشركة، وبقية المشاهد صور مولّدة بالذكاء الاصطناعي' };
 export const FILM_V2_BADGE = { en: 'Leaders: real photos · other imagery: AI illustration', ar: 'صور حقيقية للقيادات · والباقي مولّد بالذكاء الاصطناعي' };
-export const FILM_V3A_LABEL = { en: 'Leaders appear from real photographs, animated with AI; all other imagery is AI-generated illustration', ar: 'يظهر القياديون من صور حقيقية محرَّكة بالذكاء الاصطناعي، وبقية المشاهد صور مولّدة بالذكاء الاصطناعي' };
-export const FILM_V3A_BADGE = { en: 'Leaders: real photos animated with AI · other imagery: AI illustration', ar: 'صور حقيقية للقيادات محرَّكة بالذكاء الاصطناعي · والباقي مولّد بالذكاء الاصطناعي' };
+export const FILM_V3A_LABEL = { en: 'Leaders appear from real photographs, animated with AI, in an AI-generated office; all other imagery is AI-generated illustration', ar: 'يظهر القياديون من صور حقيقية محرّكة بالذكاء الاصطناعي داخل مكتب مولّد بالذكاء الاصطناعي، وبقية المشاهد صور مولّدة بالذكاء الاصطناعي' };
+export const FILM_V3A_BADGE = { en: 'Leaders: real photos animated with AI · office and other imagery: AI illustration', ar: 'صور حقيقية للقيادات محرّكة بالذكاء الاصطناعي · والمكتب وبقية المشاهد مولّدة بالذكاء الاصطناعي' };
 /** the mixed label / badge of a film by its id (each version says exactly what its own film is; unknown id: the current v3 wording) */
 export const JOURNEY_LABELS = { [JOURNEY_V2_ID]: { label: FILM_V2_LABEL, badge: FILM_V2_BADGE }, [JOURNEY_V3_ID]: { label: null, badge: null }, [JOURNEY_V3A_ID]: { label: FILM_V3A_LABEL, badge: FILM_V3A_BADGE } };
 export const mixedLabel = (id) => (JOURNEY_LABELS[id] && JOURNEY_LABELS[id].label) || FILM_MIXED_LABEL;

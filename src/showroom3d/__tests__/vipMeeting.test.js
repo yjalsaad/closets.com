@@ -20,7 +20,7 @@ const fetcherFor = (map) => (u) => Promise.resolve(u in map ? { ok: true, text: 
 
 describe('films manifest: both shapes', () => {
   test('the list shape (committed films.json): the two REAL films first in their order, the AI documentary last as a reference to its own film.json', () => {
-    const r = parseFilmsManifest(LIST); expect(r.ok).toBe(true); expect(r.films.map((f) => f.id)).toEqual(['yas-story', 'closets-story', 'bonsai-hub', 'journey', 'journey-v2', 'journey-v3']); expect(r.films.map((f) => f.real)).toEqual([true, true, true, false, false, false]);   // the reserved journey-v3-animated slot is disabled (no entry)   // Bloom Meeting added journey-v2
+    const r = parseFilmsManifest(LIST); expect(r.ok).toBe(true); expect(r.films.map((f) => f.id)).toEqual(['yas-story', 'closets-story', 'bonsai-hub', 'journey', 'journey-v2', 'journey-v3', 'journey-v3-animated']); expect(r.films.map((f) => f.real)).toEqual([true, true, true, false, false, false, false]);   // + the AI-animated version (film4.json)   // Bloom Meeting added journey-v2
     expect(r.films[3].ref).toBe('/yas-bloom/film/film.json'); expect(r.films[0].film.real).toBe(true); expect(r.films[0].film.burnedSubtitles).toBe(true); expect(r.films[0].film.captions).toEqual([]); expect(r.films[1].film.sources.map((s) => s.height)).toEqual([720, 540]);
   });
   test('the old single-film shape still works: it becomes one entry "journey", never real', () => {
@@ -57,7 +57,7 @@ describe('the committed films: files exist, are web MP4s within the size targets
 describe('film library: missing-file states', () => {
   test('films.json present, film.json absent: the real films are ready (paused, nothing but JSON requested), the AI film is "missing" (Film coming soon)', async () => {
     const asked = []; const base = fetcherFor({ [FILMS_MANIFEST_URL]: LIST }); const p = new FilmPlayer({ fetcher: (u) => { asked.push(u); return base(u); }, lang: 'en', device: { tier: 'high' } });
-    p.select('yas-story'); await p.load(); expect(p.state).toMatchObject({ status: 'ready', id: 'yas-story', src: '/yas-bloom/film/yas-story.mp4', caption: 'off' }); expect(p.video).toBeNull(); expect(asked).toEqual([FILMS_MANIFEST_URL, FILM_MANIFEST_URL, '/yas-bloom/film/film2.json', '/yas-bloom/film/film3.json']);   // + the two new cuts' own manifests (v2 and v3 are both registered; the animated slot is disabled)
+    p.select('yas-story'); await p.load(); expect(p.state).toMatchObject({ status: 'ready', id: 'yas-story', src: '/yas-bloom/film/yas-story.mp4', caption: 'off' }); expect(p.video).toBeNull(); expect(asked).toEqual([FILMS_MANIFEST_URL, FILM_MANIFEST_URL, '/yas-bloom/film/film2.json', '/yas-bloom/film/film3.json', '/yas-bloom/film/film4.json']);   // + the two new cuts' own manifests (v2 and v3 are both registered; the animated slot is disabled)
     p.select('closets-story'); expect(p.state).toMatchObject({ status: 'ready', id: 'closets-story' }); p.select('journey'); expect(p.state.status).toBe('missing'); expect(p.play()).toBe(false); p.select('nope'); expect(p.state.status).toBe('missing');
   });
   test('both manifests present: the AI film is ready and stays labelled (real: false) even when listed', async () => {
