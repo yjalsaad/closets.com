@@ -13,7 +13,7 @@ const LIST = read('films.json'), V2 = read('film2.json'), V3 = read('film3.json'
 
 describe('film v2 registration', () => {
   test('films.json: the new film is its own entry (manifest film3.json, not real, after the AI documentary); the existing entries are untouched', () => {
-    const r = parseFilmsManifest(LIST); expect(r.ok).toBe(true); expect(r.films.map((f) => f.id)).toEqual(['yas-story', 'closets-story', 'bonsai-hub', 'journey', JOURNEY_V2_ID, JOURNEY_V3_ID, JOURNEY_V3A_ID]);   // the AI-animated version (film4.json) is registered too
+    const r = parseFilmsManifest(LIST); expect(r.ok).toBe(true); expect(r.films.map((f) => f.id)).toEqual(['yas-story', 'closets-story', 'bonsai-hub', 'journey', JOURNEY_V2_ID, JOURNEY_V3_ID, JOURNEY_V3A_ID, 'journey-v5']);   // journey-v5 (all-AI, 50,000) and the AI-animated version (film4.json) is registered too
     expect(LIST.films.find((f) => f.id === 'journey')).toEqual({ id: 'journey', manifest: '/yas-bloom/film/film.json', real: false, order: 99 });
     expect(LIST.films.find((f) => f.id === JOURNEY_V2_ID)).toEqual({ id: JOURNEY_V2_ID, manifest: '/yas-bloom/film/film2.json', real: false, order: 100 });
     expect(LIST.films.find((f) => f.id === JOURNEY_V3_ID)).toEqual({ id: JOURNEY_V3_ID, manifest: '/yas-bloom/film/film3.json', real: false, order: 101 });

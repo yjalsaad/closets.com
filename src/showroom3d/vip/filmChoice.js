@@ -4,14 +4,14 @@
  * 'v3-animated' slot (disabled until its files exist). Exactly one is ACTIVE; the others stay on disk but are not listed anywhere. The choice lives in the site's existing
  * CMS table `website_content` (the same read-only mechanism as vip/welcome.js, which already reads the `vip.*` rows):
  *     key    bloom.film.active
- *     value  v1 | v2 | v3 | v3-animated            (anything else, or no row: the default v3)
+ *     value  v1 | v5 | v2 | v3 | v3-animated            (anything else, or no row: the default v3)
  * Read once when the film player loads. If the chosen version's files are not there it falls back to v3, then v2 (chooseJourney in vip/film.js): the wall is never empty.
  * `?film=v2|v3` in the URL overrides the row (for testing only). */
 import { FILM_CHOICES } from './film';
 
 export const FILM_CHOICE_KEY = 'bloom.film.active';
 export const FILM_CHOICE_QUERY = 'website_content?active=is.true&deleted_at=is.null&key=eq.' + FILM_CHOICE_KEY;
-/** CMS rows [{ key, value }] -> 'v1' | 'v2' | 'v3' | 'v3-animated' | null (null = missing / invalid: the default applies). Case and spaces are forgiven. */
+/** CMS rows [{ key, value }] -> 'v1' | 'v5' | 'v2' | 'v3' | 'v3-animated' | null (null = missing / invalid: the default applies). Case and spaces are forgiven. */
 export function parseFilmChoice(rows) {
   const r = (Array.isArray(rows) ? rows : []).find((x) => x && x.key === FILM_CHOICE_KEY); if (!r || r.value == null) return null;
   const v = String(r.value).trim().toLowerCase().replace(/^"|"$/g, '').replace(/_/g, '-'); return Object.prototype.hasOwnProperty.call(FILM_CHOICES, v) ? v : null;

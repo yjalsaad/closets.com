@@ -15,7 +15,7 @@ Written for the Monday 16 November morning meeting. Everything below was checked
 
 ## Which film is on (v2 or v3)
 
-The film on the wall is the **active** Journey film: the row `bloom.film.active` in `website_content` (`v1` | `v2` | `v3` | `v3-animated`; no row = v3; `v1` is the original film with no real people in it). Check it before the meeting: open `/yas-bloom?meeting=1` and read the label on the wall poster ("Real photographs ..." = v2, "... camera motion only ... AI-generated office" = v3, "... animated with AI, in an AI-generated office" = the animated v4). To test the other one without touching the row, add `&film=v2`, `&film=v3` or `&film=v3-animated` to the URL. To go back from the animated film, set the row to `v3` (or `v2`). How to switch: `docs/bloom-meeting.md`, "How the owner switches the film".
+The film on the wall is the **active** Journey film: the row `bloom.film.active` in `website_content` (`v1` | `v5` | `v2` | `v3` | `v3-animated`; no row = v3; `v1` is the original film with no real people in it and `v5` is the same all-AI film saying 50,000 projects instead of 10,000, also with no real people). Check it before the meeting: open `/yas-bloom?meeting=1` and read the label on the wall poster ("Real photographs ..." = v2, "... camera motion only ... AI-generated office" = v3, "... animated with AI, in an AI-generated office" = the animated v4). To test the other one without touching the row, add `&film=v2`, `&film=v3` or `&film=v3-animated` (or `&film=v5`) to the URL. To go back from the animated film, set the row to `v3` (or `v2`). How to switch: `docs/bloom-meeting.md`, "How the owner switches the film".
 
 ## What Haneen will and will not say
 
