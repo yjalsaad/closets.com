@@ -2,7 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import { FILM_CHOICE_KEY, FILM_CHOICE_QUERY, parseFilmChoice, loadFilmChoice } from '../vip/filmChoice';
-import { chooseJourney, JOURNEY_ACTIVE, JOURNEY_V2_ID, JOURNEY_V3_ID, JOURNEY_V3A_ID, FILM_CHOICE_DEFAULT, setActiveJourney, activeJourney, mixedLabel, FILM_V2_LABEL, FILM_MIXED_LABEL, FILM_V3A_LABEL } from '../vip/film';
+import { chooseJourney, JOURNEY_ID, JOURNEY_ACTIVE, JOURNEY_V2_ID, JOURNEY_V3_ID, JOURNEY_V3A_ID, FILM_CHOICE_DEFAULT, setActiveJourney, activeJourney, mixedLabel, FILM_V2_LABEL, FILM_MIXED_LABEL, FILM_V3A_LABEL } from '../vip/film';
 import { FilmPlayer } from '../vip/filmPlayer';
 import { AGENDA } from '../vip/meeting';
 
@@ -62,5 +62,15 @@ describe('the player: alias, choice, label, preload', () => {
   });
   test('only the active version is listed: the agenda has ONE journey item and the film deck one slide, both the alias', () => {
     expect(AGENDA.filter((a) => /journey/.test(a.id)).map((a) => a.id)).toEqual(['journey', JOURNEY_ACTIVE]);
+  });
+});
+
+describe('v1: the original film, no real people', () => {
+  it('is selectable, labelled all-AI, and never falls back to a version showing the leaders', () => {
+    const ALL1 = [JOURNEY_ID, JOURNEY_V2_ID, JOURNEY_V3_ID, JOURNEY_V3A_ID];
+    expect(chooseJourney({ want: 'v1', available: ALL1 })).toBe(JOURNEY_ID);
+    expect(chooseJourney({ want: 'v1', override: 'v1', available: ALL1 })).toBe(JOURNEY_ID);
+    expect(chooseJourney({ want: 'v1', available: [JOURNEY_V2_ID, JOURNEY_V3_ID] })).toBe('');
+    expect(mixedLabel(JOURNEY_ID).en).toMatch(/AI-generated/); expect(mixedLabel(JOURNEY_ID).en).not.toMatch(/real photograph/i);
   });
 });
