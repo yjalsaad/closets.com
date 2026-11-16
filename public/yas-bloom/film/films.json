@@ -1,5 +1,5 @@
 {
-  "_comment": "VIP / Bloom films. The real company films first. The Journey of Ambition exists in three versions, all registered here: journey-v2 (film2.json: real photographs, static), journey-v3 (film3.json: the leaders in an AI-generated office, camera motion only) and journey-v3-animated (reserved: its files do not exist yet, so it is disabled; set \"enabled\": true and add film3-animated.json + its files to turn the slot on). Exactly one is ACTIVE at a time (the website_content row `bloom.film.active` = v2 | v3 | v3-animated, default v3, falling back v3 then v2; see docs/bloom-meeting.md). The others stay on disk but are not listed in the agenda or on the wall.",
+  "_comment": "VIP / Bloom films. The real company films first. The Journey of Ambition exists in three versions, all registered here: journey-v2 (film2.json: real photographs, static), journey-v3 (film3.json: the leaders in an AI-generated office, camera motion only) and journey-v3-animated (film4.json: the leaders' real photographs animated with AI in an AI-generated office). Exactly one is ACTIVE at a time (the website_content row `bloom.film.active` = v2 | v3 | v3-animated, default v3, falling back v3 then v2; see docs/bloom-meeting.md). The others stay on disk but are not listed in the agenda or on the wall.",
   "films": [
     {
       "id": "yas-story",
@@ -109,10 +109,9 @@
     },
     {
       "id": "journey-v3-animated",
-      "manifest": "/yas-bloom/film/film3-animated.json",
+      "manifest": "/yas-bloom/film/film4.json",
       "real": false,
-      "order": 102,
-      "enabled": false
+      "order": 102
     }
   ]
 }

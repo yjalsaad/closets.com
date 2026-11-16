@@ -1,7 +1,7 @@
 /* Bloom Meeting: the new film ("journey-v2") is registered as its OWN film id next to the existing ones, carries the accurate MIXED label, is in the agenda, and the files exist. Also the investor decks. */
 import fs from 'fs';
 import path from 'path';
-import { parseFilmManifest, parseFilmsManifest, pickSource, filmLabel, filmBadge, FILM_AI_LABEL, FILM_MIXED_LABEL, FILM_MIXED_BADGE, FILM_V2_DECK, FILM_DECK, JOURNEY_V2_ID, JOURNEY_V3_ID, JOURNEY_V3A_ID, JOURNEY_ACTIVE, FILM_V2_DECK_ID, FILM_V2_LABEL, FILM_V2_BADGE, mixedLabel, mixedBadge } from '../vip/film';
+import { parseFilmManifest, parseFilmsManifest, pickSource, filmLabel, filmBadge, FILM_AI_LABEL, FILM_MIXED_LABEL, FILM_MIXED_BADGE, FILM_V2_DECK, FILM_DECK, JOURNEY_V2_ID, JOURNEY_V3_ID, JOURNEY_V3A_ID, JOURNEY_ACTIVE, FILM_V2_DECK_ID, FILM_V2_LABEL, FILM_V2_BADGE, FILM_V3A_LABEL, FILM_V3A_BADGE, mixedLabel, mixedBadge } from '../vip/film';
 import { AGENDA, BLOOM_AGENDA_ID, KIND_LABEL, agendaIndex, nextAgendaItem } from '../vip/meeting';
 import { PERMANENT_DECKS } from '../vip/decks';
 import { INVESTOR_DECK, FACTORY_TOUR_DECK } from '../vip/decks/investor';
@@ -9,15 +9,15 @@ import { deckWarnings, FORBIDDEN_FINANCIAL, DISCLAIMER_SLIDE_ID } from '../vip/d
 import { COLLECTIONS } from '../collections/data';
 
 const FILM_DIR = path.join(__dirname, '../../../public/yas-bloom/film'), read = (f) => JSON.parse(fs.readFileSync(path.join(FILM_DIR, f), 'utf8'));
-const LIST = read('films.json'), V2 = read('film2.json'), V3 = read('film3.json');
+const LIST = read('films.json'), V2 = read('film2.json'), V3 = read('film3.json'), V4 = read('film4.json');
 
 describe('film v2 registration', () => {
   test('films.json: the new film is its own entry (manifest film3.json, not real, after the AI documentary); the existing entries are untouched', () => {
-    const r = parseFilmsManifest(LIST); expect(r.ok).toBe(true); expect(r.films.map((f) => f.id)).toEqual(['yas-story', 'closets-story', 'bonsai-hub', 'journey', JOURNEY_V2_ID, JOURNEY_V3_ID]);   // the reserved animated slot is disabled: not listed
+    const r = parseFilmsManifest(LIST); expect(r.ok).toBe(true); expect(r.films.map((f) => f.id)).toEqual(['yas-story', 'closets-story', 'bonsai-hub', 'journey', JOURNEY_V2_ID, JOURNEY_V3_ID, JOURNEY_V3A_ID]);   // the AI-animated version (film4.json) is registered too
     expect(LIST.films.find((f) => f.id === 'journey')).toEqual({ id: 'journey', manifest: '/yas-bloom/film/film.json', real: false, order: 99 });
     expect(LIST.films.find((f) => f.id === JOURNEY_V2_ID)).toEqual({ id: JOURNEY_V2_ID, manifest: '/yas-bloom/film/film2.json', real: false, order: 100 });
     expect(LIST.films.find((f) => f.id === JOURNEY_V3_ID)).toEqual({ id: JOURNEY_V3_ID, manifest: '/yas-bloom/film/film3.json', real: false, order: 101 });
-    expect(LIST.films.find((f) => f.id === JOURNEY_V3A_ID)).toEqual({ id: JOURNEY_V3A_ID, manifest: '/yas-bloom/film/film3-animated.json', real: false, order: 102, enabled: false }); expect(fs.existsSync(path.join(FILM_DIR, 'film3-animated.json'))).toBe(false);   // reserved, no fake files
+    expect(LIST.films.find((f) => f.id === JOURNEY_V3A_ID)).toEqual({ id: JOURNEY_V3A_ID, manifest: '/yas-bloom/film/film4.json', real: false, order: 102 });
   });
   test('film2.json (journey-v2) still parses, is mixed, and its own label is the v2 wording (not the v3 one); its files exist', () => {
     const r = parseFilmManifest(V2); expect(r.ok).toBe(true); expect(r.film.mixed).toBe(true); expect(V2.label.en.replace(/\.$/, '')).toBe(FILM_V2_LABEL.en); expect(V2.label.ar.replace(/\.$/, '')).toBe(FILM_V2_LABEL.ar);
@@ -42,7 +42,7 @@ describe('film v2 registration', () => {
     expect(FILM_MIXED_LABEL.en).not.toMatch(/^AI-generated illustration$/); expect(FILM_MIXED_LABEL.en).toMatch(/real photographs/); expect(FILM_MIXED_LABEL.ar).toMatch(/صور حقيقية/);
   });
   test('no separate image of the leaders is shipped: the film folder holds only the film files', () => {
-    const names = fs.readdirSync(FILM_DIR); expect(names.filter((n) => /leader|ceo|portrait|person/i.test(n))).toEqual([]); expect(names.filter((n) => /^journey[23]/.test(n)).sort()).toEqual(['journey2-1080.mp4', 'journey2-720.mp4', 'journey2-poster.jpg', 'journey2.ar.vtt', 'journey2.en.vtt', 'journey3-1080.mp4', 'journey3-720.mp4', 'journey3-poster.jpg', 'journey3.ar.vtt', 'journey3.en.vtt']);   // v2 stays as the fallback
+    const names = fs.readdirSync(FILM_DIR); expect(names.filter((n) => /leader|ceo|portrait|person/i.test(n))).toEqual([]); expect(names.filter((n) => /^journey[234]/.test(n)).sort()).toEqual(['journey2-1080.mp4', 'journey2-720.mp4', 'journey2-poster.jpg', 'journey2.ar.vtt', 'journey2.en.vtt', 'journey3-1080.mp4', 'journey3-720.mp4', 'journey3-poster.jpg', 'journey3.ar.vtt', 'journey3.en.vtt', 'journey4-1080.mp4', 'journey4-720.mp4', 'journey4-poster.jpg', 'journey4.ar.vtt', 'journey4.en.vtt']);   // v2 stays as the fallback
   });
 });
 
@@ -63,6 +63,18 @@ describe('captions: on by default, in the page language, with a CC toggle and an
   test('the caption files are real WebVTT with cues in the middle of the film, in both languages', () => {
     for (const l of ['en', 'ar']) { const v = fs.readFileSync(path.join(FILM_DIR, `journey3.${l}.vtt`), 'utf8'); expect(v.startsWith('WEBVTT')).toBe(true); expect((v.match(/-->/g) || []).length).toBeGreaterThan(30); expect(v).toMatch(/00:0[12]:\d\d\.\d{3} -->/); }
     expect(fs.readFileSync(path.join(FILM_DIR, 'journey3.en.vtt'), 'utf8')).not.toMatch(/[؀-ۿ]/);
+  });
+});
+
+describe('film v4 (journey-v3-animated): the leaders animated with AI', () => {
+  test('film4.json parses, is mixed, 219 s, EN captions default; its files exist with the declared sizes', () => {
+    const r = parseFilmManifest(V4); expect(r.ok).toBe(true); expect(r.film.mixed).toBe(true); expect(r.film.real).toBe(false); expect(r.film.durationSec).toBeGreaterThan(200); expect(V4.captions.find((c) => c.lang === 'en').default).toBe(true); expect(r.film.sources.map((s) => s.height)).toEqual([1080, 720]); expect(r.film.poster).toBe('/yas-bloom/film/journey4-poster.jpg');
+    for (const s of V4.sources) expect(fs.statSync(path.join(FILM_DIR, path.basename(s.src))).size).toBe(s.bytes); for (const u of [V4.poster, ...V4.captions.map((c) => c.src)]) expect(fs.existsSync(path.join(FILM_DIR, path.basename(u)))).toBe(true);
+  });
+  test('its label == the manifest label EXACTLY (trailing period aside) and the badge says animated with AI; the other versions never say it', () => {
+    expect(V4.label.en.replace(/\.$/, '')).toBe(FILM_V3A_LABEL.en); expect(V4.label.ar.replace(/\.$/, '')).toBe(FILM_V3A_LABEL.ar); expect(FILM_V3A_LABEL.en).toBe('Leaders appear from real photographs, animated with AI, in an AI-generated office; all other imagery is AI-generated illustration');
+    expect(FILM_V3A_BADGE.en).toBe('Leaders: real photos animated with AI · office and other imagery: AI illustration'); expect(mixedLabel(JOURNEY_V3A_ID)).toBe(FILM_V3A_LABEL); expect(mixedBadge(JOURNEY_V3A_ID)).toBe(FILM_V3A_BADGE); expect(filmLabel({ mixed: true, id: JOURNEY_V3A_ID })).toBe(FILM_V3A_LABEL);
+    for (const l of [FILM_V2_LABEL, FILM_MIXED_LABEL]) expect(l.en).not.toMatch(/animated with AI/i);
   });
 });
 
