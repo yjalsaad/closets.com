@@ -1,5 +1,5 @@
 {
-  "_comment": "VIP big screen films. Real company films first (the Bonsai Hub film is a real-product film built from real Hub screens with synthetic demo data, not AI imagery); the AI documentary is referenced through its own manifest (film.json) and only appears when that file exists.",
+  "_comment": "VIP / Bloom films. The real company films first. The Journey of Ambition exists in three versions, all registered here: journey-v2 (film2.json: real photographs, static), journey-v3 (film3.json: the leaders in an AI-generated office, camera motion only) and journey-v3-animated (film4.json: the leaders' real photographs animated with AI in an AI-generated office). Exactly one is ACTIVE at a time (the website_content row `bloom.film.active` = v2 | v3 | v3-animated, default v3, falling back v3 then v2; see docs/bloom-meeting.md). The others stay on disk but are not listed in the agenda or on the wall.",
   "films": [
     {
       "id": "yas-story",
@@ -94,6 +94,24 @@
       "manifest": "/yas-bloom/film/film.json",
       "real": false,
       "order": 99
+    },
+    {
+      "id": "journey-v2",
+      "manifest": "/yas-bloom/film/film2.json",
+      "real": false,
+      "order": 100
+    },
+    {
+      "id": "journey-v3",
+      "manifest": "/yas-bloom/film/film3.json",
+      "real": false,
+      "order": 101
+    },
+    {
+      "id": "journey-v3-animated",
+      "manifest": "/yas-bloom/film/film4.json",
+      "real": false,
+      "order": 102
     }
   ]
 }

@@ -20,7 +20,7 @@ const fetcherFor = (map) => (u) => Promise.resolve(u in map ? { ok: true, text: 
 
 describe('films manifest: both shapes', () => {
   test('the list shape (committed films.json): the two REAL films first in their order, the AI documentary last as a reference to its own film.json', () => {
-    const r = parseFilmsManifest(LIST); expect(r.ok).toBe(true); expect(r.films.map((f) => f.id)).toEqual(['yas-story', 'closets-story', 'bonsai-hub', 'journey']); expect(r.films.map((f) => f.real)).toEqual([true, true, true, false]);
+    const r = parseFilmsManifest(LIST); expect(r.ok).toBe(true); expect(r.films.map((f) => f.id)).toEqual(['yas-story', 'closets-story', 'bonsai-hub', 'journey', 'journey-v2', 'journey-v3', 'journey-v3-animated']); expect(r.films.map((f) => f.real)).toEqual([true, true, true, false, false, false, false]);   // + the AI-animated version (film4.json)   // Bloom Meeting added journey-v2
     expect(r.films[3].ref).toBe('/yas-bloom/film/film.json'); expect(r.films[0].film.real).toBe(true); expect(r.films[0].film.burnedSubtitles).toBe(true); expect(r.films[0].film.captions).toEqual([]); expect(r.films[1].film.sources.map((s) => s.height)).toEqual([720, 540]);
   });
   test('the old single-film shape still works: it becomes one entry "journey", never real', () => {
@@ -57,7 +57,7 @@ describe('the committed films: files exist, are web MP4s within the size targets
 describe('film library: missing-file states', () => {
   test('films.json present, film.json absent: the real films are ready (paused, nothing but JSON requested), the AI film is "missing" (Film coming soon)', async () => {
     const asked = []; const base = fetcherFor({ [FILMS_MANIFEST_URL]: LIST }); const p = new FilmPlayer({ fetcher: (u) => { asked.push(u); return base(u); }, lang: 'en', device: { tier: 'high' } });
-    p.select('yas-story'); await p.load(); expect(p.state).toMatchObject({ status: 'ready', id: 'yas-story', src: '/yas-bloom/film/yas-story.mp4', caption: 'off' }); expect(p.video).toBeNull(); expect(asked).toEqual([FILMS_MANIFEST_URL, FILM_MANIFEST_URL]);
+    p.select('yas-story'); await p.load(); expect(p.state).toMatchObject({ status: 'ready', id: 'yas-story', src: '/yas-bloom/film/yas-story.mp4', caption: 'off' }); expect(p.video).toBeNull(); expect(asked).toEqual([FILMS_MANIFEST_URL, FILM_MANIFEST_URL, '/yas-bloom/film/film2.json', '/yas-bloom/film/film3.json', '/yas-bloom/film/film4.json']);   // + the two new cuts' own manifests (v2 and v3 are both registered; the animated slot is disabled)
     p.select('closets-story'); expect(p.state).toMatchObject({ status: 'ready', id: 'closets-story' }); p.select('journey'); expect(p.state.status).toBe('missing'); expect(p.play()).toBe(false); p.select('nope'); expect(p.state.status).toBe('missing');
   });
   test('both manifests present: the AI film is ready and stays labelled (real: false) even when listed', async () => {
@@ -77,17 +77,17 @@ describe('film library: missing-file states', () => {
 
 describe('agenda', () => {
   test('the meeting is the FIRST entry of the room; its deck: agenda card, then the three real films; the AI documentary entry is last', () => {
-    expect(PERMANENT_DECKS.map((d) => d.id)).toEqual(['meeting', 'default', 'closets-profile', 'yas-profile', 'film']); expect(PERMANENT_DECKS[0]).toBe(MEETING_DECK); expect(MEETING_DECK.slides.map((s) => [s.id, s.builtin, s.filmId])).toEqual([['welcome', 'welcome', undefined], ['agenda', 'meeting', undefined], ['yas-story', 'film', 'yas-story'], ['closets-story', 'film', 'closets-story'], ['bonsai-hub', 'film', 'bonsai-hub']]); expect(deckHasDisclaimer(MEETING_DECK)).toBe(true);
+    expect(PERMANENT_DECKS.map((d) => d.id)).toEqual(['meeting', 'default', 'closets-profile', 'yas-profile', 'investor', 'factory-tour', 'film-v2', 'film']);   // Bloom Meeting added the investor welcome, the factory tour and the new film cut expect(PERMANENT_DECKS[0]).toBe(MEETING_DECK); expect(MEETING_DECK.slides.map((s) => [s.id, s.builtin, s.filmId])).toEqual([['welcome', 'welcome', undefined], ['agenda', 'meeting', undefined], ['yas-story', 'film', 'yas-story'], ['closets-story', 'film', 'closets-story'], ['bonsai-hub', 'film', 'bonsai-hub']]); expect(deckHasDisclaimer(MEETING_DECK)).toBe(true);
   });
   test('order: real films first, then the three presentations, the AI film LAST and the only one labelled', () => {
-    expect(AGENDA.map((a) => a.id)).toEqual(['yas-story', 'closets-story', 'bonsai-hub', 'closets-profile', 'yas-profile', 'default', 'journey']); expect(AGENDA.map((a) => a.kind)).toEqual(['film', 'film', 'film', 'deck', 'deck', 'deck', 'film']);
-    expect(AGENDA.filter((a) => a.label).map((a) => a.id)).toEqual(['journey']); expect(AGENDA[6].label).toBe(FILM_AI_LABEL); expect(AGENDA[6].real).toBe(false); expect(AGENDA.slice(0, 3).every((a) => a.real)).toBe(true);
-    for (const a of AGENDA) expect(PERMANENT_DECKS.some((d) => d.id === a.deck && d.slides[a.slide])).toBe(true);
+    expect(AGENDA.map((a) => a.id)).toEqual(['yas-story', 'closets-story', 'bonsai-hub', 'closets-profile', 'yas-profile', 'default', 'journey', 'journey-active', 'bloom-meeting']); expect(AGENDA.map((a) => a.kind)).toEqual(['film', 'film', 'film', 'deck', 'deck', 'deck', 'film', 'film', 'place']);   // Bloom Meeting added 'journey-active' (the active new cut: v2 / v3 / v3-animated) and the 'bloom-meeting' destination
+    expect(AGENDA.filter((a) => a.label).map((a) => a.id)).toEqual(['journey', 'journey-active']); expect(AGENDA[6].label).toBe(FILM_AI_LABEL); expect(AGENDA[6].real).toBe(false); expect(AGENDA.slice(0, 3).every((a) => a.real)).toBe(true);
+    for (const a of AGENDA.filter((x) => x.kind !== 'place')) expect(PERMANENT_DECKS.some((d) => d.id === a.deck && d.slides[a.slide])).toBe(true);
   });
   test('where am I / what is next: card -> film 1 -> film 2 -> Closets profile -> YAS profile -> company presentation -> AI film -> end', () => {
     expect(agendaIndex('meeting', 0)).toBe(-1); expect(agendaIndex('meeting', 1)).toBe(-1); expect(nextAgendaItem(-1)).toBe(firstAgendaItem()); expect(firstAgendaItem().id).toBe('yas-story'); expect(agendaIndex('meeting', 2)).toBe(0); expect(agendaIndex('meeting', 3)).toBe(1);
     const walk = []; let i = -1; for (;;) { const n = nextAgendaItem(i); if (!n) break; walk.push(n.id); i = agendaIndex(n.deck, n.slide); } expect(walk).toEqual(AGENDA.map((a) => a.id));
-    expect(agendaIndex('closets-profile', 7)).toBe(3); expect(agendaIndex('film', 0)).toBe(6); expect(nextAgendaItem(6)).toBeNull(); expect(agendaIndex('user-x', 0)).toBe(-1); expect(nextAgendaItem(NaN)).toBeNull(); expect(nextAgendaItem(-2)).toBeNull();
+    expect(agendaIndex('closets-profile', 7)).toBe(3); expect(agendaIndex('film', 0)).toBe(6); expect(agendaIndex('film-v2', 0)).toBe(7); expect(agendaIndex('bloom-meeting', 0)).toBe(8); expect(nextAgendaItem(6).id).toBe('journey-active'); expect(nextAgendaItem(8)).toBeNull(); expect(agendaIndex('user-x', 0)).toBe(-1); expect(nextAgendaItem(NaN)).toBeNull(); expect(nextAgendaItem(-2)).toBeNull();
   });
   test('EN / AR: every title in both languages with Arabic script; no financial or invest wording', () => {
     const all = [MEETING_TITLE, ...AGENDA.map((a) => a.title), ...REAL_FILMS.map((f) => f.lead)]; for (const t of all) { expect(t.en.length).toBeGreaterThan(3); expect(/[؀-ۿ]/.test(t.ar)).toBe(true); }
@@ -97,9 +97,9 @@ describe('agenda', () => {
 
 describe('wall and panel', () => {
   const rec = (fn, o) => { const state = { font: '10px x' }, noop = () => {}; const g = new Proxy(state, { get(t, k) { if (k === 'measureText') return (s) => ({ width: String(s).length * parseFloat(/(\d+)px/.exec(t.font)[1]) * 0.56 }); if (k === 'createLinearGradient') return () => ({ addColorStop: noop }); return k in t ? t[k] : noop; }, set(t, k, v) { t[k] = v; return true; } }); const metrics = []; fn(g, 1536, 864, { ...o, metrics }); return metrics.filter((m) => m.s && m.s.trim()); };
-  test.each(['en', 'ar'])('the title card (%s): "Management meeting" at 80 px, six agenda lines at 34 px (>= 3.5%% of the height), the AI label on the last line only, inside the safe area', (lang) => {
-    const m = rec(drawMeeting, { lang }); const title = m.find((x) => x.s === MEETING_TITLE[lang]); expect(title.size).toBe(TYPE.hero); const lines = m.filter((x) => x.size === 34); expect(lines).toHaveLength(7); expect(lines[0].s).toContain(AGENDA[0].title[lang]);
-    expect(lines.filter((x) => x.s.includes(FILM_AI_LABEL[lang]))).toHaveLength(1); expect(lines[6].s).toContain(FILM_AI_LABEL[lang]); for (const x of m) { expect(x.size).toBeGreaterThanOrEqual(22); expect(x.weight).toBeGreaterThanOrEqual(500); if (x.y1) expect(x.y1).toBeLessThanOrEqual(864); }
+  test.each(['en', 'ar'])('the title card (%s): "Management meeting" at 80 px, nine agenda lines at 31 px (>= 3.5%% of the height; seven at 34 px before Bloom Meeting), the AI label on the last line only, inside the safe area', (lang) => {
+    const m = rec(drawMeeting, { lang }); const title = m.find((x) => x.s === MEETING_TITLE[lang]); expect(title.size).toBe(TYPE.hero); const lines = m.filter((x) => x.size === 31); expect(lines).toHaveLength(9); expect(lines[0].s).toContain(AGENDA[0].title[lang]);
+    expect(lines.filter((x) => x.s.endsWith(' · ' + FILM_AI_LABEL[lang] + ')'))).toHaveLength(1);   // the mixed-label film (item 8) carries its own, accurate label instead expect(lines[6].s).toContain(FILM_AI_LABEL[lang]); for (const x of m) { expect(x.size).toBeGreaterThanOrEqual(22); expect(x.weight).toBeGreaterThanOrEqual(500); if (x.y1) expect(x.y1).toBeLessThanOrEqual(864); }
     expect(Math.max(...lines.map((x) => x.y1))).toBeLessThanOrEqual(864 - TYPE.safeBottom - 70);
   });
   test('a real film poster frame says "Company film" and never the AI label; the AI film says the AI label', () => {
@@ -110,7 +110,7 @@ describe('wall and panel', () => {
   test('panel, agenda card: the picker lists Management meeting first; Start meeting; six agenda buttons with the AI label on the last; clicking works', () => {
     const ex = mkEx(1); render(<VipPanel lang="en" touch={false} explorerRef={{ current: ex }} st={{ vipStation: 1 }} />);
     expect([...screen.getByTestId('sr-vip-deck-select').options].map((o) => o.textContent)[0]).toBe('Management meeting'); expect(screen.getByTestId('sr-vip-title').textContent).toBe('Management meeting');
-    const items = [...screen.getByTestId('sr-vip-agenda').querySelectorAll('button')]; expect(items).toHaveLength(7); expect(items[0].textContent).toMatch(/YAS: our story.*Company film/); expect(items[6].textContent).toMatch(/AI-generated illustration/); expect(items.slice(0, 6).some((b) => /AI-generated/.test(b.textContent))).toBe(false);
+    const items = [...screen.getByTestId('sr-vip-agenda').querySelectorAll('button')]; expect(items).toHaveLength(9); expect(items[0].textContent).toMatch(/YAS: our story.*Company film/); expect(items[6].textContent).toMatch(/AI-generated illustration/); expect(items.slice(0, 6).some((b) => /AI-generated/.test(b.textContent))).toBe(false);
     fireEvent.click(screen.getByTestId('sr-vip-meet-start')); fireEvent.click(screen.getByTestId('sr-vip-agenda-closets-profile')); expect(ex.calls).toEqual([['start'], ['go', 'closets-profile']]); expect(screen.queryByTestId('sr-vip-meet-next')).toBeNull();
   });
   test('panel, film 1 (Arabic): the real film has no AI label and no captions button (subtitles are in the picture); "Next agenda item" names film 2', async () => {

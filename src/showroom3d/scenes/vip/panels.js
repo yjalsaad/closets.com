@@ -4,7 +4,7 @@
 import { PALETTE as P, hex, rgba } from '../../3d/palette';
 import { FONT, wrap, roundedRect } from '../products/screens';
 import * as C from '../../products/vipContent';
-import { FILM_TITLE, FILM_ENTRY, FILM_AI_LABEL, FILM_SOON, fmtTime } from '../../vip/film';
+import { FILM_TITLE, FILM_ENTRY, FILM_AI_LABEL, mixedLabel, mixedBadge, FILM_SOON, fmtTime } from '../../vip/film';
 import { AGENDA, KIND_LABEL, MEETING_TITLE } from '../../vip/meeting';
 import { businessLines } from '../../products/vipContent';
 import { projectCard } from '../../products/projectsFeed';
@@ -309,23 +309,24 @@ export function drawFilmIdle(g, w, h, o) {
   if (!missing && f.status !== 'loading' && f.status !== 'idle') {   // play button
     const cx = w / 2, cy = 290, r = 74; g.fillStyle = rgba(P.brandOrange, 0.92); g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.fill(); g.fillStyle = hex(P.ink); g.beginPath(); g.moveTo(cx - 22, cy - 36); g.lineTo(cx + 40, cy); g.lineTo(cx - 22, cy + 36); g.closePath(); g.fill();
   }
-  let y = k.para(title, k.mx(X), 470, w - 2 * X, { size: TYPE.hero, weight: 800, color: P.sand, lh: 88 });
+  const longT = f.mixed && title.length > 24;   // the new cut's title is long: one size smaller keeps the download bar clear of the label line
+  let y = k.para(title, k.mx(X), longT ? 450 : 470, w - 2 * X, { size: longT ? 62 : TYPE.hero, weight: 800, color: P.sand, lh: longT ? 70 : 88 });
   const line = missing ? Lx(FILM_SOON, lang) : f.status === 'loading' || f.status === 'idle' ? (lang === 'ar' ? 'جارٍ التحميل…' : 'Loading…') : f.status === 'ended' ? (lang === 'ar' ? 'اضغط تشغيل للمشاهدة من جديد.' : 'Press Play to watch again.') : f.real ? (lang === 'ar' ? 'اضغط تشغيل للمشاهدة. الصوت مفعَّل.' : 'Press Play to watch. Sound on.') : (lang === 'ar' ? 'اضغط تشغيل للمشاهدة. الصوت مفعَّل والتعليق بالعربية.' : 'Press Play to watch. Sound on; narration in Arabic, captions in English.');
   y = k.para(line, k.mx(X), y + 4, w - 2 * X, { size: missing ? 52 : TYPE.lead, weight: 700, color: P.brandOrange, lh: 56 });
   const pq = !missing && /^(p\d+|ready)$/.test(f.prep || '') ? f.prep : '';   // the background download: "Preparing film... 40%" then "Ready" (the film itself starts at once either way)
   if (pq) { const pc = pq === 'ready' ? 100 : Number(pq.slice(1)), tx = pq === 'ready' ? (lang === 'ar' ? 'جاهز: يبدأ فورًا' : 'Ready: starts instantly') : (lang === 'ar' ? 'جارٍ تجهيز الفيلم… \u2066' + pc + '%\u2069' : 'Preparing film… ' + pc + '%'), bw = Math.min(560, w - 2 * X), bx = k.rtl ? w - X - bw : X, by = y + 14;
     g.fillStyle = 'rgba(245,240,230,0.22)'; g.fillRect(bx, by, bw, 12); g.fillStyle = hex(P.brandOrange); g.fillRect(k.rtl ? bx + bw - bw * pc / 100 : bx, by, bw * pc / 100, 12);
     k.para(tx, k.mx(X), by + 56, w - 2 * X, { size: 30, weight: 700, color: P.brassPale, lh: 34 }); }
-  const meta = [missing || f.real ? '' : Lx(FILM_AI_LABEL, lang), !missing && f.real ? (lang === 'ar' ? 'فيلم الشركة' : 'Company film') : '', !missing && f.duration ? fmtTime(f.duration) : ''].filter(Boolean).join(' · ');
+  const meta = [missing || f.real ? '' : Lx(f.mixed ? mixedLabel(f.id) : FILM_AI_LABEL, lang), !missing && f.real ? (lang === 'ar' ? 'فيلم الشركة' : 'Company film') : '', !missing && f.duration ? fmtTime(f.duration) : ''].filter(Boolean).join(' · ');
   if (meta) k.para(meta, k.mx(X), h - TYPE.safeBottom - 40, w - 2 * X, { size: TYPE.meta, weight: 600, color: P.brassPale, lh: 28 });
   k.para(Lx(C.DISCLAIMER, lang), k.mx(X), h - TYPE.safeBottom + 6, w - 2 * X, { size: TYPE.fine, weight: 500, color: P.sand, lh: 28 });
 }
 /** the strip over the bottom of the playing film: the current caption (large, on a dark band) and the small "AI-generated illustration" label. Drawn on its own transparent canvas (w x h = 1536 x 220). */
 export function drawFilmOverlay(g, w, h, o) {
   const k = kit(g, w, h, o.lang), { lang } = o; g.clearRect(0, 0, w, h);
-  if (o.cue) { g.font = `700 40px ${FONT}`; const lines = []; let line = ''; for (const wd of String(o.cue).split(/\s+/)) { const t = line ? line + ' ' + wd : wd; if (g.measureText(t).width > w - 240 && line) { lines.push(line); line = wd; } else line = t; } if (line) lines.push(line); const ls = lines.slice(0, 2), bh = ls.length * 52 + 28, by = h - 58 - bh;
-    const bw = Math.min(w - 120, Math.max(...ls.map((l) => g.measureText(l).width)) + 64); g.fillStyle = 'rgba(8,6,5,0.78)'; roundedRect(g, (w - bw) / 2, by, bw, bh, 14); g.fill(); g.direction = o.capLang === 'ar' ? 'rtl' : 'ltr'; ls.forEach((l, i) => k.text(l, w / 2, by + 50 + i * 52, { size: 40, weight: 700, color: P.sand, align: 'center' })); g.direction = lang === 'ar' ? 'rtl' : 'ltr'; }
-  if (o.real) return; const lab = Lx(FILM_AI_LABEL, lang); g.font = `600 22px ${FONT}`; const lw = g.measureText(lab).width + 28, lx = k.rtl ? 40 : w - 40 - lw; g.fillStyle = 'rgba(8,6,5,0.6)'; roundedRect(g, lx, h - 46, lw, 34, 8); g.fill(); k.text(lab, lx + lw / 2, h - 21, { size: 22, weight: 600, color: P.sand, align: 'center' });
+  if (o.cue) { g.font = `700 46px ${FONT}`; const lines = []; let line = ''; for (const wd of String(o.cue).split(/\s+/)) { const t = line ? line + ' ' + wd : wd; if (g.measureText(t).width > w - 240 && line) { lines.push(line); line = wd; } else line = t; } if (line) lines.push(line); const ls = lines.slice(0, 2), bh = ls.length * 58 + 26, by = h - 54 - bh;
+    const bw = Math.min(w - 120, Math.max(...ls.map((l) => g.measureText(l).width)) + 64); g.fillStyle = 'rgba(8,6,5,0.88)'; roundedRect(g, (w - bw) / 2, by, bw, bh, 14); g.fill(); g.direction = o.capLang === 'ar' ? 'rtl' : 'ltr'; ls.forEach((l, i) => k.text(l, w / 2, by + 48 + i * 58, { size: 46, weight: 700, color: P.sand, align: 'center' })); g.direction = lang === 'ar' ? 'rtl' : 'ltr'; }
+  if (o.real) return; const lab = Lx(o.mixed ? mixedBadge(o.filmId) : FILM_AI_LABEL, lang); g.font = `600 22px ${FONT}`; const lw = g.measureText(lab).width + 28, lx = k.rtl ? 40 : w - 40 - lw; g.fillStyle = 'rgba(8,6,5,0.6)'; roundedRect(g, lx, h - 46, lw, 34, 8); g.fill(); k.text(lab, lx + lw / 2, h - 21, { size: 22, weight: 600, color: P.sand, align: 'center' });
 }
 
 // ================================================================ Management meeting: the title card with the agenda
@@ -335,12 +336,16 @@ export function drawMeeting(g, w, h, o) {
   g.fillStyle = hex(P.brandOrange); g.fillRect(k.rtl ? w - X - 90 : X, 32, 90, 5); k.text(lang === 'ar' ? 'غرفة الاجتماعات VIP' : 'VIP MEETING ROOM', k.mx(X), 76, { size: TYPE.stamp, weight: 600, color: P.brassPale });
   let y = k.para(Lx(MEETING_TITLE, lang), k.mx(X), 176, w - 2 * X, { size: TYPE.hero, weight: 800, color: P.sand, lh: 88 });
   k.para(lang === 'ar' ? 'جدول الأعمال' : 'Agenda', k.mx(X), y - 14, w - 2 * X, { size: TYPE.lead, weight: 700, color: P.brandOrange, lh: 48 }); y += 44;
+  const STEP = AGENDA.length > 7 ? 45 : 58, FS = AGENDA.length > 7 ? 31 : 34;   // nine lines (Bloom Meeting added two) keep the same 3.5 %+ of the height
   AGENDA.forEach((a, i) => {
-    const yy = y + i * 58, nx = k.rtl ? w - X - 30 : X + 30; g.fillStyle = hex(a.kind === 'film' && a.real ? P.brandOrange : P.brassPale); g.beginPath(); g.arc(nx, yy - 12, 24, 0, Math.PI * 2); g.fill();
+    const yy = y + i * STEP, nx = k.rtl ? w - X - 30 : X + 30; g.fillStyle = hex(a.kind === 'film' && a.real ? P.brandOrange : P.brassPale); g.beginPath(); g.arc(nx, yy - 12, 24, 0, Math.PI * 2); g.fill();
     k.text(String(i + 1), nx, yy - 1, { size: 28, weight: 800, color: P.ink, align: 'center' });
     const tag = Lx(KIND_LABEL[a.kind], lang) + (a.label ? ' · ' + Lx(a.label, lang) : '');
-    k.para(`${Lx(a.title, lang)}  (${tag})`, k.rtl ? w - X - 76 : X + 76, yy, w - 2 * X - 90, { size: 34, weight: a.real ? 700 : 600, color: P.sand, lh: 40 });
+    k.para(`${Lx(a.title, lang)}  (${tag})`, k.rtl ? w - X - 76 : X + 76, yy, w - 2 * X - 90, { size: FS, weight: a.real ? 700 : 600, color: P.sand, lh: FS + 6 });
   });
   k.para(lang === 'ar' ? 'اضغط «ابدأ الاجتماع» لتشغيل الفيلم الأول.' : 'Press "Start meeting" to play the first film.', k.mx(X), h - TYPE.safeBottom - 40, w - 2 * X, { size: 26, weight: 600, color: P.brassPale, lh: 30 });
   k.para(Lx(C.DISCLAIMER, lang), k.mx(X), h - TYPE.safeBottom + 6, w - 2 * X, { size: TYPE.fine, weight: 500, color: P.sand, lh: 28 });
 }
+
+/** the drawing kit and type scale, shared with the Bloom Meeting panels (scenes/bloom/panelsBloom.js) so both rooms draw text identically */
+export { kit };

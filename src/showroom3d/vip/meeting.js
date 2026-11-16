@@ -2,10 +2,12 @@
  * The agenda: the owner's two real company films first, then the meeting material (the two company-profile decks and the company presentation), and the AI-generated
  * documentary LAST, clearly labelled. Nothing advances by itself: a film with sound starts on a user action, and "Next agenda item" moves on.
  * Film titles describe what the films show (Arabic awaits native review). */
-import { FILM_TITLE, FILM_AI_LABEL } from './film';
+import { FILM_TITLE, FILM_AI_LABEL, FILM_V2_TITLE, FILM_V2_DECK_ID, JOURNEY_ACTIVE, activeJourney, mixedLabel } from './film';
 import { WELCOME_DECK_SLIDE } from './welcome';
 
 const T = (en, ar) => ({ en, ar });
+export const BLOOM_AGENDA_ID = 'bloom-meeting';
+export const BLOOM_TITLE = T('Bloom Meeting (Floor 2)', 'اجتماع بلوم (الطابق الثاني)');
 export const MEETING_DECK_ID = 'meeting';
 export const MEETING_TITLE = T('Management meeting', 'اجتماع الإدارة');
 export const REAL_FILMS = [
@@ -33,8 +35,11 @@ export const AGENDA = [
   { id: 'yas-profile', kind: 'deck', deck: 'yas-profile', slide: 0, title: T('YAS Profile (2026)', 'ملف YAS (2026)') },
   { id: 'default', kind: 'deck', deck: 'default', slide: 0, title: T('Company presentation', 'عرض الشركة') },
   { id: 'journey', kind: 'film', deck: 'film', slide: 0, title: FILM_TITLE, real: false, label: FILM_AI_LABEL },
+  // added with Bloom Meeting: the new cut of the journey film (mixed label: two real leader photographs, the rest AI illustration), then the DESTINATION item that takes the meeting up to Floor 2
+  { id: JOURNEY_ACTIVE, kind: 'film', deck: FILM_V2_DECK_ID, slide: 0, title: FILM_V2_TITLE, real: false, mixed: true, get label() { return mixedLabel(activeJourney()); } },   // the ACTIVE Journey film (v2 / v3 / v3-animated: vip/filmChoice.js); its label is the active version's own
+  { id: BLOOM_AGENDA_ID, kind: 'place', deck: 'bloom-meeting', slide: 0, floor: 'l2', scene: 'bloom-meeting', title: BLOOM_TITLE, real: false },
 ];
-export const KIND_LABEL = { film: T('Film', 'فيلم'), deck: T('Presentation', 'عرض') };
+export const KIND_LABEL = { film: T('Film', 'فيلم'), deck: T('Presentation', 'عرض'), place: T('Floor 2', 'الطابق الثاني') };
 /** which agenda item the room is on (-1: the Welcome slide, the agenda card itself or something outside the agenda, e.g. a saved deck) */
 export function agendaIndex(deckId, slide = 0) {
   if (deckId === MEETING_DECK_ID) return slide >= LEAD_SLIDES + 1 && slide <= LEAD_SLIDES + REAL_FILMS.length ? slide - LEAD_SLIDES - 1 : -1;
