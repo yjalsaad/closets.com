@@ -35,6 +35,7 @@ export const SCREEN = { x: 17.88, z: -5, y: 2.45, w: 7.6, h: 4.275 };   // 16:9 
 export const OPS_WALL = { x: -17.88, z: -5.5, y: 2.1, w: 9.0, h: 3.0 };  // faces +x
 export const LEADS_WALL = { x: -4, z: 11.88, y: 2.1, w: 12.0, h: 3.2 };   // the Lead Roadmap wall
 export const ROADMAP_FLOOR = { x: -4, z: 9.9, w: 10, d: 1.25 };           // the roadmap path inlaid in the lobby floor in front of the wall  // faces -z (into the lobby)
+export const JOURNEY_WALL = { x: 11.4, z: 11.88, y: 2.3, w: 10.4, h: 10.4 * 900 / 3072 };   // the Order Journey wall: south wall, east of the doorway to the executive wing, faces -z
 export const HANEEN_DESK = { x: -9.6, z: 7.2 };                           // the Haneen AI desk + hologram in the lobby
 export const LOUNGE = { x: 12.5, z: 8.6 };
 /** the executive wing: a corridor (z 12.4..16.5) behind a doorway in the lobby's south wall, and five glass-fronted offices (z 16.5..24) */
@@ -53,6 +54,7 @@ export const BLOOM_STOPS = [
   S('bloom-lobby', 'Lobby', 'الاستقبال', -3.0, 6.0, 11, 2.3, -4.6),
   ...OFFICE_LIST.map((o) => S('bloom-office-' + o.id, o.title.en, o.title.ar, o.cx, WING.frontZ + 1.8, o.cx, 1.8, o.z1)),
   S('bloom-haneen', 'Haneen AI', 'حنين AI', -7.2, 4.6, HANEEN_DESK.x, 1.4, HANEEN_DESK.z),
+  S('bloom-journey', 'Order Journey', 'رحلة الطلب', 11.4, 5.6, 11.4, 2.3, 11.9),
 ];
 /** the camera's starting pose of the entrance reveal and its end pose (world) */
 export const REVEAL = { from: { p: [-15.9, 1.62, 10.4 + BLOOM_Z0], l: [-6, 1.9, 8 + BLOOM_Z0] }, to: { p: [-3.0, 1.65, 6.0 + BLOOM_Z0], l: [11, 2.3, -4.6 + BLOOM_Z0] } };
@@ -104,6 +106,7 @@ export function bloomZones() {
     z('bloom-board', 'Boardroom: the video wall', 'قاعة مجلس الإدارة: شاشة الفيديو', 2.9, 17.6, -11.6, 1.6, { film: true }),
     z('bloom-ops', 'Staff operations', 'عمليات الموظفين', -17.6, -2.2, -11.6, 1.6),
     z('bloom-leads', 'Leads wall', 'جدار العملاء المحتملين', -17, 5, 2.2, 11.4),
+    z('bloom-journey', 'Order Journey wall', 'جدار رحلة الطلب', 6, 16.8, 4.8, 6.4),
     z('bloom-lounge', 'Lounge', 'ركن الاستراحة', 5, 17.6, 4.8, 11.4),
     z('bloom-lift', 'Glass lift: Floor 1', 'المصعد الزجاجي: الطابق 1', -17.6, -15.5, 9.3, 11.5, { lift: 'ground' }),
     { id: 'lift-g', en: 'Glass lift: Floor 2 · Bloom Meeting', ar: 'المصعد الزجاجي: الطابق 2 · اجتماع بلوم', index: 12, bloom: true, lift: 'l2', minX: LIFT_G.x - 1.9, maxX: LIFT_G.x + 1.9, minZ: LIFT_G.doorZ, maxZ: -31.7 },
@@ -123,7 +126,7 @@ export function bloomGraph() {
   const edges = [['cab', 'cabOut'], ['cabOut', 'lobbyW'], ['lobbyW', 'lobbyC'], ['lobbyC', 'lobbyE'], ['lobbyE', 'doorS'], ['doorS', 'inS'], ['inS', 'boardS'], ['boardS', 'boardSW'], ['boardSW', 'boardW'], ['boardW', 'boardN'], ['boardS', 'boardE'], ['boardE', 'boardNE'], ['boardNE', 'boardN'],
     ['lobbyE', 'lounge'], ['boardSW', 'boardWd'], ['boardWd', 'opsDoor'], ['opsDoor', 'opsE'], ['opsE', 'opsS'], ['opsS', 'opsMid'], ['opsMid', 'opsNW'], ['lobbyC', 'hn'], ['lobbyE', 'wingOut'], ['wingOut', 'wingIn'], ['wingIn', 'corr'], ...OFFICE_LIST.flatMap((o) => [['corr', 'cd-' + o.id], ['cd-' + o.id, 'oin-' + o.id]])];
   const stops = BLOOM_STOPS.map((s, i) => ({ id: s.id, index: 12 + i, side: 'center', stand: s.stand, look: s.look, bay: null }));
-  const link = { ...Object.fromEntries(OFFICE_LIST.map((o) => ['bloom-office-' + o.id, 'oin-' + o.id])), 'bloom-lobby': 'lobbyC', 'bloom-board': 'boardS', 'bloom-ops': 'opsMid', 'bloom-leads': 'lobbyC', 'bloom-lounge': 'lounge', 'bloom-haneen': 'hn' };
+  const link = { ...Object.fromEntries(OFFICE_LIST.map((o) => ['bloom-office-' + o.id, 'oin-' + o.id])), 'bloom-lobby': 'lobbyC', 'bloom-board': 'boardS', 'bloom-ops': 'opsMid', 'bloom-leads': 'lobbyC', 'bloom-lounge': 'lounge', 'bloom-haneen': 'hn', 'bloom-journey': 'lobbyE' };
   for (const s of stops) { nodes['stand-' + s.id] = s.stand; edges.push([link[s.id], 'stand-' + s.id]); }
   return { nodes, edges, stops };
 }

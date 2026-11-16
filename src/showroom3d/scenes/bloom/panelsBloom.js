@@ -8,8 +8,9 @@ import { BLOOM, L } from '../../bloom/strings';
 import { ILLUSTRATIVE, opsFrame, roadmapFrame, ROADMAP_STAGES, ROADMAP_FILTERS, ROADMAP_RULES, ROADMAP_BADGES, ROADMAP_NOTE } from '../../bloom/ops';
 import { OPTIONS_SOON } from '../../bloom/offices';
 import { BLOOM_LIGHT } from '../../bloom/palette';
+import { JOURNEY_LANES, JOURNEY_TITLE, JOURNEY_SUB, JOURNEY_AFTER, JOURNEY_NOTE, JOURNEY_GATE_LABEL, journeyRuns, stageColor as journeyColor } from '../../bloom/journey';
 
-export const DESIGN = { ops: { w: 2304, h: 768 }, leads: { w: 3072, h: 819 }, floor: { w: 2048, h: 256 }, plate: { w: 1024, h: 256 }, options: { w: 1024, h: 640 }, sign: { w: 1536, h: 384 }, haneen: { w: 768, h: 512 } };
+export const DESIGN = { ops: { w: 2304, h: 768 }, leads: { w: 3072, h: 819 }, floor: { w: 2048, h: 256 }, journey: { w: 3072, h: 900 }, plate: { w: 1024, h: 256 }, options: { w: 1024, h: 640 }, sign: { w: 1536, h: 384 }, haneen: { w: 768, h: 512 } };
 const num = (n, lang) => String(n);   // Western digits in both languages, as everywhere in the VIP decks
 
 const frame = (g, w, h) => { g.fillStyle = hex(0x0e0d0f); g.fillRect(0, 0, w, h); const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, hex(0x1b1714)); gr.addColorStop(1, hex(0x0b0a0c)); g.fillStyle = gr; g.fillRect(0, 0, w, h); };
@@ -107,4 +108,52 @@ export function drawHaneenCard(g, w, h, o) {
   k.text(L(BLOOM.haneenName, lang), k.mx(k.rtl ? 220 : 230), 142, { size: 64, weight: 800, color: P.sand }); k.text(L(BLOOM.haneenRole, lang), k.mx(k.rtl ? 220 : 230), 196, { size: 34, weight: 500, color: P.brassPale });
   k.para(lang === 'ar' ? 'اضغط E أو المس هنا للسؤال عن YAS Factory' : 'Press E or tap to ask about YAS Factory', k.mx(48), 330, w - 96, { size: 34, weight: 600, color: P.sand, lh: 44 });
   k.text(lang === 'ar' ? 'مساعد ذكاء اصطناعي · للاطلاع فقط' : 'AI assistant · informational only', k.mx(48), h - 44, { size: 26, weight: 500, color: P.taupe });
+}
+
+/** Order Journey wall (south wall, east of the wing doorway): the full order path in two runs. Run 1: CLOSETS lane (orange), the glowing LPO APPROVED gate, the YAS FACTORY lane (marble).
+ *  Run 2: back in the Closets colour, packing to final payment. Static illustrative content (bloom/journey.js); same kit, type scale and canvas pipeline as the Lead Roadmap wall. */
+export function drawJourneyWall(g, w, h, o) {
+  const k = kit(g, w, h, o.lang), { lang } = o, R = journeyRuns(), rtl = k.rtl; frame(g, w, h);
+  const pad = 56, ink = P.ink, edge = (x, cw) => (rtl ? w - x - cw : x);   // mirror a left-to-right box for Arabic
+  k.rule(k.mx(pad), 24, 90); k.text(L(JOURNEY_TITLE, lang), k.mx(pad), 76, { size: 54, weight: 800, color: P.sand });
+  k.text(L(JOURNEY_SUB, lang), k.mx(pad), 114, { size: 26, weight: 500, color: P.sand, max: w - pad * 2 - 560 });
+  k.text(L(ILLUSTRATIVE, lang), k.mx(w - pad), 70, { size: 32, weight: 800, color: BLOOM_LIGHT.brass, align: rtl ? 'left' : 'right' });
+  const arrow = (x, y, col) => { g.fillStyle = hex(col); g.beginPath(); const d = rtl ? -1 : 1; g.moveTo(x + d * 11, y); g.lineTo(x - d * 7, y - 12); g.lineTo(x - d * 7, y + 12); g.closePath(); g.fill(); };
+  const badge = (cx, cy, n, col) => { g.fillStyle = hex(col); g.beginPath(); g.arc(cx, cy, 25, 0, Math.PI * 2); g.fill(); k.text(String(n), cx, cy + 11, { size: 30, weight: 800, color: ink, align: 'center' }); };
+  const card = (x, y0, cw, ch, s, n, col, { dark = false, inline = false } = {}) => { const ax = rtl ? x + cw - 20 : x + 20, tw = cw - 40, bx = rtl ? x + cw - 20 - 25 : x + 20 + 25;
+    k.card(x, y0, cw, ch, { fill: dark ? rgba(col, 0.1) : rgba(P.sand, 0.06), line: rgba(col, 0.6) }); g.fillStyle = hex(col); g.fillRect(x + 1, y0 + 1, cw - 2, 9);
+    badge(bx, y0 + 52, n, col);
+    if (inline) { const tx = rtl ? bx - 40 : bx + 40; k.text(L(s.title, lang), tx, y0 + 64, { size: 34, weight: 800, color: P.sand, max: cw - 130 }); k.para(L(s.desc, lang), ax, y0 + 118, tw, { size: 26, weight: 500, color: P.sand, lh: 33 }); return; }
+    const ty = y0 + 118, ty1 = k.para(L(s.title, lang), ax, ty, tw, { size: 30, weight: 800, color: P.sand, lh: 36 });
+    k.para(L(s.desc, lang), ax, Math.max(ty1, ty + 36) + 14, tw, { size: 24, weight: 500, color: P.sand, lh: 31 }); };
+  // ---- run 1: 5 CLOSETS cards, the gate, 4 YAS FACTORY cards ----
+  const gap = 14, nOn = R.before.length + R.factory.length, cw = (w - pad * 2 - gap * nOn) / (nOn + 1.3), gw = cw * 1.3, y0 = 200, ch = 320;
+  const xs = []; { let x = pad; for (let i = 0; i < nOn + 1; i++) { const gate = i === R.before.length, bw = gate ? gw : cw; xs.push([x, bw]); x += bw + gap; } }
+  const laneBar = (i0, i1, lane) => { const a = xs[i0], b = xs[i1], x0 = Math.min(edge(a[0], a[1]), edge(b[0], b[1])), x1 = Math.max(edge(a[0], a[1]) + a[1], edge(b[0], b[1]) + b[1]), col = lane.color;
+    g.fillStyle = hex(col); g.fillRect(x0, 178, x1 - x0, 6); k.text(L(lane.title, lang), rtl ? x1 : x0, 168, { size: 34, weight: 800, color: col }); };
+  laneBar(0, R.before.length - 1, JOURNEY_LANES.closets); laneBar(R.before.length + 1, nOn, JOURNEY_LANES.factory);
+  let n = 1;
+  R.before.forEach((s, i) => { const [x, bw] = xs[i]; card(edge(x, bw), y0, bw, ch, s, n++, journeyColor(s)); });
+  { const [x, bw] = xs[R.before.length], ex = edge(x, bw), s = R.gate, gc = BLOOM_LIGHT.orange, cx = ex + bw / 2, cy = y0 + ch / 2;   // the gate: a glowing frame, taller than the cards
+    const gl = g.createRadialGradient(cx, cy, 20, cx, cy, bw * 0.95); gl.addColorStop(0, rgba(gc, 0.55)); gl.addColorStop(0.55, rgba(gc, 0.18)); gl.addColorStop(1, rgba(gc, 0)); g.fillStyle = gl; g.fillRect(ex - bw * 0.5, y0 - 70, bw * 2, ch + 140);
+    g.save(); g.shadowColor = hex(gc); g.shadowBlur = 34; g.fillStyle = hex(0x1d140d); roundedRect(g, ex, y0 - 14, bw, ch + 28, 20); g.fill(); g.strokeStyle = hex(BLOOM_LIGHT.brass); g.lineWidth = 6; g.stroke(); g.restore();
+    g.strokeStyle = hex(gc); g.lineWidth = 3; roundedRect(g, ex + 10, y0 - 4, bw - 20, ch + 8, 14); g.stroke();
+    k.text(L(JOURNEY_GATE_LABEL, lang), cx, y0 + 34, { size: 24, weight: 700, color: BLOOM_LIGHT.brass, align: 'center' });
+    badge(cx, y0 + 84, n++, gc);
+    const l1 = L(s.title, lang), ty = y0 + 152; g.font = `800 34px ${FONT}`; const one = g.measureText(l1).width < bw - 28;
+    if (one) k.text(l1, cx, ty, { size: 34, weight: 800, color: P.sand, align: 'center' }); else k.para(l1, cx, ty, bw - 28, { size: 34, weight: 800, color: P.sand, lh: 40, align: 'center' });
+    k.para(L(s.desc, lang), cx, ty + (one ? 52 : 92), bw - 40, { size: 24, weight: 600, color: P.sand, lh: 31, align: 'center' }); }
+  R.factory.forEach((s, i) => { const [x, bw] = xs[R.before.length + 1 + i]; card(edge(x, bw), y0, bw, ch, s, n++, journeyColor(s), { dark: true }); });
+  for (let i = 0; i < xs.length - 1; i++) { const gx = rtl ? edge(xs[i][0], xs[i][1]) - gap / 2 : xs[i][0] + xs[i][1] + gap / 2, ni = i + 1; arrow(gx, y0 + 52, ni === R.before.length || ni === R.before.length + 1 ? BLOOM_LIGHT.brass : (i >= R.before.length ? JOURNEY_LANES.factory.color : JOURNEY_LANES.closets.color)); }
+  // ---- the hand-back: from QC down and round to Packing ----
+  const lastF = xs[xs.length - 1], lx = edge(lastF[0], lastF[1]) + lastF[1] / 2, ey = y0 + ch + 20, ry0 = 596, rgap = 20, rw = (w - pad * 2 - rgap * (R.after.length - 1)) / R.after.length, firstCx = edge(pad, rw) + rw / 2;
+  g.strokeStyle = hex(BLOOM_LIGHT.orange); g.lineWidth = 5; g.setLineDash([14, 9]); g.beginPath(); g.moveTo(lx, y0 + ch); g.lineTo(lx, ey + 8); g.lineTo(firstCx, ey + 8); g.lineTo(firstCx, ry0 - 14); g.stroke(); g.setLineDash([]);
+  g.fillStyle = hex(BLOOM_LIGHT.orange); g.beginPath(); g.moveTo(firstCx, ry0 - 2); g.lineTo(firstCx - 12, ry0 - 20); g.lineTo(firstCx + 12, ry0 - 20); g.closePath(); g.fill();
+  k.text(L(JOURNEY_AFTER, lang), rtl ? firstCx - 30 : firstCx + 30, ey + 40, { size: 30, weight: 800, color: BLOOM_LIGHT.orange });
+  // ---- run 2: the Closets colour again ----
+  R.after.forEach((s, i) => { const x = pad + i * (rw + rgap); card(edge(x, rw), ry0, rw, 200, s, n++, journeyColor(s), { inline: true }); if (i < R.after.length - 1) arrow(rtl ? edge(x, rw) - rgap / 2 : x + rw + rgap / 2, ry0 + 52, JOURNEY_LANES.closets.color); });
+  // ---- legend ----
+  { const ly = 846; let lx = rtl ? w - pad : pad; const sw = (col, label) => { g.fillStyle = hex(col); roundedRect(g, rtl ? lx - 30 : lx, ly - 22, 30, 30, 7); g.fill(); k.text(label, rtl ? lx - 44 : lx + 44, ly, { size: 26, weight: 700, color: P.sand }); g.font = `700 26px ${FONT}`; const tw = g.measureText(label).width; lx += (rtl ? -1 : 1) * (44 + tw + 44); };
+    sw(JOURNEY_LANES.closets.color, L(JOURNEY_LANES.closets.title, lang)); sw(JOURNEY_LANES.factory.color, L(JOURNEY_LANES.factory.title, lang)); sw(BLOOM_LIGHT.brass, lang === 'ar' ? 'بوابة اعتماد أمر الشراء' : 'LPO approved gate');
+    k.text(L(JOURNEY_NOTE, lang), k.mx(w - pad), ly, { size: 26, weight: 600, color: P.taupe, align: rtl ? 'left' : 'right' }); }
 }

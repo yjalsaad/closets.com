@@ -14,10 +14,10 @@ import * as fu from '../products/furnish';
 import * as pr from '../products/props';
 import { makePanel } from '../products/screens';
 import { drawFilmIdle, drawFilmOverlay } from '../vip/panels';
-import { F2, TABLE, SCREEN, OPS_WALL, LEADS_WALL, HANEEN_DESK, LOUNGE, PODS, CAB_L2, BLOOM_Z0, LIFT_G, WING, OFFICE_LIST, ROADMAP_FLOOR, seatList, sofaList, LOUNGE_TABLE } from './layout';
+import { F2, TABLE, SCREEN, OPS_WALL, LEADS_WALL, HANEEN_DESK, LOUNGE, PODS, CAB_L2, BLOOM_Z0, LIFT_G, WING, OFFICE_LIST, ROADMAP_FLOOR, JOURNEY_WALL, seatList, sofaList, LOUNGE_TABLE } from './layout';
 import { officeOptions } from '../../bloom/offices';
 import { FINISHES, BLOOM_LIGHT, NIGHT } from '../../bloom/palette';
-import { DESIGN, drawOpsWall, drawRoadmapWall, drawRoadmapFloor, drawNamePlate, drawOptionsPanel, drawBloomSign, drawHaneenCard } from './panelsBloom';
+import { DESIGN, drawOpsWall, drawRoadmapWall, drawRoadmapFloor, drawJourneyWall, drawNamePlate, drawOptionsPanel, drawBloomSign, drawHaneenCard } from './panelsBloom';
 import { buildSkyline } from './skyline';
 
 const smooth = (x) => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
@@ -103,7 +103,7 @@ export function buildBloomFloor({ M, tier, lang = 'en', logoTex = null, glowTex 
     for (const sz of [-1, 1]) ls.push(prep(placed(new THREE.BoxGeometry(0.012, S.h + 0.6, 0.02), { x: S.x - 0.1, y: S.y, z: S.z + sz * (S.w / 2 + 0.3) }))); mirrored.push(mesh(mergeGeometries(ls), ledOrange, { name: 'f2-screen-led' })); }
   const state = { lang, t: 0, film: null, videoTex: null, active: false, reduced, panelsBuilt: false, last: 0, enter: 0 };
   const officePanels = []; let floorMap = null;
-  let film = null, filmStrip = null, filmMat = null, filmMesh = null, filmStripMesh = null, ops = null, leads = null, sign = null, holo = null, holoMesh = null;
+  let film = null, filmStrip = null, filmMat = null, filmMesh = null, filmStripMesh = null, ops = null, leads = null, journey = null, sign = null, holo = null, holoMesh = null;
   const lazy = {};   // panels are created on first activation (memory + startup time for visitors who never go up)
 
   // ---- staff operations: six pods (stone-topped desks, low monitors, task chairs) ----
@@ -197,6 +197,7 @@ export function buildBloomFloor({ M, tier, lang = 'en', logoTex = null, glowTex 
     const so = sized(OPS_WALL.w, DESIGN.ops), sl = sized(LEADS_WALL.w, DESIGN.leads), sf = sized(ROADMAP_FLOOR.w, DESIGN.floor);
     ops = makePanel(so.w, so.h, (g, w, h, l) => drawOpsWall(g, w, h, { lang: l, t: state.t }), state.lang, { design: DESIGN.ops, anisotropy: aniso }); mesh(new THREE.PlaneGeometry(OPS_WALL.w, OPS_WALL.h), new THREE.MeshBasicMaterial({ map: ops.tex, toneMapped: false }), { pos: [OPS_WALL.x + 0.1, OPS_WALL.y, OPS_WALL.z], rot: [0, Math.PI / 2, 0], name: 'f2-ops-wall' });
     leads = makePanel(sl.w, sl.h, (g, w, h, l) => drawRoadmapWall(g, w, h, { lang: l, t: state.t }), state.lang, { design: DESIGN.leads, anisotropy: aniso }); mesh(new THREE.PlaneGeometry(LEADS_WALL.w, LEADS_WALL.h), new THREE.MeshBasicMaterial({ map: leads.tex, toneMapped: false }), { pos: [LEADS_WALL.x, LEADS_WALL.y, LEADS_WALL.z - 0.1], rot: [0, Math.PI, 0], name: 'f2-leads-wall' });
+    { const sj = sized(JOURNEY_WALL.w, DESIGN.journey); journey = makePanel(sj.w, sj.h, (g, w, h, l) => drawJourneyWall(g, w, h, { lang: l }), state.lang, { design: DESIGN.journey, anisotropy: aniso }); mesh(new THREE.PlaneGeometry(JOURNEY_WALL.w, JOURNEY_WALL.h), new THREE.MeshBasicMaterial({ map: journey.tex, toneMapped: false }), { pos: [JOURNEY_WALL.x, JOURNEY_WALL.y, JOURNEY_WALL.z - 0.1], rot: [0, Math.PI, 0], name: 'f2-journey-wall' }); }
     floorMap = makePanel(sf.w, sf.h, (g, w, h, l) => drawRoadmapFloor(g, w, h, { lang: l, t: state.t }), state.lang, { design: DESIGN.floor, anisotropy: aniso });
     { const fg = new THREE.PlaneGeometry(ROADMAP_FLOOR.w, ROADMAP_FLOOR.d).rotateX(-Math.PI / 2).rotateY(Math.PI);   // text reads from the north (the way visitors walk up to the wall)
       const m = mesh(fg, new THREE.MeshBasicMaterial({ map: floorMap.tex, transparent: true, toneMapped: false, depthWrite: false }), { pos: [ROADMAP_FLOOR.x, 0.016, ROADMAP_FLOOR.z], name: 'f2-roadmap-floor' }); m.renderOrder = 2; }
@@ -210,7 +211,7 @@ export function buildBloomFloor({ M, tier, lang = 'en', logoTex = null, glowTex 
     holoMesh = mesh(new THREE.PlaneGeometry(1.5, 1.0), new THREE.MeshBasicMaterial({ map: holo.tex, transparent: true, blending: THREE.NormalBlending, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }), { pos: [HANEEN_DESK.x, 1.75, HANEEN_DESK.z + 0.1], rot: [0, Math.PI, 0], name: 'f2-haneen-card' });   // faces the visitors (-z)
     // brass frames round the three walls, a light ring + column at the Haneen desk
     const fr = []; const frame = (w, h, x, y, z, ry) => { for (const [fw, fh, dx, dy] of [[w + 0.2, 0.05, 0, h / 2 + 0.1], [w + 0.2, 0.05, 0, -h / 2 - 0.1], [0.05, h + 0.2, w / 2 + 0.1, 0], [0.05, h + 0.2, -w / 2 - 0.1, 0]]) { const cs = Math.cos(ry), sn = Math.sin(ry); fr.push(prep(placed(bevelBox(fw, fh, 0.03, { b: 0.004 }), { x: x + dx * cs, y: y + dy, z: z - dx * sn, ry }))); } };
-    frame(OPS_WALL.w, OPS_WALL.h, OPS_WALL.x + 0.07, OPS_WALL.y, OPS_WALL.z, Math.PI / 2); frame(LEADS_WALL.w, LEADS_WALL.h, LEADS_WALL.x, LEADS_WALL.y, LEADS_WALL.z - 0.08, Math.PI);
+    frame(OPS_WALL.w, OPS_WALL.h, OPS_WALL.x + 0.07, OPS_WALL.y, OPS_WALL.z, Math.PI / 2); frame(LEADS_WALL.w, LEADS_WALL.h, LEADS_WALL.x, LEADS_WALL.y, LEADS_WALL.z - 0.08, Math.PI); frame(JOURNEY_WALL.w, JOURNEY_WALL.h, JOURNEY_WALL.x, JOURNEY_WALL.y, JOURNEY_WALL.z - 0.08, Math.PI);
     mesh(mergeGeometries(fr), brass, { name: 'f2-frames' });
     const ring = mesh(new THREE.TorusGeometry(0.42, 0.012, 8, 48), ledOrange, { pos: [HANEEN_DESK.x, 1.0, HANEEN_DESK.z], rot: [Math.PI / 2, 0, 0], name: 'f2-haneen-ring' }); state.ring = ring;
     mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.9, 24, 1, true), new THREE.MeshBasicMaterial({ color: tint(BLOOM_LIGHT.orange, 0.14), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }), { pos: [HANEEN_DESK.x, 1.45, HANEEN_DESK.z], name: 'f2-haneen-column' });
@@ -223,7 +224,7 @@ export function buildBloomFloor({ M, tier, lang = 'en', logoTex = null, glowTex 
   const api = {
     group, panelsBuilt: () => state.panelsBuilt, lights: [], skyline: sky,
     ensure() { ensurePanels(); },
-    setLanguage(l) { state.lang = l === 'ar' ? 'ar' : 'en'; for (const p of [film, filmStrip, ops, leads, floorMap, sign, holo, ...officePanels]) if (p) p.redraw(state.lang); },
+    setLanguage(l) { state.lang = l === 'ar' ? 'ar' : 'en'; for (const p of [film, filmStrip, ops, leads, journey, floorMap, sign, holo, ...officePanels]) if (p) p.redraw(state.lang); },
     setReduced(v) { state.reduced = !!v; },
     setActive(on) { state.active = !!on; group.visible = !!on; if (on) { ensurePanels(); state.enter = 0; } },
     get active() { return state.active; }, get film() { return state.film; },
@@ -253,7 +254,7 @@ export function buildBloomFloor({ M, tier, lang = 'en', logoTex = null, glowTex 
         if (toward(OPS_WALL.x, OPS_WALL.z) || toward(LEADS_WALL.x, LEADS_WALL.z) || toward(HANEEN_DESK.x, HANEEN_DESK.z)) { state.last = t; if (toward(OPS_WALL.x, OPS_WALL.z)) ops.redraw(state.lang); if (toward(LEADS_WALL.x, LEADS_WALL.z)) { leads.redraw(state.lang); if (floorMap) floorMap.redraw(state.lang); } if (toward(HANEEN_DESK.x, HANEEN_DESK.z) && holo) holo.redraw(state.lang); }
       }
     },
-    dispose() { if (state.videoTex) state.videoTex.dispose(); for (const p of [film, filmStrip, ops, leads, floorMap, sign, holo, ...officePanels]) if (p) p.tex.dispose(); ribbonTex.dispose(); if (state.sweepTex) state.sweepTex.dispose(); sky.dispose(); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); },
+    dispose() { if (state.videoTex) state.videoTex.dispose(); for (const p of [film, filmStrip, ops, leads, journey, floorMap, sign, holo, ...officePanels]) if (p) p.tex.dispose(); ribbonTex.dispose(); if (state.sweepTex) state.sweepTex.dispose(); sky.dispose(); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); },
     // for the tests / QA
     stats() { let tris = 0, meshes = 0; group.traverse((o) => { if (o.isMesh || o.isPoints) { meshes++; const g = o.geometry; tris += g.index ? g.index.count / 3 : (g.attributes.position.count / 3); } }); return { meshes, tris: Math.round(tris), panelBytes: state.panelsBuilt ? [film, ops, leads, floorMap].reduce((s, p) => s + p.canvas.width * p.canvas.height * 4, 0) : 0 }; },
   };
