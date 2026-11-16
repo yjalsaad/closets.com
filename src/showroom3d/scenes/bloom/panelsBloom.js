@@ -94,7 +94,7 @@ export function drawOptionsPanel(g, w, h, o) {
 export function drawBloomSign(g, w, h, o) {
   const k = kit(g, w, h, o.lang), { lang } = o; frame(g, w, h);
   g.fillStyle = hex(BLOOM_LIGHT.orange); g.fillRect(k.rtl ? w - 80 - 120 : 80, 56, 120, 8);
-  k.text(lang === 'ar' ? 'الطابق الثاني' : 'FLOOR 2', k.mx(80), 130, { size: 40, weight: 600, color: P.brassPale });
+  k.text(lang === 'ar' ? 'الطابق 2' : 'FLOOR 2', k.mx(80), 130, { size: 40, weight: 600, color: P.brassPale });
   k.text(L(BLOOM.name, lang), k.mx(80), 260, { size: 120, weight: 800, color: P.sand });
   k.text(L(BLOOM.boardSub, lang), k.mx(80), 330, { size: 40, weight: 500, color: P.taupe });
 }

@@ -7,7 +7,7 @@ import { WELCOME_DECK_SLIDE } from './welcome';
 
 const T = (en, ar) => ({ en, ar });
 export const BLOOM_AGENDA_ID = 'bloom-meeting';
-export const BLOOM_TITLE = T('Bloom Meeting (Floor 2)', 'اجتماع بلوم (الطابق الثاني)');
+export const BLOOM_TITLE = T('Bloom Meeting (Floor 2)', 'اجتماع بلوم (الطابق 2)');
 export const MEETING_DECK_ID = 'meeting';
 export const MEETING_TITLE = T('Management meeting', 'اجتماع الإدارة');
 export const REAL_FILMS = [
@@ -39,7 +39,7 @@ export const AGENDA = [
   { id: JOURNEY_ACTIVE, kind: 'film', deck: FILM_V2_DECK_ID, slide: 0, title: FILM_V2_TITLE, real: false, mixed: true, get label() { return mixedLabel(activeJourney()); } },   // the ACTIVE Journey film (v2 / v3 / v3-animated: vip/filmChoice.js); its label is the active version's own
   { id: BLOOM_AGENDA_ID, kind: 'place', deck: 'bloom-meeting', slide: 0, floor: 'l2', scene: 'bloom-meeting', title: BLOOM_TITLE, real: false },
 ];
-export const KIND_LABEL = { film: T('Film', 'فيلم'), deck: T('Presentation', 'عرض'), place: T('Floor 2', 'الطابق الثاني') };
+export const KIND_LABEL = { film: T('Film', 'فيلم'), deck: T('Presentation', 'عرض'), place: T('Floor 2', 'الطابق 2') };
 /** which agenda item the room is on (-1: the Welcome slide, the agenda card itself or something outside the agenda, e.g. a saved deck) */
 export function agendaIndex(deckId, slide = 0) {
   if (deckId === MEETING_DECK_ID) return slide >= LEAD_SLIDES + 1 && slide <= LEAD_SLIDES + REAL_FILMS.length ? slide - LEAD_SLIDES - 1 : -1;

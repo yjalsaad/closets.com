@@ -21,23 +21,31 @@ export function DeptMenu({ lang, touch, onPick, onClose, fallbackFocus, level = 
           <button type="button" className="sr-btn sr-btn-line" onClick={onClose} aria-label={t('departmentsClose', lang)}>{t('departmentsClose', lang)}</button>
         </div>
         <p className="sr-dialog-sub">{t('departmentsHint', lang)}</p>
-        <h3 className="sr-fl-sub">{t('floors', lang)}</h3>
         <ul className="sr-fl-list" data-testid="sr-dept-floors">
-          {FLOORS.map((f) => <li key={f.id}><button type="button" className="sr-fl" onClick={() => onPick('floor:' + f.id)} aria-current={level === f.id ? 'true' : undefined} data-floorpick={f.id}><span className="sr-fl-n" aria-hidden="true">{f.short[lang === 'ar' ? 'ar' : 'en']}</span><span className="sr-fl-name">{name(f, lang)}</span></button></li>)}
           <li><button type="button" className="sr-fl" onClick={() => onPick('meeting-mode')} data-floorpick="meeting-mode" data-testid="sr-meeting-mode"><span className="sr-fl-n" aria-hidden="true">M</span><span className="sr-fl-name">{t('meetingMode', lang)}</span></button></li>
-          {level === 'l2' && BLOOM_STOPS.map((b) => <li key={b.id}><button type="button" className="sr-fl" onClick={() => onPick(b.id)} data-floorpick={b.id}><span className="sr-fl-n" aria-hidden="true">2</span><span className="sr-fl-name">{name(b, lang)}</span></button></li>)}
         </ul>
-        <ol className="sr-dept-list">
-          {[...DEPARTMENTS, VIP_DEPT, COLLECTIONS_DEPT, ...SECTION_DEPTS].map((d, i) => (
-            <li key={d.id}>
-              <button type="button" className="sr-dept" onClick={() => onPick(d.id)} data-dept={d.id} data-autofocus={i === 0 ? '' : undefined}>
-                <span className="sr-dept-n" aria-hidden="true">{i + 1}</span>
-                <span className="sr-dept-name">{name(d, lang)}</span>
-                {!touch && i < 9 && <kbd className="sr-kbd" aria-hidden="true">{i + 1}</kbd>}
-              </button>
-            </li>
-          ))}
-        </ol>
+        {/* two floors, each a tappable header (tap = go to that floor) with its stops under it; the floor you are on comes first */}
+        {(level === 'l2' ? ['l2', 'ground'] : ['ground', 'l2']).map((fid) => {
+          const f = FLOORS.find((x) => x.id === fid);
+          return (
+            <section key={fid} className="sr-fl-sec" aria-labelledby={'sr-fl-h-' + fid} data-testid={'sr-floor-sec-' + fid}>
+              <h3 className="sr-fl-sub" id={'sr-fl-h-' + fid}><button type="button" className="sr-fl sr-fl-head" onClick={() => onPick('floor:' + f.id)} aria-current={level === f.id ? 'true' : undefined} aria-label={t('goFloorN', lang).replace('{n}', f.level)} data-floorpick={f.id}><span className="sr-fl-n" aria-hidden="true">{f.short[lang === 'ar' ? 'ar' : 'en']}</span><span className="sr-fl-name">{name(f, lang)}</span></button></h3>
+              {fid === 'ground' ? (
+                <ol className="sr-dept-list">
+                  {[...DEPARTMENTS, VIP_DEPT, COLLECTIONS_DEPT, ...SECTION_DEPTS].map((d, i) => (
+                    <li key={d.id}>
+                      <button type="button" className="sr-dept" onClick={() => onPick(d.id)} data-dept={d.id} data-autofocus={i === 0 && level !== 'l2' ? '' : undefined}>
+                        <span className="sr-dept-n" aria-hidden="true">{i + 1}</span>
+                        <span className="sr-dept-name">{name(d, lang)}</span>
+                        {!touch && i < 9 && <kbd className="sr-kbd" aria-hidden="true">{i + 1}</kbd>}
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+              ) : (level === 'l2' && <ul className="sr-fl-list">{BLOOM_STOPS.map((b) => <li key={b.id}><button type="button" className="sr-fl" onClick={() => onPick(b.id)} data-floorpick={b.id}><span className="sr-fl-n" aria-hidden="true">2</span><span className="sr-fl-name">{name(b, lang)}</span></button></li>)}</ul>)}
+            </section>
+          );
+        })}
       </div>
     </div>
   );

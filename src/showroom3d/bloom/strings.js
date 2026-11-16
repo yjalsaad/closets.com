@@ -3,9 +3,9 @@ const T = (en, ar) => ({ en, ar });
 export const BLOOM = {
   name: T('Bloom Meeting', 'اجتماع بلوم'),
   floorLabel: T('Floor', 'الطابق'), floors: T('Floors', 'الطوابق'),
-  goFloor: { ground: T('Go to the ground floor', 'الانتقال إلى الطابق الأرضي'), l2: T('Go to Floor 2: Bloom Meeting', 'الانتقال إلى الطابق الثاني: اجتماع بلوم') },
+  goFloor: { ground: T('Go to Floor 1', 'الانتقال إلى الطابق 1'), l2: T('Go to Floor 2: Bloom Meeting', 'الانتقال إلى الطابق 2: اجتماع بلوم') },
   riding: T('Taking the lift…', 'جارٍ الصعود بالمصعد…'),
-  liftHall: T('Glass lift to Floor 2', 'المصعد الزجاجي إلى الطابق الثاني'),
+  liftHall: T('Glass lift to Floor 2', 'المصعد الزجاجي إلى الطابق 2'),
   zones: { board: T('Boardroom', 'قاعة مجلس الإدارة'), ops: T('Staff operations', 'عمليات الموظفين'), leads: T('Leads wall', 'جدار العملاء المحتملين'), lounge: T('Lounge', 'ركن الاستراحة'), haneen: T('Haneen AI', 'حنين AI') },
   opsTitle: T('Staff operations', 'عمليات الموظفين'), leadsTitle: T('Leads pipeline', 'مسار العملاء المحتملين'), pipeline: T('Lead pipeline', 'مسار العملاء'), tasksToday: T("Today's tasks", 'مهام اليوم'), targets: T('Targets', 'الأهداف'),
   boardTitle: T('Boardroom', 'قاعة مجلس الإدارة'), boardSub: T('VPs and heads of department', 'نواب الرئيس ورؤساء الأقسام'),

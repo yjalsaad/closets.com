@@ -15,8 +15,8 @@ export const toWorld = (x, z) => [x, z + BLOOM_Z0];
 export const toLocal = (x, z) => [x, z - BLOOM_Z0];
 export const F2 = { x0: -18, x1: 18, z0: -12, z1: 12, height: 5.0, wallT: 0.2 };
 export const FLOORS = Object.freeze([
-  { id: 'ground', level: 1, en: 'Ground floor', ar: 'الطابق الأرضي', short: { en: 'G', ar: 'أ' } },
-  { id: 'l2', level: 2, en: 'Floor 2 · Bloom Meeting', ar: 'الطابق الثاني · اجتماع بلوم', short: { en: '2', ar: '2' } },
+  { id: 'ground', level: 1, en: 'Floor 1', ar: 'الطابق 1', short: { en: '1', ar: '1' } },
+  { id: 'l2', level: 2, en: 'Floor 2', ar: 'الطابق 2', short: { en: '2', ar: '2' } },
 ]);
 export const BLOOM_ID = 'bloom';
 export const BLOOM_DEPT = { id: BLOOM_ID, en: 'Bloom Meeting', ar: 'اجتماع بلوم', floor: 'l2' };
@@ -105,8 +105,8 @@ export function bloomZones() {
     z('bloom-ops', 'Staff operations', 'عمليات الموظفين', -17.6, -2.2, -11.6, 1.6),
     z('bloom-leads', 'Leads wall', 'جدار العملاء المحتملين', -17, 5, 2.2, 11.4),
     z('bloom-lounge', 'Lounge', 'ركن الاستراحة', 5, 17.6, 4.8, 11.4),
-    z('bloom-lift', 'Glass lift: Ground floor', 'المصعد الزجاجي: الطابق الأرضي', -17.6, -15.5, 9.3, 11.5, { lift: 'ground' }),
-    { id: 'lift-g', en: 'Glass lift: Floor 2 · Bloom Meeting', ar: 'المصعد الزجاجي: الطابق الثاني · اجتماع بلوم', index: 12, bloom: true, lift: 'l2', minX: LIFT_G.x - 1.9, maxX: LIFT_G.x + 1.9, minZ: LIFT_G.doorZ, maxZ: -31.7 },
+    z('bloom-lift', 'Glass lift: Floor 1', 'المصعد الزجاجي: الطابق 1', -17.6, -15.5, 9.3, 11.5, { lift: 'ground' }),
+    { id: 'lift-g', en: 'Glass lift: Floor 2 · Bloom Meeting', ar: 'المصعد الزجاجي: الطابق 2 · اجتماع بلوم', index: 12, bloom: true, lift: 'l2', minX: LIFT_G.x - 1.9, maxX: LIFT_G.x + 1.9, minZ: LIFT_G.doorZ, maxZ: -31.7 },
   ];
 }
 /** the ground-floor collider of the lift tower (hall frame) */

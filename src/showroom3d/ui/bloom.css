@@ -1,6 +1,6 @@
 /* Bloom Meeting UI: the floor picker, the lift fade, the Haneen AI floating button and panel extras. Tokens only (showroom.css defines --sr-* / --space-* / --radius-* / --fs-*). */
 .sr-floors { display: inline-flex; gap: var(--space-1); padding: var(--space-1); border-radius: var(--radius-pill); background: var(--sr-glass); border: 1px solid var(--sr-glass-line); pointer-events: auto; backdrop-filter: blur(8px); }
-.sr-floor { min-width: 44px; min-height: 40px; padding: 0 var(--space-3); border-radius: var(--radius-pill); border: 0; background: transparent; color: var(--sr-on-dark); font: 600 var(--fs-sm) var(--font-sans); cursor: pointer; }
+.sr-floor { min-width: 44px; min-height: 44px; white-space: nowrap; padding: 0 var(--space-3); border-radius: var(--radius-pill); border: 0; background: transparent; color: var(--sr-on-dark); font: 600 var(--fs-sm) var(--font-sans); cursor: pointer; }
 .sr-floor[aria-pressed="true"] { background: var(--sr-orange); color: var(--sr-ink); }
 .sr-floor:focus-visible { outline: 2px solid var(--sr-orange); outline-offset: 2px; }
 .sr3d[dir="rtl"] .sr-floor { font-family: var(--font-ar); }
@@ -49,3 +49,8 @@
 .sr-filmpill { position: absolute; z-index: 13; inset-inline-start: var(--space-4); bottom: calc(var(--space-9) + var(--space-4)); margin: 0; padding: var(--space-2) var(--space-4); border-radius: var(--radius-pill); border: 1px solid var(--sr-glass-line); background: var(--sr-glass); color: var(--sr-on-dark); font-size: var(--fs-sm); font-weight: 600; backdrop-filter: blur(8px); pointer-events: none; }
 .sr-filmpill.is-ready { border-color: var(--sr-orange); color: var(--sr-orange); }
 .sr-stage[data-touch="1"] .sr-filmpill { bottom: auto; top: calc(var(--space-9) + var(--space-8)); }
+
+.sr-fl-sec { margin-top: var(--space-4); }
+.sr-fl-sec > .sr-fl-sub { margin: 0 0 var(--space-2); font-size: inherit; letter-spacing: 0; }
+.sr-fl-sec > .sr-dept-list, .sr-fl-sec > .sr-fl-list { margin-top: var(--space-2); }
+.sr-fl-head { font-weight: 600; }
