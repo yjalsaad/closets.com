@@ -26,22 +26,26 @@ export const FILM_V2_TITLE = { en: 'The Closets: The Journey of Ambition (new cu
 export const JOURNEY_ACTIVE = 'journey-active';
 export const JOURNEY_V3_ID = 'journey-v3';
 export const JOURNEY_V3A_ID = 'journey-v3-animated';
-export const FILM_CHOICES = Object.freeze({ v1: JOURNEY_ID, v2: JOURNEY_V2_ID, v3: JOURNEY_V3_ID, 'v3-animated': JOURNEY_V3A_ID });
+export const JOURNEY_V5_ID = 'journey-v5';   // v5 = the original all-AI film (v1) with the project count changed to 50,000; NO real people
+/** films that contain no photograph of a real person: when one of these is asked for it NEVER falls back to a version that shows the leaders */
+export const NO_LEADERS_IDS = Object.freeze([JOURNEY_ID, JOURNEY_V5_ID]);
+export const FILM_CHOICES = Object.freeze({ v1: JOURNEY_ID, v5: JOURNEY_V5_ID, v2: JOURNEY_V2_ID, v3: JOURNEY_V3_ID, 'v3-animated': JOURNEY_V3A_ID });
 export const FILM_CHOICE_DEFAULT = 'v3';
 export const FILM_V2_LABEL = { en: 'Real photographs of company leaders; all other imagery is AI-generated illustration', ar: 'صور حقيقية لقيادات الشركة، وبقية المشاهد صور مولّدة بالذكاء الاصطناعي' };
 export const FILM_V2_BADGE = { en: 'Leaders: real photos · other imagery: AI illustration', ar: 'صور حقيقية للقيادات · والباقي مولّد بالذكاء الاصطناعي' };
 export const FILM_V3A_LABEL = { en: 'Leaders appear from real photographs, animated with AI, in an AI-generated office; all other imagery is AI-generated illustration', ar: 'يظهر القياديون من صور حقيقية محرّكة بالذكاء الاصطناعي داخل مكتب مولّد بالذكاء الاصطناعي، وبقية المشاهد صور مولّدة بالذكاء الاصطناعي' };
 export const FILM_V3A_BADGE = { en: 'Leaders: real photos animated with AI · office and other imagery: AI illustration', ar: 'صور حقيقية للقيادات محرّكة بالذكاء الاصطناعي · والمكتب وبقية المشاهد مولّدة بالذكاء الاصطناعي' };
 /** the mixed label / badge of a film by its id (each version says exactly what its own film is; unknown id: the current v3 wording) */
-export const JOURNEY_LABELS = { [JOURNEY_ID]: { label: FILM_AI_LABEL, badge: FILM_AI_LABEL }, [JOURNEY_V2_ID]: { label: FILM_V2_LABEL, badge: FILM_V2_BADGE }, [JOURNEY_V3_ID]: { label: null, badge: null }, [JOURNEY_V3A_ID]: { label: FILM_V3A_LABEL, badge: FILM_V3A_BADGE } };
+export const JOURNEY_LABELS = { [JOURNEY_ID]: { label: FILM_AI_LABEL, badge: FILM_AI_LABEL }, [JOURNEY_V5_ID]: { label: FILM_AI_LABEL, badge: FILM_AI_LABEL }, [JOURNEY_V2_ID]: { label: FILM_V2_LABEL, badge: FILM_V2_BADGE }, [JOURNEY_V3_ID]: { label: null, badge: null }, [JOURNEY_V3A_ID]: { label: FILM_V3A_LABEL, badge: FILM_V3A_BADGE } };
 export const mixedLabel = (id) => (JOURNEY_LABELS[id] && JOURNEY_LABELS[id].label) || FILM_MIXED_LABEL;
 export const mixedBadge = (id) => (JOURNEY_LABELS[id] && JOURNEY_LABELS[id].badge) || FILM_MIXED_BADGE;
 /** which film id plays: the wanted version first (a ?film= test override beats the owner's row), then v3, then v2; only ids in `available` (their manifests loaded) count, so the wall is never empty.
  *  want: 'v2' | 'v3' | 'v3-animated' | anything else (ignored -> the default v3). Returns an id or '' when none is available. */
 export function chooseJourney({ want, override, available } = {}) {
   const have = new Set(available || []), pick = (v) => FILM_CHOICES[v] || null;
-  // v1 = the original film with NO real people: if it is asked for, never fall back to a version that shows the leaders
-  if (pick(override) === JOURNEY_ID || (!override && pick(want) === JOURNEY_ID)) return have.has(JOURNEY_ID) ? JOURNEY_ID : '';
+  // v1 and v5 = the all-AI film with NO real people: if one is asked for, never fall back to a version that shows the leaders
+  const strict = [pick(override), !override ? pick(want) : null].find((id) => NO_LEADERS_IDS.includes(id));
+  if (strict) return have.has(strict) ? strict : '';
   const order = [pick(override), pick(want), pick(FILM_CHOICE_DEFAULT), JOURNEY_V2_ID].filter(Boolean);
   return order.find((id) => have.has(id)) || '';
 }

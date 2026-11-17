@@ -1,0 +1,18 @@
+{
+  "note": "Cut v5 = v1 with the 50,000 wording. Everything else is v1's sources (generations.json, fetched with scripts/showroom3d-film/fetch_sources.py). One new generation only.",
+  "account_cost_credits": 0.3,
+  "audio": [
+    {
+      "key": "narration_50k_pair",
+      "model": "text2speech_v2",
+      "params": { "variant": "elevenlabs", "voice_type": "preset", "voice_id": "d9d5c263-f84e-4752-97b5-3750fcc6fd2f", "voice_name": "Alistair" },
+      "credits": 0.3,
+      "job_id": "c09c7665-1662-40fd-939b-22493409e759",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3FiawGElGuExhG0HJqw6pNPgWpT/hf_20261116_172417_c09c7665-1662-40fd-939b-22493409e759.mp3",
+      "duration_sec": 10.11,
+      "used_in_film": true,
+      "prompt": "ومن فكرة على ورقة... إلى أكثر من خمسين ألف مشروع نفذناه، وتركنا فيه بصمتنا في بيوت ومشاريع عملائنا.",
+      "spliced_over": "v1 narration words 67-84 (45.30 s to 56.15 s of the narration), same time axis; see scripts/showroom3d-film/splice_narration5.py"
+    }
+  ]
+}

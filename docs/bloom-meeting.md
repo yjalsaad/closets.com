@@ -42,13 +42,14 @@ Everything is **add-only** under `src/showroom3d/**`; the main hall, the VIP roo
 
 ## The new film ("Journey of Ambition", new cut) and how to swap it
 
-**Three versions are registered side by side in `public/yas-bloom/film/films.json`, exactly one is ACTIVE, the others stay on disk but are not listed anywhere** (not in the agenda, not on the wall, not downloaded):
+**Several versions are registered side by side in `public/yas-bloom/film/films.json`, exactly one is ACTIVE, the others stay on disk but are not listed anywhere** (not in the agenda, not on the wall, not downloaded):
 
 | id | manifest | what it is | label (from its own manifest) |
 |---|---|---|---|
 | `journey-v2` | `film2.json` (`journey2-*`) | the leaders as static real photographs | "Real photographs of company leaders; all other imagery is AI-generated illustration" |
 | `journey-v3` | `film3.json` (`journey3-*`) | the leaders as real photographs with camera motion only, in an AI-generated office | "Leaders appear from real photographs (camera motion only) in an AI-generated office; all other imagery is AI-generated illustration" |
 | `journey-v3-animated` | `film4.json` (`journey4-*`) | **film v4**: the leaders' real photographs animated with AI (Kling image-to-video, silent clips) in the same AI-generated office; everything else as v3 | "Leaders appear from real photographs, animated with AI, in an AI-generated office; all other imagery is AI-generated illustration" (the only version that says "animated with AI"); badge "Leaders: real photos animated with AI · office and other imagery: AI illustration" |
+| `journey-v5` | `film5.json` (`journey5-*`) | **film v5**: the original all-AI film (v1) with the project count changed to **50,000** (narration, on-screen counter, captions). No photograph of a real person anywhere; its picture and music are v1's | the all-AI label "AI-generated illustration" (same as v1) |
 
 The existing `journey` film (the first AI documentary) and the three real films are untouched. The slides / agenda item / film deck play the **alias `journey-active`**; `FilmPlayer` resolves it to the active version. Each version shows its own label and caption badge (`mixedLabel(id)` / `mixedBadge(id)` in `vip/film.js`, equal to the `label` in its manifest; a test enforces it). Files, sources and posters are as before (1080p on desktop / tablet-class tiers, 720p on phones / iPad / data saver / low tier, captions on by default in the page language).
 
@@ -59,12 +60,13 @@ Proof (real playback in Google Chrome, English captions on, mid-film seek to abo
 The choice is one row of the site's existing CMS table `website_content`, read once (read-only GET, the same mechanism as `vip.meeting.date`):
 
 ```sql
-insert into website_content (key, value, active) values ('bloom.film.active', 'v3', true);   -- 'v2' | 'v3' | 'v3-animated'
+insert into website_content (key, value, active) values ('bloom.film.active', 'v3', true);   -- 'v1' | 'v5' | 'v2' | 'v3' | 'v3-animated'
 -- change it later:  update website_content set value = 'v2' where key = 'bloom.film.active';
 ```
 (or add / edit the row `bloom.film.active` in the Hub's Website Content manager; the row must be active and not deleted). Rules: no row or an invalid value = **v3**; if the chosen version's files do not exist it falls back to **v3, then v2**, so the wall is never empty; `v3-animated` does nothing until its slot is enabled (see below). Anyone opening the showroom after the change gets it on their next visit (the row is read when the film library loads; a failed or slow read, 2.5 s, keeps the default). `?film=v2` or `?film=v3` in the URL overrides the row for testing only.
 * **Preload / manifest implications:** only the ACTIVE film is prefetched (Meeting mode and the lift ride fetch `journey-active` only, one background download, then "Film ready"). The other versions' mp4 files are never requested unless chosen. `preload/manifest.json` lists the posters of v2 and v3 (about 120 KB each); the videos are not part of the showroom download.
 * **The AI-animated version (film v4) is registered and enabled** (`journey-v3-animated` -> `film4.json`, files `journey4-1080.mp4` 24.9 MiB, `journey4-720.mp4` 12.2 MiB, poster, EN / AR captions). It plays only when chosen: set the row to `v3-animated`. **To go back set the row to `v3` (or `v2`)**; the default without a row stays **v3**, and a missing animated manifest falls back to v3 then v2. Test link without touching the row: `/yas-bloom?film=v3-animated` (add `&meeting=1` for Meeting mode). Its label equals `film4.json`'s `label` (a test enforces it); the film's own notes say the animated scenes are not real footage, real meetings or real signed agreements.
+* **v5 (all-AI, 50,000 projects) is registered and enabled but only plays when chosen:** set the row to `v5` (test link without touching the row: `/yas-bloom?film=v5`). Like `v1`, **v5 never falls back to a version that shows the leaders**: if its files are missing the wall shows nothing rather than v3 / v2. Files: `journey5-1080.mp4`, `journey5-720.mp4`, `journey5-poster.jpg` (139 KB; like the other posters it is listed in `preload/manifest.json`, which changed the preload cache version once), `journey5.ar.vtt`, `journey5.en.vtt`, `film5.json`. The "50,000+ projects" figure is the owner's statement; it is not confirmed anywhere in the system, and the Arabic narration has not been heard by a native speaker. Build notes: `docs/showroom3d/FILM.md`, "Cut v5".
 * **Add another version:** a new entry in `films.json`, a mapping in `FILM_CHOICES` / `JOURNEY_LABELS` (`vip/film.js`) and in the `chooseJourney` order if it should be a fallback; tests in `__tests__/filmChoice.test.js`.
 
 ## Chairs: what was wrong and the fix

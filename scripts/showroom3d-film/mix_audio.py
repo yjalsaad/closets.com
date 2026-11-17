@@ -2,6 +2,7 @@
 """Mix the film's sound: the narration (cut only in its natural pauses, never time-stretched) over the music bed.
 
 Usage: python3 mix_audio.py <src-dir> <work-dir>      -> <work-dir>/mix.wav (48 kHz stereo)
+NARRATION_FILE=<path> uses another narration on the same time axis (v5 passes the spliced one).
 The music is ducked under the voice, opens up in the gaps between chapters, and its final chord is held under the end card.
 """
 import os
@@ -28,7 +29,7 @@ def decode(path, channels, af=None):
 
 n = int(DUR * SR)
 # voice: remove rumble, even it out a little
-voice_src = decode(os.path.join(src, "audio", "narration.mp3"), 1,
+voice_src = decode(os.environ.get("NARRATION_FILE") or os.path.join(src, "audio", "narration.mp3"), 1,
                    "highpass=f=70,acompressor=threshold=-22dB:ratio=2.2:attack=10:release=180:makeup=1.5")[:, 0]
 voice = np.zeros(n, dtype=np.float32)
 fade = int(0.008 * SR)

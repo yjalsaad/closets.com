@@ -253,3 +253,24 @@ Prices are today's quotes on this account for Kling 2.6 image-to-video (5 credit
 | + | 4K stills for a 4K master (Seedream 5.5 or Nano Banana Pro at 2 to 3.5 each) | only if the VIP screen is 4K | 70 to 115 |
 
 So about **160 to 170 credits** takes the film to true video in all eight scenes at 1080p with a retry allowance; the first 35 credits (rows 1 and 2) remove most of the "slideshow" feeling. A human Arabic voice-over, recorded to the same script, drops straight into `audio/narration.mp3` (rerun the word timing, then rebuild) and is the single biggest quality gain that costs no credits.
+
+
+## Cut v5: the same all-AI film with "more than 50,000 projects"
+
+Owner decision: restore the 50,000 figure **without the leaders' real photographs**. v5 is v1 (this film) with the project count changed everywhere it appears. It uses none of the v2 / v3 / v4 material, so no real person's photograph is in it (v1's people are AI illustrations; the only real file composited is the official logo on the end card).
+
+Where v1 carried the figure, and what v5 does:
+
+| Place | v1 | v5 |
+|---|---|---|
+| Narration (audio), words 67-84: "ومن فكرة على ورقة... إلى أكثر من عشرة آلاف مشروع نفذناه، وتركنا فيه بصمتنا في بيوت ومشاريع عملائنا." | "ten thousand" | re-read by the same voice (Text to Speech V2, ElevenLabs, preset Alistair) as "أكثر من خمسين ألف مشروع", the same Arabic wording as journey2/3/4; the new read is spliced in place of the old read of those two sentences (cuts inside the pauses at 45.30 s and 56.15 s of the narration; nothing stretched, level-matched +0.14 dB, 15 ms fades; every other word keeps its time) |
+| On-screen counter, scenes E02-E05 (51.5-56.7 s) | counts up to "10,000", "MORE THAN ... PROJECTS COMPLETED" | counts up to "50,000" (same digit width, same layout), re-rendered |
+| Captions | cue 13 "ten thousand" / "عشرة آلاف" | "fifty thousand" / "خمسين ألف"; cues 12-14 re-timed from the new read, the other 25 cues are v1's to the millisecond |
+
+Everything else is v1 unchanged: the 33 stills, the 3 video shots, the edit, the music, the mix, the end card. The picture was re-rendered in full with `build_film5.py` (v1's own code; only the counter function is replaced), from sources fetched again from the ledger URLs (still live), because splicing lossy H.264 would have cost quality. Cost: **0.3 credits** (one 10 s speech take; ledger: `film-src/journey5-ledger.json`).
+
+Files: `journey5-1080.mp4` (17.58 MB), `journey5-720.mp4` (7.67 MB), `journey5-poster.jpg`, `journey5.ar.vtt`, `journey5.en.vtt`, `film5.json`. H.264 High + AAC, 24 fps, 124.0 s, faststart, -16.0 LUFS. Registered as `journey-v5` in `films.json`, chosen with `bloom.film.active = 'v5'`; never falls back to a version that shows the leaders.
+
+Rebuild: `fetch_sources.py <src>`; `prepare_fonts.py`; ASR of the new read (words in `film-src/journey5-chunk-words.json`); `splice_narration5.py <src> <chunk.mp3> film-src/journey5-chunk-words.json <narration5.wav>`; `NARRATION_FILE=<narration5.wav> mix_audio.py <src> <work>`; `build_film5.py ...` (same options as `build_film.py`); `encode_film5.py <work> public/yas-bloom/film`.
+
+Open points: the "50,000+ projects" figure is the owner's claim and is not confirmed anywhere in the system (the website and `VIP-ROOM-OWNER-INPUTS.md` still show other numbers). The Arabic narration, including the spliced sentence, was checked by transcription and measurement only; no native speaker has listened to it, and the join between the new and old read was not judged by ear. Proof of real playback in Google Chrome: `docs/screenshots/bloom/film-v5-50000-chrome-1280x720.jpg`.
