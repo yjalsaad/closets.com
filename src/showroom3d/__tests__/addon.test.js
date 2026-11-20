@@ -21,7 +21,7 @@ describe('YAS Bloom add-on hooks', () => {
     // the SPA catch-all is still the LAST rewrite and unchanged; before it, exactly the four showroom URLs go to the lean shell (never a wildcard)
     expect(v.rewrites[v.rewrites.length - 1]).toEqual({ source: '/(.*)', destination: '/index.html' });
     const lean = v.rewrites.slice(0, -1);
-    expect(lean.map((r) => r.source)).toEqual(['/yas-bloom', '/yas-bloom/', '/ar/yas-bloom', '/ar/yas-bloom/']);
+    expect(lean.map((r) => r.source)).toEqual(['/yas-bloom/study', '/ar/yas-bloom/study', '/yas-bloom', '/yas-bloom/', '/ar/yas-bloom', '/ar/yas-bloom/']);
     for (const r of lean) expect(r.destination).toBe('/yas-bloom/shell.html');
     // PR #11/#12 replaced the single regex rule by six explicit rules (path-to-regexp does not take `(ar/)?`): the noindex rules stay, for the showroom only
     const noindex = v.headers.filter((h) => h.headers.some((x) => x.key === 'X-Robots-Tag'));
