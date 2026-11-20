@@ -21,7 +21,7 @@ import { cleanText } from '../vip/deckSchema';
 
 export const STUDY_VERSION = 1;
 export const LIMITS = Object.freeze({
-  maxChars: 400000, maxSections: 40, maxBlocks: 24, maxItems: 60, maxRows: 60, maxCols: 8, maxLabels: 24, maxSeries: 6, maxGroups: 6, maxBullets: 40,
+  maxChars: 400000, maxSections: 40, maxBlocks: 80, maxItems: 60, maxRows: 60, maxCols: 8, maxLabels: 24, maxSeries: 6, maxGroups: 6, maxBullets: 40,
   title: 160, short: 80, text: 1200, para: 3000, cell: 200, maxId: 48,
 });
 export const BLOCK_TYPES = ['paragraph', 'bullets', 'stats', 'cards', 'table', 'chart', 'lists', 'kv', 'callout', 'image', 'simulator'];
