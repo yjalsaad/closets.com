@@ -11,6 +11,8 @@
     { "source": "/yas-bloom/(realism|staff|collections|design-studio|profile)/(.*)", "headers": [ { "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" } ] }
   ],
   "rewrites": [
+    { "source": "/yas-bloom/study", "destination": "/yas-bloom/shell.html" },
+    { "source": "/ar/yas-bloom/study", "destination": "/yas-bloom/shell.html" },
     { "source": "/yas-bloom", "destination": "/yas-bloom/shell.html" },
     { "source": "/yas-bloom/", "destination": "/yas-bloom/shell.html" },
     { "source": "/ar/yas-bloom", "destination": "/yas-bloom/shell.html" },

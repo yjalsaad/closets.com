@@ -54,25 +54,26 @@ export const ERR_TEXT = {
   big: { ar: 'الصورة كبيرة جداً حتى بعد التصغير.', en: 'The image is still too large after downscaling.' },
 };
 
+const uerr = (code) => Object.assign(new Error(code), { code });
 /** browser only: validate, decode, downscale to MAX_EDGE, re-encode (WebP, else JPEG) -> { blob, w, h } or throws { code } */
 export async function processImage(file, env = {}) {
   const head = new Uint8Array(await file.slice(0, 16).arrayBuffer());
-  const bad = checkFile({ type: file.type, size: file.size }, head); if (bad) throw { code: bad };
+  const bad = checkFile({ type: file.type, size: file.size }, head); if (bad) throw uerr(bad);
   const doc = env.document || document, create = env.createImageBitmap || (typeof createImageBitmap === 'function' ? createImageBitmap : null);
   let src, w, h;
   try {
     if (create) { src = await create(file); w = src.width; h = src.height; }
     else { const u = URL.createObjectURL(file); src = await new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = u; }); URL.revokeObjectURL(u); w = src.naturalWidth; h = src.naturalHeight; }
-  } catch (e) { throw { code: ERR.decode }; }
-  if (!w || !h || w * h > MAX_PIXELS) throw { code: ERR.decode };
+  } catch (e) { throw uerr(ERR.decode); }
+  if (!w || !h || w * h > MAX_PIXELS) throw uerr(ERR.decode);
   const f = fitSize(w, h), c = doc.createElement('canvas'); c.width = f.w; c.height = f.h;
-  const ctx = c.getContext('2d'); if (!ctx) throw { code: ERR.decode };
+  const ctx = c.getContext('2d'); if (!ctx) throw uerr(ERR.decode);
   ctx.fillStyle = hex(STUDY_PALETTE.white); ctx.fillRect(0, 0, f.w, f.h);   // transparent PNGs get a white ground (the page is light behind images)
   ctx.drawImage(src, 0, 0, f.w, f.h); if (src.close) src.close();
   const toBlob = (type, q) => new Promise((ok) => c.toBlob((b) => ok(b), type, q));
   let blob = await toBlob('image/webp', 0.82); if (!blob || blob.type !== 'image/webp') blob = await toBlob('image/jpeg', 0.85);
-  if (!blob) throw { code: ERR.decode };
+  if (!blob) throw uerr(ERR.decode);
   if (blob.size > MAX_STORED_BYTES) { const q = await toBlob('image/jpeg', 0.7); if (q && q.size < blob.size) blob = q; }
-  if (blob.size > MAX_STORED_BYTES * 2) throw { code: ERR.big };
+  if (blob.size > MAX_STORED_BYTES * 2) throw uerr(ERR.big);
   return { blob, w: f.w, h: f.h };
 }

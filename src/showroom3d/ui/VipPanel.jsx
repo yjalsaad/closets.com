@@ -92,6 +92,7 @@ export function VipPanel({ lang, touch, explorerRef, st, reduced = false, tier =
               {decks.map((d) => <option key={d.id} value={d.id}>{resolveDeck({ ...d, slides: [] }, lang).title}{d.builtin ? '' : ' · ' + t('vipDeckLocalShort', lang)}</option>)}
             </select></label>
           <button type="button" className="sr-btn sr-btn-line" onClick={() => setAdding(true)} data-testid="sr-vip-deck-add">{t('vipDeckAdd', lang)}</button>
+          <a className="sr-btn sr-btn-line" href={(lang === 'ar' ? '/ar' : '') + '/yas-bloom/study'} data-testid="sr-vip-study">{lang === 'ar' ? 'دراسة جدوى ياس وود' : 'YAS WOOD feasibility study'}</a>
           {user && !confirmDel && <div className="sr-vip-userrow"><p className="sr-note sr-vip-local" data-testid="sr-vip-local">{t('vipDeckLocal', lang)}</p>
             <button type="button" className="sr-btn sr-btn-line" onClick={() => setConfirmDel(true)} data-testid="sr-vip-deck-delete">{t('vipDeckDelete', lang)}</button></div>}
           {user && confirmDel && <div className="sr-vip-confirm" role="alertdialog" aria-label={t('vipDeckDeleteAsk', lang)} data-testid="sr-vip-deck-confirm"><span>{t('vipDeckDeleteAsk', lang)}</span>

@@ -23,7 +23,7 @@ export const SAMPLE_STUDY = {
     ] },
     { id: 'finance', part: 'dashboard', kicker: 'المالية', title: 'النموذج المالي', blocks: [
       { id: 'combo', type: 'chart', kind: 'combo', title: 'مخطط مركب (نموذج)', unit: 'مليون', labels: ['السنة 1', 'السنة 2', 'السنة 3'], series: [{ name: 'السلسلة 1', values: [10, 12, 14] }, { name: 'السلسلة 2', values: [3, 4, 5] }, { name: 'خط', values: [2, 5, 9], line: true }] },
-      { id: 'sim', type: 'simulator', title: 'محاكي (قيم وهمية)', base: { rev: 1000, cogsPct: 50, intRate: 8, otherOpexPct: 20, depreciation: 10, loan: 100, principal: 50, maint: 5, tax: 15, minDscr: 1.35 } },
+      { id: 'sim', type: 'simulator', title: 'محاكي (قيم وهمية)', base: { rev: 20000000, cogsPct: 50, intRate: 8, otherOpexPct: 20, depreciation: 400000, loan: 4000000, principal: 2000000, maint: 300000, tax: 15, minDscr: 1.35 } },
       { id: 'tb', type: 'table', title: 'جدول (نموذج)', head: ['البند', 'السنة 1', 'السنة 2'], rows: [['الصف 1', '1', '2'], ['الصف 2', '3', '4'], ['الإجمالي', '4', '6']] },
     ] },
     { id: 'details', part: 'full', kicker: 'التفاصيل', title: 'تفاصيل الدراسة', blocks: [

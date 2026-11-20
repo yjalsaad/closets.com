@@ -9,6 +9,8 @@ import { cssVars } from './3d/palette';
 import { t } from './strings';
 import ShowroomExperience from './ShowroomExperience';
 import Fallback2D from './ui/Fallback2D';
+import { isStudyPath } from './study/route';
+const StudyPage = React.lazy(() => import(/* webpackChunkName: "yws-study" */ './study/StudyPage'));
 import './vendor/tokens.css';   // scoped design tokens (main has none)
 import './ui/showroom.css';
 
@@ -47,10 +49,11 @@ export default function ShowroomRoot() {
     setLang(next);
   };
 
+  const study = isStudyPath(window.location.pathname || '');
   const fb = <Fallback2D lang={lang} error={!!failed} onRetry={failed ? () => { setFailed(null); setAttempt((n) => n + 1); } : undefined} />;
   return (
     <div className="sr3d" style={cssVars()} dir={ar ? 'rtl' : 'ltr'} lang={lang}>
-      {failed || !webglAvailable()
+      {study ? <React.Suspense fallback={null}><StudyPage lang={lang} onLang={switchLang} /></React.Suspense> : failed || !webglAvailable()
           ? fb
           : <WebGLGate fallback={fb} name="showroom3d"><ShowroomExperience key={attempt} lang={lang} onLang={switchLang} onFail={setFailed} /></WebGLGate>}
     </div>

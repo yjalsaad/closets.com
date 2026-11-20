@@ -9,7 +9,6 @@ import { parseBundle } from './store';
 
 export const MAX_HTML = 3 * 1024 * 1024;
 const SKIP = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'IFRAME', 'OBJECT', 'EMBED', 'SVG', 'IMG', 'PICTURE', 'VIDEO', 'AUDIO', 'CANVAS', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA', 'FORM', 'NAV', 'HEADER', 'FOOTER', 'HEAD', 'META', 'LINK', 'BASE']);
-const BLOCKY = new Set(['P', 'DIV', 'SECTION', 'TABLE', 'UL', 'OL', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'ARTICLE', 'ASIDE', 'DETAILS', 'MAIN']);
 const norm = (s) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
 const txt = (el) => norm(el.textContent);
 
