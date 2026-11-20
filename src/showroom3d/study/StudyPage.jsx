@@ -23,7 +23,7 @@ function F({ path, kind = 'text', multi = false, tag: Tag = 'span', ph }) {
   const { study, edit, set, lang } = useS(); const v = getAt(study, path);
   if (!edit) return v ? <Tag>{v}</Tag> : null;
   const cap = kind === 'para' ? LIMITS.para : kind === 'title' ? LIMITS.title : kind === 'cell' ? LIMITS.cell : kind === 'short' ? LIMITS.short : LIMITS.text;
-  const common = { className: 'yws-in', value: v || '', maxLength: cap, onChange: (e) => set(path, e.target.value), dir: 'auto', 'aria-label': ph || tt('edit', lang) };
+  const common = { className: 'yws-in', value: v || '', maxLength: cap, onChange: (e) => set(path, e.target.value), dir: 'auto', 'aria-label': ph || tt('edit', lang), placeholder: ph || '' };
   return multi ? <textarea {...common} rows={Math.min(8, Math.max(2, Math.ceil((v || '').length / 70)))} /> : <input type="text" {...common} />;
 }
 function Num({ path }) {
@@ -128,7 +128,7 @@ export default function StudyPage({ lang, onLang, initial }) {
   const ar = lang === 'ar'; const init = useMemo(() => { const r = initial ? { study: initial } : studyStore.load(); return r.study || null; }, [initial]);
   const [study, setStudy] = useState(init || SAMPLE), [edit, setEdit] = useState(false), [tab, setTab] = useState('dashboard'), [cur, setCur] = useState('USD');
   const [imgs, setImgs] = useState({}), [msg, setMsg] = useState(''), [detail, setDetail] = useState(null), [importing, setImporting] = useState(false), [ask, setAsk] = useState(''), [busy, setBusy] = useState(false);
-  const urls = useRef({}); const empty = !init; const isSample = !!study.sample;
+  const urls = useRef({}); const isSample = !!study.sample, empty = isSample;
   const showImg = useCallback(async (id) => { if (!id || urls.current[id]) return; try { const r = await imageStore.get(id); if (r && r.blob) { urls.current[id] = URL.createObjectURL(r.blob); setImgs((m) => ({ ...m, [id]: urls.current[id] })); } } catch (e) { /* ignore */ } }, []);
   useEffect(() => { imageIds(study).forEach(showImg); }, [study, showImg]);
   useEffect(() => () => Object.values(urls.current).forEach((u) => { try { URL.revokeObjectURL(u); } catch (e) { /* ignore */ } }), []);

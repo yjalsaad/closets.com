@@ -78,7 +78,7 @@ textarea.yws-in { resize: vertical; } .yws-in:focus { border-color: var(--yws-re
 .yws-modal { position: fixed; inset: 0; z-index: 20; background: var(--yws-scrim); display: grid; place-items: center; padding: 12px; }
 .yws-dialog { background: var(--yws-white); border-radius: 16px; width: min(560px, 100%); max-height: 92vh; overflow: auto; padding: 18px; display: grid; gap: 10px; } .yws-wide { width: min(760px, 100%); }
 .yws-dialog header { display: flex; justify-content: space-between; align-items: center; gap: 10px; } .yws-file input { position: absolute; opacity: 0; width: 1px; height: 1px; } .yws-file { position: relative; justify-self: start; }
-@media (max-width: 560px) { .yws-plot.yws-donut { grid-template-columns: 1fr; justify-items: center; } .yws-top h1 { font-size: 16px; } .yws-btn { padding: 0 12px; } }
+@media (max-width: 560px) { .yws-top { position: static; } .yws-plot.yws-donut { grid-template-columns: 1fr; justify-items: center; } .yws-top h1 { font-size: 16px; } .yws-btn { padding: 0 12px; } }
 @media (min-width: 900px) { .yws-main { padding-inline: 28px; } .yws-sec { padding: 28px; } .yws-sims { grid-template-columns: repeat(3, 1fr) auto; align-items: end; } }
 @media print { .yws { position: static; } .yws-top, .yws-chips, .yws-nav { display: none; } }
 @media (prefers-reduced-motion: no-preference) { .yws { scroll-behavior: smooth; } }
