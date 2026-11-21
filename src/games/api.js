@@ -26,7 +26,7 @@ const demoPlays = {}; let demoName = 'Guest';
 const demoGames = () => GAME_IDS.map((id, i) => ({ id, enabled: true, sort: i, attempts: 1, used: demoPlays[id] ? 1 : 0, state: demoPlays[id] ? 'played' : 'available' }));
 const later = (ms, v) => new Promise((r) => setTimeout(() => r(v), ms));
 
-export const hub = () => (DEMO ? later(200, { live: true, require_quote: false, name_ar: 'اختارها', name_en: 'Ikhtarha', games: demoGames(), brand: {} }) : rpc('ikg_hub'));
+export const hub = () => (DEMO ? later(200, { live: true, require_quote: false, name_ar: 'اختارها', name_en: 'Ikhtarha', games: demoGames(), brand: {}, min_purchase: 500 }) : rpc('ikg_hub'));
 export const enter = (p) => (DEMO
   ? later(600, { ok: true, token: 'demo', first_name: (demoName = String((p && p.name) || 'Guest').trim().split(/\s+/)[0]), quote_no: (p && p.quote_no) || null, phone_tail: String((p && p.phone) || '').replace(/\D/g, '').slice(-4) || '2233', games: demoGames() })
   : rpc('ikg_enter', { p }));
