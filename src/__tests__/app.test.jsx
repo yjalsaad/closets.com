@@ -34,12 +34,16 @@ describe('shell', () => {
     expect(document.documentElement.dir).toBe('rtl');
     expect(screen.getByTestId('route-announcer')).toHaveTextContent('العربية');
   });
-  test('privacy and terms pages live on this site, are marked placeholder and noindex', async () => {
+  test('privacy and terms pages are final, indexable and cite Bahrain law', async () => {
     mockNet(); go('/privacy'); const { unmount } = render(<App />);
-    expect(screen.getByRole('heading', { level: 1, name: /privacy notice/i })).toBeInTheDocument();
-    expect(screen.getByTestId('legal-placeholder')).toBeInTheDocument();
-    expect(document.head.querySelector('meta[name="robots"]').getAttribute('content')).toMatch(/noindex/);
+    expect(screen.getByRole('heading', { level: 1, name: /privacy policy/i })).toBeInTheDocument();
+    expect(screen.queryByTestId('legal-placeholder')).toBeNull();
+    expect(document.body.textContent).toMatch(/Law No\. 30 of 2018/);
+    expect(document.body.textContent).not.toMatch(/PLACEHOLDER/);
     unmount();
+    go('/terms'); render(<App />);
+    expect(screen.getByRole('heading', { level: 1, name: /terms and conditions/i })).toBeInTheDocument();
+    expect(document.body.textContent).toMatch(/Law No\. 35 of 2012/);
   });
   test('footer legal links point at this site, not the ERP host', async () => {
     mockNet(); go('/faq'); render(<App />);
@@ -126,7 +130,7 @@ describe('booking form: labels, validation, honeypot, single submit, offline', (
   });
   test('a privacy notice with a link to /privacy sits at the form', async () => {
     await open();
-    expect(within(document.querySelector('main form')).getByRole('link', { name: /privacy notice/i })).toHaveAttribute('href', '/privacy');
+    expect(within(document.querySelector('main form')).getByRole('link', { name: /privacy policy/i })).toHaveAttribute('href', '/privacy');
   });
   test('server failure: the form data is kept and a visible error is announced', async () => {
     mockNet({ book_appointment: () => new Error('network down') }); go('/booking'); render(<App />);

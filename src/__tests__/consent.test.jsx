@@ -36,7 +36,7 @@ describe('banner', () => {
   test('shown first, equal-weight choices, links to this site (not the ERP host)', () => {
     render(<ConsentBanner lang="en" />);
     expect(screen.getByRole('region', { name: /privacy choices/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /privacy notice/i })).toHaveAttribute('href', '/privacy');
+    expect(screen.getByRole('link', { name: /privacy policy/i })).toHaveAttribute('href', '/privacy');
     expect(screen.getByRole('link', { name: /terms/i })).toHaveAttribute('href', '/terms');
     expect(document.body.innerHTML).not.toMatch(/closets-hub\.vercel\.app/);
   });
