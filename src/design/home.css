@@ -34,7 +34,7 @@ html[lang="ar"] .statement p { font-family: var(--font-ar-display); font-weight:
 .creds { margin: var(--space-8) 0 0; padding: var(--space-5) 0 0; border-top: 1px solid var(--c-line); display: grid; gap: var(--space-5); list-style: none; }
 .creds li { display: grid; gap: 4px; color: var(--c-text-2); font-size: var(--fs-sm); line-height: 1.5; max-width: 34ch; }
 html[lang="ar"] .creds li { font-size: var(--fs-base); }
-.creds strong { font-family: var(--font-head); font-weight: 400; font-size: var(--fs-xl); color: var(--c-text); line-height: 1.1; }
+.creds strong { font-family: var(--font-head); font-weight: var(--fw-display); font-size: var(--fs-xl); color: var(--c-text); line-height: 1.1; }
 html[lang="ar"] .creds strong { font-family: var(--font-ar-display); font-weight: 600; }
 @media (min-width: 768px) { .creds { grid-template-columns: repeat(3, 1fr); gap: var(--space-7); } }
 @media (min-width: 768px) { .creds--4 { grid-template-columns: repeat(2, 1fr); } }
@@ -127,7 +127,7 @@ html[lang="ar"] .swatch span { font-size: var(--fs-sm); }
 .quotes { display: grid; gap: var(--space-7); }
 @media (min-width: 900px) { .quotes { grid-template-columns: repeat(3, 1fr); gap: var(--space-8); } }
 .quote { margin: 0; display: grid; gap: var(--space-4); align-content: start; }
-.quote blockquote { margin: 0; font-family: var(--font-head); font-size: var(--fs-lg); line-height: 1.4; font-weight: 400; }
+.quote blockquote { margin: 0; font-family: var(--font-head); font-size: var(--fs-lg); line-height: 1.4; font-weight: var(--fw-body); }
 html[lang="ar"] .quote blockquote { font-family: var(--font-ar-display); font-weight: 500; line-height: 1.8; }
 .quote figcaption { font-size: var(--fs-sm); color: var(--c-text-3); }
 .quote figcaption strong { display: block; color: var(--c-text); font-weight: var(--fw-strong); }

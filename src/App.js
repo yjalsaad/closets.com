@@ -2811,13 +2811,16 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
       </div>
     )}
 
-    {/* Phones: one calm action bar (Book / WhatsApp / Call). Hidden inside the planners, which have their own navigation. */}
+    {/* Phones: the app-style tab bar. Hidden inside the planners, checkout and sign-in, which have their own navigation. */}
     {!['planner','kitchen-planner','tv-planner','door-planner','wardrobe-planner','office-planner','cat:Doors','checkout','portal'].includes(page) && (
-      <div className="mbar" role="navigation" aria-label={lang==='ar' ? 'إجراءات سريعة' : 'Quick actions'}>
-        <Link to="/booking" className="btn-clay"><Icon name="calendar" size={18} />{tr('bookShort')}</Link>
-        <a href={FACTS.whatsappHref} className="btn-line" aria-label={tr('whatsappShort')}><Icon name="chat" size={20} /></a>
-        <a href={phone} className="btn-line" aria-label={tr('callUs')}><Icon name="phone" size={20} /></a>
-      </div>
+      <nav className="dock" aria-label={lang==='ar' ? 'التنقل السريع' : 'Quick navigation'} data-testid="dock">
+        {/* [2026-11-21 owner decision] the app-style tab bar of the previous site is back on phones: Home / Gallery / Design / Services / Menu */}
+        <Link to="/" className="dock__tab" aria-current={page==='home' ? 'page' : undefined} onClick={()=>setMenuOpen(false)}><Icon name="home" size={22} /><span>{lang==='ar' ? 'الرئيسية' : 'Home'}</span></Link>
+        <Link to={pageToPath('products')} className="dock__tab" aria-current={page==='products' ? 'page' : undefined} onClick={()=>setMenuOpen(false)}><Icon name="image" size={22} /><span>{lang==='ar' ? 'المعرض' : 'Gallery'}</span></Link>
+        <Link to={pageToPath('planner')} className="dock__tab dock__tab--main" aria-current={page==='planner' ? 'page' : undefined} onClick={()=>setMenuOpen(false)}><i aria-hidden="true"><Icon name="ruler" size={24} /></i><span>{lang==='ar' ? 'صمّم' : 'Design'}</span></Link>
+        <Link to={pageToPath('services')} className="dock__tab" aria-current={page==='services' ? 'page' : undefined} onClick={()=>setMenuOpen(false)}><Icon name="tools" size={22} /><span>{lang==='ar' ? 'الخدمات' : 'Services'}</span></Link>
+        <button type="button" className="dock__tab" onClick={()=>setMenuOpen(true)} aria-haspopup="dialog" aria-expanded={menuOpen}><Icon name="menu" size={22} /><span>{lang==='ar' ? 'القائمة' : 'Menu'}</span></button>
+      </nav>
     )}
   </>);
 }
