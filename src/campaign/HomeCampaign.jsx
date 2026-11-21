@@ -8,6 +8,7 @@
  * Every text can be overridden from the site CMS (key, and key + '.ar' for Arabic). */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { landing, gamesHub } from './api';
+import { minOf, minText } from '../games/terms';
 import './home-campaign.css';
 
 const PLAY = '/campaign/ikhtarha';
@@ -144,6 +145,7 @@ export function IkhtarhaGames({ cfg, lang, cms }) {
   const ref = useInView(!!hub);
   if (!cfg || !hub) return null;
   const n = (x) => (ar ? arNum(x) : String(x));
+  const minBuy = minOf(hub.min_purchase);
   const open = new Set(hub.games.map((g) => (g && g.id) || g));
   const tiles = GAME_TILES.filter((g) => open.has(g[0]));
   const steps = [
@@ -198,7 +200,7 @@ export function IkhtarhaGames({ cfg, lang, cms }) {
           <Stamp text={c('home.games.stamp', 'Play now!', 'العب الآن!')} />
         </div>
       </article>
-      <p className="hc-fine">{c('home.games.fine', 'Prizes are drawn by our system. A prize is valid with a purchase of BD 500 or more. Terms & conditions apply.', 'يتم سحب الجوائز آليًا. الجائزة صالحة عند الشراء بقيمة لا تقل عن 500 دينار بحريني. تطبق الشروط والأحكام.')}</p>
+      <p className="hc-fine">{c('home.games.fine', 'Prizes are drawn by our system. Terms & conditions apply.', 'يتم سحب الجوائز آليًا. تطبق الشروط والأحكام.')}{minBuy > 0 ? (ar ? ` الجائزة صالحة عند شراء منتجات بقيمة لا تقل عن ${minText(minBuy)} دينار بحريني.` : ` A prize is valid with a purchase of products worth not less than BD ${minText(minBuy)}.`) : ''}</p>
     </section>
   );
 }
