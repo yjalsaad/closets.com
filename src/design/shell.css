@@ -76,12 +76,25 @@ html[lang="ar"] .drawer__sub h3 { text-transform: none; letter-spacing: 0; font-
 .drawer__contact { display: flex; gap: var(--space-5); font-size: var(--fs-sm); color: var(--c-text-2); }
 .drawer__contact a { color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
 
-/* ---------- mobile action bar (phones only): Book / WhatsApp / Call ---------- */
-.mbar { position: fixed; inset-inline: 0; bottom: 0; z-index: var(--z-dock); display: none; background: color-mix(in srgb, var(--c-canvas) 97%, transparent); backdrop-filter: blur(14px); border-top: 1px solid var(--c-line); padding: var(--space-2) var(--gutter) calc(var(--space-2) + env(safe-area-inset-bottom)); gap: var(--space-2); }
-.mbar a { flex: 1; min-height: 48px; }
-.mbar .btn-line { flex: 0 0 auto; min-width: 48px; padding: 0 var(--space-3); }
-@media (max-width: 767px) { .mbar { display: flex; } body { padding-bottom: calc(var(--bar-h) + env(safe-area-inset-bottom)); } }
-body.no-mbar .mbar { display: none; }
+/* ---------- phone tab bar (phones only): Home / Gallery / Design / Services / Menu ---------- */
+:root { --bar-h: 64px; }
+.dock { position: fixed; inset-inline: 0; bottom: 0; z-index: var(--z-dock); display: none; grid-template-columns: repeat(5, 1fr); align-items: end; height: calc(var(--bar-h) + env(safe-area-inset-bottom)); padding: 0 var(--space-2) env(safe-area-inset-bottom); background: color-mix(in srgb, var(--c-surface) 94%, transparent); -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%); border-top: 1px solid var(--c-line); }
+.dock__tab { display: grid; justify-items: center; align-content: center; gap: 3px; height: var(--bar-h); min-width: 48px; padding: 0; border: 0; background: none; color: var(--c-text-3); font: inherit; font-size: var(--fs-2xs); font-weight: var(--fw-ui); line-height: 1.2; text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: color var(--dur-fast, 140ms) ease, transform var(--dur-fast, 140ms) ease; }
+.dock__tab[aria-current="page"] { color: var(--c-accent); font-weight: var(--fw-strong); }
+.dock__tab:active { transform: scale(.94); }
+.dock__tab:focus-visible { outline: 2px solid var(--c-accent); outline-offset: -4px; border-radius: var(--radius-lg); }
+.dock__tab--main { color: var(--c-accent); font-weight: var(--fw-strong); }
+.dock__tab--main i { display: grid; place-items: center; width: 52px; height: 52px; margin-top: -22px; border-radius: var(--radius-pill); background: var(--c-accent); color: var(--c-on-accent); border: 3px solid var(--c-surface); box-shadow: var(--shadow-2); }
+@media (max-width: 767px) { .dock { display: grid; } .nav-burger { display: none !important; } /* the Menu tab opens the same drawer */ body { padding-bottom: calc(var(--bar-h) + env(safe-area-inset-bottom)); } }
+body.no-mbar .dock { display: none; }
+@media (prefers-reduced-motion: reduce) { .dock__tab { transition: none; } .dock__tab:active { transform: none; } }
+
+/* ---------- phones: app-like touch behaviour ---------- */
+@media (max-width: 767px) {
+  a, button, [role="button"], input, select, textarea, summary { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  html { -webkit-text-size-adjust: 100%; }
+  .btn-clay:active, .btn-ink:active, .btn-line:active, .card:active { transform: scale(.98); }
+}
 
 /* ---------- consent: slim strip, never over hero CTAs ---------- */
 .consent { position: fixed; inset-inline: 0; bottom: 0; z-index: var(--z-toast); background: var(--c-surface); color: var(--c-text); border-top: 1px solid var(--c-line); box-shadow: 0 -12px 32px -24px rgba(var(--shadow-color), .5); padding: var(--space-3) var(--gutter); }

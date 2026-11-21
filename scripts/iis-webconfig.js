@@ -78,6 +78,10 @@ ${Object.entries(all).map(([k, v]) => `        <remove name="${x(k)}" />\n      
           <conditions><add input="{HTTP_HOST}" pattern="^www\\.(.+)$" /></conditions>
           <action type="Redirect" url="https://{C:1}/{R:1}" redirectType="Permanent" />
         </rule>
+        <rule name="never serve leftovers of the old site or private files" stopProcessing="true">
+          <match url="(\\.(pfx|dll|exe|pdb|zip|config|bak|log)$)|(^appsettings[^/]*\\.json$)|(^WebApplication2\\.)|(^wwwroot/)|(^uploads/)" ignoreCase="true" />
+          <action type="CustomResponse" statusCode="404" statusReason="Not Found" statusDescription="Not Found" />
+        </rule>
 ${redirects.join('\n')}
         <rule name="page folders" stopProcessing="true">
           <match url="^(.+?)/?$" />

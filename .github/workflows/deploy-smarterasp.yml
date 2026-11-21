@@ -41,11 +41,11 @@ jobs:
           LFTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           SERVER_DIR: ${{ inputs.server_dir }}
         run: |
-          case "$SERVER_DIR" in /?*/) ;; *) echo "server_dir must look like /FOLDER/ (got: $SERVER_DIR)"; exit 1 ;; esac
+          case "$SERVER_DIR" in *[!A-Za-z0-9/_.-]*) echo "server_dir may only use letters, digits, / _ . -"; exit 1 ;; /?*/) ;; *) echo "server_dir must look like /FOLDER/ (got: $SERVER_DIR)"; exit 1 ;; esac
           sudo apt-get install -y -qq lftp >/dev/null
           lftp --env-password -u "$FTP_USERNAME" "ftp://$FTP_SERVER" -e "
             set cmd:fail-exit true;
             set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate true;
             set ftp:passive-mode true; set net:timeout 30; set net:max-retries 5; set net:reconnect-interval-base 5;
-            mirror --reverse --parallel=4 --no-perms --verbose=1 ./build/ \"$SERVER_DIR\";
+            mirror --reverse --parallel=4 --no-perms --verbose=1 ./build/ $SERVER_DIR;
             bye"
