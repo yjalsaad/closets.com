@@ -324,6 +324,23 @@
   .ikg *, .ikg *::before, .ikg *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .2s !important; }
   .ikg-card { opacity: 1; transform: none; }
 }
+/* [2026-11-21] BD 500 minimum purchase condition: shown before play, on the winning ticket (also when printed) and on the prize check page */
+.ikg-cond { margin: 14px auto 16px; max-width: 560px; padding: 10px 14px; border: 1px dashed currentColor; border-radius: var(--r-sm); font-size: 14px; font-weight: 700; line-height: 1.6; text-align: center; }
+.ikg-panel .ikg-cond, .ikg-result-card .ikg-cond { color: var(--p800); }
+.ikg-terms { margin: 4px auto 16px; max-width: 720px; text-align: start; }
+.ikg-terms-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 44px; padding: 0 12px; background: none; border: 0; color: inherit; font: inherit; font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+.ikg-terms-btn:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: var(--r-sm); }
+.ikg-terms-body { display: none; padding: 4px 4px 0; font-size: 13px; line-height: 1.7; }
+.ikg-terms.is-open .ikg-terms-body { display: block; }
+.ikg-terms-body h3 { display: none; }
+.ikg-terms-body ol { margin: 0; padding-inline-start: 20px; display: grid; gap: 6px; }
+.ikg-panel .ikg-terms, .ikg-result-card .ikg-terms { color: var(--p800); }
+@media print { .ikg-terms-btn { display: none; } .ikg-terms-body { display: block !important; font-size: 8.5pt; line-height: 1.45; color: #111; }
+  .ikg-terms-body h3 { display: block; margin: 10pt 0 4pt; font-size: 10.5pt; } .ikg-terms-body ol { display: block; columns: 2; column-gap: 14pt; } .ikg-terms-body li { margin: 0 0 2pt; break-inside: avoid; }
+  .ikg-demo { display: none !important; } .ikg-main { max-width: none; padding: 0; } .ikg-stage { min-height: 0; display: block; }
+  .ikg-result-card { width: 100%; padding: 18pt; border-radius: 12pt; } .ikg-result-card::before { content: none; } .ikg-terms { max-width: none; }
+  .ikg .ikg-value { font-size: 28pt; margin: 4pt 0 8pt; } }
+@media print { .ikg-cond { color: #111 !important; border: 1px solid #111; font-size: 12pt; } }
 @media print { .ikg-head, .ikg-foot, .ikg-row, .ikg-confetti, .ikg-play-head { display: none !important; } .ikg { background: #fff; color: #111; } .ikg-result-card { border: 1px solid #ccc; box-shadow: none; } .ikg-value { color: #4A2C82; } }
 
 /* scratch card reuses the campaign component + its styles (ikhtarha.css, tokens scoped to .ik-root) — give it the same tokens here */

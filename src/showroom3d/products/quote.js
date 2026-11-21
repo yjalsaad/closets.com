@@ -2,8 +2,8 @@
  *  - the booking / consultation page (/booking, src/pages/BookingPage.jsx). It understands ?interest= (one of its own interest values) and
  *    ?notes= (pre-filled into the notes box, editable) since this release; the visitor still reviews and submits the form themselves.
  *  - the Ikhtarha campaign shell (/campaign/ikhtarha, /campaign/ikhtarha/demo): separate app shell, not localised by URL (see seo/routes.js). */
-import { withLang } from '../../seo/routes';
-import { FACTS } from '../../content/facts';
+import { withLang } from '../vendor/routes';
+import { FACTS } from '../vendor/facts';
 
 /** showroom department -> the booking form's own English "interest" option */
 /* Bedrooms, the Custom Studio and the Lounge have no interest of their own on the booking form, so they use its existing 'Other' (the notes name the product). */
@@ -47,8 +47,7 @@ export function campaignLinks(lang = 'en') {
 export function parseBookingPrefill(search = '') {
   const q = new URLSearchParams(search);
   const raw = q.get('interest');
-  // the VIP room's "private investor briefing" has no option of its own on the booking form: it maps to the form's existing 'Other' (the notes carry the request)
-  const interest = raw === 'investor-briefing' ? 'Other' : Object.values(INTEREST).includes(raw) ? raw : null;
+  const interest = Object.values(INTEREST).includes(raw) ? raw : null;
   const notes = clean(q.get('notes')).slice(0, NOTES_MAX);
   return { interest, notes: notes || null };
 }

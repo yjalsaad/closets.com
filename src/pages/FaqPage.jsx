@@ -15,7 +15,7 @@ function FaqPage() {
   return (<PageWrap eyebrow={lang==='ar' ? 'مساعدة' : 'Help'} title={cms('faq.hero.title','Frequently asked questions')} sub={cms('faq.hero.subtitle','Everything you need to know about designing with us.')}>
     {rows.length>0 ? (
       <div className="reveal" style={{ maxWidth:820 }}>
-        {rows.map(q=>(<div key={q.id} className="faq-item">
+        {rows.map(q=>(<div key={q.id} className="faq-item gl-card">
           <button type="button" className="faq-q" onClick={()=>setOpen(open===q.id?null:q.id)} aria-expanded={open===q.id} aria-controls={'faq-a-'+q.id} id={'faq-q-'+q.id}>
             <span>{q.question}</span><Icon name="plus" />
           </button>

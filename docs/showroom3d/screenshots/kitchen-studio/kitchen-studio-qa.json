@@ -1,0 +1,315 @@
+{
+ "results": [
+  {
+   "name": "glide to the Kitchen Design Studio ends in its zone, at the stand point",
+   "ok": true,
+   "detail": [
+    -18,
+    -4.41
+   ]
+  },
+  {
+   "name": "the HUD prompt names the station and offers E",
+   "ok": true,
+   "detail": "Kitchen Design Studio\nPress E"
+  },
+  {
+   "name": "E opens the designer overlay (loading)",
+   "ok": true
+  },
+  {
+   "name": "the showroom render loop is paused while the designer is open",
+   "ok": true
+  },
+  {
+   "name": "no showroom frames are rendered while it is open",
+   "ok": true,
+   "detail": {
+    "fr1": 108,
+    "fr2": 108
+   }
+  },
+  {
+   "name": "the explorer is frozen (uiOpen)",
+   "ok": true
+  },
+  {
+   "name": "the designer finished loading (status open)",
+   "ok": true
+  },
+  {
+   "name": "the site header is outside the visible window (frame shifted up)",
+   "ok": true
+  },
+  {
+   "name": "the site footer is hidden",
+   "ok": true
+  },
+  {
+   "name": "the designer step bar is visible inside the frame",
+   "ok": true
+  },
+  {
+   "name": "the frame URL is the website designer route, same origin",
+   "ok": true
+  },
+  {
+   "name": "PRICE PARITY: every BHD total after each choice is identical (embedded frame vs the website route)",
+   "ok": true,
+   "detail": {
+    "embedded": [
+     "BD 1,472",
+     "BD 1,472",
+     "BD 1,472",
+     "BD 1,764",
+     "BD 1,924",
+     "BD 2,020",
+     "BD 2,080",
+     "BD 2,080"
+    ],
+    "direct": [
+     "BD 1,472",
+     "BD 1,472",
+     "BD 1,472",
+     "BD 1,764",
+     "BD 1,924",
+     "BD 2,020",
+     "BD 2,080",
+     "BD 2,080"
+    ]
+   }
+  },
+  {
+   "name": "PRICE PARITY: the bill of materials / summary text is identical",
+   "ok": true,
+   "detail": {
+    "len": [
+     1273,
+     1273
+    ]
+   }
+  },
+  {
+   "name": "the choices really changed the price (layout, cabinet, door finish, worktop)",
+   "ok": true,
+   "detail": [
+    "BD 1,472",
+    "BD 1,472",
+    "BD 1,472",
+    "BD 1,764",
+    "BD 1,924",
+    "BD 2,020",
+    "BD 2,080",
+    "BD 2,080"
+   ]
+  },
+  {
+   "name": "the designer’s own quote form opens inside the frame, pre-filled from the signed-in account (same hand-off as the website)",
+   "ok": true
+  },
+  {
+   "name": "Esc inside the designer with a design in progress asks first (never leaves silently; the site’s quote form ignores Esc itself)",
+   "ok": true
+  },
+  {
+   "name": "\"Keep designing\" returns to the designer, the quote form still open",
+   "ok": true
+  },
+  {
+   "name": "the Back button asks for the same confirmation",
+   "ok": true
+  },
+  {
+   "name": "back in the showroom: the render loop is running again",
+   "ok": true,
+   "detail": {
+    "fr2": 108,
+    "fr3": 110
+   }
+  },
+  {
+   "name": "the visitor stands exactly where they stood (position, yaw, pitch)",
+   "ok": true,
+   "detail": {
+    "before": [
+     [
+      -18,
+      -4.41
+     ],
+     -3.141592653589793,
+     0.12
+    ],
+    "after": [
+     [
+      -18,
+      -4.41
+     ],
+     -3.141592653589793,
+     0.12
+    ]
+   }
+  },
+  {
+   "name": "the explorer is live again (uiOpen false) and the zone is still the studio",
+   "ok": true
+  },
+  {
+   "name": "the iframe is gone after leaving (the designer’s WebGL / memory is released)",
+   "ok": true
+  },
+  {
+   "name": "Esc in the showroom bar leaves (no design in progress: no confirmation)",
+   "ok": true
+  },
+  {
+   "name": "the browser Back button closes the designer and keeps the visitor in the showroom",
+   "ok": true,
+   "detail": "http://localhost:5102/yas-bloom?debug=1&quality=low&aa=0&scale=0.7"
+  },
+  {
+   "name": "the designer’s own \"Exit\" returns to the showroom",
+   "ok": true
+  },
+  {
+   "name": "a new designer opens fresh (step 1)",
+   "ok": true
+  },
+  {
+   "name": "perf: the designer’s own WebGL context is gone after leaving (frame detached); the showroom keeps its one",
+   "ok": true,
+   "detail": {
+    "heapMBDesignerOpen3D": 23,
+    "glContextsDesignerOpen": {
+     "showroom": 0,
+     "frame": 1
+    },
+    "showroomEngineRunning": false,
+    "heapMBAfterClose": 19,
+    "glContextsAfterClose": {
+     "showroom": 0,
+     "frame": -1
+    },
+    "showroomEngineRunningAfter": true
+   }
+  },
+  {
+   "name": "adviser: \"open the designer\" opens the designer",
+   "ok": true
+  },
+  {
+   "name": "load failure: a clear message, Try again and a website link are shown",
+   "ok": true
+  },
+  {
+   "name": "load failure: the website link opens the same designer in a new tab",
+   "ok": true
+  },
+  {
+   "name": "Try again loads the designer once the network is back",
+   "ok": true
+  },
+  {
+   "name": "no page errors in the whole desktop run",
+   "ok": true,
+   "detail": [
+    "console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED",
+    "console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED",
+    "console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED",
+    "console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED",
+    "console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED"
+   ]
+  },
+  {
+   "name": "Arabic: the designer opens in Arabic although localStorage said English (the showroom language wins)",
+   "ok": true
+  },
+  {
+   "name": "Arabic: the showroom bar is RTL and translated",
+   "ok": true
+  },
+  {
+   "name": "language switch while open: the designer and the showroom both switch to English",
+   "ok": true,
+   "detail": {
+    "frame": "en",
+    "root": "en"
+   }
+  },
+  {
+   "name": "language switch while open: the design in progress is kept (same total, same step)",
+   "ok": true,
+   "detail": "BD 1,472"
+  },
+  {
+   "name": "phone: Tap Interact at the station opens the full-screen designer",
+   "ok": true
+  },
+  {
+   "name": "phone: the step bar and the Next button are inside the visible window",
+   "ok": true,
+   "detail": [
+    57,
+    778,
+    844
+   ]
+  }
+ ],
+ "notes": {
+  "embedded": {
+   "totals": [
+    "BD 1,472",
+    "BD 1,472",
+    "BD 1,472",
+    "BD 1,764",
+    "BD 1,924",
+    "BD 2,020",
+    "BD 2,080",
+    "BD 2,080"
+   ],
+   "notes": {
+    "dimensions": "length 4600",
+    "layout": "U-shape card",
+    "cabinets": "one more module",
+    "door": "Veneer x1.30",
+    "worktop": "Marble 360/m",
+    "accessories": "one more"
+   },
+   "bom": "9|9 · Summary & quote|600 base base ×4|BD 520|600 wall wall ×2|BD 176|Pantry tall ×1|BD 280|Countertop · Marble (2.4m)|BD 864|Handles ×2|BD 120|LED lighting ×1|BD 120|BD 2,080|Base unit 1000mm|Cabinet · 1000×720×600mm · MDF carcass · Veneer front|Base unit 1000mm|Cabinet · 1000×720×600mm · MDF carcass · Veneer front|Base unit 1000mm|Cabinet · 1000×720×600mm · MDF carcass · Veneer front|Filler panel 200mm|Cabinet · 200×720×600mm · MDF carcass · Veneer front|Base unit 1000mm|Cabinet · 1000×720×600mm · MDF carcass · Veneer front|Base unit 1000mm|Cabinet · 1000×720×600mm · MDF carcass · Veneer front|Base unit 600mm|Cabinet · 600×720×600mm · MDF carcass · Veneer front|Base unit 1000mm|Cabinet · 1000×720×600mm · MDF carcass · Veneer front|Base unit 1000mm|Cabinet · 1000×720×600mm · MDF carcass · Veneer front|Base unit 1000mm|Cabinet · 1000×720×600mm · MDF carcass · Veneer front|Filler panel 200mm|Cabinet · 200×720×600mm · MDF carcass · Veneer front|Worktop · 2.4m · 1.4m² · Marble|BD 864|Splashback · 2.4m · 1.4m² · Marble|Handles ×2|BD 120|BD 120|11 units · 2 accessory lines · 6 appliances · worktop 2.4m. Dimensions indicative.|Work triangle: within recommended guidelines ✓ · total 5.2m|2D plan|3D view|4600 mm|3000 mm|U-Shape · 2.4m run|BD 2,080|Total BD 2,080"
+  },
+  "direct": {
+   "totals": [
+    "BD 1,472",
+    "BD 1,472",
+    "BD 1,472",
+    "BD 1,764",
+    "BD 1,924",
+    "BD 2,020",
+    "BD 2,080",
+    "BD 2,080"
+   ],
+   "notes": {
+    "dimensions": "length 4600",
+    "layout": "U-shape card",
+    "cabinets": "one more module",
+    "door": "Veneer x1.30",
+    "worktop": "Marble 360/m",
+    "accessories": "one more"
+   },
+   "bom": "9|9 · Summary & quote|600 base base ×4|BD 520|600 wall wall ×2|BD 176|Pantry tall ×1|BD 280|Countertop · Marble (2.4m)|BD 864|Handles ×2|BD 120|LED lighting ×1|BD 120|BD 2,080|Base unit 1000mm|Cabinet · 1000×720×600mm · MDF carcass · Veneer front|Base unit 1000mm|Cabinet · 1000×720×600mm · MDF carcass · Veneer front|Base unit 1000mm|Cabinet · 1000×720×600mm · MDF carcass · Veneer front|Filler panel 200mm|Cabinet · 200×720×600mm · MDF carcass · Veneer front|Base unit 1000mm|Cabinet · 1000×720×600mm · MDF carcass · Veneer front|Base unit 1000mm|Cabinet · 1000×720×600mm · MDF carcass · Veneer front|Base unit 600mm|Cabinet · 600×720×600mm · MDF carcass · Veneer front|Base unit 1000mm|Cabinet · 1000×720×600mm · MDF carcass · Veneer front|Base unit 1000mm|Cabinet · 1000×720×600mm · MDF carcass · Veneer front|Base unit 1000mm|Cabinet · 1000×720×600mm · MDF carcass · Veneer front|Filler panel 200mm|Cabinet · 200×720×600mm · MDF carcass · Veneer front|Worktop · 2.4m · 1.4m² · Marble|BD 864|Splashback · 2.4m · 1.4m² · Marble|Handles ×2|BD 120|BD 120|11 units · 2 accessory lines · 6 appliances · worktop 2.4m. Dimensions indicative.|Work triangle: within recommended guidelines ✓ · total 5.2m|2D plan|3D view|4600 mm|3000 mm|U-Shape · 2.4m run|BD 2,080|Total BD 2,080"
+  },
+  "perf": {
+   "heapMBDesignerOpen3D": 23,
+   "glContextsDesignerOpen": {
+    "showroom": 0,
+    "frame": 1
+   },
+   "showroomEngineRunning": false,
+   "heapMBAfterClose": 19,
+   "glContextsAfterClose": {
+    "showroom": 0,
+    "frame": -1
+   },
+   "showroomEngineRunningAfter": true
+  }
+ }
+}

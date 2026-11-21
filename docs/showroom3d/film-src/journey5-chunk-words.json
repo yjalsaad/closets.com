@@ -1,0 +1,77 @@
+{
+ "note": "faster-whisper medium word times on the new read (ElevenLabs preset Alistair), seconds from the start of the chunk; the word edges beside the two pauses (after 'ورقة' and after 'نفذناه') are set from ffmpeg silencedetect (-38 dB): pause 1.71-2.15 s and 5.34-5.77 s, because the recogniser puts the pause inside the word.",
+ "words": [
+  {
+   "s": 0.0,
+   "e": 0.4
+  },
+  {
+   "s": 0.4,
+   "e": 0.88
+  },
+  {
+   "s": 0.88,
+   "e": 1.24
+  },
+  {
+   "s": 1.24,
+   "e": 1.71
+  },
+  {
+   "s": 2.15,
+   "e": 2.48
+  },
+  {
+   "s": 2.48,
+   "e": 2.9
+  },
+  {
+   "s": 2.9,
+   "e": 3.1
+  },
+  {
+   "s": 3.1,
+   "e": 3.66
+  },
+  {
+   "s": 3.66,
+   "e": 3.96
+  },
+  {
+   "s": 3.96,
+   "e": 4.56
+  },
+  {
+   "s": 4.56,
+   "e": 5.34
+  },
+  {
+   "s": 5.77,
+   "e": 6.48
+  },
+  {
+   "s": 6.48,
+   "e": 6.76
+  },
+  {
+   "s": 6.76,
+   "e": 7.52
+  },
+  {
+   "s": 7.52,
+   "e": 7.8
+  },
+  {
+   "s": 7.8,
+   "e": 8.34
+  },
+  {
+   "s": 8.34,
+   "e": 9.24
+  },
+  {
+   "s": 9.24,
+   "e": 10.06
+  }
+ ]
+}

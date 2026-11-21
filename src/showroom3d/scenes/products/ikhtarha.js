@@ -10,11 +10,12 @@ import { mergeGeometries } from '../../3d/geom';
 import { poolTexture } from '../../3d/pbr';
 import { IK, ikt } from '../../products/campaignCopy';
 import { STAGE } from '../../products/catalog';
+import { loadImg } from '../../preload/assetStore';
 
-export const ASSETS = { hero: '/brand/ikhtarha/hero-wide.jpg', logo: '/brand/ikhtarha/logo-light.png' };
+export const ASSETS = { hero: '/brand/ikhtarha/hero-wide.jpg', logo: '/brand/ikhtarha/logo-light-1040.webp' };
 const SW = 1920, SH = 1080;   // screen canvas (16:9)
 
-const loadImage = (src) => new Promise((resolve) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = () => resolve(null); i.crossOrigin = 'anonymous'; i.src = src; });
+const loadImage = (src) => new Promise((resolve) => { loadImg(src, (i) => resolve(i), () => resolve(null), { crossOrigin: 'anonymous' }); });
 
 function wrap(g, text, x, y, maxW, lh, rtl) {
   const words = text.split(' '); let line = '', yy = y;
@@ -87,7 +88,7 @@ export function buildStage({ M, tier, lang = 'en', glowTex }) {
   const blade = new THREE.Group(); blade.position.set(0, 0, -2.9); g.add(blade);
   const bladeBody = new THREE.Mesh(bevelBox(6.2, 3.55, 0.12, { b: 0.006 }), std({ color: C(P.ikPurpleDeep, 0.8), roughness: 0.35, envMapIntensity: 0.8 })); bladeBody.position.y = 0.2 + 1.775; bladeBody.castShadow = true; blade.add(bladeBody);
   const mkScreen = (z, ry) => {
-    const cv = document.createElement('canvas'); cv.width = SW; cv.height = SH; const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = Math.min(8, tier.anisotropy || 1);
+    const cv = document.createElement('canvas'); cv.width = SW; cv.height = SH; const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = Math.max(4, Math.min(8, tier.anisotropy || 4));
     const m = new THREE.Mesh(new THREE.PlaneGeometry(5.84, 3.285), new THREE.MeshBasicMaterial({ map: tx, toneMapped: false, color: C(0xffffff, 0.92) })); m.position.set(0, 0.2 + 1.775, z); m.rotation.y = ry; blade.add(m); return { cv, tx, m };
   };
   const front = mkScreen(0.062, 0), back = mkScreen(-0.062, Math.PI);

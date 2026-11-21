@@ -98,7 +98,7 @@ function ProductInfo({ product, qty, setQty, addToCart, setConfigProduct, setPag
       <h1 className="display" style={{ fontSize: mobile ? 30 : 46, color: 'var(--ink)', marginBottom: 12, lineHeight: 1.08 }}>{product.name}</h1>
       <div style={{ fontSize: mobile ? 24 : 30, fontWeight: 700, color: 'var(--clay)', marginBottom: 20 }}>{fmt(product.price)}</div>
       {product.description && <p style={{ fontSize: mobile ? 15 : 16.5, color: 'var(--ink-soft)', lineHeight: 1.75, marginBottom: 26 }}>{product.description}</p>}
-      <div style={{ background: 'var(--sand)', borderRadius: 'var(--radius-lg)', marginBottom: 26, border: '1px solid var(--line)' }}>
+      <div className="gl-card" style={{ background: 'var(--sand)', borderRadius: 'var(--radius-lg)', marginBottom: 26, border: '1px solid var(--line)' }}>
         {[[t('w4PdMaterials'), product.materials], [t('w4PdLeadTime'), product.lead_time], [t('w4PdSku'), product.sku]].filter(([,v]) => v).map(([k, v], i, arr) => (
           <div key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, padding: '14px 18px', borderBottom: i < arr.length - 1 ? '1px solid var(--line)' : 'none' }}>
             <span style={{ fontSize: 13, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--muted)' }}>{k}</span>

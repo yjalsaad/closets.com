@@ -59,13 +59,13 @@ function ContactPage() {
           ))}
         </div>
         {sent ? (
-          <div className="rv-r" style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', padding:'56px 32px', textAlign:'center' }}>
+          <div className="rv-r gl-card" style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', padding:'56px 32px', textAlign:'center' }}>
             <div style={{ width:64, height:64, borderRadius:'50%', background:'rgba(176,97,59,.12)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px', fontSize:28, color:'var(--clay)' }}>✓</div>
             <h3 className="display" style={{ fontSize:26, color:'var(--ink)', marginBottom:10 }}>{t('msgReceived')}</h3>
             <p style={{ color:'var(--ink-soft)', fontSize:15 }}>{t('swContactWithin24')}</p>
           </div>
         ) : (
-          <form noValidate onSubmit={e=>{ e.preventDefault(); submit(); }} className="rv-r" style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', padding: mobile?22:30, display:'flex', flexDirection:'column', gap:12 }}>
+          <form noValidate onSubmit={e=>{ e.preventDefault(); submit(); }} className="rv-r gl-card" style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-xl)', padding: mobile?22:30, display:'flex', flexDirection:'column', gap:12 }}>
             <Field id="ct-name" className="inp" label={t("yourName")} required error={errs.name} placeholder={t("yourName")} autoComplete="name" maxLength={120} value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
             <Field id="ct-email" className="inp" label={t('swContactEmail')} required error={errs.email} placeholder={t('swContactEmail')} type="email" inputMode="email" autoComplete="email" maxLength={254} value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />
             <Field id="ct-phone" className="inp" label={t("phone")} error={errs.phone} placeholder={t("phone")} type="tel" inputMode="tel" autoComplete="tel" maxLength={20} value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} style={{ background:'var(--cream)', border:'1px solid var(--line)' }} />

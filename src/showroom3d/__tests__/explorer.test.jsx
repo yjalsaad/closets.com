@@ -36,7 +36,7 @@ describe('Explorer (keyboard, pause, pointer lock, interaction, glide)', () => {
   });
   test('arrow keys move like WASD; comma / period turn for keyboard-only use', () => {
     const { x } = make(); key('ArrowUp'); for (let i = 0; i < 30; i++) x.update(1 / 60); expect(x.walker.pos[1]).toBeLessThan(-9); key('ArrowUp', 'keyup');
-    const y0 = x.walker.yaw; key('Comma'); expect(x.walker.yaw).toBeGreaterThan(y0); key('Period'); key('Period'); expect(x.walker.yaw).toBeLessThan(y0);
+    const y0 = x.walker.yaw; key('Comma'); for (let i = 0; i < 40; i++) x.update(1 / 60); expect(x.walker.yaw).toBeGreaterThan(y0); key('Period'); key('Period'); for (let i = 0; i < 60; i++) x.update(1 / 60); expect(x.walker.yaw).toBeLessThan(y0);   // eased turn: the yaw chases its target over a few frames
   });
   test('Escape pauses (and is reported), keys typed into form fields are ignored', () => {
     const { x, events } = make(); const input = document.createElement('input'); document.body.appendChild(input);
@@ -79,7 +79,7 @@ describe('Explorer (keyboard, pause, pointer lock, interaction, glide)', () => {
 describe('overlays', () => {
   test('department menu lists the eight departments and the VIP meeting room (9th) in order, in both languages, and picking calls back', () => {
     const onPick = jest.fn(), onClose = jest.fn(); const { rerender } = render(<DeptMenu lang="en" touch={false} onPick={onPick} onClose={onClose} />);
-    const items = screen.getAllByRole('button').filter((b) => b.dataset.dept); expect(items.map((b) => b.dataset.dept)).toEqual([...DEPARTMENTS.map((d) => d.id), 'vip']);
+    const items = screen.getAllByRole('button').filter((b) => b.dataset.dept); expect(items.map((b) => b.dataset.dept)).toEqual([...DEPARTMENTS.map((d) => d.id), 'vip', 'collections', 'kitchen-studio', 'tv-studio']);
     fireEvent.click(items[2]); expect(onPick).toHaveBeenCalledWith('walkin');
     expect(screen.getByRole('dialog').getAttribute('aria-modal')).toBe('true');
     rerender(<DeptMenu lang="ar" touch onPick={onPick} onClose={onClose} />); expect(screen.getByText('المطابخ')).toBeTruthy();
@@ -100,6 +100,15 @@ describe('overlays', () => {
     expect(screen.getByText('Back to website').getAttribute('href')).toBe('/'); fireEvent.click(screen.getByText('Resume')); expect(h.onResume).toHaveBeenCalledWith(true);
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' }); expect(h.onResume).toHaveBeenLastCalledWith(false);
     rerender(<PauseMenu lang="ar" reduced bob homeHref="/ar" {...h} />); expect(screen.getByText(STRINGS.headBobOff.ar).closest('button').disabled).toBe(true); expect(screen.getByText(STRINGS.headBobReduced.ar)).toBeTruthy();
+  });
+  test('pause menu: the Graphics setting lists Auto / High / Balanced / Performance, shows the tier in use, and reports the choice', () => {
+    const onGraphics = jest.fn();
+    const { rerender } = render(<PauseMenu lang="en" reduced={false} bob homeHref="/" tier="medium" gfxMode="auto" onGraphics={onGraphics} onResume={() => {}} onDepts={() => {}} onReplay={() => {}} onLang={() => {}} onBob={() => {}} onTips={() => {}} />);
+    const sel = screen.getByTestId('sr-menu-graphics-select'); expect([...sel.options].map((o) => o.value)).toEqual(['auto', 'high', 'balanced', 'performance']); expect(sel.value).toBe('auto');
+    expect([...sel.options].map((o) => o.textContent)).toEqual(['Auto (recommended)', 'High', 'Balanced', 'Performance']); expect(screen.getByTestId('sr-menu-graphics-now')).toHaveTextContent('Now showing: Balanced');
+    fireEvent.change(sel, { target: { value: 'high' } }); expect(onGraphics).toHaveBeenCalledWith('high');
+    rerender(<PauseMenu lang="ar" reduced={false} bob homeHref="/ar" tier="low" gfxMode="performance" onGraphics={onGraphics} onResume={() => {}} onDepts={() => {}} onReplay={() => {}} onLang={() => {}} onBob={() => {}} onTips={() => {}} />);
+    expect(screen.getByTestId('sr-menu-graphics-select').value).toBe('performance'); expect(screen.getByTestId('sr-menu-graphics-now').textContent).toMatch(/[؀-ۿ]/);
   });
   test('coach marks: three tips per input type, EN and AR, with a dismiss button', () => {
     const done = jest.fn(); const { rerender, container } = render(<CoachMarks lang="en" touch={false} onDone={done} />);

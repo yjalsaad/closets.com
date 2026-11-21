@@ -7,11 +7,13 @@ export const VIP = {
   wallT: 0.15, height: 4.3,
   doorHalf: 0.95, doorH: 2.7,                               // door gap in the front glass wall (centre x = 0)
   table: { x: 0, z: -32.6, w: 5.6, d: 1.5, h: 0.76 },
-  screen: { z: -(HALL.depth - 0.5) + 0.08, y: 2.45, w: 6.4, h: 3.6 },
+  screen: { z: -(HALL.depth - 0.5) + 0.08, y: 2.2, w: 6.93, h: 3.9 },   // a 16:9 LED wall, 6.9 x 3.9 m (was 5.7 x 3.2)
   approach: [0, -27.6],                                      // lane in front of the door
   stand: [0, -30.2],                                         // quick-nav stand point, inside, facing the screen
   look: [0, 2.2, -(HALL.depth - 0.5) + 0.08],
 };
+/** the two national-flag poles (scenes/vip/flags3d.js): either side of the wall screen, just in front of the back wall. Bahrain on the viewer's left (-x), Saudi Arabia on the right (alphabetical, as seen from the door). */
+export const VIP_FLAGS = Object.freeze({ poleX: 4.85, poleZ: VIP.z0 + 0.21, poleH: 3.0, barY: 2.72, clothH: 0.9, baseR: 0.14, poleR: 0.022, baseH: 0.035 });
 export const vipCentre = () => [(VIP.x0 + VIP.x1) / 2, (VIP.z0 + VIP.z1) / 2];
 /** floor-plan footprint boxes used by collision (door leaf box only exists while the door is closed) */
 export function vipBoxes() {
@@ -25,6 +27,8 @@ export function vipBoxes() {
     { type: 'box', id: 'vip-table', minX: VIP.table.x - VIP.table.w / 2 - 0.55, maxX: VIP.table.x + VIP.table.w / 2 + 0.55, minZ: VIP.table.z - VIP.table.d / 2 - 0.7, maxZ: VIP.table.z + VIP.table.d / 2 + 0.7 },
     // lounge corner (sofa + coffee table) front right, credenza + plant front left
     { type: 'box', id: 'vip-lounge', minX: 3.2, maxX: VIP.x1, minZ: -31.4, maxZ: VIP.z1 + 0.1 },
+    // the two flagpoles' base plates (solid, kept clear of the back lane the navigation graph walks, z = -34.8: the plate sits against the back wall)
+    ...[-1, 1].map((sg) => ({ type: 'box', id: sg < 0 ? 'vip-flag-bh' : 'vip-flag-sa', minX: sg * VIP_FLAGS.poleX - VIP_FLAGS.baseR + 0.02, maxX: sg * VIP_FLAGS.poleX + VIP_FLAGS.baseR - 0.02, minZ: VIP_FLAGS.poleZ - VIP_FLAGS.baseR + 0.02, maxZ: VIP_FLAGS.poleZ + VIP_FLAGS.baseR - 0.02 })),
     { type: 'box', id: 'vip-credenza', minX: VIP.x0, maxX: -5.5, minZ: -31.2, maxZ: VIP.z1 + 0.1 },
   ];
   return out;
@@ -35,6 +39,11 @@ export const VIP_VIEWS = [
   { id: 'story', pos: [0, 1.85, -29.2], look: [0, 2.2, -35.42], fov: 54 },
   { id: 'projects', pos: [-0.6, 1.8, -31.2], look: [-7.0, 1.9, -32.6], fov: 58 },
   { id: 'hub', pos: [0, 1.85, -29.2], look: [0, 2.2, -35.42], fov: 54 },
-  { id: 'invest', pos: [0, 1.85, -29.2], look: [0, 2.2, -35.42], fov: 54 },
-  { id: 'briefing', pos: [0, 1.85, -29.2], look: [0, 2.2, -35.42], fov: 52 },
+  { id: 'contact', pos: [0, 1.85, -29.2], look: [0, 2.2, -35.42], fov: 52 },
 ];
+
+/** presenter view of the big screen: the camera is placed so the whole wall (screen width + margin) fits the viewport width for the given aspect ratio and vertical fov */
+export function bigScreenView(aspect = 16 / 9, fov = 46, fill = 0.94, centred = false) {
+  const a = Math.max(0.4, aspect), vf = (fov * Math.PI) / 180, hf = 2 * Math.atan(Math.tan(vf / 2) * a), half = (VIP.screen.w / 2) / fill, dist = Math.min(7.4, Math.max(3.4, half / Math.tan(hf / 2)));
+  const z = VIP.screen.z + 0.012 + dist; return { pos: [0, centred ? VIP.screen.y : 1.55, Math.min(z, VIP.z1 - 0.6)], look: [0, centred ? VIP.screen.y : VIP.screen.y - 0.05, VIP.screen.z], fov };   // centred (Reading mode): the eye is level with the middle of the wall, so there is no keystone and the wall fits the view exactly
+}

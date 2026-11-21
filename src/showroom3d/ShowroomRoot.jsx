@@ -1,14 +1,17 @@
 /* /yas-bloom and /ar/yas-bloom (formerly /showroom-3d): the virtual showroom app shell (its own lazy chunk; mounted from src/index.js like the Visualizer).
  * The 3D experience only mounts when WebGL works (src/safety/WebGLGate); otherwise a 2D page with the same departments and links. */
 import React, { useEffect, useState } from 'react';
-import WebGLGate from '../safety/WebGLGate';
-import { webglAvailable } from '../safety/webgl';
-import { ENABLE_AR_URLS } from '../seo/siteConfig';
-import { splitLangPath, withLang } from '../seo/routes';
+import WebGLGate from './vendor/WebGLGate';
+import { webglAvailable } from './vendor/webgl';
+import { ENABLE_AR_URLS } from './vendor/siteConfig';
+import { splitLangPath, withLang } from './vendor/routes';
 import { cssVars } from './3d/palette';
 import { t } from './strings';
 import ShowroomExperience from './ShowroomExperience';
 import Fallback2D from './ui/Fallback2D';
+import { isStudyPath } from './study/route';
+const StudyPage = React.lazy(() => import(/* webpackChunkName: "yws-study" */ './study/StudyPage'));
+import './vendor/tokens.css';   // scoped design tokens (main has none)
 import './ui/showroom.css';
 
 const LANG_KEY = 'closets_lang';
@@ -46,10 +49,11 @@ export default function ShowroomRoot() {
     setLang(next);
   };
 
+  const study = isStudyPath(window.location.pathname || '');
   const fb = <Fallback2D lang={lang} error={!!failed} onRetry={failed ? () => { setFailed(null); setAttempt((n) => n + 1); } : undefined} />;
   return (
     <div className="sr3d" style={cssVars()} dir={ar ? 'rtl' : 'ltr'} lang={lang}>
-      {failed || !webglAvailable()
+      {study ? <React.Suspense fallback={null}><StudyPage lang={lang} onLang={switchLang} /></React.Suspense> : failed || !webglAvailable()
           ? fb
           : <WebGLGate fallback={fb} name="showroom3d"><ShowroomExperience key={attempt} lang={lang} onLang={switchLang} onFail={setFailed} /></WebGLGate>}
     </div>

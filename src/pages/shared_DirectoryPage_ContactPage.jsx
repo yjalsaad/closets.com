@@ -15,7 +15,7 @@ function CardTile({ c }) {
   const pillBg = { vendor:'#E7F8EE', customer:'#F5EBFE', employee:'#FFF1E6' }[ptype] || '#FFF1E6';
   const pillCol = { vendor:'var(--c-ok)', customer:'#7a3fb0', employee:'#b5560f' }[ptype] || '#b5560f';
   return (
-    <a href={`${HUB_ORIGIN}/card.html?c=${encodeURIComponent(c.slug)}`} target="_blank" rel="noreferrer"
+    <a href={`${HUB_ORIGIN}/card.html?c=${encodeURIComponent(c.slug)}`} target="_blank" rel="noreferrer" className="gl-card"
        style={{ textDecoration:'none', color:'var(--shop-ink)', background:'var(--c-surface)', border:'1px solid #ececec', borderRadius:'var(--radius-xl)', padding:20, display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', transition:'transform .15s, box-shadow .15s' }}
        onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px)';e.currentTarget.style.boxShadow='0 12px 30px rgba(0,0,0,.08)';}}
        onMouseLeave={e=>{e.currentTarget.style.transform='none';e.currentTarget.style.boxShadow='none';}}>

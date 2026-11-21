@@ -84,7 +84,7 @@ function AboutPage({ setPage = () => {} }) {
       </section>
 
       {/* ── PULL QUOTE ── */}
-      <section style={{ background:'var(--sand)', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
+      <section className="gl-band" style={{ background:'var(--sand)', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
         <div className="rv" style={{ maxWidth:940, margin:'0 auto', padding: mobile?'56px 22px':'96px 40px', textAlign:'center' }}>
           <div style={{ fontSize: mobile?40:64, color:'var(--clay)', lineHeight:0, fontFamily:'var(--font-sans)' }}>“</div>
           <blockquote className="display" style={{ fontSize: mobile?26:40, lineHeight:1.22, color:'var(--ink)', letterSpacing:'-.015em', margin:'12px 0 0' }}>
@@ -113,7 +113,7 @@ function AboutPage({ setPage = () => {} }) {
       </section>
 
       {/* ── CRAFT ── */}
-      <section style={{ background:'var(--c-surface)', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
+      <section className="gl-band" style={{ background:'var(--c-surface)', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
         <div style={{ maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding: mobile?'60px var(--gutter)':'104px var(--gutter)', display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap: mobile?36:72, alignItems:'center' }}>
           <div className="rv-l tile-zoom zoomwrap" style={{ position:'relative', borderRadius:'var(--radius-xl)', overflow:'hidden', minHeight: mobile?300:500, order: mobile?2:1, boxShadow:'0 40px 80px -34px rgba(33,28,24,.5)' }}>
             <Photo src={cms('about.craft.image', HOME_IMG.kitchen)} alt="The Closets workshop and finishing" imgClass="tz" style={{ position:'absolute', inset:0 }} />
@@ -157,7 +157,7 @@ function AboutPage({ setPage = () => {} }) {
       </>}
 
       {/* ── FOUNDER SIGNATURE ── */}
-      <section style={{ background:'var(--sand)', borderTop:'1px solid var(--line)' }}>
+      <section className="gl-band" style={{ background:'var(--sand)', borderTop:'1px solid var(--line)' }}>
         <div className="rv" style={{ maxWidth:820, margin:'0 auto', padding: mobile?'56px 22px':'96px 40px', textAlign:'center' }}>
           <p className="display" style={{ fontSize: mobile?21:28, lineHeight:1.45, color:'var(--ink)', letterSpacing:'-.01em' }}>
             {cms('about.founder.quote', 'Every home we finish carries our name. That is why we still walk each site before it’s signed off — and why we’ll still answer the phone years later.')}

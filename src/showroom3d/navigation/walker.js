@@ -22,6 +22,8 @@ export class Walker {
   }
   setPose(x, z, yaw, pitch) { this.pos = [x, z]; if (yaw !== undefined) this.yaw = yaw; if (pitch !== undefined) this.pitch = clamp(pitch, -PITCH_LIMIT, PITCH_LIMIT); this.vel = [0, 0]; this.speed = 0; }
   setColliders(c) { this.colliders = c; }
+  /** eased look: the turn is added to a target that the yaw / pitch chase (used for touch drags and keyboard turning, so they never snap) */
+  lookSmooth(dYaw, dPitch) { this.tYaw = (this.tYaw || 0) + dYaw; this.tPitch = (this.tPitch || 0) + dPitch; }
   look(dYaw, dPitch) { this.yaw = wrapPi(this.yaw + dYaw); this.pitch = clamp(this.pitch + dPitch, -PITCH_LIMIT, PITCH_LIMIT); }
 
   /**
@@ -30,6 +32,7 @@ export class Walker {
    */
   step(dt, input = {}, reducedMotion = false) {
     if (!(dt > 0)) return;
+    if (this.tYaw || this.tPitch) { const k0 = reducedMotion ? 1 : 1 - Math.exp(-16 * dt), dy = this.tYaw * k0, dp = this.tPitch * k0; this.tYaw -= dy; this.tPitch -= dp; if (Math.abs(this.tYaw) < 1e-5) this.tYaw = 0; if (Math.abs(this.tPitch) < 1e-5) this.tPitch = 0; this.look(dy, dp); }
     let fx = input.fwd || 0, rx = input.right || 0; const m = Math.hypot(fx, rx);
     if (m > 1) { fx /= m; rx /= m; }
     const mag = Math.min(1, m), target = speedFor(mag, !!input.jog), dirLen = m || 1;

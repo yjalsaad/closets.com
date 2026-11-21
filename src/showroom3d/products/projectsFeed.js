@@ -15,7 +15,7 @@ export async function loadProjects({ api, sanitize, query = PROJECTS_QUERY } = {
 }
 /** the real client path (lazy: App.js is already in the main bundle, so this adds no weight) */
 export async function loadSiteProjects() {
-  const [{ api }, { sanitizeProjects }] = await Promise.all([import('../../App'), import('../../safety/sanitize')]);
+  const [{ api }, { sanitizeProjects }] = await Promise.all([import('../vendor/siteApi'), import('../vendor/sanitize')]);
   return loadProjects({ api, sanitize: sanitizeProjects });
 }
 /** a project row -> what a card shows (title, type / location line, image url or '' for the procedural card). Only fields the record really has. */

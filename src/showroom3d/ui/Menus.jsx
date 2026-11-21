@@ -1,13 +1,17 @@
 import React from 'react';
+import { GRAPHICS_MODES } from '../3d/quality';
 import { t } from '../strings';
 import { DEPARTMENTS } from '../scenes/main-hall/departments';
 import { useDialog } from './useDialog';
 import { VIP_DEPT } from '../products/vipContent';
+import { COLLECTIONS_DEPT } from '../collections/layout';
+import { SECTION_DEPTS } from '../designstudio/sections';
+import { FLOORS, BLOOM_STOPS } from '../scenes/bloom/layout';
 
 const name = (d, lang) => (lang === 'ar' ? d.ar : d.en);
 
 /** Department quick-nav: a sheet listing the eight bays and the VIP meeting room; choosing one glides the camera to its entrance. */
-export function DeptMenu({ lang, touch, onPick, onClose, fallbackFocus }) {
+export function DeptMenu({ lang, touch, onPick, onClose, fallbackFocus, level = 'ground' }) {
   const ref = useDialog(true, onClose, fallbackFocus);
   return (
     <div className="sr-modal sr-modal-sheet" onPointerDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
@@ -17,24 +21,38 @@ export function DeptMenu({ lang, touch, onPick, onClose, fallbackFocus }) {
           <button type="button" className="sr-btn sr-btn-line" onClick={onClose} aria-label={t('departmentsClose', lang)}>{t('departmentsClose', lang)}</button>
         </div>
         <p className="sr-dialog-sub">{t('departmentsHint', lang)}</p>
-        <ol className="sr-dept-list">
-          {[...DEPARTMENTS, VIP_DEPT].map((d, i) => (
-            <li key={d.id}>
-              <button type="button" className="sr-dept" onClick={() => onPick(d.id)} data-dept={d.id} data-autofocus={i === 0 ? '' : undefined}>
-                <span className="sr-dept-n" aria-hidden="true">{i + 1}</span>
-                <span className="sr-dept-name">{name(d, lang)}</span>
-                {!touch && <kbd className="sr-kbd" aria-hidden="true">{i + 1}</kbd>}
-              </button>
-            </li>
-          ))}
-        </ol>
+        <ul className="sr-fl-list" data-testid="sr-dept-floors">
+          <li><button type="button" className="sr-fl" onClick={() => onPick('meeting-mode')} data-floorpick="meeting-mode" data-testid="sr-meeting-mode"><span className="sr-fl-n" aria-hidden="true">M</span><span className="sr-fl-name">{t('meetingMode', lang)}</span></button></li>
+        </ul>
+        {/* two floors, each a tappable header (tap = go to that floor) with its stops under it; the floor you are on comes first */}
+        {(level === 'l2' ? ['l2', 'ground'] : ['ground', 'l2']).map((fid) => {
+          const f = FLOORS.find((x) => x.id === fid);
+          return (
+            <section key={fid} className="sr-fl-sec" aria-labelledby={'sr-fl-h-' + fid} data-testid={'sr-floor-sec-' + fid}>
+              <h3 className="sr-fl-sub" id={'sr-fl-h-' + fid}><button type="button" className="sr-fl sr-fl-head" onClick={() => onPick('floor:' + f.id)} aria-current={level === f.id ? 'true' : undefined} aria-label={t('goFloorN', lang).replace('{n}', f.level)} data-floorpick={f.id}><span className="sr-fl-n" aria-hidden="true">{f.short[lang === 'ar' ? 'ar' : 'en']}</span><span className="sr-fl-name">{name(f, lang)}</span></button></h3>
+              {fid === 'ground' ? (
+                <ol className="sr-dept-list">
+                  {[...DEPARTMENTS, VIP_DEPT, COLLECTIONS_DEPT, ...SECTION_DEPTS].map((d, i) => (
+                    <li key={d.id}>
+                      <button type="button" className="sr-dept" onClick={() => onPick(d.id)} data-dept={d.id} data-autofocus={i === 0 && level !== 'l2' ? '' : undefined}>
+                        <span className="sr-dept-n" aria-hidden="true">{i + 1}</span>
+                        <span className="sr-dept-name">{name(d, lang)}</span>
+                        {!touch && i < 9 && <kbd className="sr-kbd" aria-hidden="true">{i + 1}</kbd>}
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+              ) : (level === 'l2' && <ul className="sr-fl-list">{BLOOM_STOPS.map((b) => <li key={b.id}><button type="button" className="sr-fl" onClick={() => onPick(b.id)} data-floorpick={b.id}><span className="sr-fl-n" aria-hidden="true">2</span><span className="sr-fl-name">{name(b, lang)}</span></button></li>)}</ul>)}
+            </section>
+          );
+        })}
       </div>
     </div>
   );
 }
 
 /** ESC / Menu overlay: resume, departments, replay intro, language, head-bob, tips, back to website. */
-export function PauseMenu({ lang, touch, reduced, bob, homeHref, onResume, onDepts, onReplay, onLang, onBob, onTips, fallbackFocus }) {
+export function PauseMenu({ lang, touch, reduced, bob, homeHref, explorerRef, st = {}, tier = 'high', gfxMode = 'auto', onGraphics, onResume, onDepts, onReplay, onLang, onBob, onTips, fallbackFocus }) {
   const ref = useDialog(true, () => onResume(false), fallbackFocus);
   return (
     <div className="sr-modal" onPointerDown={(e) => { if (e.target === e.currentTarget) onResume(false); }}>
@@ -45,7 +63,16 @@ export function PauseMenu({ lang, touch, reduced, bob, homeHref, onResume, onDep
           <button type="button" className="sr-btn sr-btn-line" onClick={onDepts}>{t('departments', lang)}</button>
           <button type="button" className="sr-btn sr-btn-line" onClick={onReplay}>{reduced ? t('playIntro', lang) : t('replayIntro', lang)}</button>
           <button type="button" className="sr-btn sr-btn-line" onClick={onLang} lang={lang === 'ar' ? 'en' : 'ar'} aria-label={t('langToggleLabel', lang)}>{t('langToggle', lang)}</button>
+          <button type="button" className="sr-btn sr-btn-line" onClick={() => explorerRef && explorerRef.current && explorerRef.current.toggleCameraMode()} aria-pressed={st.camMode === 'third'} data-testid="sr-menu-cam">{t('camLabel', lang)}: {t(st.camMode === 'third' ? 'camThird' : 'camFirst', lang)}</button>
+          <button type="button" className="sr-btn sr-btn-line" onClick={() => explorerRef && explorerRef.current && explorerRef.current.cycleAvatar()} data-testid="sr-menu-avatar">{t('avatarLabel', lang)}: {t('avatar_' + (st.avatar || 'female'), lang)}</button>
           <button type="button" className="sr-btn sr-btn-line" onClick={onBob} aria-pressed={bob && !reduced} disabled={reduced}>{bob && !reduced ? t('headBobOn', lang) : t('headBobOff', lang)}</button>
+          <label className="sr-gfx" data-testid="sr-menu-graphics">
+            <span>{t('qualityLabel', lang)}</span>
+            <select value={gfxMode} onChange={(e) => onGraphics && onGraphics(e.target.value)} data-testid="sr-menu-graphics-select" aria-describedby="sr-gfx-now">
+              {GRAPHICS_MODES.map((m) => <option key={m} value={m}>{t('gfx_' + m, lang)}</option>)}
+            </select>
+            <small id="sr-gfx-now" data-testid="sr-menu-graphics-now">{t('gfxNow', lang)}: {t('quality' + tier.charAt(0).toUpperCase() + tier.slice(1), lang)}. {t('gfxReload', lang)}</small>
+          </label>
           <button type="button" className="sr-btn sr-btn-line" onClick={onTips}>{t('showTips', lang)}</button>
           <a className="sr-btn sr-btn-line" href={homeHref}>{t('exit', lang)}</a>
         </div>

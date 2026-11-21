@@ -1,0 +1,44 @@
+{
+ "kitchen-1-en": {
+  "bytes": "56952 86",
+  "total": "BD 1,472"
+ },
+ "kitchen-2-en": {
+  "bytes": "37646 86",
+  "total": "BD 1,674"
+ },
+ "kitchen-3-en": {
+  "bytes": "51508 86",
+  "total": "BD 1,674"
+ },
+ "kitchen-1-ar": {
+  "bytes": "53062 86",
+  "total": "BD 1,472"
+ },
+ "kitchen-2-ar": {
+  "bytes": "33580 86",
+  "total": "BD 1,674"
+ },
+ "kitchen-3-ar": {
+  "bytes": "45748 86",
+  "total": "BD 1,674"
+ },
+ "tv-1-en": {
+  "bytes": "68922 86"
+ },
+ "tv-2-en": {
+  "bytes": "61662 86"
+ },
+ "tv-3-en": {
+  "bytes": "65776 86"
+ },
+ "tv-1-ar": {
+  "bytes": "65554 86"
+ },
+ "tv-2-ar": {
+  "bytes": "56686 86"
+ },
+ "tv-3-ar": {
+  "bytes": "61422 86"
+ }
+}

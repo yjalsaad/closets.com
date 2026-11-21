@@ -2,7 +2,7 @@ import React from 'react';
 import { t } from '../strings';
 import LogoImg from './LogoImg';
 import { DEPARTMENTS } from '../scenes/main-hall/departments';
-import { withLang } from '../../seo/routes';
+import { withLang } from '../vendor/routes';
 
 /** 2D alternative when WebGL is missing or the 3D start fails: same brand, the same eight departments, real links onward. */
 export default function Fallback2D({ lang, onRetry, error }) {

@@ -111,7 +111,7 @@ function PlannerGuidePage({ setPage }) {
       </section>
 
       {/* HOW IT WORKS — 4 steps */}
-      <section style={{ background:'var(--c-surface)', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
+      <section className="gl-band" style={{ background:'var(--c-surface)', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
         <div style={{ maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding: mobile?'56px var(--gutter)':'88px var(--gutter)' }}>
           <div className="rv" style={{ maxWidth:680, marginBottom: mobile?40:64 }}>
             <div className="eyebrow" style={{ marginBottom:14 }}>{t('guideHowEyebrow')}</div>
@@ -154,7 +154,7 @@ function PlannerGuidePage({ setPage }) {
               </p>
               <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:14, marginTop:26 }}>
                 {DESIGNER_FEATURES.map(f => (
-                  <div key={f.title} style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-lg)', padding:'18px 18px' }}>
+                  <div key={f.title} className="gl-card" style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-lg)', padding:'18px 18px' }}>
                     <div style={{ fontSize:22, marginBottom:8 }} aria-hidden="true">{f.icon}</div>
                     <div style={{ fontSize:15.5, fontWeight:700, color:'var(--ink)' }}>{f.title}</div>
                     <div style={{ fontSize:13.5, color:'var(--ink-soft)', marginTop:6, lineHeight:1.6 }}>{f.body}</div>
@@ -168,7 +168,7 @@ function PlannerGuidePage({ setPage }) {
       </section>
 
       {/* PLAN ANY PRODUCT */}
-      <section style={{ background:'var(--c-surface)', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
+      <section className="gl-band" style={{ background:'var(--c-surface)', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
         <div style={{ maxWidth:'calc(var(--container) + var(--gutter) * 2)', margin:'0 auto', padding: mobile?'56px var(--gutter)':'88px var(--gutter)' }}>
           <div className="rv" style={{ maxWidth:680, marginBottom: mobile?32:48 }}>
             <div className="eyebrow" style={{ marginBottom:14 }}>{t('swGuidePlanEyebrow')}</div>
@@ -217,7 +217,7 @@ function PlannerGuidePage({ setPage }) {
       </section>
 
       {/* FAQ */}
-      <section style={{ background:'var(--c-surface)', borderTop:'1px solid var(--line)' }}>
+      <section className="gl-band" style={{ background:'var(--c-surface)', borderTop:'1px solid var(--line)' }}>
         <div style={{ maxWidth:900, margin:'0 auto', padding: mobile?'56px 22px':'88px 40px' }}>
           <div className="rv" style={{ marginBottom: mobile?24:36 }}>
             <div className="eyebrow" style={{ marginBottom:14 }}>{t('guideQuestions')}</div>

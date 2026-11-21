@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { HERO_IMG, HOME_IMG, cms, fmt, useI18n, useMobile } from '../App';
 import { mergeLayout, useLayouts } from './shared_TVUnitPlannerWizard_OfficePlannerWizard_plus8';
 import { trOpt } from './shared_TVUnitPlannerWizard_OfficePlannerWizard_plus5';
+import TypeShowcase from '../glass/TypeShowcase'; // [GLASS 2026-11-14] stage 2
 
 // LAYOUT — drives the 3D shape + a base run length (m) used for live pricing.
 // `model` maps to Wardrobe3D.buildKitchen layouts: single | l-shape | u-shape | parallel | island
@@ -100,22 +101,7 @@ function KitchenPage({ setPage, products }) {
       <section className="reveal" style={{ ...wrap, marginTop: mobile?40:64 }}>
         <div className="eyebrow" style={{ marginBottom:10 }}>{t('sw2KpEveryLayout')}</div>
         <h2 className="display" style={{ fontSize: mobile?26:38, color:'var(--ink)', margin:'0 0 22px' }}>{t('sw2KpFitRoom')}</h2>
-        <div className="reveal reveal-stagger" style={{ display:'grid', gridTemplateColumns: mobile?'1fr 1fr':'repeat(5,1fr)', gap:12 }}>
-          {kLayouts.map(l=>(
-            <div key={l.id} className="lift zoomwrap" style={{ background:'var(--c-surface)', border:'1px solid var(--line)', borderRadius:'var(--radius-lg)', overflow:'hidden', textAlign:'center' }}>
-              <img src={l.img} alt={trOpt(l.name, lang)} loading="lazy" style={{ display:'block', width:'100%', height: mobile?110:130, objectFit:'cover' }} />
-              <div style={{ padding:'14px 12px 16px' }}>
-                <div style={{ fontSize:14, fontWeight:600, color:'var(--ink)' }}>{trOpt(l.name, lang)}</div>
-                <div style={{ fontSize:11.5, color:'var(--muted)', marginTop:4, lineHeight:1.4 }}>{trOpt(l.sub, lang)}</div>
-                {Array.isArray(l.bullets) && l.bullets.length>0 && (
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:5, justifyContent:'center', marginTop:8 }}>
-                    {l.bullets.slice(0,3).map(b=>(<span key={b} style={{ fontSize:10.5, background:'var(--sand)', color:'var(--ink-soft)', borderRadius:'var(--radius-pill)', padding:'3px 8px' }}>{b}</span>))}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+        <TypeShowcase types={kLayouts} ar={lang==='ar'} cta={t('sw2DesignYours')} onDesign={()=>setPage('kitchen-planner')} testid="showcase-kitchen" />{/* [GLASS] explore one large picture instead of five small cards */}
       </section>
 
       {/* MATERIALS showcase (worktops) */}

@@ -23,8 +23,11 @@ import { validateForm, msg as vmsg, isBot } from './forms/validate';
 import { useSubmit } from './forms/useSubmit';
 import * as acct from './account/api'; // [IDENTITY] every account / loyalty / order RPC lives here
 import { computeTotal } from './checkout/checkout';
+import GlassLayer from './glass/GlassLayer'; // [GLASS 2026-11-14] the site-wide glass layer (one switch: GLASS_ON)
+import GlassStat from './glass/GlassStat'; // [GLASS 2026-11-14] the figures
+import ProjectStrip from './glass/ProjectStrip'; // [GLASS 2026-11-14] finished-projects strip on the home page
 import ShowroomTour from './home/ShowroomTour'; // [HOME 2026-11-09] scroll-driven showroom walk-through
-import { useIkhLanding, IkhtarhaSpotlight, IkhtarhaGames, IkhtarhaDesigns, BusinessBand, CampaignPill } from './campaign/HomeCampaign'; // [IKHTARHA 2026-11-09] home page campaign + business sections
+import { useIkhLanding, BusinessBand, CampaignPill } from './campaign/HomeCampaign'; // [IKHTARHA 2026-11-09] home page campaign + business sections
 import lazyPage from './lazyPage';
 import { ensureBrandFonts } from './fonts';
 import { hydration } from './hydration';
@@ -262,6 +265,7 @@ const I18N = {
   navPricing:  { en:'Pricing & finance' },
   navInspiration:{ en:'Inspiration' },
   navOffers:   { en:'Offers' },
+  navCampaign: { en:'Campaign' },
   navShowrooms:{ en:'Showrooms' },
   navMore:     { en:'More' },
   navAiDesignLab:{ en:'AI + Design Lab' },
@@ -1251,7 +1255,7 @@ const I18N = {
   swStatShowrooms:{ en:'Showrooms' },
   swStatBespoke:{ en:'Bespoke & fitted' },
   swBadgeWorkshop:{ en:'Our own workshop' },
-  swBadge15:{ en:'15 years of craft' },
+  swBadge15:{ en:'20 years of craft' },
   swBadge2yr:{ en:'10-year warranty' },
   swBadgeFreeDesign:{ en:'Free design service' },
   // Process timeline
@@ -1269,7 +1273,7 @@ const I18N = {
   swMarqWorkshop:{ en:'Own Bahrain workshop' },
   swMarqConsult:{ en:'Free design consultation' },
   swMarqHardware:{ en:'Premium European hardware' },
-  swMarq15:{ en:'15 years of craft' },
+  swMarq15:{ en:'20 years of craft' },
   swMarq4:{ en:'4 showrooms' },
   swMarq2yr:{ en:'10-year warranty' },
   swMarqInstall:{ en:'Installed by our own team' },
@@ -1466,7 +1470,7 @@ const I18N = {
   swFootBadge2yr:{ en:'10-year warranty' },
   swFootBadgeFreeDesign:{ en:'Free design service' },
   swFootBadgeInstall:{ en:'Installed by our team' },
-  swFootBadge15:{ en:'15 years of craft' },
+  swFootBadge15:{ en:'20 years of craft' },
   // Footer link labels (rendered via trLabel)
   swFlHowItWorks:{ en:'How it works' },
   swFlFaq:{ en:'FAQ' },
@@ -2517,7 +2521,7 @@ const NAV_LABEL_KEY = {
   // group titles
   'Wardrobes': 'navWardrobes', 'Kitchens': 'navKitchens', 'Doors & more': 'navDoors',
   'Design studio': 'navStudio', 'Pricing & finance': 'navPricing', 'Inspiration': 'navInspiration',
-  'Offers': 'navOffers', 'Showrooms': 'navShowrooms',
+  'Offers': 'navOffers', 'Campaign': 'navCampaign', 'Showrooms': 'navShowrooms',
   // mega-menu column headers
   'By style': 'navByStyle', 'By finish': 'navByFinish', 'Get started': 'navGetStarted',
   'Build & spec': 'navBuildSpec', 'Rooms & products': 'navRoomsProducts', 'Explore': 'navExplore',
@@ -2712,6 +2716,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
             );
           })}
           <Link to="/showrooms" className="nav-link" onMouseEnter={()=>setOpenMega(null)} onClick={()=>{ setOpenMega(null); setMenuOpen(false); }} aria-current={page==='showrooms' ? 'page' : undefined}>{L('Showrooms')}</Link>
+          <Link to="/campaign" className="nav-link" onMouseEnter={()=>setOpenMega(null)} onClick={()=>{ setOpenMega(null); setMenuOpen(false); }} aria-current={page==='campaign' ? 'page' : undefined}>{L('Campaign')}</Link>{/* [CAMPAIGN-MENU] the live reward campaign */}
           <div onMouseEnter={()=>openMenu('more')}>
             <button type="button" className="nav-link" onClick={()=>setOpenMega(openMega==='more'?null:'more')} aria-expanded={openMega==='more'} aria-haspopup="true" aria-controls={openMega==='more' ? 'mega-panel' : undefined} data-mega-trigger="more" onKeyDown={(e)=>onTriggerKey(e, 'more')}>
               {tr('navMore')}<Icon name="chevron-down" />
@@ -2720,7 +2725,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
         </div>
 
         <div className="nav-actions">
-          <button type="button" onClick={()=>setLang(lang==='ar'?'en':'ar')} onPointerEnter={ensureArabic} aria-label={lang==='ar' ? 'English' : 'العربية'} lang={lang==='ar' ? 'en' : 'ar'} title={lang==='ar' ? 'English' : 'العربية'} className="nav-iconbtn lang-toggle">{lang==='ar' ? 'EN' : 'العربية'}</button>
+          <button type="button" data-site-lang-toggle="" onClick={()=>setLang(lang==='ar'?'en':'ar')} onPointerEnter={ensureArabic} aria-label={lang==='ar' ? 'English' : 'العربية'} lang={lang==='ar' ? 'en' : 'ar'} title={lang==='ar' ? 'English' : 'العربية'} className="nav-iconbtn lang-toggle">{lang==='ar' ? 'EN' : 'العربية'}</button>
           {user
             ? <Link to="/portal" className="nav-iconbtn" aria-label={tr('accountLabel')}><Icon name="user" /><span className="nav-iconbtn__label">{String(user.name || '').split(' ')[0]}</span></Link>
             : <button type="button" className="nav-iconbtn" onClick={()=>openAuth('login')} aria-label={tr('signIn')}><Icon name="user" /><span className="nav-iconbtn__label">{tr('signIn')}</span></button>}
@@ -2790,6 +2795,7 @@ function Nav({ page, setPage, cart, setCartOpen, user, openAuth, siteLogo, lang,
             })}
             <Link to="/showrooms" className="drawer__row" onClick={()=>{ setMenuOpen(false); setOpenAcc(null); }}>{L('Showrooms')}</Link>
             <Link to="/offers" className="drawer__row" onClick={()=>{ setMenuOpen(false); setOpenAcc(null); }}>{L('Offers')}</Link>
+            <Link to="/campaign" className="drawer__row" onClick={()=>{ setMenuOpen(false); setOpenAcc(null); }}>{L('Campaign')}</Link>{/* [CAMPAIGN-MENU] */}
           </div>
           <div className="drawer__foot">
             <Link to="/booking" className="btn-clay" onClick={()=>setMenuOpen(false)}>{tr('bookConsult')}</Link>
@@ -2856,21 +2862,7 @@ function Photo({ src, alt = '', style, className = '', imgClass = '', par, prior
 }
 // Animated count-up statistic.
 function Stat({ to, suffix = '', label }) {
-  const ref = useRef(null); const [v, setV] = useState(0); const done = useRef(false);
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const obs = new IntersectionObserver(es => es.forEach(e => {
-      if (e.isIntersecting && !done.current) { done.current = true; if (prefersReducedMotionNow()) { setV(to); return; } const dur = 1500, t0 = performance.now();
-        const tick = t => { const p = Math.min(1, (t - t0) / dur); setV(Math.round(to * (1 - Math.pow(1 - p, 3)))); if (p < 1) requestAnimationFrame(tick); };
-        requestAnimationFrame(tick);
-      }
-    }), { threshold: 0.4 });
-    obs.observe(el); return () => obs.disconnect();
-  }, [to]);
-  return <div ref={ref} style={{ textAlign: 'center' }}>
-    <div className="display stat-num" style={{ fontSize: 'clamp(40px,5vw,64px)', color: 'var(--ink)', lineHeight: 1 }}>{v}{suffix}</div>
-    <div style={{ fontSize: 13, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--muted)', marginTop: 10 }}>{label}</div>
-  </div>;
+  return <GlassStat to={to} suffix={suffix} label={label} />; // [GLASS 2026-11-14] counting, the arc and the glass tile live in ./glass/GlassStat
 }
 // Scroll progress bar + lightweight parallax for .par[data-par] elements.
 function useHomeFx() {
@@ -3183,11 +3175,10 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
   const ikh = useIkhLanding();
   const mobile = useMobile();
   useReveal();
-  const [projects, setProjects] = useState([]);
+
   const [roomCards, setRoomCards] = useState(null);
   useEffect(() => {
     let alive = true;
-    api('website_projects?active=eq.true&order=sort_order.asc&limit=6').then(d => { if (alive && Array.isArray(d)) setProjects(sanitizeProjects(d)); }).catch(()=>{});
     // Room types are managed from the Hub (website_room_cards) with a built-in fallback.
     api('website_room_cards?active=eq.true&deleted_at=is.null&order=sort_order.asc').then(d => { if (alive && Array.isArray(d) && d.length) setRoomCards(d); }).catch(() => {});
     return () => { alive = false; };
@@ -3214,12 +3205,7 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
       <div id="scrollProgress" />
       <SectionBoundary name="home:hero" silent><Hero setPage={setPage} banners={banners} /></SectionBoundary>
 
-      {/* Campaigns are visible only while live; otherwise these render nothing. They never get poster scale on the editorial page. */}
-      <div className="campaign-slot">
-        <IkhtarhaSpotlight cfg={ikh} lang={lang} mobile={mobile} cms={cms} setPage={setPage} />
-        <IkhtarhaGames cfg={ikh} lang={lang} cms={cms} />
-        <IkhtarhaDesigns cfg={ikh} lang={lang} cms={cms} setPage={setPage} />
-      </div>
+      {/* [CAMPAIGN-MENU 2026-11-14] the «اختارها» sections moved to their own page: Campaign in the menu (src/pages/CampaignPage.jsx) */}
 
       {/* Positioning + credentials (only claims that exist, consistently, in the source: see src/content/facts.js) */}
       <section className="statement container">
@@ -3277,24 +3263,10 @@ function HomePage({ user, products, testimonials, banners, siteLogo, setPage, ad
         </ul>
       </section>
 
-      {/* Projects — only when real projects exist */}
-      {projects.length > 0 && (
-        <SectionBoundary name="home:projects" silent>
-          <section className="band-sunken section" aria-labelledby="proj-title">
-            <div className="container">
-              <div className="sec-head rv"><div><span className="eyebrow">{t('homeProjEyebrow')}</span><h2 id="proj-title">{t('homeProjTitle')}</h2></div><Link to="/projects" className="btn-line">{t('homeProjAll')}</Link></div>
-              <div className="proj-grid">
-                {projects.slice(0, 3).map(pr => (
-                  <Link to="/projects" key={pr.id} className="proj rv">
-                    <div className="img-frame tile-zoom"><Photo src={pr.cover_url || pr.after_url || HOME_IMG.walkin} alt={pr.name || ''} imgClass="tz" w={1200} h={900} style={{ position: 'absolute', inset: 0 }} /></div>
-                    <h3>{pr.name}</h3>{pr.location && <small>{pr.location}</small>}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </section>
-        </SectionBoundary>
-      )}
+      {/* Finished projects: main's strip of film takes the place of the old project tiles (same data, sanitised, renders nothing when there are none) */}
+      <SectionBoundary name="home:projects" silent>
+        <ProjectStrip ar={ar} t={t} load={() => api('website_projects?active=eq.true&order=sort_order.asc').then(d => (Array.isArray(d) ? sanitizeProjects(d) : d))} onAll={() => setPage('projects')} />{/* [GLASS 2026-11-14] */}
+      </SectionBoundary>
 
       {/* Clients — only real testimonials */}
       {testimonials.length > 0 && (
@@ -3369,7 +3341,7 @@ function FooterNewsletter({ lang }) {
 function SiteFooter({ setPage, siteLogo }) {
   const { t, lang } = useI18n();
   const logo = cms('header.logo', '') || siteLogo;
-  return (<footer className="site-footer">
+  return (<footer className="site-footer gl-foot">
     <div className="container">
       <div className="footer__grid">
         <div className="footer__brand">
@@ -3630,12 +3602,13 @@ const PATH_TO_PAGE = { '/privacy':'privacy','/terms':'terms','':'home','/':'home
   '/design-studio/office-planner':'office-planner','/office-planner':'office-planner',
   '/design-studio/builder':'design-builder','/design-builder':'design-builder',
   '/ai-lab':'design-lab','/ai-lab/yas':'ai-yas',
-  '/warranty':'warranty','/maintenance':'maintenance','/careers':'careers','/checkout':'checkout','/cart':'home' };
+  '/warranty':'warranty','/maintenance':'maintenance','/careers':'careers','/checkout':'checkout','/cart':'home',
+  '/campaign':'campaign' };   // [CAMPAIGN-MENU] /campaign/ikhtarha (the game itself) is routed in index.js, before this table
 // Canonical page → URL path (reverse of PATH_TO_PAGE). Non-listed keys fall back to '/'+key.
 const PAGE_TO_PATH = {
   home:'/', kitchen:'/kitchen', wardrobes:'/wardrobes', tv:'/tv', doors:'/doors', office:'/office',
   about:'/about', contact:'/contact', services:'/services', showrooms:'/showrooms', blog:'/blog',
-  faq:'/faq', offers:'/offers', projects:'/projects', booking:'/booking', directory:'/directory',
+  faq:'/faq', offers:'/offers', campaign:'/campaign', projects:'/projects', booking:'/booking', directory:'/directory',
   'how-it-works':'/how-it-works', ai:'/ai-designer',
   products:'/gallery', portal:'/signin',
   // Design Studio group
@@ -3653,7 +3626,7 @@ const ROUTE_TABLE = [
   '/', '/kitchen', '/wardrobes', '/tv', '/doors', '/office', '/gallery',
   '/design-studio', '/design-studio/kitchen-planner', '/design-studio/wardrobe-planner',
   '/design-studio/tv-planner', '/design-studio/door-planner', '/design-studio/office-planner',
-  '/ai-lab', '/ai-lab/yas', '/offers', '/booking', '/projects', '/services', '/showrooms',
+  '/ai-lab', '/ai-lab/yas', '/offers', '/campaign', '/booking', '/projects', '/services', '/showrooms',
   '/how-it-works', '/faq', '/about', '/contact', '/blog', '/careers', '/warranty', '/maintenance',
 ];
 // [SEO] ROUTE_META moved to src/seo/routes.js (single registry: meta, JSON-LD, sitemap, prerender).
@@ -3760,6 +3733,7 @@ const DirectoryPage = lazyPage(() => import(/* webpackChunkName: "page-Directory
 const ShowroomsPage = lazyPage(() => import(/* webpackChunkName: "page-ShowroomsPage" */ './pages/ShowroomsPage').then(m => m.ShowroomsPage));
 const BlogPage = lazyPage(() => import(/* webpackChunkName: "page-BlogPage" */ './pages/BlogPage').then(m => m.BlogPage));
 const CareersPage = lazyPage(() => import(/* webpackChunkName: "page-CareersPage" */ './pages/CareersPage').then(m => m.CareersPage));
+const CampaignPage = lazyPage(() => import(/* webpackChunkName: "page-CampaignPage" */ './pages/CampaignPage').then(m => m.CampaignPage));
 const OffersPage = lazyPage(() => import(/* webpackChunkName: "page-OffersPage" */ './pages/OffersPage').then(m => m.OffersPage));
 const FaqPage = lazyPage(() => import(/* webpackChunkName: "page-FaqPage" */ './pages/FaqPage').then(m => m.FaqPage));
 const BookingPage = lazyPage(() => import(/* webpackChunkName: "page-BookingPage" */ './pages/BookingPage').then(m => m.BookingPage));
@@ -3786,7 +3760,7 @@ const CategoryPage = lazyPage(() => import(/* webpackChunkName: "page-CategoryPa
 
 // page key (see pathToPage) → its lazy route component, for preloading (deep links / hydration of prerendered routes).
 const PAGE_CHUNKS = { products: ProductsPage, portal: HomeHub, checkout: CheckoutPage, about: AboutPage, 'how-it-works': PlannerGuidePage,
-  contact: ContactPage, directory: DirectoryPage, showrooms: ShowroomsPage, blog: BlogPage, careers: CareersPage, offers: OffersPage, faq: FaqPage,
+  contact: ContactPage, directory: DirectoryPage, showrooms: ShowroomsPage, blog: BlogPage, careers: CareersPage, offers: OffersPage, campaign: CampaignPage, faq: FaqPage,
   booking: BookingPage, services: ServicesPage, projects: PortfolioPage, maintenance: MaintenancePage, warranty: WarrantyPage, 'ai-yas': AiYasPage,
   'design-lab': DesignLabPage, ai: AIDesignerPage, wardrobes: WardrobesPage, kitchen: KitchenPage, 'kitchen-planner': KitchenPlannerWizard,
   'tv-planner': TVUnitPlannerWizard, 'door-planner': DoorPlannerWizard, 'wardrobe-planner': WardrobePlannerWizard, office: OfficePage, tv: TVUnitPage,
@@ -3836,7 +3810,7 @@ function AppInner() {
     if (langRedirected.current) return; langRedirected.current = true;
     if (!ENABLE_AR_URLS || urlInfo.lang === 'ar') return;
     let stored = null; try { stored = localStorage.getItem('closets_lang'); } catch {}
-    if (stored === 'ar' && !/^\/(studio|visualizer|campaign|ikhtarha)(\/|$)/i.test(barePath)) { const go = () => navigate({ pathname: withLang(barePath, 'ar'), search: location.search, hash: location.hash }, { replace: true }); ensureArabic().then(go, go); }
+    if (stored === 'ar' && !/^\/(studio|visualizer|ikhtarha)(\/|$)/i.test(barePath) && !/^\/campaign\//i.test(barePath)) { const go = () => navigate({ pathname: withLang(barePath, 'ar'), search: location.search, hash: location.hash }, { replace: true }); ensureArabic().then(go, go); }
     // eslint-disable-next-line
   }, []);
   // Legacy / duplicate paths (/kitchens, /wardrobe, /ai, ...) are 301'd by vercel.json; do the same client-side.
@@ -3908,7 +3882,7 @@ function AppInner() {
   const [configProduct, setConfigProduct] = useState(null);
   const skippedUser = useRef(hydration.active);   // hydrating the (signed-out) prerender: start signed-out, then pick the saved user up after mount
   const [user, setUser] = useState(() => (hydration.active ? null : acct.loadUser()));
-  useEffect(() => { if (skippedUser.current) { skippedUser.current = false; const u = acct.loadUser(); if (u) setUser(u); } }, []);   // eslint-disable-line react-hooks/exhaustive-deps   // [IDENTITY] minimal stored profile only; RPC identity comes from src/account/api.js
+  useEffect(() => { if (skippedUser.current) { skippedUser.current = false; const u = acct.loadUser(); if (u) setUser(u); } }, []);   // eslint-disable-line react-hooks/exhaustive-deps -- [IDENTITY] minimal stored profile only; RPC identity comes from src/account/api.js
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [authPrefill, setAuthPrefill] = useState(null);
@@ -3942,6 +3916,7 @@ function AppInner() {
     <LangContext.Provider value={lang}>
     <AppCtx.Provider value={{ user, setUser, cart, setCart, addToCart, setPage, lang, setLang }}>
       <style>{CSS}</style>
+      <GlassLayer page={page} />{/* [GLASS 2026-11-14] the site-wide glass look: backdrop, frosted cards, arrival motion */}
       <SkipLink lang={lang} />
       <RouteAnnouncer pathname={location.pathname} lang={lang} />
       {page!=='portal' && <Nav page={page} setPage={setPage} cart={cart} setCartOpen={setCartOpen} user={user} openAuth={openAuth} siteLogo={siteLogo} lang={lang} setLang={setLang} />}
@@ -3961,6 +3936,7 @@ function AppInner() {
       {page==='blog' && <BlogPage />}
       {page==='careers' && <CareersPage />}
       {page==='offers' && <OffersPage setPage={setPage} />}
+      {page==='campaign' && <CampaignPage setPage={setPage} />}
       {page==='faq' && <FaqPage />}
       {page==='booking' && <BookingPage setPage={setPage} />}
       {page==='services' && <ServicesPage user={user} setPage={setPage} openAuth={openAuth} />}

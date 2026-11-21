@@ -1,16 +1,22 @@
 import React, { useEffect, useState } from 'react';
+import './bloom.css';   // floor pill, lift veil, Haneen FAB and panel styles (tokens only)
 import { t } from '../strings';
 import { DEPARTMENTS } from '../scenes/main-hall/departments';
 import LogoImg from './LogoImg';
 import TouchControls from './TouchControls';
 import { IK, ikt } from '../products/campaignCopy';
 import { VIP_DEPT } from '../products/vipContent';
+import { staffById } from '../staff/roster';
+import { pick } from '../staff/guide';
+import { COLLECTIONS_DEPT } from '../collections/layout';
+import { SECTION_DEPTS, zoneStationName } from '../designstudio/sections';
+import { bloomName, FLOORS } from '../scenes/bloom/layout';
 
 const dept = (id) => DEPARTMENTS.find((d) => d.id === id);
-const dname = (id, lang) => { if (id === 'ikhtarha') return ikt(IK.name, lang); if (id === VIP_DEPT.id) return lang === 'ar' ? VIP_DEPT.ar : VIP_DEPT.en; const d = dept(id); return d ? (lang === 'ar' ? d.ar : d.en) : ''; };
+const dname = (id, lang) => { const sd = SECTION_DEPTS.find((x) => x.id === id); if (sd) return lang === 'ar' ? sd.ar : sd.en; if (id === COLLECTIONS_DEPT.id) return lang === 'ar' ? COLLECTIONS_DEPT.ar : COLLECTIONS_DEPT.en; if (id === 'ikhtarha') return ikt(IK.name, lang); if (id === VIP_DEPT.id) return lang === 'ar' ? VIP_DEPT.ar : VIP_DEPT.en; const bn = bloomName(id, lang); if (bn) return bn; const d = dept(id); return d ? (lang === 'ar' ? d.ar : d.en) : ''; };
 
 /** Exploration HUD: top bar (logo, Departments, Menu), fading guidance, the interaction prompt / stub toast, and the touch controls. */
-export default function Hud({ lang, tier, touch, st, explorerRef, homeHref, onDepts, onMenu, onInteract, coach }) {
+export default function Hud({ lang, tier, touch, st, explorerRef, homeHref, onDepts, onMenu, onInteract, onTalk, chatOpen, coach }) {
   const [fade, setFade] = useState(false);
   const [toast, setToast] = useState(null);
   const started = st.locked || st.dragLook || st.moved || touch;
@@ -27,7 +33,7 @@ export default function Hud({ lang, tier, touch, st, explorerRef, homeHref, onDe
   }, [st.gliding, st.glideTo]);
 
   const hint = touch ? 'hintTouch' : st.locked ? 'hintDesktopLocked' : st.dragLook ? 'hintDesktopDrag' : 'hintDesktopLock';
-  const zoneName = st.zone ? dname(st.zone, lang) : null;
+  const zoneName = st.zone ? (zoneStationName(st.zone, lang) || dname(st.zone, lang)) : null;   // a shared design wall is "Design Studios", not the first section
   const toastText = !toast ? '' : toast.glide ? `${t('heading', lang)} ${dname(toast.glide, lang)}` : toast.zone ? `${dname(toast.zone, lang)}. ${t('zoneSoon', lang)}` : t(touch ? 'interactNoneTouch' : 'interactNone', lang);
 
   return (
@@ -39,10 +45,13 @@ export default function Hud({ lang, tier, touch, st, explorerRef, homeHref, onDe
           <span className="sr-badge" title={t('previewNote', lang)}>{t('previewBadge', lang)}</span>
         </div>
         <div className="sr-hud-actions">
+          <div className="sr-floors" role="group" aria-label={t('floors', lang)} data-testid="sr-floors">{FLOORS.map((f) => { const nm = lang === 'ar' ? f.ar : f.en; return <button key={f.id} type="button" className="sr-floor" aria-pressed={(st.level || 'ground') === f.id} aria-label={t('goFloorN', lang).replace('{n}', f.level)} title={nm} disabled={!!st.riding} onClick={() => explorerRef.current && explorerRef.current.rideTo(f.id)} data-floor={f.id}>{nm}</button>; })}</div>
           <button type="button" className="sr-btn" onClick={onDepts} data-testid="sr-open-depts">{t('departments', lang)}</button>
+          <button type="button" className="sr-btn sr-btn-line" onClick={() => explorerRef.current && explorerRef.current.toggleCameraMode()} aria-pressed={st.camMode === 'third'} data-testid="sr-cam-toggle" title={t('camToggleTitle', lang)}>{t(st.camMode === 'third' ? 'camThird' : 'camFirst', lang)}</button>
           <button type="button" className="sr-btn sr-btn-line" onClick={onMenu} aria-haspopup="dialog" data-testid="sr-open-menu">{t('menu', lang)}{!touch && <kbd className="sr-kbd" aria-hidden="true">Esc</kbd>}</button>
         </div>
       </header>
+      {st.staff && !chatOpen && !st.focus && !st.paused && (() => { const d = staffById(st.staff); return d ? <button type="button" className="sr-btn sr-talk" onClick={onTalk} data-testid="sr-talk" data-staff={d.id}>{t('staffTalk', lang).replace('{name}', pick(d.name, lang))}{!touch && <kbd className="sr-kbd" aria-hidden="true">T</kbd>}</button> : null; })()}
       <footer className="sr-hud-bottom">
         <div className="sr-live" role="status" aria-live="polite">
           {zoneName && !toast && !st.focus && <p className="sr-prompt" data-testid="sr-prompt"><b>{zoneName}</b><span>{touch ? t('tapInteract', lang) : t('pressE', lang)}</span></p>}

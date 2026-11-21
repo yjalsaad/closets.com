@@ -1,0 +1,59 @@
+{
+  "low": {
+    "hall": {
+      "calls": 314,
+      "triangles": 122222,
+      "fps": 5.5
+    },
+    "reception": {
+      "calls": 354,
+      "triangles": 130332,
+      "fps": 5.9
+    },
+    "kitchens": {
+      "calls": 452,
+      "triangles": 151042,
+      "fps": 6
+    },
+    "staffCalls": 49,
+    "charTris": 2645
+  },
+  "medium": {
+    "hall": {
+      "calls": 343,
+      "triangles": 162616,
+      "fps": 8.2
+    },
+    "reception": {
+      "calls": 383,
+      "triangles": 173476,
+      "fps": 3.9
+    },
+    "kitchens": {
+      "calls": 509,
+      "triangles": 213432,
+      "fps": 3.6
+    },
+    "staffCalls": 49,
+    "charTris": 5374
+  },
+  "high": {
+    "hall": {
+      "calls": 404,
+      "triangles": 185782,
+      "fps": 0
+    },
+    "reception": {
+      "calls": 450,
+      "triangles": 199584,
+      "fps": 0
+    },
+    "kitchens": {
+      "calls": 597,
+      "triangles": 242226,
+      "fps": 0
+    },
+    "staffCalls": 49,
+    "charTris": 5374
+  }
+}

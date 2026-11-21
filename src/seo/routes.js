@@ -37,6 +37,9 @@ const PAGES = [
   { page: 'offers', path: '/offers', index: true, group: 'explore', label: { en: 'Offers', ar: 'العروض' },
     meta: { en: ['Offers — The Closets Co.', 'Current offers on bespoke kitchens, wardrobes and storage. Book a free design consultation.'],
             ar: ['العروض — ذا كلوزتس', 'عروضنا الحالية على المطابخ والخزائن وحلول التخزين. احجز استشارة تصميم مجانية.'] } },
+  { page: 'campaign', path: '/campaign', index: true, group: 'explore', label: { en: 'Campaign', ar: 'الحملة' }, // [CAMPAIGN-MENU] from main
+    meta: { en: ['Campaign — The Closets Co.', 'The current reward campaign from The Closets Co.: pick your prize box with your quotation.'],
+            ar: ['الحملة — ذا كلوزتس', 'حملة الجوائز الحالية من ذا كلوزتس: اختر صندوق جائزتك مع عرض السعر.'] } },
   { page: 'blog', path: '/blog', index: true, group: 'explore', label: { en: 'Journal', ar: 'المجلة' },
     meta: { en: ['Design Journal — The Closets Co.', 'Ideas, buying guides and stories on bespoke kitchens, wardrobes and storage from our team in Bahrain.'],
             ar: ['مجلة التصميم — ذا كلوزتس', 'أفكار وأدلة شراء وقصص من فريقنا في البحرين حول المطابخ والخزائن وحلول التخزين المصمّمة خصيصاً.'] } },
@@ -127,7 +130,7 @@ function splitLangPath(pathname) {
 function withLang(path, lang) {
   const p = path || '/';
   if (!ENABLE_AR_URLS || lang !== 'ar') return p;
-  if (/^\/(studio|visualizer|campaign|ikhtarha)(\/|$)/i.test(p)) return p; // separate app shells, not localised by URL
+  if (/^\/(studio|visualizer|ikhtarha)(\/|$)/i.test(p) || /^\/campaign\//i.test(p)) return p; // separate app shells (/campaign/ikhtarha...), not localised by URL; /campaign itself is a normal page
   return p === '/' ? '/ar' : '/ar' + p;
 }
 function absUrl(path, lang) { return SITE_URL + withLang(path, lang); }

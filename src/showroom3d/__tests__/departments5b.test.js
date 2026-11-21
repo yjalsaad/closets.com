@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { PRODUCTS, PRODUCT_LIST, viewWorld } from '../products/catalog';
 import { FINISHES, finishList, getFinish, cycleFinish } from '../products/finishes';
 import { buildQuoteUrl, extraLinks, INTEREST, STUDIO_PATH, parseBookingPrefill } from '../products/quote';
-import { FACTS } from '../../content/facts';
+import { FACTS } from '../vendor/facts';
 import { createProductState, DEFAULT_DURATION } from '../products/animation';
 import { createRegistry } from '../products/registry';
 import { layoutBays } from '../scenes/main-hall/departments';
@@ -62,7 +62,7 @@ describe('finishes of the five new departments', () => {
 
 describe('quote links and the existing entry points', () => {
   test('every new product builds a /booking link with a valid existing interest, the finish in the notes, and no backend call', () => {
-    const form = require('fs').readFileSync(require('path').resolve(__dirname, '../../pages/BookingPage.jsx'), 'utf8');
+    const form = require('fs').readFileSync(require('path').resolve(__dirname, '../../App.js'), 'utf8');
     for (const id of NEW) { expect(form).toContain(`'${INTEREST[id]}'`); const f = finishList(id)[1], u = new URL(buildQuoteUrl({ product: id, productName: PRODUCTS[id].name.en, finishId: f.id, finishName: f.en, lang: 'en' }), 'https://x.test');
       expect(u.pathname).toBe('/booking'); expect(u.searchParams.get('interest')).toBe(INTEREST[id]); expect(u.searchParams.get('finish')).toBe(f.id); expect(u.searchParams.get('notes')).toContain(f.en); expect(parseBookingPrefill(u.search).interest).toBe(INTEREST[id]); }
   });

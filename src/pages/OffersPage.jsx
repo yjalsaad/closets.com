@@ -13,7 +13,7 @@ function OffersPage({ setPage }) {
   return (<PageWrap eyebrow={lang==='ar' ? 'العروض' : 'Offers'} title={cms('offers.hero.title','Offers & promotions')} sub={cms('offers.hero.subtitle','Current savings on bespoke kitchens, wardrobes and storage.')}>
     {rows.length>0 ? (
       <div className="reveal card-grid">
-        {rows.map(o=>(<div key={o.id} className="offer-card">
+        {rows.map(o=>(<div key={o.id} className="offer-card gl-card gl-plain">
           {o.badge && <span className="badge">{trMap(o.badge, OFFER_BADGE_KEY, lang)}</span>}
           <h2 className="t-h3" style={{ margin:0 }}>{trMap(o.title, OFFER_TITLE_KEY, lang)}</h2>
           <p style={{ margin:0, color:'var(--c-text-2)', lineHeight:1.65 }}>{trMap(o.subtitle, OFFER_SUB_KEY, lang)}</p>

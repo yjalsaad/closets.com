@@ -15,7 +15,7 @@ describe('quotation / booking URL builder (builds a link; never calls a backend)
     expect(splitLangPath(u.pathname)).toEqual({ lang: 'ar', path: '/booking' }); expect(u.searchParams.get('interest')).toBe('Wardrobe'); expect(u.searchParams.get('notes')).toMatch(/[؀-ۿ]/);
   });
   test('each showroom product maps to an interest value that exists on the booking form', () => {
-    const form = fs.readFileSync(path.resolve(__dirname, '../../pages/BookingPage.jsx'), 'utf8');
+    const form = fs.readFileSync(path.resolve(__dirname, '../../App.js'), 'utf8');
     for (const v of Object.values(INTEREST)) expect(form).toContain(`'${v}'`);
     expect(INTEREST).toEqual({ kitchen: 'Kitchen', wardrobe: 'Wardrobe', door: 'Doors', bedroom: 'Other', walkin: 'Walk-In Closet', living: 'TV Unit', studio: 'Other', lounge: 'Other' });
   });

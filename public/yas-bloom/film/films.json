@@ -1,0 +1,123 @@
+{
+  "_comment": "VIP / Bloom films. The real company films first. The Journey of Ambition exists in five versions, all registered here: journey (film.json, the first all-AI cut, more than 10,000 projects), journey-v5 (film5.json, the same all-AI film with 50,000 projects; no real people), journey-v2 (film2.json: real photographs, static), journey-v3 (film3.json: the leaders in an AI-generated office, camera motion only) and journey-v3-animated (film4.json: the leaders' real photographs animated with AI in an AI-generated office). Exactly one is ACTIVE at a time (the website_content row `bloom.film.active` = v1 | v5 | v2 | v3 | v3-animated, default v3, falling back v3 then v2; see docs/bloom-meeting.md). The others stay on disk but are not listed in the agenda or on the wall.",
+  "films": [
+    {
+      "id": "yas-story",
+      "real": true,
+      "order": 1,
+      "burnedSubtitles": true,
+      "title": {
+        "en": "YAS: our story",
+        "ar": "YAS: حكايتنا"
+      },
+      "durationSec": 177,
+      "sources": [
+        {
+          "src": "/yas-bloom/film/yas-story.mp4",
+          "width": 848,
+          "height": 480,
+          "bytes": 13326307
+        },
+        {
+          "src": "/yas-bloom/film/yas-story-mobile.mp4",
+          "width": 848,
+          "height": 480,
+          "bytes": 6762787
+        }
+      ],
+      "poster": "/yas-bloom/film/yas-story-poster.jpg",
+      "captions": []
+    },
+    {
+      "id": "closets-story",
+      "real": true,
+      "order": 2,
+      "title": {
+        "en": "The Closets: our story",
+        "ar": "الخزائن: حكايتنا"
+      },
+      "durationSec": 103,
+      "sources": [
+        {
+          "src": "/yas-bloom/film/closets-story.mp4",
+          "width": 1280,
+          "height": 720,
+          "bytes": 13668266
+        },
+        {
+          "src": "/yas-bloom/film/closets-story-mobile.mp4",
+          "width": 960,
+          "height": 540,
+          "bytes": 6505614
+        }
+      ],
+      "poster": "/yas-bloom/film/closets-story-poster.jpg",
+      "captions": []
+    },
+    {
+      "id": "bonsai-hub",
+      "real": true,
+      "order": 3,
+      "title": {
+        "en": "Bonsai Hub: one system",
+        "ar": "منصة Bonsai: نظام واحد"
+      },
+      "durationSec": 60,
+      "sources": [
+        {
+          "src": "/yas-bloom/film/bonsai-hub-1080.mp4",
+          "width": 1920,
+          "height": 1080,
+          "bytes": 15825984
+        },
+        {
+          "src": "/yas-bloom/film/bonsai-hub-720.mp4",
+          "width": 1280,
+          "height": 720,
+          "bytes": 5287482
+        }
+      ],
+      "poster": "/yas-bloom/film/bonsai-hub-poster.jpg",
+      "captions": [
+        {
+          "lang": "en",
+          "src": "/yas-bloom/film/bonsai-hub.en.vtt"
+        },
+        {
+          "lang": "ar",
+          "src": "/yas-bloom/film/bonsai-hub.ar.vtt"
+        }
+      ]
+    },
+    {
+      "id": "journey",
+      "manifest": "/yas-bloom/film/film.json",
+      "real": false,
+      "order": 99
+    },
+    {
+      "id": "journey-v2",
+      "manifest": "/yas-bloom/film/film2.json",
+      "real": false,
+      "order": 100
+    },
+    {
+      "id": "journey-v3",
+      "manifest": "/yas-bloom/film/film3.json",
+      "real": false,
+      "order": 101
+    },
+    {
+      "id": "journey-v3-animated",
+      "manifest": "/yas-bloom/film/film4.json",
+      "real": false,
+      "order": 102
+    },
+    {
+      "id": "journey-v5",
+      "manifest": "/yas-bloom/film/film5.json",
+      "real": false,
+      "order": 103
+    }
+  ]
+}

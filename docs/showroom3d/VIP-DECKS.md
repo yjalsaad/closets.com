@@ -1,0 +1,252 @@
+# VIP room presentation decks
+
+The VIP Meeting Room (`src/showroom3d/`) shows **decks**: ordered slides drawn on the wall screen and mirrored in the DOM panel. The original stations are the **default deck** (now four: the "How to join and invest" and investor-briefing stations were removed at the owner's request). More decks can be
+
+1. **added in the room** by anyone with the page open ("Add presentation"): saved **on that device only** (this file, sections 3 to 5), or
+2. **committed as a file** to become permanent for everybody (section 6).
+
+Nothing here touches the website, the backend or the database. There is no network call and no upload: a deck lives in the browser (`localStorage`) or in the repository.
+
+## 1. Using it
+
+| What | How |
+|---|---|
+| Open the presentation | Walk into the VIP room, press **E** (or tap Interact). |
+| Switch deck | The **Presentation** drop-down in the panel (keyboard: focus it, arrow keys; touch: tap). Keys **[** and **]** cycle decks. With more than one deck, **deck chips** also appear along the top of the wall screen and a click on a chip switches deck. |
+| Slides | Previous / Next, the dots, **arrow keys** (mirrored in Arabic), **1 to 9** jump to slide 1 to 9 (ignored beyond the deck's length), **Home / End**. |
+| Add a presentation | **Add presentation** in the panel. Import a `.json` or `.md` file, or paste markdown / JSON. A live preview and clear errors appear before anything is saved. |
+| Delete | Select your deck, **Delete**, confirm. Built-in decks cannot be deleted. |
+
+Always visible in the dialog: **"Saved on this device only"** and the note that **you are responsible for the accuracy of any financial or legal content** you add. Limits: at most **6 saved decks per device**, about 400 KB in total (browsers allow roughly 5 MB). Private windows or blocked site data cannot save: the dialog says so and nothing is lost or half-saved.
+
+## 2. Honesty rules (enforced in code, not by convention)
+
+* **The disclaimer is always the last slide** of every deck, imported ones included: *"Information only, not an offer or financial advice; details provided directly by management."* (Arabic: *للاطلاع فقط، وليس عرضًا ولا نصيحة مالية؛ تُقدَّم التفاصيل مباشرة من الإدارة.*) It is appended by `sanitizeDeck()` and cannot be removed or faked by an import (a `disclaimer` flag in imported JSON is dropped). Generic slides also repeat it as a footer.
+* **"To be confirmed by management" placeholders** still resolve from `src/content/facts.js`. Anywhere in a deck's text, write `{{fact:yearsOfCraft}}` (also `homesDelivered`, `productionModel`, `showroomCount`, `warrantyYears`, `phone`). While the fact is `null` it prints *To be confirmed by management* (Arabic *يؤكَّد من الإدارة*); once management fills `facts.js` the value appears with no change to the deck. Unknown keys also print the placeholder; nothing else is ever substituted.
+* **Financial promises**: the built-in content may never contain figures, returns, valuation, equity, ROI or guarantees (and, since the owner's request, no invitation to invest or join: `vipProfileDecks.test.js` and `vip.test.js` check it) (the existing unit test in `vip.test.js` still scans it). Imported decks are the owner's content, so they are *not* blocked, but the dialog shows a **warning** when it sees financial wording or figures, and when a chart or table has neither a `source` nor `illustrative: true`.
+* **Illustrative**: mark any slide or block `"illustrative": true` and the room prints "Illustrative: simplified mock-up, not real data".
+
+## 3. Deck schema (JSON)
+
+```jsonc
+{
+  "id": "partner-welcome",              // optional; becomes "user-partner-welcome" (a-z, 0-9, dashes, max 40)
+  "title": { "en": "Partner welcome", "ar": "أهلًا بشركائنا" },   // Text, max 80
+  "slides": [                             // 1 to 24 slides (the notice slide is added on top)
+    {
+      "id": "who",                        // optional
+      "title": "Who we are",              // Text, max 90
+      "lead": "One-line introduction",    // optional Text, max 200
+      "bullets": ["Point one", { "en": "Point two", "ar": "النقطة الثانية" }],   // max 8, each max 220
+      "accent": "orange",                 // optional: orange | brass | sand | sage (a name, never a colour code)
+      "blocks": [ /* up to 3, see below */ ],
+      "links": [ { "label": "Kitchens", "route": "/kitchen" } ],   // up to 3, internal routes only
+      "source": "Where the numbers come from",   // optional Text, max 140
+      "illustrative": true                // optional
+    }
+  ]
+}
+```
+
+**Text** is a plain string (used for both languages) or `{ "en": "...", "ar": "..." }` (a missing language falls back to the other). The room shows the language of the page (`/yas-bloom` or `/ar/yas-bloom`), Arabic right-to-left.
+
+**Blocks** (`type` decides the shape; each may also carry `source` and `illustrative`):
+
+```jsonc
+{ "type": "image", "url": "https://example.com/photo.jpg", "alt": "Describe the picture", "caption": "optional" }
+{ "type": "table", "head": ["Step", "Who"], "rows": [["Survey", "Designer"], ["Fit", "Installer"]] }          // up to 6 columns x 12 rows, cell max 60
+{ "type": "bar", "title": "Projects by department", "unit": "projects", "data": [ { "label": "Kitchens", "value": 12 }, { "label": "Doors", "value": 7 } ] }   // up to 8 bars, value a number >= 0, label max 30
+```
+
+The bar chart is drawn from exactly the numbers supplied: nothing is calculated, summed or projected.
+
+**Links** may only name a site page: `/kitchen /wardrobes /doors /tv /studio /design-studio /campaign/ikhtarha /booking /projects` (the language prefix is added automatically). Any other address is an error.
+
+### What the sanitiser does (`src/showroom3d/vip/deckSchema.js`)
+
+* strips HTML tags, `<script>`/`<style>` blocks, comments, entity-encoded tags, `javascript:` text, control characters and bidi-override characters; collapses whitespace; truncates to the caps above. Text is only ever rendered as text (React escapes it; the wall is canvas text), never as HTML.
+* images: **https only**, no credentials in the address, must parse as a URL with a dotted host, at most 500 characters, no spaces. `http:`, `data:`, `javascript:`, `file:`, relative and protocol-relative addresses are rejected with a message naming the slide.
+* drops unknown fields, `builtin`, `data` and `disclaimer` (those keys are reserved for committed decks); ids are slugged and made unique; a user slide cannot take the reserved `disclaimer` id.
+* refuses input longer than 100,000 characters before parsing and more than 24 slides; truncates bullets, blocks, rows, columns and bars with a warning.
+* uses the site's `src/safety/sanitize.js` helpers (`str`, `arr`, `isObj`) through the single adapter `src/showroom3d/siteBridge.js`.
+* stored decks are **re-sanitised on every load**, so edited or corrupted storage cannot reach the renderer.
+
+## 4. Markdown syntax
+
+| Line | Meaning |
+|---|---|
+| `# Deck title` | the deck title (once) |
+| `## Slide title` | starts a slide |
+| `> Intro line` | the slide's lead (optional) |
+| `- A bullet` (or `* `) | a bullet |
+| `![alt text](https://example.com/photo.jpg)` | an image (https only) |
+| `English text \|\| النص العربي` | add Arabic to any of the above (write the two parts around ` \|\| `) |
+
+Blank lines are ignored. A line that is none of these is skipped with a warning naming the line. Errors name the line: *"Line 2: this line comes before the first slide. Start a slide with "## Slide title"."*
+
+### Copyable example (markdown)
+
+```markdown
+# Partner welcome || أهلًا بشركائنا
+## Who we are || من نحن
+> Designed, made and fitted in Bahrain. || تصميم وتصنيع وتركيب في البحرين.
+- Made-to-measure kitchens, wardrobes and doors || مطابخ وخزائن وأبواب على المقاس
+- A showroom you can walk through online || معرض يمكنك التجول فيه عبر الإنترنت
+## How we work || كيف نعمل
+- We survey, design, make and fit || نقيس ونصمّم ونصنّع ونركّب
+- Management answers questions directly || تجيب الإدارة عن الأسئلة مباشرة
+```
+
+(The dialog's **Insert an example** button pastes exactly this.)
+
+### Copyable example (JSON with a chart, table and link)
+
+```json
+{
+  "title": { "en": "Operations snapshot", "ar": "لمحة عن العمليات" },
+  "slides": [
+    {
+      "title": { "en": "Where the work happens", "ar": "أين يجري العمل" },
+      "lead": "Illustrative figures supplied by the owner",
+      "accent": "sage",
+      "bullets": ["Survey, design, make, fit"],
+      "blocks": [
+        { "type": "bar", "title": "Projects by department", "unit": "projects", "illustrative": true,
+          "source": "Owner supplied (example)",
+          "data": [ { "label": "Kitchens", "value": 12 }, { "label": "Wardrobes", "value": 20 }, { "label": "Doors", "value": 7 } ] },
+        { "type": "table", "head": ["Step", "Who"], "rows": [["Survey", "Designer"], ["Make", "Factory"], ["Fit", "Installer"]],
+          "source": "Owner supplied (example)" }
+      ],
+      "links": [ { "label": "Kitchens", "route": "/kitchen" } ]
+    }
+  ]
+}
+```
+
+## 5. Saved on this device only
+
+`src/showroom3d/vip/deckStore.js`: one `localStorage` key (`sr3d.vipDecks.v1`), every read and write inside `try/catch`. Failure codes the dialog turns into sentences: `blocked` (private window / site data blocked), `full` (quota or the 400 KB cap), `max` (6 decks). Other visitors and other devices never see these decks; clearing site data removes them. Imported decks are not uploaded anywhere.
+
+## 6. Adding a PERMANENT deck (by committing a file)
+
+1. Create `src/showroom3d/vip/decks/my-deck.js` exporting a deck object (the schema of section 3; text may use `{{fact:key}}`; a plain object, no `builtin` / `data`). Give it a unique `id` that does not start with `user-`.
+   ```js
+   export const MY_DECK = {
+     id: 'partner-welcome',
+     title: { en: 'Partner welcome', ar: 'أهلًا بشركائنا' },
+     slides: [
+       { id: 'who', title: { en: 'Who we are', ar: 'من نحن' }, bullets: [{ en: 'Made to measure', ar: 'على المقاس' }] },
+     ],
+   };
+   ```
+2. List it in `src/showroom3d/vip/decks/index.js`: `export const EXTRA_DECKS = [MY_DECK];`. The disclaimer slide is appended automatically, so a committed deck cannot forget it.
+3. `vipDecksGolden.test.js` checks every permanent deck passes the same sanitiser as imports and ends with the disclaimer: run Jest.
+4. Review like any content change (it is public copy). Permanent decks cannot be deleted in the room.
+
+## 7. PROPOSAL (not implemented): server-side storage so decks follow the owner across devices
+
+Status: **proposal only. Nothing below is applied** (no table, no function, no migration). It needs the owner's decision and a security review.
+
+* **Table** `vip_decks(id uuid pk, owner uuid references auth.users, title_en text, title_ar text, deck jsonb not null check (jsonb_typeof(deck) = 'object' and octet_length(deck::text) <= 100000), published boolean default false, created_at, updated_at)`.
+* **RLS**: enable RLS; `select` where `owner = auth.uid()` or (`published` and the viewer holds the VIP role); `insert/update/delete` only `owner = auth.uid()` **and** the caller has the manager role from the existing RBAC matrix. No anonymous access.
+* **Edge function** `vip-deck-save` (the only writer): re-runs the SAME `sanitizeDeck()` server-side (never trust the browser), enforces size and per-owner count, appends the disclaimer slide, rate-limits, writes an audit row. The client never writes the table directly.
+* **Client**: a read of the owner's / published decks merged after the permanent ones, the same picker, the same renderer; local-only decks stay as they are.
+* **Risks**: (1) stored content shown to visitors is a liability channel: needs publish review and an audit log; (2) any image address is fetched by the *viewer's* browser (tracking pixel risk): consider an image allow-list or proxy; (3) stored XSS if the server sanitiser and the renderer drift (mitigation: text-only rendering, one shared sanitiser, tests); (4) abuse / storage growth: quotas and rate limits; (5) PII or confidential data pasted into decks: retention and deletion policy; (6) an auth dependency and a backend write path that the showroom deliberately does not have today (it is additive and read-only); (7) legal review of who may publish financial wording.
+
+## 8. Profile decks, motion, the big screen and reading mode
+
+Three permanent decks now load in the VIP room (picker order): the **company presentation** (default; four stations: story, projects and business lines, Bonsai Hub, talk to our team), **The Closets: Company Profile** (22 slides) and **YAS Profile (2026)** (12 slides), all with EN + AR text and a source page on every slide. Facts and figures are listed in `VIP-ROOM-OWNER-INPUTS.md`; JSON exports for the Hub are in `docs/showroom3d/decks/`; photos in `public/yas-bloom/profile/` (22 WebP files, about 1 MB, each <= 150 KB; `scripts/showroom3d-profile/make-images.py` rebuilds them from the PDFs).
+
+**Schema additions (backwards compatible):** a block `{ "type": "stat", "items": [ { "value": 70000, "suffix": " sqm", "label": Text } ] }` (1 to 4 figures, counted up on screen); a slide field `"layout": "split" | "hero" | "duo"` (hero: first image full-bleed with the title over it; duo: two photos side by side); a bullet written `"2013: text"` shows its year in the accent colour; `LIMITS.maxSlides` is now 24. Committed decks may use image paths `/yas-bloom/profile/<name>.webp`; imports and saved decks may not (https only).
+
+**Motion** (`vip/motion.js`, pure and tested): slide cross-fade with a drifting previous frame, staggered bullet reveal, count-up for stats and bar growth, a slow Ken Burns on photos (high tier only), the same ideas in the panel with CSS. **Auto-play**: Play / Pause, speed 0.5x, 1x, 1.5x, 2x, Loop, a progress bar on the wall and in the panel; keys **P** or **Space**, **R** speed, **L** loop. **Tiers**: low = short fade, no stagger, no drift, 6 Hz redraws; medium = stagger and count-up, 8 Hz; high = adds Ken Burns, 12 Hz. **Reduced motion** (`prefers-reduced-motion`): no transitions, no stagger, no count-up, no drift, final values at once, no redraw loop.
+
+**The big screen** is now a 16:9 LED wall of 6.9 x 3.9 m (it was 5.7 x 3.2) in a stone surround with a brass edge, a warm LED line and a soft glow, a presenter lectern, the presenter's remote on the table, and the whole chair row facing it (no chair stands between the table and the wall). The texture is 1920 x 1080 (2560 x 1440 on high), mipmapped, anisotropic, smoothed at high quality. Panel buttons: **Present on big screen** (key **B**: the camera fronts the wall and the panel shrinks to a slim presenter bar), **Reading mode** (key **Z**: the wall fills the view edge to edge, only Previous / Next / Exit stay), **Full screen presentation** (key **F**: the browser's full screen plus the big view; a browser may refuse it). **Esc** steps back one level.
+
+**The adviser** can drive the screen: asked to "present the company profile" (or "present the YAS profile"; Arabic works too) the VIP adviser answers and the screen plays the deck (`staff/guide.js` intent `present`, chips `#present:<deck id>`).
+
+**Legibility rules** (hard requirement, tested in `__tests__/vipLegibility.test.js` for every slide, both languages, and in `scripts/showroom3d-qa/vipprofile.js legible` with the real fonts): wall title 66 px of an 864 px screen (7.6%), lead 38 px, bullets 30 to 40 px (3.5 to 4.6%), table cells 30, stat labels 30, captions 24, source and disclaimer lines 22; weights 500 or heavier; contrast at least 4.5:1; no squeezed text; 70 px side margins; at most 2 bullets on photo layouts, 4 beside a photo, 6 on a text slide, each about 12 words or fewer; dense lists are split over several slides. **Not covered:** the built-in stations of the default deck keep their original dense drawings (Hub diagram, business-line map) with smaller type; use Reading mode or the panel for those. In the panel, generic slides use 18 px bullets and 22 px leads.
+
+## 9. FILM mode ("Watch our story" / "شاهد حكايتنا")
+
+The picker's last entry plays the documentary **"The Closets: The Journey of Ambition" / "الخزائن: حكاية طموح"** on the big screen. The film itself is produced separately; this room only plays it.
+
+* **Files it expects** (all under `public/yas-bloom/film/`, same site, nothing external): `film.json`, `journey-1080.mp4`, `journey-720.mp4`, `journey-poster.jpg`, `journey.ar.vtt`, `journey.en.vtt`.
+* **Manifest** `film.json`: `{ "title": { "en", "ar" }, "durationSec": 96, "sources": [ { "src": "/yas-bloom/film/journey-1080.mp4", "width": 1920, "height": 1080, "bytes": 0 }, ... ], "poster": "/yas-bloom/film/journey-poster.jpg", "captions": [ { "lang": "ar", "src": "/yas-bloom/film/journey.ar.vtt" }, { "lang": "en", "src": "..." } ], "notes": "AI-generated illustration" }`. Parsed and sanitised by `vip/film.js` (`parseFilmManifest`): only paths under `/yas-bloom/film/` with the expected file types are kept.
+* **Downloaded in the background once you are inside the VIP room, then played from memory** (section 10b). Outside the room nothing is requested. The `<video>` element is still created on the first Play, it is **never autoplayed and never muted for autoplay**: Play is a button, a key (**P** / **Space**) or a click on the wall, and it starts **with sound**. Play never waits for the download: an unfinished film streams.
+* **Source**: the 720 file on phones, on the low tier and with data saver; otherwise the 1080 file (`pickSource`).
+* **On the wall**: a `THREE.VideoTexture` (sRGB) replaces the slide canvas while the film plays or is paused; the poster with the title is shown when idle or finished. Captions and the small label **"AI-generated illustration"** sit on a strip over the lower edge.
+* **Captions**: the narration is Arabic, so an English page starts with English captions and an Arabic page with Arabic ones; the Captions button cycles language and off (key **C**).
+* **Controls**: Play / Pause, seek bar (arrow keys: 10 s), volume (**M** mutes), Captions, **Cinema mode** (key **F** or **Z**: the same video as a normal HTML5 player over the whole page with native controls and native captions; **Esc** returns), Present on big screen.
+* **It pauses** when you leave the room, choose another deck, open the Add-presentation dialog or hide the tab.
+* **Until the film exists** (no `film.json`, a broken one, or a video file that fails to load) the screen and the panel say **"Film coming soon"** and the controls are disabled; nothing else in the room is affected.
+* **The adviser**: "play your story", "show me the film" (Arabic too) opens the film on the big screen; the visitor presses Play.
+* Tests: `__tests__/vipFilm.test.js` (manifest parsing, source selection, caption order, the state machine, missing-file state, panel, adviser). QA: `scripts/showroom3d-qa/vipprofile.js film` (the missing state against the plain build; playback with a 20 s colour-bar TEST clip served by route mocks, as a VP9 `.webm` because the test Chromium has no H.264 decoder: **the real MP4 files have not been played here**).
+
+## 10. Management meeting ("اجتماع الإدارة"): the primary section
+
+The VIP room now **opens on "Management meeting"**, the first entry of the picker (`?vipdeck=<id>` opens another entry directly, e.g. `?vipdeck=default`). Its content is the owner's two **real company films**, followed by the meeting material.
+
+* **Agenda** (`vip/meeting.js`): 1. "YAS: our story" (film), 2. "The Closets: our story" (film), 3. The Closets: Company Profile, 4. YAS Profile (2026), 5. Company presentation, 6. "The Journey of Ambition" (film, last, labelled **AI-generated illustration**). The real films carry **no** AI label.
+* **Title card**: the big screen shows "Management meeting" with the agenda. **Start meeting** (panel button, or a click on the card) puts film 1 on the screen and plays it with sound. **Nothing advances by itself**: when a film ends it stays; **Next agenda item** (button or key **N**) puts the next film up paused (press Play), then opens each deck on its first slide. The agenda buttons in the panel jump to any item.
+* **Films list** `public/yas-bloom/film/films.json`: `{ "films": [ { "id", "real": true|false, "order", "title": { "en", "ar" }, "durationSec", "burnedSubtitles", "sources": [ { "src", "width", "height", "bytes" } ], "poster", "captions": [] } | { "id": "journey", "manifest": "/yas-bloom/film/film.json", "real": false, "order": 99 } ] }`. `parseFilmsManifest` accepts this list **and** the older single-film `film.json` shape. Real films sort first, AI-generated last, whatever the file order. The AI documentary is referenced only through its own `film.json`, so it shows "Film coming soon" until that branch lands and needs no change here when it does.
+* **Files** (transcoded from the owner's .mov files with ffmpeg: H.264 High, yuv420p, AAC stereo, `+faststart`, native resolution, content untouched): `yas-story.mp4` (848x480, 12.7 MB), `yas-story-mobile.mp4` (848x480, 6.4 MB), `closets-story.mp4` (1280x720, 13.0 MB), `closets-story-mobile.mp4` (960x540, 6.2 MB), posters `yas-story-poster.jpg` (27 KB), `closets-story-poster.jpg` (74 KB). Phones and data saver get the mobile file.
+* **Bonsai Hub film** (`bonsai-hub`, 60 s, real-product film with synthetic demo data, `real: true`, order 3, EN + AR captions): files, storyboard, audio and the agenda change it still needs (the agenda in `vip/meeting.js` is hard-coded, so `films.json` alone does not put it in the meeting) are in `docs/showroom3d/BONSAI-FILM.md`.
+* The YAS film has Arabic and English subtitles **burned into the picture**, so it has no caption tracks and no Captions button. The Closets film has no subtitles and no caption files.
+* The adviser: "start the management meeting" / "ابدأ اجتماع الإدارة" opens the title card on the big screen (the visitor presses Start meeting).
+* Tests: `__tests__/vipMeeting.test.js`. QA: `vipprofile.js meeting` (playback with a stand-in clip because the test Chromium cannot decode H.264) and `vipprofile.js media` (ffprobe and HTTP byte-range checks on the real files).
+
+## 11. Files
+
+`src/showroom3d/vip/deckSchema.js` (schema, sanitiser, disclaimer, fact tokens) · `motion.js` (easing, tiers, auto-play) · `film.js`, `filmPlayer.js` (FILM mode) · `ui/VipFilm.jsx` · `decks/closets-profile.js`, `decks/yas-profile.js` · `deckMarkdown.js` · `deckStore.js` · `deckState.js` (picker state machine) · `example.js` · `decks/default.js` (the five stations) · `decks/index.js` · `ui/VipPanel.jsx`, `ui/VipSlide.jsx`, `ui/VipDeckDialog.jsx` · `scenes/vip/panels.js` (`drawSlide`, `drawDeckChips`) · tests `__tests__/vipDecks*.test.js*`, golden fixture `__tests__/fixtures/vip-golden.json` (dumped from the pre-deck `vipContent.js`) · QA `scripts/showroom3d-qa/vipdecks.js` · screenshots `docs/showroom3d/screenshots/vipdecks-*`.
+
+## 9. Welcome slide and the two national flags (Nov 2026)
+
+**The Welcome slide** (`vip/welcome.js`, drawn on the wall by `drawWelcome` in `scenes/vip/panels.js`, in the panel / Reading mode by `ui/VipWelcome.jsx`) is the FIRST slide of the **Management meeting** (the deck the room opens on, so it is what the guests see first) and of the **company presentation** (where it is a lead-in, not a station: the panel counts "Station 1 / 4" from the story slide). The two profile decks open on their own covers and do not repeat it. EN + AR (RTL); the Arabic awaits native review. It carries: the greeting, the meeting line, and the flags of Bahrain and Saudi Arabia (alphabetical order, official proportions, each named).
+
+**The meeting date.** The explicit date is the source of truth; the word "tomorrow" is never typed into the content, it is derived: "Our meeting is tomorrow" / "اجتماعنا غدًا" only while the date really is tomorrow in Bahrain (UTC+3), "today" on the day, otherwise "Meeting" + the weekday and date, and after the date has passed the meeting line is hidden (a stale date is never shown as upcoming). Western digits in both languages, as in the rest of the decks.
+
+* Committed default: `DEFAULT_MEETING_DATE = '2026-11-16'` (Monday 16 November 2026).
+* **Change it without a deploy:** the slide reads the site's own CMS table `website_content` (the table the Hub "Website Content" manager edits and the site already reads) with one read-only GET the first time somebody enters the VIP room: `website_content?active=is.true&deleted_at=is.null&key=like.vip.*`. Keys: `vip.meeting.date` (`YYYY-MM-DD`), `vip.welcome.line` (English greeting), `vip.welcome.line::ar` (Arabic greeting, the site's `<key>::ar` convention). A missing, empty or invalid row falls back to the committed value, so nothing can blank the slide.
+* **One-time setup (not done by this change: it needs a database write by the owner / an admin):** the three rows must exist once, because the Hub editor only updates existing rows. Example (columns as the Hub editor uses them: `key, grp, label, field_type, value, active, sort_order`):
+  `insert into website_content (key, grp, label, field_type, value, active, sort_order) values ('vip.meeting.date','vip','VIP meeting date (YYYY-MM-DD)','text','2026-11-16',true,0), ('vip.welcome.line','vip','VIP welcome line (English)','textarea','',true,1), ('vip.welcome.line::ar','vip','VIP welcome line (Arabic)','textarea','',true,2);`
+  Until then the committed date is used.
+
+**The flags** (`vip/flags.js` = geometry + one canvas drawing shared by the wall, the panel and the 3D cloth; `scenes/vip/flags3d.js` = the two flagpoles): geometry from the public-domain Wikimedia Commons drawings (via the npm package `svg-country-flags`, licence PD). Bahrain 3:5 with five serrations; Saudi Arabia 2:3 with the official calligraphy as a vector outline (never typed), the sword under it with the hilt at the fly end, drawn the same, un-mirrored, on both faces of the cloth. Two brass poles flank the wall screen at the back wall (Bahrain on the viewer's left, Saudi Arabia on the right), equal pole and cloth height; the cloth only moves along its depth axis (gentle, not at the bar, only while somebody is in the room, not on the low tier, still under reduced motion). Solid, small colliders (`VIP_FLAGS` in `scenes/vip/layout.js`); 5 draw calls; textures 768 / 1024 / 1280 px by tier. Verified by `__tests__/vipFlags.test.js`, `scripts/showroom3d-qa/flagcheck.js` (pixel comparison with the reference SVGs) and `scripts/showroom3d-qa/vipwelcome.js` (screenshots).
+
+**2023 -> 2026.** The deck "YAS Profile (2023)" is now "YAS Profile (2026)" (picker, agenda, cover "YAS Wood: Profile 2026", Hub export `decks/yas-profile.json`). The per-slide source lines used to read "YAS Wood Profile 2023, p. 7"; they now read "YAS Wood profile, p. 7" (no year), so no visible 2023 remains and no edition is claimed that the PDF (`YAS_PROFILE_PLUS_2023.pdf`) does not have. The Collections wall's real collection name "Collection 2023-2025" is not part of the VIP room and is unchanged.
+
+
+## 10b. Film pre-download ("download, then play")
+
+**Why.** Before this change nothing was fetched until Play, then the browser streamed the film on demand from the host: the owner saw a wait and stutter at the start of each film. Measured facts are in the table below.
+
+**What it does** (`vip/filmPreload.js`, wired by `vip/filmPlayer.js` and `navigation/explorer.js`):
+
+* Starts when the visitor opens the VIP room (`focusVip`), 1.2 s later so the room can settle. Never for visitors who do not enter the room, never on other pages.
+* Fetches the meeting's films in agenda order (YAS story, The Closets story, the AI film last), **one transfer at a time**, `fetch(..., { priority: 'low' })`, streaming into a `Blob` with progress. The file for the device is the one `pickSource` picks (720 / mobile files on phones, low tier, data saver).
+* Keeps the result in **Cache Storage** (`yas-film-v1`): a reload or a later visit shows "Ready" at once with no download. A cached copy is only trusted when its size equals the `bytes` in the manifest, so a replaced film must come with its new `bytes` (file-name versioning, e.g. `yas-story-v2.mp4`, is even safer). Cached films no longer in the plan are deleted.
+* Memory: at most **2 blobs** in memory (1 on devices reporting 2 GB or less); older ones are dropped and their object URLs revoked, the one being played is pinned. With Cache Storage an evicted film is read back from the cache; without it the next film is fetched only when a slot is free.
+* The player plays a finished film from `URL.createObjectURL(blob)` (same `<video>` element: wall VideoTexture, seek bar, Cinema, Present on big screen, captions as before). `preload="auto"` on the element. If the film is not finished when Play is pressed it **streams** from the site, and that film's background transfer is cancelled so the two do not compete.
+* **Leaving the room aborts** the running transfer (finished films stay). `dispose()` revokes every object URL and frees every blob.
+* Skipped on data saver and on `slow-2g` / `2g`; on `3g` only film 1 is fetched. Any failure (blocked fetch, not 200, HTML fallback page, short body) leaves that film on plain streaming.
+* **Switch off for debugging:** `/yas-bloom?vipprefetch=0`.
+* UI: "Preparing film… NN%" with a bar on the film card, next to each film in the agenda card and on the big-screen title card; "Ready: starts instantly" when done (EN and AR). Play is enabled all the time.
+
+**QA:** `scripts/showroom3d-qa/vipfilmpreload.js [flow|slow|reload|off|ui]` (stand-in VP9 clip on a rate-limited local server, because the test Chromium cannot decode H.264). Unit tests: `src/showroom3d/__tests__/vipFilmPreload.test.js`.
+
+### Host headers (measured 2026-11-15) and a proposal that is NOT applied
+
+`curl -sI https://closets-website.vercel.app/yas-bloom/film/yas-story.mp4`: `200`, `content-type: video/mp4`, `accept-ranges: bytes`, `content-length: 13326307`, `cache-control: public, max-age=0, must-revalidate`, an `etag`. First request `x-vercel-cache: MISS`, the next `HIT` (the CDN does cache the file, `age` stays near 0 because of must-revalidate). `max-age=0` means every browser visit revalidates, and the browser does not keep the file between visits unless it keeps it in the HTTP cache. The pre-download's Cache Storage copy covers that for the VIP films.
+
+If the owner wants the browser to keep the films too, this additive block in `vercel.json` (NOT applied: outside the allowed folders) would do it. Films are only ever replaced under a new file name (or with a new `bytes` in the manifest), so a long lifetime is safe:
+
+```json
+{ "source": "/yas-bloom/film/:file(.*\\.(?:mp4|webm|jpg|vtt))", "headers": [ { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" } ] }
+```
+
+placed inside the existing `"headers"` array. Do NOT use it unless every film is renamed whenever its content changes (`film.json` / `films.json` stay `max-age=0`).
+
+### Encoding (ffprobe, 2026-11-15)
+
+All six MP4s are H.264 High + AAC with the `moov` atom first (`ftyp, moov, free, mdat`): fast start is already there. Bitrates: yas-story 0.60 Mbit/s (13.3 MB, 177 s), closets-story 1.06 Mbit/s (13.7 MB, 103 s), journey-1080 1.13 Mbit/s (17.6 MB, 124 s), the mobile / 720 files 0.31 to 0.49 Mbit/s. These are small for their length: no re-encode is warranted. The slowness was start-up latency (a cold request per film, started only on Play), not file size.

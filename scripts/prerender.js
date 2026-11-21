@@ -150,6 +150,8 @@ async function renderJob(browser, base, job) {
       // Client-only / post-effect nodes must not be in the snapshot: the cookie banner and hero slides 2-4 (data-noprerender: not part of the
       // first client render), the brand-font <link> and 3rd-party loaders injected by effects.
       document.querySelectorAll('[data-noprerender], #brand-fonts, #model-viewer-script, #three-cdn').forEach((n) => n.remove());
+      // [GLASS] the backdrop's hero picture and the arrival-motion class are set by effects after the first render: keep them out of the snapshot
+      document.querySelectorAll('.glass-back img').forEach((n) => n.remove()); document.documentElement.classList.remove('glass-enter');
       const w = document.createTreeWalker(document.getElementById('root'), NodeFilter.SHOW_TEXT); const list = [];
       while (w.nextNode()) list.push(w.currentNode);
       list.forEach((n) => { if (n.nextSibling && n.nextSibling.nodeType === 3) n.parentNode.insertBefore(document.createComment(' '), n.nextSibling); });

@@ -1,21 +1,36 @@
 /* The mounted 3D experience: canvas + engine + GSAP director + overlays. Everything heavy is created in effects and disposed on unmount. */
+import { FIRST_NAMES } from './staff/roster';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import StaffChat from './ui/StaffChat';
 import { ShowroomEngine } from './3d/engine';
 import { createProgress } from './3d/progress';
-import { pickTier, readSignals, probeRenderer, isSoftwareRenderer } from './3d/quality';
+import { pickTier, readSignals, probeRenderer, isSoftwareRenderer, writeGraphicsMode } from './3d/quality';
 import { createDirector } from './cinematic/director';
 import { HANDOVER, DURATION } from './cinematic/timeline';
 import gsap from 'gsap';
 import { Explorer } from './navigation/explorer';
-import { useReducedMotion } from '../a11y/motion';
+import { useReducedMotion } from './vendor/motion';
 import { t } from './strings';
 import LoadingScreen from './ui/LoadingScreen';
+import PreloadPill from './ui/PreloadPill';
+import { bloomAssets, assetSrc } from './preload/assetStore';
+
+/** the owner-confirmed YAS Wood image behind the loading screen. It is set here (not in the palette's CSS variables) so it comes from the preload store like every other file: a re-visit then makes no request for it at all. */
+const LOADER_IMG = '/yas-bloom/realism/gallery/yw-showroom-axis.webp';
 import IntroLayer from './ui/IntroLayer';
 import Hud from './ui/Hud';
 import { DeptMenu, PauseMenu, CoachMarks } from './ui/Menus';
 import { ProductPanel, CampaignPanel } from './ui/ProductPanel';
 import { VipPanel } from './ui/VipPanel';
-import { withLang } from '../seo/routes';
+import FilmPill from './ui/FilmPill';
+const HaneenChat = React.lazy(() => import(/* webpackChunkName: "haneen-chat" */ './ui/HaneenChat'));   // the investor chat (and its QR code) is fetched when somebody opens it
+import { CollectionsPanel } from './collections/CollectionsPanel';
+import { withLang } from './vendor/routes';
+import DesignerOverlay from './designstudio/DesignerOverlay';
+import StudioChooser from './designstudio/StudioChooser';
+import { enabledSections, stationSections } from './designstudio/sections';
+import { useDesigner } from './designstudio/useDesigner';
+import { isActive as dsIsActive } from './designstudio/logic';
 
 const COACH_KEY = 'closets_showroom_coach', BOB_KEY = 'closets_showroom_bob';
 const readFlag = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (x) { return d; } };
@@ -42,13 +57,25 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   const [loaderOn, setLoaderOn] = useState(true);
   const [caption, setCaption] = useState(null);
   const [tierId, setTierId] = useState('high');
+  const [gfxMode, setGfxMode] = useState('auto');
+  // the Graphics setting is stored, then the page reloads: a tier decides texture sizes and the geometry that is built, so it cannot be swapped live
+  const onGraphics = useCallback((m) => { if (writeGraphicsMode(m)) { setGfxMode(m); try { window.location.reload(); } catch (e) { /* ignore */ } } }, []);
   const capRef = useRef(null);
   const explorerRef = useRef(null);
   const [st, setSt] = useState({});
   const [touch, setTouch] = useState(() => coarse(new URLSearchParams(window.location.search)));
   const [deptOpen, setDeptOpen] = useState(false);
   const [coach, setCoach] = useState(false);
+  const [chat, setChat] = useState(null);       // staff id of the open adviser chat
+  const [bubble, setBubble] = useState(null);     // the Reception greeting bubble
+  const [colOpen, setColOpen] = useState(false);  // the Collections panel (opened with E / Interact at the Collections wall)
+  const [chooseOpen, setChooseOpen] = useState(false);   // "Which studio?" (E at the shared design wall when no section was named)
+  const [haneenOpen, setHaneenOpen] = useState(false);   // Haneen AI, the investor assistant of Bloom Meeting
   const [bob, setBob] = useState(() => readFlag(BOB_KEY, '1') !== '0');
+  // the Kitchen Design Studio designer overlay (closed | loading | open | confirm | failed): while it is open the render loop is paused (not disposed) and the explorer is frozen
+  const setDsPaused = useCallback((on) => { const a = api.current; a.dsActive = on; if (!a.engine || !a.engine.scene) return; if (on) a.engine.stop(); else if (!document.hidden) a.engine.start(); }, []);
+  const dsClosed = useCallback(() => { const c = canvasRef.current; if (c && c.focus) c.focus({ preventScroll: true }); }, []);
+  const { ds, dispatch: dsDispatch, open: openDesigner, requestClose: dsBack } = useDesigner({ lang, setPaused: setDsPaused, onClosed: dsClosed });
 
   const paintOverlay = useCallback((s) => {
     if (veilRef.current) veilRef.current.style.opacity = String(s.veil);
@@ -63,11 +90,14 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
   }, []);
 
   useEffect(() => {
-    let cancelled = false, ro = null, onVis = null;
+    let cancelled = false, ro = null, onVis = null, onSize = null;
     const q = new URLSearchParams(window.location.search);
     const debug = q.get('debug') === '1';
     const sig = readSignals(); sig.softwareRenderer = isSoftwareRenderer(probeRenderer());
-    const tier = pickTier(sig); setTierId(tier);
+    const tier = pickTier(sig); setTierId(tier); setGfxMode(sig.mode || 'auto');
+    // download the whole showroom (priority order, into Cache Storage); every loader below asks this store first. Off with ?bloomprefetch=0, on data saver / 2g, core only on 3g / low memory.
+    bloomAssets.configure({ tier, lang: langRef.current, search: window.location.search }); bloomAssets.start();
+    assetSrc(LOADER_IMG, (src) => { const w = wrapRef.current; if (w) w.style.setProperty('--sr-loader-img', `url('${src}')`); });
     const progress = createProgress(); const unsub = progress.subscribe((v) => setPct(v));
     const engine = new ShowroomEngine(canvasRef.current, { tier, lang: langRef.current, progress, adaptive: !sig.override && !debug, aa: debug && q.get('aa') === '0' ? false : null, bloom: !(debug && q.get('bloom') === '0') });
     const director = createDirector({
@@ -76,6 +106,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       },
       onComplete: () => { if (!cancelled) handover(); },
     });
+    if (debug && q.get('scale')) engine.debugScale = true;
     if (debug && q.get('scale')) engine.scale = Math.max(0.3, Math.min(1, parseFloat(q.get('scale')) || 1));   // QA: render at a fraction of the resolution (software GL is slow)
     if (debug) engine.maxDt = 0.5;    // QA under software GL runs at ~1-2 fps: let animations (drawers, doors) finish in fewer frames
     api.current = { engine, director, progress };
@@ -88,18 +119,22 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
         await engine.init();
       } catch (e) { if (!cancelled) onFail && onFail(e); return; }
       if (cancelled) return;
-      if (engine.products) engine.products.setReduced(reducedRef.current);   // the products are built after the first render of this component: apply the reduced-motion setting now
+      if (engine.designStudio) engine.designStudio.setReduced(reducedRef.current); if (engine.products) engine.products.setReduced(reducedRef.current);   // the products are built after the first render of this component: apply the reduced-motion setting now
       ro = new ResizeObserver(() => { const w = wrapRef.current; if (w) engine.setSize(w.clientWidth, w.clientHeight); });
       ro.observe(wrapRef.current);
+      // the ResizeObserver does not fire when only the device pixel ratio changes (browser zoom, moving the window to another screen), and some mobile browsers resize the
+      // visual viewport (URL bar) without a layout change: re-apply the size + pixel ratio on those too
+      onSize = () => { const w = wrapRef.current; if (w && w.clientWidth && w.clientHeight) engine.setSize(w.clientWidth, w.clientHeight); };
+      window.addEventListener('resize', onSize); window.addEventListener('orientationchange', onSize); if (window.visualViewport) window.visualViewport.addEventListener('resize', onSize);
       engine.setSize(wrapRef.current.clientWidth, wrapRef.current.clientHeight);
       engine.setLanguage(langRef.current);
       engine.start();
-      onVis = () => { if (document.hidden) engine.stop(); else engine.start(); };
+      onVis = () => { if (document.hidden || api.current.dsActive) engine.stop(); else engine.start(); };
       document.addEventListener('visibilitychange', onVis);
       if (debug) {
         gsap.ticker.lagSmoothing(0);   // QA under software GL runs at ~1 fps: let GSAP keep real time so glides finish in their real duration
         window.__showroom = {
-          ready: true, tier, director, engine,
+          ready: true, tier, director, engine, assets: bloomAssets,
           seek: (tt) => { director.seek(tt); }, info: () => engine.info(), phase: () => api.current.phaseNow,
           state: () => director.state(), explore: explorer.debug(),
         };
@@ -107,26 +142,37 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
       // fade the loader out; the cinematic (or the static reveal) starts underneath
       setLeaving(true); setTimeout(() => { if (!cancelled) setLoaderOn(false); }, 700);
       const at = q.get('at');
-      if (reducedRef.current) { director.finish(); handover(); }
+      if (reducedRef.current || q.get('meeting') === '1') { director.finish(); handover(); if (q.get('meeting') === '1') setTimeout(() => { if (!cancelled && explorer.startMeetingMode) explorer.startMeetingMode(); }, 600); }
       else if (debug && at !== null) { director.seek(parseFloat(at)); setPhase('intro'); }
       else if (debug && q.get('autoplay') === '0') { director.seek(0); setPhase('intro'); }
       else { setPhase('intro'); director.play(); }
     })();
 
     return () => {
-      cancelled = true; unsub(); if (ro) ro.disconnect(); if (onVis) document.removeEventListener('visibilitychange', onVis);
+      cancelled = true; unsub(); if (ro) ro.disconnect(); if (onSize) { window.removeEventListener('resize', onSize); window.removeEventListener('orientationchange', onSize); if (window.visualViewport) window.visualViewport.removeEventListener('resize', onSize); } if (onVis) document.removeEventListener('visibilitychange', onVis);
       explorer.dispose(); explorerRef.current = null;
       director.kill(); engine.dispose(); api.current = {}; if (window.__showroom) delete window.__showroom;
+      bloomAssets.dispose();   // leaving the showroom aborts a running download (what is finished stays in Cache Storage)
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => { if (api.current.engine && api.current.engine.scene) api.current.engine.setLanguage(lang); }, [lang]);
   useEffect(() => { api.current.phaseNow = phase; }, [phase]);
+  useEffect(() => { const x = explorerRef.current; if (x && x.setLang) x.setLang(lang); }, [lang, phase]);   // the film captions follow the page language
 
   // keep the explorer in sync with the UI
-  useEffect(() => { const x = explorerRef.current; if (x) { x.setReduced(reduced); x.setBob(bob && !reduced); } const e = api.current.engine; if (e && e.products) e.products.setReduced(reduced); }, [reduced, bob]);
-  useEffect(() => { const x = explorerRef.current; if (x) x.setUiOpen(deptOpen || !!st.paused); }, [deptOpen, st.paused]);
+  useEffect(() => { const x = explorerRef.current; if (x) { x.setReduced(reduced); x.setBob(bob && !reduced); } const e = api.current.engine; if (e && e.products) e.products.setReduced(reduced); if (e && e.designStudio) e.designStudio.setReduced(reduced); }, [reduced, bob]);
+  useEffect(() => { const x = explorerRef.current; if (x) x.setUiOpen(deptOpen || !!st.paused || !!chat || haneenOpen || colOpen || chooseOpen || dsIsActive(ds)); }, [deptOpen, st.paused, chat, haneenOpen, colOpen, chooseOpen, ds.status]);
+  useEffect(() => { if (st.haneen) { setHaneenOpen(true); setChat(null); } }, [st.haneen]);
+  useEffect(() => { if (st.focus) setHaneenOpen(false); }, [st.focus]);   // the video wall (a focus) and the chat never share the right-hand side
+  // the Bloom chunk (Floor 2 + the glass lift) is fetched once the visitor can explore (never during the intro), skipped on data saver and with ?bloomprefetch=0: it is then fetched on the first lift use
+  useEffect(() => { if (phase !== 'explore' && phase !== 'intro') return undefined; let off = false; try { const c = navigator.connection; off = !!(c && (c.saveData || /2g/.test(c.effectiveType || ''))) || /[?&]bloomprefetch=0/.test(window.location.search); } catch (e) { /* ignore */ } if (off) return undefined; const id = setTimeout(() => { const e = api.current.engine; if (e && e.ensureBloom) e.ensureBloom(); }, phase === 'intro' ? 1200 : 300); return () => clearTimeout(id); }, [phase]);   // fetched during the intro, so the lift is visible (and solid) from the first step
+  useEffect(() => { if (st.collections) setColOpen(true); }, [st.collections]);
+  useEffect(() => { if (st.designStudio) { if (st.designStudioId) openDesigner(st.designStudioId); else setChooseOpen(true); } }, [st.designStudio]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { const c = api.current.engine && api.current.engine.collections; if (c) { c.setTouch(touch); if (colOpen) c.load(); } const d = api.current.engine && api.current.engine.designStudio; if (d) d.setTouch(touch); }, [touch, colOpen, phase]);
+  useEffect(() => { if (st.talk && st.talkN) { setBubble(null); setChat(st.talk); } }, [st.talkN]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (st.greet === 'reception' && st.greetN && !chat) { setBubble(true); const id = setTimeout(() => setBubble(null), 6500); return () => clearTimeout(id); } return undefined; }, [st.greetN]);   // eslint-disable-line react-hooks/exhaustive-deps
   // the control scheme follows the last input device (touch overlay for fingers, keyboard + mouse otherwise)
   useEffect(() => {
     const f = (e) => setTouch(e.pointerType === 'touch');
@@ -135,7 +181,7 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
 
   const canvasFocus = () => canvasRef.current;
   const onResume = (click) => { const x = explorerRef.current; if (!x) return; x.resume(); x.setUiOpen(false); if (click && !touch) x.requestLock(); };
-  const onPick = (id) => { setDeptOpen(false); const x = explorerRef.current; if (x) { x.setUiOpen(false); x.glideTo(id); } };
+  const onPick = (id) => { setDeptOpen(false); const x = explorerRef.current; if (x) { x.setUiOpen(false); if (id.indexOf('floor:') === 0) x.rideTo(id.slice(6)); else if (id === 'meeting-mode') x.startMeetingMode(); else x.glideTo(id); } };
   const onInteract = () => { const x = explorerRef.current; if (x) x.interact(); };
   const onBob = () => { const v = !bob; setBob(v); writeFlag(BOB_KEY, v ? '1' : '0'); };
   const closeCoach = () => { setCoach(false); writeFlag(COACH_KEY, '1'); };
@@ -154,11 +200,21 @@ export default function ShowroomExperience({ lang, onLang, onFail }) {
     <div className="sr-stage" ref={wrapRef} data-phase={phase} data-touch={touch ? "1" : "0"} data-loaded={loaded ? '1' : '0'} data-focus={st.focus ? '1' : '0'}>
       <canvas ref={canvasRef} className="sr-canvas" tabIndex={-1} aria-label={t('pageTitle', lang)} role="img" />
       <IntroLayer ref={{ veil: veilRef, logo: logoRef, bars: barsRef }} lang={lang} caption={intro ? caption : null} onSkip={onSkip} active={intro} />
-      {showHud && <Hud lang={lang} tier={tierId} touch={touch} st={st} explorerRef={explorerRef} homeHref={home} onDepts={() => setDeptOpen(true)} onMenu={() => explorerRef.current && explorerRef.current.pause()} onInteract={onInteract} coach={coach} />}
-      {showHud && st.focus && (st.focusKind === 'vip' ? <VipPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} /> : st.focusKind === 'stage' ? <CampaignPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} /> : <ProductPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} />)}
+      {showHud && <Hud lang={lang} tier={tierId} touch={touch} st={st} explorerRef={explorerRef} homeHref={home} onDepts={() => setDeptOpen(true)} onMenu={() => explorerRef.current && explorerRef.current.pause()} onInteract={onInteract} onTalk={() => { const x = explorerRef.current; if (x) x.talkToStaff(); }} chatOpen={!!chat} coach={coach} />}
+      {showHud && st.focus && (st.focusKind === 'vip' ? <VipPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} reduced={reduced} tier={tierId} /> : st.focusKind === 'stage' ? <CampaignPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} /> : <ProductPanel lang={lang} touch={touch} explorerRef={explorerRef} st={st} />)}
+      {showHud && chat && <StaffChat onOpenDesigner={openDesigner} lang={lang} reduced={reduced} explorerRef={explorerRef} engineRef={api} staffId={chat} onClose={() => { setChat(null); const c = canvasRef.current; if (c && c.focus) c.focus({ preventScroll: true }); }} />}
+      {showHud && bubble && !chat && !st.focus && !st.paused && !deptOpen && <p className="sr-bubble" role="status" data-testid="sr-greet-bubble">{t('chatGreetBubble', lang).replace('{name}', FIRST_NAMES.reception[lang === 'ar' ? 'ar' : 'en'])}</p>}
+      {showHud && colOpen && !st.paused && <CollectionsPanel lang={lang} touch={touch} onClose={() => setColOpen(false)} fallbackFocus={canvasFocus} />}
       {showHud && coach && !st.paused && !deptOpen && !st.focus && <CoachMarks lang={lang} touch={touch} onDone={closeCoach} />}
-      {showHud && deptOpen && <DeptMenu lang={lang} touch={touch} onPick={onPick} onClose={() => setDeptOpen(false)} fallbackFocus={canvasFocus} />}
-      {showHud && st.paused && <PauseMenu lang={lang} touch={touch} reduced={reduced} bob={bob} homeHref={home} onResume={onResume} onDepts={() => { onResume(false); setDeptOpen(true); }} onReplay={onReplay} onLang={onLang} onBob={onBob} onTips={() => { onResume(false); setCoach(true); }} fallbackFocus={canvasFocus} />}
+      {showHud && st.level === 'l2' && !st.focus && !haneenOpen && !st.paused && !deptOpen && !chat && <button type="button" className="sr-btn sr-haneen-fab" onClick={() => setHaneenOpen(true)} data-testid="sr-haneen-fab">{t('haneenOpen', lang)}</button>}
+      {showHud && haneenOpen && !st.paused && <React.Suspense fallback={null}><HaneenChat lang={lang} onLang={onLang} reduced={reduced} onClose={() => { setHaneenOpen(false); const c = canvasRef.current; if (c && c.focus) c.focus({ preventScroll: true }); }} /></React.Suspense>}
+      {showHud && st.level === 'l2' && !st.focus && <FilmPill lang={lang} explorerRef={explorerRef} rev={st.vipFilmRev} />}
+      <div className="sr-ride-veil" data-on={st.riding ? '1' : '0'} aria-hidden={st.riding ? undefined : 'true'} role="status" data-testid="sr-ride-veil">{st.riding ? <p>{t('riding', lang)}</p> : null}</div>
+      {showHud && deptOpen && <DeptMenu level={st.level} lang={lang} touch={touch} onPick={onPick} onClose={() => setDeptOpen(false)} fallbackFocus={canvasFocus} />}
+      {showHud && st.paused && <PauseMenu lang={lang} touch={touch} tier={tierId} gfxMode={gfxMode} onGraphics={onGraphics} reduced={reduced} bob={bob} explorerRef={explorerRef} st={st} homeHref={home} onResume={onResume} onDepts={() => { onResume(false); setDeptOpen(true); }} onReplay={onReplay} onLang={onLang} onBob={onBob} onTips={() => { onResume(false); setCoach(true); }} fallbackFocus={canvasFocus} />}
+      {showHud && chooseOpen && !st.paused && ds.status === 'closed' && <StudioChooser lang={lang} sections={stationSections(enabledSections()[0])} onPick={(id) => { setChooseOpen(false); openDesigner(id); }} onClose={() => setChooseOpen(false)} fallbackFocus={canvasFocus} />}
+      {showHud && ds.status !== 'closed' && <DesignerOverlay state={ds} dispatch={dsDispatch} lang={lang} onBack={dsBack} onLang={onLang} />}
+      {!loaderOn && <PreloadPill store={bloomAssets} lang={lang} show={!ds || ds.status === 'closed'} />}
       {loaderOn ? <LoadingScreen pct={pct} lang={lang} leaving={leaving} /> : null}
     </div>
   );

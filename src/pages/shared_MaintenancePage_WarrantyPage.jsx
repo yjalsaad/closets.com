@@ -30,9 +30,9 @@ function RequestPage({ kind, title, sub, refLabel, kindLabel }) {
     else if (res.offline) setFormErr(vmsg('offline', lang));
     else if (!res.skipped) { setFormErr(vmsg('failed', lang)); toast(t('swReqFailed'),'error'); }
   };
-  if(sent) return (<PageWrap title={t('swReqThankYou')}><div style={{ background:'var(--c-surface)', border:'1px solid #ececec', borderRadius:'var(--radius-xl)', padding:32, maxWidth:560 }}><div aria-hidden="true" style={{ fontSize:40 }}>✅</div><div style={{ fontSize:19, fontWeight:600, color:'var(--shop-ink)', marginTop:12 }}>{t('swReqLoggedPrefix')} {kindLabel} {t('swReqLoggedSuffix')}</div><div style={{ fontSize:15, color:'var(--shop-muted)', marginTop:8 }}>{t('swReqLoggedSub')}</div></div></PageWrap>);
+  if(sent) return (<PageWrap title={t('swReqThankYou')}><div className="gl-card" style={{ background:'var(--c-surface)', border:'1px solid #ececec', borderRadius:'var(--radius-xl)', padding:32, maxWidth:560 }}><div aria-hidden="true" style={{ fontSize:40 }}>✅</div><div style={{ fontSize:19, fontWeight:600, color:'var(--shop-ink)', marginTop:12 }}>{t('swReqLoggedPrefix')} {kindLabel} {t('swReqLoggedSuffix')}</div><div style={{ fontSize:15, color:'var(--shop-muted)', marginTop:8 }}>{t('swReqLoggedSub')}</div></div></PageWrap>);
   return (<PageWrap title={title} sub={sub}>
-    <div style={{ background:'var(--c-surface)', border:'1px solid #ececec', borderRadius:'var(--radius-xl)', padding: mobile?20:28, maxWidth:640, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+    <div className="gl-card" style={{ background:'var(--c-surface)', border:'1px solid #ececec', borderRadius:'var(--radius-xl)', padding: mobile?20:28, maxWidth:640, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
       <form noValidate onSubmit={e=>{ e.preventDefault(); submit(); }}>
       <div style={{ display:'grid', gridTemplateColumns: mobile?'1fr':'1fr 1fr', gap:12 }}>
         <Field id="rq-name" label={t('swReqFullNameAria')} required error={errs.name} placeholder={t('swReqFullName')} autoComplete="name" maxLength={120} value={f.name} onChange={e=>set('name',e.target.value)} style={inp} />

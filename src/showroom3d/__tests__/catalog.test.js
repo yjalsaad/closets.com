@@ -3,7 +3,7 @@ import path from 'path';
 import { PRODUCTS, PRODUCT_LIST, productForDept, toWorld, viewWorld, STAGE, STAGE_VIEWS, WARRANTY_YEARS, stateDef } from '../products/catalog';
 import { DEPARTMENTS, layoutBays, isFurnished } from '../scenes/main-hall/departments';
 import { IK } from '../products/campaignCopy';
-import { FACTS } from '../../content/facts';
+import { FACTS } from '../vendor/facts';
 import { HALL } from '../3d/dimensions';
 import { STRINGS } from '../strings';
 import { allZones, interactionZones, zoneAt } from '../navigation/interaction';
@@ -34,7 +34,7 @@ describe('product catalog', () => {
     } expect(p.kicker.en.toLowerCase()).toContain('sample configuration'); }
     expect(STRINGS.panelSampleNote.en.toLowerCase()).toMatch(/price/);
   });
-  test('the warranty wording matches the site fact (10 years on cabinetry and soft-close hardware)', () => { expect(read('content/facts.js')).toMatch(/warrantyYears: 10/); for (const p of PRODUCT_LIST) expect(p.spec.some((l) => /10 years on cabinetry and soft-close hardware/.test(l.en))).toBe(true); });
+  test('the warranty wording matches the site fact (10 years on cabinetry and soft-close hardware)', () => { expect(read('showroom3d/vendor/facts.js')).toMatch(/warrantyYears: 10/); for (const p of PRODUCT_LIST) expect(p.spec.some((l) => /10 years on cabinetry and soft-close hardware/.test(l.en))).toBe(true); });
   test('door copy is taken from the site\'s own door FAQ (hinges, soft-close, locks and handles; made to measure)', () => {
     const faq = read('pages/DoorsPage.jsx'); expect(faq).toMatch(/Concealed and standard hinges, soft-close systems/); expect(faq).toMatch(/every door is made to measure/i);
     expect(PRODUCTS.door.spec.map((l) => l.en).join(' ')).toMatch(/Concealed and standard hinges, soft-close systems, European locks and handles/);

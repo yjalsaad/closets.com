@@ -2,12 +2,13 @@
  * Customer enters name + OneQuote quotation number → chooses one of six games → plays → the server draws the prize from the
  * Games Hub prize pool (separate from the campaign's main reward boxes) → result screen with the winning code.
  * Routes: /ikhtarha/games · /ikhtarha/games/<game> · /ikhtarha/games/verify?t=…   (?demo=1 = sample run, nothing saved) */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import FormNotice from '../privacy/FormNotice';
 import ConsentBanner from '../privacy/ConsentBanner';
 import { SkipLink } from '../a11y/RouteA11y';
 import * as api from './api';
 import { GAMES } from './Games';
+import { minOf, minText, termsOf } from './terms';
 import { Confetti, isMuted, setMuted, sfx, valueText, money } from './fx';
 import '../campaign/ikhtarha.css';
 import './games.css';
@@ -31,6 +32,8 @@ const S = {
   left: ['{n} left', 'متبقي {n}'], back: ['Back to games', 'العودة للألعاب'], how: ['How to play', 'طريقة اللعب'], sound: ['Sound', 'الصوت'],
   won: ['You won!', 'مبروك! ربحت'], lost: ['Not this time', 'ليس هذه المرة'], lostS: ['Thanks for playing — try another game.', 'شكرًا لمشاركتك — جرّب لعبة أخرى.'],
   code: ['Winning code', 'رمز الفوز'], valid: ['Valid until', 'صالحة حتى'], disc: ['Discount value', 'قيمة الخصم'], quoteNo: ['Quotation', 'عرض السعر'],
+  minBuy: ['Condition: the prize is valid only with a purchase of products worth not less than BD {n}.', 'شرط: الجائزة صالحة فقط عند شراء منتجات بقيمة لا تقل عن {n} دينار بحريني.'],
+  termsT: ['Terms & conditions', 'الشروط والأحكام'],
   keep: ['Show this code with your mobile number at The Closets when you order.', 'اعرض هذا الرمز مع رقم جوالك في الخزائن عند الطلب.'],
   yourPrizes: ['Your prizes', 'جوائزك'], sample: ['Sample preview — prizes here are not real', 'معاينة تجريبية — الجوائز هنا ليست حقيقية'],
   extra: ['An extra activity of the Ikhtarha campaign — separate from your reward box.', 'نشاط إضافي في حملة اختارها — منفصل عن صندوق جائزتك.'],
@@ -38,6 +41,27 @@ const S = {
   print: ['Print', 'طباعة'], change: ['Not you?', 'لست أنت؟'], retry: ['Try again', 'حاول مرة أخرى'], loading: ['Loading…', 'جارٍ التحميل…'],
 };
 const t = (k, ar, v) => { let s = (S[k] || [k, k])[ar ? 1 : 0]; if (v) Object.entries(v).forEach(([a, b]) => { s = s.replace('{' + a + '}', b); }); return s; };
+
+/* [2026-11-21] The minimum purchase amount and the terms come from Bonsai (Campaign › Games › Setup) through ikg_hub.
+ * Until the hub answers — or if it has no amount yet — the standard BD 500 and the standard terms are shown. */
+const NO_CFG = {};
+const Cfg = createContext(NO_CFG);
+function Cond({ ar }) {
+  const c = useContext(Cfg);
+  if (minOf(c.min_purchase) === 0) return null;
+  return <p className="ikg-cond" data-testid="ikg-cond">{t('minBuy', ar, { n: minText(c.min_purchase) })}</p>;
+}
+function Terms({ ar }) {
+  const c = useContext(Cfg); const [open, setOpen] = useState(false);
+  const list = termsOf(ar ? c.terms_ar : c.terms_en, ar, c.min_purchase);
+  if (!list.length) return null;
+  return (
+    <div className={'ikg-terms' + (open ? ' is-open' : '')} data-testid="ikg-terms">
+      <button type="button" className="ikg-terms-btn" aria-expanded={open} onClick={() => setOpen((o) => !o)}>{t('termsT', ar)} <span aria-hidden="true">{open ? '−' : '+'}</span></button>
+      <div className="ikg-terms-body"><h3>{t('termsT', ar)}</h3><ol>{list.map((x, i) => <li key={i}>{x.title && <b>{x.title}. </b>}{x.body}</li>)}</ol></div>
+    </div>
+  );
+}
 const route = () => { const p = (window.location.pathname || '').replace(/\/+$/, ''); const m = p.match(/^\/ikhtarha\/games\/([a-z-]+)$/i); return m ? m[1].toLowerCase() : null; };
 const keepQs = () => (api.DEMO ? '?demo=1' : '');
 
@@ -75,6 +99,7 @@ export default function GamesRoot() {
   const game = slug ? GAMES.find((g) => g.id === slug) : null;
 
   return (
+    <Cfg.Provider value={hub || NO_CFG}>
     <div className="ikg" dir={ar ? 'rtl' : 'ltr'} lang={ar ? 'ar' : 'en'} style={{ backgroundImage: 'url(/brand/ikhtarha/banner.jpg)' }}>
       <SkipLink lang={ar ? 'ar' : 'en'} />
       <ConsentBanner lang={ar ? 'ar' : 'en'} />
@@ -97,6 +122,7 @@ export default function GamesRoot() {
       </main>
       <footer className="ikg-foot">{t('extra', ar)}</footer>
     </div>
+    </Cfg.Provider>
   );
 }
 
@@ -134,6 +160,7 @@ function Enter({ ar, msg, onIn, req }) {
         <input className="ikg-hp" tabIndex={-1} autoComplete="off" value={f.website} onChange={(e) => setF({ ...f, website: e.target.value })} aria-hidden="true" />
         {err && <div className="ikg-err" role="alert">{t(err, ar)}</div>}
         <button type="submit" className="ikg-btn ikg-btn-main ikg-wide" disabled={busy} data-testid="ikg-go">{busy ? t('checking', ar) : t('go', ar)}</button>
+        <Cond ar={ar} /><Terms ar={ar} />
       </form>
     </section>
   );
@@ -167,9 +194,11 @@ function Hub({ ar, st, onPlay, onOut }) {
         <div className="ikg-panel ikg-wins" data-testid="ikg-wins">
           <h2>{t('yourPrizes', ar)}</h2>
           <ul>{wins.map((w) => <li key={w.code}><b dir="auto">{valueText(w, ar)}</b><span>{ar ? w.name_ar : w.name_en}</span><code dir="ltr">{w.code}</code></li>)}</ul>
+          <Cond ar={ar} />
           <p className="ikg-muted">{t('keep', ar)}</p>
         </div>
       )}
+      <Terms ar={ar} />
     </section>
   );
 }
@@ -192,6 +221,7 @@ function Play({ ar, game, sess, st, hub, onBack, onRefresh }) {
         <button type="button" className="ikg-back" onClick={onBack} data-testid="ikg-back"><span aria-hidden="true">{ar ? '→' : '←'}</span> {t('back', ar)}</button>
         <h1 className="ikg-display">{name}</h1>
         <p className="ikg-how"><b>{t('how', ar)}:</b> {how}</p>
+        <Cond ar={ar} />
       </div>
       <div className="ikg-stage">
         {result ? <Result ar={ar} r={result} onBack={onBack} />
@@ -225,7 +255,9 @@ function Result({ ar, r, onBack }) {
             {Number(r.discount_amount) > 0 && <div><dt>{t('disc', ar)}</dt><dd>{money(r.discount_amount, ar)}</dd></div>}
           </dl>
         )}
+        {won && <Cond ar={ar} />}
         {won && <p className="ikg-muted">{t('keep', ar)}</p>}
+        {won && <Terms ar={ar} />}
         <div className="ikg-row">
           <button type="button" className="ikg-btn ikg-btn-main" onClick={onBack} data-testid="ikg-result-back">{t('back', ar)}</button>
           {won && <button type="button" className="ikg-btn ikg-btn-ghost" onClick={() => window.print()}>{t('print', ar)}</button>}
@@ -239,8 +271,11 @@ function Verify({ ar, setLang }) {
   const tok = useMemo(() => new URLSearchParams(window.location.search).get('t') || '', []);
   const [v, setV] = useState(undefined);
   useEffect(() => { api.verify(tok).then(setV).catch(() => setV({ ok: false })); }, [tok]);
+  const [cfg, setCfg] = useState(NO_CFG);
+  useEffect(() => { let on = true; api.hub().then((h) => { if (on && h) setCfg(h); }).catch(() => {}); return () => { on = false; }; }, []);
   const st = v && v.ok ? v.status : null;
   return (
+    <Cfg.Provider value={cfg}>
     <div className="ikg" dir={ar ? 'rtl' : 'ltr'}>
       <header className="ikg-head"><a href="/" className="ikg-logo"><img src="/brand/closets-logo-white.png" alt="The Closets" /></a><span className="ikg-grow" /><button type="button" className="ikg-lang" onClick={() => setLang(ar ? 'en' : 'ar')}>{ar ? 'EN' : 'ع'}</button></header>
       <main id="main" tabIndex={-1} className="ikg-main ikg-center"><div className="ikg-panel ikg-result-card">
@@ -249,9 +284,11 @@ function Verify({ ar, setLang }) {
           <div className={'ikg-verify is-' + st}>{({ valid: '✓ ' + t('vValid', ar), redeemed: t('vRedeemed', ar), expired: t('vExpired', ar) })[st]}</div>
           <div className="ikg-value">{valueText(v, ar)}</div>{(v.type === 'percent' || v.type === 'fixed') && <p className="ikg-rname">{ar ? v.name_ar : v.name_en}</p>}
           <dl className="ikg-facts"><div><dt>{t('code', ar)}</dt><dd dir="ltr">{v.ref}</dd></div>{v.quote_no ? <div><dt>{t('quoteNo', ar)}</dt><dd dir="ltr">{v.quote_no}</dd></div> : v.phone_tail ? <div><dt>{t('mobile', ar)}</dt><dd dir="ltr">•••• {v.phone_tail}</dd></div> : null}<div><dt>{ar ? 'العميل' : 'Customer'}</dt><dd>{v.customer}</dd></div></dl>
+          <Cond ar={ar} />
         </>}
       </div></main>
     </div>
+    </Cfg.Provider>
   );
 }
 

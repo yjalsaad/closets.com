@@ -21,7 +21,7 @@ function CareersPage() {
   };
   return (<PageWrap title={cms('careers.hero.title','Careers')} sub={cms('careers.hero.subtitle','Join a team that builds beautiful, lasting spaces.')}>
     <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-      {rows.map(j=>(<div key={j.id} style={{ background:'var(--c-surface)', border:'1px solid #ececec', borderRadius:'var(--radius-xl)', padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
+      {rows.map(j=>(<div key={j.id} className="gl-card" style={{ background:'var(--c-surface)', border:'1px solid #ececec', borderRadius:'var(--radius-xl)', padding:24, boxShadow:'0 1px 3px rgba(0,0,0,.05)' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
           <div>
             <div style={{ fontSize:18, fontWeight:600, color:'var(--shop-ink)' }}>{j.job_title}</div>
