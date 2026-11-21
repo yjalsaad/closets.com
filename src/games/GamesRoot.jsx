@@ -28,6 +28,7 @@ const S = {
   left: ['{n} left', 'متبقي {n}'], back: ['Back to games', 'العودة للألعاب'], how: ['How to play', 'طريقة اللعب'], sound: ['Sound', 'الصوت'],
   won: ['You won!', 'مبروك! ربحت'], lost: ['Not this time', 'ليس هذه المرة'], lostS: ['Thanks for playing — try another game.', 'شكرًا لمشاركتك — جرّب لعبة أخرى.'],
   code: ['Winning code', 'رمز الفوز'], valid: ['Valid until', 'صالحة حتى'], disc: ['Discount value', 'قيمة الخصم'], quoteNo: ['Quotation', 'عرض السعر'],
+  minBuy: ['Condition: the prize is valid only with a purchase of products worth BD 500 or more.', 'شرط: الجائزة صالحة فقط عند شراء منتجات بقيمة لا تقل عن 500 دينار بحريني.'],
   keep: ['Show this code with your mobile number at The Closets when you order.', 'اعرض هذا الرمز مع رقم جوالك في الخزائن عند الطلب.'],
   yourPrizes: ['Your prizes', 'جوائزك'], sample: ['Sample preview — prizes here are not real', 'معاينة تجريبية — الجوائز هنا ليست حقيقية'],
   extra: ['An extra activity of the Ikhtarha campaign — separate from your reward box.', 'نشاط إضافي في حملة اختارها — منفصل عن صندوق جائزتك.'],
@@ -128,6 +129,7 @@ function Enter({ ar, msg, onIn, req }) {
         <input className="ikg-hp" tabIndex={-1} autoComplete="off" value={f.website} onChange={(e) => setF({ ...f, website: e.target.value })} aria-hidden="true" />
         {err && <div className="ikg-err" role="alert">{t(err, ar)}</div>}
         <button type="submit" className="ikg-btn ikg-btn-main ikg-wide" disabled={busy} data-testid="ikg-go">{busy ? t('checking', ar) : t('go', ar)}</button>
+        <p className="ikg-cond" data-testid="ikg-cond">{t('minBuy', ar)}</p>
       </form>
     </section>
   );
@@ -161,6 +163,7 @@ function Hub({ ar, st, onPlay, onOut }) {
         <div className="ikg-panel ikg-wins" data-testid="ikg-wins">
           <h2>{t('yourPrizes', ar)}</h2>
           <ul>{wins.map((w) => <li key={w.code}><b dir="auto">{valueText(w, ar)}</b><span>{ar ? w.name_ar : w.name_en}</span><code dir="ltr">{w.code}</code></li>)}</ul>
+          <p className="ikg-cond" data-testid="ikg-cond">{t('minBuy', ar)}</p>
           <p className="ikg-muted">{t('keep', ar)}</p>
         </div>
       )}
@@ -186,6 +189,7 @@ function Play({ ar, game, sess, st, hub, onBack, onRefresh }) {
         <button type="button" className="ikg-back" onClick={onBack} data-testid="ikg-back"><span aria-hidden="true">{ar ? '→' : '←'}</span> {t('back', ar)}</button>
         <h1 className="ikg-display">{name}</h1>
         <p className="ikg-how"><b>{t('how', ar)}:</b> {how}</p>
+        <p className="ikg-cond" data-testid="ikg-cond">{t('minBuy', ar)}</p>
       </div>
       <div className="ikg-stage">
         {result ? <Result ar={ar} r={result} onBack={onBack} />
@@ -219,6 +223,7 @@ function Result({ ar, r, onBack }) {
             {Number(r.discount_amount) > 0 && <div><dt>{t('disc', ar)}</dt><dd>{money(r.discount_amount, ar)}</dd></div>}
           </dl>
         )}
+        {won && <p className="ikg-cond" data-testid="ikg-cond">{t('minBuy', ar)}</p>}
         {won && <p className="ikg-muted">{t('keep', ar)}</p>}
         <div className="ikg-row">
           <button type="button" className="ikg-btn ikg-btn-main" onClick={onBack} data-testid="ikg-result-back">{t('back', ar)}</button>
@@ -243,6 +248,7 @@ function Verify({ ar, setLang }) {
           <div className={'ikg-verify is-' + st}>{({ valid: '✓ ' + t('vValid', ar), redeemed: t('vRedeemed', ar), expired: t('vExpired', ar) })[st]}</div>
           <div className="ikg-value">{valueText(v, ar)}</div>{(v.type === 'percent' || v.type === 'fixed') && <p className="ikg-rname">{ar ? v.name_ar : v.name_en}</p>}
           <dl className="ikg-facts"><div><dt>{t('code', ar)}</dt><dd dir="ltr">{v.ref}</dd></div>{v.quote_no ? <div><dt>{t('quoteNo', ar)}</dt><dd dir="ltr">{v.quote_no}</dd></div> : v.phone_tail ? <div><dt>{t('mobile', ar)}</dt><dd dir="ltr">•••• {v.phone_tail}</dd></div> : null}<div><dt>{ar ? 'العميل' : 'Customer'}</dt><dd>{v.customer}</dd></div></dl>
+          <p className="ikg-cond" data-testid="ikg-cond">{t('minBuy', ar)}</p>
         </>}
       </div></main>
     </div>

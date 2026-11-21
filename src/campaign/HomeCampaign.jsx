@@ -198,7 +198,7 @@ export function IkhtarhaGames({ cfg, lang, cms }) {
           <Stamp text={c('home.games.stamp', 'Play now!', 'العب الآن!')} />
         </div>
       </article>
-      <p className="hc-fine">{c('home.games.fine', 'Prizes are drawn by our system. Terms & conditions apply.', 'يتم سحب الجوائز آليًا. تطبق الشروط والأحكام.')}</p>
+      <p className="hc-fine">{c('home.games.fine', 'Prizes are drawn by our system. A prize is valid with a purchase of BD 500 or more. Terms & conditions apply.', 'يتم سحب الجوائز آليًا. الجائزة صالحة عند الشراء بقيمة لا تقل عن 500 دينار بحريني. تطبق الشروط والأحكام.')}</p>
     </section>
   );
 }

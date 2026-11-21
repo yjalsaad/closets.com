@@ -324,6 +324,10 @@
   .ikg *, .ikg *::before, .ikg *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .2s !important; }
   .ikg-card { opacity: 1; transform: none; }
 }
+/* [2026-11-21] BD 500 minimum purchase condition: shown before play, on the winning ticket (also when printed) and on the prize check page */
+.ikg-cond { margin: 14px auto 16px; max-width: 560px; padding: 10px 14px; border: 1px dashed currentColor; border-radius: var(--r-sm); font-size: 14px; font-weight: 700; line-height: 1.6; text-align: center; }
+.ikg-panel .ikg-cond, .ikg-result-card .ikg-cond { color: var(--p800); }
+@media print { .ikg-cond { color: #111 !important; border: 1px solid #111; font-size: 12pt; } }
 @media print { .ikg-head, .ikg-foot, .ikg-row, .ikg-confetti, .ikg-play-head { display: none !important; } .ikg { background: #fff; color: #111; } .ikg-result-card { border: 1px solid #ccc; box-shadow: none; } .ikg-value { color: #4A2C82; } }
 
 /* scratch card reuses the campaign component + its styles (ikhtarha.css, tokens scoped to .ik-root) — give it the same tokens here */
