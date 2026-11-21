@@ -32,12 +32,20 @@ jobs:
         env:
           SITE_URL: ${{ inputs.site_url }}
           PRERENDER_REQUIRED: '1'
+      # lftp, not a JavaScript FTP client: the server resets the encrypted data connection unless the client reuses
+      # the TLS session, which lftp does. Nothing on the server is deleted; files are added or replaced.
       - name: Upload
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          local-dir: ./build/
-          server-dir: ${{ inputs.server_dir }}
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          LFTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          SERVER_DIR: ${{ inputs.server_dir }}
+        run: |
+          case "$SERVER_DIR" in /?*/) ;; *) echo "server_dir must look like /FOLDER/ (got: $SERVER_DIR)"; exit 1 ;; esac
+          sudo apt-get install -y -qq lftp >/dev/null
+          lftp --env-password -u "$FTP_USERNAME" "ftp://$FTP_SERVER" -e "
+            set cmd:fail-exit true;
+            set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate true;
+            set ftp:passive-mode true; set net:timeout 30; set net:max-retries 5; set net:reconnect-interval-base 5;
+            mirror --reverse --parallel=4 --no-perms --verbose=1 ./build/ \"$SERVER_DIR\";
+            bye"
