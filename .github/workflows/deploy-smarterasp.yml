@@ -1,0 +1,43 @@
+# Builds the website for the-closets.com and uploads it to SmarterASP.NET over FTP.
+# Runs ONLY when started by hand (Actions > Deploy to SmarterASP.NET > Run workflow). Vercel deployments are not affected.
+# Needs three repository secrets: FTP_SERVER, FTP_USERNAME, FTP_PASSWORD (SmarterASP panel > FTP).
+name: Deploy to SmarterASP.NET
+on:
+  workflow_dispatch:
+    inputs:
+      site_url:
+        description: Address the site will be served from (used for links, sitemap and sharing tags)
+        default: https://the-closets.com
+        required: true
+      server_dir:
+        description: Folder on the FTP server (the site root; must end with /). The FTP login opens the whole account, so never use ./
+        default: /THE-CLOSETS/
+        required: true
+permissions:
+  contents: read
+concurrency: deploy-smarterasp
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Build (fails if the pages cannot be prerendered)
+        run: npm run build:iis
+        env:
+          SITE_URL: ${{ inputs.site_url }}
+          PRERENDER_REQUIRED: '1'
+      - name: Upload
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./build/
+          server-dir: ${{ inputs.server_dir }}
