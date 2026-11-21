@@ -1,5 +1,7 @@
 {
+  "framework": null,
   "buildCommand": "CI=false npm run build",
+  "outputDirectory": "build",
   "trailingSlash": false,
   "headers": [
     {"source": "/(.*)", "headers": [{"key": "Strict-Transport-Security", "value": "max-age=31536000"}, {"key": "X-Content-Type-Options", "value": "nosniff"}, {"key": "Referrer-Policy", "value": "strict-origin-when-cross-origin"}, {"key": "Permissions-Policy", "value": "camera=(self), microphone=(self), geolocation=(), payment=(), usb=(), interest-cohort=()"}]},
