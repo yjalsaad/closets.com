@@ -1,5 +1,5 @@
 import { buildQuoteUrl, campaignLinks, parseBookingPrefill, INTEREST, NOTES_MAX, BOOKING_PATH } from '../products/quote';
-import { splitLangPath } from '../vendor/routes';
+import { splitLangPath } from '../../seo/routes';
 import fs from 'fs';
 import path from 'path';
 
@@ -12,7 +12,7 @@ describe('quotation / booking URL builder (builds a link; never calls a backend)
   });
   test('Arabic: /ar/booking and Arabic notes', () => {
     const u = q(buildQuoteUrl({ product: 'wardrobe', productName: 'خزانة', finishId: 'stone-grey', finishName: 'رمادي حجري', lang: 'ar' }));
-    expect(splitLangPath(u.pathname)).toEqual({ lang: 'en', path: '/booking' }); expect(u.searchParams.get('interest')).toBe('Wardrobe'); expect(u.searchParams.get('notes')).toMatch(/[؀-ۿ]/);
+    expect(splitLangPath(u.pathname)).toEqual({ lang: 'ar', path: '/booking' }); expect(u.searchParams.get('interest')).toBe('Wardrobe'); expect(u.searchParams.get('notes')).toMatch(/[؀-ۿ]/);
   });
   test('each showroom product maps to an interest value that exists on the booking form', () => {
     const form = fs.readFileSync(path.resolve(__dirname, '../../App.js'), 'utf8');
@@ -28,14 +28,14 @@ describe('quotation / booking URL builder (builds a link; never calls a backend)
     const p = parseBookingPrefill(q(url).search); expect(p.interest).toBe('Doors'); expect(p.notes).toMatch(/Walnut veneer/);
     expect(parseBookingPrefill('?interest=Sofa&notes=').interest).toBeNull(); expect(parseBookingPrefill('').notes).toBeNull();
   });
-  test.skip('the booking page really reads the prefill (source check) and the builder never touches fetch / XHR / the backend', () => {
-    const page = fs.readFileSync(path.resolve(__dirname, '../../App.js'), 'utf8'); expect(page).toMatch(/parseBookingPrefill/);
+  test('the booking page really reads the prefill (source check) and the builder never touches fetch / XHR / the backend', () => {
+    const page = fs.readFileSync(path.resolve(__dirname, '../../pages/BookingPage.jsx'), 'utf8'); expect(page).toMatch(/parseBookingPrefill/);
     const src = fs.readFileSync(path.resolve(__dirname, '../products/quote.js'), 'utf8'); expect(src).not.toMatch(/fetch\(|XMLHttpRequest|supabase|rpc\(|sendBeacon/);
   });
   test('campaign links go to the existing pages: booking (price your design), /campaign/ikhtarha (play), /campaign/ikhtarha/demo (sample)', () => {
     const en = campaignLinks('en'), ar = campaignLinks('ar');
     expect(q(en.price).pathname).toBe('/booking'); expect(en.play).toMatch(/^\/campaign\/ikhtarha(\?lang=en)?$/); expect(en.demo).toMatch(/^\/campaign\/ikhtarha\/demo/);
-    expect(q(ar.price).pathname).toBe('/booking'); expect(ar.play).toBe('/campaign/ikhtarha'); expect(ar.demo).toBe('/campaign/ikhtarha/demo');
+    expect(q(ar.price).pathname).toBe('/ar/booking'); expect(ar.play).toBe('/campaign/ikhtarha'); expect(ar.demo).toBe('/campaign/ikhtarha/demo');
     const idx = fs.readFileSync(path.resolve(__dirname, '../../index.js'), 'utf8'); expect(idx).toMatch(/campaign\\\/ikhtarha/);
   });
 });

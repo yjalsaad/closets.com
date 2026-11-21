@@ -79,7 +79,7 @@ describe('generic slide and the panel deck bar', () => {
     expect(screen.getByTestId('sr-vip-foot-disclaimer').textContent).toBe(DISCLAIMER.en); expect(container.querySelector('[data-accent="brass"]')).not.toBeNull();
     expect(container.querySelectorAll('a')).toHaveLength(1); expect(container.querySelector('script')).toBeNull();
   });
-  test('the Arabic link is localised with /ar', () => { render(<SlideBody lang="ar" slide={resolveDeck(deck, 'ar').slides[0]} />); expect(screen.getByTestId('sr-vip-slide-link').getAttribute('href')).toBe('/kitchen'); expect(screen.getByTestId('sr-vip-foot-disclaimer').textContent).toBe(DISCLAIMER.ar); });
+  test('the Arabic link is localised with /ar', () => { render(<SlideBody lang="ar" slide={resolveDeck(deck, 'ar').slides[0]} />); expect(screen.getByTestId('sr-vip-slide-link').getAttribute('href')).toBe('/ar/kitchen'); expect(screen.getByTestId('sr-vip-foot-disclaimer').textContent).toBe(DISCLAIMER.ar); });
   test('a hostile deck that slipped past (no sanitiser) still renders as text only: React escapes, no HTML is created', () => {
     const rd = resolveDeck({ id: 'x', title: { en: 't', ar: 't' }, slides: [{ id: 's', title: { en: '<img src=x onerror=alert(1)>', ar: 'x' }, bullets: [{ en: '<script>alert(1)</script>', ar: 'x' }], blocks: [], links: [] }] }, 'en'); const { container } = render(<SlideBody lang="en" slide={rd.slides[0]} />);
     expect(container.querySelector('script')).toBeNull(); expect(container.querySelector('img')).toBeNull(); expect(container.textContent).toContain('<script>alert(1)</script>');

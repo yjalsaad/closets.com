@@ -24,7 +24,7 @@ describe('showroom UI', () => {
   test('the Arabic fallback links stay inside /ar', () => {
     const { container } = render(<Fallback2D lang="ar" />);
     const hrefs = [...container.querySelectorAll('a')].map((a) => a.getAttribute('href'));
-    expect(hrefs).toEqual(expect.arrayContaining(['/projects', '/booking']));
+    expect(hrefs).toEqual(expect.arrayContaining(['/ar/projects', '/ar/booking']));
     expect(screen.getByText('المطابخ')).toBeTruthy();
   });
   test('without WebGL (jsdom) the route renders the 2D fallback instead of crashing', () => {

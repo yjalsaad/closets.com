@@ -64,10 +64,10 @@ describe('honesty: no financial promises, contested facts are marked placeholder
 });
 
 describe('business lines and the Hub station', () => {
-  test.skip('every business line with a page links to a REAL route (checked against seo/routes.js and the studio / campaign shells)', () => {
-    const routes = require('../vendor/routes'); const known = new Set(routes.PAGES.map((p) => p.path)); const idx = fs.readFileSync(path.resolve(__dirname, '../../index.js'), 'utf8');
+  test('every business line with a page links to a REAL route (checked against seo/routes.js and the studio / campaign shells)', () => {
+    const routes = require('../../seo/routes'); const known = new Set(routes.PAGES.map((p) => p.path)); const idx = fs.readFileSync(path.resolve(__dirname, '../../index.js'), 'utf8');
     for (const l of C.businessLines('en')) { if (!l.route) { expect(l.href).toBeNull(); continue; } if (l.id === 'studio') expect(idx).toMatch(/\\\/studio/); else if (l.id === 'ikhtarha') expect(idx).toMatch(/campaign\\\/ikhtarha/); else expect(known.has(l.route)).toBe(true); }
-    expect(C.businessLines('ar').find((l) => l.id === 'kitchens').href).toBe('/kitchen'); expect(C.businessLines('ar').find((l) => l.id === 'studio').href).toBe('/studio'); expect(C.projectsHref('ar')).toBe('/projects'); expect(C.projectsHref('en')).toBe('/projects');
+    expect(C.businessLines('ar').find((l) => l.id === 'kitchens').href).toBe('/ar/kitchen'); expect(C.businessLines('ar').find((l) => l.id === 'studio').href).toBe('/studio'); expect(C.projectsHref('ar')).toBe('/ar/projects'); expect(C.projectsHref('en')).toBe('/projects');
     for (const id of ['kitchens', 'wardrobes', 'doors', 'living', 'studio', 'planners', 'ikhtarha', 'lounge']) expect(C.businessLines('en').find((l) => l.id === id).href).toBeTruthy();
   });
   test('Hub: 13 department groups with their module counts, flow lead to finance, six capabilities that each name their source, everything bilingual', () => {
@@ -86,7 +86,7 @@ describe('business lines and the Hub station', () => {
 describe('the contact CTA routes to the EXISTING booking flow (generic, no investor interest), writes nothing', () => {
   test('URL: /booking?source=showroom-3d-vip (EN) and /ar/booking (AR); no interest, no notes, no investor wording', () => {
     const en = new URL(C.contactUrl('en'), 'https://x.test'), ar = new URL(C.contactUrl('ar'), 'https://x.test');
-    expect(en.pathname).toBe('/booking'); expect(en.searchParams.get('interest')).toBeNull(); expect(en.searchParams.get('source')).toBe('showroom-3d-vip'); expect(ar.pathname).toBe('/booking'); expect(C.contactUrl('en')).not.toMatch(/invest/i);
+    expect(en.pathname).toBe('/booking'); expect(en.searchParams.get('interest')).toBeNull(); expect(en.searchParams.get('source')).toBe('showroom-3d-vip'); expect(ar.pathname).toBe('/ar/booking'); expect(C.contactUrl('en')).not.toMatch(/invest/i);
   });
   test('the booking prefill no longer knows the old investor-briefing interest (it is dropped like any unknown one); real interests still pass', () => {
     expect(parseBookingPrefill('?interest=investor-briefing').interest).toBeNull(); expect(parseBookingPrefill('?interest=nonsense').interest).toBeNull(); expect(parseBookingPrefill('?interest=' + Object.values(INTEREST)[0]).interest).toBe(Object.values(INTEREST)[0]);

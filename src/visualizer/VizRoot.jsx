@@ -9,6 +9,11 @@
  *   /visualizer/embed               iframe for other websites (public/visualizer-embed.js)
  * ===========================================================================*/
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import SectionBoundary from '../safety/SectionBoundary';
+import WebGLGate from '../safety/WebGLGate';
+import ConsentBanner from '../privacy/ConsentBanner';
+import { SkipLink } from '../a11y/RouteA11y';
+import { prefersReducedMotion } from '../a11y/motion';
 import './viz.css';
 import Designer, { defaultSel, useGate } from './Designer';
 import PhotoVisualizer from './PhotoVisualizer';
@@ -63,9 +68,13 @@ export default function VizRoot() {
   else if (a === 'kiosk') body = <Kiosk data={data} settings={settings} lang={lang} setLang={setLang} rooms={rooms} />;
   else if (a === 'embed') body = <EmbedPage q={q} data={data} settings={settings} lang={lang} rooms={rooms} />;
   else body = <Home data={data} settings={settings} lang={lang} rooms={rooms} q={q} />;
+  // [RESILIENCE] 3D / photo-GL views: without WebGL show a clear message + the non-3D alternatives instead of the global crash screen
+  if (data && ['room', 'photo', 'r', 'kiosk', 'embed'].includes(a)) body = <WebGLGate name={'viz:' + a} fallback={<VizNoWebGL ar={ar} />}>{body}</WebGLGate>;
+  body = <SectionBoundary name={'viz-route:' + a} resetKey={a + ':' + b}>{body}</SectionBoundary>;
 
   return (
     <div className={'vz-root' + (chrome ? '' : ' vz-bare')} dir={ar ? 'rtl' : 'ltr'} lang={lang}>
+      <SkipLink lang={lang} />
       {chrome && (
         <header className="vz-head">
           <a className="vz-brand" href="/">THE CLOSETS</a>
@@ -79,7 +88,24 @@ export default function VizRoot() {
           <button type="button" className="vz-lang" onClick={() => setLang(ar ? 'en' : 'ar')}>{ar ? 'EN' : 'ع'}</button>
         </header>
       )}
-      <main className="vz-main">{body}</main>
+      <main id="main" tabIndex={-1} className="vz-main" style={{ outline: 'none' }}>{body}</main>
+      <ConsentBanner lang={lang} />
+    </div>
+  );
+}
+
+function VizNoWebGL({ ar }) {
+  const c = ar
+    ? { h: 'العرض ثلاثي الأبعاد غير متاح على هذا الجهاز', p: 'منع المتصفح أو الجهاز الرسومات ثلاثية الأبعاد (WebGL). يمكنك تصفّح المواد في الكتالوج وتنزيله، أو حجز زيارة تصميم مجانية.', a: 'تصفّح الكتالوج', b: 'احجز زيارة مجانية', c: 'العودة إلى الغرف' }
+    : { h: '3D view is not available on this device', p: 'Your browser or device blocked 3D graphics (WebGL). You can still browse the materials in the catalogue and download it, or book a free design visit.', a: 'Browse the catalogue', b: 'Book a free visit', c: 'Back to rooms' };
+  const btn = { padding: '10px 18px', border: '1px solid currentColor', borderRadius: 980, textDecoration: 'none', fontWeight: 600, color: 'inherit' };
+  return (
+    <div role="alert" data-webgl-fallback style={{ margin: '48px auto', maxWidth: 560, padding: 24, textAlign: 'center' }}>
+      <h1 style={{ fontSize: 22, margin: '0 0 8px' }}>{c.h}</h1>
+      <p style={{ lineHeight: 1.6, margin: '0 0 16px' }}>{c.p}</p>
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <a href="/visualizer/catalog" style={btn}>{c.a}</a><a href="/booking" style={btn}>{c.b}</a><a href="/visualizer" style={btn}>{c.c}</a>
+      </div>
     </div>
   );
 }
@@ -281,7 +307,7 @@ function Kiosk({ data, settings: base, lang, setLang, rooms }) {
     return () => { clearTimeout(timer.current); evs.forEach((e) => window.removeEventListener(e, reset)); };
   }, [idle]);
   const [slide, setSlide] = useState(0);
-  useEffect(() => { if (phase !== 'attract') return undefined; const t = setInterval(() => setSlide((s) => s + 1), 5000); return () => clearInterval(t); }, [phase]);
+  useEffect(() => { if (phase !== 'attract' || prefersReducedMotion()) return undefined; const t = setInterval(() => setSlide((s) => s + 1), 5000); return () => clearInterval(t); }, [phase]);
   const start = () => { try { if (document.documentElement.requestFullscreen && !document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}); } catch (e) { /* ignore */ } if (startRoom && rooms.some((r) => r.id === startRoom)) { setRoomId(startRoom); setPhase('design'); } else setPhase('rooms'); track('kiosk_start', { meta: { branch: (base.kiosk || {}).branch || null } }); };
   const k = settings.kiosk || {};
   if (phase === 'attract') {

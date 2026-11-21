@@ -36,7 +36,7 @@ describe('product catalog', () => {
   });
   test('the warranty wording matches the site fact (10 years on cabinetry and soft-close hardware)', () => { expect(read('showroom3d/vendor/facts.js')).toMatch(/warrantyYears: 10/); for (const p of PRODUCT_LIST) expect(p.spec.some((l) => /10 years on cabinetry and soft-close hardware/.test(l.en))).toBe(true); });
   test('door copy is taken from the site\'s own door FAQ (hinges, soft-close, locks and handles; made to measure)', () => {
-    const faq = read('App.js'); expect(faq).toMatch(/Concealed and standard hinges, soft-close systems/); expect(faq).toMatch(/every door is made to measure/i);
+    const faq = read('pages/DoorsPage.jsx'); expect(faq).toMatch(/Concealed and standard hinges, soft-close systems/); expect(faq).toMatch(/every door is made to measure/i);
     expect(PRODUCTS.door.spec.map((l) => l.en).join(' ')).toMatch(/Concealed and standard hinges, soft-close systems, European locks and handles/);
   });
   test('stateDef lists every part', () => { for (const p of PRODUCT_LIST) expect(stateDef(p.id, []).parts.map((x) => x.id)).toEqual(p.parts.map((x) => x.id)); });

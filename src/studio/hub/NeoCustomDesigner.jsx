@@ -6,6 +6,9 @@
  * and the "Send to Quote Max" hand-off. The engine is src/neoCustom/* (pure, unit-tested); the studio is src/neoCustom/NeoCustomStudio.jsx and reuses the
  * Neo Kitchen components (3D, cut list, exports, menus, assistant persona). No Supabase, no database write, no migration.
  * ===========================================================================*/
+import './neoKitchen/cssOrder'; // [CI-CSS-ORDER] must stay the first import: fixes the shared stylesheet order
+import './neoKitchen/materialsPro.css'; // [CI-CSS-ORDER] materialsPro before elevationPro, as in every other designer (Custom loads both)
+import './neoKitchen/elevationPro.css';
 import { getOutput } from './neoKitchen/outputSettings';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import NeoCustomStudio from './neoCustom/NeoCustomStudio';

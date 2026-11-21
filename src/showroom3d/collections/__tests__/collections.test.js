@@ -181,7 +181,7 @@ describe('panel logic', () => {
     expect(u.startsWith('/booking?')).toBe(true); const pre = parseBookingPrefill(u.slice(u.indexOf('?')));
     expect(pre.interest).toBe('Other'); expect(pre.notes).toContain('Collection: YAS Wood Collection 2023–2025'); expect(pre.notes).toContain('Finish: Kaiser Walnut 102019 TX04'); expect(pre.notes).toContain('not a quotation'); expect(pre.notes.length).toBeLessThanOrEqual(NOTES_MAX);
     const q = new URLSearchParams(u.slice(u.indexOf('?'))); expect(q.get('source')).toBe('showroom-3d-collections'); expect(q.get('collection')).toBe(c.id); expect(q.get('finish')).toBe(it.id);
-    const ar = buildCollectionQuoteUrl({ collectionId: c.id, itemId: it.id, lang: 'ar' }); expect(ar.startsWith('/booking?')).toBe(true); expect(parseBookingPrefill(ar.slice(ar.indexOf('?'))).notes).toContain('المجموعة: YAS Wood مجموعة 2023–2025');
+    const ar = buildCollectionQuoteUrl({ collectionId: c.id, itemId: it.id, lang: 'ar' }); expect(ar.startsWith('/ar/booking?')).toBe(true); expect(parseBookingPrefill(ar.slice(ar.indexOf('?'))).notes).toContain('المجموعة: YAS Wood مجموعة 2023–2025');
     expect(itemLabel(it)).toBe('Kaiser Walnut 102019 TX04');
   });
   test('only data can reach the link: unknown collection = no link, unknown / hostile finish id is dropped', () => {

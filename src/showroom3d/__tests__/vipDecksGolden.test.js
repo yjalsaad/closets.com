@@ -14,7 +14,7 @@ describe('golden: default deck == old vipContent output', () => {
   });
   test('placeholders / contested facts, disclaimer, business lines, Hub data, booking URL, contact lines, owner inputs unchanged', () => {
     expect(same(C.contestedFacts().filter((f) => f.key !== 'yearsOfCraft'))).toEqual(golden.contestedFacts.filter((f) => f.key !== 'yearsOfCraft')); expect(C.DISCLAIMER).toEqual(golden.DISCLAIMER); expect(C.PLACEHOLDER).toEqual(golden.PLACEHOLDER);
-    expect(same({ en: C.businessLines('en'), ar: C.businessLines('ar') })).toEqual(JSON.parse(JSON.stringify(golden.businessLines).split('"href":"/' + 'ar/').join('"href":"/')));
+    expect(same({ en: C.businessLines('en'), ar: C.businessLines('ar') })).toEqual(golden.businessLines);   // the golden keeps the /ar/ hrefs: since PR #3 the site has /ar URLs again
     for (const k of ['HUB_FLOW', 'HUB_CAPABILITIES', 'HUB_DEPARTMENTS', 'HUB_KPI_NAMES', 'ILLUSTRATIVE', 'OWNER_INPUTS']) expect(same(C[k])).toEqual(golden[k]);
     expect(C.briefingUrl).toBeUndefined(); expect(same({ en: C.contactLines('en'), ar: C.contactLines('ar') })).toEqual(golden.contactLines);
   });

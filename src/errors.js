@@ -4,6 +4,8 @@
 //   handleError(err, {toast,ctx}) — classify + optional toast + log; returns message
 // Reads the current site language from localStorage('closets_lang') so messages
 // come out in the user's language (EN/AR).
+import { scrubText, safePath } from "./safety/scrub";
+
 const SUPA_URL = "https://jflmbfxbhpioyniibjsj.supabase.co";
 const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmbG1iZnhiaHBpb3luaWlianNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NjkyNjQsImV4cCI6MjA5MDQ0NTI2NH0.XnQHF1Ivzhv6Zj12qe1Gh2x6ZyLdFfmUBweE_5SZnu0";
 
@@ -58,23 +60,28 @@ export function errMsg(err) {
 }
 
 let _reporting = false;
+// PII policy: nothing identifying leaves the browser in an error report. No customer id / e-mail / phone,
+// no query string or hash (they can carry tokens and referral codes), and e-mails / numbers / tokens
+// inside the message or stack are masked. Only the role is kept (it is not personal data).
 export function reportError(kind, message, detail, ctx) {
   if (_reporting) return;
   try {
     _reporting = true;
-    let user_id = null, user_role = null;
+    let user_role = null;
     try {
       const u = JSON.parse(localStorage.getItem("closets_user") || "null");
-      if (u) { user_id = String(u.id || ""); user_role = u.role || null; }
+      if (u && typeof u.role === "string") user_role = u.role.slice(0, 40);
     } catch (e) {}
+    const safeCtx = {};
+    Object.keys(ctx || {}).forEach((k) => { const v = ctx[k]; safeCtx[k] = typeof v === "string" ? scrubText(v, 200) : (typeof v === "number" || typeof v === "boolean") ? v : undefined; });
     fetch(SUPA_URL + "/rest/v1/rpc/log_client_error", {
       method: "POST", keepalive: true,
       headers: { apikey: SUPA_KEY, Authorization: "Bearer " + SUPA_KEY, "Content-Type": "application/json" },
       body: JSON.stringify({
-        p_app: "website", p_kind: kind || "unknown", p_message: String(message || "").slice(0, 500),
-        p_detail: detail == null ? null : String(detail).slice(0, 3500),
-        p_context: Object.assign({ url: typeof window !== "undefined" ? window.location.pathname : "" }, ctx || {}),
-        p_user_id: user_id, p_user_role: user_role,
+        p_app: "website", p_kind: kind || "unknown", p_message: scrubText(message || "", 500) || "",
+        p_detail: detail == null ? null : scrubText(detail, 3500),
+        p_context: Object.assign({ url: typeof window !== "undefined" ? safePath() : "" }, safeCtx),
+        p_user_id: null, p_user_role: user_role,
       }),
     }).catch(() => {});
   } catch (e) {} finally { _reporting = false; }

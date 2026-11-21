@@ -45,7 +45,7 @@ describe('YAS Bloom routing (P1)', () => {
     for (const [a, b] of [['/showroom-3d', '/yas-bloom'], ['/ar/showroom-3d', '/ar/yas-bloom'], ['/showroom-3d/:path*', '/yas-bloom/:path*'], ['/ar/showroom-3d/:path*', '/ar/yas-bloom/:path*']]) expect(v.redirects.some((r) => r.source === a && r.destination === b)).toBe(true);
     const h = v.headers.find((x) => /yas-bloom/.test(x.source)); expect(h.headers).toEqual([{ key: 'X-Robots-Tag', value: 'noindex' }]); expect(new RegExp('^' + h.source.replace(/\(\/\.\*\)\?$/, '(/.*)?') + '$').test('/yas-bloom')).toBe(true);
   });
-  test.skip('robots Disallow and the seo-check route list know the new path; the site shell links to it (EN + AR label)', () => {
+  test('robots Disallow and the seo-check route list know the new path; the site shell links to it (EN + AR label)', () => {
     expect(fs.readFileSync(path.resolve(__dirname, '../../../scripts/seo-build.js'), 'utf8')).toContain("'/yas-bloom'");
     expect(fs.readFileSync(path.resolve(__dirname, '../../../scripts/seo-check.js'), 'utf8')).toContain("'/ar/yas-bloom'");
     const app = fs.readFileSync(path.resolve(__dirname, '../../App.js'), 'utf8'); expect(app).toContain("['🌸 YAS Bloom', 'yb:']"); expect(app).toContain("target === 'yb:'");

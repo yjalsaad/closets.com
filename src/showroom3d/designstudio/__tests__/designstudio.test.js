@@ -3,7 +3,7 @@ import path from 'path';
 import { SECTIONS, SECTION_DEPTS, BYLINE, sectionById, sectionByKind, enabledSections, sectionName, sectionDept, posterUrls } from '../sections';
 import { SLOTS, SCREEN, SIGN, BASE, PODIUM, STAND_BACK, WALL_Z, placement, studioColliders, studioZones, withDesignStudio, TIER, tierOf, LOAD_RADIUS, shouldLoad, loopAt, LOOP, ARRIVE_PITCH } from '../layout';
 import { DS, dt } from '../strings';
-import { buildEmbedUrl, buildSiteUrl, stillOnDesigner, normLang, syncLang, readLang, isSignedIn, frameShift, scrollOffset, HEADER_SHIFT, EMBED_CSS, reduce, initialState, isActive, isDirty, DIRTY_AFTER, isEditingKey, escapeShouldClose, designStudioIntent, designStudioReply, designStudioServices, adviserChips, GO_TOKEN, OPEN_TOKEN, LANG_KEY, USER_KEY, SRC_PARAM } from '../logic';
+import { buildEmbedUrl, switchDesignerLanguage, buildSiteUrl, stillOnDesigner, normLang, syncLang, readLang, isSignedIn, frameShift, scrollOffset, HEADER_SHIFT, EMBED_CSS, reduce, initialState, isActive, isDirty, DIRTY_AFTER, isEditingKey, escapeShouldClose, designStudioIntent, designStudioReply, designStudioServices, adviserChips, GO_TOKEN, OPEN_TOKEN, LANG_KEY, USER_KEY, SRC_PARAM } from '../logic';
 import { HALL } from '../../3d/dimensions';
 import { BRAND_LINE } from '../../scenes/main-hall/hall';
 import { buildGraph, routeTo, shortestPath } from '../../navigation/navgraph';
@@ -137,9 +137,15 @@ describe('embed URL, language and sign-in helpers', () => {
   test('the route in the website router table is the one the embed opens (read from src/App.js, never hard-coded twice)', () => {
     const app = fs.readFileSync(path.resolve(__dirname, '../../../App.js'), 'utf8');
     expect(app).toContain("'/design-studio/kitchen-planner':'kitchen-planner'"); expect(app).toMatch(/page==='kitchen-planner' && !plannerLocked && <PageBoundary key="kp"><KitchenPlannerWizard/);
-    expect(app).toMatch(/const HEADER = mobile\?72:104/); expect(HEADER_SHIFT).toMatchObject({ desktop: 104, mobile: 72, breakpoint: 768 });
+    expect(fs.readFileSync(path.resolve(__dirname, '../../../pages/KitchenPlannerWizard.jsx'), 'utf8')).toMatch(/const HEADER = mobile\?72:104/);   // the planner moved to its own route chunk (PR #3) expect(HEADER_SHIFT).toMatchObject({ desktop: 104, mobile: 72, breakpoint: 768 });
     expect(app).toContain("window.innerWidth < 768");
-    expect(app).toContain('title="Language"');                                      // the language button the overlay clicks
+    expect(app).toContain('data-site-lang-toggle');                                  // the language button the overlay clicks (PR #3 header)                                      // the language button the overlay clicks
+  });
+  test('PR #3 /ar URLs: the Arabic designer URL still counts as the designer, and the site header language toggle is found', () => {
+    expect(stillOnDesigner('/ar/design-studio/kitchen-planner', S)).toBe(true); expect(stillOnDesigner('/ar/kitchen', S)).toBe(false); expect(stillOnDesigner('/ar', S)).toBe(false);
+    let clicked = 0; const btn = { click: () => { clicked += 1; } };
+    const doc = { documentElement: { lang: 'en' }, querySelector: (sel) => (/data-site-lang-toggle/.test(sel) ? btn : null) };
+    expect(switchDesignerLanguage(doc, 'ar', { designer: { path: '/design-studio/kitchen-planner' } })).toBe(true); expect(clicked).toBe(1);
   });
   test('stillOnDesigner: only the designer route counts (its Exit goes to /kitchen, a sent quote to /)', () => {
     expect(stillOnDesigner('/design-studio/kitchen-planner', S)).toBe(true); expect(stillOnDesigner('/design-studio/kitchen-planner/', S)).toBe(true); expect(stillOnDesigner('/Design-Studio/Kitchen-Planner', S)).toBe(true);

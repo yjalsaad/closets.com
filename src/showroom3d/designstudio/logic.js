@@ -21,7 +21,8 @@ export function buildSiteUrl(section) { return buildEmbedUrl(section); }
 /** is `pathname` (the frame's current location) still the designer? Anything else means the visitor pressed the designer's Exit / finished (it navigates to /kitchen or /) */
 export function stillOnDesigner(pathname, section) {
   const want = section && section.designer && clean(section.designer.path); if (!want) return false;
-  return String(pathname || '').replace(/\/+$/, '').toLowerCase() === want.toLowerCase();
+  // since PR #3 the website localises its URLs (/ar/design-studio/...): the Arabic designer is still the designer
+  return String(pathname || '').replace(/\/+$/, '').replace(/^\/ar(?=\/)/i, '').toLowerCase() === want.toLowerCase();
 }
 
 // ---------------------------------------------------------------- language: the showroom owns it in its URL (/ar/yas-bloom), the website in localStorage
@@ -145,7 +146,7 @@ export function switchDesignerLanguage(doc, lang, section) {
   const L = normLang(lang);
   try {
     const sels = section && section.designer && section.designer.langButtons;
-    if (!sels) { if (doc.documentElement.lang === L) return true; const b = doc.querySelector('nav button[title="Language"]'); if (b) { b.click(); return true; } return false; }
+    if (!sels) { if (doc.documentElement.lang === L) return true; const b = doc.querySelector('nav button[title="Language"], button[data-site-lang-toggle]'); if (b) { b.click(); return true; } return false; }
     for (const sel of sels) {
       const nodes = [...doc.querySelectorAll(sel)]; if (!nodes.length) continue;
       if (nodes.length > 1) { const want = nodes.find((n) => (n.textContent || '').trim() === (L === 'ar' ? 'ع' : 'EN')); if (want && want.getAttribute('aria-pressed') !== 'true') want.click(); }

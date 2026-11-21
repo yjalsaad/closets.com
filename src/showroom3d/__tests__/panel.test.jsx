@@ -55,7 +55,7 @@ describe('ProductPanel', () => {
   });
   test('Arabic: Arabic copy, Arabic quotation route, and the layout is under an rtl root', () => {
     mount('kitchen', 'ar'); const p = screen.getByTestId('sr-panel'); expect(p.textContent).toContain(PRODUCTS.kitchen.name.ar); expect(p.textContent).toContain('نموذج تصميم'); expect(p.closest('[dir="rtl"]')).toBeTruthy();
-    const u = new URL(screen.getByTestId('sr-quote').getAttribute('href'), 'https://x.test'); expect(u.pathname).toBe('/booking'); expect(u.searchParams.get('notes')).toMatch(/[؀-ۿ]/);
+    const u = new URL(screen.getByTestId('sr-quote').getAttribute('href'), 'https://x.test'); expect(u.pathname).toBe('/ar/booking'); expect(u.searchParams.get('notes')).toMatch(/[؀-ۿ]/);
     expect(screen.getByTestId('sr-open-all').textContent).toBe('افتح الكل');
   });
   test('back button exits the focus; hovering / focusing a part button highlights it in the scene; touch hides keyboard hints', () => {
@@ -78,7 +78,7 @@ describe('CampaignPanel (Ikhtarha)', () => {
   });
   test('Arabic copy and the Arabic booking route', () => {
     render(<div dir="rtl"><CampaignPanel lang="ar" touch explorerRef={ref()} st={{ focus: 'ikhtarha' }} /></div>);
-    expect(screen.getByTestId('sr-ik-panel').textContent).toContain(IK.title.ar); expect(screen.getByTestId('sr-ik-price').getAttribute('href')).toMatch(/^\/booking/); expect(screen.getByTestId('sr-ik-play').textContent).toBe(IK.cta.play.ar);
+    expect(screen.getByTestId('sr-ik-panel').textContent).toContain(IK.title.ar); expect(screen.getByTestId('sr-ik-price').getAttribute('href')).toMatch(/^\/ar\/booking/); expect(screen.getByTestId('sr-ik-play').textContent).toBe(IK.cta.play.ar);
   });
   test('view chips and the back button call the explorer', () => {
     const calls = []; render(<CampaignPanel lang="en" touch={false} explorerRef={ref(calls)} st={{ focus: 'ikhtarha', focusView: 'overview' }} />);

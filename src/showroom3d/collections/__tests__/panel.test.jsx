@@ -45,7 +45,7 @@ describe('CollectionsPanel', () => {
   test('AR: Arabic name, description and labels; finish names and codes stay Latin (as on the site); arrows mirror; booking link is the /ar one', () => {
     render(<CollectionsPanel lang="ar" onClose={() => {}} />);
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('مجموعة 2023–2025'); expect(screen.getByTestId('sr-col-desc')).toHaveTextContent(col.description.ar);
-    expect(screen.getByTestId('sr-col-quote')).toHaveTextContent('اطلب عرض سعر'); expect(screen.getByTestId('sr-col-quote').getAttribute('href')).toMatch(/^\/booking\?/); expect(screen.getByTestId('sr-col-site')).toHaveTextContent('شاهدها على موقع يس القابضة');
+    expect(screen.getByTestId('sr-col-quote')).toHaveTextContent('اطلب عرض سعر'); expect(screen.getByTestId('sr-col-quote').getAttribute('href')).toMatch(/^\/ar\/booking\?/); expect(screen.getByTestId('sr-col-site')).toHaveTextContent('شاهدها على موقع يس القابضة');
     expect(screen.getByTestId('sr-col-name')).toHaveAttribute('dir', 'ltr'); const g = screen.getByTestId('sr-col-gallery');
     fireEvent.keyDown(g, { key: 'ArrowLeft' }); expect(screen.getByTestId('sr-col-name').textContent).toBe('Agostino Oak');
   });

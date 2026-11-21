@@ -64,7 +64,7 @@ describe('discovery flow and hand-off', () => {
   test('hand-off URLs: Arabic goes under /ar, user text never reaches the notes, every interest is an existing booking option', () => {
     const memory = { ...newMemory(), room: 'wardrobes', style: 'dark', budget: 'premium', finish: 'fluted-walnut' };
     const en = buildHandoff({ lang: 'en', memory }), ar = buildHandoff({ lang: 'ar', memory });
-    expect(en.startsWith('/booking?')).toBe(true); expect(ar.startsWith('/booking?')).toBe(true);
+    expect(en.startsWith('/booking?')).toBe(true); expect(ar.startsWith('/ar/booking?')).toBe(true);
     const bad = reply('<script>alert(1)</script> I want a kitchen', ctx()); expect(JSON.stringify(bad)).not.toMatch(/<script/);
     for (const r of ROOMS.filter((x) => x.product)) { const u = buildHandoff({ lang: 'en', memory: { ...newMemory(), room: r.id } }); expect(['Kitchen', 'Wardrobe', 'Doors', 'Other', 'Walk-In Closet', 'TV Unit']).toContain(new URL(u, 'https://x.test').searchParams.get('interest')); }
     expect(pickFinish('kitchen', 'dark').id).toMatch(/charcoal|walnut/);

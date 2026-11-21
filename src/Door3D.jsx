@@ -27,6 +27,7 @@ import {
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
+import guard3D from './safety/guard3d';
 /**
  * Door3D - standalone interactive, premium-looking 3D door.
  *
@@ -65,7 +66,7 @@ function mmToM(v, fallbackMm) {
   return Number.isFinite(m) && m > 0 ? m : fb;
 }
 
-export default function Door3D({
+function Door3D({
   materials = {},
   shape = 'shaker',
   activeSurface = null,
@@ -606,3 +607,5 @@ function applyMaterials(materials, mats, disposables, onChange) {
   });
   if (onChange) onChange();
 }
+
+export default guard3D(Door3D, 'door3d');

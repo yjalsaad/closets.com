@@ -67,7 +67,7 @@ describe('quote links and the existing entry points', () => {
       expect(u.pathname).toBe('/booking'); expect(u.searchParams.get('interest')).toBe(INTEREST[id]); expect(u.searchParams.get('finish')).toBe(f.id); expect(u.searchParams.get('notes')).toContain(f.en); expect(parseBookingPrefill(u.search).interest).toBe(INTEREST[id]); }
   });
   test('Arabic links go to /ar/booking; the lounge consultation note says consultation, not quotation', () => {
-    const ar = new URL(buildQuoteUrl({ product: 'lounge', productName: 'x', lang: 'ar', consult: true }), 'https://x.test'); expect(ar.pathname).toBe('/booking'); expect(ar.searchParams.get('notes')).toMatch(/استشارة/);
+    const ar = new URL(buildQuoteUrl({ product: 'lounge', productName: 'x', lang: 'ar', consult: true }), 'https://x.test'); expect(ar.pathname).toBe('/ar/booking'); expect(ar.searchParams.get('notes')).toMatch(/استشارة/);
     expect(new URL(buildQuoteUrl({ product: 'lounge', lang: 'en', consult: true }), 'https://x.test').searchParams.get('notes')).toMatch(/consultation request/);
   });
   test('studio links to the existing /studio route; lounge contact details come ONLY from content/facts.js', () => {

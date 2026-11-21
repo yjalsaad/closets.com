@@ -8,6 +8,10 @@
  * The page never knows the prizes: the reward arrives from ikh_reveal after the box is chosen.
  * ===========================================================================*/
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ModalPanel } from '../a11y/dialog';
+import FormNotice from '../privacy/FormNotice';
+import ConsentBanner from '../privacy/ConsentBanner';
+import { SkipLink } from '../a11y/RouteA11y';
 import './ikhtarha.css';
 import * as api from './api';
 import ScratchCard from './ScratchCard';
@@ -227,6 +231,8 @@ export default function IkhtarhaRoot() {
 
   return (
     <div className={'ik-root ik-phase-' + phase + ((B.hero_wide || B.hero_portrait) ? ' ik-kv-' + (B.hero_text_side === 'left' ? 'left' : 'right') : '')} dir={ar ? 'rtl' : 'ltr'} lang={ar ? 'ar' : 'en'} style={brandStyle(B)}>
+      <SkipLink lang={ar ? 'ar' : 'en'} />
+      <ConsentBanner lang={ar ? 'ar' : 'en'} />
       {api.DEMO && <div className="ik-demo" role="note">{ar ? 'معاينة تجريبية — الجوائز هنا ليست حقيقية' : 'Sample preview — prizes here are not real'}</div>}
       <header className="ik-head">
         <button type="button" className="ik-back" onClick={goBack} disabled={phase === 'revealing' || phase === 'checking'} aria-label={phase === 'hero' ? T('home', ar) : T('back', ar)} data-testid="ik-back">
@@ -266,7 +272,7 @@ export default function IkhtarhaRoot() {
       )}
 
       {phase === 'hero' && (
-        <main className="ik-hero">
+        <main id="main" tabIndex={-1} className="ik-hero">
           <p className="ik-eyebrow">{T('eyebrow', ar)}</p>
           {(() => { const kvLogo = (B.hero_wide || B.hero_portrait) && B.hero_has_logo; const name = gameName;
             return kvLogo ? <h1 className="ik-sr">{name}</h1>
@@ -283,7 +289,7 @@ export default function IkhtarhaRoot() {
       )}
 
       {(phase === 'form' || phase === 'checking') && (
-        <main className="ik-panel-wrap">
+        <main id="main" tabIndex={-1} className="ik-panel-wrap">
           <form className="ik-panel" onSubmit={submit} noValidate aria-busy={phase === 'checking'}>
             <h2>{T('formTitle', ar)}</h2>
             <p className="ik-muted">{T('formSub', ar)}</p>
@@ -291,6 +297,7 @@ export default function IkhtarhaRoot() {
             <label>{T('quote', ar)}<input value={form.quote_no} onChange={(e) => setForm({ ...form, quote_no: e.target.value })} dir="ltr" inputMode="text" autoCapitalize="characters" maxLength={40} required data-testid="ik-quote" /></label>
             {urlCode ? <div className="ik-codeok">✓ {T('codeOk', ar)} <code dir="ltr">{urlCode.slice(0, 4)}-••••-••••</code></div>
               : <label>{T('code', ar)}<input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} dir="ltr" autoCapitalize="characters" placeholder="XXXX-XXXX-XXXX" maxLength={20} required data-testid="ik-code" /></label>}
+            <FormNotice kind="request" lang={ar ? 'ar' : 'en'} />
             <input className="ik-hp" tabIndex={-1} autoComplete="off" value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} aria-hidden="true" />
             {msg && <div className={'ik-msg ik-msg-' + msg.kind} role={msg.kind === 'error' ? 'alert' : 'status'}>{msg.kind === 'info' && phase === 'checking' && <span className="ik-spin" />}{T(msg.key, ar)}</div>}
             <button type="submit" className="ik-btn ik-btn-primary ik-wide" disabled={phase === 'checking'} data-testid="ik-go">{phase === 'checking' ? T('checking', ar) : T('go', ar)}</button>
@@ -323,7 +330,7 @@ export default function IkhtarhaRoot() {
       )}
 
       {phase === 'error' && msg && (
-        <main className="ik-panel-wrap"><div className="ik-panel" role="alert"><h2>{T(msg.key, ar)}</h2>
+        <main id="main" tabIndex={-1} className="ik-panel-wrap"><div className="ik-panel" role="alert"><h2>{T(msg.key, ar)}</h2>
           {cfg.whatsapp && <a className="ik-btn ik-btn-ghost ik-wide" href={'https://wa.me/' + String(cfg.whatsapp).replace(/\D/g, '')} target="_blank" rel="noopener noreferrer">{T('whatsapp', ar)}</a>}
           <button type="button" className="ik-btn ik-btn-link ik-wide" onClick={goBack}>{T('restart', ar)}</button>
           <a className="ik-btn ik-btn-link ik-wide" href="/">{T('home', ar)}</a></div></main>
@@ -333,13 +340,13 @@ export default function IkhtarhaRoot() {
       <Confetti on={burst && phase === 'reward'} calm={cfg.reveal === 'glow'} />
 
       {how && (
-        <div className="ik-scrim" role="dialog" aria-modal="true" aria-label={T('how', ar)} onMouseDown={(e) => { if (e.target === e.currentTarget) setHow(false); }} onKeyDown={(e) => { if (e.key === 'Escape') setHow(false); }}>
-          <div className="ik-sheet">
+        <div className="ik-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) setHow(false); }}>
+          <ModalPanel className="ik-sheet" label={T('how', ar)} onClose={() => setHow(false)}>
             <h2>{T('how', ar)}</h2>
             <ol className="ik-how">{['how1', 'how2', 'how3', 'how4'].map((k, i) => <li key={k}><span>{i + 1}</span>{T(k, ar)}</li>)}</ol>
             <button type="button" className="ik-btn ik-btn-primary ik-wide" autoFocus onClick={() => { setHow(false); setPhase('form'); }}>{T('start', ar)}</button>
             <button type="button" className="ik-btn ik-btn-link" onClick={() => setHow(false)}>{T('close', ar)}</button>
-          </div>
+          </ModalPanel>
         </div>
       )}
     </div>
@@ -350,7 +357,7 @@ function RewardCard({ ar, reward: r, draws = { total: 1, remaining: 0, rewards: 
   const many = draws.rewards.length > 1; const totalDisc = draws.rewards.reduce((n, x) => n + (Number(x.discount_amount) || 0), 0);
   const desc = ar ? (r.description_ar || r.description_en) : (r.description_en || r.description_ar);
   return (
-    <main className="ik-reward-wrap">
+    <main id="main" tabIndex={-1} className="ik-reward-wrap">
       <article className="ik-reward" aria-labelledby="ik-congrats">
         {note && <p className="ik-msg ik-msg-info" role="status">{note}</p>}
         {logo && <img className="ik-reward-logo" src={logo} alt="" />}
@@ -406,7 +413,7 @@ function Verify({ ar, setLang, q }) {
   return (
     <div className="ik-root ik-phase-verify" dir={ar ? 'rtl' : 'ltr'}>
       <header className="ik-head"><a href="/" className="ik-back" aria-label={T('home', ar)}><span aria-hidden="true">{ar ? '→' : '←'}</span><em>{T('home', ar)}</em></a><a href="/" className="ik-logo"><img src="/brand/closets-logo-white.png" alt={T('brand', ar)} /></a><span className="ik-grow" /><button type="button" className="ik-lang" onClick={() => setLang(ar ? 'en' : 'ar')}>{ar ? 'EN' : 'ع'}</button></header>
-      <main className="ik-reward-wrap">
+      <main id="main" tabIndex={-1} className="ik-reward-wrap">
         <article className="ik-reward">
           <p className="ik-eyebrow">{T('verifyTitle', ar)}</p>
           {v === undefined ? <span className="ik-spin" /> : !v.ok ? <h1 className="ik-congrats">{T('vBad', ar)}</h1> : <>
