@@ -12,7 +12,7 @@ function AboutPage({ setPage = () => {} }) {
 
   // [FACTS] years / homes fitted / showroom count are contested in the source (docs/design/FACTS-TO-CONFIRM.md): shown only if the CMS supplies them.
   const STATS = [
-    { n: cms('about.stat1.n', ''), l: cms('about.stat1.l', '') },
+    { n: cms('about.stat1.n', FACTS.yearsOfCraft ? String(FACTS.yearsOfCraft) : ''), l: cms('about.stat1.l', FACTS.yearsOfCraft ? (lang==='ar' ? 'عامًا من الحرفية' : 'Years of craft') : '') },
     { n: cms('about.stat2.n', ''), l: cms('about.stat2.l', '') },
     { n: cms('about.stat3.n', ''), l: cms('about.stat3.l', '') },
     { n: cms('about.stat4.n', FACTS.warrantyYears + (lang==='ar' ? ' سنوات' : ' yr')), l: cms('about.stat4.l', lang==='ar' ? 'ضمان على كل قطعة' : 'Warranty on every piece') },

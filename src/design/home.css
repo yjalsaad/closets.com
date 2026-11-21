@@ -37,6 +37,8 @@ html[lang="ar"] .creds li { font-size: var(--fs-base); }
 .creds strong { font-family: var(--font-head); font-weight: 400; font-size: var(--fs-xl); color: var(--c-text); line-height: 1.1; }
 html[lang="ar"] .creds strong { font-family: var(--font-ar-display); font-weight: 600; }
 @media (min-width: 768px) { .creds { grid-template-columns: repeat(3, 1fr); gap: var(--space-7); } }
+@media (min-width: 768px) { .creds--4 { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .creds--4 { grid-template-columns: repeat(4, 1fr); } }
 
 /* section heading row */
 .sec-head { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--space-5); flex-wrap: wrap; margin-bottom: var(--space-7); }

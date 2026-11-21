@@ -445,3 +445,4 @@ Also elevated (still App.js only): warm-tinted card-hover shadow (was cool `rgba
 ---
 
 **Process:** Any visual decision that deviates from this document requires explicit approval and a Decisions Log entry. In code review, flag tokens-vs-hardcodes, off-scale radii/spacing, multiple primary CTAs per section, and missing `aria-label`/`alt`. New components must consume `var(--*)` from `:root` — never declare their own scale.
+- **2026-11-21 · Copy polish.** Headlines carry no closing period (one-sentence `.title` values are trimmed in `cms()`; the home section titles in `strings.js` were edited). No em dashes in interface copy, English or Arabic: a comma, or a colon after a label. No exclamation marks. `FACTS.yearsOfCraft` is 20 by owner decision and shows on the home credentials row and the About figures.
