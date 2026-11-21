@@ -45,3 +45,7 @@ and the audit; where something is not known it is listed under "Decisions needed
 | Legal wording, vendor list, retention, controller identity | **Not done: owner decision** | see above |
 | Consent in `/studio` after sign-in, games / campaign flows with real data | Not verified | shells load with the banner; end-to-end flows need real backend |
 | GA4 behaviour | Not verified | placeholder id, GA never loads |
+
+
+## 2026-11-21 — Privacy policy and Terms published (Bahrain law)
+Full EN/AR text written in `src/privacy/LegalPages.jsx` under PDPL (Law 30/2018), Consumer Protection (Law 35/2012). `noindex` removed; both routes are indexable. Vendors named from the code: Supabase, MyFatoorah, Anthropic, fal.ai, Resend, Twilio/WhatsApp. Retention is stated as principles (no numbers). Owner to confirm: CR number on invoices, the 10-year warranty wording, retention periods, and have a Bahrain lawyer review the text before relying on it.
