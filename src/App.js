@@ -5,7 +5,6 @@ import { LangLink as Link, LangContext } from './seo/lang'; // [SEO] <Link> that
 import { useRouteHead } from './seo/head';
 import { ENABLE_AR_URLS } from './seo/siteConfig';
 import { splitLangPath, withLang, isKnownPage, LEGACY_REDIRECTS } from './seo/routes';
-import NotFound from './seo/NotFound';
 import FooterSitemap from './seo/FooterSitemap';
 import { formatBHD } from './i18n/format';
 import { SkipLink, RouteAnnouncer } from './a11y/RouteA11y'; // [A11Y] skip link + route-change focus/announce
@@ -3783,8 +3782,9 @@ function AppInner() {
   // [SEO] Language lives in the URL (/ar/...) when ENABLE_AR_URLS; the rest of the path is language-neutral.
   const urlInfo = splitLangPath(location.pathname);
   const barePath = urlInfo.path;
-  const page = pathToPage(barePath);
-  const notFound = !isKnownPage(page);
+  // Unknown paths show the home page (the same thing a direct load of an unknown URL gets: Vercel serves index.html).
+  const routedPage = pathToPage(barePath);
+  const page = isKnownPage(routedPage) ? routedPage : 'home';
   useEffect(() => { if (/^\/(ar\/)?yas-bloom(\/|$)/i.test(location.pathname) || /^\/(studio|visualizer)(\/|$)/i.test(location.pathname)) window.location.reload(); }, [location.pathname]); // [WEB-STUDIO] the studio is its own app shell (src/index.js)
   const [legacyLang, setLegacyLang] = useState(() => { try { return localStorage.getItem('closets_lang') || 'en'; } catch { return 'en'; } });
   const lang = ENABLE_AR_URLS ? urlInfo.lang : legacyLang;
@@ -3837,8 +3837,8 @@ function AppInner() {
     }
   }, [lang]);
   // [SEO] Per-route head (title, description, canonical, hreflang, og:*, twitter:*, robots, JSON-LD) — src/seo/head.js.
-  // The prerender snapshots exactly what this writes. Unknown URLs get the noindex NotFound head.
-  useRouteHead(notFound ? null : (barePath === '/cart' ? 'cart' : page), lang);
+  // The prerender snapshots exactly what this writes. Unknown URLs get the home page's head.
+  useRouteHead(barePath === '/cart' ? 'cart' : page, lang);
   // ── Global scroll-reveal observer (premium motion layer). Re-scans on route change.
   // Adds `.in` to `.reveal` elements as they enter the viewport; marks already-visible
   // ones immediately so above-the-fold content is never left hidden. Honours reduced-motion.
@@ -3922,7 +3922,6 @@ function AppInner() {
       {page!=='portal' && <Nav page={page} setPage={setPage} cart={cart} setCartOpen={setCartOpen} user={user} openAuth={openAuth} siteLogo={siteLogo} lang={lang} setLang={setLang} />}
       <main id="main" tabIndex={-1} style={{ outline: 'none' }}>
       <SectionBoundary name={'route:' + page} resetKey={page}>
-      {notFound && <NotFound lang={lang} />}
       {page==='home' && <HomePage user={user} banners={banners} siteLogo={siteLogo} products={products} testimonials={testimonials} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
       {page==='products' && <ProductsPage products={products} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}
       {productId && <ProductDetailPage productId={productId} products={products} setPage={setPage} addToCart={addToCart} setConfigProduct={setConfigProduct} />}

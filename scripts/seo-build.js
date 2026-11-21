@@ -4,7 +4,6 @@
  *   - sitemap.xml  (every indexable route, EN + AR, with xhtml:link hreflang alternates, lastmod = build date)
  *   - robots.txt   (Sitemap: line from SITE_URL; noindex-by-design areas disallowed)
  *   - index.html   (__SITE_URL__ placeholder -> SITE_URL)
- *   - 404.html     (copy of the shell; the prerender later replaces it with the rendered NotFound page)
  * Everything is derived from src/seo/routes.js + src/seo/siteConfig.js (single source of truth).
  */
 const fs = require('fs');
@@ -49,7 +48,6 @@ function main() {
   const idxPath = path.join(BUILD_DIR, 'index.html');
   const html = fs.readFileSync(idxPath, 'utf8').split('__SITE_URL__').join(SITE_URL);
   fs.writeFileSync(idxPath, html);
-  fs.writeFileSync(path.join(BUILD_DIR, '404.html'), html);
-  console.log('[seo-build] SITE_URL=' + SITE_URL + ' AR_URLS=' + ENABLE_AR_URLS + ' -> sitemap.xml (' + INDEXABLE.length * (ENABLE_AR_URLS ? 2 : 1) + ' urls), robots.txt, 404.html');
+  console.log('[seo-build] SITE_URL=' + SITE_URL + ' AR_URLS=' + ENABLE_AR_URLS + ' -> sitemap.xml (' + INDEXABLE.length * (ENABLE_AR_URLS ? 2 : 1) + ' urls), robots.txt');
 }
 main();

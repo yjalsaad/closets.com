@@ -4,7 +4,7 @@
  *   BUILD_PATH=/tmp/webbuild node scripts/seo-check.js
  * Exits non-zero on any failure. No network: it only reads files in the build dir + vercel.json.
  * Checks: per-route title/description/canonical/hreflang/og/twitter/robots/JSON-LD, exactly one <h1>, real <a href> links,
- * <html lang dir>, unique titles, sitemap <-> files, robots.txt, 404.html, vercel.json routing table, no foreign origins, no raw i18n keys.
+ * <html lang dir>, unique titles, sitemap <-> files, robots.txt, vercel.json routing table, no foreign origins, no raw i18n keys.
  */
 const fs = require('fs');
 const path = require('path');
@@ -27,7 +27,7 @@ function resolveRoute(p) {
   if (fs.existsSync(fileFor(p))) return 'static';
   for (const r of vercel.redirects || []) if (toRe(r.source).test(p)) return 'redirect:' + r.destination;
   for (const r of vercel.rewrites || []) if (toRe(r.source).test(p)) return 'rewrite:' + r.destination;
-  return '404';
+  return 'unresolved';
 }
 
 // ---- pages ----------------------------------------------------------------------------------------
@@ -99,17 +99,6 @@ for (const e of INDEXABLE) for (const L of langs) {
   if (foreign.length) bad(tag + 'foreign origin(s): ' + [...new Set(foreign)].join(', '));
 }
 
-// ---- 404 page ---------------------------------------------------------------------------------------
-{
-  const f = path.join(BUILD_DIR, '404.html');
-  if (!fs.existsSync(f)) bad('404.html missing');
-  else { const d = dom(f); const doc = d.window.document;
-    if (!/noindex/.test(meta(d, 'meta[name="robots"]') || '')) bad('404.html not noindex');
-    if (doc.head.querySelector('link[rel="canonical"]')) bad('404.html must not have a canonical');
-    if (doc.body.querySelectorAll('h1').length !== 1) bad('404.html needs one h1');
-    if (doc.querySelectorAll('[data-not-found] a[href]').length < 8) bad('404.html needs helpful links');
-  }
-}
 // ---- noindex pages must not be in sitemap; sitemap <-> files -----------------------------------------------
 {
   const sm = fs.readFileSync(path.join(BUILD_DIR, 'sitemap.xml'), 'utf8');
@@ -135,14 +124,15 @@ for (const e of INDEXABLE) for (const L of langs) {
   for (const s of ['/studio', '/studio/kitchen', '/visualizer', '/visualizer/room/living', '/campaign/ikhtarha', '/ikhtarha/games']) { const r = resolveRoute(s); if (r !== 'rewrite:/app-shell.html') bad('shell route ' + s + ' -> ' + r); }
   // YAS Bloom (main): its own lean shell (public/yas-bloom/shell.html, made by scripts/bloom-shell.js), incl. the device-only /yas-bloom/study page
   for (const s of ['/yas-bloom', '/ar/yas-bloom', '/yas-bloom/study', '/ar/yas-bloom/study']) { const r = resolveRoute(s); if (r !== 'rewrite:/yas-bloom/shell.html') bad('showroom route ' + s + ' -> ' + r); }
-  for (const s of ['/does-not-exist', '/ar/does-not-exist', '/kitchen/extra']) if (resolveRoute(s) !== '404') bad('unknown route ' + s + ' must be a real 404, got ' + resolveRoute(s));
   if (!fs.existsSync(path.join(BUILD_DIR, 'app-shell.html'))) bad('app-shell.html missing');
   else if (/data-prerender-path/.test(fs.readFileSync(path.join(BUILD_DIR, 'app-shell.html'), 'utf8'))) bad('app-shell.html is not the pristine shell');
-  // every internal link found on prerendered pages must resolve (static / redirect / rewrite), never 404
-  for (const l of sampleLinks) { if (resolveRoute(l) === '404' && !/\.[a-z0-9]+$/i.test(l)) bad('internal link ' + l + ' would 404'); }
+  // every internal link found on prerendered pages must point at a known page, static file, redirect or rewrite
+  // (an unknown path would only show the home page)
+  const knownPaths = new Set(); for (const p of PAGES) for (const L of langs) knownPaths.add(withLang(p.path, L));
+  for (const l of sampleLinks) { if (resolveRoute(l) === 'unresolved' && !knownPaths.has(l) && !/\.[a-z0-9]+$/i.test(l)) bad('internal link ' + l + ' does not resolve to a known page, file, redirect or rewrite'); }
 }
 
-console.log('[seo-check] pages checked: ' + INDEXABLE.length * langs.length + ' (+404), internal link targets: ' + sampleLinks.size);
+console.log('[seo-check] pages checked: ' + INDEXABLE.length * langs.length + ', internal link targets: ' + sampleLinks.size);
 notes.forEach((n) => console.log('  note: ' + n));
 if (errors.length) { console.error('[seo-check] FAILED (' + errors.length + '):\n  ' + errors.join('\n  ')); process.exit(1); }
 console.log('[seo-check] OK');

@@ -3,8 +3,8 @@
  * Static prerender for the CRA SPA (SEO). Runs as `postbuild` (after scripts/seo-build.js).
  *
  * Serves the freshly built app from a tiny in-process static server, drives headless Chromium over every
- * indexable route in BOTH languages (/kitchen and /ar/kitchen, ...) plus the NotFound page, and writes the
- * rendered HTML to <build>/<route>/index.html (and <build>/404.html). The head (title, description, canonical,
+ * indexable route in BOTH languages (/kitchen and /ar/kitchen, ...) and writes the
+ * rendered HTML to <build>/<route>/index.html. The head (title, description, canonical,
  * hreflang, og:*, twitter:*, robots, JSON-LD) is whatever src/seo/head.js wrote while the app rendered, so the
  * static HTML and the client-side head can never disagree.
  *
@@ -35,7 +35,7 @@ const BUILD_DIR = path.resolve(process.cwd(), process.env.BUILD_PATH || 'build')
 const REQUIRED = process.env.PRERENDER_REQUIRED === '1' || (process.env.PRERENDER_REQUIRED !== '0' && !!process.env.VERCEL);
 const ALLOW_NETWORK = process.env.PRERENDER_ALLOW_NETWORK === '1';
 const CONCURRENCY = Math.max(1, parseInt(process.env.PRERENDER_CONCURRENCY || '2', 10));
-const ONLY = (process.env.PRERENDER_ONLY || '').split(',').map((s) => s.trim()).filter(Boolean); // e.g. "/,/kitchen,404" (debug)
+const ONLY = (process.env.PRERENDER_ONLY || '').split(',').map((s) => s.trim()).filter(Boolean); // e.g. "/,/kitchen" (debug)
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
@@ -179,15 +179,14 @@ async function renderJob(browser, base, job) {
   const shellFile = path.join(BUILD_DIR, 'app-shell.html');
   if (!fs.existsSync(shellFile)) fs.copyFileSync(indexHtml, shellFile);
 
-  // jobs: every indexable route x language, plus the 404 page
+  // jobs: every indexable route x language
   const jobs = [];
   const langs = ENABLE_AR_URLS ? ['en', 'ar'] : ['en'];
   for (const e of INDEXABLE) for (const L of langs) {
     const url = withLang(e.path, L);
     jobs.push({ url, marker: url, lang: L, out: url === '/' ? 'index.html' : path.join(url.slice(1), 'index.html'), expect: buildHead(e.page, L) });
   }
-  jobs.push({ url: '/this-page-does-not-exist', marker: '*404*', lang: 'en', out: '404.html', expect: buildHead(null, 'en') });
-  const todo = ONLY.length ? jobs.filter((j) => ONLY.includes(j.url) || (j.out === '404.html' && ONLY.includes('404'))) : jobs;
+  const todo = ONLY.length ? jobs.filter((j) => ONLY.includes(j.url)) : jobs;
 
   let browser;
   try { browser = await launchBrowser(); } catch (e) { return fail(e.message); }
