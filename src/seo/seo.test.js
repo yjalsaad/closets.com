@@ -52,9 +52,12 @@ describe('head + JSON-LD', () => {
       expect(biz.telephone).toBe('+973 17555095');
     }));
   });
-  test('unknown page -> noindex, no canonical; dynamic CMS pages are known', () => {
-    const nf = buildHead(null, 'en');
-    expect(nf.robots).toMatch(/noindex/); expect(nf.canonical).toBeNull();
+  test('unknown page -> the home page head (no noindex 404 head); dynamic CMS pages are known', () => {
+    ['en', 'ar'].forEach((L) => {
+      expect(buildHead(null, L)).toEqual(buildHead('home', L));
+      expect(buildHead('does-not-exist', L)).toEqual(buildHead('home', L));
+    });
+    expect(buildHead(null, 'en').robots).not.toMatch(/noindex/);
     expect(isKnownPage('does-not-exist')).toBe(false);
     expect(isKnownPage('product-123')).toBe(true);
   });
@@ -76,7 +79,7 @@ describe('language URLs', () => {
       expect(r && r.destination).toBe(to); expect(r.permanent).toBe(true);
     });
   });
-  test('no catch-all rewrite (unknown URLs must 404)', () => {
+  test('no catch-all rewrite in vercel.json', () => {
     expect(vercel.rewrites.some((r) => r.source === '/(.*)')).toBe(false);
   });
 });

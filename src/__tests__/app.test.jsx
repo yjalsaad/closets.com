@@ -2,6 +2,7 @@
 import { render, screen, act, waitFor, within, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from '../App';
+import { buildHead } from '../seo/routes';
 
 let calls;
 function mockNet(overrides = {}) {
@@ -46,6 +47,14 @@ describe('shell', () => {
     const priv = within(footer).getAllByRole('link', { name: /privacy/i });   // legal row + the notice under the newsletter field
     priv.forEach((a) => expect(a).toHaveAttribute('href', '/privacy'));
     expect(footer.innerHTML).not.toMatch(/closets-hub\.vercel\.app\/(privacy|terms)/);
+  });
+  test('an unknown path shows the home page with the home head: no "Page not found" page, no noindex', async () => {
+    mockNet(); go('/does-not-exist'); render(<App />);
+    const home = buildHead('home', 'en');
+    await waitFor(() => expect(document.title).toBe(home.title));
+    expect(screen.queryByText(/page not found/i)).toBeNull();
+    expect(document.querySelector('[data-not-found]')).toBeNull();
+    expect(document.querySelector('meta[name="robots"]').getAttribute('content')).not.toMatch(/noindex/);
   });
   test('the consent banner appears when nothing was chosen yet', async () => {
     localStorage.clear(); mockNet(); go('/faq'); render(<App />);

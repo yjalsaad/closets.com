@@ -22,8 +22,8 @@ function HydrationDone() { React.useEffect(() => { hydration.active = false; }, 
 
 // [WEB-STUDIO 2026-10-31] /studio/* = the Neo Design Studio (the 8 Bonsai Neo designers for signed-in customers): its own lazy chunk,
 // mounted instead of the marketing site so the designers get the full screen.
-// [SEO] Prerendered HTML carries data-prerender-path (the URL it was rendered for). If this URL differs (404.html served for a
-// route the rewrite table missed, a mixed-case path, ...) do NOT hydrate: drop the static markup and mount fresh.
+// [SEO] Prerendered HTML carries data-prerender-path (the URL it was rendered for). If this URL differs (the home page served for
+// an unknown URL, a mixed-case path, ...) do NOT hydrate: drop the static markup and mount fresh.
 const preMarker = container.getAttribute('data-prerender-path');
 if (preMarker !== null && preMarker !== ((window.location.pathname || '/').replace(/\/+$/, '') || '/')) container.innerHTML = '';
 

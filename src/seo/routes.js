@@ -98,11 +98,6 @@ const PAGES = [
   { page: 'directory', path: '/directory', index: false, meta: { en: ['Directory — The Closets Co.', 'Pages directory.'], ar: ['الدليل — ذا كلوزتس', 'دليل الصفحات.'] } },
 ];
 
-const NOT_FOUND_META = {
-  en: ['Page not found — The Closets Co.', 'The page you are looking for does not exist or has moved. Browse our kitchens, wardrobes and storage instead.'],
-  ar: ['الصفحة غير موجودة — ذا كلوزتس', 'الصفحة التي تبحث عنها غير موجودة أو تم نقلها. تصفّح المطابخ والخزائن وحلول التخزين لدينا.'],
-};
-
 /** Legacy / duplicate paths -> canonical path. Used for 301s in vercel.json AND the client-side redirect. */
 const LEGACY_REDIRECTS = {
   '/home': '/', '/kitchens': '/kitchen', '/wardrobe': '/wardrobes', '/tv-units': '/tv', '/door': '/doors',
@@ -178,18 +173,14 @@ function jsonLdFor(entry, lang) {
 
 /**
  * buildHead(page, lang) -> everything that belongs in <head> for that route/language.
- * page === null => the NotFound page.
+ * An unknown page id (or null) gets the home page's head: unknown URLs show the home page.
  */
 function buildHead(page, lang) {
   const L = lang === 'ar' ? 'ar' : 'en';
-  const entry = page === null ? null : BY_PAGE[page];
-  if (!entry && isKnownPage(page)) { // dynamic CMS pages (product-<id>, cat:<name>): noindex until a CMS-driven sitemap exists
+  if (!isKnownPage(page)) page = 'home';
+  const entry = BY_PAGE[page];
+  if (!entry) { // dynamic CMS pages (product-<id>, cat:<name>): noindex until a CMS-driven sitemap exists
     const [title, description] = BY_PAGE.home.meta[L];
-    return { title, description, robots: 'noindex, follow', canonical: null, alternates: [], lang: L, indexable: false,
-      og: ogFor(title, description, null, L), jsonld: null };
-  }
-  if (!entry) { // not found (unknown page id)
-    const [title, description] = NOT_FOUND_META[L];
     return { title, description, robots: 'noindex, follow', canonical: null, alternates: [], lang: L, indexable: false,
       og: ogFor(title, description, null, L), jsonld: null };
   }
@@ -210,11 +201,11 @@ function ogFor(title, description, url, L) {
     localeAlt: ENABLE_AR_URLS ? (L === 'ar' ? 'en_US' : 'ar_AR') : null, siteName: BRAND[L] };
 }
 
-/** Is this page id something the router renders (vs. the NotFound page)? */
+/** Is this page id something the router renders (vs. an unknown path, which shows the home page)? */
 function isKnownPage(page) {
   if (!page) return false;
   if (BY_PAGE[page]) return true;
   return /^(product-|cat:)/.test(page);
 }
 
-module.exports = { PAGES, BY_PAGE, INDEXABLE, LANGS, LEGACY_REDIRECTS, NOT_FOUND_META, BRAND, splitLangPath, withLang, absUrl, buildHead, isKnownPage };
+module.exports = { PAGES, BY_PAGE, INDEXABLE, LANGS, LEGACY_REDIRECTS, BRAND, splitLangPath, withLang, absUrl, buildHead, isKnownPage };

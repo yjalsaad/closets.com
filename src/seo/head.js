@@ -56,7 +56,7 @@ export function applyHead(head, doc) {
   }
 }
 
-/** page === null renders the NotFound head (noindex). */
+/** An unknown page id (or null) renders the home page's head. */
 export function useRouteHead(page, lang) {
   useEffect(() => { try { applyHead(buildHead(page, lang)); } catch (e) { /* non-DOM env */ } }, [page, lang]);
 }

@@ -3,7 +3,7 @@
 semantic colours, container wrapper). Only touches JS style-object syntax (property: 'literal'); HTML template strings (print/PDF
 windows, which cannot resolve CSS variables) are untouched because their colours are not standalone quoted tokens."""
 import re, sys, glob
-files = ['src/App.js'] + [f for f in glob.glob('src/pages/*.jsx') if not f.endswith('unused.jsx')] + glob.glob('src/privacy/*.jsx') + ['src/seo/NotFound.jsx', 'src/seo/FooterSitemap.jsx']
+files = ['src/App.js'] + [f for f in glob.glob('src/pages/*.jsx') if not f.endswith('unused.jsx')] + glob.glob('src/privacy/*.jsx') + ['src/seo/FooterSitemap.jsx']
 RAD = lambda n: ('xs' if n <= 2 else 'sm' if n <= 9 else 'md' if n <= 12 else 'lg' if n <= 16 else 'xl' if n <= 28 else 'pill')
 HEX = {
   '#86868b': 'var(--shop-muted)', '#1d1d1f': 'var(--shop-ink)', '#e6e6e6': 'var(--shop-line)', '#ececec': 'var(--shop-line)', '#f5f5f7': 'var(--shop-fill)',
