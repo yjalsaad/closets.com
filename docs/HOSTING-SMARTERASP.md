@@ -6,6 +6,9 @@ The site is a static build (no server code), so it runs on IIS with one generate
 - `scripts/iis-webconfig.js` generates `web.config` from `vercel.json`, so redirects, rewrites and headers stay the same on both hosts. Edit `vercel.json`, never `web.config`.
 - `.github/workflows/deploy-smarterasp.yml` builds and uploads over FTPS. It runs only when started by hand and needs the secrets `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD`.
 
+## Where it goes
+The FTP login (`yasholdingit-001` on `win1008.site4now.net`) opens the whole hosting account, which holds several sites. The website's folder is `/THE-CLOSETS/`; the workflow uploads there by default.
+
 ## Differences from Vercel
 - The report-only Content-Security-Policy header is not carried over (it blocks nothing on Vercel either).
 - Unknown paths show the home page with status 200.

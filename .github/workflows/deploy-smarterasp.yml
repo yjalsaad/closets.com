@@ -10,8 +10,8 @@ on:
         default: https://the-closets.com
         required: true
       server_dir:
-        description: Folder on the FTP server (the site root; must end with /)
-        default: ./
+        description: Folder on the FTP server (the site root; must end with /). The FTP login opens the whole account, so never use ./
+        default: /THE-CLOSETS/
         required: true
 permissions:
   contents: read
