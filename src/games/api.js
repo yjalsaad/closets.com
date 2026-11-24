@@ -23,7 +23,8 @@ const SAMPLE = [
   { type: 'none', value: 0, name_ar: 'حظ أوفر المرة القادمة', name_en: 'Better luck next time' },
 ];
 const demoPlays = {}; let demoName = 'Guest';
-const demoGames = () => GAME_IDS.map((id, i) => ({ id, enabled: true, sort: i, attempts: 1, used: demoPlays[id] ? 1 : 0, state: demoPlays[id] ? 'played' : 'available' }));
+const demoAny = () => Object.values(demoPlays)[0] || null;   // one game per mobile number: after one play every game is closed
+const demoGames = () => GAME_IDS.map((id, i) => ({ id, enabled: true, sort: i, attempts: 1, used: demoPlays[id] ? 1 : 0, state: demoAny() ? 'played' : 'available' }));
 const later = (ms, v) => new Promise((r) => setTimeout(() => r(v), ms));
 
 export const hub = () => (DEMO ? later(200, { live: true, require_quote: false, name_ar: 'اختارها', name_en: 'Ikhtarha', games: demoGames(), brand: {}, min_purchase: 500 }) : rpc('ikg_hub'));
@@ -31,12 +32,12 @@ export const enter = (p) => (DEMO
   ? later(600, { ok: true, token: 'demo', first_name: (demoName = String((p && p.name) || 'Guest').trim().split(/\s+/)[0]), quote_no: (p && p.quote_no) || null, phone_tail: String((p && p.phone) || '').replace(/\D/g, '').slice(-4) || '2233', games: demoGames() })
   : rpc('ikg_enter', { p }));
 export const state = (token) => (DEMO
-  ? later(150, { ok: true, games: demoGames(), wins: Object.values(demoPlays).filter((x) => x.won), first_name: demoName, quote_no: null, phone_tail: '2233', live: true })
+  ? later(150, { ok: true, games: demoGames(), already: demoAny(), wins: Object.values(demoPlays).filter((x) => x.won), first_name: demoName, quote_no: null, phone_tail: '2233', live: true })
   : rpc('ikg_state', { p: { token } }));
 export const gamePrizes = (token, game) => (DEMO ? later(150, { ok: true, prizes: SAMPLE.map((x, i) => ({ ...x, id: 'demo-' + i })) }) : rpc('ikg_game_prizes', { p: { token, game } }));
 export const play = (token, game, pick) => {
   if (!DEMO) return rpc('ikg_play', { p: { token, game, pick } });
-  if (demoPlays[game]) return later(300, { ok: false, state: 'no_attempts', last: demoPlays[game] });
+  if (demoAny()) return later(300, { ok: false, state: 'already_played', last: demoAny(), games: demoGames() });
   const i = Math.floor(Math.random() * SAMPLE.length); const s = SAMPLE[i];
   const won = s.type !== 'none';
   const res = { ...s, game, won, prize_id: 'demo-' + i, code: won ? 'SAMPLE-' + new Date().getFullYear() + '-00000' + (Object.keys(demoPlays).length + 1) : null,

@@ -27,6 +27,9 @@ const S = {
   rate_limited: ['Too many tries. Please wait a few minutes.', 'محاولات كثيرة. انتظر بضع دقائق من فضلك.'], failed: ['Connection failed. Please try again.', 'تعذّر الاتصال. حاول مرة أخرى.'],
   session: ['Your session ended. Please enter again.', 'انتهت جلستك. ادخل مرة أخرى من فضلك.'], sold_out: ['All prizes for this game have been given out.', 'تم توزيع جميع جوائز هذه اللعبة.'],
   no_attempts: ['You have already played this game.', 'لقد لعبت هذه اللعبة مسبقًا.'], locked: ['This game isn’t available right now.', 'هذه اللعبة غير متاحة حاليًا.'],
+  already_played: ['You have already played. Each mobile number gets one game only.', 'لقد لعبت مسبقًا. كل رقم جوال له لعبة واحدة فقط.'],
+  onceWon: ['You already played and won. Show your code at The Closets when you order. No other game is available for this number.', 'سبق أن لعبت وفزت. اعرض رمزك في الخزائن عند الطلب. لا توجد ألعاب أخرى متاحة لهذا الرقم.'],
+  onceLost: ['You have already played — no game is available for you. One game per mobile number.', 'لقد لعبت مسبقًا — لا توجد لعبة متاحة لك. لعبة واحدة لكل رقم جوال.'],
   busy: ['Busy — please try again.', 'مشغول — حاول مرة أخرى.'], invalid_game: ['This game doesn’t exist.', 'هذه اللعبة غير موجودة.'],
   hello: ['Hello, {n}', 'أهلًا {n}'], play: ['Play now', 'العب الآن'], played: ['Played', 'تم اللعب'], lockedS: ['Locked', 'مقفلة'], available: ['Available', 'متاحة'],
   left: ['{n} left', 'متبقي {n}'], back: ['Back to games', 'العودة للألعاب'], how: ['How to play', 'طريقة اللعب'], sound: ['Sound', 'الصوت'],
@@ -116,7 +119,7 @@ export default function GamesRoot() {
         {hub === undefined ? <div className="ikg-center"><span className="ikg-spin" aria-label={t('loading', ar)} /></div>
           : !hub ? <Notice ar={ar} k="failed" onRetry={() => { setHub(undefined); api.hub().then(setHub).catch(() => setHub(null)); }} />
           : !hub.live ? <Notice ar={ar} k="closed" />
-          : !sess ? <Enter ar={ar} msg={msg} req={!!hub.require_quote} onIn={(s) => { api.saveSession(s); setMsg(null); setSess(s); setSt({ ok: true, games: s.games, wins: [], first_name: s.first_name, quote_no: s.quote_no, phone_tail: s.phone_tail }); }} />
+          : !sess ? <Enter ar={ar} msg={msg} req={!!hub.require_quote} onIn={(s) => { api.saveSession(s); setMsg(null); setSess(s); setSt({ ok: true, games: s.games, wins: s.already && s.already.won ? [s.already] : [], already: s.already || null, first_name: s.first_name, quote_no: s.quote_no, phone_tail: s.phone_tail }); }} />
           : game ? <Play ar={ar} game={game} sess={sess} st={st} hub={hub} onBack={() => { refresh(); nav(null); }} onRefresh={refresh} />
           : <Hub ar={ar} st={st} onPlay={nav} onOut={() => { api.clearSession(); setSess(null); setSt(null); }} />}
       </main>
@@ -177,6 +180,12 @@ function Hub({ ar, st, onPlay, onOut }) {
         <h1 className="ikg-display">{t('title', ar)}</h1>
         <p className="ikg-lead">{t('sub', ar)}</p>
       </div>
+      {st.already && (
+        <div className="ikg-panel ikg-notice" role="status" data-testid="ikg-already">
+          <h2>{t(st.already.won ? 'onceWon' : 'onceLost', ar)}</h2>
+          {st.already.won && <p><b dir="auto">{valueText(st.already, ar)}</b> {ar ? st.already.name_ar : st.already.name_en} <code dir="ltr">{st.already.code}</code></p>}
+        </div>
+      )}
       <div className="ikg-grid">
         {games.map((g, i) => { const [name, desc] = ar ? g.def.ar : g.def.en; const left = Math.max(0, g.attempts - g.used);
           return (
@@ -211,8 +220,9 @@ function Play({ ar, game, sess, st, hub, onBack, onRefresh }) {
   const onPlay = useCallback((pick) => api.play(sess.token, game.id, pick), [sess, game]);
   const onDone = useCallback((r) => {
     if (r && r.ok) { setResult(r.result); onRefresh(); }
+    else if (r && r.state === 'already_played') { onBack(); }   // one game per mobile number: back to the hub, which says what was already won
     else { setErr((r && r.state) || 'failed'); if (r && r.state === 'no_attempts' && r.last) setResult(r.last); }
-  }, [onRefresh]);
+  }, [onRefresh, onBack]);
   const [name, , how] = ar ? game.ar : game.en; const G = game.C;
   const blocked = g && g.state !== 'available' && !result;
   return (
@@ -225,7 +235,7 @@ function Play({ ar, game, sess, st, hub, onBack, onRefresh }) {
       </div>
       <div className="ikg-stage">
         {result ? <Result ar={ar} r={result} onBack={onBack} />
-          : blocked ? <div className="ikg-panel ikg-notice"><h2>{t(g.state === 'played' ? 'no_attempts' : 'locked', ar)}</h2><button type="button" className="ikg-btn ikg-btn-main" onClick={onBack}>{t('back', ar)}</button></div>
+          : blocked ? <div className="ikg-panel ikg-notice"><h2>{t(st && st.already ? 'already_played' : g.state === 'played' ? 'no_attempts' : 'locked', ar)}</h2><button type="button" className="ikg-btn ikg-btn-main" onClick={onBack}>{t('back', ar)}</button></div>
           : err ? <div className="ikg-panel ikg-notice" role="alert"><h2>{t(err, ar)}</h2><div className="ikg-row">
               {['busy', 'failed'].includes(err) && <button type="button" className="ikg-btn ikg-btn-main" onClick={() => { setErr(null); setKey((k) => k + 1); }}>{t('retry', ar)}</button>}
               <button type="button" className="ikg-btn ikg-btn-ghost" onClick={onBack}>{t('back', ar)}</button></div></div>

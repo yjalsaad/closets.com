@@ -46,7 +46,6 @@ function PortfolioPage({ setPage }) {
       : (()=>{ const initials=(p.name||'?').replace(/[^A-Za-z0-9 ]/g,'').split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'•';
           return (<div style={{ width:'100%', height:'100%', position:'relative', background:'radial-gradient(120% 100% at 20% 0%, #FFF3EA 0%, #F6F6F8 55%, #EAF6F4 100%)', display:'grid', placeItems:'center' }}>
             <div style={{ fontSize:56, fontWeight:800, letterSpacing:'-.05em', color:'var(--clay)', opacity:.22 }}>{initials}</div>
-            <img src="/brand/bonsai-mark.svg" alt="" style={{ position:'absolute', right:14, top:14, width:24, height:24, opacity:.5 }} />
           </div>); })();
     return (<div className="pf-cover" style={{ position:'relative', aspectRatio:'4 / 3', background:'#f2f2f4' }}>
       {p.before_url && p.after_url ? <BeforeAfter before={p.before_url} after={p.after_url} /> : inner}
