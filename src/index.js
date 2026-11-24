@@ -41,7 +41,6 @@ const GamesRoot = React.lazy(() => import('./games/GamesRoot'));
 // [YAS-BLOOM] /yas-bloom (+ /ar/yas-bloom; /showroom-3d redirects here) = the cinematic virtual showroom: its own lazy chunk (three + gsap load only there), full-screen shell
 if (isLegacyShowroomPath(window.location.pathname)) { try { window.history.replaceState(window.history.state, '', canonicalShowroomPath(window.location.pathname) + window.location.search + window.location.hash); } catch (e) { /* ignore */ } }   // old /showroom-3d links land on /yas-bloom
 const isShowroom = isShowroomPath(window.location.pathname);
-const BloomGate = React.lazy(() => import(/* webpackChunkName: "bloomgate" */ './showroom3d/BloomGate'));
 const ShowroomRoot = React.lazy(() => import(/* webpackChunkName: "showroom3d" */ './showroom3d/ShowroomRoot'));
 
 // When the page was prerendered (the postbuild puppeteer crawl writes static
@@ -53,7 +52,7 @@ if (isShowroom) {
   ReactDOM.createRoot(container).render(
     <React.StrictMode>
       <ErrorBoundary>
-        <React.Suspense fallback={null}><BloomGate><React.Suspense fallback={null}><ShowroomRoot /></React.Suspense></BloomGate></React.Suspense>{/* [YAS-BLOOM 2026-11-21] password first; the showroom chunk loads only after it */}
+        <React.Suspense fallback={null}><ShowroomRoot /></React.Suspense>
       </ErrorBoundary>
     </React.StrictMode>
   );
