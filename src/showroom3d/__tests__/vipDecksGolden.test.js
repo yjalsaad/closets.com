@@ -26,7 +26,7 @@ describe('golden: default deck == old vipContent output', () => {
     }
   });
   test('the default deck is the first permanent deck, in the owner\'s station order, four stations after the Welcome lead-in slide, "station" wording', () => {
-    expect(PERMANENT_DECKS[1]).toBe(COMPANY_DECK); expect(COMPANY_DECK.slides.slice(1)).toEqual(DEFAULT_DECK.slides); expect(COMPANY_DECK.slides[0].builtin).toBe('welcome'); expect(COMPANY_DECK.preface).toBe(1); expect(PERMANENT_DECKS.map((d) => d.id)).toEqual(['meeting', 'default', 'closets-profile', 'yas-profile', 'investor', 'factory-tour', 'film-v2', 'film']);   // Bloom Meeting added three decks expect(DEFAULT_DECK.slides.map((s) => s.builtin)).toEqual(['story', 'projects', 'hub', 'contact']); expect(DEFAULT_DECK.unit).toBe('station'); expect(DEFAULT_DECK.slides).toHaveLength(4);
+    expect(PERMANENT_DECKS[1]).toBe(COMPANY_DECK); expect(COMPANY_DECK.slides.slice(1)).toEqual(DEFAULT_DECK.slides); expect(COMPANY_DECK.slides[0].builtin).toBe('welcome'); expect(COMPANY_DECK.preface).toBe(1); expect(PERMANENT_DECKS.map((d) => d.id)).toEqual(['meeting', 'default', 'closets-profile', 'yas-profile', 'cadi', 'investor', 'factory-tour', 'film-v2', 'film']);   // Bloom Meeting added three decks expect(DEFAULT_DECK.slides.map((s) => s.builtin)).toEqual(['story', 'projects', 'hub', 'contact']); expect(DEFAULT_DECK.unit).toBe('station'); expect(DEFAULT_DECK.slides).toHaveLength(4);
   });
   test('the default deck still ends on a slide that shows the disclaimer, and withDisclaimer does not append a second one', () => {
     expect(deckHasDisclaimer(DEFAULT_DECK)).toBe(true); expect(withDisclaimer(DEFAULT_DECK).slides).toHaveLength(4);
