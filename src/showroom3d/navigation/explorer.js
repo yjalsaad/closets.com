@@ -32,6 +32,8 @@ import { loadWelcomeConfig } from '../vip/welcome';
 import { withCollections, collectionsZones } from '../collections/layout';
 import { bloomBoxes, bloomZones, bloomGraph, withBloomLift, ARRIVE, REVEAL, WALL_VIEW, LIFT_STAND, bloomBigView } from '../scenes/bloom/layout';
 import { FILM_V2_DECK_ID, JOURNEY_ACTIVE } from '../vip/film';
+import { resolveDeck } from '../vip/deckSchema';
+import { drawSlide } from '../scenes/vip/panels';
 import { loadFilmChoice } from '../vip/filmChoice';
 import { withDesignStudio, studioZones } from '../designstudio/layout';
 
@@ -399,7 +401,12 @@ export class Explorer {
   }
   onFilm() { const P = this.products; if (P && P.vip && P.vip.setFilm) P.vip.setFilm(this.filmView()); this.bloomFilm(); this.emit({ vipFilmRev: (this.filmRev = (this.filmRev || 0) + 1) }); }
   /** the Bloom video wall shows the same film state as the VIP screen (only while somebody is on Floor 2) */
-  bloomFilm() { const B = this.engine.bloom; if (B && this.level === 'l2') B.floor.setFilm(this.filmView()); }
+  bloomFilm() { const B = this.engine.bloom; if (B && this.level === 'l2') B.floor.setFilm(this.filmView() || this.bloomSlideView()); }
+  /** Floor 2 boardroom: the wall used to draw films only, so any other deck left the last film card ("Loading...") up. A generic slide of the chosen deck is now drawn on the wall; built-in stations keep the film card. */
+  bloomSlideView() {
+    const d = this.deck, i = this.ds.slide, sl = d && d.slides[i]; if (!sl || sl.builtin) return null;
+    return { status: 'slide', slideKey: d.id + ':' + i + ':' + (this.uiLang || ''), slideDraw: (g, w, h, l) => { const rd = resolveDeck({ ...d, slides: [sl] }, l); drawSlide(g, w, h, { lang: l, slide: rd.slides[0], index: i, count: d.slides.length, deckTitle: rd.title, images: new Map() }); } };
+  }
   /** called whenever the deck / slide changes: the film entry loads its manifest; any other deck pauses the film and gives the wall back to the slides */
   syncFilm() {
     const P = this.products;
