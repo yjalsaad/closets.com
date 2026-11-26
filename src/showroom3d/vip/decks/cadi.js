@@ -1,5 +1,5 @@
-/* "CADi": the owner's "Bonsai Hub & CADi by YAS" presentation (Bonsai-CADi.pdf, 16 slides, English and Arabic), added to the boardroom at the owner's request (Nov 2026).
- * Condensed to the room's slide format: the PDF's 16 slides become 20 (slides 4, 5, 7, 11 and 15 hold more than a wall slide can show, so each is split in two). Text follows the PDF; nothing is added.
+/* "CADi": the owner's "Bonsai Hub & CADi by YAS" presentation (first Bonsai-CADi.pdf, 16 slides; updated Nov 2026 to the 29-slide "From Workshop to Digital Factory" version, English and Arabic), added to the boardroom at the owner's request (Nov 2026).
+ * Condensed to the room's slide format: the PDF's 16 slides become 20 (slides 4, 5, 7, 11 and 15 hold more than a wall slide can show, so each is split in two); its 12 appendix pages (494 module names) become three summary slides, the full names stay in the PDF. Text follows the PDF; nothing is added.
  * Source lines name the document by slide number. Omitted on purpose: the two logos (no image files supplied). Arabic is as supplied in the PDF. */
 const T = (en, ar) => ({ en, ar });
 const SRC = (n) => T(`Bonsai Hub & CADi by YAS presentation, slide ${n}`, `عرض Bonsai Hub وCADi by YAS، الشريحة ${n}`);
@@ -162,5 +162,32 @@ export const CADI_DECK = {
         T('Open to partnerships with manufacturers and SME programmes.', 'منفتحون على الشراكة مع المصنّعين وبرامج التمكين.'),
       ],
       blocks: [{ type: 'stat', items: [{ value: 24, label: T('automated test suites', 'حزمة اختبار آلية') }, { value: 536, label: T('row-level security policies', 'سياسة أمان للبيانات') }, { value: 47, label: T('reversible migrations', 'ترحيل قابل للتراجع') }], source: SRC(16) }] },
+    { id: 'catalogue', accent: 'brass', title: T('The full module catalogue', 'دليل الوحدات الكامل'),
+      lead: T('Live modules across 31 menu groups.', 'وحدة تعمل عبر 31 مجموعة في القائمة.'),
+      bullets: [
+        T('Counted from the product menu, main branch, 24 Nov 2026.', 'المصدر: قائمة المنتج، الفرع الرئيسي، 24 نوفمبر 2026.'),
+        T('Hidden and archived pages are excluded.', 'دون الصفحات الخفية والمؤرشفة.'),
+      ],
+      blocks: [{ type: 'stat', items: [{ value: 494, label: T('live modules', 'وحدة تعمل') }, { value: 31, label: T('menu groups', 'مجموعة في القائمة') }], source: SRC('17') }] },
+    { id: 'catalogue-a', accent: 'sage', title: T('Module catalogue: part one', 'دليل الوحدات: الجزء الأول'),
+      lead: T('Six areas, 247 modules.', 'ست مجالات، 247 وحدة.'),
+      blocks: [{ type: 'table', head: [T('Area', 'المجال'), T('Modules', 'الوحدات')], rows: [
+        [T('Design, CADi & pricing', 'التصميم وCADi والتسعير'), '43'],
+        [T('Executive, AI & platform', 'الإدارة والذكاء والمنصّة'), '51'],
+        [T('External sales', 'المبيعات الخارجية'), '30'],
+        [T('Corporate & projects', 'المشاريع الكبرى وإدارة المشاريع'), '37'],
+        [T('Sales, leads & marketing', 'المبيعات والتسويق'), '39'],
+        [T('E-commerce, showroom & websites', 'التجارة والمعرض والمواقع'), '47'],
+      ] }], source: T('Bonsai Hub & CADi by YAS presentation, appendix, slides 18 to 23', 'عرض Bonsai Hub وCADi by YAS، الملحق، الشرائح 18 to 23') },
+    { id: 'catalogue-b', accent: 'sage', title: T('Module catalogue: part two', 'دليل الوحدات: الجزء الثاني'),
+      lead: T('Six areas, 247 modules.', 'ست مجالات، 247 وحدة.'),
+      blocks: [{ type: 'table', head: [T('Area', 'المجال'), T('Modules', 'الوحدات')], rows: [
+        [T('Operations & quality', 'العمليات والجودة'), '36'],
+        [T('Factory', 'المصنع'), '46'],
+        [T('Finance & accounting', 'المالية والمحاسبة'), '53'],
+        [T('Procurement, suppliers & collections', 'المشتريات والموردون والتحصيل'), '29'],
+        [T('Human resources', 'الموارد البشرية'), '47'],
+        [T('IT & administration', 'تقنية المعلومات والشؤون الإدارية'), '36'],
+      ] }], source: T('Bonsai Hub & CADi by YAS presentation, appendix, slides 24 to 29', 'عرض Bonsai Hub وCADi by YAS، الملحق، الشرائح 24 to 29') },
   ],
 };
