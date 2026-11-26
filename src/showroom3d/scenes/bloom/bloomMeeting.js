@@ -190,7 +190,7 @@ export function buildBloomFloor({ M, tier, lang = 'en', logoTex = null, glowTex 
   const sized = (mW, d) => { const pxm = hiRes ? 369 : 277, w = Math.min(4096, Math.round(mW * pxm)); return { w, h: Math.round(w * d.h / d.w) }; };
   function ensurePanels() {
     if (state.panelsBuilt) return; state.panelsBuilt = true;
-    film = makePanel(filmW, filmH, (g, w, h, l) => { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; drawFilmIdle(g, w, h, { lang: l, film: state.film || { status: 'idle' } }); }, state.lang, { design: { w: 1536, h: 864 }, anisotropy: aniso });
+    film = makePanel(filmW, filmH, (g, w, h, l) => { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; if (state.film && state.film.slideDraw) { state.film.slideDraw(g, w, h, l); return; } drawFilmIdle(g, w, h, { lang: l, film: state.film || { status: 'idle' } }); }, state.lang, { design: { w: 1536, h: 864 }, anisotropy: aniso });
     filmMat = new THREE.MeshBasicMaterial({ map: film.tex, toneMapped: false }); filmMesh = mesh(new THREE.PlaneGeometry(S.w, S.h), filmMat, { pos: [S.x - 0.08, S.y, S.z], rot: [0, -Math.PI / 2, 0], name: 'f2-film' }); mirrored.push(filmMesh);
     filmStrip = makePanel(1536, 220, (g, w, h, l) => drawFilmOverlay(g, w, h, { lang: l, cue: state.film ? state.film.cue : '', capLang: state.film ? state.film.caption : l, real: !!(state.film && state.film.real), mixed: !!(state.film && state.film.mixed), filmId: state.film && state.film.id }), state.lang, { anisotropy: aniso });
     filmStripMesh = mesh(new THREE.PlaneGeometry(S.w, S.h * 220 / 864), new THREE.MeshBasicMaterial({ map: filmStrip.tex, transparent: true, depthWrite: false, toneMapped: false }), { pos: [S.x - 0.085, S.y - S.h / 2 + (S.h * 220 / 864) / 2, S.z], rot: [0, -Math.PI / 2, 0], name: 'f2-film-strip' }); filmStripMesh.visible = false;
@@ -234,7 +234,7 @@ export function buildBloomFloor({ M, tier, lang = 'en', logoTex = null, glowTex 
       if (useVideo) { if (!state.videoTex || state.videoTex.image !== view.video) { if (state.videoTex) state.videoTex.dispose(); const vt = new THREE.VideoTexture(view.video); vt.colorSpace = THREE.SRGBColorSpace; vt.minFilter = THREE.LinearFilter; vt.magFilter = THREE.LinearFilter; vt.generateMipmaps = false; state.videoTex = vt; } if (filmMat.map !== state.videoTex) { filmMat.map = state.videoTex; filmMat.needsUpdate = true; } }
       else if (filmMat.map !== film.tex) { filmMat.map = film.tex; filmMat.needsUpdate = true; }
       filmStripMesh.visible = useVideo; if (useVideo && (!was || was.cue !== view.cue || was.caption !== view.caption || !was.video || was.id !== view.id)) filmStrip.redraw(state.lang);
-      if (!useVideo && (!was || !view || was.status !== view.status || was.poster !== view.poster || was.prep !== view.prep || was.video || was.id !== view.id)) film.redraw(state.lang);
+      if (!useVideo && (!was || !view || was.status !== view.status || was.poster !== view.poster || was.prep !== view.prep || was.video || was.id !== view.id || was.slideKey !== view.slideKey)) film.redraw(state.lang);
     },
     get filmOnWall() { return !!filmMat && filmMat.map === state.videoTex && !!state.videoTex; },
     /** per frame while Floor 2 is shown */
